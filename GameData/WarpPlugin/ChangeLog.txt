@@ -1,0 +1,38 @@
+KSPI 1.7.0 Released on 2016-03-28
+
+
+    Added Magneto Inertial Fusion Rocket Engine (Artist nli2work)
+    Added Tokamak Engine, which Combines Fusion Reactor with integrated Magnetic Nozzle (Credits for SilverSilver for re-texture)
+    Added XI Fusion Reactor which combines a Magnetic Confinement Reactor with Direct Energy Converter
+    Added Half Size Wrap Radiator (Artist PorkJet)
+    Added 4 additional tech-level to Interstellar Radiators which are unlock by CTT heat management tech nodes
+    Moved initial ViSTA engine to exotic fusion
+    Improve Compatibility with Navigation tools like MechJeb and Better Burn prediction (Thanks to RxTen1)
+    Increased Isp of open cycle Gas Core Reactor
+    Increased Maximum WArp speed to 1000 time speed of light
+    Thermal Nozzle with Isp higher than 3000s will function as a magnetic nozzle and therefore will not be effective withing atmospheres
+    Science Lab now requires Megawatt power to convert science data into research data
+    Mass Energy Generator depends on Power output reactor and Technology
+    Direct Energy Converter now requires High Tech Electric Systems to be unlocked
+    Increased Volume Fusion Reactor, Increased Mass and Reduced Initial Power Output
+    Fusion Reactors now has up to 5 tech-levels
+    Merged Dumbo and Solid Core Reactor (NERVA) which now has 5 tech levels
+    Reduced Initial Power Output Pebble Bed Reactor but added 2 additional tech levels
+    Fusion Mode proton-Boron11 now required Exotic Fusion Tech
+    Darkened Wrapped Radiators
+
+1.7.3
+
+* Added Interstellar Wrapped Tanks which can be ejected, ideal for launches
+* Added Curved Graphite Radiators and Edge
+* Fixed some log error message in VAB
+* Depending on Nozzle type, Antimatter reactor will perform either as Gas Core or Plasma Antimatter reactor
+* Balance: Reduced Antimatter reactor maximum problem
+* Improved Antimatter  Fuel Efficiency
+* Improved responsiveness Thermal Launch nozzle
+
+
+
+
+
+

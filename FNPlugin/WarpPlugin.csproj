@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{AD686AF3-DDDC-4991-909F-EAD9C16C469B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>FNPlugin</RootNamespace>
+    <AssemblyName>Interstellar</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release KSP 0.90|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>.\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release KSP 0.25|AnyCPU'">
+    <OutputPath>bin\Release KSP 0.25\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug KSP 0.90|AnyCPU'">
+    <OutputPath>..\..\..\..\..\Games\Kerbal Space Program 0.90\GameData\WarpPlugin\Plugins\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release KSP 1.0|AnyCPU'">
+    <OutputPath>bin\Release KSP 1.0\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="KSPUtil">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\KSPUtil.dll</HintPath>
+    </Reference>
+    <Reference Include="Scale_Redist, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\TweakScale\plugins\Scale_Redist.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Toolbar">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\000_Toolbar\Toolbar.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Extensions\OrbitExtensions.cs" />
+    <Compile Include="Extensions\ParseTools.cs" />
+    <Compile Include="Extensions\PartExtensions.cs" />
+    <Compile Include="Extensions\ThermalSourceSearchResult.cs" />
+    <Compile Include="Microwave\IElectricPowerSource.cs" />
+    <Compile Include="Propulsion\AlcubierreDrive.cs" />
+    <Compile Include="Propulsion\Contract\IEngineNoozle.cs" />
+    <Compile Include="Propulsion\ExtendedPropellant.cs" />
+    <Compile Include="Propulsion\ModuleEnginesWarp.cs" />
+    <Compile Include="Propulsion\FNModuleRCSFX.cs" />
+    <Compile Include="Propulsion\FNRCSSounds.cs" />
+    <Compile Include="Propulsion\PropellantControl.cs" />
+    <Compile Include="Propulsion\ThermalEnginePropellant.cs" />
+    <Compile Include="Propulsion\ThermalPowerTransport.cs" />
+    <Compile Include="Propulsion\VistaEngineControllerAdvanced.cs" />
+    <Compile Include="Refinery\AluminiumElectrolyser.cs" />
+    <Compile Include="Collectors\AntimatterCollector.cs" />
+    <Compile Include="Refinery\AntimatterFactory.cs" />
+    <Compile Include="Collectors\AtmosphericIntake.cs" />
+    <Compile Include="Refinery\AnthraquinoneProcessor.cs" />
+    <Compile Include="Refinery\AmmoniaElectrolyzer.cs" />
+    <Compile Include="Propulsion\ThermalNozzleController.cs" />
+    <Compile Include="Propulsion\InterstellarMagneticNozzleControllerFX.cs" />
+    <Compile Include="Refinery\ReverseWaterGasShift.cs" />
+    <Compile Include="Refinery\WaterGasShift.cs" />
+    <Compile Include="Refinery\CarbonDioxideElectroliser.cs" />
+    <Compile Include="Science\InterstellarResourceScienceModule.cs" />
+    <Compile Include="Toolbar\InterstellarToolbar.cs" />
+    <Compile Include="Microwave\MicrowaveSources.cs" />
+    <Compile Include="Refinery\HaberProcess.cs" />
+    <Compile Include="Refinery\PeroxideProcess.cs" />
+    <Compile Include="Reactors\Interfaces\IChargedParticleSource.cs" />
+    <Compile Include="Reactors\InterstellarCatalysedFissionFusion.cs" />
+    <Compile Include="Extensions\InterstellarCelestialBodyExtensions.cs" />
+    <Compile Include="Reactors\InterstellarFissionMSRGC.cs" />
+    <Compile Include="Reactors\InterstellarFissionPBDP.cs" />
+    <Compile Include="Reactors\InterstellarFusionReactor.cs" />
+    <Compile Include="Reactors\InterstellarInertialConfinementReactor.cs" />
+    <Compile Include="Propulsion\ElectricEngineControllerFX.cs" />
+    <Compile Include="Propulsion\ElectricEnginePropellant.cs" />
+    <Compile Include="Propulsion\ElectricRCSController.cs" />
+    <Compile Include="Toolbar\FlightUIStarter.cs" />
+    <Compile Include="Science\FNImpactorModule.cs" />
+    <Compile Include="Science\FNLCMassSpectrometer.cs" />
+    <Compile Include="Science\FNMassSpectrometer.cs" />
+    <Compile Include="Storage\FNModuleCryostat.cs" />
+    <Compile Include="Wasteheat\FNModulePreecooler.cs" />
+    <Compile Include="Refinery\FNModuleResourceExtraction.cs" />
+    <Compile Include="Science\DTMagnetometer.cs" />
+    <Compile Include="Reactors\FNAntimatterReactor.cs" />
+    <Compile Include="FNResourceOvermanager.cs" />
+    <Compile Include="Science\FNResourceScanner.cs" />
+    <Compile Include="Science\FNSeismicProbe.cs" />
+    <Compile Include="Reactors\FNThermalHeatExchanger.cs" />
+    <Compile Include="Refinery\InterstellarRefinery.cs" />
+    <Compile Include="InterstellarResourcesConfiguration.cs" />
+    <Compile Include="Science\InterstellarTelescope.cs" />
+    <Compile Include="Refinery\Interfaces\INuclearFuelReprocessable.cs" />
+    <Compile Include="Refinery\Interfaces\IRefineryActivity.cs" />
+    <Compile Include="Science\ITelescopeController.cs" />
+    <Compile Include="IUpgradeableModule.cs" />
+    <Compile Include="Refinery\NuclearFuelReprocessor.cs" />
+    <Compile Include="GameConstants.cs" />
+    <Compile Include="Reactors\InterstellarReactor.cs" />
+    <Compile Include="Reactors\InterstellarTokomakFusionReator.cs" />
+    <Compile Include="Collectors\ISRUScoop.cs" />
+    <Compile Include="Wasteheat\FNResourceManager.cs" />
+    <Compile Include="FNResourceSuppliableModule.cs" />
+    <Compile Include="Microwave\MicrowavePowerReceiver.cs" />
+    <Compile Include="Microwave\MicrowavePowerTransmitter.cs" />
+    <Compile Include="Microwave\MicrowaveRoute.cs" />
+    <Compile Include="Science\ModableExperimentResultDialogPage.cs" />
+    <Compile Include="Science\ModuleModableScienceGenerator.cs" />
+    <Compile Include="Storage\ModuleElementRadioactiveDecay.cs" />
+    <Compile Include="Propulsion\ModuleSabreHeating.cs" />
+    <Compile Include="PluginHelper.cs" />
+    <Compile Include="Radiation\RadiationDose.cs" />
+    <Compile Include="Reactors\ReactorFuel.cs" />
+    <Compile Include="Reactors\ReactorFuelMode.cs" />
+    <Compile Include="Refinery\SabatierReactor.cs" />
+    <Compile Include="Science\ScienceModule.cs" />
+    <Compile Include="TextureTests.cs" />
+    <Compile Include="Refinery\UF4Ammonolysiser.cs" />
+    <Compile Include="Toolbar\VABThermalUI.cs" />
+    <Compile Include="Radiation\VanAllen.cs" />
+    <Compile Include="FNGenerator.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Science\ComputerCore.cs" />
+    <Compile Include="Microwave\InterstellarRCSModule.cs" />
+    <Compile Include="Extensions\VesselExtensions.cs" />
+    <Compile Include="Microwave\VesselMicrowavePersistence.cs" />
+    <Compile Include="Microwave\VesselRelayPersistence.cs" />
+    <Compile Include="Propulsion\VistaEngineController.cs" />
+    <Compile Include="Wasteheat\FNRadiator.cs" />
+    <Compile Include="Wasteheat\FNSolarPanelWasteHeatModule.cs" />
+    <Compile Include="Storage\AntimatterStorageTank.cs" />
+    <Compile Include="Propulsion\ModuleSolarSail.cs" />
+    <Compile Include="Reactors\Interfaces\IThermalSource.cs" />
+    <Compile Include="Radiation\FNModuleRadiation.cs" />
+    <Compile Include="Refinery\WaterElectroliser.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ItemGroup>
+    <None Include="License.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenResourceSystem\OpenResourceSystem.csproj">
+      <Project>{bca16e74-23e5-4327-9d24-b908a8ce3836}</Project>
+      <Name>OpenResourceSystem</Name>
+      <Aliases>global</Aliases>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

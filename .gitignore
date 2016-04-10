@@ -1,0 +1,13 @@
+FNPlugin/bin
+bin
+obj
+WarpPlugin.userprefs
+FNPlugin/obj
+WPv023/
+*.suo
+*.tga
+*.ogg
+*.mbm
+*.suo
+Thumbs.db
+WarpPlugin.v12.suo
