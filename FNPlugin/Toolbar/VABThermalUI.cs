@@ -32,7 +32,7 @@ namespace FNPlugin
 
         public void Start() 
         {
-            RenderingManager.AddToPostDrawQueue(0, OnGUI);
+            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
 
             if (PluginHelper.using_toolbar) 
                 render_window = false;

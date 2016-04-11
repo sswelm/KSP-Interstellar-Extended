@@ -21,7 +21,7 @@ namespace FNPlugin
             if (!PluginHelper.using_toolbar) {
                 button_position = new Rect(Screen.width - guibuttontexture.width, Screen.height - guibuttontexture.height - 150, guibuttontexture.width, guibuttontexture.height);
             }
-            RenderingManager.AddToPostDrawQueue(0, OnGUI);
+            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
 
         public void Update() 

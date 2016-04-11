@@ -69,7 +69,7 @@ namespace FNPlugin.Refinery
 
             _refinery_activities = unsortedList.OrderBy(a => a.ActivityName).ToList();
 
-            RenderingManager.AddToPostDrawQueue(0, OnGUI);
+            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
 
         public override void OnUpdate()

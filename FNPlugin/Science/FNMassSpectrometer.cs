@@ -35,7 +35,7 @@ namespace FNPlugin
             if (state == StartState.Editor) return;
             
             
-            RenderingManager.AddToPostDrawQueue(0, OnGUI);
+            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
             
         }
 
