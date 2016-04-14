@@ -230,7 +230,7 @@ namespace FNPlugin
         protected const float _hydroloxDecompositionEnergy = 16.2137f;
         protected Guid id = Guid.NewGuid();
         protected ConfigNode[] propellants;
-        protected KSP.UI.Screens.ProtoStageIconInfo fuel_gauge;
+
         protected bool hasrequiredupgrade = false;
         protected bool hasstarted = false;
         protected bool hasSetupPropellant = false;
@@ -447,8 +447,6 @@ namespace FNPlugin
             _vesselResourceIntake = vessel.FindPartModulesImplementing<ModuleResourceIntake>();
             _vesselThermalNozzles = vessel.FindPartModulesImplementing<IEngineNoozle>();
 
-            fuel_gauge = part.stackIcon.DisplayInfo();
-
             // if engine isn't already initialised, initialise it
             if (engineInit == false)
                 engineInit = true;
@@ -582,27 +580,6 @@ namespace FNPlugin
                 currentpropellant += (float)partresource.amount;
                 maxpropellant += (float)partresource.maxAmount;
             }
-
-            if (fuel_gauge != null && fuel_gauge.infoBoxRef != null)
-            {
-                if (myAttachedEngine.isOperational)
-                {
-                    if (!fuel_gauge.infoBoxRef.expanded)
-                        fuel_gauge.infoBoxRef.Expand();
-
-                     fuel_gauge.SetLength(2);
-
-                    if (maxpropellant > 0)
-                        fuel_gauge.SetValue(currentpropellant / maxpropellant);
-                    else
-                        fuel_gauge.SetValue(0);
-                }
-                else
-                {
-                    if (fuel_gauge.infoBoxRef.expanded)
-                        fuel_gauge.infoBoxRef.Collapse();
-                }
-            }
         }
 
         public override void OnActive()
@@ -645,34 +622,7 @@ namespace FNPlugin
                     {
                         curprop.drawStackGauge = false;
 
-                        UnityEngine.Debug.Log("[KSPI] - SetupPropellants 1 C");
-
-                        if (fuel_gauge == null)
-                            UnityEngine.Debug.LogWarning("[KSPI] - ThermalNozzleController - SetupPropellants fuel_gauge is null");
-                        else
-                        {
-                            UnityEngine.Debug.Log("[KSPI] - SetupPropellants 1 E");
-
-                            if (_currentpropellant_is_jet)
-                                fuel_gauge.SetMessage("Atmosphere");
-                            else
-                            {
-                                fuel_gauge.SetMessage(curprop.StoragePropellantName);
-                                myAttachedEngine.thrustPercentage = 100;
-                            }
-
-                            UnityEngine.Debug.Log("[KSPI] - SetupPropellants 1 F");
-
-                            //fuel_gauge.SetMsgBgColor(XKCDColors.DarkLime);
-                            fuel_gauge.SetMsgBgColor(XKCDColors.White);
-                            //fuel_gauge.SetMsgTextColor(XKCDColors.ElectricLime);
-                            fuel_gauge.SetMsgTextColor(XKCDColors.Black);
-                            fuel_gauge.SetProgressBarColor(XKCDColors.Yellow);
-                            fuel_gauge.SetProgressBarBgColor(XKCDColors.DarkLime);
-                            fuel_gauge.SetValue(0f);
-                        }
-
-                        
+                        UnityEngine.Debug.Log("[KSPI] - SetupPropellants 1 C");                      
                     }
 
                     UnityEngine.Debug.Log("[KSPI] - SetupPropellants 2");
@@ -711,7 +661,10 @@ namespace FNPlugin
                     UnityEngine.Debug.Log("[KSPI] - SetupPropellants 4");
                 }
 
-                
+                //Get the Ignition state, i.e. is the engine shutdown or activated
+                var engineState = myAttachedEngine.getIgnitionState;
+
+                myAttachedEngine.Shutdown();
 
                 // update the engine with the new propellants
                 if (PartResourceLibrary.Instance.GetDefinition(list_of_propellants[0].name) != null)
@@ -726,10 +679,13 @@ namespace FNPlugin
                         ConfigNode propellantConfigNode = newPropNode.AddNode("PROPELLANT");
                         propellantConfigNode.AddValue("name", prop.name);
                         propellantConfigNode.AddValue("ratio", prop.ratio);
-                        propellantConfigNode.AddValue("DrawGauge", prop.drawStackGauge);
+                        propellantConfigNode.AddValue("DrawGauge", "true");
                     }
                     myAttachedEngine.Load(newPropNode);
                 }
+
+                if (engineState == true)
+                    myAttachedEngine.Activate();
 
                 UnityEngine.Debug.Log("[KSPI] - SetupPropellants 5");
 
@@ -1081,19 +1037,8 @@ namespace FNPlugin
                     var waterStorageRatio = totalMaxAmount > 0 ? totalAmount / totalMaxAmount : 0;
                     var message = (waterStorageRatio * 100).ToString("0") + "% " + extendedPropellant.StoragePropellantName + " " + totalAmount.ToString("0") + "/" + totalMaxAmount.ToString("0");
 
-                    if (fuel_gauge != null)
-                    {
-                        fuel_gauge.SetLength(5);
-                        fuel_gauge.SetMessage(message);
-                    }
-
                     var collectFlowGlobal = ORSHelper.fixedRequestResource(this.part, extendedPropellant.StoragePropellantName, propellantShortage);
                     propellantResourse.amount += collectFlowGlobal;
-                }
-                else
-                {
-                    if (fuel_gauge != null)
-                        fuel_gauge.SetLength(2.5f);
                 }
 
                 UpdateAnimation();
