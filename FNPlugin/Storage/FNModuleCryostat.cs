@@ -25,8 +25,8 @@ namespace FNPlugin
         public float boilOffRate;
         [KSPField(isPersistant = false)]
         public float powerReqKW;
-        [KSPField(isPersistant = false)]
-        public float fullPowerReqKW = 0;
+        //[KSPField(isPersistant = false)]
+        //public float fullPowerReqKW = 0;
         [KSPField(isPersistant = false)]
         public float powerReqMult = 1f;
         [KSPField(isPersistant = false)]
@@ -82,8 +82,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            if (fullPowerReqKW == 0)
-                fullPowerReqKW = powerReqKW;
+            //if (fullPowerReqKW == 0)
+            //    fullPowerReqKW = powerReqKW;
 
             Events["Activate"].guiName = StartActionName;
             Events["Deactivate"].guiName = StopActionName;
@@ -118,17 +118,15 @@ namespace FNPlugin
 
                 if (powerReqKW > 0)
                 {
-                    var resourceRatio = (float)Math.Pow(cryostat_resource.amount / cryostat_resource.maxAmount, resourceRatioExp);
+                    //var resourceRatio = (float)Math.Pow(cryostat_resource.amount / cryostat_resource.maxAmount, resourceRatioExp);
+                    //currentPowerReq = fullPowerReqKW > powerReqKW
+                    //    ? powerReqKW + (fullPowerReqKW - powerReqKW) * resourceRatio
+                    //    : fullPowerReqKW + (powerReqKW - fullPowerReqKW) * (1 - resourceRatio);
+                    currentPowerReq = powerReqKW * 0.1f * environmentFactor * powerReqMult;
 
-                    currentPowerReq = fullPowerReqKW > powerReqKW
-                        ? powerReqKW + (fullPowerReqKW - powerReqKW) * resourceRatio
-                        : fullPowerReqKW + (powerReqKW - fullPowerReqKW) * (1 - resourceRatio);
-
-                    currentPowerReq *= environmentFactor * powerReqMult;
-
-                    powerStatusStr = powerReqKW < 1.0e+3
+                    powerStatusStr = currentPowerReq < 1.0e+3
                         ? recievedPowerKW.ToString("0.00") + " KW / " + currentPowerReq.ToString("0.00") + " KW"
-                        : powerReqKW < 1.0e+6
+                        : currentPowerReq < 1.0e+6
                             ? (recievedPowerKW / 1.0e+3).ToString("0.000") + " MW / " + (currentPowerReq / 1.0e+3).ToString("0.000") + " MW"
                             : (recievedPowerKW / 1.0e+6).ToString("0.000") + " GW / " + (currentPowerReq / 1.0e+6).ToString("0.000") + " GW";
                 }
@@ -158,7 +156,7 @@ namespace FNPlugin
 
                 float fixedRecievedChargeKW = consumeFNResource(fixedPowerReqKW / 1000.0f, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f;
 
-                if (powerReqKW < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
+                if (currentPowerReq < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
                     fixedRecievedChargeKW += part.RequestResource("ElectricCharge", fixedPowerReqKW - fixedRecievedChargeKW);
 
                 recievedPowerKW = fixedRecievedChargeKW / TimeWarp.fixedDeltaTime;
@@ -194,7 +192,7 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            return "Power Requirements: " + powerReqKW.ToString("0.0") + " KW\n Powered Boil Off Fraction: " + boilOffRate * GameConstants.EARH_DAY_SECONDS + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * GameConstants.EARH_DAY_SECONDS + " /day";
+            return "Power Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW\n Powered Boil Off Fraction: " + boilOffRate * GameConstants.EARH_DAY_SECONDS + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * GameConstants.EARH_DAY_SECONDS + " /day";
         }
     }
 }

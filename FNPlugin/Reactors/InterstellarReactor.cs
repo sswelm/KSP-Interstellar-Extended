@@ -9,7 +9,7 @@ using FNPlugin.Propulsion;
 
 namespace FNPlugin
 {
-    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IUpgradeableModule
+    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource
    { 
         public enum ReactorTypes
         {
@@ -141,8 +141,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public int reactorType;
         [KSPField(isPersistant = false)]
-        public int upgradedReactorType;
-        [KSPField(isPersistant = false)]
         public float fuelEfficiency = 1;
         [KSPField(isPersistant = false)]
         public float upgradedFuelEfficiency;
@@ -207,8 +205,6 @@ namespace FNPlugin
         public string upgradeTechReq = String.Empty;
 
         // GUI strings
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
-        public string reactorTypeStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Core Temp")]
         public string coretempStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Status")]
@@ -451,7 +447,7 @@ namespace FNPlugin
             }
         }
 
-        public int ReactorType { get { return isupgraded ? upgradedReactorType > 0 ? upgradedReactorType : reactorType : reactorType; } }
+        public int ReactorType { get { return reactorType; } }
 
         public virtual string TypeName { get { return part.partInfo.title; } }
 
@@ -603,18 +599,6 @@ namespace FNPlugin
             breedtritium = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
-        public void RetrofitReactor()
-        {
-            if (ResearchAndDevelopment.Instance == null) return;
-            if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
-
-            upgradePartModule();
-            ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
-        }
-
-
-
         [KSPAction("Activate Reactor")]
         public void ActivateReactorAction(KSPActionParam param)
         {
@@ -723,17 +707,6 @@ namespace FNPlugin
             windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
             base.OnStart(state);
 
-            // check if we need to upgrade
-            if (state == StartState.Editor)
-            {
-                print("[KSPI] Checking for upgrade tech: " + UpgradeTechnology);
-                if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative())
-                {
-                    print("[KSPI] Found required upgradeTech, Upgrading Reactor");
-                    upgradePartModule();
-                }
-            }
-
             // configure reactor modes
             print("[KSP Interstellar] Configuring Reactor Fuel Modes");
             fuel_modes = GetReactorFuelModes();
@@ -744,13 +717,9 @@ namespace FNPlugin
             if (state == StartState.Editor)
             {
                 maximumThermalPowerFloat = MaximumThermalPower;
-                reactorTypeStr = isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName;
                 coretempStr = CoreTemperature.ToString("0") + " K";
                 return;
             }
-
-            if (this.HasTechsRequiredToUpgrade() || CanPartUpgradeAlternative())
-                hasrequiredupgrade = true;
 
             if (!reactorInit)
             {
@@ -924,10 +893,8 @@ namespace FNPlugin
         {
             Events["StartBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && !breedtritium && IsNeutronRich && IsEnabled;
             Events["StopBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && breedtritium && IsNeutronRich && IsEnabled;
-            Events["RetrofitReactor"].active = ResearchAndDevelopment.Instance != null ? !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade : false;
             UpdateFuelMode();
 
-            reactorTypeStr = isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName;
             coretempStr = CoreTemperature.ToString("0") + " K";
             if (update_count - last_draw_update > 10)
             {
@@ -1255,26 +1222,19 @@ namespace FNPlugin
             return false;
         }
 
-        public void upgradePartModule()
-        {
-            isupgraded = true;
-            fuel_modes = GetReactorFuelModes();
-        }
-
         public override string GetInfo()
         {
             UpdateReactorCharacteristics();
 
             ConfigNode[] fuelmodes = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
             List<ReactorFuelMode> basic_fuelmodes = fuelmodes.Select(node => new ReactorFuelMode(node)).Where(fm => (fm.SupportedReactorTypes & reactorType) == reactorType).ToList();
-            List<ReactorFuelMode> advanced_fuelmodes = fuelmodes.Select(node => new ReactorFuelMode(node)).Where(fm => (fm.SupportedReactorTypes & (upgradedReactorType > 0 ? upgradedReactorType : reactorType)) == (upgradedReactorType > 0 ? upgradedReactorType : reactorType)).ToList();
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("BASIC REACTOR INFO");
+            sb.AppendLine("REACTOR INFO");
             sb.AppendLine(originalName);
             sb.AppendLine("Thermal Power: " + PluginHelper.getFormattedPowerString(powerOutputMk1));
             sb.AppendLine("Core Temperature: " + coreTemperatureMk1.ToString("0") + "K");
             sb.AppendLine("Fuel Burnup: " + (fuelEfficencyMk1 * 100.0).ToString("0.00") + "%");
-            sb.AppendLine("BASIC FUEL MODES");
+            sb.AppendLine("FUEL MODES");
             basic_fuelmodes.ForEach(fm =>
             {
                 sb.AppendLine("---");
@@ -1288,29 +1248,7 @@ namespace FNPlugin
                 }
                 sb.AppendLine("---");
             });
-            if (nrAvailableUpgradeTechs > 1)
-            {
-                sb.AppendLine("-----");
-                sb.AppendLine("UPGRADED REACTOR INFO");
-                sb.AppendLine(upgradedName);
-                sb.AppendLine("Thermal Power: " + PluginHelper.getFormattedPowerString(powerOutputMk2));
-                sb.AppendLine("Core Temperature: " + coreTemperatureMk2.ToString("0") + "K");
-                sb.AppendLine("Fuel Burnup: " + (fuelEfficencyMk2 * 100.0).ToString("0.00") + "%");
-                sb.AppendLine("UPGRADED FUEL MODES");
-                advanced_fuelmodes.ForEach(fm =>
-                {
-                    sb.AppendLine("---");
-                    sb.AppendLine(fm.ModeGUIName);
-                    sb.AppendLine("Power Multiplier: " + fm.NormalisedReactionRate.ToString("0.00"));
-                    sb.AppendLine("Charged Particle Ratio: " + fm.ChargedPowerRatio.ToString("0.00"));
-                    sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
-                    foreach (ReactorFuel fuel in fm.ReactorFuels)
-                    {
-                        sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * fuelUsePerMJMult * upgradedPowerOutput * fm.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS / upgradedFuelEfficiency + fuel.Unit + "/day");
-                    }
-                    sb.AppendLine("---");
-                });
-            }
+
             return sb.ToString();
         }
 
@@ -1361,13 +1299,7 @@ namespace FNPlugin
                 .Where(fm =>
                     (fm.SupportedReactorTypes & ReactorType) == ReactorType
                     && PluginHelper.HasTechRequirmentOrEmpty(fm.TechRequirement)
-                    && VerifyUpgradedWhenNeeded(fm.RequiresUpgrade)
                     ).ToList();
-        }
-
-        private bool VerifyUpgradedWhenNeeded(bool requiresUpgrade)
-        {
-            return !requiresUpgrade || isupgraded;
         }
 
         protected bool FuelRequiresLab(bool requiresLab)

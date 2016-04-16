@@ -594,12 +594,6 @@ namespace InterstellarFuelSwitch
             _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition2.name);
         }
 
-        public float GetModuleMass(float defaultMass)
-        {
-            var newMass = CalculateDryMass(selectedTankSetup);
-            return newMass;
-        }
-
 	    private float UpdateCost()
 	    {
             try
@@ -946,6 +940,19 @@ namespace InterstellarFuelSwitch
             }
 	    }
 
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
+        {
+            try
+            {
+                return UpdateCost();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("InsterstellarFuelSwitch GetModuleCost Error");
+                throw;
+            }
+        }
+
 	    public float GetModuleCost()
         {
             try
@@ -967,9 +974,37 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch GetModuleCost(float modifier) Error");
+                Debug.LogError("InsterstellarFuelSwitch GetModuleCost Error: " + e.Message);
                 throw;
             }
+        }
+
+        public ModifierChangeWhen GetModuleCostChangeWhen()
+        {
+            return ModifierChangeWhen.CONSTANTLY;
+        }
+
+        public ModifierChangeWhen GetModuleMassChangeWhen()
+        {
+            return ModifierChangeWhen.CONSTANTLY;
+        }
+
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
+        {
+            try
+            {
+                return CalculateDryMass(selectedTankSetup);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("InsterstellarFuelSwitch GetModuleMass Error: " + e.Message);
+                throw;
+            }
+        }
+
+        public float GetModuleMass(float defaultMass)
+        {
+            return CalculateDryMass(selectedTankSetup);
         }
 
 	    public override string GetInfo()
