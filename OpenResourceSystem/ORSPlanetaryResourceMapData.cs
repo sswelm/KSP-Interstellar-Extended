@@ -13,8 +13,6 @@ namespace OpenResourceSystem
         static List<ORSResourceAbundanceMarker> abundance_markers = new List<ORSResourceAbundanceMarker>();
         static int current_body = -1;
         static int map_body = -1;
-        //static GameObject resource_prim;
-        static Material sphere_material = null;
         static protected string displayed_resource = "";
         static protected string map_resource = "";
         static protected long update_count = 0;
@@ -132,7 +130,7 @@ namespace OpenResourceSystem
                 ORSPlanetaryResourceInfo resource_info = body_resource_maps.Where(ri => ri.Value.getResourceName() == resourcename).FirstOrDefault().Value;
                 return getResourceAvailability(body, resource_info.getName(),lat,lng);
             }
-            catch(Exception ex) 
+            catch(Exception) 
             {
                 ORSPlanetaryResourcePixel resource_pixel = new ORSPlanetaryResourcePixel(resourcename, 0, body);
                 return resource_pixel;
