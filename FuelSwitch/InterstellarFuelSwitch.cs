@@ -774,7 +774,7 @@ namespace InterstellarFuelSwitch
 
             // update Dry Mass
             var newMass = CalculateDryMass(selectedTankSetup);
-            part.mass = newMass;
+            //part.mass = newMass;
             dryMassInfo = newMass;
 
             configuredAmounts = "";
@@ -970,7 +970,7 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                return UpdateCost();
+                return modifier * UpdateCost();
             }
             catch (Exception e)
             {
@@ -981,19 +981,19 @@ namespace InterstellarFuelSwitch
 
         public ModifierChangeWhen GetModuleCostChangeWhen()
         {
-            return ModifierChangeWhen.CONSTANTLY;
+            return ModifierChangeWhen.STAGED;
         }
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
         {
-            return ModifierChangeWhen.CONSTANTLY;
+            return ModifierChangeWhen.STAGED;
         }
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
             try
             {
-                return CalculateDryMass(selectedTankSetup);
+                return CalculateDryMass(selectedTankSetup) - defaultMass;
             }
             catch (Exception e)
             {

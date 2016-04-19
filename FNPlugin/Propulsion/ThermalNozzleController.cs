@@ -594,8 +594,6 @@ namespace FNPlugin
             if (_myAttachedReactor == null)
                 return;
 
-            UnityEngine.Debug.Log("[KSPI] - SetupPropellants 0");
-
             try
             {
                 ConfigNode chosenpropellant = propellants[fuel_mode];
@@ -603,62 +601,67 @@ namespace FNPlugin
                 ConfigNode[] propellantNodes = chosenpropellant.GetNodes("PROPELLANT");
                 list_of_propellants.Clear();
 
-                UnityEngine.Debug.Log("[KSPI] - SetupPropellants 1");
-
-                UnityEngine.Debug.Log("[KSPI] - propellantNodes : " + propellantNodes.Count());
-
                 // loop though propellants until we get to the selected one, then set it up
                 foreach (ConfigNode prop_node in propellantNodes)
                 {
-                    UnityEngine.Debug.Log("[KSPI] - SetupPropellants 1 A");
-
                     ExtendedPropellant curprop = new ExtendedPropellant();
 
                     curprop.Load(prop_node);
 
-                    UnityEngine.Debug.Log("[KSPI] - SetupPropellants 1 B");
-
                     if (curprop.drawStackGauge && HighLogic.LoadedSceneIsFlight)
                     {
                         curprop.drawStackGauge = false;
-
-                        UnityEngine.Debug.Log("[KSPI] - SetupPropellants 1 C");                      
+               
                     }
-
-                    UnityEngine.Debug.Log("[KSPI] - SetupPropellants 2");
 
                     if (list_of_propellants == null)
                         UnityEngine.Debug.LogWarning("[KSPI] - ThermalNozzleController - SetupPropellants list_of_propellants is null");
 
                     list_of_propellants.Add(curprop);
 
-                    UnityEngine.Debug.Log("[KSPI] - SetupPropellants 3");
+                    
 
-                    if (curprop.name == "LqdWater")
-                    {
-                        if (!part.Resources.Contains("LqdWater"))
-                        {
-                            ConfigNode node = new ConfigNode("RESOURCE");
-                            node.AddValue("name", curprop.name);
-                            node.AddValue("maxAmount", AttachedReactor.MaximumPower * CurrentPowerThrustMultiplier / Math.Sqrt(AttachedReactor.CoreTemperature));
-                            node.AddValue("possibleAmount", 0);
-                            this.part.AddResource(node);
-                            this.part.Resources.UpdateList();
-                        }
-                    }
-                    else
-                    {
-                        if (part.Resources.Contains("LqdWater"))
-                        {
-                            var partresource = part.Resources["LqdWater"];
-                            if (partresource.amount > 0 && HighLogic.LoadedSceneIsFlight)
-                                ORSHelper.fixedRequestResource(this.part, "Water", -partresource.amount);
-                            this.part.Resources.list.Remove(partresource);
-                            DestroyImmediate(partresource);
-                        }
-                    }
+                    //if (curprop.name == "LqdWater")
+                    //{
+                    //    UnityEngine.Debug.Log("[KSPI] - curprop.name ==  LqdWater");
 
-                    UnityEngine.Debug.Log("[KSPI] - SetupPropellants 4");
+                    //    if (!part.Resources.Contains("LqdWater"))
+                    //    {
+                    //        UnityEngine.Debug.Log("[KSPI] - engine does not yet contains LqdWater");
+
+                    //        ConfigNode node = new ConfigNode("RESOURCE");
+                    //        node.AddValue("name", curprop.name);
+                    //        node.AddValue("maxAmount", AttachedReactor.MaximumPower * CurrentPowerThrustMultiplier / Math.Sqrt(AttachedReactor.CoreTemperature));
+                    //        node.AddValue("possibleAmount", 0);
+                    //        this.part.AddResource(node);
+                    //        UnityEngine.Debug.Log("[KSPI] - added LqdWater resource");
+                    //        this.part.Resources.UpdateList();
+                    //        UnityEngine.Debug.Log("[KSPI] - updated with LqdWater resource");
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    UnityEngine.Debug.Log("[KSPI] - curprop.name is not LqdWater");
+
+                    //    if (part.Resources.Contains("LqdWater"))
+                    //    {
+                    //        UnityEngine.Debug.Log("[KSPI] - engine still contains LqdWater");
+
+                    //        var partresource = part.Resources["LqdWater"];
+                    //        UnityEngine.Debug.Log("[KSPI] - get's access to LqdWater resource");
+
+                    //        if (partresource.amount > 0 && HighLogic.LoadedSceneIsFlight)
+                    //        {
+                    //            ORSHelper.fixedRequestResource(this.part, "Water", -partresource.amount);
+                    //            UnityEngine.Debug.Log("[KSPI] - convert LqdWater back to water");
+                    //        }
+
+                    //        this.part.Resources.list.Remove(partresource);
+                    //        UnityEngine.Debug.Log("[KSPI] - removed LqdWater resource");
+                    //        DestroyImmediate(partresource);
+                    //        UnityEngine.Debug.Log("[KSPI] - destroyed LqdWater resource");
+                    //    }
+                    //}
                 }
 
                 //Get the Ignition state, i.e. is the engine shutdown or activated
@@ -686,8 +689,6 @@ namespace FNPlugin
 
                 if (engineState == true)
                     myAttachedEngine.Activate();
-
-                UnityEngine.Debug.Log("[KSPI] - SetupPropellants 5");
 
                 if (HighLogic.LoadedSceneIsFlight)
                 { // you can have any fuel you want in the editor but not in flight
@@ -719,8 +720,6 @@ namespace FNPlugin
                         }
                     }
 
-                    UnityEngine.Debug.Log("[KSPI] - SetupPropellants 6A");
-
                     // do the switch if needed
                     if (next_propellant && (switches <= propellants.Length || fuel_mode != 0))
                     {// always shows the first fuel mode when all fuel mods are tested at least once
@@ -751,9 +750,7 @@ namespace FNPlugin
                         next_propellant = true;
                     }
 
-                    UnityEngine.Debug.Log("[KSPI] - SetupPropellants 7");
-
-                    if (next_propellant)
+                     if (next_propellant)
                     {
                         ++switches;
                         if (forward)
@@ -761,8 +758,6 @@ namespace FNPlugin
                         else
                             PreviousPropellant();
                     }
-
-                    UnityEngine.Debug.Log("[KSPI] - SetupPropellants 6");
 
                     EstimateEditorPerformance(); // update editor estimates
                 }
@@ -1026,20 +1021,20 @@ namespace FNPlugin
                 if (!Double.IsNaN(newPartTemperatue) && !Double.IsInfinity(newPartTemperatue))
                     part.temperature = newPartTemperatue;
 
-                var extendedPropellant = list_of_propellants[0] as ExtendedPropellant;
-                if (extendedPropellant.name != extendedPropellant.StoragePropellantName)
-                {
-                    var propellantResourse = part.Resources[extendedPropellant.name];
-                    var storageResourse = part.GetConnectedResources(extendedPropellant.StoragePropellantName);
-                    var propellantShortage = propellantResourse.maxAmount - propellantResourse.amount;
-                    var totalAmount = storageResourse.Sum(r => r.amount) + propellantResourse.amount;
-                    var totalMaxAmount = storageResourse.Sum(r => r.maxAmount);
-                    var waterStorageRatio = totalMaxAmount > 0 ? totalAmount / totalMaxAmount : 0;
-                    var message = (waterStorageRatio * 100).ToString("0") + "% " + extendedPropellant.StoragePropellantName + " " + totalAmount.ToString("0") + "/" + totalMaxAmount.ToString("0");
+                //var extendedPropellant = list_of_propellants[0] as ExtendedPropellant;
+                //if (extendedPropellant.name != extendedPropellant.StoragePropellantName)
+                //{
+                //    var propellantResourse = part.Resources[extendedPropellant.name];
+                //    var storageResourse = part.GetConnectedResources(extendedPropellant.StoragePropellantName);
+                //    var propellantShortage = propellantResourse.maxAmount - propellantResourse.amount;
+                //    //var totalAmount = storageResourse.Sum(r => r.amount) + propellantResourse.amount;
+                //    //var totalMaxAmount = storageResourse.Sum(r => r.maxAmount);
+                //    //var waterStorageRatio = totalMaxAmount > 0 ? totalAmount / totalMaxAmount : 0;
+                //    //var message = (waterStorageRatio * 100).ToString("0") + "% " + extendedPropellant.StoragePropellantName + " " + totalAmount.ToString("0") + "/" + totalMaxAmount.ToString("0");
 
-                    var collectFlowGlobal = ORSHelper.fixedRequestResource(this.part, extendedPropellant.StoragePropellantName, propellantShortage);
-                    propellantResourse.amount += collectFlowGlobal;
-                }
+                //    var collectFlowGlobal = ORSHelper.fixedRequestResource(this.part, extendedPropellant.StoragePropellantName, propellantShortage);
+                //    propellantResourse.amount += collectFlowGlobal;
+                //}
 
                 UpdateAnimation();
 
