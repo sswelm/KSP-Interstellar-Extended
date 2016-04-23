@@ -104,6 +104,8 @@ namespace InterstellarFuelSwitch
         public float dryMassInfo = 0;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Part mass", guiUnits = " t")]
         public float currentPartMass;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Initial mass", guiUnits = " t")]
+        public float initialMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Boiloff Temp")]
         public string currentBoiloffTempStr = "";
 
@@ -184,6 +186,8 @@ namespace InterstellarFuelSwitch
 	    {
             try
             {
+                initialMass = part.mass;
+
                 InitializeData();
 
                 if (selectedTankSetup == -1)
@@ -996,7 +1000,7 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                var moduleMassDelta = defaultMass - CalculateDryMass(selectedTankSetup);
+                var moduleMassDelta = CalculateDryMass(selectedTankSetup) - initialMass;
 
                 return moduleMassDelta;
             }

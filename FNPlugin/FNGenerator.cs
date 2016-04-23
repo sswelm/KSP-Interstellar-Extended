@@ -75,11 +75,21 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
         public float rawMaximumPower;
 
-        // GUI
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Calculated", guiUnits = " t")]
+        // Debugging
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Calculated", guiUnits = " t")]
         public float newMass = 0;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
-        public float effectiveMass = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Part Mass", guiUnits = " t")]
+        public float partMass;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
+        public float targetMass;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Initial Mass", guiUnits = " t")]
+        public float initialMass;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Delta Mass", guiUnits = " t")]
+        public float moduleMassDelta;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Default Mass", guiUnits = " t")]
+        public float defaultMass;
+
+        // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW")]
         public float maxChargedPower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Thermal Power", guiUnits = " MW")]
@@ -175,7 +185,9 @@ namespace FNPlugin
         {
             try
             {
-                var moduleMassDelta = defaultMass - effectiveMass;
+                this.defaultMass = defaultMass;
+
+                moduleMassDelta = targetMass - initialMass;
 
                 return moduleMassDelta;
             }
@@ -229,8 +241,8 @@ namespace FNPlugin
 
             base.OnStart(state);
             generatorType = originalName;
-            if (effectiveMass == 0)
-                effectiveMass = part.mass;
+            if (targetMass == 0)
+                targetMass = part.mass;
 
             Fields["maxChargedPower"].guiActive = chargedParticleMode;
             Fields["maxThermalPower"].guiActive = !chargedParticleMode;
@@ -246,6 +258,8 @@ namespace FNPlugin
                 part.OnEditorAttach += OnEditorAttach;
                 return;
             }
+
+            initialMass = part.mass;
 
             if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
@@ -315,18 +329,11 @@ namespace FNPlugin
             {
                 thermalProcessingModifier = attachedThermalSource.ThermalProcessingModifier;
                 rawMaximumPower = attachedThermalSource.RawMaximumPower;
-                newMass = (massModifier * thermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
+                targetMass = (massModifier * thermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
             }
             else
-                newMass = part.mass;
-
-            effectiveMass = newMass;
-            
-            //part.mass = effectiveMass;
+                targetMass = part.mass;
         }
-
-
-
 
         /// <summary>
         /// Is called by KSP while the part is active
@@ -461,14 +468,17 @@ namespace FNPlugin
         /// </summary>
         public void FixedUpdate()
         {
+            partMass = part.mass;
+
             if (HighLogic.LoadedSceneIsFlight) return;
 
-            Fields["effectiveMass"].guiActive = attachedThermalSource != null && attachedThermalSource.Part != this.part ;
+            Fields["targetMass"].guiActive = attachedThermalSource != null && attachedThermalSource.Part != this.part ;
         }
 
         public override void OnFixedUpdate()
         {
             base.OnFixedUpdate();
+
             powerCustomSettingFraction = powerPercentage / 100;
 
             if (IsEnabled && attachedThermalSource != null && FNRadiator.hasRadiatorsForVessel(vessel))
