@@ -32,7 +32,7 @@ namespace InterstellarFuelSwitch
         public List<IFSresource> Resources = new List<IFSresource>();
     }
 
-    public class InterstellarFuelSwitch : PartModule, IRescalable<InterstellarFuelSwitch> , IPartMassModifier, IPartCostModifier
+    public class InterstellarFuelSwitch : PartModule, IRescalable<InterstellarFuelSwitch> , IPartCostModifier, IPartMassModifier 
     {
         // Persistants
         [KSPField(isPersistant = true)]
@@ -89,7 +89,6 @@ namespace InterstellarFuelSwitch
         public string previousTankSetupText = "Previous tank setup";
 
         // Gui
-
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Temp")]
         public string partTemperatureStr = String.Empty;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Specific Heat")]
@@ -103,7 +102,7 @@ namespace InterstellarFuelSwitch
         public float addedCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t")]
         public float dryMassInfo = 0;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Part mass", guiUnits = " t")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Part mass", guiUnits = " t")]
         public float currentPartMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Boiloff Temp")]
         public string currentBoiloffTempStr = "";
@@ -171,7 +170,7 @@ namespace InterstellarFuelSwitch
                 //part.heatConvectiveConstant = this.heatConvectiveConstant * (float)Math.Pow(factor.absolute.linear, 1);
                 //part.heatConductivity = this.heatConductivity * (float)Math.Pow(factor.absolute.linear, 1);
 
-			    UpdateMass(part, selectedTankSetup, false);
+			    //UpdateMass(part, selectedTankSetup, false);
 		    }
 		    catch (Exception e)
 		    {
@@ -567,7 +566,7 @@ namespace InterstellarFuelSwitch
 
                 // This also needs to be done when going from a setup with resources to a setup with no resources.
                 currentPart.Resources.UpdateList();
-                UpdateMass(currentPart, selectedTankSetup, calledByPlayer);
+                //UpdateMass(currentPart, selectedTankSetup, calledByPlayer);
                 UpdateCost();
 
                 return newResources;
@@ -623,24 +622,24 @@ namespace InterstellarFuelSwitch
             }
 	    }
 
-	    private void UpdateMass(Part currentPart, int tankSetupIndex, bool calledByPlayer = false)
-	    {
-            try
-            {
-                // when changed by player
-                if (calledByPlayer && HighLogic.LoadedSceneIsFlight) return;
+        //private void UpdateMass(Part currentPart, int tankSetupIndex, bool calledByPlayer = false)
+        //{
+        //    try
+        //    {
+        //        // when changed by player
+        //        if (calledByPlayer && HighLogic.LoadedSceneIsFlight) return;
 
-                if (tankSetupIndex < 0 || tankSetupIndex >= weightList.Count) return;
+        //        if (tankSetupIndex < 0 || tankSetupIndex >= weightList.Count) return;
 
-                var newMass = CalculateDryMass(tankSetupIndex);
-                currentPart.mass = newMass;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch UpdateMass Error");
-                throw;
-            }
-	    }
+        //        var newMass = CalculateDryMass(tankSetupIndex);
+        //        //currentPart.mass = newMass;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Debug.LogError("InsterstellarFuelSwitch UpdateMass Error");
+        //        throw;
+        //    }
+        //}
 
         private float CalculateDryMass(int tankSetupIndex)
         {
@@ -751,20 +750,24 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        public override void OnFixedUpdate()
-        {
-            currentPartMass = part.mass;
+        ////public override void OnFixedUpdate()
+        ////{
+        ////    currentPartMass = part.mass;
             
-            ProcessBoiloff();
+        ////    ProcessBoiloff();
 
-            partTemperatureStr = part.temperature + " K";
+        ////    partTemperatureStr = part.temperature + " K";
 
-            base.OnFixedUpdate();
-        }
+        ////    base.OnFixedUpdate();
+        ////}
 
 	    // Note: do note remove, it is called by KSP
         public void Update()
         {
+            currentPartMass = part.mass;
+
+            partTemperatureStr = part.temperature + " K";
+
             if (currentResources != null)
                 ConfigureResourceMassGui(currentResources);
 
@@ -986,14 +989,16 @@ namespace InterstellarFuelSwitch
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
         {
-            return ModifierChangeWhen.STAGED;
+           return ModifierChangeWhen.STAGED;
         }
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
             try
             {
-                return CalculateDryMass(selectedTankSetup) - defaultMass;
+                var moduleMassDelta = defaultMass - CalculateDryMass(selectedTankSetup);
+
+                return moduleMassDelta;
             }
             catch (Exception e)
             {

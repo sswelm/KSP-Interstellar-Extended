@@ -44,6 +44,8 @@ namespace FNPlugin
         public float windowPositionX = 20;
         [KSPField(isPersistant = true)]
         public float windowPositionY = 20;
+        [KSPField(isPersistant = true)]
+        public int currentGenerationType;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk2 = null;
@@ -87,15 +89,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float basePowerOutputMk5 = 0;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Output Mk1", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Power Output Mk1", guiUnits = " MJ")]
         public float powerOutputMk1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk2", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk2", guiUnits = " MJ")]
         public float powerOutputMk2;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk3", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk3", guiUnits = " MJ")]
         public float powerOutputMk3;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk4", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk4", guiUnits = " MJ")]
         public float powerOutputMk4;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk5", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk5", guiUnits = " MJ")]
         public float powerOutputMk5;
 
         // Persistent False
@@ -329,7 +331,17 @@ namespace FNPlugin
             connectedEngine = engine;
         }
 
-        public GenerationType CurrentGenerationType { get; private set; }
+        public GenerationType CurrentGenerationType 
+        { 
+            get
+            {
+                return (GenerationType)currentGenerationType;
+            }
+            private set
+            {
+                currentGenerationType = (int)value;
+            }
+        }
 
         public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
 
@@ -645,11 +657,14 @@ namespace FNPlugin
 
         public void DeterminePowerOutput()
         {
-            powerOutputMk1 = basePowerOutputMk1;
-            powerOutputMk2 = basePowerOutputMk2;
-            powerOutputMk3 = basePowerOutputMk3;
-            powerOutputMk4 = basePowerOutputMk4;
-            powerOutputMk5 = basePowerOutputMk5;
+            if (HighLogic.LoadedSceneIsEditor || powerOutputMk1 == 0)
+            {
+                powerOutputMk1 = basePowerOutputMk1;
+                powerOutputMk2 = basePowerOutputMk2;
+                powerOutputMk3 = basePowerOutputMk3;
+                powerOutputMk4 = basePowerOutputMk4;
+                powerOutputMk5 = basePowerOutputMk5;
+            }
 
             // if Mk powerOutput is missing, try use lagacy values
             if (powerOutputMk1 == 0)

@@ -19,7 +19,7 @@ namespace FNPlugin
     }
 
     [KSPModule("Electrical Generator")]
-    class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerSource
+    class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerSource, IPartMassModifier 
     {
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -66,13 +66,19 @@ namespace FNPlugin
         /// <summary>
         /// MW Power to part mass divider, need to be lower for SETI/NFE mode 
         /// </summary>
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
         public float rawPowerToMassDivider = 1000f;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
         public float massModifier = 1;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
+        public float thermalProcessingModifier;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
+        public float rawMaximumPower;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Calculated", guiUnits = " t")]
+        public float newMass = 0;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float effectiveMass = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW")]
         public float maxChargedPower;
@@ -160,6 +166,26 @@ namespace FNPlugin
             IsEnabled = !IsEnabled;
         }
 
+        public ModifierChangeWhen GetModuleMassChangeWhen()
+        {
+            return ModifierChangeWhen.STAGED;
+        }
+
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
+        {
+            try
+            {
+                var moduleMassDelta = defaultMass - effectiveMass;
+
+                return moduleMassDelta;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("InsterstellarFuelSwitch GetModuleMass Error: " + e.Message);
+                throw;
+            }
+        }
+
         public void upgradePartModule()
         {
             isupgraded = true;
@@ -203,7 +229,8 @@ namespace FNPlugin
 
             base.OnStart(state);
             generatorType = originalName;
-            effectiveMass = part.mass;
+            if (effectiveMass == 0)
+                effectiveMass = part.mass;
 
             Fields["maxChargedPower"].guiActive = chargedParticleMode;
             Fields["maxThermalPower"].guiActive = !chargedParticleMode;
@@ -284,17 +311,22 @@ namespace FNPlugin
             if (!calculatedMass) return;
 
             // update part mass
-            effectiveMass = attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0
-                ? (massModifier * attachedThermalSource.ThermalProcessingModifier * attachedThermalSource.RawMaximumPower) / rawPowerToMassDivider 
-                : part.mass;
-            part.mass = effectiveMass;
+            if (attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0)
+            {
+                thermalProcessingModifier = attachedThermalSource.ThermalProcessingModifier;
+                rawMaximumPower = attachedThermalSource.RawMaximumPower;
+                newMass = (massModifier * thermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
+            }
+            else
+                newMass = part.mass;
+
+            effectiveMass = newMass;
+            
+            //part.mass = effectiveMass;
         }
 
 
-        public float GetModuleMass(float defaultMass)
-        {
-            return effectiveMass;
-        }
+
 
         /// <summary>
         /// Is called by KSP while the part is active
