@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using TweakScale;
 using FNPlugin.Extensions;
 
 namespace FNPlugin
@@ -19,7 +20,7 @@ namespace FNPlugin
     }
 
     [KSPModule("Electrical Generator")]
-    class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerSource, IPartMassModifier 
+    class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerSource, IPartMassModifier, IRescalable<FNGenerator>
     {
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -76,9 +77,7 @@ namespace FNPlugin
         public float rawMaximumPower;
 
         // Debugging
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Calculated", guiUnits = " t")]
-        public float newMass = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Part Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
         public float partMass;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
         public float targetMass;
@@ -176,6 +175,19 @@ namespace FNPlugin
             IsEnabled = !IsEnabled;
         }
 
+        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        {
+            try
+            {
+                var currentMassMultiplier = Mathf.Pow(factor.absolute.linear, 3);
+                initialMass = part.prefabMass * currentMassMultiplier;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("FNGenerator.OnRescale" + e.Message);
+            }
+        }
+
         public ModifierChangeWhen GetModuleMassChangeWhen()
         {
             return ModifierChangeWhen.STAGED;
@@ -247,6 +259,8 @@ namespace FNPlugin
             Fields["maxChargedPower"].guiActive = chargedParticleMode;
             Fields["maxThermalPower"].guiActive = !chargedParticleMode;
 
+            initialMass = part.mass;
+
             if (state == StartState.Editor)
             {
                 if (this.HasTechsRequiredToUpgrade())
@@ -258,8 +272,6 @@ namespace FNPlugin
                 part.OnEditorAttach += OnEditorAttach;
                 return;
             }
-
-            initialMass = part.mass;
 
             if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
