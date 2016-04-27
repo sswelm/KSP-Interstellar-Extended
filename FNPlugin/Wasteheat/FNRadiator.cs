@@ -28,15 +28,15 @@ namespace FNPlugin
         public bool showColorHeat = true;
 
         [KSPField(isPersistant = false)]
-        public float radiatorTemperatureMk1 = 1200;
+        public float radiatorTemperatureMk1 = 1850;
         [KSPField(isPersistant = false)]
-        public float radiatorTemperatureMk2 = 1570;
+        public float radiatorTemperatureMk2 = 2200;
         [KSPField(isPersistant = false)]
-        public float radiatorTemperatureMk3 = 2050;
+        public float radiatorTemperatureMk3 = 2616;
         [KSPField(isPersistant = false)]
-        public float radiatorTemperatureMk4 = 2680;
+        public float radiatorTemperatureMk4 = 3111;
         [KSPField(isPersistant = false)]
-        public float radiatorTemperatureMk5 = 3500;
+        public float radiatorTemperatureMk5 = 3700;
 
         [KSPField(isPersistant = false)]
         public string radiatorTypeMk1 = "NaK Loop Radiator";
@@ -97,12 +97,12 @@ namespace FNPlugin
 		public string radiatorTempStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Part Temp")]
         public string partTempStr;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public float radiatorArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float areaMultiplier = 1;
+        public float areaMultiplier = 6;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
         public float effectiveRadiatorArea;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
 		public string thermalPowerDissipStr;
