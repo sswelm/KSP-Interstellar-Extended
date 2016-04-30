@@ -11,17 +11,29 @@ namespace InterstellarFuelSwitch
     {
         public int ID;
         public string name;
-        public double currentSupply = 0;
-        public double amount = 0;
-        public double maxAmount = 0;
-        public double boiloffTemp = 0;
-        public double latendHeatVaporation = 0;
+        public double currentSupply;
+        public double amount;
+        public double maxAmount;
+        public double boiloffTemp;
+        public double density;
+        public double unitCost;
+        public double latendHeatVaporation;
+        public double specificHeatCapacity;
 
-        public IFSresource(string _name)
+        public IFSresource(string name)
         {
-            name = _name;
-            ID = _name.GetHashCode();
+            ID = name.GetHashCode();
+            this.name = name;
+            PartResourceDefinition resourceDefinition = PartResourceLibrary.Instance.GetDefinition(name);
+            if (resourceDefinition != null)
+            {
+                this.density = resourceDefinition.density;
+                this.unitCost = resourceDefinition.unitCost;
+                this.specificHeatCapacity = resourceDefinition.specificHeatCapacity;
+            }
         }
+
+        public double FullMass { get { return maxAmount * density; } }
     }
 
     public class IFSmodularTank
@@ -30,6 +42,8 @@ namespace InterstellarFuelSwitch
         //public string Contents = String.Empty;
 
         public List<IFSresource> Resources = new List<IFSresource>();
+
+        public double FullMass { get { return Resources.Sum(m => m.FullMass); } }
     }
 
     public class InterstellarFuelSwitch : PartModule, IRescalable<InterstellarFuelSwitch> , IPartCostModifier, IPartMassModifier 
@@ -48,9 +62,17 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string initialResourceAmounts = "";
         [KSPField]
-        public float basePartMass = 0.25f;
+        public float basePartMass = 0;
         [KSPField]
-        public string tankMass = "0;0;0;0";
+        public float baseUnitOfVolume = 5;
+        [KSPField]
+        public string tankUnitOfVolume = "1;1;0";
+        [KSPField]
+        public string tankUnit = "1;5;5";
+        [KSPField]
+        public string tankMass = "0;0;0";
+        [KSPField]
+        public float baseResourceMassDivider = 0;
         [KSPField]
         public string tankCost = "";
         [KSPField]
@@ -102,6 +124,8 @@ namespace InterstellarFuelSwitch
         public float addedCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Boiloff Temp")]
         public string currentBoiloffTempStr = "";
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Mass Ratio")]
+        public string massRatioStr = "";
 
         // Debug
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t", guiFormat= "F6")]
@@ -280,10 +304,10 @@ namespace InterstellarFuelSwitch
             {
                 if (initialized) return;
 
-                SetupTankList(false);
-
                 weightList = ParseTools.ParseDoubles(tankMass, () => weightList);
                 tankCostList = ParseTools.ParseDoubles(tankCost, () => tankCost);
+
+                SetupTankList(false);
 
                 if (hasGUI)
                 {
@@ -363,6 +387,10 @@ namespace InterstellarFuelSwitch
                 // update GUI part
                 ConfigureResourceMassGui(currentResources);
                 UpdateTankName();
+
+                // update Dry Mass
+                UpdateDryMass();
+                UpdateMassRatio();
 
                 if (HighLogic.LoadedSceneIsEditor)
                 {
@@ -581,14 +609,13 @@ namespace InterstellarFuelSwitch
 
                 // This also needs to be done when going from a setup with resources to a setup with no resources.
                 currentPart.Resources.UpdateList();
-                //UpdateMass(currentPart, selectedTankSetup, calledByPlayer);
                 UpdateCost();
 
                 return newResources;
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch SetupTankInPart Error");
+                Debug.LogError("InsterstellarFuelSwitch SetupTankInPart Error: " + e.Message);
                 throw;
             }
 	    }
@@ -606,8 +633,6 @@ namespace InterstellarFuelSwitch
             _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition0.name);
             _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition1.name);
             _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition2.name);
-
-
         }
 
 	    private float UpdateCost()
@@ -634,43 +659,34 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch UpdateCost Error");
+                Debug.LogError("InsterstellarFuelSwitch UpdateCost Error: " + e.Message);
                 throw;
             }
 	    }
 
-        //private void UpdateMass(Part currentPart, int tankSetupIndex, bool calledByPlayer = false)
-        //{
-        //    try
-        //    {
-        //        // when changed by player
-        //        if (calledByPlayer && HighLogic.LoadedSceneIsFlight) return;
-
-        //        if (tankSetupIndex < 0 || tankSetupIndex >= weightList.Count) return;
-
-        //        var newMass = CalculateDryMass(tankSetupIndex);
-        //        //currentPart.mass = newMass;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Debug.LogError("InsterstellarFuelSwitch UpdateMass Error");
-        //        throw;
-        //    }
-        //}
+        private void UpdateDryMass()
+        {
+            // update Dry Mass
+            dryMass = CalculateDryMass(selectedTankSetup);
+        }
 
         private float CalculateDryMass(int tankSetupIndex)
         {
-            if (weightList == null || tankSetupIndex < 0 || tankSetupIndex >= weightList.Count)
-                return (float)(basePartMass * currentMassMultiplier);
+            double mass = basePartMass;
 
-            return (float)((basePartMass + weightList[tankSetupIndex]) * currentMassMultiplier);
+            if (weightList != null && tankSetupIndex >= 0 && tankSetupIndex < weightList.Count)
+                mass += weightList[tankSetupIndex];
+
+            if (baseResourceMassDivider > 0 && tankSetupIndex >= 0 && tankList != null && tankSetupIndex < tankList.Count)
+                mass += tankList[tankSetupIndex].FullMass / baseResourceMassDivider;
+
+            return (float)(mass * currentMassMultiplier); 
         }
 
 	    private string formatMassStr(double amount)
         {
             try
             {
-
                 if (amount >= 1)
                     return (amount).ToString(resourcesFormat) + " t";
                 if (amount >= 1e-3)
@@ -682,23 +698,50 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch formatMassStr Error");
+                Debug.LogError("InsterstellarFuelSwitch formatMassStr Error: " + e.Message);
                 throw;
             }
         }
 
         private void UpdateGuiResourceMass()
         {
-            var resourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.amount;
-            var resourceMassAmount1 = _partRresourceDefinition1 == null || _partResource0 == null ? 0 : _partRresourceDefinition1.density * _partResource1.amount;
-            var resourceMassAmount2 = _partRresourceDefinition2 == null || _partResource0 == null ? 0 : _partRresourceDefinition2.density * _partResource2.amount;
+            var currentResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.amount;
+            var currentResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource0 == null ? 0 : _partRresourceDefinition1.density * _partResource1.amount;
+            var currentResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource0 == null ? 0 : _partRresourceDefinition2.density * _partResource2.amount;
 
-            wetMass = resourceMassAmount0 + resourceMassAmount1 + resourceMassAmount2;
-            totalMass = part.mass + wetMass;
+            wetMass = currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2;
+            totalMass = dryMass + wetMass;
 
-            resourceAmountStr0 = resourceMassAmount0 == 0 ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource0.amount);
-            resourceAmountStr1 = resourceMassAmount1 == 0 ? String.Empty : formatMassStr(_partRresourceDefinition1.density * _partResource1.amount);
-            resourceAmountStr2 = resourceMassAmount2 == 0 ? String.Empty : formatMassStr(_partRresourceDefinition2.density * _partResource2.amount);
+            resourceAmountStr0 = currentResourceMassAmount0 == 0 ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource0.amount);
+            resourceAmountStr1 = currentResourceMassAmount1 == 0 ? String.Empty : formatMassStr(_partRresourceDefinition1.density * _partResource1.amount);
+            resourceAmountStr2 = currentResourceMassAmount2 == 0 ? String.Empty : formatMassStr(_partRresourceDefinition2.density * _partResource2.amount);
+        }
+
+        private void UpdateMassRatio()
+        {
+            var maxResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.maxAmount;
+            var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource0 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
+            var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource0 == null ? 0 : _partRresourceDefinition2.density * _partResource2.maxAmount;
+
+            var maxWetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
+
+            if (part.mass > 0 && maxWetMass > 0)
+                massRatioStr = ToRoundedString(1 / (dryMass / maxWetMass));
+        }
+
+        private string ToRoundedString(double value)
+        {
+            var massRatioRounded = Math.Round(value, 0);
+            var differenceWithRounded = Math.Abs(value - massRatioRounded);
+
+            if (differenceWithRounded > 0.05)
+                return "1 : " + value.ToString("0.0");
+            else if (differenceWithRounded > 0.005)
+                return "1 : " + value.ToString("0.00");
+            else if (differenceWithRounded > 0.0005)
+                return "1 : " + value.ToString("0.000");
+            else
+                return "1 : " + value.ToString("0");
         }
 
         public override void OnUpdate()
@@ -722,7 +765,6 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-
                 if (!boiloffActive) return;
 
                 if (!traceBoiloff) return;
@@ -769,7 +811,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch UpdateMass Error");
+                Debug.LogError("InsterstellarFuelSwitch ProcessBoiloff Error: " + e.Message);
                 throw;
             }
         }
@@ -795,12 +837,15 @@ namespace InterstellarFuelSwitch
             if (currentResources != null)
                 ConfigureResourceMassGui(currentResources);
 
-            UpdateGuiResourceMass();
-
-            if (!HighLogic.LoadedSceneIsEditor) return;
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                UpdateGuiResourceMass();
+                return;
+            }
 
             // update Dry Mass
-            dryMass = CalculateDryMass(selectedTankSetup);
+            UpdateDryMass();
+            UpdateGuiResourceMass();
 
             configuredAmounts = "";
             foreach (var resoure in part.Resources.list)
@@ -815,9 +860,6 @@ namespace InterstellarFuelSwitch
             {
                 tankList = new List<IFSmodularTank>();
 
-                // toDo: move to tankList
-                weightList = new List<double>();
-                tankCostList = new List<double>();
                 activeResourceList = new HashSet<string>();
 
                 // First find the amounts each tank type is filled with
@@ -973,33 +1015,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch GetModuleCost Error");
-                throw;
-            }
-        }
-
-	    public float GetModuleCost()
-        {
-            try
-            {
-                return UpdateCost();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch GetModuleCost Error");
-                throw;
-            }
-        }
-
-        public float GetModuleCost(float modifier)
-        {
-            try
-            {
-                return modifier * UpdateCost();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch GetModuleCost Error: " + e.Message);
+                Debug.LogError("InsterstellarFuelSwitch GetModuleCost Error:" + e.Message);
                 throw;
             }
         }
@@ -1020,7 +1036,8 @@ namespace InterstellarFuelSwitch
             {
                 this.defaultMass = defaultMass;
 
-                dryMass = CalculateDryMass(selectedTankSetup);
+                UpdateDryMass();
+                UpdateMassRatio();
 
                 moduleMassDelta = dryMass - initialMass;
 
@@ -1031,11 +1048,6 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch GetModuleMass Error: " + e.Message);
                 throw;
             }
-        }
-
-        public float GetModuleMass(float defaultMass)
-        {
-            return CalculateDryMass(selectedTankSetup);
         }
 
 	    public override string GetInfo()
