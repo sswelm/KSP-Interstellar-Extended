@@ -70,7 +70,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string tankUnit = "1;5;5";
         [KSPField]
-        public string tankMass = "0;0;0";
+        public string tankMass = "";
         [KSPField]
         public float baseResourceMassDivider = 0;
         [KSPField]
@@ -206,13 +206,11 @@ namespace InterstellarFuelSwitch
                 //part.heatConvectiveConstant = this.heatConvectiveConstant * (float)Math.Pow(factor.absolute.linear, 1);
                 //part.heatConductivity = this.heatConductivity * (float)Math.Pow(factor.absolute.linear, 1);
 
-			    //UpdateMass(part, selectedTankSetup, false);
                 initialMass = part.prefabMass * currentMassMultiplier;
 		    }
 		    catch (Exception e)
 		    {
-				Debug.LogError("OnRescale");
-			    Debug.LogException(e);
+                Debug.LogError("InsterstellarFuelSwitch OnRescale Error: " + e.Message);
 			    throw;
 		    }
 	    }
@@ -221,7 +219,11 @@ namespace InterstellarFuelSwitch
 	    {
             try
             {
-                initialMass = part.mass;
+                initialMass = part.prefabMass;
+
+                // make sure lazy configurations still work
+                if (basePartMass == 0 && String.IsNullOrEmpty(tankMass) && baseResourceMassDivider == 0)
+                    basePartMass = part.prefabMass;
 
                 InitializeData();
 
@@ -846,6 +848,7 @@ namespace InterstellarFuelSwitch
             // update Dry Mass
             UpdateDryMass();
             UpdateGuiResourceMass();
+            UpdateMassRatio();
 
             configuredAmounts = "";
             foreach (var resoure in part.Resources.list)
