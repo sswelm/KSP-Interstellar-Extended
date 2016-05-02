@@ -122,7 +122,7 @@ namespace FNPlugin
                     //currentPowerReq = fullPowerReqKW > powerReqKW
                     //    ? powerReqKW + (fullPowerReqKW - powerReqKW) * resourceRatio
                     //    : fullPowerReqKW + (powerReqKW - fullPowerReqKW) * (1 - resourceRatio);
-                    currentPowerReq = powerReqKW * 0.1f * environmentFactor * powerReqMult;
+                    currentPowerReq = powerReqKW * 0.2f * environmentFactor * powerReqMult;
 
                     powerStatusStr = currentPowerReq < 1.0e+3
                         ? recievedPowerKW.ToString("0.00") + " KW / " + currentPowerReq.ToString("0.00") + " KW"
