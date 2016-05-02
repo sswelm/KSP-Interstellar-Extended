@@ -964,29 +964,31 @@ namespace FNPlugin
 
 
 
-        public void FixedUpdate() // FixedUpdate is also called when not activated
-        {
-            if (!HighLogic.LoadedSceneIsFlight) return;
+        //public void FixedUpdate() // FixedUpdate is also called when not activated
+        //{
+        //    if (!HighLogic.LoadedSceneIsFlight) return;
 
-            if (myAttachedEngine == null) return;
+        //    if (myAttachedEngine == null) return;
 
-            // attach/detach with radius
-            if (myAttachedEngine.isOperational)
-                _myAttachedReactor.AttachThermalReciever(id, radius);
-            else
-            {
-                _myAttachedReactor.DetachThermalReciever(id);
+        //    // attach/detach with radius
+        //    if (myAttachedEngine.isOperational)
+        //        _myAttachedReactor.AttachThermalReciever(id, radius);
+        //    else
+        //    {
+        //        _myAttachedReactor.DetachThermalReciever(id);
 
-                ConfigEffects();
-            }
-        }
+        //        ConfigEffects();
+        //    }
+        //}
 
-        public override void OnFixedUpdate() // OnFixedUpdate is not called in edit mode
+        public void FixedUpdate() // FixedUpdate is also called while not staged
+        //public override void OnFixedUpdate() // OnFixedUpdate is not called in edit mode
         {
             try
             {
+                if (!HighLogic.LoadedSceneIsFlight) return;
 
-                ConfigEffects();
+                if (myAttachedEngine == null) return;
 
                 if (cooledIntake != null && ((cooledIntake.part.temperature / cooledIntake.part.maxTemp) > (part.temperature / part.maxTemp)))
                 {
@@ -1004,6 +1006,14 @@ namespace FNPlugin
                     myAttachedEngine.maxFuelFlow = 0;
                     return;
                 }
+
+                // attach/detach with radius
+                if (myAttachedEngine.isOperational)
+                    _myAttachedReactor.AttachThermalReciever(id, radius);
+                else
+                    _myAttachedReactor.DetachThermalReciever(id);
+
+                ConfigEffects();
 
                 delayedThrottle = _currentpropellant_is_jet || myAttachedEngine.currentThrottle < delayedThrottle || delayedThrottleFactor <= 0
                     ? myAttachedEngine.currentThrottle

@@ -142,6 +142,7 @@ namespace FNPlugin
             }
         }
 
+        // FixedUpdate is also called while not staged
         public void FixedUpdate()
         {
             if (cryostat_resource == null || cryostat_resource.amount <= 0.0)

@@ -91,20 +91,27 @@ namespace InterstellarFuelSwitch
         public bool availableInFlight = false;
         [KSPField]
         public bool availableInEditor = true;
+
         [KSPField]
-        public bool showTemperature = false;
+        public string inEditorSwitchingTechReq;
+        [KSPField]
+        public string inFlightSwitchingTechReq;
+
+        //[KSPField]
+        //public bool showTemperature = false;
         [KSPField]
         public bool showTankName = true;
         [KSPField]
         public bool showInfo = true; // if false, does not feed info to the part list pop up info menu
         [KSPField]
-        public string resourcesToIgnore = ""; // obsolete
-        [KSPField]
         public string resourcesFormat = "0.000000";
-        [KSPField]
-        public float heatConvectiveConstant = 0.01f;
-        [KSPField]
-        public float heatConductivity = 0.01f;
+
+        //[KSPField]
+        //public string resourcesToIgnore = ""; // obsolete
+        //[KSPField]
+        //public float heatConvectiveConstant = 0.01f;
+        //[KSPField]
+        //public float heatConductivity = 0.01f;
         [KSPField]
         public string nextTankSetupText = "Next tank setup";
         [KSPField]
@@ -122,8 +129,8 @@ namespace InterstellarFuelSwitch
         public string tankGuiName = String.Empty; 
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Added cost")]
         public float addedCost = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Boiloff Temp")]
-        public string currentBoiloffTempStr = "";
+        //[KSPField(guiActive = false, guiActiveEditor = false, guiName = "Boiloff Temp")]
+        //public string currentBoiloffTempStr = "";
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Mass Ratio")]
         public string massRatioStr = "";
 
@@ -219,11 +226,11 @@ namespace InterstellarFuelSwitch
 	    {
             try
             {
-                initialMass = part.prefabMass;
+                initialMass = part.mass;
 
                 // make sure lazy configurations still work
                 if (basePartMass == 0 && String.IsNullOrEmpty(tankMass) && baseResourceMassDivider == 0)
-                    basePartMass = part.prefabMass;
+                    basePartMass = part.mass;
 
                 InitializeData();
 
@@ -232,17 +239,11 @@ namespace InterstellarFuelSwitch
 
                 this.enabled = true;
 
+                AssignResourcesToPart(false);
                 if (state != StartState.Editor)
-                {
-                    AssignResourcesToPart(false);
                     gameLoaded = true;
-                }
-                else
-                {
-                    AssignResourcesToPart(false);
-                }
 
-                Fields["partTemperatureStr"].guiActive = showTemperature;
+                //Fields["partTemperatureStr"].guiActive = showTemperature;
             }
             catch (Exception e)
             {
@@ -304,7 +305,13 @@ namespace InterstellarFuelSwitch
 	    {
             try
             {
-                if (initialized) return;
+                if (initialized)
+                    return;
+
+                if (HighLogic.LoadedSceneIsEditor)
+                    availableInEditor = String.IsNullOrEmpty(inEditorSwitchingTechReq) ? availableInEditor : hasTech(inEditorSwitchingTechReq);
+                else if (HighLogic.LoadedSceneIsFlight)
+                    availableInFlight = String.IsNullOrEmpty(inFlightSwitchingTechReq) ? availableInFlight : hasTech(inFlightSwitchingTechReq);
 
                 weightList = ParseTools.ParseDoubles(tankMass, () => weightList);
                 tankCostList = ParseTools.ParseDoubles(tankCost, () => tankCost);
@@ -315,7 +322,7 @@ namespace InterstellarFuelSwitch
                 {
                     var nextEvent = Events["nextTankSetupEvent"];
                     nextEvent.guiActive = availableInFlight;
-                    nextEvent.guiActiveEditor = availableInEditor;
+                    nextEvent.guiActiveEditor = availableInEditor ;
                     nextEvent.guiName = nextTankSetupText;
 
                     var previousEvent = Events["previousTankSetupEvent"];
@@ -325,10 +332,13 @@ namespace InterstellarFuelSwitch
                 }
                 else
                 {
-                    Events["nextTankSetupEvent"].guiActive = false;
-                    Events["nextTankSetupEvent"].guiActiveEditor = false;
-                    Events["previousTankSetupEvent"].guiActive = false;
-                    Events["previousTankSetupEvent"].guiActiveEditor = false;
+                    var nextEvent = Events["nextTankSetupEvent"];
+                    nextEvent.guiActive = false;
+                    nextEvent.guiActiveEditor = false;
+
+                    var previousEvent = Events["previousTankSetupEvent"];
+                    previousEvent.guiActive = false;
+                    previousEvent.guiActiveEditor = false;
                 }
 
                 Fields["addedCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
@@ -356,7 +366,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch nextTankSetupEvent Error");
+                Debug.LogError("InsterstellarFuelSwitch nextTankSetupEvent Error: " + e.Message);
                 throw;
             }
 	    }
@@ -374,7 +384,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch previousTankSetupEvent Error");
+                Debug.LogError("InsterstellarFuelSwitch previousTankSetupEvent Error: " + e.Message);
                 throw;
             }
 	    }
@@ -431,17 +441,17 @@ namespace InterstellarFuelSwitch
             Fields["tankGuiName"].guiActive = showTankName && !String.IsNullOrEmpty(tankGuiName);
             Fields["tankGuiName"].guiActiveEditor = showTankName && !String.IsNullOrEmpty(tankGuiName);
 
-            if (displayCurrentBoilOffTemp)
-            {
-                Fields["currentBoiloffTempStr"].guiActive = true;
-                Fields["currentBoiloffTempStr"].guiActiveEditor = true;
-                currentBoiloffTempStr = selectedTank.Resources[0].boiloffTemp.ToString("0.00");
-            }
-            else
-            {
-                Fields["currentBoiloffTempStr"].guiActive = false;
-                Fields["currentBoiloffTempStr"].guiActiveEditor = false;
-            }
+            //if (displayCurrentBoilOffTemp)
+            //{
+            //    Fields["currentBoiloffTempStr"].guiActive = true;
+            //    Fields["currentBoiloffTempStr"].guiActiveEditor = true;
+            //    currentBoiloffTempStr = selectedTank.Resources[0].boiloffTemp.ToString("0.00");
+            //}
+            //else
+            //{
+            //    Fields["currentBoiloffTempStr"].guiActive = false;
+            //    Fields["currentBoiloffTempStr"].guiActiveEditor = false;
+            //}
         }
 
 	    private List<string> SetupTankInPart(Part currentPart, bool calledByPlayer)
@@ -1076,5 +1086,68 @@ namespace InterstellarFuelSwitch
                 throw;
             }
 	    }
+
+        private bool hasTech(string techid)
+        {
+            if ((HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX))
+                return true;
+
+            //UnityEngine.Debug.Log("[IFS] - called hasTech with " + techid );
+            if (ResearchAndDevelopment.Instance == null)
+            {
+                if (researchedTechs == null)
+                    LoadSaveFile();
+
+                bool found = researchedTechs.Contains(techid);
+                //if (found)
+                //    UnityEngine.Debug.Log("[IFS] - found techid " + techid + " in saved hash");
+                //else
+                //    UnityEngine.Debug.Log("[IFS] - we did not find techid " + techid + " in saved hash");
+
+                return found;
+            }
+
+            var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
+            if (techstate != null)
+            {
+                var available = techstate.state == RDTech.State.Available;
+                //if (available)
+                //    UnityEngine.Debug.Log("[IFS] - found techid " + techid + " available");
+                //else
+                //    UnityEngine.Debug.Log("[IFS] - found techid " + techid + " unavailable");
+                return available;
+            }
+            else
+            {
+                //UnityEngine.Debug.Log("[IFS] - did not find techid " + techid);
+                return false;
+            }
+        }
+
+        private static HashSet<string> researchedTechs;
+
+        private void LoadSaveFile()
+        {
+            researchedTechs = new HashSet<string>();
+
+            string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
+            //UnityEngine.Debug.Log("[IFS] - Loading ConfigNode " + persistentfile);
+            ConfigNode config = ConfigNode.Load(persistentfile);
+            ConfigNode gameconf = config.GetNode("GAME");
+            ConfigNode[] scenarios = gameconf.GetNodes("SCENARIO");
+
+            foreach (ConfigNode scenario in scenarios)
+            {
+                if (scenario.GetValue("name") == "ResearchAndDevelopment")
+                {
+                    ConfigNode[] techs = scenario.GetNodes("Tech");
+                    foreach (ConfigNode technode in techs)
+                    {
+                        var technodename = technode.GetValue("id");
+                        researchedTechs.Add(technodename);
+                    }
+                }
+            }
+        }
     } 
 }
