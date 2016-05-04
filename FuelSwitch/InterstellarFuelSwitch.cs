@@ -718,22 +718,22 @@ namespace InterstellarFuelSwitch
         private void UpdateGuiResourceMass()
         {
             var currentResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.amount;
-            var currentResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource0 == null ? 0 : _partRresourceDefinition1.density * _partResource1.amount;
-            var currentResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource0 == null ? 0 : _partRresourceDefinition2.density * _partResource2.amount;
+            var currentResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.amount;
+            var currentResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource2.amount;
 
             wetMass = currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2;
             totalMass = dryMass + wetMass;
 
-            resourceAmountStr0 = currentResourceMassAmount0 == 0 ? String.Empty : formatMassStr(_partRresourceDefinition0.density * _partResource0.amount);
-            resourceAmountStr1 = currentResourceMassAmount1 == 0 ? String.Empty : formatMassStr(_partRresourceDefinition1.density * _partResource1.amount);
-            resourceAmountStr2 = currentResourceMassAmount2 == 0 ? String.Empty : formatMassStr(_partRresourceDefinition2.density * _partResource2.amount);
+            resourceAmountStr0 = currentResourceMassAmount0 == 0 ? String.Empty : formatMassStr(currentResourceMassAmount0);
+            resourceAmountStr1 = currentResourceMassAmount1 == 0 ? String.Empty : formatMassStr(currentResourceMassAmount1);
+            resourceAmountStr2 = currentResourceMassAmount2 == 0 ? String.Empty : formatMassStr(currentResourceMassAmount2);
         }
 
         private void UpdateMassRatio()
         {
             var maxResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.maxAmount;
-            var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource0 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
-            var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource0 == null ? 0 : _partRresourceDefinition2.density * _partResource2.maxAmount;
+            var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
+            var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource2.maxAmount;
 
             var maxWetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
 
@@ -867,8 +867,8 @@ namespace InterstellarFuelSwitch
             }
         }
 
-	    private void SetupTankList(bool calledByPlayer)
-	    {
+	private void SetupTankList(bool calledByPlayer)
+	{
             try
             {
                 tankList = new List<IFSmodularTank>();
@@ -1018,7 +1018,7 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch SetupTankList Error");
                 throw;
             }
-	    }
+	}
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
@@ -1063,8 +1063,8 @@ namespace InterstellarFuelSwitch
             }
         }
 
-	    public override string GetInfo()
-	    {
+	public override string GetInfo()
+	{
             try
             {
                 if (!showInfo) return string.Empty;
@@ -1085,7 +1085,7 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch GetInfo Error " + e.Message);
                 throw;
             }
-	    }
+	}
 
         private bool hasTech(string techid)
         {
