@@ -108,7 +108,7 @@ namespace FNPlugin
         public float baseMaxIsp;
 
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = "m")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
         public float radius;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
         public float exitArea = 1;
@@ -215,6 +215,11 @@ namespace FNPlugin
         protected float _availableThermalPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Delayed Throttle")]
         protected float delayedThrottle = 0;
+        
+        [KSPField]
+        public int supportedPropellantAtoms = 511;
+        [KSPField]
+        public int supportedPropellantTypes = 511;
 
         //Internal
         protected string _particleFXName;
@@ -713,7 +718,9 @@ namespace FNPlugin
                             || (_fuelRequiresUpgrade && !isupgraded)
                             || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                             || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
+                            || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                             || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
+                            || ((_propType & this.supportedPropellantTypes) != _propType)
                             )
                         {
                             next_propellant = true;
@@ -744,7 +751,9 @@ namespace FNPlugin
                         || (_fuelRequiresUpgrade && !isupgraded)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                         || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
+                        || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                         || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
+                        || ((_propType & this.supportedPropellantTypes) != _propType)
                         )
                     {
                         next_propellant = true;
