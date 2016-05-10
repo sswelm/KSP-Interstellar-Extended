@@ -1158,14 +1158,6 @@ namespace InterstellarFuelSwitch
                 }
 
                 var maxNrTanks = _modularTankList.Max(t => t.Resources.Count);
-
-                //Fields["resourceAmountStr0"].guiActive = maxNrTanks > 0;
-                //Fields["resourceAmountStr1"].guiActive = maxNrTanks > 1;
-                //Fields["resourceAmountStr2"].guiActive = maxNrTanks > 2;
-
-                //Fields["resourceAmountStr0"].guiActiveEditor = maxNrTanks > 0;
-                //Fields["resourceAmountStr1"].guiActiveEditor = maxNrTanks > 1;
-                //Fields["resourceAmountStr2"].guiActiveEditor = maxNrTanks > 2;
             }
             catch (Exception e)
             {
@@ -1223,14 +1215,31 @@ namespace InterstellarFuelSwitch
             {
                 if (!showInfo) return string.Empty;
 
-                var resourceList = ParseTools.ParseNames(resourceNames);
                 var info = new StringBuilder();
 
                 info.AppendLine("Fuel tank setups available:");
+                info.AppendLine();
 
-                foreach (string t in resourceList)
+                foreach (var module in _modularTankList)
                 {
-                    info.AppendLine(t.Replace(",", ", "));
+                    int count = 0;
+                    info.Append("* ");
+
+                    foreach (var resource in module.Resources)
+                    {
+                        if (count > 0)
+                            info.Append(" + ");
+                        if (resource.maxAmount > 0)
+                        {
+                            info.Append(resource.maxAmount);
+                            info.Append(" ");
+                        }
+                        info.Append(resource.name);
+
+                        count++;
+                    }
+
+                    info.AppendLine();
                 }
                 return info.ToString();
             }
