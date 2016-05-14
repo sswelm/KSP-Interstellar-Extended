@@ -77,6 +77,8 @@ namespace FNPlugin
         public float rawMaximumPower;
 
         // Debugging
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Scale")]
+        public float storedMassMultiplier;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
         public float partMass;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
@@ -87,6 +89,7 @@ namespace FNPlugin
         public float moduleMassDelta;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Default Mass", guiUnits = " t")]
         public float defaultMass;
+
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW")]
@@ -179,8 +182,9 @@ namespace FNPlugin
         {
             try
             {
-                var currentMassMultiplier = Mathf.Pow(factor.absolute.linear, 3);
-                initialMass = part.prefabMass * currentMassMultiplier;
+                Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
+                storedMassMultiplier = Mathf.Pow(factor.absolute.linear, 3);
+                initialMass = part.prefabMass * storedMassMultiplier;
             }
             catch (Exception e)
             {
@@ -199,7 +203,10 @@ namespace FNPlugin
             {
                 this.defaultMass = defaultMass;
 
-                moduleMassDelta = targetMass - initialMass;
+                //if (HighLogic.LoadedSceneIsFlight)
+                //    moduleMassDelta = targetMass - defaultMass;
+                //else
+                    moduleMassDelta = targetMass - initialMass;
 
                 return moduleMassDelta;
             }
@@ -253,13 +260,15 @@ namespace FNPlugin
 
             base.OnStart(state);
             generatorType = originalName;
-            if (targetMass == 0)
-                targetMass = part.mass;
+
+            targetMass = part.mass;
+
+            //if (initialMass == 0)
+            //    initialMass = part.mass;
+            initialMass = part.prefabMass * storedMassMultiplier;
 
             Fields["maxChargedPower"].guiActive = chargedParticleMode;
             Fields["maxThermalPower"].guiActive = !chargedParticleMode;
-
-            initialMass = part.mass;
 
             if (state == StartState.Editor)
             {
@@ -270,8 +279,13 @@ namespace FNPlugin
                     upgradePartModule();
                 }
                 part.OnEditorAttach += OnEditorAttach;
+
+                FindAndAttachToThermalSource();
                 return;
             }
+
+            //if (storedScaleFactor != 0)
+            //    initialMass = part.prefabMass * storedScaleFactor;
 
             if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;

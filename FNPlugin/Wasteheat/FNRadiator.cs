@@ -136,7 +136,9 @@ namespace FNPlugin
         
         private Renderer[] array;
         private AnimationState[] heatStates;
-        private ModuleDeployableRadiator moduleDeployableRadiator;
+        private ModuleDeployableRadiator _moduleDeployableRadiator;
+        private ModuleActiveRadiator _moduleActiveRadiator;
+
         private bool hasSurfaceAreaUpgradeTechReq;
         private List<IThermalSource> list_of_thermal_sources;
 
@@ -308,8 +310,8 @@ namespace FNPlugin
         {
             if (!isDeployable) return;
 
-            if (moduleDeployableRadiator != null)
-                moduleDeployableRadiator.Extend();
+            if (_moduleDeployableRadiator != null)
+                _moduleDeployableRadiator.Extend();
 
             radiatorIsEnabled = true;
 
@@ -335,8 +337,8 @@ namespace FNPlugin
         {
             if (!isDeployable) return;
 
-            if (moduleDeployableRadiator != null)
-                moduleDeployableRadiator.Retract();
+            if (_moduleDeployableRadiator != null)
+                _moduleDeployableRadiator.Retract();
 
             radiatorIsEnabled = false;
 
@@ -443,7 +445,11 @@ namespace FNPlugin
                         deployAnim[animName].normalizedTime = 0;
                 }
 
-                moduleDeployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
+                _moduleDeployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
+                _moduleActiveRadiator = part.FindModuleImplementing<ModuleActiveRadiator>();
+
+                if (_moduleActiveRadiator != null)
+                    _moduleActiveRadiator.maxEnergyTransfer = radiatorArea * 1000 * (1 + (int)CurrentGenerationType);
 
                 if (state == StartState.Editor)
                 {
@@ -532,8 +538,8 @@ namespace FNPlugin
 
         public void Update()
         {
-            Events["DeployRadiator"].active = Events["DeployRadiator"].guiActiveEditor =  !radiatorIsEnabled && isDeployable && moduleDeployableRadiator == null;
-            Events["RetractRadiator"].active = Events["RetractRadiator"].guiActiveEditor = radiatorIsEnabled && isDeployable && moduleDeployableRadiator == null;
+            Events["DeployRadiator"].active = Events["DeployRadiator"].guiActiveEditor =  !radiatorIsEnabled && isDeployable && _moduleDeployableRadiator == null;
+            Events["RetractRadiator"].active = Events["RetractRadiator"].guiActiveEditor = radiatorIsEnabled && isDeployable && _moduleDeployableRadiator == null;
         }
 
         public override void OnUpdate() // is called while in flight
@@ -548,7 +554,7 @@ namespace FNPlugin
                     Events["RetrofitRadiator"].active = false;
 
                 Fields["thermalPowerConvStr"].guiActive = convectedThermalPower > 0;
-                if ((moduleDeployableRadiator != null && moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || moduleDeployableRadiator == null)
+                if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || _moduleDeployableRadiator == null)
                 {
                     thermalPowerDissipStr = radiatedThermalPower.ToString("0.000") + "MW";
                     thermalPowerConvStr = convectedThermalPower.ToString("0.000") + "MW";
@@ -720,7 +726,7 @@ namespace FNPlugin
 
         private float consumeWasteHeat(double wasteheatToConsume)
         {
-            if ((moduleDeployableRadiator != null && moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || moduleDeployableRadiator == null)
+            if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || _moduleDeployableRadiator == null)
             {
                 var consumedWasteheat = consumeFNResource(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT);
 

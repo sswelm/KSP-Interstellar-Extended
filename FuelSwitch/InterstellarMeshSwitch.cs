@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace InterstellarFuelSwitch
 {
-    public class InterstellarMeshSwitch : PartModule //, IPartCostModifier
+    public class InterstellarMeshSwitch : PartModule 
     {
         [KSPField]
         public int moduleID = 0;
@@ -12,6 +12,9 @@ namespace InterstellarFuelSwitch
         public string buttonName = "Next part variant";
         [KSPField]
         public string previousButtonName = "Prev part variant";
+        [KSPField]
+        public string switcherDescription = "Mesh";
+
         [KSPField]
         public string objectDisplayNames = string.Empty;
         [KSPField]
@@ -30,19 +33,17 @@ namespace InterstellarFuelSwitch
         public bool showInfo = true;
         [KSPField]
         public bool debugMode = false;
+        [KSPField]
+        public bool showSwitchButtons = false;
+        [KSPField]
+        public bool showCurrentObjectName =false;
+        [KSPField]
+        public bool hasSwitchChooseOption = true;
 
-        //// in case of multiple instances of this module, on will be the master, the rest slaves.
-        //[KSPField]
-        //public bool isController = true;
-
-        //// in case of multiple sets of master/slaves, only affect ones on the same channel.
-        //[KSPField]
-        //public int channel = 0;
-
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActiveEditor = true)]
+        [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.Editor, suppressEditorShipModified = true)]
         public int selectedObject = 0;
 
-        //private string[] objectBatchNames;
         private List<List<Transform>> objectTransforms = new List<List<Transform>>();
         private List<int> fuelTankSetupList = new List<int>();
         private List<string> objectDisplayList = new List<string>();
@@ -52,10 +53,8 @@ namespace InterstellarFuelSwitch
         private bool initialized = false;
 
 
-        [KSPField(guiActiveEditor = true, guiName = "Current Variant")]
+        [KSPField(guiActiveEditor = false, guiName = "Current Variant")]
         public string currentObjectName = string.Empty;
-        
-        //private float moduleCost;
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "Next part variant")]
         public void nextObjectEvent()
@@ -177,7 +176,7 @@ namespace InterstellarFuelSwitch
         private void setCurrentObjectName()
         {
             if (selectedObject > objectDisplayList.Count - 1)
-                currentObjectName = "Unnamed"; //objectBatchNames[selectedObject];
+                currentObjectName = "Unnamed"; 
             else
                 currentObjectName = objectDisplayList[selectedObject];
         }
@@ -187,11 +186,32 @@ namespace InterstellarFuelSwitch
             initializeData();
 
             switchToObject(selectedObject, false);
-            Events["nextObjectEvent"].guiName = buttonName;
-            Events["previousObjectEvent"].guiName = previousButtonName;
+
+            Fields["currentObjectName"].guiActiveEditor = showCurrentObjectName;
+
+            var nextButton = Events["nextObjectEvent"];
+            nextButton.guiName = buttonName;
+            nextButton.guiActiveEditor = showSwitchButtons;
+
+            var prevButton = Events["previousObjectEvent"];
+            prevButton.guiName = previousButtonName;
+            prevButton.guiActiveEditor = showSwitchButtons;
+
+            var chooseField = Fields["selectedObject"];
+            chooseField.guiName = switcherDescription;
+            chooseField.guiActiveEditor = hasSwitchChooseOption;
+
+            var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;
+            chooseOption.options = objectDisplayList.ToArray();
+            chooseOption.onFieldChanged = UpdateFromGUI;
 
             if (!showPreviousButton) 
                 Events["previousObjectEvent"].guiActiveEditor = false;
+        }
+
+        private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
+        {
+            switchToObject(selectedObject, true);
         }
 
         public void initializeData()

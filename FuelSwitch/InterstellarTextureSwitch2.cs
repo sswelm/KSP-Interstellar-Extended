@@ -27,8 +27,15 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string statusText = "Current Texture";
 
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActiveEditor = true)]
+        [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.Editor, suppressEditorShipModified = true)]
         public int selectedTexture = 0;
+
+        [KSPField]
+        public string switcherDescription = "Texture";
+        [KSPField]
+        public bool hasSwitchChooseOption = true;
+
         [KSPField(isPersistant = true)]
         public string selectedTextureURL = string.Empty;
         [KSPField(isPersistant = true)]
@@ -47,6 +54,10 @@ namespace InterstellarFuelSwitch
         public bool repaintableEVA = true;
         //[KSPField]
         //public Vector4 GUIposition = new Vector4(FSGUIwindowID.standardRect.x, FSGUIwindowID.standardRect.y, FSGUIwindowID.standardRect.width, FSGUIwindowID.standardRect.height);
+        [KSPField]
+        public bool showCurrentTextureName = false;
+        [KSPField]
+        public bool showSwitchButtons = false;
         [KSPField]
         public bool showPreviousButton = true;
         [KSPField]
@@ -114,6 +125,28 @@ namespace InterstellarFuelSwitch
             useTextureAll(true);
         }
 
+        // Called by external classes
+        public void SelectTankSetup(int newTankIndex, bool calledByPlayer)
+        {
+            bool found = false;
+            if (fuelTankSetupList != null)
+            {
+                var index = fuelTankSetupList.IndexOf(newTankIndex);
+                if (index >= 0)
+                {
+                    selectedTexture = index;
+                    found = true;
+                }
+            }
+
+            if (!found && newTankIndex < texList.Count && newTankIndex < mapList.Count)
+            {
+                selectedTexture = newTankIndex;
+            }
+
+            useTextureAll(calledByPlayer);
+        }
+
         [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 5f, guiActive = false, guiActiveEditor = false, guiName = "Repaint")]
         public void nextTextureEVAEvent()
         {
@@ -156,7 +189,14 @@ namespace InterstellarFuelSwitch
             {
                 debug.debugMessage("calling on InterstellarFuelSwitch tank setup " + selectedTexture);
                 if (selectedTexture < fuelTankSetupList.Count)
-                    fuelSwitch.SelectTankSetup(fuelTankSetupList[selectedTexture], calledByPlayer);
+                {
+                    var tankSelectionReult = fuelSwitch.SelectTankSetup(fuelTankSetupList[selectedTexture], calledByPlayer);
+                    if (tankSelectionReult != selectedTexture)
+                    {
+                        selectedTexture = tankSelectionReult;
+                        useTextureAll(calledByPlayer);
+                    }
+                }
                 else
                     debug.debugMessage("no such fuel tank setup");
             }
@@ -277,19 +317,41 @@ namespace InterstellarFuelSwitch
 
             useTextureAll(false);
 
-            if (switchableInFlight) Events["nextTextureEvent"].guiActive = true;
-            if (switchableInFlight && showPreviousButton) Events["previousTextureEvent"].guiActive = true;
             if (showListButton) Events["listAllObjects"].guiActiveEditor = true;
             if (!repaintableEVA) Events["nextTextureEVAEvent"].guiActiveUnfocused = false;
+
+            var nextTextureButton = Events["nextTextureEvent"];
+            nextTextureButton.guiName = nextButtonText;
+            nextTextureButton.guiActive = switchableInFlight && showSwitchButtons;
+            nextTextureButton.guiActiveEditor = showSwitchButtons;
+
+            var prevTextureButton = Events["previousTextureEvent"];
+            prevTextureButton.guiName = prevButtonText;
+            prevTextureButton.guiActive = switchableInFlight && showSwitchButtons;
+            prevTextureButton.guiActiveEditor = showSwitchButtons;
+
             if (!showPreviousButton)
             {
-                Events["previousTextureEvent"].guiActive = false;
-                Events["previousTextureEvent"].guiActiveEditor = false;
+                prevTextureButton.guiActive = false;
+                prevTextureButton.guiActiveEditor = false;
             }
 
-            Events["nextTextureEvent"].guiName = nextButtonText;
-            Events["previousTextureEvent"].guiName = prevButtonText;
-            Fields["currentTextureName"].guiName = statusText;
+            var currentTextureField = Fields["currentTextureName"];
+            currentTextureField.guiName = statusText;
+            currentTextureField.guiActiveEditor = showCurrentTextureName;
+
+            var chooseField = Fields["selectedTexture"];
+            chooseField.guiName = switcherDescription;
+            chooseField.guiActiveEditor = hasSwitchChooseOption;
+
+            var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;
+            chooseOption.options = textureDisplayList.ToArray();
+            chooseOption.onFieldChanged = UpdateFromGUI;
+        }
+
+        private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
+        {
+            useTextureAll(true);
         }
 
         // runs the kind of commands that would normally be in OnStart, if they have not already been run. In case a method is called upon externally, but values have not been set up yet

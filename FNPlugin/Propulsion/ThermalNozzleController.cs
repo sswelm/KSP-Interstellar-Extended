@@ -108,7 +108,7 @@ namespace FNPlugin
         public float baseMaxIsp;
 
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = "m")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
         public float radius;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
         public float exitArea = 1;
@@ -215,6 +215,11 @@ namespace FNPlugin
         protected float _availableThermalPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Delayed Throttle")]
         protected float delayedThrottle = 0;
+        
+        [KSPField]
+        public int supportedPropellantAtoms = 511;
+        [KSPField]
+        public int supportedPropellantTypes = 511;
 
         //Internal
         protected string _particleFXName;
@@ -713,7 +718,9 @@ namespace FNPlugin
                             || (_fuelRequiresUpgrade && !isupgraded)
                             || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                             || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
+                            || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                             || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
+                            || ((_propType & this.supportedPropellantTypes) != _propType)
                             )
                         {
                             next_propellant = true;
@@ -744,7 +751,9 @@ namespace FNPlugin
                         || (_fuelRequiresUpgrade && !isupgraded)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                         || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
+                        || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                         || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
+                        || ((_propType & this.supportedPropellantTypes) != _propType)
                         )
                     {
                         next_propellant = true;
@@ -964,29 +973,31 @@ namespace FNPlugin
 
 
 
-        public void FixedUpdate() // FixedUpdate is also called when not activated
-        {
-            if (!HighLogic.LoadedSceneIsFlight) return;
+        //public void FixedUpdate() // FixedUpdate is also called when not activated
+        //{
+        //    if (!HighLogic.LoadedSceneIsFlight) return;
 
-            if (myAttachedEngine == null) return;
+        //    if (myAttachedEngine == null) return;
 
-            // attach/detach with radius
-            if (myAttachedEngine.isOperational)
-                _myAttachedReactor.AttachThermalReciever(id, radius);
-            else
-            {
-                _myAttachedReactor.DetachThermalReciever(id);
+        //    // attach/detach with radius
+        //    if (myAttachedEngine.isOperational)
+        //        _myAttachedReactor.AttachThermalReciever(id, radius);
+        //    else
+        //    {
+        //        _myAttachedReactor.DetachThermalReciever(id);
 
-                ConfigEffects();
-            }
-        }
+        //        ConfigEffects();
+        //    }
+        //}
 
-        public override void OnFixedUpdate() // OnFixedUpdate is not called in edit mode
+        public void FixedUpdate() // FixedUpdate is also called while not staged
+        //public override void OnFixedUpdate() // OnFixedUpdate is not called in edit mode
         {
             try
             {
+                if (!HighLogic.LoadedSceneIsFlight) return;
 
-                ConfigEffects();
+                if (myAttachedEngine == null) return;
 
                 if (cooledIntake != null && ((cooledIntake.part.temperature / cooledIntake.part.maxTemp) > (part.temperature / part.maxTemp)))
                 {
@@ -1004,6 +1015,14 @@ namespace FNPlugin
                     myAttachedEngine.maxFuelFlow = 0;
                     return;
                 }
+
+                // attach/detach with radius
+                if (myAttachedEngine.isOperational)
+                    _myAttachedReactor.AttachThermalReciever(id, radius);
+                else
+                    _myAttachedReactor.DetachThermalReciever(id);
+
+                ConfigEffects();
 
                 delayedThrottle = _currentpropellant_is_jet || myAttachedEngine.currentThrottle < delayedThrottle || delayedThrottleFactor <= 0
                     ? myAttachedEngine.currentThrottle
