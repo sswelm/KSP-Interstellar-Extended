@@ -11,15 +11,15 @@ namespace FNPlugin
 {
     class InterstellarReactor : FNResourceSuppliableModule, IThermalSource
    { 
-        public enum ReactorTypes
-        {
-            FISSION_MSR = 1,
-            FISSION_GFR = 2,
-            FUSION_DT = 4,
-            FUSION_GEN3 = 8,
-            AIM_FISSION_FUSION = 16,
-            ANTIMATTER = 32
-        }
+        //public enum ReactorTypes
+        //{
+        //    FISSION_MSR = 1,
+        //    FISSION_GFR = 2,
+        //    FUSION_DT = 4,
+        //    FUSION_GEN3 = 8,
+        //    AIM_FISSION_FUSION = 16,
+        //    ANTIMATTER = 32
+        //}
 
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -36,7 +36,7 @@ namespace FNPlugin
         public bool reactorInit;
         [KSPField(isPersistant = true)]
         public bool reactorBooted;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Start Enabled"), UI_Toggle(disabledText = "True", enabledText = "False")]
         public bool startDisabled;
         [KSPField(isPersistant = true)]
         public float neutronEmbrittlementDamage;
@@ -100,7 +100,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk5", guiUnits = " MJ")]
         public float powerOutputMk5;
 
-        // Persistent False
+        // Settings
         [KSPField(isPersistant = false)]
         public bool canBeCombinedWithLab = false;
         [KSPField(isPersistant = false)]
@@ -111,7 +111,11 @@ namespace FNPlugin
         public bool disableAtZeroThrottle = false;
         [KSPField(isPersistant = false)]
         public bool controlledByEngineThrottle = false;
+        [KSPField(isPersistant = false)]
+        public bool showShutDownInFlight = false;
 
+        [KSPField(isPersistant = false)]
+        public float emergencyPowerShutdownFraction = 0.95f;
         [KSPField(isPersistant = false)]
         public float breedDivider = 100000.0f;
         [KSPField(isPersistant = false)]
@@ -145,7 +149,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float fuelEfficiency = 1;
         [KSPField(isPersistant = false)]
-        public float upgradedFuelEfficiency;
+        public float upgradedFuelEfficiency = 1;
         [KSPField(isPersistant = false)]
         public bool containsPowerGenerator = false;
         [KSPField(isPersistant = false)]
@@ -186,6 +190,8 @@ namespace FNPlugin
         public int supportedPropellantTypes = GameConstants.defaultSupportedPropellantTypes;
         [KSPField(isPersistant = false)]
         public bool fullPowerForNonNeutronAbsorbants = true;
+        [KSPField(isPersistant = false)]
+        public bool showSpecialisedUI = true;
 
         // Visible imput parameters 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Bimodel upgrade tech")]
@@ -342,6 +348,8 @@ namespace FNPlugin
                 currentGenerationType = (int)value;
             }
         }
+
+        public float MinimumThrottle { get { return minimumThrottle; } }
 
         public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
 
@@ -520,9 +528,9 @@ namespace FNPlugin
             }
         }
 
-        public virtual float MaximumThermalPower { get { return NormalisedMaximumPower * (1.0f - (float)ChargedPowerRatio); } }
-
         public virtual float MinimumPower { get { return 0; } }
+
+        public virtual float MaximumThermalPower { get { return NormalisedMaximumPower * (1 - (float)ChargedPowerRatio); } }
 
         public virtual float MaximumChargedPower { get { return NormalisedMaximumPower * (float)ChargedPowerRatio; } }
 
@@ -576,13 +584,13 @@ namespace FNPlugin
             render_window = !render_window;
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Activate Reactor", active = false)]
+        [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "Activate Reactor", active = false)]
         public void ActivateReactor()
         {
             StartReactor();
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Deactivate Reactor", active = true)]
+        [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "Deactivate Reactor", active = true)]
         public void DeactivateReactor()
         {
             if (HighLogic.LoadedSceneIsEditor)
@@ -768,6 +776,8 @@ namespace FNPlugin
                 Fields["heatTransportationEfficiency"].guiActiveEditor = true;
             }
 
+            Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
+
             //RenderingManager.AddToPostDrawQueue(0, OnGUI);
             print("[KSP Interstellar] Succesfully Completed Configuring Reactor");
         }
@@ -886,16 +896,15 @@ namespace FNPlugin
             }
         }
 
-        public void Update()
+        public virtual void Update()
         {
             currentRawPowerOutput = RawPowerOutput;
+
+            Events["DeactivateReactor"].guiActive = HighLogic.LoadedSceneIsFlight && showShutDownInFlight && IsEnabled;
 
             if (HighLogic.LoadedSceneIsEditor)
             {
                 reactorSurface = Mathf.Pow(radius, 2);
-
-                Events["ActivateReactor"].active = startDisabled;
-                Events["DeactivateReactor"].active = !startDisabled;
             }
         }
 
@@ -1295,7 +1304,7 @@ namespace FNPlugin
 
         protected bool ReactorIsOverheating()
         {
-            if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= 0.95 && canShutdown)
+            if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= emergencyPowerShutdownFraction && canShutdown)
             {
                 deactivate_timer++;
                 if (deactivate_timer > 3)
@@ -1473,7 +1482,7 @@ namespace FNPlugin
                     foreach (var fuel in current_fuel_mode.ReactorFuels)
                     {
                         double availability = GetFuelAvailability(fuel);
-                        PrintToGUILayout(fuel.FuelName, (availability * fuel.Density * 1000).ToString("0.000000") + " kg", bold_label);
+                        PrintToGUILayout(fuel.FuelName, (availability * fuel.Density * 1000).ToString("0.00000000") + " kg", bold_label);
 
                         double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
                         fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
@@ -1489,7 +1498,7 @@ namespace FNPlugin
                         double availability = GetFuelAvailability(product);
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(product.FuelName, bold_label, GUILayout.Width(150));
-                        GUILayout.Label((availability * product.Density * 1000).ToString("0.000000") + " kg", GUILayout.Width(150));
+                        GUILayout.Label((availability * product.Density * 1000).ToString("0.00000000") + " kg", GUILayout.Width(150));
                         GUILayout.EndHorizontal();
 
                         double fuel_use = total_power_per_frame * product.ProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
@@ -1507,7 +1516,7 @@ namespace FNPlugin
                 {
                     GUILayout.BeginHorizontal();
 
-                    if (IsEnabled && GUILayout.Button("Deactivate", GUILayout.ExpandWidth(true)))
+                    if (IsEnabled && canShutdown && GUILayout.Button("Deactivate", GUILayout.ExpandWidth(true)))
                         DeactivateReactor();
                     if (!IsEnabled && GUILayout.Button("Activate", GUILayout.ExpandWidth(true)))
                         ActivateReactor();

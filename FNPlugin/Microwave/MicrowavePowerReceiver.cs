@@ -88,6 +88,8 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
+        public float MinimumThrottle { get { return 0; } }
+
         public void ConnectWithEngine(IEngineNoozle engine) {}
 
         public int SupportedPropellantAtoms { get { return GameConstants.defaultSupportedPropellantAtoms; } }

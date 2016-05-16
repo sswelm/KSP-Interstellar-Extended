@@ -88,6 +88,6 @@ namespace FNPlugin
         public const float MaxThermalNozzleIsp = 2997.13f;
 
         public const int defaultSupportedPropellantAtoms = 121;
-        public const int defaultSupportedPropellantTypes = 63;
+        public const int defaultSupportedPropellantTypes = 127;
     }
 }

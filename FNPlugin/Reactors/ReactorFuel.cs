@@ -58,7 +58,7 @@ namespace FNPlugin
             _density = PartResourceLibrary.Instance.GetDefinition(_fuel_name).density;
             _product_usege_per_mw = Convert.ToDouble(node.GetValue("ProductionPerMW"));
             _unit = node.GetValue("Unit");
-            _produceGlobal = node.HasValue("produceGlobal") ? Boolean.Parse(node.GetValue("produceGlobal")) : true;
+            _produceGlobal = node.HasValue("produceGlobal") ? Boolean.Parse(node.GetValue("produceGlobal")) : false;
         }
 
         public bool ProduceGlobal { get { return _produceGlobal; } }

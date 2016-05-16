@@ -39,6 +39,8 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
+        public float MinimumThrottle { get { return 0; } }
+
         public int SupportedPropellantAtoms { get { return GameConstants.defaultSupportedPropellantAtoms; } }
 
         public int SupportedPropellantTypes { get { return GameConstants.defaultSupportedPropellantTypes; } }

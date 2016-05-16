@@ -10,7 +10,7 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = false)]
         public bool allowJumpStart = true;
 
         [KSPField(isPersistant = false)]
@@ -26,10 +26,12 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Ratio")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
+
+
 
         //public float
         protected PartResource lithiumPartResource = null;

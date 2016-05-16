@@ -82,7 +82,9 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public float upgradeCost = 100;
         [KSPField(isPersistant = false)]
-        public float emissiveColorPower = 3;
+        public float temperatureColorDivider = 1;
+        [KSPField(isPersistant = false)]
+        public float emissiveColorPower = 6;
         [KSPField(isPersistant = false)]
 		public string upgradedName;
         [KSPField(isPersistant = false)]
@@ -711,9 +713,10 @@ namespace FNPlugin
 
         public float GetAverageTemperatureofOfThermalSource(List<IThermalSource> active_thermal_sources)
         {
-            return active_thermal_sources.Any() 
-                ? active_thermal_sources.Sum(r => r.HotBathTemperature) / active_thermal_sources.Count
-                : RadiatorTemperature;
+            //return active_thermal_sources.Any() 
+            //    ? active_thermal_sources.Sum(r => r.HotBathTemperature) / active_thermal_sources.Count
+            //    : RadiatorTemperature;
+            return RadiatorTemperature;
         }
 
         public List<IThermalSource> GetActiveThermalSources()
@@ -796,13 +799,13 @@ namespace FNPlugin
 
             float partTempRatio = Mathf.Min((float)(part.temperature / (part.maxTemp * 0.95)), 1);
 
-            float radiatorTempRatio = Mathf.Min(currentTemperature / RadiatorTemperature * 1.05f, 1);
+            float radiatorTempRatio = Mathf.Min(currentTemperature / RadiatorTemperature, 1);
 
-            colorRatio = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio), emissiveColorPower);
+            colorRatio = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
 
             SetHeatAnimationRatio(colorRatio);
 
-            var emissiveColor = new Color(colorRatio, 0.0f, 0.0f, 1.0f);
+            var emissiveColor = new Color(colorRatio, 0.0f, 0.0f, 0.5f);
 
             foreach (Renderer renderer in array)
             {

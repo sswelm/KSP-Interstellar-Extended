@@ -44,6 +44,8 @@ namespace FNPlugin
 
         float StableMaximumReactorPower { get; }
 
+        float MinimumThrottle { get; }
+
         float MaximumPower { get; }
 
         float MinimumPower { get; }

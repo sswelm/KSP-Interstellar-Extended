@@ -8,6 +8,7 @@ namespace OpenResourceSystem
 {
     public class ORSResourceManager 
     {
+        public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
         public const string FNRESOURCE_MEGAJOULES = "Megajoules";
         public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";

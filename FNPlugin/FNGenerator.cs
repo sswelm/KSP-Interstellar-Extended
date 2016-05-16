@@ -61,19 +61,23 @@ namespace FNPlugin
         public float directConversionEff = 0.5f;
         [KSPField(isPersistant = false)]
         public float upgradedDirectConversionEff = 0.865f;
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField(isPersistant = false)]
         public float carnotEff;
+        [KSPField(isPersistant = false)]
+        public bool maintainsMegaWattPowerBuffer = true;
+        [KSPField(isPersistant = false)]
+        public bool showSpecialisedUI = true;
 
         /// <summary>
         /// MW Power to part mass divider, need to be lower for SETI/NFE mode 
         /// </summary>
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
         public float rawPowerToMassDivider = 1000f;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float massModifier = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float thermalProcessingModifier;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float rawMaximumPower;
 
         // Debugging
@@ -203,10 +207,7 @@ namespace FNPlugin
             {
                 this.defaultMass = defaultMass;
 
-                //if (HighLogic.LoadedSceneIsFlight)
-                //    moduleMassDelta = targetMass - defaultMass;
-                //else
-                    moduleMassDelta = targetMass - initialMass;
+                moduleMassDelta = targetMass - initialMass;
 
                 return moduleMassDelta;
             }
@@ -247,12 +248,15 @@ namespace FNPlugin
             }
 
             // calculate WasteHeat Capacity
-            var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-            if (wasteheatPowerResource != null)
+            if (maintainsMegaWattPowerBuffer)
             {
-                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
-                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
+                var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (wasteheatPowerResource != null)
+                {
+                    var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
+                }
             }
 
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
@@ -261,14 +265,20 @@ namespace FNPlugin
             base.OnStart(state);
             generatorType = originalName;
 
-            targetMass = part.mass;
+            targetMass = part.prefabMass * storedMassMultiplier;
 
-            //if (initialMass == 0)
-            //    initialMass = part.mass;
             initialMass = part.prefabMass * storedMassMultiplier;
+
+            Fields["partMass"].guiActive = Fields["partMass"].guiActiveEditor = calculatedMass;
 
             Fields["maxChargedPower"].guiActive = chargedParticleMode;
             Fields["maxThermalPower"].guiActive = !chargedParticleMode;
+
+            Fields["powerPercentage"].guiActive = Fields["powerPercentage"].guiActiveEditor = showSpecialisedUI;
+            Fields["radius"].guiActive = Fields["radius"].guiActiveEditor = showSpecialisedUI;
+            Fields["generatorType"].guiActive = Fields["generatorType"].guiActiveEditor = showSpecialisedUI;
+            Fields["massModifier"].guiActive = Fields["massModifier"].guiActiveEditor = showSpecialisedUI;
+            Fields["rawPowerToMassDivider"].guiActive = Fields["rawPowerToMassDivider"].guiActiveEditor =  showSpecialisedUI;
 
             if (state == StartState.Editor)
             {
@@ -283,9 +293,6 @@ namespace FNPlugin
                 FindAndAttachToThermalSource();
                 return;
             }
-
-            //if (storedScaleFactor != 0)
-            //    initialMass = part.prefabMass * storedScaleFactor;
 
             if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
@@ -348,7 +355,8 @@ namespace FNPlugin
             attachedThermalSource = searchResult.Source;
 
             // verify if mass calculation is active
-            if (!calculatedMass) return;
+            if (!calculatedMass)
+                return;
 
             // update part mass
             if (attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0)
@@ -366,8 +374,8 @@ namespace FNPlugin
         /// </summary>
         public override void OnUpdate()
         {
-            Events["ActivateGenerator"].active = !IsEnabled;
-            Events["DeactivateGenerator"].active = IsEnabled;
+            Events["ActivateGenerator"].active = !IsEnabled && showSpecialisedUI;
+            Events["DeactivateGenerator"].active = IsEnabled && showSpecialisedUI;
             Fields["OverallEfficiency"].guiActive = IsEnabled;
             Fields["MaxPowerStr"].guiActive = IsEnabled;
 
@@ -514,7 +522,8 @@ namespace FNPlugin
                 // check if MaxStableMegaWattPower is changed
                 var maxStableMegaWattPower = MaxStableMegaWattPower;
 
-                UpdateMegaWattPowerBuffer(maxStableMegaWattPower);
+                if (maintainsMegaWattPowerBuffer)
+                    UpdateMegaWattPowerBuffer(maxStableMegaWattPower);
 
                 // don't produce any power when our reactor has stopped
                 if (maxStableMegaWattPower <= 0)
@@ -537,9 +546,11 @@ namespace FNPlugin
 
                     if (_totalEff <= 0 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) return;
 
-                    double thermal_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded() / _totalEff; 
+                    double thermal_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
-                    double thermal_power_requested = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed) * TimeWarp.fixedDeltaTime, 0);
+                    //var minimumPowerRequirement =  maxThermalPower * _totalEff * attachedThermalSource.MinimumThrottle;
+
+                    double thermal_power_requested = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed / _totalEff) * TimeWarp.fixedDeltaTime, 0);
 
                     requestedPower_f = (float)thermal_power_requested / TimeWarp.fixedDeltaTime;
 
@@ -563,9 +574,11 @@ namespace FNPlugin
 
                     if (_totalEff <= 0) return;
 
-                    double charged_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded() / _totalEff; 
+                    double charged_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
-                    var charged_power_requested = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed) * TimeWarp.fixedDeltaTime, 0.0);
+                    //var minimumPowerRequirement = maxChargedPower * _totalEff * attachedThermalSource.MinimumThrottle;
+
+                    var charged_power_requested = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff) * TimeWarp.fixedDeltaTime, 0);
 
                     requestedPower_f = (float)charged_power_requested / TimeWarp.fixedDeltaTime;
 
