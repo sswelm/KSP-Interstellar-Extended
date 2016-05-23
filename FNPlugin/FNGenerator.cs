@@ -270,6 +270,8 @@ namespace FNPlugin
 
             if (initialMass == 0)
                 initialMass = part.prefabMass;
+            if (targetMass == 0)
+                targetMass = part.prefabMass;
 
             Fields["partMass"].guiActive = Fields["partMass"].guiActiveEditor = calculatedMass;
 
