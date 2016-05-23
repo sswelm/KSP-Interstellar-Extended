@@ -23,15 +23,15 @@ namespace FNPlugin
         //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
         //private float _max_reactor_power;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Charge", guiUnits = " MW")]
-        private float _max_charged_particles_power;
+        private double _max_charged_particles_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Particles", guiUnits = " MW")]
-        private float _charged_particles_requested;
+        private double _charged_particles_requested;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Particles", guiUnits = " MW")]
-        private float _charged_particles_received;
+        private double _charged_particles_received;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Electricity", guiUnits = " MW")]
-        private float _requestedElectricPower;
+        private double _requestedElectricPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Electricity", guiUnits = " MW")]
-        private float _recievedElectricPower;
+        private double _recievedElectricPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thrust", guiUnits = " kN")]
         private float _engineMaxThrust;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Free")]
@@ -137,7 +137,7 @@ namespace FNPlugin
            
 		public void FixedUpdate() 
         {
-            if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_engine.isOperational && _attached_reactor != null)
+            if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_engine.isOperational && _attached_reactor != null && _attached_reactor.ChargedParticlePropulsionEfficiency > 0)
             {
                 double minimum_isp = calculatedIsp * _attached_reactor.MinimumChargdIspMult;
                 var maximum_isp = calculatedIsp * _attached_reactor.MaximumChargedIspMult; //113.835;
@@ -148,7 +148,7 @@ namespace FNPlugin
                 new_isp.Add(0, (float)current_isp, 0, 0);
                 _attached_engine.atmosphereCurve = new_isp;
 
-                _max_charged_particles_power = _attached_reactor.MaximumChargedPower * exchanger_thrust_divisor;
+                _max_charged_particles_power = _attached_reactor.MaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0; 
                 _charged_particles_received = consumeFNResource(_charged_particles_requested * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / TimeWarp.fixedDeltaTime;
 

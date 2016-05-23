@@ -18,14 +18,20 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float startupCostGravityMultiplier = 0;
         [KSPField(isPersistant = false)]
-        public float startupMaximumGeforce = 10000000;
+        public float startupMaximumGeforce = 10000;
         [KSPField(isPersistant = false)]
         public float startupMinimumChargePercentage = 0;
+        [KSPField(isPersistant = false)]
+        protected bool powerPercentageAffectsPowerRequirements = false;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 10)]
         public float powerPercentage = 100;
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Startup"), UI_Toggle(disabledText = "Off", enabledText = "Charging")]
-        protected bool isChargingForJumpstart;
+        public bool isChargingForJumpstart;
+
+
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
+        public float minimumThrottlePercentage;
 
         // UI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
@@ -65,11 +71,27 @@ namespace FNPlugin
             base.OnStart(state);
         }
 
+        public override float MinimumThrottle 
+        {
+            get 
+            {
+                var currentMinimumThrottle = (powerPercentage > 0 && minimumThrottle > 0) ? Mathf.Min(minimumThrottle / (powerPercentage / 100), 1) : minimumThrottle;
+
+                minimumThrottlePercentage = currentMinimumThrottle * 100;
+
+                return currentMinimumThrottle;
+            } 
+        }
+
 	    public float LaserPowerRequirements
 	    {
 		    get 
             { 
-                return current_fuel_mode == null ? PowerRequirement : (powerPercentage / 100) * PowerRequirement * current_fuel_mode.NormalisedPowerRequirements;
+                return current_fuel_mode == null 
+                    ? PowerRequirement 
+                    : powerPercentageAffectsPowerRequirements 
+                        ? powerPercentage * PowerRequirement * current_fuel_mode.NormalisedPowerRequirements 
+                        : PowerRequirement * current_fuel_mode.NormalisedPowerRequirements;
             }
 	    }
 
@@ -80,8 +102,9 @@ namespace FNPlugin
                 var startupPower = startupPowerMultiplier * LaserPowerRequirements; 
                 if (startupCostGravityMultiplier > 0)
                 {
-                    var gravityAtVessel = (float)FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
-                    startupPower = startupPower / (startupCostGravityMultiplier * gravityAtVessel);
+                    var gravityFactor = startupCostGravityMultiplier * FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
+                    if (gravityFactor > 0)
+                        startupPower = (float)(startupPower / gravityFactor);
                 }
 
                 return startupPower;
@@ -93,9 +116,9 @@ namespace FNPlugin
             return isupgraded ? false : true;
         }
 
-        public override float MaximumThermalPower { get { return (powerPercentage / 100) *  NormalisedMaximumPower * (1 - (float)ChargedPowerRatio); } }
+        public override double MaximumThermalPower { get { return (powerPercentage / 100) *  NormalisedMaximumPower * (1 - (float)ChargedPowerRatio); } }
 
-        public override float MaximumChargedPower { get { return (powerPercentage / 100) * NormalisedMaximumPower * (float)ChargedPowerRatio; } }
+        public override double MaximumChargedPower { get { return (powerPercentage / 100) * NormalisedMaximumPower * (float)ChargedPowerRatio; } }
 
         public override void Update()
         {
@@ -124,9 +147,11 @@ namespace FNPlugin
 
             Fields["accumulatedChargeStr"].guiActive = plasma_ratio < 1;
 
-            powerPercentageField.guiActive = !IsEnabled && !isChargingForJumpstart;
+            //powerPercentageField.guiActive = !IsEnabled && !isChargingForJumpstart;
 
             electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
+
+            // call base class
             base.OnUpdate();
         }
 

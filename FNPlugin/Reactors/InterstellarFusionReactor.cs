@@ -40,11 +40,11 @@ namespace FNPlugin
 
         public float MinimumChargdIspMult { get { return 1; } }
 
-        public override float StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
+        public override double StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
 
-        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
+        public override double MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
-        public override float MaximumThermalPower 
+        public override double MaximumThermalPower 
         { 
             get 
             {
@@ -54,7 +54,7 @@ namespace FNPlugin
             } 
         }
 
-        public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
+        public override double MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
 
         public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 

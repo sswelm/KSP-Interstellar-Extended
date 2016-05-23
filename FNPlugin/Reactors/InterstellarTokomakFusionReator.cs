@@ -20,7 +20,7 @@ namespace FNPlugin
 			} 
 		}
 
-        public override float MaximumThermalPower
+        public override double MaximumThermalPower
         {
             get
             {

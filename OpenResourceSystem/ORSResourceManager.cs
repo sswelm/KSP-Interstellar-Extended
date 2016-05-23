@@ -21,7 +21,10 @@ namespace OpenResourceSystem
         protected Part my_part;
         protected PartModule my_partmodule;
         protected Dictionary<ORSResourceSuppliable, double> power_draws;
+
         protected Dictionary<ORSResourceSupplier, double> power_supplies;
+        //protected Dictionary<ORSResourceSupplier, double> power_supplies_stable;
+
 		//List<PartResource> partresources;
         protected String resource_name;
         //protected Dictionary<MegajouleSuppliable, float> power_returned;
@@ -52,8 +55,10 @@ namespace OpenResourceSystem
             my_vessel = pm.vessel;
             my_part = pm.part;
             my_partmodule = pm;
+
             power_draws = new Dictionary<ORSResourceSuppliable,double>();
             power_supplies = new Dictionary<ORSResourceSupplier, double>();
+
             this.resource_name = resource_name;
 
 			if (resource_name == FNRESOURCE_WASTEHEAT || resource_name == FNRESOURCE_THERMALPOWER) 
@@ -112,12 +117,12 @@ namespace OpenResourceSystem
 
         public float managedPowerSupply(ORSResourceSupplier pm, float power) 
         {
-			return managedPowerSupplyWithMinimum (pm, power, 0);
+			return managedPowerSupplyWithMinimumRatio (pm, power, 0);
 		}
 
         public double managedPowerSupply(ORSResourceSupplier pm, double power) 
         {
-			return managedPowerSupplyWithMinimum (pm, power, 0);
+			return managedPowerSupplyWithMinimumRatio (pm, power, 0);
 		}
 
         public double getResourceAvailability()
@@ -138,19 +143,19 @@ namespace OpenResourceSystem
                 .Sum(partresource => partresource.maxAmount);
 		}
 
-        public float managedPowerSupplyWithMinimum(ORSResourceSupplier pm, float power, float rat_min) 
+        public float managedPowerSupplyWithMinimumRatio(ORSResourceSupplier pm, float power, float rat_min) 
         {
-            return (float) managedPowerSupplyWithMinimum(pm, (double)power, (double)rat_min);
+            return (float) managedPowerSupplyWithMinimumRatio(pm, (double)power, (double)rat_min);
 		}
 
-        public double managedPowerSupplyWithMinimum(ORSResourceSupplier pm, double power, double rat_min) 
+        public double managedPowerSupplyWithMinimumRatio(ORSResourceSupplier pm, double power, double rat_min) 
         {
 			var maximum_available_power_per_second = power / TimeWarp.fixedDeltaTime;
             var minimum_power_per_second = maximum_available_power_per_second * rat_min;
             var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
-            var managed_supply_val_add = Math.Min(maximum_available_power_per_second, required_power_per_second);
+            var managed_supply_per_second = Math.Min(maximum_available_power_per_second, required_power_per_second);
 
-			currentPowerSupply += managed_supply_val_add;
+			currentPowerSupply += managed_supply_per_second;
 			stable_supply += maximum_available_power_per_second;
 
             if (power_supplies.ContainsKey(pm))
@@ -158,7 +163,7 @@ namespace OpenResourceSystem
             else
                 power_supplies.Add(pm, maximum_available_power_per_second);
 
-			return managed_supply_val_add * TimeWarp.fixedDeltaTime;
+			return managed_supply_per_second * TimeWarp.fixedDeltaTime;
 		}
 
         public float getStableResourceSupply() 
@@ -392,6 +397,7 @@ namespace OpenResourceSystem
             ORSHelper.fixedRequestResource(my_part, this.resource_name, internl_power_extract);
             currentPowerSupply = 0;
 			stable_supply = 0;
+
             power_supplies.Clear();
             power_draws.Clear();
         }

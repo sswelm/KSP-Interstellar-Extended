@@ -257,7 +257,7 @@ namespace FNPlugin
             if (scoopedAtm > 0 && part.GetResourceSpareCapacity(resourceStoragename) > 0)
             {
                 // calculate available power
-                float powerreceivedMW = Math.Max(consumeFNResource(powerrequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                float powerreceivedMW = Math.Max((float)consumeFNResource(powerrequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
 
                 float normalisedRevievedPowerMW = powerreceivedMW / TimeWarp.fixedDeltaTime;
 

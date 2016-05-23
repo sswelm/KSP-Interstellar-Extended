@@ -744,7 +744,7 @@ namespace FNPlugin
                 float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 double powerDraw = Math.Max(minPowerRequirementForLightSpeed, Math.Min((maxExoticMatter - currentExoticMatter) / 0.001, available_power));
 
-                float power_returned = consumeFNResource(powerDraw * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                double power_returned = consumeFNResource(powerDraw * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
                 if (power_returned < 0.99 * minPowerRequirementForLightSpeed)
                     insufficientPowerTimeout--;

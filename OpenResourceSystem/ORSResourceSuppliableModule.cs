@@ -19,7 +19,7 @@ namespace OpenResourceSystem
                 fnresource_supplied.Add(resourcename, power);
         }
 
-        public float consumeFNResource(double power, String resourcename)
+        public double consumeFNResource(double power, String resourcename)
         {
             power = Math.Max(power, 0);
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
@@ -33,7 +33,7 @@ namespace OpenResourceSystem
             ORSResourceManager mega_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
             mega_manager.powerDraw(this, power);
-            return (float)power_taken;
+            return power_taken;
         }
 
         public float consumeFNResource(float power, String resourcename)
@@ -65,6 +65,7 @@ namespace OpenResourceSystem
         {
             supply = Math.Max(supply, 0);
             maxsupply = Math.Max(maxsupply, 0);
+
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
                 return 0;
 
@@ -87,21 +88,21 @@ namespace OpenResourceSystem
             return manager.managedPowerSupply(this, supply);
         }
 
-        public float supplyManagedFNResourceWithMinimum(float supply, float rat_min, String resourcename)
+        public float supplyManagedFNResourceWithMinimumRatio(float supply, float ratio_min, String resourcename)
         {
-            return (float)supplyManagedFNResourceWithMinimum((double)supply, (double)rat_min, resourcename);
+            return (float)supplyManagedFNResourceWithMinimumRatio((double)supply, (double)ratio_min, resourcename);
         }
 
-        public double supplyManagedFNResourceWithMinimum(double supply, double rat_min, String resourcename)
+        public double supplyManagedFNResourceWithMinimumRatio(double supply, double ratio_min, String resourcename)
         {
             supply = Math.Max(supply, 0);
-            rat_min = Math.Max(rat_min, 0);
+            ratio_min = Math.Max(ratio_min, 0);
 
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.managedPowerSupplyWithMinimum(this, supply, rat_min);
+            return manager.managedPowerSupplyWithMinimumRatio(this, supply, ratio_min);
         }
 
         public float getCurrentResourceDemand(String resourcename)
@@ -165,6 +166,15 @@ namespace OpenResourceSystem
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.getResourceDemand();
+        }
+
+        public float GetRequiredResourceDemand(String resourcename)
+        {
+            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+                return 0;
+
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            return manager.GetRequiredResourceDemand();
         }
 
         public float getCurrentUnfilledResourceDemand(String resourcename)

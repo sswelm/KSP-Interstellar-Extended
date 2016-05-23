@@ -599,7 +599,7 @@ namespace FNPlugin
                 if (!radiatorIsEnabled)
                     conv_power_dissip = conv_power_dissip / 2.0f;
 
-                convectedThermalPower = consumeWasteHeat(conv_power_dissip);
+                convectedThermalPower = (float)consumeWasteHeat(conv_power_dissip);
 
                 if (isDeployable)
                     DeployMentControl(dynamic_pressure);
@@ -635,7 +635,7 @@ namespace FNPlugin
                 if (Single.IsNaN(fixed_thermal_power_dissip))
                     Debug.LogWarning("FNRadiator: OnFixedUpdate Single.IsNaN detected in fixed_thermal_power_dissip");
 
-                radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
+                radiatedThermalPower = (float)consumeWasteHeat(fixed_thermal_power_dissip);
 
                 if (Single.IsNaN(radiatedThermalPower))
                     Debug.LogError("FNRadiator: OnFixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + fixed_thermal_power_dissip + ")");
@@ -674,7 +674,7 @@ namespace FNPlugin
 
                 float fixed_thermal_power_dissip = Mathf.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * RadiatorArea / 0.5e7f * TimeWarp.fixedDeltaTime;
 
-                radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
+                radiatedThermalPower = (float)consumeWasteHeat(fixed_thermal_power_dissip);
 
                 instantaneous_rad_temp = Mathf.Min(radiator_temperature_temp_val * 1.014f, RadiatorTemperature);
                 instantaneous_rad_temp = Mathf.Max(instantaneous_rad_temp, Mathf.Max((float)FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody), 2.7f));
@@ -727,13 +727,13 @@ namespace FNPlugin
             return list_of_thermal_sources.Where(ts => ts.IsActive).ToList();
         }
 
-        private float consumeWasteHeat(double wasteheatToConsume)
+        private double consumeWasteHeat(double wasteheatToConsume)
         {
             if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || _moduleDeployableRadiator == null)
             {
                 var consumedWasteheat = consumeFNResource(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-                if (Single.IsNaN(consumedWasteheat))
+                if (Double.IsNaN(consumedWasteheat))
                     return 0;
                     
                 return consumedWasteheat / TimeWarp.fixedDeltaTime;

@@ -468,7 +468,7 @@ namespace FNPlugin
             { 
                 if (vessel.Splashed)
                 {
-                    float electrical_power_provided = consumeFNResource(powerReqMult * PluginHelper.BaseCentriPowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    float electrical_power_provided = (float)consumeFNResource(powerReqMult * PluginHelper.BaseCentriPowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult);
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                     float deut_produced = (float)(global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f);
