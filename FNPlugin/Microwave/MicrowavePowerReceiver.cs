@@ -88,6 +88,17 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
+        public double ProducedThermalHeat { get { return powerInputMegajoules; } }
+
+        private double _requestedThermalHeat;
+        public double RequestedThermalHeat
+        {
+            get { return _requestedThermalHeat; }
+            set { _requestedThermalHeat = value; }
+        }
+
+        public float MinimumThrottle { get { return 0; } }
+
         public void ConnectWithEngine(IEngineNoozle engine) {}
 
         public int SupportedPropellantAtoms { get { return GameConstants.defaultSupportedPropellantAtoms; } }
@@ -98,9 +109,9 @@ namespace FNPlugin
 
         public float ThermalProcessingModifier { get { return 1; } }
 
-        public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGenratorActive; } }
+        public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGenratorActive; } }
 
-        public double EfficencyConnectedChargedEnergyGenrator { get { return 0; } }
+        public double EfficencyConnectedChargedEnergyGenerator { get { return 0; } }
 
         public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
         {
@@ -187,6 +198,8 @@ namespace FNPlugin
 
         public float ChargedParticleEnergyEfficiency { get { return 0; } }
 
+        public float ChargedParticlePropulsionEfficiency { get { return 0; } }
+
         public bool IsSelfContained { get { return false; } }
 
         //public float CoreTemperature { get { return powerHeatBase + (float)Math.Pow(powerHeatMultiplier * powerInputMegajoules, powerHeatExponent);  } }
@@ -194,15 +207,15 @@ namespace FNPlugin
 
         public float HotBathTemperature  {  get { return CoreTemperature * 1.5f; } }
 
-        public float StableMaximumReactorPower { get { return receiverIsEnabled ? ThermalPower : 0; } }
+        public double StableMaximumReactorPower { get { return receiverIsEnabled ? ThermalPower : 0; } }
 
-        public float MaximumPower { get { return MaximumThermalPower; } }
+        public double MaximumPower { get { return MaximumThermalPower; } }
 
-        public float MaximumThermalPower { get { return ThermalPower; } }
+        public double MaximumThermalPower { get { return ThermalPower; } }
 
-        public virtual float MaximumChargedPower { get {  return 0; } }
+        public double MaximumChargedPower { get {  return 0; } }
 
-        public float MinimumPower { get { return 0; } }
+        public double MinimumPower { get { return 0; } }
 
         public bool IsVolatileSource { get { return true; } }
 
@@ -493,7 +506,7 @@ namespace FNPlugin
             return 3500;
         }
 
-        public float GetThermalPowerAtTemp(float temp)
+        public double GetThermalPowerAtTemp(float temp)
         {
             return ThermalPower;
         }

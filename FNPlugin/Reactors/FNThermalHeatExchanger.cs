@@ -39,6 +39,8 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
+        public float MinimumThrottle { get { return 0; } }
+
         public int SupportedPropellantAtoms { get { return GameConstants.defaultSupportedPropellantAtoms; } }
 
         public int SupportedPropellantTypes { get { return GameConstants.defaultSupportedPropellantTypes; } }
@@ -47,14 +49,11 @@ namespace FNPlugin
 
         public float ThermalProcessingModifier { get { return 1; } }
 
-        public double EfficencyConnectedThermalEnergyGenrator { get { return storedIsThermalEnergyGeneratorActive; } }
+        public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGeneratorActive; } }
 
-        public double EfficencyConnectedChargedEnergyGenrator { get { return 0; } }
+        public double EfficencyConnectedChargedEnergyGenerator { get { return 0; } }
 
-        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
-        {
-            currentIsThermalEnergyGeneratorActive = efficency;
-        }
+        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType){ currentIsThermalEnergyGeneratorActive = efficency;  }
 
         public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType) { }
 
@@ -104,6 +103,15 @@ namespace FNPlugin
                 return 0;
         }
 
+        public double ProducedThermalHeat { get { return 0; } }
+
+        private double _consumedThermalHeat;
+        public double RequestedThermalHeat
+        {
+            get { return _consumedThermalHeat; }
+            set { _consumedThermalHeat = value; }
+        }
+
         public void ConnectWithEngine(IEngineNoozle engine) { }
 
         public double ProducedWasteHeat { get { return 0; } }
@@ -118,21 +126,23 @@ namespace FNPlugin
 
         public float ChargedParticleEnergyEfficiency { get { return 0; } }
 
+        public float ChargedParticlePropulsionEfficiency { get { return 0; } }
+
         public bool IsSelfContained { get { return false; } }
 
         public float CoreTemperature { get { return 1500; } }
 
         public float HotBathTemperature { get { return CoreTemperature * 1.5f; } }
 
-        public float StableMaximumReactorPower { get { return MaximumThermalPower; } }
+        public double StableMaximumReactorPower { get { return MaximumThermalPower; } }
 
-        public float MaximumPower { get { return MaximumThermalPower; } }
+        public double MaximumPower { get { return MaximumThermalPower; } }
 
-        public float MaximumThermalPower { get { return _thermalpower; } }
+        public double MaximumThermalPower { get { return _thermalpower; } }
 
-        public virtual float MaximumChargedPower { get { return 0; } }
+        public virtual double MaximumChargedPower { get { return 0; } }
 
-        public float MinimumPower { get { return 0; } }
+        public double MinimumPower { get { return 0; } }
 
         public bool IsVolatileSource { get { return false; } }
 
@@ -208,7 +218,7 @@ namespace FNPlugin
 
         public float GetCoreTempAtRadiatorTemp(float rad_temp) {  return 1500; }
 
-        public float GetThermalPowerAtTemp(float temp) {
+        public double GetThermalPowerAtTemp(float temp) {
             return _thermalpower;
         }
 

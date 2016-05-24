@@ -224,7 +224,7 @@ namespace FNPlugin
 
                     if (thermal_source == null || thermal_source.IsVolatileSource) continue;
 
-                    float output = generator.getMaxPowerOutput();
+                    float output = (float)generator.getMaxPowerOutput();
                     if (thermal_source is InterstellarFusionReactor)
                     {
                         InterstellarFusionReactor fusion_reactor = thermal_source as InterstellarFusionReactor;

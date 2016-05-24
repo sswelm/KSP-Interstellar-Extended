@@ -151,7 +151,7 @@ namespace FNPlugin
 
             if (!should_charge && current_antimatter <= 0.00001 * antimatter.maxAmount) return;
 
-            float charge_to_add = consumeFNResource(mult * 2.0 * chargeNeeded / 1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f / chargeNeeded;
+            float charge_to_add = (float)consumeFNResource(mult * 2.0 * chargeNeeded / 1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f / chargeNeeded;
             chargestatus += charge_to_add;
 
             if (charge_to_add < 2f * TimeWarp.fixedDeltaTime)

@@ -10,7 +10,7 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = false)]
         public bool allowJumpStart = true;
 
         [KSPField(isPersistant = false)]
@@ -26,10 +26,12 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Ratio")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
+
+
 
         //public float
         protected PartResource lithiumPartResource = null;
@@ -38,11 +40,11 @@ namespace FNPlugin
 
         public float MinimumChargdIspMult { get { return 1; } }
 
-        public override float StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
+        public override double StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
 
-        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
+        public override double MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
-        public override float MaximumThermalPower 
+        public override double MaximumThermalPower 
         { 
             get 
             {
@@ -52,7 +54,7 @@ namespace FNPlugin
             } 
         }
 
-        public override float MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
+        public override double MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
 
         public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 

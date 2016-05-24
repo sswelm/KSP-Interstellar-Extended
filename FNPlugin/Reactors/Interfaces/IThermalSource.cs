@@ -27,6 +27,8 @@ namespace FNPlugin
         /// </summary>
         float RawMaximumPower { get; }
 
+
+
         /// <summary>
         /// Influences the Mass in Electric Generator
         /// </summary>
@@ -38,21 +40,27 @@ namespace FNPlugin
 
         bool FullPowerForNonNeutronAbsorbants { get; }
 
+        double ProducedThermalHeat { get; }
+
+        double RequestedThermalHeat { get; set; }
+
         double ProducedWasteHeat { get; }
 
         float PowerBufferBonus { get; }
 
-        float StableMaximumReactorPower { get; }
+        double StableMaximumReactorPower { get; }
 
-        float MaximumPower { get; }
+        float MinimumThrottle { get; }
 
-        float MinimumPower { get; }
+        double MaximumPower { get; }
+
+        double MinimumPower { get; }
 
         double ChargedPowerRatio { get; }
 
-        float MaximumThermalPower { get; }
+        double MaximumThermalPower { get; }
 
-        float MaximumChargedPower { get; }
+        double MaximumChargedPower { get; }
 
         float CoreTemperature { get; }
 
@@ -74,7 +82,7 @@ namespace FNPlugin
 
         float GetCoreTempAtRadiatorTemp(float rad_temp);
 
-        float GetThermalPowerAtTemp(float temp);
+        double GetThermalPowerAtTemp(float temp);
 
         bool IsThermalSource { get; }
 
@@ -84,9 +92,11 @@ namespace FNPlugin
 
         float ChargedParticleEnergyEfficiency { get; }
 
-        double EfficencyConnectedThermalEnergyGenrator { get; }
+        float ChargedParticlePropulsionEfficiency { get; }
 
-        double EfficencyConnectedChargedEnergyGenrator { get; }
+        double EfficencyConnectedThermalEnergyGenerator { get; }
+
+        double EfficencyConnectedChargedEnergyGenerator { get; }
 
         void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType);
 
@@ -95,6 +105,8 @@ namespace FNPlugin
         bool ShouldApplyBalance(ElectricGeneratorType generatorType);
 
         void ConnectWithEngine(IEngineNoozle engine);
+
+        
 	}
 }
 

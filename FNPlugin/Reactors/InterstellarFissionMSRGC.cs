@@ -129,7 +129,7 @@ namespace FNPlugin
 
         public override bool IsNuclear { get { return true; } }
 
-        public override float MaximumThermalPower
+        public override double MaximumThermalPower
         {
             get
             {
@@ -157,7 +157,7 @@ namespace FNPlugin
             }
         }
 
-        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
+        public override double MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
         public override float CoreTemperature
         {

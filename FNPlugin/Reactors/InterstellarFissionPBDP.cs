@@ -10,16 +10,16 @@ namespace FNPlugin
     class InterstellarFissionPBDP : InterstellarReactor, IChargedParticleSource
     {
         // Persistant False
-        [KSPField(isPersistant = false)]
-        public float optimalPebbleTemp;
+        //[KSPField(isPersistant = false)]
+        //public float optimalPebbleTemp;
         [KSPField(isPersistant = false)]
         public bool heatThrottling = false;
-        [KSPField(isPersistant = false)]
-        public float tempZeroPower;
-        [KSPField(isPersistant = false)]
-        public float upgradedOptimalPebbleTemp = 1000;
-        [KSPField(isPersistant = false)]
-        public float upgradedTempZeroPower = 1250;
+        //[KSPField(isPersistant = false)]
+        // public float tempZeroPower;
+        //[KSPField(isPersistant = false)]
+        //public float upgradedOptimalPebbleTemp = 1000;
+        //[KSPField(isPersistant = false)]
+        //public float upgradedTempZeroPower = 1250;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiUnits= "%", guiName = "Overheating")]
         public float overheatPercentage;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wasteheat Ratio")]
@@ -60,20 +60,20 @@ namespace FNPlugin
 
         public override bool IsNeutronRich { get { return current_fuel_mode != null && !current_fuel_mode.Aneutronic; } }
 
-        public override float MaximumThermalPower { get { return base.MaximumThermalPower * (float)ThermalRatioEfficiency; } }
+        public override double MaximumThermalPower { get { return base.MaximumThermalPower * (float)ThermalRatioEfficiency; } }
 
-        public override float MaximumChargedPower { get  { return base.MaximumChargedPower * (float)ThermalRatioEfficiency; } }
+        public override double MaximumChargedPower { get { return base.MaximumChargedPower * (float)ThermalRatioEfficiency; } }
 
         private float ThermalRatioEfficiency
         {
             get { return reactorType == 4 || heatThrottling ? Mathf.Pow((ZeroPowerTemp - CoreTemperature) / optimalTempDifference, thermalRatioEfficiencyModifier) : 1; }
         }
 
-        private float OptimalTemp { get { return isupgraded ? upgradedOptimalPebbleTemp : optimalPebbleTemp; } }
+        private float OptimalTemp { get { return base.CoreTemperature; } }
 
-        private float ZeroPowerTemp { get { return isupgraded ? upgradedTempZeroPower : tempZeroPower; } }
+        private float ZeroPowerTemp { get { return base.CoreTemperature * 1.25f ; } }
 
-        public override float MinimumPower { get { return MaximumPower * minimumThrottle; } }
+        public override double MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
         public override bool IsNuclear { get { return true; } }
 
@@ -98,10 +98,10 @@ namespace FNPlugin
 
             base.OnStart(state);
 
-            if (upgradedOptimalPebbleTemp <= 1000)
-                upgradedOptimalPebbleTemp = coreTemperatureMk2;
-            if (upgradedTempZeroPower <= 1250)
-                upgradedTempZeroPower = coreTemperatureMk2 * 1.25f;
+            //if (upgradedOptimalPebbleTemp <= 1000)
+            //    upgradedOptimalPebbleTemp = coreTemperatureMk2;
+            //if (upgradedTempZeroPower <= 1250)
+            //    upgradedTempZeroPower = coreTemperatureMk2 * 1.25f;
 
             overheatPercentage = (1 - ThermalRatioEfficiency) * 100;
 
@@ -143,7 +143,7 @@ namespace FNPlugin
             return base.GetCoreTempAtRadiatorTemp(rad_temp);
         }
 
-        public override float GetThermalPowerAtTemp(float temp)
+        public override double GetThermalPowerAtTemp(float temp)
         {
             if (reactorType == 4 || heatThrottling)
             {

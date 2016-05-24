@@ -275,7 +275,7 @@ namespace FNPlugin
         {
             powerEnabled = !powerEnabled;
 
-            power_recieved_f = powerEnabled ? consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES) : 0;
+            power_recieved_f = powerEnabled ? (float)consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES) : 0;
             hasSufficientPower = power_recieved_f > 0.01;
             SetupPropellants();
             currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
@@ -401,7 +401,7 @@ namespace FNPlugin
             if (delayedVerificationPropellant)
             {
                 // test is we got any megajoules
-                power_recieved_f = consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                power_recieved_f = (float)consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 hasSufficientPower = power_recieved_f > 0.01;
 
                 delayedVerificationPropellant = false;

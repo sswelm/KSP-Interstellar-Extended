@@ -117,10 +117,12 @@ namespace InterstellarFuelSwitch
         public bool hasGUI = false;
         [KSPField]
         public bool boiloffActive = false;
-        [KSPField]
+        [KSPField(guiActive = false)]
         public bool availableInFlight = false;
         [KSPField]
         public bool availableInEditor = true;
+        [KSPField(guiActive = false)]
+        public bool isEmpty = false;
 
         [KSPField]
         public string inEditorSwitchingTechReq;
@@ -231,6 +233,10 @@ namespace InterstellarFuelSwitch
         private PartResourceDefinition _partRresourceDefinition1;
         private PartResourceDefinition _partRresourceDefinition2;
 
+        BaseField _chooseField;
+        BaseEvent _nextTankSetupEvent;
+        BaseEvent _previousTankSetupEvent;
+
         List<string> currentResources;
 
         UIPartActionWindow tweakableUI;
@@ -260,6 +266,9 @@ namespace InterstellarFuelSwitch
             {
                 initialMass = part.prefabMass * storedMassMultiplier;
 
+                if (initialMass == 0)
+                    initialMass = part.prefabMass;
+
                 InitializeData();
 
                 if (selectedTankSetup == -1)
@@ -271,14 +280,27 @@ namespace InterstellarFuelSwitch
                 if (state != StartState.Editor)
                     gameLoaded = true;
 
-                var chooseField = Fields["selectedTankSetup"];
-                chooseField.guiName = switcherDescription;
-                chooseField.guiActiveEditor = availableInEditor && hasSwitchChooseOption;
-                chooseField.guiActive = availableInFlight && hasSwitchChooseOption;
+                _nextTankSetupEvent = Events["nextTankSetupEvent"];
+                _previousTankSetupEvent = Events["previousTankSetupEvent"];
 
-                var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;
-                chooseOption.options = _modularTankList.Select(s => s.SwitchName).ToArray();
-                chooseOption.onFieldChanged = UpdateFromGUI;
+                _chooseField = Fields["selectedTankSetup"];
+                _chooseField.guiName = switcherDescription;
+                _chooseField.guiActiveEditor = availableInEditor && hasSwitchChooseOption;
+                _chooseField.guiActive = false;
+
+                var chooseOptionEditor = _chooseField.uiControlEditor as UI_ChooseOption;
+                if (chooseOptionEditor != null)
+                {
+                    chooseOptionEditor.options = _modularTankList.Select(s => s.SwitchName).ToArray();
+                    chooseOptionEditor.onFieldChanged = UpdateFromGUI;
+                }
+
+                //var chooseOptionFlight = _chooseField.uiControlFlight as UI_ChooseOption;
+                //if (chooseOptionFlight != null)
+                //{
+                //    chooseOptionFlight.options = _modularTankList.Select(s => s.SwitchName).ToArray();
+                //    chooseOptionFlight.onFieldChanged = UpdateFromGUI;
+                //}
 
                 //Fields["partTemperatureStr"].guiActive = showTemperature;
             }
@@ -837,16 +859,20 @@ namespace InterstellarFuelSwitch
 
         private void UpdateGuiResourceMass()
         {
-            var currentResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.amount;
-            var currentResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.amount;
-            var currentResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource2.amount;
+            var missing0 = _partRresourceDefinition0 == null || _partResource0 == null;
+            var missing1 = _partRresourceDefinition1 == null || _partResource1 == null;
+            var missing2 = _partRresourceDefinition2 == null || _partResource2 == null;
+
+            var currentResourceMassAmount0 = missing0 ? 0 : _partRresourceDefinition0.density * _partResource0.amount;
+            var currentResourceMassAmount1 = missing1 ? 0 : _partRresourceDefinition1.density * _partResource1.amount;
+            var currentResourceMassAmount2 = missing2 ? 0 : _partRresourceDefinition2.density * _partResource2.amount;
 
             wetMass = currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2;
             totalMass = dryMass + wetMass;
 
-            resourceAmountStr0 = currentResourceMassAmount0 == 0 ? String.Empty : formatMassStr(currentResourceMassAmount0);
-            resourceAmountStr1 = currentResourceMassAmount1 == 0 ? String.Empty : formatMassStr(currentResourceMassAmount1);
-            resourceAmountStr2 = currentResourceMassAmount2 == 0 ? String.Empty : formatMassStr(currentResourceMassAmount2);
+            resourceAmountStr0 = missing0 ? String.Empty : formatMassStr(currentResourceMassAmount0);
+            resourceAmountStr1 = missing1 ? String.Empty : formatMassStr(currentResourceMassAmount1);
+            resourceAmountStr2 = missing2 ? String.Empty : formatMassStr(currentResourceMassAmount2);
         }
 
         private void UpdateMassRatio()
@@ -886,11 +912,7 @@ namespace InterstellarFuelSwitch
                 traceBoiloff = true;
             }
 
-            //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
-            var showSwitchButtons = hasGUI && availableInFlight && !part.GetComponents<PartResource>().Any(r => r.amount > r.maxAmount / 1000);
 
-            Events["nextTankSetupEvent"].guiActive = showSwitchButtons;
-            Events["previousTankSetupEvent"].guiActive = showSwitchButtons;
         }
 
         public void ProcessBoiloff()
@@ -972,6 +994,15 @@ namespace InterstellarFuelSwitch
             if (HighLogic.LoadedSceneIsFlight)
             {
                 UpdateGuiResourceMass();
+
+                //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
+                isEmpty = !part.Resources.list.Any(r => r.amount > r.maxAmount / 1000);
+                var showSwitchButtons = availableInFlight && isEmpty;
+
+                //_chooseField.guiActive = showSwitchButtons;
+                _nextTankSetupEvent.guiActive = showSwitchButtons;
+                _previousTankSetupEvent.guiActive = showSwitchButtons;
+
                 return;
             }
 
