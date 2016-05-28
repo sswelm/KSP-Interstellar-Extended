@@ -8,5 +8,6 @@ namespace FNPlugin
     public interface IElectricPowerSource
     {
         double MaxStableMegaWattPower { get; }
+        void Refresh();
     }
 }

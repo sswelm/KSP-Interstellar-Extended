@@ -65,6 +65,12 @@ namespace FNPlugin
 
         public float RawMaximumPower { get { return maximumPowerRecieved; } }
 
+        public IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
+
+        public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
+
+        //-----------------------------------------------------------------------------------------------
+
         public void AttachThermalReciever(Guid key, float radius)
         {
             try

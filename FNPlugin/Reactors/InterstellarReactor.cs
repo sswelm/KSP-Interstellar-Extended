@@ -9,7 +9,7 @@ using FNPlugin.Propulsion;
 
 namespace FNPlugin
 {
-    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource
+    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IRescalable<InterstellarReactor>
    { 
         //public enum ReactorTypes
         //{
@@ -46,6 +46,8 @@ namespace FNPlugin
         public float windowPositionY = 20;
         [KSPField(isPersistant = true)]
         public int currentGenerationType;
+        [KSPField(isPersistant = true)]
+        public float storedPowerMultiplier = 1;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk2 = null;
@@ -55,6 +57,17 @@ namespace FNPlugin
         public string upgradeTechReqMk4 = null;
         [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk5 = null;
+
+        [KSPField(isPersistant = false)]
+        public float minimumThrottleMk1 = 0;
+        [KSPField(isPersistant = false)]
+        public float minimumThrottleMk2 = 0;
+        [KSPField(isPersistant = false)]
+        public float minimumThrottleMk3 = 0;
+        [KSPField(isPersistant = false)]
+        public float minimumThrottleMk4 = 0;
+        [KSPField(isPersistant = false)]
+        public float minimumThrottleMk5 = 0;
 
         [KSPField(isPersistant = false)]
         public float fuelEfficencyMk1 = 0;
@@ -91,13 +104,13 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Power Output Mk1", guiUnits = " MJ")]
         public float powerOutputMk1;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk2", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Power Output Mk2", guiUnits = " MJ")]
         public float powerOutputMk2;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk3", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Power Output Mk3", guiUnits = " MJ")]
         public float powerOutputMk3;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk4", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Power Output Mk4", guiUnits = " MJ")]
         public float powerOutputMk4;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk5", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Power Output Mk5", guiUnits = " MJ")]
         public float powerOutputMk5;
 
         // Settings
@@ -113,6 +126,8 @@ namespace FNPlugin
         public bool controlledByEngineThrottle = false;
         [KSPField(isPersistant = false)]
         public bool showShutDownInFlight = false;
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        public float powerScaleExponent = 3;
 
         [KSPField(isPersistant = false)]
         public float emergencyPowerShutdownFraction = 0.95f;
@@ -386,7 +401,22 @@ namespace FNPlugin
             }
         }
 
-        public virtual float MinimumThrottle { get { return minimumThrottle; } }
+        public virtual float MinimumThrottle 
+        { 
+            get {
+                if (CurrentGenerationType == GenerationType.Mk5)
+                    return minimumThrottleMk5;
+                else if (CurrentGenerationType == GenerationType.Mk4)
+                    return minimumThrottleMk4;
+                else if (CurrentGenerationType == GenerationType.Mk3)
+                    return minimumThrottleMk3;
+                else if (CurrentGenerationType == GenerationType.Mk2)
+                    return minimumThrottleMk2;
+                else
+                    return minimumThrottleMk1;
+            } 
+        }
+
 
         public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
 
@@ -449,6 +479,29 @@ namespace FNPlugin
                 return result;
             else
                 return 0;
+        }
+
+        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        {
+            try
+            {
+                // calculate multipliers
+                Debug.Log("InterstellarReactor.OnRescale called with " + factor.absolute.linear);
+                storedPowerMultiplier = Mathf.Pow(factor.absolute.linear, powerScaleExponent);
+
+                // update power
+                DeterminePowerOutput();
+
+                // refresh generators mass
+                if (ConnectedThermalElectricGenerator != null)
+                    ConnectedThermalElectricGenerator.Refresh();
+                if (ConnectedChargedParticleElectricGenerator != null)
+                    ConnectedChargedParticleElectricGenerator.Refresh();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("FNGenerator.OnRescale" + e.Message);
+            }
         }
 
         private void UpdateConnectedRecieversStr()
@@ -585,6 +638,10 @@ namespace FNPlugin
 
         public virtual double StableMaximumReactorPower { get { return IsEnabled ? RawPowerOutput : 0; } }
 
+        public IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
+
+        public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
+
         public float RawPowerOutput
         {
             get
@@ -706,11 +763,11 @@ namespace FNPlugin
         {
             if (HighLogic.LoadedSceneIsEditor || powerOutputMk1 == 0)
             {
-                powerOutputMk1 = basePowerOutputMk1;
-                powerOutputMk2 = basePowerOutputMk2;
-                powerOutputMk3 = basePowerOutputMk3;
-                powerOutputMk4 = basePowerOutputMk4;
-                powerOutputMk5 = basePowerOutputMk5;
+                powerOutputMk1 = basePowerOutputMk1 * storedPowerMultiplier;
+                powerOutputMk2 = basePowerOutputMk2 * storedPowerMultiplier;
+                powerOutputMk3 = basePowerOutputMk3 * storedPowerMultiplier;
+                powerOutputMk4 = basePowerOutputMk4 * storedPowerMultiplier;
+                powerOutputMk5 = basePowerOutputMk5 * storedPowerMultiplier;
             }
 
             // if Mk powerOutput is missing, try use lagacy values
@@ -730,6 +787,15 @@ namespace FNPlugin
                 powerOutputMk4 = powerOutputMk3 * 1.5f;
             if (powerOutputMk5 == 0)
                 powerOutputMk5 = powerOutputMk4 * 1.5f;
+
+            if (minimumThrottleMk1 == 0)
+                minimumThrottleMk1 = minimumThrottle;
+            if (minimumThrottleMk2 == 0)
+                minimumThrottleMk2 = minimumThrottleMk1;
+            if (minimumThrottleMk3 == 0)
+                minimumThrottleMk3 = minimumThrottleMk2;
+            if (minimumThrottleMk4 == 0)
+                minimumThrottleMk4 = minimumThrottleMk3;
         }
 
         public override void OnStart(PartModule.StartState state)
