@@ -363,13 +363,13 @@ namespace FNPlugin
                 return;
 
             // update part mass
-            if (attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0)
-            {
-                thermalProcessingModifier = attachedThermalSource.ThermalProcessingModifier;
-                rawMaximumPower = attachedThermalSource.RawMaximumPower;
-                targetMass = (massModifier * thermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
-            }
-            else
+            //if (attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0)
+            //{
+            //    thermalProcessingModifier = attachedThermalSource.ThermalProcessingModifier;
+            //    rawMaximumPower = attachedThermalSource.RawMaximumPower;
+            //    targetMass = (massModifier * thermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
+            //}
+            //else
                 targetMass = part.mass;
         }
 
