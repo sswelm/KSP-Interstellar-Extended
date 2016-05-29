@@ -619,8 +619,7 @@ namespace FNPlugin
                 return (float)result;
             }
         }
-
-        public virtual double MinimumPower { get { return 0; } }
+        public virtual double MinimumPower { get { return MaximumPower * MinimumThrottle; } }
 
         public virtual double MaximumThermalPower { get { return NormalisedMaximumPower * (1 - (float)ChargedPowerRatio); } }
 
@@ -836,11 +835,9 @@ namespace FNPlugin
             base.OnStart(state);
 
             // configure reactor modes
-            print("[KSP Interstellar] Configuring Reactor Fuel Modes");
             fuel_modes = GetReactorFuelModes();
             setDefaultFuelMode();
             UpdateFuelMode();
-            print("[KSP Interstellar] Configuration Reactor Fuels Complete");
 
             if (state == StartState.Editor)
             {
@@ -866,7 +863,6 @@ namespace FNPlugin
                 reactorInit = true;
             }
 
-            print("[KSP Interstellar] Reactor Persistent Resource Update");
             if (IsEnabled && last_active_time > 0)
                 DoPersistentResourceUpdate();
 
@@ -884,7 +880,10 @@ namespace FNPlugin
             Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
 
             //RenderingManager.AddToPostDrawQueue(0, OnGUI);
-            print("[KSP Interstellar] Succesfully Completed Configuring Reactor");
+            //} catch (Exception e)
+            //{
+            //    UnityEngine.Debug.LogError("[KSPI] - Error OnFixedUpdate " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
+            //}
         }
 
         private void UpdateReactorCharacteristics()
@@ -1439,7 +1438,7 @@ namespace FNPlugin
         protected List<ReactorFuelMode> GetReactorFuelModes()
         {
             ConfigNode[] fuelmodes = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
-            return fuelmodes.Select(node => new ReactorFuelMode(node))
+			return fuelmodes.Select(node => new ReactorFuelMode(node))
                 .Where(fm =>
                     (fm.SupportedReactorTypes & ReactorType) == ReactorType
                     && PluginHelper.HasTechRequirmentOrEmpty(fm.TechRequirement)
