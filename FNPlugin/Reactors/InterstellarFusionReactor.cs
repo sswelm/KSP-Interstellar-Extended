@@ -31,8 +31,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
 
-
-
         //public float
         protected PartResource lithiumPartResource = null;
 
@@ -41,8 +39,6 @@ namespace FNPlugin
         public float MinimumChargdIspMult { get { return 1; } }
 
         public override double StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
-
-        public override double MinimumPower { get { return MaximumPower * minimumThrottle; } }
 
         public override double MaximumThermalPower 
         { 
@@ -188,12 +184,5 @@ namespace FNPlugin
 
             PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_label);
         }
-
-        //public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
-        //{
-        //    //fusionQfactor = FusionEnergyGainFactor;
-        //    //minimumPowerRequirement = PowerRequirement;
-        //    base.OnFixedUpdate();
-        //}
     }
 }

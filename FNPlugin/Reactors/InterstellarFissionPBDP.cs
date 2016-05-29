@@ -10,16 +10,8 @@ namespace FNPlugin
     class InterstellarFissionPBDP : InterstellarReactor, IChargedParticleSource
     {
         // Persistant False
-        //[KSPField(isPersistant = false)]
-        //public float optimalPebbleTemp;
         [KSPField(isPersistant = false)]
         public bool heatThrottling = false;
-        //[KSPField(isPersistant = false)]
-        // public float tempZeroPower;
-        //[KSPField(isPersistant = false)]
-        //public float upgradedOptimalPebbleTemp = 1000;
-        //[KSPField(isPersistant = false)]
-        //public float upgradedTempZeroPower = 1250;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiUnits= "%", guiName = "Overheating")]
         public float overheatPercentage;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wasteheat Ratio")]
@@ -73,8 +65,6 @@ namespace FNPlugin
 
         private float ZeroPowerTemp { get { return base.CoreTemperature * 1.25f ; } }
 
-        public override double MinimumPower { get { return MaximumPower * minimumThrottle; } }
-
         public override bool IsNuclear { get { return true; } }
 
         public override float CoreTemperature
@@ -94,14 +84,7 @@ namespace FNPlugin
 
         public override void OnStart(StartState state)
         {
-
-
             base.OnStart(state);
-
-            //if (upgradedOptimalPebbleTemp <= 1000)
-            //    upgradedOptimalPebbleTemp = coreTemperatureMk2;
-            //if (upgradedTempZeroPower <= 1250)
-            //    upgradedTempZeroPower = coreTemperatureMk2 * 1.25f;
 
             overheatPercentage = (1 - ThermalRatioEfficiency) * 100;
 
@@ -129,7 +112,7 @@ namespace FNPlugin
 
         public override float GetCoreTempAtRadiatorTemp(float rad_temp)
         {
-            if (reactorType == 4 || heatThrottling)
+            if (heatThrottling)
             {
                 float pfr_temp = 0;
 
