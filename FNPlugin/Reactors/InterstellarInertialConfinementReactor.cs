@@ -37,6 +37,10 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
 
+		public override double MinimumPower { get { return MaximumPower * minimumThrottle; } }
+
+		public override double MaximumPower { get {	return MaximumThermalPower + MaximumChargedPower; } }
+
         // protected fields
         protected float power_consumed;
         protected bool fusion_alert = false;
@@ -53,6 +57,8 @@ namespace FNPlugin
 
             isChargingField.guiActiveEditor = false;
 
+			base.OnStart(state);
+
             if (state != StartState.Editor && allowJumpStart)
             {
                 if (startDisabled)
@@ -68,7 +74,7 @@ namespace FNPlugin
 
                 UnityEngine.Debug.LogWarning("[KSPI] - InterstellarInertialConfinementReactor.OnStart allowJumpStart");
             }
-            base.OnStart(state);
+            
         }
 
         public override float MinimumThrottle 
@@ -116,9 +122,13 @@ namespace FNPlugin
             return isupgraded ? false : true;
         }
 
-        public override double MaximumThermalPower { get { return (powerPercentage / 100) *  NormalisedMaximumPower * (1 - (float)ChargedPowerRatio); } }
+		public override double MaximumThermalPower { get { 
+				float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
+				return (powerPercentage / 100) *  NormalisedMaximumPower  * plasmaModifier * (1 - (float)ChargedPowerRatio); } }
 
-        public override double MaximumChargedPower { get { return (powerPercentage / 100) * NormalisedMaximumPower * (float)ChargedPowerRatio; } }
+		public override double MaximumChargedPower { get {
+				float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
+				return (powerPercentage / 100) * NormalisedMaximumPower * plasmaModifier * (float)ChargedPowerRatio; } }
 
         public override void Update()
         {

@@ -602,7 +602,7 @@ namespace FNPlugin
             try
             {
                 ConfigNode chosenpropellant = propellants[fuel_mode];
-                UpdatePropellantModeBehavior(chosenpropellant);
+				UpdatePropellantModeBehavior(chosenpropellant);
                 ConfigNode[] propellantNodes = chosenpropellant.GetNodes("PROPELLANT");
                 list_of_propellants.Clear();
 
@@ -623,8 +623,6 @@ namespace FNPlugin
                         UnityEngine.Debug.LogWarning("[KSPI] - ThermalNozzleController - SetupPropellants list_of_propellants is null");
 
                     list_of_propellants.Add(curprop);
-
-                    
 
                     //if (curprop.name == "LqdWater")
                     //{
@@ -746,7 +744,7 @@ namespace FNPlugin
 
                     // Still ignore propellants that don't exist or we cannot use due to the limmitations of the engine
                     if (
-                           (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name) && (switches <= propellants.Length || fuel_mode != 0))
+						( (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
                         || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                         || (_fuelRequiresUpgrade && !isupgraded)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
@@ -754,7 +752,7 @@ namespace FNPlugin
                         || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                         || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
                         || ((_propType & this.supportedPropellantTypes) != _propType)
-                        )
+						)  && (switches <= propellants.Length || fuel_mode != 0) ) 
                     {
                         next_propellant = true;
                     }
@@ -1033,12 +1031,14 @@ namespace FNPlugin
                 _availableThermalPower = _currentMaximumPower * thermalRatio;
 
                 // actively cool
-                var wasteheatRatio = Math.Min(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 1);
-                var tempRatio = Math.Pow(part.temperature / part.maxTemp, 2);
-
-                var newPartTemperatue = part.temperature - (0.05 * tempRatio * part.temperature * TimeWarp.fixedDeltaTime * (1 - Math.Pow(wasteheatRatio, 0.5)));
-                if (!Double.IsNaN(newPartTemperatue) && !Double.IsInfinity(newPartTemperatue))
-                    part.temperature = newPartTemperatue;
+//                var wasteheatRatio = Math.Min(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 1);
+//                var tempRatio = Math.Pow(part.temperature / part.maxTemp, 2);
+//
+//				var deltaTemp = (0.05 * tempRatio * part.temperature * TimeWarp.fixedDeltaTime * (1 - Math.Pow(wasteheatRatio, 0.5)));
+//				var newPartTemperatue = part.temperature - deltaTemp;
+//				Debug.Log("actively cool: " + newPartTemperatue + " deltaTemp: " + deltaTemp);
+//				if (!Double.IsNaN(newPartTemperatue) && !Double.IsInfinity(newPartTemperatue) && deltaTemp >= 0.0)
+//                    part.temperature = newPartTemperatue;
 
                 //var extendedPropellant = list_of_propellants[0] as ExtendedPropellant;
                 //if (extendedPropellant.name != extendedPropellant.StoragePropellantName)
@@ -1057,7 +1057,7 @@ namespace FNPlugin
 
                 UpdateAnimation();
 
-                if (myAttachedEngine.isOperational && myAttachedEngine.currentThrottle >= 0.01)
+				if (myAttachedEngine.getIgnitionState && myAttachedEngine.currentThrottle >= 0.01)
                     GenerateThrustFromReactorHeat();
                 else
                 {
@@ -1106,9 +1106,9 @@ namespace FNPlugin
                     }
 
                     // prevent to low number of maxthrust 
-                    if (calculatedMaxThrust <= 0.0000001f)
+                    if (calculatedMaxThrust <= 0.00001f)
                     {
-                        calculatedMaxThrust = 0.0000001f;
+                        calculatedMaxThrust = 0.00001f;
                         max_fuel_flow_rate = 0;
                     }
 
@@ -1302,9 +1302,9 @@ namespace FNPlugin
                     }
                 }
 
-                if (calculatedMaxThrust <= 0.0000001f)
+                if (calculatedMaxThrust <= 0.00001f)
                 {
-                    calculatedMaxThrust = 0.0000001f;
+                    calculatedMaxThrust = 0.00001f;
                     max_fuel_flow_rate = 0;
                 }
 
@@ -1316,11 +1316,23 @@ namespace FNPlugin
                 // set engines maximum fuel flow
                 myAttachedEngine.maxFuelFlow = (float)Math.Min(1000, max_fuel_flow_rate);
 
-                engineHeatProduction = (max_fuel_flow_rate >= 0.00001 && _maxISP > 100)
-                    ? baseHeatProduction * engineHeatProductionMultiplier / max_fuel_flow_rate / Mathf.Pow(_maxISP, engineHeatProductionExponent)
-                    : baseHeatProduction;
+				// Calculate
+				int pre_coolers_active = _vesselPrecoolers.Sum(prc => prc.ValidAttachedIntakes) + buildInPrecoolers;
+				int intakes_open = _vesselResourceIntake.Where(mre => mre.intakeEnabled).Count();
 
-                myAttachedEngine.heatProduction = (float)engineHeatProduction;
+				double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1);
+				if (double.IsNaN(proportion) || double.IsInfinity(proportion))
+					proportion = 1;
+
+				float heatAdjacent = (float)(Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit * proportion);
+
+				proportion = proportion * 50;
+                
+				engineHeatProduction = (max_fuel_flow_rate >= 0.1 && _maxISP > 100)
+					? baseHeatProduction *  (10/max_fuel_flow_rate/ Mathf.Pow(_maxISP, engineHeatProductionExponent) + heatAdjacent)
+					: baseHeatProduction *  (1+heatAdjacent);
+
+				myAttachedEngine.heatProduction = (float)engineHeatProduction;
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                 {
@@ -1392,23 +1404,23 @@ namespace FNPlugin
                 UpdateIspEngineParams();
                 this.current_isp = myAttachedEngine.atmosphereCurve.Evaluate((float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position), 1.0));
 
-                int pre_coolers_active = _vesselPrecoolers.Sum(prc => prc.ValidAttachedIntakes) + buildInPrecoolers;
-                int intakes_open = _vesselResourceIntake.Where(mre => mre.intakeEnabled).Count();
+//                int pre_coolers_active = _vesselPrecoolers.Sum(prc => prc.ValidAttachedIntakes) + buildInPrecoolers;
+//                int intakes_open = _vesselResourceIntake.Where(mre => mre.intakeEnabled).Count();
+//
+//                double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1);
+//                if (double.IsNaN(proportion) || double.IsInfinity(proportion))
+//                    proportion = 1;
 
-                double proportion = Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1);
-                if (double.IsNaN(proportion) || double.IsInfinity(proportion))
-                    proportion = 1;
-
-                float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
-                if (temp > part.maxTemp - 10.0f)
-                {
-                    ScreenMessages.PostScreenMessage("Engine Shutdown: Catastrophic overheating was imminent!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                    myAttachedEngine.Shutdown();
-                }
-                else
-                {
-                    part.temperature = temp;
-                }
+//                float temp = (float)Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit) * part.maxTemp * proportion, 1);
+//                if (temp > part.maxTemp - 10.0f)
+//                {
+//                    ScreenMessages.PostScreenMessage("Engine Shutdown: Catastrophic overheating was imminent!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+//                    myAttachedEngine.Shutdown();
+//                }
+//                else
+//                {
+//                    part.temperature = temp;
+//                }
             }
             else
             {
