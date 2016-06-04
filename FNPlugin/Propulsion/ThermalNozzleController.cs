@@ -58,7 +58,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float thermalMassModifier = 1f;
         [KSPField(isPersistant = false)]
-        public float engineHeatProductionMultiplier = 2000;
+        public float engineHeatProductionMultiplier = 1000;
         [KSPField(isPersistant = false)]
         public float engineHeatProductionExponent = 0.8f;
 
@@ -221,9 +221,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
         double airflowHeatModifier;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false)]
         int pre_coolers_active;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false)]
         int intakes_open;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         int total_intakes;
@@ -841,9 +841,9 @@ namespace FNPlugin
 
                 // configure atmCurve
                 atmCurve.Add(0, 0);
-                atmCurve.Add(0.045f, 0.2f);
-                atmCurve.Add(0.16f, 0.5f);
-                atmCurve.Add(0.5f, 0.75f);
+                atmCurve.Add(0.045f, 0.25f);
+                atmCurve.Add(0.16f, 0.55f);
+                atmCurve.Add(0.5f, 0.8f);
                 atmCurve.Add(1f, 1f);
 
                 myAttachedEngine.atmCurve = atmCurve;
@@ -1292,10 +1292,7 @@ namespace FNPlugin
                 airflowHeatModifier = proportion > 0
                     ? Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit * proportion), 0)
                     : 0;
-
-                var machSpeed = vessel.speed / vessel.speedOfSound;
-                var airModofier = vessel.atmDensity * machSpeed;
-                airflowHeatModifier *= machSpeed * airModofier;
+                airflowHeatModifier *= vessel.atmDensity * (vessel.speed / vessel.speedOfSound);
 
                 engineHeatProduction = (max_fuel_flow_rate >= 0.001 && _maxISP > 100)
                     ? baseHeatProduction * engineHeatProductionMultiplier / max_fuel_flow_rate / Mathf.Pow(_maxISP, engineHeatProductionExponent)
