@@ -38,22 +38,22 @@ namespace FNPlugin
         [KSPField]
         public bool useZaxis = false;
 
-        [KSPField(guiActiveEditor = true)]
+        [KSPField(guiActiveEditor = false)]
         public string RCS = "Enable/Disable for:";
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Yaw"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool enableYaw = true;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Pitch"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool enablePitch = true;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Roll"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool enableRoll = true;
+        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Yaw"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool enableYaw = true;
+        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Pitch"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool enablePitch = true;
+        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Roll"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool enableRoll = true;
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Port/Stbd"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool enableX = true;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Dorsal/Ventral"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool enableY = true;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Fore/Aft"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool enableZ = true;
+        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Port/Stbd"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool enableX = true;
+        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Dorsal/Ventral"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool enableY = true;
+        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Fore/Aft"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool enableZ = true;
 
         [KSPField]
         public bool useThrottle = false;

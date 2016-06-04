@@ -102,7 +102,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public float radiatorArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float areaMultiplier = 6;
+        public float areaMultiplier = 5;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
         public float effectiveRadiatorArea;
@@ -315,6 +315,9 @@ namespace FNPlugin
             if (_moduleDeployableRadiator != null)
                 _moduleDeployableRadiator.Extend();
 
+            if (_moduleActiveRadiator != null)
+                _moduleActiveRadiator.Activate();
+
             radiatorIsEnabled = true;
 
             if (deployAnim == null) return;
@@ -341,6 +344,9 @@ namespace FNPlugin
 
             if (_moduleDeployableRadiator != null)
                 _moduleDeployableRadiator.Retract();
+
+            if (_moduleActiveRadiator != null)
+                _moduleActiveRadiator.Shutdown();
 
             radiatorIsEnabled = false;
 
@@ -451,7 +457,12 @@ namespace FNPlugin
                 _moduleActiveRadiator = part.FindModuleImplementing<ModuleActiveRadiator>();
 
                 if (_moduleActiveRadiator != null)
-                    _moduleActiveRadiator.maxEnergyTransfer = radiatorArea * 1000 * (1 + (int)CurrentGenerationType);
+                {
+                    _moduleActiveRadiator.maxEnergyTransfer = radiatorArea * 1000 * (1 + ((int)CurrentGenerationType * 2));
+                    if (radiatorIsEnabled)
+                        _moduleActiveRadiator.Activate();
+                    //_moduleActiveRadiator.enabled = radiatorIsEnabled;
+                }
 
                 if (state == StartState.Editor)
                 {
@@ -506,6 +517,8 @@ namespace FNPlugin
 
                 if (radiatorInit == false)
                     radiatorInit = true;
+
+                part.maxTemp = RadiatorTemperature;
 
                 radiatorTempStr = RadiatorTemperature + "K";
 
