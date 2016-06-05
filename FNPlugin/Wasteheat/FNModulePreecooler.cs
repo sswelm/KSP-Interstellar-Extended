@@ -117,7 +117,7 @@ namespace FNPlugin
                 }
             }
 
-            part.force_activate();
+            //part.force_activate();
 
             if (attachedIntake != null)
                 attachedIntakeName = attachedIntake.name;
@@ -150,7 +150,8 @@ namespace FNPlugin
             }
         }
 
-        public override void OnFixedUpdate() 
+        //public override void OnFixedUpdate() 
+        public void FixedUpdate() // FixedUpdate is also called while not staged
         {
             functional = ((attachedIntake != null && attachedIntake.intakeEnabled) || radialAttachedIntakes.Any(i => i.intakeEnabled) );
         }

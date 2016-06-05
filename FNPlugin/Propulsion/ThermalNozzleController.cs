@@ -29,8 +29,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public int jetPerformanceProfile = 0;
         [KSPField(isPersistant = false)]
-        public int buildInPrecoolers = 0;
-        [KSPField(isPersistant = false)]
         public bool canUseLFO = false;
         [KSPField(isPersistant = false)]
         public bool isJet = false;
@@ -144,7 +142,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
-        public float baseHeatProduction = 10;
+        public float baseHeatProduction = 100;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Heat Production")]
         public double engineHeatProduction;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
@@ -831,12 +829,11 @@ namespace FNPlugin
 
                     velCurve.Add(0.00f, 0.50f + jetTechBonusPercentage);
                     velCurve.Add(1.00f, 1.00f);
-                    velCurve.Add(2.00f, 0.80f + jetTechBonusPercentage);
-                    velCurve.Add(3.00f, 0.60f + jetTechBonusPercentage);
-                    velCurve.Add(4.00f, 0.40f + jetTechBonusPercentage);
-                    velCurve.Add(5.00f, 0.20f + jetTechBonusPercentage);
-                    velCurve.Add(6.00f, 0.00f + jetTechBonusPercentage);
-                    velCurve.Add(7.00f, 0.00f);
+                    velCurve.Add(2.00f, 0.75f + jetTechBonusPercentage);
+                    velCurve.Add(3.00f, 0.50f + jetTechBonusPercentage);
+                    velCurve.Add(4.00f, 0.25f + jetTechBonusPercentage);
+                    velCurve.Add(5.00f, 0.00f + jetTechBonusPercentage);
+                    velCurve.Add(6.00f, 0.00f);
                 }
 
                 // configure atmCurve
@@ -1295,7 +1292,7 @@ namespace FNPlugin
                 airflowHeatModifier *= vessel.atmDensity * (vessel.speed / vessel.speedOfSound);
 
                 engineHeatProduction = (max_fuel_flow_rate >= 0.001 && _maxISP > 100)
-                    ? baseHeatProduction * engineHeatProductionMultiplier / max_fuel_flow_rate / Mathf.Pow(_maxISP, engineHeatProductionExponent)
+                    ? baseHeatProduction * engineHeatProductionMultiplier / max_fuel_flow_rate / Mathf.Pow(_maxISP, engineHeatProductionExponent) / part.mass
                     : baseHeatProduction;
 
                 engineHeatProduction *= (1 + airflowHeatModifier);
