@@ -62,7 +62,7 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public float engineHeatFuelAdjustment = 50.0f;
         [KSPField(isPersistant = false)]
-        public float engineAirHeatProductioConst = 5000;
+        public float engineAirHeatProductioConst = 2;
         [KSPField(isPersistant = false)]
         public float engineHeatProductionExponent = 0.8f;
 
@@ -1303,7 +1303,7 @@ namespace FNPlugin
                     : baseHeatProduction;
 
 				if (_currentpropellant_is_jet) 
-					engineHeatProduction += engineAirHeatProductioConst*airflowHeatModifier;
+					engineHeatProduction *= (1 + engineAirHeatProductioConst*airflowHeatModifier);
 
                 //var wasteheatRatio = Math.Min(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 1);
                 //var tempRatio = Math.Max(  Math.Pow(part.temperature / part.maxTemp, 2), 0.01);
