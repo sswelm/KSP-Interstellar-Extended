@@ -57,8 +57,12 @@ namespace FNPlugin
         public float emissiveConstant = 0.85f;
         [KSPField(isPersistant = false)]
         public float thermalMassModifier = 1f;
+		[KSPField(isPersistant = false)]
+		public float engineHeatFuelThreshold = 0.01f;
+		[KSPField(isPersistant = false)]
+		public float engineHeatFuelAdjustment = 50.0f;
         [KSPField(isPersistant = false)]
-        public float engineHeatProductionMultiplier = 1000;
+        public float engineAirHeatProductioConst = 2;
         [KSPField(isPersistant = false)]
         public float engineHeatProductionExponent = 0.8f;
 
@@ -1294,11 +1298,12 @@ namespace FNPlugin
                     : 0;
                 airflowHeatModifier *= vessel.atmDensity * (vessel.speed / vessel.speedOfSound);
 
-                engineHeatProduction = (max_fuel_flow_rate >= 0.001 && _maxISP > 100)
-                    ? baseHeatProduction * engineHeatProductionMultiplier / max_fuel_flow_rate / Mathf.Pow(_maxISP, engineHeatProductionExponent)
+				engineHeatProduction = (max_fuel_flow_rate >= engineHeatFuelThreshold && _maxISP > 100)
+					? baseHeatProduction * (engineHeatFuelThreshold * engineHeatFuelAdjustment) / max_fuel_flow_rate / Mathf.Pow(_maxISP, engineHeatProductionExponent)
                     : baseHeatProduction;
 
-                engineHeatProduction *= (1 + airflowHeatModifier);
+				if (_currentpropellant_is_jet) 
+					engineHeatProduction *= (1 + engineAirHeatProductioConst*airflowHeatModifier);
 
                 //var wasteheatRatio = Math.Min(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 1);
                 //var tempRatio = Math.Max(  Math.Pow(part.temperature / part.maxTemp, 2), 0.01);
