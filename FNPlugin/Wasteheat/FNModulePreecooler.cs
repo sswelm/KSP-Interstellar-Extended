@@ -25,7 +25,7 @@ namespace FNPlugin
             UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - Onstart start search for Air Intake module to cool");
 
             // first check if part itself has an air intake
-            attachedIntake = part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == "IntakeAir");
+            attachedIntake = part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == PluginHelper.IntakeAir);
 
             if (attachedIntake != null)
                 UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - Found Airintake on self");
@@ -35,10 +35,12 @@ namespace FNPlugin
                 // then look to connect radial attached children
                 radialAttachedIntakes = part.children
                     .Where(p => p.attachMode == AttachModes.SRF_ATTACH)
-                    .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == "IntakeAir").ToList();
+                    .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == PluginHelper.IntakeAir).ToList();
 
                 if (radialAttachedIntakes.Count > 0)
                     UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - Found Airintake in children");
+                else
+                    UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - Did not find Airintake in children");
             }
 
             // third look for stack attachable air intake
@@ -57,7 +59,7 @@ namespace FNPlugin
                         continue;
                     }
 
-                    attachedIntake = attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == "IntakeAir");
+                    attachedIntake = attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == PluginHelper.IntakeAir);
 
                     if (attachedIntake != null)
                     {
@@ -73,19 +75,44 @@ namespace FNPlugin
                     // look for stack attacked parts one part further
                     foreach (AttachNode attach_node in part.attachNodes.Where(a => a.attachedPart != null))
                     {
+                        // then look to connect radial attached children
+                        radialAttachedIntakes = attach_node.attachedPart.children
+                            .Where(p => p.attachMode == AttachModes.SRF_ATTACH)
+                            .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == PluginHelper.IntakeAir).ToList();
+
+                        if (radialAttachedIntakes.Count > 0)
+                        {
+                            UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - Found " + radialAttachedIntakes.Count + " Airintake(s) in children in deeper node");
+                            break;
+                        }
+
                         if (attach_node.attachedPart.FindModulesImplementing<FNModulePreecooler>().Any()) continue;
                         
                         foreach (AttachNode subAttach_node in attach_node.attachedPart.attachNodes.Where(a => a.attachedPart != null))
                         {
-                            attachedIntake = subAttach_node.attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == "IntakeAir");
+                            UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - look for Air intakes in part " + subAttach_node.attachedPart.name);
+
+                            attachedIntake = subAttach_node.attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == PluginHelper.IntakeAir);
 
                             if (attachedIntake != null)
                             {
                                 UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - found Airintake in deeper attached part with name " + attachedIntake.name);
                                 break;
                             }
+
+                            // then look to connect radial attached children
+                            radialAttachedIntakes = subAttach_node.attachedPart.children
+                                .Where(p => p.attachMode == AttachModes.SRF_ATTACH)
+                                .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == PluginHelper.IntakeAir).ToList();
+
+                            if (radialAttachedIntakes.Count > 0)
+                            {
+                                UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - Found " + radialAttachedIntakes.Count + " Airintake(s) in children in even deeper node");
+                                break;
+                            }
                         }
-                        if (attachedIntake != null) break;
+                        if (attachedIntake != null)
+                            break;
                     }
                 }
             }
@@ -99,7 +126,7 @@ namespace FNPlugin
                 if (radialAttachedIntakes == null )
                     attachedIntakeName = "Null found";
                 else if (radialAttachedIntakes.Count > 1)
-                    attachedIntakeName = "Multiple intakes found";
+                    attachedIntakeName = radialAttachedIntakes.Count + " radial intakes found";
                 else if (radialAttachedIntakes.Count > 0)
                     attachedIntakeName = radialAttachedIntakes.First().name;
                 else

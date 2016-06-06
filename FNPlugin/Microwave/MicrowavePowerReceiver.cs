@@ -113,6 +113,10 @@ namespace FNPlugin
 
         public double EfficencyConnectedChargedEnergyGenerator { get { return 0; } }
 
+        public IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
+
+        public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
+
         public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
         {
             currentIsThermalEnergyGenratorActive = efficency;
@@ -149,6 +153,8 @@ namespace FNPlugin
         }
 
         public double ProducedWasteHeat { get { return (float)waste_heat_production; } }
+
+        public void Refresh(){}
 
         public void DetachThermalReciever(Guid key)
         {

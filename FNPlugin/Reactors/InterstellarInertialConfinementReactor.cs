@@ -29,7 +29,6 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Startup"), UI_Toggle(disabledText = "Off", enabledText = "Charging")]
         public bool isChargingForJumpstart;
 
-
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
         public float minimumThrottlePercentage;
 
@@ -53,6 +52,8 @@ namespace FNPlugin
 
             isChargingField.guiActiveEditor = false;
 
+			base.OnStart(state);
+
             if (state != StartState.Editor && allowJumpStart)
             {
                 if (startDisabled)
@@ -68,14 +69,16 @@ namespace FNPlugin
 
                 UnityEngine.Debug.LogWarning("[KSPI] - InterstellarInertialConfinementReactor.OnStart allowJumpStart");
             }
-            base.OnStart(state);
+            
         }
 
         public override float MinimumThrottle 
         {
             get 
             {
-                var currentMinimumThrottle = (powerPercentage > 0 && minimumThrottle > 0) ? Mathf.Min(minimumThrottle / (powerPercentage / 100), 1) : minimumThrottle;
+                var currentMinimumThrottle = (powerPercentage > 0 && base.MinimumThrottle > 0) 
+                    ? Mathf.Min(base.MinimumThrottle / (powerPercentage / 100), 1) 
+                    : base.MinimumThrottle;
 
                 minimumThrottlePercentage = currentMinimumThrottle * 100;
 
@@ -116,9 +119,13 @@ namespace FNPlugin
             return isupgraded ? false : true;
         }
 
-        public override double MaximumThermalPower { get { return (powerPercentage / 100) *  NormalisedMaximumPower * (1 - (float)ChargedPowerRatio); } }
+		public override double MaximumThermalPower { get { 
+				float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
+				return (powerPercentage / 100) *  NormalisedMaximumPower  * plasmaModifier * (1 - (float)ChargedPowerRatio); } }
 
-        public override double MaximumChargedPower { get { return (powerPercentage / 100) * NormalisedMaximumPower * (float)ChargedPowerRatio; } }
+		public override double MaximumChargedPower { get {
+				float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
+				return (powerPercentage / 100) * NormalisedMaximumPower * plasmaModifier * (float)ChargedPowerRatio; } }
 
         public override void Update()
         {

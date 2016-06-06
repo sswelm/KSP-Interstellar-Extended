@@ -9,13 +9,13 @@ namespace FNPlugin
         //protected Vector3 _intake_direction;
         protected PartResourceDefinition _resourceAtmosphere;
 
-        [KSPField(guiName = "Intake Speed", isPersistant = false, guiActive = true)]
+        [KSPField(guiName = "Intake Speed", isPersistant = false, guiActive = true, guiFormat = "F3")]
         protected float _intake_speed;
-        [KSPField(guiName = "Atmosphere Flow", guiUnits = "U", guiFormat = "F2", isPersistant = false, guiActive = false)]
+        [KSPField(guiName = "Atmosphere Flow", guiUnits = "U", guiFormat = "F3", isPersistant = false, guiActive = false)]
         public double airFlow;
-        [KSPField(guiName = "Atmossphere Speed", guiUnits = "M/s", guiFormat = "F2", isPersistant = false, guiActive = false)]
+        [KSPField(guiName = "Atmossphere Speed", guiUnits = "M/s", guiFormat = "F3", isPersistant = false, guiActive = false)]
         public float airSpeed;
-        [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = true)]
+        [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = true, guiFormat ="F6")]
         public double airThisUpdate;
         [KSPField(guiName = "intake Angle", isPersistant = false, guiActive = false)]
         public float intakeAngle = 0;

@@ -75,13 +75,13 @@ namespace FNPlugin
         public float rawPowerToMassDivider = 1000f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float massModifier = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Reactor Modifyer", guiFormat = "F4")]
         public float thermalProcessingModifier;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Reactor Raw Power", guiFormat = "F4")]
         public float rawMaximumPower;
 
         // Debugging
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Scale")]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Scale Multiplier")]
         public float storedMassMultiplier;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
         public float partMass;
@@ -98,7 +98,7 @@ namespace FNPlugin
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW")]
         public double maxChargedPower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Thermal Power", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxThermalPower;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Type")]
         public string generatorType;
@@ -196,6 +196,12 @@ namespace FNPlugin
             }
         }
 
+        public void Refresh()
+        {
+            Debug.Log("FNGenerator Refreshed" );
+            UpdateTargetMass();
+        }
+
         public ModifierChangeWhen GetModuleMassChangeWhen()
         {
             return ModifierChangeWhen.STAGED;
@@ -205,6 +211,7 @@ namespace FNPlugin
         {
             try
             {
+                //Debug.Log("GetModuleMass called in FNGenerator");
                 this.defaultMass = defaultMass;
 
                 moduleMassDelta = targetMass - initialMass;
@@ -280,7 +287,7 @@ namespace FNPlugin
 
             Fields["powerPercentage"].guiActive = Fields["powerPercentage"].guiActiveEditor = showSpecialisedUI;
             Fields["generatorType"].guiActive = Fields["generatorType"].guiActiveEditor = showSpecialisedUI;
-            Fields["massModifier"].guiActive = Fields["massModifier"].guiActiveEditor = showSpecialisedUI;
+            //Fields["massModifier"].guiActive = Fields["massModifier"].guiActiveEditor = showSpecialisedUI;
             Fields["radius"].guiActive = Fields["radius"].guiActiveEditor = showSpecialisedUI;
             //Fields["rawPowerToMassDivider"].guiActive = Fields["rawPowerToMassDivider"].guiActiveEditor =  showSpecialisedUI;
 
@@ -343,9 +350,19 @@ namespace FNPlugin
         {
             partDistance = 0;
 
+            // disconnect
+            if (attachedThermalSource != null)
+            {
+                if (chargedParticleMode)
+                    attachedThermalSource.ConnectedChargedParticleElectricGenerator = null;
+                else
+                    attachedThermalSource.ConnectedThermalElectricGenerator = null;
+            }
+
             // first look if part contains an thermal source
             attachedThermalSource = part.FindModulesImplementing<IThermalSource>().FirstOrDefault();
-            if (attachedThermalSource != null) return;
+            if (attachedThermalSource != null)
+                return;
 
             // otherwise look for other non selfcontained thermal sources
             var searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 0, true);
@@ -358,19 +375,38 @@ namespace FNPlugin
             // update attached thermalsource
             attachedThermalSource = searchResult.Source;
 
+            //connect with source
+            if (chargedParticleMode)
+                attachedThermalSource.ConnectedChargedParticleElectricGenerator = this;
+            else
+                attachedThermalSource.ConnectedThermalElectricGenerator = this;
+
+            UpdateTargetMass();
+        }
+
+        private void UpdateTargetMass()
+        {
             // verify if mass calculation is active
             if (!calculatedMass)
+            {
+                Debug.Log("calculatedMass is false ");
                 return;
+            }
 
             // update part mass
-            //if (attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0)
-            //{
-            //    thermalProcessingModifier = attachedThermalSource.ThermalProcessingModifier;
-            //    rawMaximumPower = attachedThermalSource.RawMaximumPower;
-            //    targetMass = (massModifier * thermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
-            //}
-            //else
+
+            if (attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0)
+            {
+                thermalProcessingModifier = attachedThermalSource.ThermalProcessingModifier;
+                rawMaximumPower = attachedThermalSource.RawMaximumPower;
+                //Debug.Log("targetMass = massModifier * thermalProcessingModifier * rawMaximumPower / rawPowerToMassDivider = " + massModifier + " * " + thermalProcessingModifier + " * " + rawMaximumPower + " / " + rawPowerToMassDivider);
+                targetMass = (massModifier * thermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
+            }
+            else
+            {
+                Debug.Log("targetMass = partmass = " + part.mass);
                 targetMass = part.mass;
+            }
         }
 
         /// <summary>

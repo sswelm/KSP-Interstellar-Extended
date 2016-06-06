@@ -157,8 +157,6 @@ namespace FNPlugin
             }
         }
 
-        public override double MinimumPower { get { return MaximumPower * minimumThrottle; } }
-
         public override float CoreTemperature
         {
             get

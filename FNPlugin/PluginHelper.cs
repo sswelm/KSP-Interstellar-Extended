@@ -111,6 +111,8 @@ namespace FNPlugin
         protected static GameDatabase gdb;
         protected static bool resources_configured = false;
 
+        public const string IntakeAir = "IntakeAir"; 
+
         #region Static Properties
 
         public static bool TechnologyIsInUse
@@ -760,7 +762,7 @@ namespace FNPlugin
 
                     ModuleResourceIntake intake = prefab_available_part.FindModuleImplementing<ModuleResourceIntake>();
 
-                    if (intake != null && intake.resourceName == "IntakeAir")
+                    if (intake != null && intake.resourceName == PluginHelper.IntakeAir)
                     {
                         var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
                         prefab_available_part.Modules.Add(pm);
@@ -772,7 +774,7 @@ namespace FNPlugin
                         //pm.useIntakeCompensation = intake.useIntakeCompensation;
                         //pm.storesResource = intake.storesResource;
 
-                        PartResource intake_air_resource = prefab_available_part.Resources["IntakeAir"];
+                        PartResource intake_air_resource = prefab_available_part.Resources[PluginHelper.IntakeAir];
 
                         if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
                         {

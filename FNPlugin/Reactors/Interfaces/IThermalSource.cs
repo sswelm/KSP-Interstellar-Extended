@@ -98,6 +98,10 @@ namespace FNPlugin
 
         double EfficencyConnectedChargedEnergyGenerator { get; }
 
+        IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
+
+        IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
+
         void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType);
 
         void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType);
@@ -106,7 +110,7 @@ namespace FNPlugin
 
         void ConnectWithEngine(IEngineNoozle engine);
 
-        
+
 	}
 }
 
