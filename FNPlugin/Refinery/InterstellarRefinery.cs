@@ -15,7 +15,9 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string status_str = "";
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true,  guiName = "Production Multiplier", guiFormat = "F3")]
+        public float productionMult = 1f;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Req Multiplier", guiFormat = "F3")]
         public float powerReqMult = 1f;
 
         const int labelWidth = 200;
@@ -84,9 +86,11 @@ namespace FNPlugin.Refinery
         {
             if (!HighLogic.LoadedSceneIsFlight || !refinery_is_enabled || _current_activity == null) return;
 
-            var fixedConsumedPowerMW = consumeFNResource(powerReqMult * _current_activity.PowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-            var power_ratio = fixedConsumedPowerMW / TimeWarp.fixedDeltaTime / _current_activity.PowerRequirements / powerReqMult;
-            _current_activity.UpdateFrame(power_ratio, overflowAllowed);
+            var totalPowerRequiredThisFrame = powerReqMult * _current_activity.PowerRequirements * TimeWarp.fixedDeltaTime;
+
+            var fixedConsumedPowerMW = consumeFNResource(totalPowerRequiredThisFrame, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            var power_ratio = totalPowerRequiredThisFrame > 0 ? fixedConsumedPowerMW / totalPowerRequiredThisFrame : 0;
+            _current_activity.UpdateFrame(power_ratio * productionMult, overflowAllowed);
         }
 
         public override string getResourceManagerDisplayName()

@@ -110,7 +110,7 @@ namespace FNPlugin
 
         void ConnectWithEngine(IEngineNoozle engine);
 
-
+        void DisconnectWithEngine(IEngineNoozle engine);
 	}
 }
 

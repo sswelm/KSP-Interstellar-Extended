@@ -83,7 +83,7 @@ namespace FNPlugin
 
             foreach (FNRadiator radiator in radiators) 
             {
-                double area = radiator.RadiatorArea; 
+                double area = radiator.EffectiveRadiatorArea; 
                 double temp = radiator.RadiatorTemperature;
                 temp = Math.Min(temp, source_temp_at_100pc);
                 n_rads += 1;

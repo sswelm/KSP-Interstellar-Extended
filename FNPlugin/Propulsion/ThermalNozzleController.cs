@@ -56,10 +56,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float thermalMassModifier = 1f;
         [KSPField(isPersistant = false)]
-        public float engineHeatProductionMultiplier = 1000;
+        public float engineHeatProductionConst = 3000; 
         [KSPField(isPersistant = false)]
         public float engineHeatProductionExponent = 0.8f;
-
+        [KSPField(isPersistant = false)]
+        public float engineHeatFuelThreshold = 0.001f;
         [KSPField(isPersistant = false)]
         public float skinMaxTemp = 2750;
         [KSPField(isPersistant = false)]
@@ -141,7 +142,7 @@ namespace FNPlugin
         public float _thrustPropellantMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")] // modified by tweakscale with exponent 3
         public float baseHeatProduction = 100;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Heat Production")]
         public double engineHeatProduction;
@@ -149,11 +150,11 @@ namespace FNPlugin
         public float pressureTreshold;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmospheric Limit")]
         public float atmospheric_limit;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_thermal_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Charge", guiUnits = " MJ")]
         public float requested_charge_particles;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Power", guiUnits = " MJ")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Power", guiUnits = " MJ", guiFormat="F3")]
         public double thermal_power_received;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
         public string radiusModifier;
@@ -258,7 +259,6 @@ namespace FNPlugin
 
         protected AnimationState[] pulseAnimationState;
         protected AnimationState[] emiAnimationState;
-        protected ModuleResourceIntake cooledIntake;
         protected int thrustLimitRatio = 0;
         protected double old_intake = 0;
         protected int partDistance = 0;
@@ -273,8 +273,6 @@ namespace FNPlugin
         protected float jetTechBonus;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         protected float jetTechBonusPercentage;
-        //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false)]
-        //float vcurve_at_current_velocity;
 
         public bool Static_updating { get { return static_updating; } set { static_updating = value; } }
         public bool Static_updating2 { get { return static_updating2; } set { static_updating2 = value; } }
@@ -396,7 +394,9 @@ namespace FNPlugin
         {
             if (AttachedReactor == null) return;
 
-            _myAttachedReactor.DetachThermalReciever(id);
+            AttachedReactor.DisconnectWithEngine(this);
+
+            AttachedReactor.DetachThermalReciever(id);
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -434,17 +434,6 @@ namespace FNPlugin
             // find attached thermal source
             ConnectToThermalSource();
 
-            // find intake we need to cool
-            foreach (AttachNode attach_node in part.attachNodes.Where(a => a.attachedPart != null))
-            {
-                var attachedPart = attach_node.attachedPart;
-
-                cooledIntake = attachedPart.FindModuleImplementing<ModuleResourceIntake>();
-
-                if (cooledIntake != null)
-                    break;
-            }
-
             if (state == StartState.Editor)
             {
                 part.OnEditorAttach += OnEditorAttach;
@@ -458,6 +447,7 @@ namespace FNPlugin
                 }
                 SetupPropellants();
                 EstimateEditorPerformance();
+
                 return;
             }
             else
@@ -936,25 +926,6 @@ namespace FNPlugin
             return ispModifier;
         }
 
-
-
-        //public void FixedUpdate() // FixedUpdate is also called when not activated
-        //{
-        //    if (!HighLogic.LoadedSceneIsFlight) return;
-
-        //    if (myAttachedEngine == null) return;
-
-        //    // attach/detach with radius
-        //    if (myAttachedEngine.isOperational)
-        //        _myAttachedReactor.AttachThermalReciever(id, radius);
-        //    else
-        //    {
-        //        _myAttachedReactor.DetachThermalReciever(id);
-
-        //        ConfigEffects();
-        //    }
-        //}
-
         public void FixedUpdate() // FixedUpdate is also called while not staged
         {
             try
@@ -962,12 +933,6 @@ namespace FNPlugin
                 if (!HighLogic.LoadedSceneIsFlight) return;
 
                 if (myAttachedEngine == null) return;
-
-                if (cooledIntake != null && ((cooledIntake.part.temperature / cooledIntake.part.maxTemp) > (part.temperature / part.maxTemp)))
-                {
-                    var intakeNewTemperatue = (part.temperature / part.maxTemp) * cooledIntake.part.maxTemp;
-                    cooledIntake.part.temperature = intakeNewTemperatue;
-                }
 
                 if (AttachedReactor == null)
                 {
@@ -1142,16 +1107,16 @@ namespace FNPlugin
 
                 GetMaximumIspAndThrustMultiplier();
 
-                float chargedPowerModifier = _isNeutronAbsorber ? 1 : (AttachedReactor.FullPowerForNonNeutronAbsorbants ? 1 : (float)_myAttachedReactor.ChargedPowerRatio);
+                float chargedPowerModifier = _isNeutronAbsorber ? 1 : (AttachedReactor.FullPowerForNonNeutronAbsorbants ? 1 : (float)AttachedReactor.ChargedPowerRatio);
 
-                thermal_modifiers = myAttachedEngine.currentThrottle * GetAtmosphericLimit() * _myAttachedReactor.GetFractionThermalReciever(id) * chargedPowerModifier;
+                thermal_modifiers = myAttachedEngine.currentThrottle * GetAtmosphericLimit() * AttachedReactor.GetFractionThermalReciever(id) * chargedPowerModifier;
 
                 var maximum_requested_thermal_power = _currentMaximumPower * thermal_modifiers;
 
                 var neutronAbsorbingModifier = _isNeutronAbsorber ? 1 : (AttachedReactor.FullPowerForNonNeutronAbsorbants ? 1 : 0);
                 requested_thermal_power = Math.Min(_availableThermalPower * thermal_modifiers, AttachedReactor.MaximumThermalPower * delayedThrottle * neutronAbsorbingModifier);
 
-                thermal_power_received = consumeFNResource(requested_thermal_power * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER) * _myAttachedReactor.ThermalPropulsionEfficiency / TimeWarp.fixedDeltaTime;
+                thermal_power_received = consumeFNResource(requested_thermal_power * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER) * AttachedReactor.ThermalPropulsionEfficiency / TimeWarp.fixedDeltaTime;
 
                 if (thermal_power_received < maximum_requested_thermal_power)
                 {
@@ -1291,19 +1256,11 @@ namespace FNPlugin
                     : 0;
                 airflowHeatModifier *= vessel.atmDensity * (vessel.speed / vessel.speedOfSound);
 
-                engineHeatProduction = (max_fuel_flow_rate >= 0.001 && _maxISP > 100)
-                    ? baseHeatProduction * engineHeatProductionMultiplier / max_fuel_flow_rate / Mathf.Pow(_maxISP, engineHeatProductionExponent) / part.mass
+                engineHeatProduction = (max_fuel_flow_rate >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.001)
+                    ? baseHeatProduction * PluginHelper.EngineHeatProduction / max_fuel_flow_rate / _maxISP / part.mass
                     : baseHeatProduction;
 
-                engineHeatProduction *= (1 + airflowHeatModifier);
-
-                //var wasteheatRatio = Math.Min(getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 1);
-                //var tempRatio = Math.Max(  Math.Pow(part.temperature / part.maxTemp, 2), 0.01);
-
-
-                //var newPartTemperatue = part.temperature + (TimeWarp.fixedDeltaTime * thermal_power_received * 50 * (1 + airflowHeatModifier) * (1 + wasteheatRatio) * (2 - tempRatio) / part.thermalMass);
-                //if (newPartTemperatue > 0 && !Double.IsNaN(newPartTemperatue) && !Double.IsInfinity(newPartTemperatue))
-                //    part.temperature = newPartTemperatue;
+                engineHeatProduction *= (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult);
 
 				myAttachedEngine.heatProduction = (float)engineHeatProduction;
 
