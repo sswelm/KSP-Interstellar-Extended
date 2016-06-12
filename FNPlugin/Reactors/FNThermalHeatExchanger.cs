@@ -120,6 +120,8 @@ namespace FNPlugin
 
         public void ConnectWithEngine(IEngineNoozle engine) { }
 
+        public void DisconnectWithEngine(IEngineNoozle engine) { }
+
         public double ProducedWasteHeat { get { return 0; } }
 
         public float PowerBufferBonus { get { return 0; } }
@@ -147,6 +149,8 @@ namespace FNPlugin
         public double MaximumThermalPower { get { return _thermalpower; } }
 
         public virtual double MaximumChargedPower { get { return 0; } }
+
+        public virtual float RequestedEngineThrottle { get; set; }
 
         public double MinimumPower { get { return 0; } }
 

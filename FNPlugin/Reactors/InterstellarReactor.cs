@@ -317,7 +317,8 @@ namespace FNPlugin
         protected GUIStyle bold_label;
         protected float previousTimeWarp;
         protected bool? hasBimodelUpgradeTechReq;
-        protected IEngineNoozle connectedEngine;
+        //protected IEngineNoozle connectedEngine;
+        protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
 
         protected PartResource thermalPowerResource = null;
         protected PartResource chargedPowerResource = null;
@@ -386,7 +387,16 @@ namespace FNPlugin
 
         public void ConnectWithEngine(IEngineNoozle engine)
         {
-            connectedEngine = engine;
+            //connectedEngine = engine;
+            if (!connectedEngines.Contains(engine))
+                connectedEngines.Add(engine);
+        }
+
+        public void DisconnectWithEngine(IEngineNoozle engine)
+        {
+            //connectedEngine = engine;
+            if (connectedEngines.Contains(engine))
+                connectedEngines.Remove(engine);
         }
 
         public GenerationType CurrentGenerationType 
@@ -619,6 +629,7 @@ namespace FNPlugin
                 return (float)result;
             }
         }
+
         public virtual double MinimumPower { get { return MaximumPower * MinimumThrottle; } }
 
         public virtual double MaximumThermalPower { get { return NormalisedMaximumPower * (1 - (float)ChargedPowerRatio); } }
@@ -1094,7 +1105,7 @@ namespace FNPlugin
                 }
 
                 // Max Power
-                var engineThrottleModifier = disableAtZeroThrottle && connectedEngine != null && connectedEngine.CurrentThrottle == 0 ? 0 : 1;
+                var engineThrottleModifier = disableAtZeroThrottle && connectedEngines.Any() && connectedEngines.All(e => e.CurrentThrottle == 0) ? 0 : 1;
                 max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
 
                 geeForceModifier = hasBuoyancyEffects ? Math.Min(Math.Max(1 - ((part.vessel.geeForce - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1) : 1;
@@ -1104,8 +1115,8 @@ namespace FNPlugin
                 UpdateThermalCapacity(fuel_ratio);
 
                 min_throttle = fuel_ratio > 0 ? MinimumThrottle / fuel_ratio : 1;
-                effective_minimum_throtle = (controlledByEngineThrottle && connectedEngine != null) 
-                    ? Math.Max(connectedEngine.CurrentThrottle, min_throttle) 
+                effective_minimum_throtle = connectedEngines.Any()
+                    ? Math.Max(connectedEngines.Max(e => e.CurrentThrottle), min_throttle)
                     : min_throttle;
 
                 if (RequestedThermalHeat > 0)

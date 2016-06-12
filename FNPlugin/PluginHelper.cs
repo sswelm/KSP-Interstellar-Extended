@@ -241,6 +241,12 @@ namespace FNPlugin
         private static float _maxThermalNozzleIsp = GameConstants.MaxThermalNozzleIsp;
         public static float MaxThermalNozzleIsp { get { return _maxThermalNozzleIsp; } }
 
+        private static float _airflowHeatMult = GameConstants.AirflowHeatMultiplier;
+        public static float AirflowHeatMult { get { return _airflowHeatMult; } }
+
+        private static float _engineHeatProduction = GameConstants.EngineHeatProduction;
+        public static float EngineHeatProduction { get { return _engineHeatProduction; } }
+
         private static bool _isPanelHeatingClamped = false;
         public static bool IsSolarPanelHeatingClamped { get { return _isPanelHeatingClamped; } }
 
@@ -659,6 +665,18 @@ namespace FNPlugin
                     {
                         PluginHelper._maxThermalNozzleIsp = float.Parse(plugin_settings.GetValue("MaxThermalNozzleIsp"));
                         Debug.Log("[KSP Interstellar] Maximum Thermal Nozzle Isp set to: " + PluginHelper.MaxThermalNozzleIsp.ToString("0.0"));
+                    }
+
+                    if (plugin_settings.HasValue("EngineHeatProduction"))
+                    {
+                        PluginHelper._engineHeatProduction = float.Parse(plugin_settings.GetValue("EngineHeatProduction"));
+                        Debug.Log("[KSP Interstellar] EngineHeatProduction set to: " + PluginHelper.EngineHeatProduction.ToString("0.0"));
+                    }
+
+                    if (plugin_settings.HasValue("EngineHeatProduction"))
+                    {
+                        PluginHelper._airflowHeatMult = float.Parse(plugin_settings.GetValue("AirflowHeatMult"));
+                        Debug.Log("[KSP Interstellar] AirflowHeatMultipler Isp set to: " + PluginHelper.AirflowHeatMult.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("TrustCoreTempThreshold"))

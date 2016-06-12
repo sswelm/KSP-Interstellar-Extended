@@ -86,6 +86,8 @@ namespace FNPlugin
 
         public const float BaseMaxPowerDrawForExoticMatter = 1000f;
         public const float MaxThermalNozzleIsp = 2997.13f;
+        public const float EngineHeatProduction = 1000;
+        public const float AirflowHeatMultiplier = 1f;
 
         public const int defaultSupportedPropellantAtoms = 121;
         public const int defaultSupportedPropellantTypes = 127;

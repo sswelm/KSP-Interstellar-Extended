@@ -101,6 +101,8 @@ namespace FNPlugin
 
         public void ConnectWithEngine(IEngineNoozle engine) {}
 
+        public void DisconnectWithEngine(IEngineNoozle engine) {}
+
         public int SupportedPropellantAtoms { get { return GameConstants.defaultSupportedPropellantAtoms; } }
 
         public int SupportedPropellantTypes { get { return GameConstants.defaultSupportedPropellantTypes; } }
