@@ -125,10 +125,10 @@ namespace FNPlugin
         //public int callCounter;
 
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Core Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool isCoreRadiator = false;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Global Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool globalCooling = true;
+        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Core Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool isCoreRadiator = false;
+        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Global Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool globalCooling = true;
 
         const float rad_const_h = 1000;
         const String kspShader = "KSP/Emissive/Bumped Specular";
@@ -505,8 +505,8 @@ namespace FNPlugin
 
             if (_moduleActiveRadiator != null)
             {
-                _moduleActiveRadiator.isCoreRadiator = isCoreRadiator;
-                _moduleActiveRadiator.parentCoolingOnly = isCoreRadiator;
+                //_moduleActiveRadiator.isCoreRadiator = isCoreRadiator;
+                //_moduleActiveRadiator.parentCoolingOnly = isCoreRadiator;
 
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
                 if (radiatorIsEnabled)
@@ -662,11 +662,11 @@ namespace FNPlugin
 
                 //ProcessStockThermalCooling();
 
-                if (_moduleActiveRadiator != null)
-                {
-                    _moduleActiveRadiator.isCoreRadiator = isCoreRadiator;
-                    _moduleActiveRadiator.parentCoolingOnly = !globalCooling;
-                }
+                //if (_moduleActiveRadiator != null)
+                //{
+                //    _moduleActiveRadiator.isCoreRadiator = isCoreRadiator;
+                //    _moduleActiveRadiator.parentCoolingOnly = !globalCooling;
+                //}
 
                 if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))
                 {
