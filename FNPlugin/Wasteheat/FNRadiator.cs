@@ -157,6 +157,7 @@ namespace FNPlugin
         //private List<Part> attachedParts;
         //private Part hottestPart;
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Energy Transfer", guiFormat = "F1")]
         private double _maxEnergyTransfer;
 
 		protected Animation deployAnim;
@@ -503,17 +504,6 @@ namespace FNPlugin
 
             _maxEnergyTransfer = radiatorArea * 1000 * (1 + ((int)CurrentGenerationType * 2));
 
-            if (_moduleActiveRadiator != null)
-            {
-                //_moduleActiveRadiator.isCoreRadiator = isCoreRadiator;
-                //_moduleActiveRadiator.parentCoolingOnly = isCoreRadiator;
-
-                _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
-                if (radiatorIsEnabled)
-                    _moduleActiveRadiator.Activate();
-                //_moduleActiveRadiator.enabled = radiatorIsEnabled;
-            }
-
             if (state == StartState.Editor)
             {
                 if (hasTechsRequiredToUpgrade())
@@ -606,8 +596,8 @@ namespace FNPlugin
             ////    callCounter++;
             ////}
 
-            Events["DeployRadiator"].active = Events["DeployRadiator"].guiActiveEditor =  !radiatorIsEnabled && isDeployable && _moduleDeployableRadiator == null;
-            Events["RetractRadiator"].active = Events["RetractRadiator"].guiActiveEditor = radiatorIsEnabled && isDeployable && _moduleDeployableRadiator == null;
+            //Events["DeployRadiator"].active = Events["DeployRadiator"].guiActiveEditor =  !radiatorIsEnabled && isDeployable && _moduleDeployableRadiator == null;
+            //Events["RetractRadiator"].active = Events["RetractRadiator"].guiActiveEditor = radiatorIsEnabled && isDeployable && _moduleDeployableRadiator == null;
         }
 
         public override void OnUpdate() // is called while in flight
@@ -622,6 +612,7 @@ namespace FNPlugin
                     Events["RetrofitRadiator"].active = false;
 
                 Fields["thermalPowerConvStr"].guiActive = convectedThermalPower > 0;
+
                 if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || _moduleDeployableRadiator == null)
                 {
                     thermalPowerDissipStr = radiatedThermalPower.ToString("0.000") + "MW";
@@ -651,10 +642,6 @@ namespace FNPlugin
         {
             try
             {
-
-                //skinExposedArea = part.skinExposedArea;
-                //radiativeArea = part.radiativeArea;
-
                 if (!HighLogic.LoadedSceneIsFlight)
                     return;
 
@@ -662,11 +649,15 @@ namespace FNPlugin
 
                 //ProcessStockThermalCooling();
 
-                //if (_moduleActiveRadiator != null)
-                //{
-                //    _moduleActiveRadiator.isCoreRadiator = isCoreRadiator;
-                //    _moduleActiveRadiator.parentCoolingOnly = !globalCooling;
-                //}
+                _maxEnergyTransfer = radiatorArea * 500 * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
+
+                if (_moduleActiveRadiator != null)
+                {
+                    //_moduleActiveRadiator.isCoreRadiator = isCoreRadiator;
+                    //_moduleActiveRadiator.parentCoolingOnly = !globalCooling;
+
+                    _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
+                }
 
                 if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))
                 {
