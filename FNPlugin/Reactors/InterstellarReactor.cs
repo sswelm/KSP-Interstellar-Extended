@@ -209,6 +209,8 @@ namespace FNPlugin
         public bool fullPowerForNonNeutronAbsorbants = true;
         [KSPField(isPersistant = false)]
         public bool showSpecialisedUI = true;
+        [KSPField(isPersistant = false)]
+        public bool fastNeutrons = true;
 
         // Visible imput parameters 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Bimodel upgrade tech")]
@@ -319,6 +321,8 @@ namespace FNPlugin
         protected bool? hasBimodelUpgradeTechReq;
         //protected IEngineNoozle connectedEngine;
         protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
+        protected List<PartResource> partResourcesThatContainLithium;
+        protected List<PartResource> partResourcesThatContainTritium;
 
         protected PartResource thermalPowerResource = null;
         protected PartResource chargedPowerResource = null;
@@ -874,6 +878,11 @@ namespace FNPlugin
                 reactorInit = true;
             }
 
+            partResourcesThatContainTritium = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Tritium).ToList();
+            partResourcesThatContainLithium = fastNeutrons
+                ? part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Lithium7).ToList()
+                : part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Lithium6).ToList();
+
             if (IsEnabled && last_active_time > 0)
                 DoPersistentResourceUpdate();
 
@@ -1307,7 +1316,7 @@ namespace FNPlugin
             return GetFuelAvailability(reactorFuel) / fuelUseForPower;
         }
 
-        private void BreedTritium(double thermal_power_received, float fixedDeltaTime)
+        private void BreedTritium(double thermal_power_received, double fixedDeltaTime)
         {
             if (!breedtritium || thermal_power_received <= 0)
             {
@@ -1316,7 +1325,10 @@ namespace FNPlugin
                 return;
             }
 
-            PartResourceDefinition lithium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium);
+            PartResourceDefinition lithium_def = fastNeutrons 
+                ? PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium7)
+                : PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
+
             PartResourceDefinition tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Tritium);
             PartResourceDefinition helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium);
 
@@ -1325,8 +1337,7 @@ namespace FNPlugin
             var lith_rate = breed_rate / lithium_def.density;
 
             // get spare room tritium
-            var partsThatStoreTritium = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Tritium);
-            var spareRoomTritiumAmount = partsThatStoreTritium.Sum(r => r.maxAmount - r.amount);
+            var spareRoomTritiumAmount = partResourcesThatContainTritium.Sum(r => r.maxAmount - r.amount);
 
             // limit lithium consumption to maximum tritium storage
             var maximumTritiumProduction = lith_rate * tritium_molar_mass_ratio * lithium_def.density / tritium_def.density;
@@ -1334,7 +1345,9 @@ namespace FNPlugin
             var lithium_request = lith_rate * maximumLitiumConsumtionRatio;
 
             // consume the lithium
-            var lith_used = part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium, lithium_request);
+            var lith_used = fastNeutrons 
+                ? part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium7, lithium_request)
+                : part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium6, lithium_request);
 
             // caculate products
             var tritium_production = lith_used * tritium_molar_mass_ratio * lithium_def.density / tritium_def.density;
@@ -1417,19 +1430,7 @@ namespace FNPlugin
             }
 
             if (breedtritium)
-            {
-                tritium_rate = MaximumPower * current_fuel_mode.NeutronsRatio / breedDivider / GameConstants.tritiumBreedRate;
-                PartResourceDefinition lithium_definition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium);
-                PartResourceDefinition tritium_definition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Tritium);
-                List<PartResource> lithium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Lithium).ToList();
-                List<PartResource> tritium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Tritium).ToList();
-                double lithium_current_amount = lithium_resources.Sum(rs => rs.amount);
-                double tritium_missing_amount = tritium_resources.Sum(rs => rs.maxAmount - rs.amount);
-                double lithium_to_take = Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, lithium_current_amount);
-                double tritium_to_add = Math.Min(tritium_rate * time_diff * ongoing_consumption_rate, tritium_missing_amount) * lithium_definition.density / tritium_definition.density; ;
-                ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Lithium, Math.Min(tritium_to_add, lithium_to_take));
-                ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Tritium, -Math.Min(tritium_to_add, lithium_to_take));
-            }
+                BreedTritium(ongoing_consumption_rate, time_diff);
         }
 
         protected bool ReactorIsOverheating()
@@ -1600,7 +1601,14 @@ namespace FNPlugin
                 if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null)
                 {
                     if (IsNeutronRich && breedtritium)
+                    {
+                        var totalBreedingLithium = partResourcesThatContainLithium.Sum(m => m.amount);
+                        var totalTritiumAmount = partResourcesThatContainTritium.Sum(r => r.amount);
+                        var totalTritiumMaxAmount = partResourcesThatContainTritium.Sum(r => r.maxAmount);
                         PrintToGUILayout("Tritium Breed Rate", 100 * current_fuel_mode.NeutronsRatio + "% " + (tritium_produced_d * GameConstants.EARH_DAY_SECONDS).ToString("0.000000") + " l/day ", bold_label);
+                        PrintToGUILayout("Breeding Lithium", totalBreedingLithium.ToString("0.00000000") + " l", bold_label);
+                        PrintToGUILayout("Tritium Amount", totalTritiumAmount.ToString("0.00000000") + " l / " + totalTritiumMaxAmount.ToString("0.00000000") + " l", bold_label);
+                    }
                     else
                         PrintToGUILayout("Is Neutron rich", IsNeutronRich.ToString(), bold_label);
 

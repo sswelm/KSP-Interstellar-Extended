@@ -65,8 +65,6 @@ namespace InterstellarFuelSwitch
         public string configuredAmounts = "";
         [KSPField(isPersistant = true)]
         public string selectedTankSetupTxt;
-        //[KSPField(isPersistant = true)]
-        //public bool gameLoaded = false;
         [KSPField(isPersistant = true)]
         public bool configLoaded = false;
 
@@ -203,12 +201,6 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Total mass", guiUnits = " t", guiFormat = "F4")]
         public double totalMass;
 
-        // Obsolete
-        //[KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Multiplier")]
-        //public float volumeMultiplier = 1;
-        //[KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Multiplier")]
-        //public float massMultiplier = 1;
-
         [KSPField(guiActiveEditor = false, guiName = "Volume Exponent")]
         public float volumeExponent = 3;
         [KSPField(guiActiveEditor = false, guiName = "Mass Exponent")]
@@ -280,7 +272,6 @@ namespace InterstellarFuelSwitch
 
                 if (state != StartState.Editor)
                 {
-                    //gameLoaded = true;
                     if (inFlightTankSetup == -1)
                         inFlightTankSetup = selectedTankSetup;
                     else

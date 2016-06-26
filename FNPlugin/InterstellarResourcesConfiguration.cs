@@ -19,7 +19,8 @@ namespace FNPlugin
         private const String _DEPLETED_FUEL = "DepletedFuel";
         private const String _VACUUM_PLASMA = "VacuumPlasma";
         private const String _EXOTIC_MATTER = "ExoticMatter";
-        private const String _LITHIUM = "Lithium";
+        private const String _LITHIUM7 = "Lithium";
+        private const String _LITHIUM6 = "Lithium6";
         private const String _PLUTONIUM_238 = "Plutonium-238";
         private const String _ALUMINA = "Alumina";
         private const String _DEUTERIUM = "LqdDeuterium";
@@ -39,6 +40,7 @@ namespace FNPlugin
         private String _nitrogen = "LqdNitrogen";
         private String _oxygen = "LqdOxygen";
         private String _water = "Water";
+        private String _heavyWater = "HeavyWater";
         private String _tritium = "LqdTritium";
 
         public String Actinides { get { return _ACTINIDES; } }
@@ -58,7 +60,8 @@ namespace FNPlugin
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }
         public String Hydrazine { get { return _hydrazine; } }
         public String IntakeAtmosphere { get { return _INTAKE_ATMOSPHERE; } }
-        public String Lithium { get { return _LITHIUM; } }
+        public String Lithium6 { get { return _LITHIUM6; } }
+        public String Lithium7 { get { return _LITHIUM7; } }
         public String Methane { get { return _methane; } }
         public String Nitrogen { get { return _nitrogen; } }
         public String Oxygen { get { return _oxygen; } }
@@ -69,8 +72,7 @@ namespace FNPlugin
         public String UraniumNitride { get { return _URANIUM_NITRIDE; } }
         public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
         public String Water { get { return _water; } }
-        
-
+        public String HeavyWater { get { return _heavyWater; } }
         public InterstellarResourcesConfiguration(ConfigNode plugin_settings)
         {
             if (plugin_settings != null)
@@ -157,6 +159,11 @@ namespace FNPlugin
                 {
                     _water = plugin_settings.GetValue("WaterResourceName");
                     Debug.Log("[KSP Interstellar] Water resource name set to " + Water);
+                }
+                if (plugin_settings.HasValue("HeavyWaterResourceName"))
+                {
+                    _heavyWater = plugin_settings.GetValue("HeavyWaterResourceName");
+                    Debug.Log("[KSP Interstellar] Heavy Water resource name set to " + HeavyWater);
                 }
             } 
             else

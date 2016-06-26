@@ -9,8 +9,12 @@ namespace FNPlugin.Refinery
     [KSPModule("ISRU Refinery")]
     class InterstellarRefinery : FNResourceSuppliableModule
     {
+
         [KSPField(isPersistant=true)]
         bool refinery_is_enabled;
+
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
+        public float powerPercentage = 100;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string status_str = "";
@@ -19,6 +23,14 @@ namespace FNPlugin.Refinery
         public float productionMult = 1f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Req Multiplier", guiFormat = "F3")]
         public float powerReqMult = 1f;
+
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Requirement", guiFormat = "F3", guiUnits = " MW")]
+        public double currentPowerReq;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Available", guiUnits = "%", guiFormat = "F3")]
+        public double utilisationPercentage;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Consumed Power", guiFormat = "F3", guiUnits = " MW")]
+        public double consumedPowerMW;
+
 
         const int labelWidth = 200;
         const int valueWidth = 200;
@@ -55,6 +67,7 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new AluminiumElectrolyser(this.part));
                 unsortedList.Add(new SabatierReactor(this.part));
                 unsortedList.Add(new WaterElectroliser(this.part));
+                unsortedList.Add(new HeavyWaterElectroliser(this.part));
                 unsortedList.Add(new PeroxideProcess(this.part));
                 unsortedList.Add(new UF4Ammonolysiser(this.part));
                 unsortedList.Add(new HaberProcess(this.part));
@@ -84,12 +97,28 @@ namespace FNPlugin.Refinery
 
         public void FixedUpdate()
         {
+            currentPowerReq = 0;
+
             if (!HighLogic.LoadedSceneIsFlight || !refinery_is_enabled || _current_activity == null) return;
 
-            var totalPowerRequiredThisFrame = powerReqMult * _current_activity.PowerRequirements * TimeWarp.fixedDeltaTime;
+            currentPowerReq = powerReqMult * _current_activity.PowerRequirements;
 
-            var fixedConsumedPowerMW = consumeFNResource(totalPowerRequiredThisFrame, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            var totalPowerRequiredThisFrame = currentPowerReq * TimeWarp.fixedDeltaTime;
+
+            var fixedConsumedPowerMW = consumeFNResource(totalPowerRequiredThisFrame * (powerPercentage / 100), FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+            consumedPowerMW = fixedConsumedPowerMW / TimeWarp.fixedDeltaTime;
+
+            var shortage = Math.Max(  totalPowerRequiredThisFrame - fixedConsumedPowerMW , 0);
+
+            var recievedElectricCharge = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, shortage * 1000);
+
+            fixedConsumedPowerMW += recievedElectricCharge / 1000;
+
             var power_ratio = totalPowerRequiredThisFrame > 0 ? fixedConsumedPowerMW / totalPowerRequiredThisFrame : 0;
+
+            utilisationPercentage = power_ratio * 100;
+
             _current_activity.UpdateFrame(power_ratio * productionMult, overflowAllowed);
         }
 

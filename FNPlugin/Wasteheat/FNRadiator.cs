@@ -102,7 +102,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double radiatorArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float areaMultiplier = 5;
+        public float areaMultiplier = 4;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float radiativeAreaFraction = 1;
 
@@ -206,7 +206,6 @@ namespace FNPlugin
         {
             get 
             {
-                //var baseRadiatorArea = radiatorArea * areaMultiplier;
                 if (HighLogic.LoadedSceneIsFlight)
                     radiatorArea = part.radiativeArea * radiativeAreaFraction;
 
@@ -653,6 +652,7 @@ namespace FNPlugin
 
                 if (_moduleActiveRadiator != null)
                 {
+                    //ModuleResourceHarvester
                     //_moduleActiveRadiator.isCoreRadiator = isCoreRadiator;
                     //_moduleActiveRadiator.parentCoolingOnly = !globalCooling;
 
