@@ -24,8 +24,11 @@ namespace FNPlugin
         public bool radiatorInit;
         [KSPField(isPersistant = true)]
         public bool isAutomated = true;
-        [KSPField(isPersistant = true)]
+
+        [KSPField(isPersistant = false)]
         public bool showColorHeat = true;
+        [KSPField(isPersistant = true)]
+        public bool showRetractButton = false;
 
         [KSPField(isPersistant = false)]
         public float radiatorTemperatureMk1 = 1850;
@@ -463,8 +466,10 @@ namespace FNPlugin
             //attachedParts = part.attachNodes.Where(a => a.attachedPart != null).Select(m => m.attachedPart).ToList();
 
             Actions["DeployRadiatorAction"].guiName = Events["DeployRadiator"].guiName = "Deploy Radiator";
-            Actions["RetractRadiatorAction"].guiName = Events["RetractRadiator"].guiName = "Retract Radiator";
             Actions["ToggleRadiatorAction"].guiName = String.Format("Toggle Radiator");
+
+            Actions["RetractRadiatorAction"].guiName = "Retract Radiator";
+            Events["RetractRadiator"].guiName = "Retract Radiator";
 
             var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             // calculate WasteHeat Capacity
@@ -612,6 +617,10 @@ namespace FNPlugin
 
                 Fields["thermalPowerConvStr"].guiActive = convectedThermalPower > 0;
 
+                if (_moduleDeployableRadiator != null)
+                    Events["RetractRadiator"].active = showRetractButton && _moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED;
+                
+
                 if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.panelState == ModuleDeployableRadiator.panelStates.EXTENDED) || _moduleDeployableRadiator == null)
                 {
                     thermalPowerDissipStr = radiatedThermalPower.ToString("0.000") + "MW";
@@ -622,6 +631,8 @@ namespace FNPlugin
                     thermalPowerDissipStr = "disabled";
                     thermalPowerConvStr = "disabled";
                 }
+
+                
 
                 radiatorTempStr = current_rad_temp.ToString("0.0") + "K / " + RadiatorTemperature.ToString("0.0") + "K";
 

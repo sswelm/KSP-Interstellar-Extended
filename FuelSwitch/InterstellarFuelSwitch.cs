@@ -64,6 +64,8 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public string configuredAmounts = "";
         [KSPField(isPersistant = true)]
+        public string configuredFlowStates = "";
+        [KSPField(isPersistant = true)]
         public string selectedTankSetupTxt;
         [KSPField(isPersistant = true)]
         public bool configLoaded = false;
@@ -227,6 +229,7 @@ namespace InterstellarFuelSwitch
         private PartResourceDefinition _partRresourceDefinition1;
         private PartResourceDefinition _partRresourceDefinition2;
 
+        
         BaseField _chooseField;
         BaseEvent _nextTankSetupEvent;
         BaseEvent _previousTankSetupEvent;
@@ -266,7 +269,31 @@ namespace InterstellarFuelSwitch
                 InitializeData();
 
                 if (selectedTankSetup == -1)
+                {
+                    //Debug.Log("InsterstellarFuelSwitch OnStart electedTankSetup == -1" );
+                    //Debug.Log("InsterstellarFuelSwitch OnStart part.Resources.Count = " + part.Resources.Count);
                     selectedTankSetup = 0;
+                    for (int i = 0; i < _modularTankList.Count; i++)
+                    {
+                        var modularTank = _modularTankList[i];
+
+                        bool isSimilar = true;
+                        //Debug.Log("InsterstellarFuelSwitch OnStart modularTank.Resources.Count = " + modularTank.Resources.Count);
+                        foreach (var resource in modularTank.Resources)
+                        {
+                            if (!part.Resources.Contains(resource.name))
+                            {
+                                isSimilar = false;
+                                break;
+                            }
+                        }
+                        if (isSimilar)
+                        {
+                            selectedTankSetup = i;
+                            break;
+                        }
+                    }
+                }
 
                 this.enabled = true;
 
@@ -578,7 +605,9 @@ namespace InterstellarFuelSwitch
                 // find selected tank
                 var selectedTank = calledByPlayer || String.IsNullOrEmpty(selectedTankSetupTxt)
                     ? selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]
-                    : _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt) ?? (selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]);
+                    : 
+                 _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt) ?? (selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]);
+            
 
                 // update txt and index for future
                 selectedTankSetupTxt = selectedTank.GuiName;
@@ -588,6 +617,7 @@ namespace InterstellarFuelSwitch
                 var newResources = new List<string>();
                 var newResourceNodes = new List<ConfigNode>();
                 var parsedConfigAmount = new List<float>();
+                var parsedConfigFlowStates = new List<bool>();
 
                 // parse configured amounts
                 if (configuredAmounts.Length > 0)
@@ -598,8 +628,8 @@ namespace InterstellarFuelSwitch
                         configuredAmounts = String.Empty;
                     }
 
-                    string[] configAmount = configuredAmounts.Split(',');
-                    foreach (string item in configAmount)
+                    string[] configAmounts = configuredAmounts.Split(',');
+                    foreach (string item in configAmounts)
                     {
                         float value;
                         if (float.TryParse(item, out value))
@@ -610,6 +640,30 @@ namespace InterstellarFuelSwitch
                     if (!HighLogic.LoadedSceneIsEditor)
                     {
                         configuredAmounts = String.Empty;
+                    }
+                }
+
+                //Debug.Log("InsterstellarFuelSwitch SetupTankInPart configuredFlowStates: " + configuredFlowStates);
+                if (configuredFlowStates.Length > 0)
+                {
+                    // empty configuration if switched by user
+                    if (calledByPlayer)
+                    {
+                        configuredFlowStates = String.Empty;
+                    }
+
+                    string[] configFlowStates = configuredFlowStates.Split(',');
+                    foreach (string item in configFlowStates)
+                    {
+                        bool value;
+                        if (bool.TryParse(item, out value))
+                            parsedConfigFlowStates.Add(value);
+                    }
+
+                    // empty configuration if in flight
+                    if (!HighLogic.LoadedSceneIsEditor)
+                    {
+                        configuredFlowStates = String.Empty;
                     }
                 }
 
@@ -633,7 +687,7 @@ namespace InterstellarFuelSwitch
 
                     newResourceNode.AddValue("name", selectedTankResource.name);
                     newResourceNode.AddValue("maxAmount", maxAmount);
-
+                   
                     PartResource existingResource = null;
                     if (!HighLogic.LoadedSceneIsEditor || (HighLogic.LoadedSceneIsEditor && !calledByPlayer))
                     {
@@ -648,8 +702,9 @@ namespace InterstellarFuelSwitch
                     }
 
                     double resourceNodeAmount;
+                   
                     if (existingResource != null)
-                        resourceNodeAmount = Math.Min(existingResource.amount, maxAmount);
+                        resourceNodeAmount =  Math.Min((existingResource.amount / existingResource.maxAmount) * maxAmount, maxAmount);
                     else if (!HighLogic.LoadedSceneIsEditor && resourceId < parsedConfigAmount.Count)
                         resourceNodeAmount = parsedConfigAmount[resourceId];
                     else if (!HighLogic.LoadedSceneIsEditor && calledByPlayer)
@@ -658,6 +713,12 @@ namespace InterstellarFuelSwitch
                         resourceNodeAmount = selectedTank.Resources[resourceId].amount * storedVolumeMultiplier;
 
                     newResourceNode.AddValue("amount", resourceNodeAmount);
+
+                    if (existingResource != null)
+                        newResourceNode.AddValue("flowState", existingResource.flowState);
+                    else if (resourceId < parsedConfigFlowStates.Count)
+                        newResourceNode.AddValue("flowState", parsedConfigFlowStates[resourceId]);
+
                     newResourceNodes.Add(newResourceNode);
                 }
 
@@ -698,12 +759,12 @@ namespace InterstellarFuelSwitch
                         newResourceNode.AddValue("amount", resource.amount);
 
                         finalResourceNodes.Add(newResourceNode);
-                        Debug.Log("InsterstellarFuelSwitch SetupTankInPart created confignode for: " + resource.resourceName);
+                        //Debug.Log("InsterstellarFuelSwitch SetupTankInPart created confignode for: " + resource.resourceName);
 
                         // remove all
                         currentPart.Resources.list.Remove(resource);
                         DestroyImmediate(resource);
-                        Debug.Log("InsterstellarFuelSwitch SetupTankInPart remove resource " + resource.resourceName);
+                        //Debug.Log("InsterstellarFuelSwitch SetupTankInPart remove resource " + resource.resourceName);
                     }
                 }
 
@@ -1011,10 +1072,13 @@ namespace InterstellarFuelSwitch
             UpdateGuiResourceMass();
             UpdateMassRatio();
 
-            configuredAmounts = "";
+            configuredAmounts = String.Empty;;
+            configuredFlowStates = String.Empty;
+
             foreach (var resoure in part.Resources.list)
             {
                 configuredAmounts += resoure.amount + ",";
+                configuredFlowStates += resoure.flowState.ToString() + ",";
             }
         }
 
