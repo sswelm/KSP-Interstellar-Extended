@@ -60,7 +60,7 @@ namespace FNPlugin.Refinery
             _vessel = part.vessel;
             _heavy_water_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HeavyWater).density;
             _oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
-            _deuterium_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Deuterium).density;
+            _deuterium_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium).density;
         }
 
         public void UpdateFrame(double rateMultiplier, bool allowOverflow)
@@ -71,7 +71,7 @@ namespace FNPlugin.Refinery
 
             var partsThatContainWater = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HeavyWater);
             var partsThatContainOxygen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Oxygen);
-            var partsThatContainDeuteurium = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Deuterium);
+            var partsThatContainDeuteurium = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
 
             _maxCapacityHeavyWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _heavy_water_density;
             _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygen_density;
@@ -103,7 +103,7 @@ namespace FNPlugin.Refinery
                 var deuterium_rate_temp = _heavy_water_consumption_rate * deuteuriuumMassByFraction;
                 var oxygen_rate_temp = _heavy_water_consumption_rate * oxygenMassByFraction;
 
-                _deuterium_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Deuterium, -deuterium_rate_temp * TimeWarp.fixedDeltaTime / _deuterium_density) / TimeWarp.fixedDeltaTime * _deuterium_density;
+                _deuterium_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deuterium_rate_temp * TimeWarp.fixedDeltaTime / _deuterium_density) / TimeWarp.fixedDeltaTime * _deuterium_density;
                 _oxygen_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate_temp * TimeWarp.fixedDeltaTime / _oxygen_density) / TimeWarp.fixedDeltaTime * _oxygen_density;
             }
             else

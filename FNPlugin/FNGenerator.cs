@@ -75,8 +75,6 @@ namespace FNPlugin
         public float rawPowerToMassDivider = 1000f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float massModifier = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Reactor Modifyer", guiFormat = "F4")]
-        public float thermalProcessingModifier;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Reactor Raw Power", guiFormat = "F4")]
         public float rawMaximumPower;
 
@@ -397,10 +395,8 @@ namespace FNPlugin
 
             if (attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0)
             {
-                thermalProcessingModifier = attachedThermalSource.ThermalProcessingModifier;
                 rawMaximumPower = attachedThermalSource.RawMaximumPower;
-                //Debug.Log("targetMass = massModifier * thermalProcessingModifier * rawMaximumPower / rawPowerToMassDivider = " + massModifier + " * " + thermalProcessingModifier + " * " + rawMaximumPower + " / " + rawPowerToMassDivider);
-                targetMass = (massModifier * thermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
+                targetMass = (massModifier * attachedThermalSource.ThermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
             }
             else
             {

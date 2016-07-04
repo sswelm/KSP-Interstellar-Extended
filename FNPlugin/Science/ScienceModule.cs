@@ -259,7 +259,7 @@ namespace FNPlugin
                     float kerbalResearchSkillFactor = part.protoModuleCrew.Sum(proto_crew_member => GetKerbalScienceFactor(proto_crew_member) / 2f);
 
                     double science_to_increment = kerbalResearchSkillFactor * GameConstants.baseScienceRate * time_diff
-                        / GameConstants.EARH_DAY_SECONDS * electrical_power_ratio * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel)   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) 
+                        / GameConstants.EARTH_DAY_SECONDS * electrical_power_ratio * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel)   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) 
                         / ((float)Math.Sqrt(altitude_multiplier));
 
                     science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
@@ -315,7 +315,7 @@ namespace FNPlugin
                 { 
                     Fields["scienceRate"].guiActive = true;
                     Fields["collectedScience"].guiActive = true;
-                    double scienceratetmp = science_rate_f * GameConstants.EARH_DAY_SECONDS;
+                    double scienceratetmp = science_rate_f * GameConstants.EARTH_DAY_SECONDS;
                     scienceRate = scienceratetmp.ToString("0.0000") + "/Day";
                     collectedScience = science_to_add.ToString("0.000000");
                 }
@@ -331,7 +331,7 @@ namespace FNPlugin
                     Fields["antimatterProductionEfficiency"].guiActive = true;
                     powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseAMFPowerConsumption).ToString("0.00") + "MW";
                     antimatterProductionEfficiency = (anti_factory.getAntimatterProductionEfficiency() * 100).ToString("0.0000") + "%";
-                    double antimatter_rate_per_day = antimatter_rate_f * GameConstants.EARH_DAY_SECONDS;
+                    double antimatter_rate_per_day = antimatter_rate_f * GameConstants.EARTH_DAY_SECONDS;
                     
                     if (antimatter_rate_per_day > 0.1) 
                         antimatterRate = (antimatter_rate_per_day).ToString("0.0000") + " mg/day";
@@ -347,7 +347,7 @@ namespace FNPlugin
                 {
                     currentpowertmp = electrical_power_ratio * PluginHelper.BaseELCPowerConsumption * powerReqMult;
                     Fields["electrolysisRate"].guiActive = true;
-                    double electrolysisratetmp = -electrolysis_rate_f * GameConstants.EARH_DAY_SECONDS;
+                    double electrolysisratetmp = -electrolysis_rate_f * GameConstants.EARTH_DAY_SECONDS;
                     electrolysisRate = electrolysisratetmp.ToString("0.0") + "mT/day";
                     powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseELCPowerConsumption).ToString("0.00") + "MW";
                 }
@@ -431,7 +431,7 @@ namespace FNPlugin
                 float altitude_multiplier = Math.Max((float)(vessel.altitude / (vessel.mainBody.Radius)), 1);
 
                 science_rate_f = (float)(kerbalScienceSkillFactor * GameConstants.baseScienceRate * PluginHelper.getScienceMultiplier(vessel) //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed)
-                    / GameConstants.EARH_DAY_SECONDS * global_rate_multipliers
+                    / GameConstants.EARTH_DAY_SECONDS * global_rate_multipliers
                     / (Mathf.Sqrt(altitude_multiplier)));
 
                 if (ResearchAndDevelopment.Instance != null && !double.IsNaN(science_rate_f) && !double.IsInfinity(science_rate_f))
@@ -472,7 +472,7 @@ namespace FNPlugin
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult);
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                     float deut_produced = (float)(global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f);
-                    deut_rate_f = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.Deuterium, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                    deut_rate_f = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
                 }
                 else
                 {

@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
-	class VistaEngineController : FNResourceSuppliableModule, IUpgradeableModule 
+	class DeadalusEngineController : FNResourceSuppliableModule, IUpgradeableModule 
     {
         // Persistant
 		[KSPField(isPersistant = true)]
 		bool IsEnabled;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Upgraded")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Upgraded")]
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         bool rad_safety_features = true;
@@ -21,6 +22,13 @@ namespace FNPlugin
 		public string radhazardstr = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
         public string temperatureStr = "";
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Fusion", guiFormat = "F2", guiUnits = "%")]
+        public float fusionPercentage = 0;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
+        public float effectiveThrust = 0;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Flow", guiFormat = "F2", guiUnits = " kN")]
+        public double calculatedFuelflow = 0;
 
         [KSPField(isPersistant = false)]
         public float powerRequirement = 2500;
@@ -47,14 +55,12 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float maxTemp = 3200;
 
-        
-
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
         [KSPField(isPersistant = false)]
-        public string originalName = "Prototype DT Vista Engine";
+        public string originalName = "Prototype Deadalus IC Fusion Engine";
         [KSPField(isPersistant = false)]
-        public string upgradedName = "DT Vista Engine";
+        public string upgradedName = "Deadalus IC Fusion Engine";
 
         // Gui
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
@@ -62,27 +68,17 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName= "upgrade tech")]
         public string upgradeTechReq = null;
 
-        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Heat Prduction")]
-        //public float currentHeatProduction;
-        //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Base Heat Prduction")]
-        //public float baseHeatProduction;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Radiator Temp")]
-        public float coldBathTemp;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Radiator Temp")]
-        public float maxTempatureRadiators;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Performance Radiators")]
-        public float radiatorPerformance;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Emisiveness")]
-        public float partEmissiveConstant;
-
         protected bool hasrequiredupgrade = false;
 		protected bool radhazard = false;
 		protected double minISP = 0;
-		protected double standard_megajoule_rate = 0;
-		protected double standard_deuterium_rate = 0;
 		protected double standard_tritium_rate = 0;
         protected ModuleEngines curEngineT;
 
+        private double propellantAverageDensity;
+        private float densityLqdDeuterium;
+        private float densityLqdHelium3;
+        private double deteuriumFraction;
+        private double helium3Fraction;
         
 
 		[KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
@@ -123,21 +119,26 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
+            densityLqdDeuterium = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium).density;
+            densityLqdHelium3 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium3).density;
+            deteuriumFraction = densityLqdDeuterium / (densityLqdHelium3 + densityLqdDeuterium);
+            helium3Fraction = densityLqdHelium3 / (densityLqdHelium3 + densityLqdDeuterium);
+
+            propellantAverageDensity = densityLqdDeuterium / densityLqdHelium3;
+
             part.maxTemp = maxTemp;
             part.thermalMass = 1;
             part.thermalMassModifier = 1;
 
             engineType = originalName;
-            //curEngineT = (ModuleEnginesFX)this.part.Modules["ModuleEnginesFX"];
             curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
+
 
             if (curEngineT == null) return;
 
-            minISP = curEngineT.atmosphereCurve.Evaluate(0);
-            //currentHeatProduction = curEngineT.heatProduction;
 
-            standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio;
-            standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
+            minISP = curEngineT.atmosphereCurve.Evaluate(0);
+
 
             // if we can upgrade, let's do so
             if (isupgraded)
@@ -153,9 +154,7 @@ namespace FNPlugin
                 isupgraded = true;
                 upgradePartModule();
             }
-            
-            if (state != StartState.Editor)
-                part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
+
 		}
 
 		public override void OnUpdate() 
@@ -219,8 +218,6 @@ namespace FNPlugin
 
             float throttle = curEngineT.currentThrottle > 0 ? Mathf.Max(curEngineT.currentThrottle, 0.01f) : 0;
 
-            //double atmo_thrust_factor = Math.Min(1.0, Math.Max(1.0 - Math.Pow(vessel.atmDensity, 0.2), 0));
-
             if (throttle > 0)
             {
                 if (vessel.atmDensity > maxAtmosphereDensity)
@@ -232,59 +229,97 @@ namespace FNPlugin
 
             KillKerbalsWithRadiation(throttle);
 
-            coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
-            maxTempatureRadiators = (float)FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
-
             if (throttle > 0)
             {
-                // Calculate Fusion Ratio
-                var recievedPower = consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var plasma_ratio = recievedPower / (powerRequirement * TimeWarp.fixedDeltaTime);
-                var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? Mathf.Pow((float)plasma_ratio, 6.0f) : 0;
+                //float recievedPower;
+                //float plasma_ratio;
+                var fusionRatio = ProcessPowerAndWaste();
 
-                // Lasers produce Wasteheat
-                supplyFNResource(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
-
-                // The Aborbed wasteheat from Fusion
-                supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
-
-                // change ratio propellants Hydrogen/Fusion
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate / throttle / throttle);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate / throttle / throttle);
+                fusionPercentage = fusionRatio * 100;
 
                 // Update ISP
                 FloatCurve newISP = new FloatCurve();
-                var currentIsp = Math.Max(minISP * fusionRatio / throttle, minISP / 10);
+                var currentIsp = Math.Max(  minISP * fusionRatio, minISP / 10);
                 newISP.Add(0, (float)currentIsp);
                 curEngineT.atmosphereCurve = newISP;
 
+                effectiveThrust = MaximumThrust * fusionRatio;
+
                 // Update FuelFlow
-                var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = (float)maxFuelFlow;
+                calculatedFuelflow = effectiveThrust / currentIsp / PluginHelper.GravityConstant;
+                curEngineT.maxFuelFlow = (float)calculatedFuelflow;
+                curEngineT.maxThrust = effectiveThrust;
 
                 if (!curEngineT.getFlameoutState)
                 {
-                    if (plasma_ratio < 0.75 && recievedPower > 0)
+                    if (fusionRatio < 0.01)
                         curEngineT.status = "Insufficient Electricity";
                 }
             }
+            else if (this.vessel.packed)
+            {
+                var fusionRatio = ProcessPowerAndWaste();
+
+                fusionPercentage = fusionRatio * 100;
+
+                double demandMass;
+                CalculateDeltaVV(this.vessel.GetTotalMass(), TimeWarp.fixedDeltaTime, MaximumThrust * fusionRatio, minISP, this.part.transform.up, out demandMass);
+
+                var deteuriumRequestAmount = (demandMass * deteuriumFraction) / densityLqdDeuterium;
+                var helium3RequestAmount = (demandMass * helium3Fraction) / densityLqdHelium3;
+
+                var recievedDeuterium = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deteuriumRequestAmount);
+                var recievedHelium3 = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3RequestAmount);
+
+                var recievedRatio = Math.Min(recievedDeuterium / deteuriumRequestAmount, recievedHelium3 / helium3RequestAmount) * fusionRatio;
+
+                effectiveThrust = MaximumThrust * (float)recievedRatio;
+
+                var deltaVV = CalculateDeltaVV(this.vessel.GetTotalMass(), TimeWarp.fixedDeltaTime, MaximumThrust * recievedRatio, minISP, this.part.transform.up, out demandMass);
+
+                if (recievedRatio > 0.01)
+                    vessel.orbit.Perturb(deltaVV, Planetarium.GetUniversalTime());
+            }
             else
             {
-                var currentIsp = minISP * 100;
-
-                FloatCurve newISP = new FloatCurve();
-                newISP.Add(0, (float)currentIsp);
-                curEngineT.atmosphereCurve = newISP;
-
-                var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
+                fusionPercentage = 0;
+                effectiveThrust = 0;
+                var maxFuelFlow = MaximumThrust / minISP / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
-
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate);
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate);
             }
+        }
 
-            radiatorPerformance = (float)Math.Max(1 - (float)(coldBathTemp / maxTempatureRadiators), 0.000001);
-            partEmissiveConstant = (float)part.emissiveConstant;
+        private float ProcessPowerAndWaste()
+        {
+            // Calculate Fusion Ratio
+            var recievedPower = consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            var plasma_ratio = recievedPower / (powerRequirement * TimeWarp.fixedDeltaTime);
+            var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.01 ? plasma_ratio : 0;
+
+            // Lasers produce Wasteheat
+            supplyFNResource(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+            // The Aborbed wasteheat from Fusion
+            supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+            return fusionRatio;
+        }
+
+        // Calculate DeltaV vector and update resource demand from mass (demandMass)
+        public virtual Vector3d CalculateDeltaVV(double m0, double dT, double thrust, double isp, Vector3d thrustUV, out double demandMass)
+        {
+            // Mass flow rate
+            var mdot = thrust / (isp * 9.81f);
+            // Change in mass over time interval dT
+            var dm = mdot * dT;
+            // Resource demand from propellants with mass
+            demandMass = dm / propellantAverageDensity;
+            // Mass at end of time interval dT
+            var m1 = m0 - dm;
+            // deltaV amount
+            var deltaV = isp * 9.81f * Math.Log(m0 / m1);
+            // Return deltaV vector
+            return deltaV * thrustUV;
         }
 
         private void KillKerbalsWithRadiation(float throttle)

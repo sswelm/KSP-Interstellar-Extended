@@ -8,7 +8,7 @@ namespace FNPlugin
 {
     enum GenerationType { Mk1, Mk2, Mk3, Mk4, Mk5 }
 
-    class VistaEngineControllerAdvanced : VistaEngineControllerBase
+    class VistaEngineControllerAdvanced : FusionEngineControllerBase
     {
         const float maxIsp = 27200f;
         const float minIsp = 15500f;
@@ -30,7 +30,29 @@ namespace FNPlugin
         protected override float NeutronAbsorptionFractionAtMinIsp  { get { return neutronAbsorptionFractionAtMinIsp; } }
     }
 
-    abstract class VistaEngineControllerBase : FNResourceSuppliableModule, IUpgradeableModule 
+    //class DaedalusEngineControllerAdvanced : FusionEngineControllerBase
+    //{
+    //    const float maxIsp = 10000000f;
+    //    //const float minIsp = 1000000f;
+    //    //const float steps = (maxIsp - minIsp) / 100f;
+
+    //    // Persistant setting
+    //    //[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "Selected Isp"), UI_FloatRange(stepIncrement = steps, maxValue = maxIsp, minValue = minIsp)]
+    //    public float localIsp = maxIsp;
+
+    //    // settings
+    //    [KSPField(isPersistant = false)]
+    //    public float neutronAbsorptionFractionAtMinIsp = 0.5f;
+    //    [KSPField(isPersistant = false)]
+    //    public float maxThrustEfficiencyByIspPower = 2f;
+
+    //    protected override float SelectedIsp { get { return localIsp; } }
+    //    protected override float MaxIsp { get { return maxIsp; } }
+    //    protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
+    //    protected override float NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
+    //}
+
+    abstract class FusionEngineControllerBase : FNResourceSuppliableModule, IUpgradeableModule 
     {
         // Persistant
 		[KSPField(isPersistant = true)]
@@ -256,26 +278,47 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
-            part.maxTemp = maxTemp;
-            part.thermalMass = 1;
-            part.thermalMassModifier = 1;
-            EngineGenerationType = GenerationType.Mk1;
+            try
+            {
+                Debug.LogError("FusionEngine OnStart begin");
 
-            curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
+                if (part == null)
+                {
+                    Debug.LogError("FusionEngine OnStart Part not found");
+                    return;
+                }
 
-            if (curEngineT == null) return;
+                part.maxTemp = maxTemp;
+                part.thermalMass = 1;
+                part.thermalMassModifier = 1;
+                EngineGenerationType = GenerationType.Mk1;
 
-            minISP = curEngineT.atmosphereCurve.Evaluate(0);
+                curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
 
-            standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio;
-            standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio;
+                if (curEngineT == null)
+                {
+                    Debug.LogError("FusionEngine OnStart Engine not found");
+                    return;
+                }
 
-            DetermineTechLevel();
+                minISP = curEngineT.atmosphereCurve.Evaluate(0);
 
-            part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio;
+                standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
 
-            if (state != StartState.Editor)
-                part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
+                DetermineTechLevel();
+
+                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+
+                if (state != StartState.Editor)
+                    part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
+
+                Debug.LogError("FusionEngine OnStart end");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("FusionEngine OnStart eception: " + e.Message);
+            }
 		}
 
 		public override void OnUpdate() 
@@ -371,8 +414,8 @@ namespace FNPlugin
                 supplyFNResource(absorbedWasteheat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio = (float)standard_deuterium_rate / rateMultplier;  
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio = (float)standard_tritium_rate / rateMultplier; 
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;  
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)standard_tritium_rate / rateMultplier; 
 
                 // Update ISP
                 var currentIsp = SelectedIsp; 
@@ -408,8 +451,8 @@ namespace FNPlugin
 
                 var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = maxFuelFlow;
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Deuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.Tritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
             }
 
             coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);

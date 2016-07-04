@@ -45,7 +45,7 @@ namespace FNPlugin.Refinery
         {
             _current_power = PowerRequirements * rateMultiplier;
             List<INuclearFuelReprocessable> nuclear_reactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();
-            double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / GameConstants.EARH_DAY_SECONDS * rateMultiplier;
+            double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / GameConstants.EARTH_DAY_SECONDS * rateMultiplier;
             double enum_actinides_change = 0;
             foreach (INuclearFuelReprocessable nuclear_reactor in nuclear_reactors)
             {

@@ -23,7 +23,8 @@ namespace FNPlugin
         private const String _LITHIUM6 = "Lithium6";
         private const String _PLUTONIUM_238 = "Plutonium-238";
         private const String _ALUMINA = "Alumina";
-        private const String _DEUTERIUM = "LqdDeuterium";
+        private const String _LIQUID_DEUTERIUM = "LqdDeuterium";
+        private const String _DEUTERIUM_GAS = "Deuterium";
 
         private String _uranium_TerraFloride = "UF4";
         private String _aluminium = "Aluminium";
@@ -31,8 +32,10 @@ namespace FNPlugin
         private String _argon = "ArgonGas";
         private String _carbonDioxide = "LqdCO2";
         private String _carbonMoxoxide = "LqdCO";
-        private String _helium4 = "LqdHelium";
-        private String _helium3 = "LqdHe3";
+        private String _helium4_gas = "Helium4";
+        private String _liquid_helium4 = "LqdHelium";
+        private String _helium3_gas = "Helium3";
+        private String _liquid_helium3 = "LqdHe3";
         private String _hydrogen = "LqdHydrogen";
         private String _hydrogen_peroxide = "HTP";
         private String _hydrazine = "Hydrazine";
@@ -52,10 +55,13 @@ namespace FNPlugin
         public String CarbonDioxide { get { return _carbonDioxide; } }
         public String CarbonMoxoxide { get { return _carbonMoxoxide; } }
         public String DepletedFuel { get { return _DEPLETED_FUEL; } }
-        public String Deuterium { get { return _DEUTERIUM; } }
+        public String LqdDeuterium { get { return _LIQUID_DEUTERIUM; } }
+        public String DeuteriumGas { get { return _DEUTERIUM_GAS; } }
         public String ExoticMatter { get { return _EXOTIC_MATTER; } }
-        public String Helium { get { return _helium4; } }
-        public String Helium3 { get { return _helium3; } }
+        public String LqdHelium4 { get { return _liquid_helium4; } }
+        public String Helium4Gas { get { return _helium4_gas; } }
+        public String LqdHelium3 { get { return _liquid_helium3; } }
+        public String Helium3Gas { get { return _helium3_gas; } }
         public String Hydrogen { get { return _hydrogen; } }
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }
         public String Hydrazine { get { return _hydrazine; } }
@@ -67,7 +73,7 @@ namespace FNPlugin
         public String Oxygen { get { return _oxygen; } }
         public String Plutonium238 { get { return _PLUTONIUM_238; } }
         public String ThoriumTetraflouride { get { return _THORIUM_TETRAFLOURIDE; } }
-        public String Tritium { get { return _tritium; } }
+        public String LqdTritium { get { return _tritium; } }
         public String UraniumTetraflouride { get { return _uranium_TerraFloride; } }
         public String UraniumNitride { get { return _URANIUM_NITRIDE; } }
         public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
@@ -104,13 +110,13 @@ namespace FNPlugin
                 }
                 if (plugin_settings.HasValue("HeliumResourceName"))
                 {
-                    _helium4 = plugin_settings.GetValue("HeliumResourceName");
-                    Debug.Log("[KSP Interstellar] Helium4 resource name set to " + Helium);
+                    _liquid_helium4 = plugin_settings.GetValue("HeliumResourceName");
+                    Debug.Log("[KSP Interstellar] Helium4 resource name set to " + LqdHelium4);
                 }
                 if (plugin_settings.HasValue("Helium3ResourceName"))
                 {
-                    _helium3 = plugin_settings.GetValue("Helium3ResourceName");
-                    Debug.Log("[KSP Interstellar] Helium3 resource name set to " + Helium3);
+                    _liquid_helium3 = plugin_settings.GetValue("Helium3ResourceName");
+                    Debug.Log("[KSP Interstellar] Helium3 resource name set to " + LqdHelium3);
                 }
 
                 if (plugin_settings.HasValue("HydrazineResourceName"))

@@ -70,7 +70,8 @@ namespace FNPlugin
         public const double ammoniaHydrogenFractionByMass = 0.17647;
 
         public const int MAX_ANTIMATTER_TANK_STORED_CHARGE = 1000;
-        public const int EARH_DAY_SECONDS = 86400;
+        public const int EARTH_DAY_SECONDS = 86400;
+        public const int EARTH_YEAR_IN_DAYS = 365;
         public const int KEBRIN_DAY_SECONDS = 21600;
         public const int HOUR_SECONDS = 3600;
 

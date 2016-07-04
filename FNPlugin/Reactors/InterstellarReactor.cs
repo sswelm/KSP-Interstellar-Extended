@@ -323,6 +323,7 @@ namespace FNPlugin
         protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
         protected List<PartResource> partResourcesThatContainLithium;
         protected List<PartResource> partResourcesThatContainTritium;
+        protected List<PartResource> partResourcesThatContainHelium4;
 
         protected PartResource thermalPowerResource = null;
         protected PartResource chargedPowerResource = null;
@@ -865,7 +866,7 @@ namespace FNPlugin
             {
                 if (startDisabled)
                 {
-                    last_active_time = (float)(Planetarium.GetUniversalTime() - 4.0 * GameConstants.EARH_DAY_SECONDS);
+                    last_active_time = (float)(Planetarium.GetUniversalTime() - 4.0 * GameConstants.EARTH_DAY_SECONDS);
                     IsEnabled = false;
                     startDisabled = false;
                     breedtritium = false;
@@ -878,7 +879,8 @@ namespace FNPlugin
                 reactorInit = true;
             }
 
-            partResourcesThatContainTritium = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Tritium).ToList();
+            partResourcesThatContainHelium4 = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Helium4Gas).ToList();
+            partResourcesThatContainTritium = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdTritium).ToList();
             partResourcesThatContainLithium = fastNeutrons
                 ? part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Lithium7).ToList()
                 : part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Lithium6).ToList();
@@ -1200,9 +1202,9 @@ namespace FNPlugin
                 if (Planetarium.GetUniversalTime() != 0)
                     last_active_time = (float)(Planetarium.GetUniversalTime());
             }
-            else if (IsEnabled && IsNuclear && MaximumPower > 0 && (Planetarium.GetUniversalTime() - last_active_time <= 3 * GameConstants.EARH_DAY_SECONDS))
+            else if (IsEnabled && IsNuclear && MaximumPower > 0 && (Planetarium.GetUniversalTime() - last_active_time <= 3 * GameConstants.EARTH_DAY_SECONDS))
             {
-                double power_fraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / GameConstants.EARH_DAY_SECONDS / 24.0 * 9.0);
+                double power_fraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / GameConstants.EARTH_DAY_SECONDS / 24.0 * 9.0);
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
                 thermal_power_received = supplyManagedFNResourceWithMinimumRatio(power_to_supply, 1, FNResourceManager.FNRESOURCE_THERMALPOWER);
                 ongoing_consumption_rate = thermal_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
@@ -1325,12 +1327,13 @@ namespace FNPlugin
                 return;
             }
 
+
             PartResourceDefinition lithium_def = fastNeutrons 
                 ? PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium7)
                 : PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
 
-            PartResourceDefinition tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Tritium);
-            PartResourceDefinition helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium);
+            PartResourceDefinition tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdTritium);
+            PartResourceDefinition helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
 
             // calculate current maximum litlium consumption
             var breed_rate = current_fuel_mode.NeutronsRatio * thermal_power_received / breedDivider / GameConstants.tritiumBreedRate;
@@ -1354,8 +1357,8 @@ namespace FNPlugin
             var helium_production = lith_used * helium_molar_mass_ratio * lithium_def.density / helium_def.density;
 
             // produce tritium and helium
-            tritium_produced_d = (float)(-part.RequestResource(InterstellarResourcesConfiguration.Instance.Tritium, -tritium_production) / fixedDeltaTime);
-            helium_produced_f = (float)(-part.RequestResource(InterstellarResourcesConfiguration.Instance.Helium, -helium_production) / fixedDeltaTime);
+            tritium_produced_d = (float)(-part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdTritium, -tritium_production) / fixedDeltaTime);
+            helium_produced_f = (float)(-part.RequestResource(InterstellarResourcesConfiguration.Instance.Helium4Gas, -helium_production) / fixedDeltaTime);
         }
 
         public virtual float GetCoreTempAtRadiatorTemp(float rad_temp)
@@ -1411,7 +1414,7 @@ namespace FNPlugin
                 sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
                 foreach (ReactorFuel fuel in fm.ReactorFuels)
                 {
-                    sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * fuelUsePerMJMult * PowerOutput * fm.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS / fuelEfficiency + fuel.Unit + "/day");
+                    sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * fuelUsePerMJMult * PowerOutput * fm.NormalisedReactionRate * GameConstants.EARTH_DAY_SECONDS / fuelEfficiency + fuel.Unit + "/day");
                 }
                 sb.AppendLine("---");
             });
@@ -1590,7 +1593,6 @@ namespace FNPlugin
 
                 WindowReactorSpecificOverride();
 
-                //if (ChargedPowerRatio > 0)
                 PrintToGUILayout("Max Power Output", PluginHelper.getFormattedPowerString(NormalisedMaximumPower, "0.0", "0.00") + " / " + PluginHelper.getFormattedPowerString(RawPowerOutput, "0.0", "0.00"), bold_label);
 
                 if (ChargedPowerRatio < 1.0)
@@ -1602,12 +1604,16 @@ namespace FNPlugin
                 {
                     if (IsNeutronRich && breedtritium)
                     {
-                        var totalBreedingLithium = partResourcesThatContainLithium.Sum(m => m.amount);
+                        var totalLithiumAmount = partResourcesThatContainLithium.Sum(m => m.amount);
+                        var totalLithiumMaxAmount = partResourcesThatContainLithium.Sum(m => m.amount);
                         var totalTritiumAmount = partResourcesThatContainTritium.Sum(r => r.amount);
                         var totalTritiumMaxAmount = partResourcesThatContainTritium.Sum(r => r.maxAmount);
-                        PrintToGUILayout("Tritium Breed Rate", 100 * current_fuel_mode.NeutronsRatio + "% " + (tritium_produced_d * GameConstants.EARH_DAY_SECONDS).ToString("0.000000") + " l/day ", bold_label);
-                        PrintToGUILayout("Breeding Lithium", totalBreedingLithium.ToString("0.00000000") + " l", bold_label);
-                        PrintToGUILayout("Tritium Amount", totalTritiumAmount.ToString("0.00000000") + " l / " + totalTritiumMaxAmount.ToString("0.00000000") + " l", bold_label);
+                        var totalHeliumAmount = partResourcesThatContainHelium4.Sum(r => r.amount);
+                        var totalHeliumMaxAmount = partResourcesThatContainHelium4.Sum(r => r.maxAmount);
+                        PrintToGUILayout("Tritium Breed Rate", 100 * current_fuel_mode.NeutronsRatio + "% " + (tritium_produced_d * GameConstants.EARTH_DAY_SECONDS).ToString("0.000000") + " l/day ", bold_label);
+                        PrintToGUILayout("Lithium Remaining", totalLithiumAmount.ToString("0.00000000") + " l / " + totalLithiumMaxAmount.ToString("0.00000000") + " l", bold_label);
+                        PrintToGUILayout("Tritium Storage", totalTritiumAmount.ToString("0.00000000") + " l / " + totalTritiumMaxAmount.ToString("0.00000000") + " l", bold_label);
+                        PrintToGUILayout("Helium Storage", totalHeliumAmount.ToString("0.00000000") + " l / " + totalHeliumMaxAmount.ToString("0.00000000") + " l", bold_label);
                     }
                     else
                         PrintToGUILayout("Is Neutron rich", IsNeutronRich.ToString(), bold_label);
@@ -1616,15 +1622,24 @@ namespace FNPlugin
                     GUILayout.Label("Fuel", bold_label, GUILayout.Width(150));
                     GUILayout.EndHorizontal();
 
-                    double fuel_lifetime_d = double.MaxValue;
+                    //double fuel_lifetime_d = double.MaxValue;
                     foreach (var fuel in current_fuel_mode.ReactorFuels)
                     {
                         double availability = GetFuelAvailability(fuel);
-                        PrintToGUILayout(fuel.FuelName, (availability * fuel.Density * 1000).ToString("0.00000000") + " kg", bold_label);
+                        PrintToGUILayout(fuel.FuelName + " Available", (availability * fuel.Density * 1000).ToString("0.00000000") + " kg", bold_label);
+                        double fuel_use_per_day = total_power_per_frame * fuel.FuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARTH_DAY_SECONDS;
 
-                        double fuel_use = total_power_per_frame * fuel.FuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
-                        fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
-                        PrintToGUILayout(fuel.FuelName, fuel_use.ToString("0.000000") + " " + fuel.Unit + "/day", bold_label);
+                        double fuel_lifetime_d = availability / fuel_use_per_day;
+
+                        int lifetime_years = (int)Math.Floor(fuel_lifetime_d / GameConstants.EARTH_YEAR_IN_DAYS);
+                        double lifetime_years_day_remainder = fuel_lifetime_d % GameConstants.EARTH_YEAR_IN_DAYS;
+
+                        PrintToGUILayout(fuel.FuelName + " Consumption", fuel_use_per_day.ToString("0.000000") + " " + fuel.Unit + "/day", bold_label);
+
+                        if (lifetime_years > 0)
+                            PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetime_years) ? "-" : lifetime_years + " years " + (lifetime_years_day_remainder).ToString("0.00")) + " days", bold_label);
+                        else
+                            PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", bold_label);
                     }
 
                     GUILayout.BeginHorizontal();
@@ -1639,15 +1654,14 @@ namespace FNPlugin
                         GUILayout.Label((availability * product.Density * 1000).ToString("0.00000000") + " kg", GUILayout.Width(150));
                         GUILayout.EndHorizontal();
 
-                        double fuel_use = total_power_per_frame * product.ProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARH_DAY_SECONDS;
-                        fuel_lifetime_d = Math.Min(fuel_lifetime_d, availability / fuel_use);
+                        double fuel_use = total_power_per_frame * product.ProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * GameConstants.EARTH_DAY_SECONDS;
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(product.FuelName, bold_label, GUILayout.Width(150));
                         GUILayout.Label(fuel_use.ToString("0.000000") + " " + product.Unit + "/day", GUILayout.Width(150));
                         GUILayout.EndHorizontal();
                     }
 
-                    PrintToGUILayout("Current Lifetime", (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", bold_label);
+                    
                 }
 
                 if (!IsNuclear)
