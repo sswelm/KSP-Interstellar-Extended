@@ -25,10 +25,15 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fusion", guiFormat = "F2", guiUnits = "%")]
         public float fusionPercentage = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
         public float effectiveThrust = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Flow", guiFormat = "F2", guiUnits = " kN")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Fuel Flow", guiFormat = "F8", guiUnits = " U")]
         public double calculatedFuelflow = 0;
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Helium-3 Usage", guiFormat = "F2", guiUnits = " L/day")]
+        public double helium3UsageDay = 0;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Deuterium Usage", guiFormat = "F2", guiUnits = " L/day")]
+        public double deuteriumUsageDay = 0;
 
         [KSPField(isPersistant = false)]
         public float powerRequirement = 2500;
@@ -70,7 +75,7 @@ namespace FNPlugin
 
         protected bool hasrequiredupgrade = false;
 		protected bool radhazard = false;
-		protected double minISP = 0;
+		protected double engineIsp = 0;
 		protected double standard_tritium_rate = 0;
         protected ModuleEngines curEngineT;
 
@@ -133,12 +138,9 @@ namespace FNPlugin
             engineType = originalName;
             curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
 
-
             if (curEngineT == null) return;
 
-
-            minISP = curEngineT.atmosphereCurve.Evaluate(0);
-
+            engineIsp = curEngineT.atmosphereCurve.Evaluate(0);
 
             // if we can upgrade, let's do so
             if (isupgraded)
@@ -154,7 +156,6 @@ namespace FNPlugin
                 isupgraded = true;
                 upgradePartModule();
             }
-
 		}
 
 		public override void OnUpdate() 
@@ -229,26 +230,24 @@ namespace FNPlugin
 
             KillKerbalsWithRadiation(throttle);
 
-            if (throttle > 0)
+            if (throttle > 0 && !this.vessel.packed)
             {
-                //float recievedPower;
-                //float plasma_ratio;
                 var fusionRatio = ProcessPowerAndWaste();
-
                 fusionPercentage = fusionRatio * 100;
 
                 // Update ISP
-                FloatCurve newISP = new FloatCurve();
-                var currentIsp = Math.Max(  minISP * fusionRatio, minISP / 10);
-                newISP.Add(0, (float)currentIsp);
-                curEngineT.atmosphereCurve = newISP;
-
-                effectiveThrust = MaximumThrust * fusionRatio;
+                FloatCurve newAtmosphereCurve = new FloatCurve();
+                newAtmosphereCurve.Add(0, (float)engineIsp);
+                curEngineT.atmosphereCurve = newAtmosphereCurve;
 
                 // Update FuelFlow
-                calculatedFuelflow = effectiveThrust / currentIsp / PluginHelper.GravityConstant;
+                effectiveThrust = MaximumThrust * fusionRatio;
+                calculatedFuelflow = effectiveThrust / engineIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)calculatedFuelflow;
                 curEngineT.maxThrust = effectiveThrust;
+
+                deuteriumUsageDay = curEngineT.currentThrottle * calculatedFuelflow * 1600 * GameConstants.EARTH_DAY_SECONDS;
+                helium3UsageDay = curEngineT.currentThrottle * calculatedFuelflow  * 1600 * GameConstants.EARTH_DAY_SECONDS;
 
                 if (!curEngineT.getFlameoutState)
                 {
@@ -256,17 +255,20 @@ namespace FNPlugin
                         curEngineT.status = "Insufficient Electricity";
                 }
             }
-            else if (this.vessel.packed)
+            else if (this.vessel.packed && curEngineT.enabled)
             {
                 var fusionRatio = ProcessPowerAndWaste();
 
                 fusionPercentage = fusionRatio * 100;
 
                 double demandMass;
-                CalculateDeltaVV(this.vessel.GetTotalMass(), TimeWarp.fixedDeltaTime, MaximumThrust * fusionRatio, minISP, this.part.transform.up, out demandMass);
+                CalculateDeltaVV(this.vessel.GetTotalMass(), TimeWarp.fixedDeltaTime, MaximumThrust * fusionRatio, engineIsp, this.part.transform.up, out demandMass);
 
                 var deteuriumRequestAmount = (demandMass * deteuriumFraction) / densityLqdDeuterium;
                 var helium3RequestAmount = (demandMass * helium3Fraction) / densityLqdHelium3;
+
+                deuteriumUsageDay = deteuriumRequestAmount / TimeWarp.fixedDeltaTime * GameConstants.EARTH_DAY_SECONDS;
+                helium3UsageDay = helium3RequestAmount / TimeWarp.fixedDeltaTime * GameConstants.EARTH_DAY_SECONDS;
 
                 var recievedDeuterium = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deteuriumRequestAmount);
                 var recievedHelium3 = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3RequestAmount);
@@ -275,7 +277,7 @@ namespace FNPlugin
 
                 effectiveThrust = MaximumThrust * (float)recievedRatio;
 
-                var deltaVV = CalculateDeltaVV(this.vessel.GetTotalMass(), TimeWarp.fixedDeltaTime, MaximumThrust * recievedRatio, minISP, this.part.transform.up, out demandMass);
+                var deltaVV = CalculateDeltaVV(this.vessel.GetTotalMass(), TimeWarp.fixedDeltaTime, MaximumThrust * recievedRatio, engineIsp, this.part.transform.up, out demandMass);
 
                 if (recievedRatio > 0.01)
                     vessel.orbit.Perturb(deltaVV, Planetarium.GetUniversalTime());
@@ -284,7 +286,7 @@ namespace FNPlugin
             {
                 fusionPercentage = 0;
                 effectiveThrust = 0;
-                var maxFuelFlow = MaximumThrust / minISP / PluginHelper.GravityConstant;
+                var maxFuelFlow = MaximumThrust / engineIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
             }
         }
