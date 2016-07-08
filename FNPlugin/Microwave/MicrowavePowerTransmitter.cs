@@ -36,6 +36,8 @@ namespace FNPlugin
         public string beamedpower;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F2")]
+        public float maximumPower = 10000;
 
         //Internal
         protected Animation anim;
@@ -230,7 +232,7 @@ namespace FNPlugin
                         InterstellarFusionReactor fusion_reactor = thermal_source as InterstellarFusionReactor;
                         output = output * 0.92f;
                     }
-                    output = output * transmitPower / 100.0f;
+                    output = Math.Min(output * transmitPower / 100.0f, maximumPower);
                     float gpower = consumeFNResource(output * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     nuclear_power += gpower * 1000 / TimeWarp.fixedDeltaTime;
                 }

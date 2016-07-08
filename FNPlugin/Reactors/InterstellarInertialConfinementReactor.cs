@@ -45,6 +45,11 @@ namespace FNPlugin
         protected BaseField powerPercentageField;
         protected BaseField isChargingField;
 
+        public override double PlasmaModifier
+        {
+            get { return (plasma_ratio >= 0.01 ? Math.Min(plasma_ratio, 1) : 0); }
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             powerPercentageField = Fields["powerPercentage"];
@@ -119,13 +124,13 @@ namespace FNPlugin
             return isupgraded ? false : true;
         }
 
-		public override double MaximumThermalPower { get { 
-				float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
-				return (powerPercentage / 100) *  NormalisedMaximumPower  * plasmaModifier * (1 - (float)ChargedPowerRatio); } }
-
-		public override double MaximumChargedPower { get {
-				float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
-				return (powerPercentage / 100) * NormalisedMaximumPower * plasmaModifier * (float)ChargedPowerRatio; } }
+		public override double MaximumChargedPower 
+        { 
+            get 
+            {
+				return (powerPercentage / 100) * NormalisedMaximumPower * PlasmaModifier * ChargedPowerRatio; 
+            } 
+        }
 
         public override void Update()
         {
@@ -153,8 +158,6 @@ namespace FNPlugin
                 accumulatedChargeStr = String.Empty;
 
             Fields["accumulatedChargeStr"].guiActive = plasma_ratio < 1;
-
-            //powerPercentageField.guiActive = !IsEnabled && !isChargingForJumpstart;
 
             electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
 

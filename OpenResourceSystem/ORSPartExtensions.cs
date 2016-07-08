@@ -10,7 +10,11 @@ namespace OpenResourceSystem
 
         public static IEnumerable<PartResource> GetConnectedResources(this Part part, PartResourceDefinition definition) 
         {
+            if (definition == null)
+                return Enumerable.Empty<PartResource>();
+            
             List<PartResource> resources = new List<PartResource>();
+
             part.GetConnectedResources(definition.id, definition.resourceFlowMode, resources);
             return resources;
         }

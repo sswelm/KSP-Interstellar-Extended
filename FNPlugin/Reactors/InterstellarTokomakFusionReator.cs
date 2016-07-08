@@ -20,16 +20,6 @@ namespace FNPlugin
 			} 
 		}
 
-        public override double MaximumThermalPower
-        {
-            get
-            {
-                float lithiumModifier = lithiumPartResource != null ? (float)Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount) : 1;
-
-                return Math.Max(base.MaximumThermalPower * lithiumModifier, 0.000000001f);
-            }
-        }
-
         public override void OnUpdate() 
         {
             base.OnUpdate();

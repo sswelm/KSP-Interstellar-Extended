@@ -28,6 +28,10 @@ namespace FNPlugin
         public string electricPowerMaintenance;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Modifier", guiFormat = "F6")]
+        public float plasma_modifier = 1.0f;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Lithium Modifier", guiFormat = "F6")]
+        public float lithium_modifier = 1.0f;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
 
@@ -40,17 +44,33 @@ namespace FNPlugin
 
         public override double StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
 
-        public override double MaximumThermalPower 
-        { 
+        public virtual double PlasmaModifier
+        {
             get 
             {
-                float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
-
-                return Math.Max(base.MaximumThermalPower * plasmaModifier, 0.000000001f); 
-            } 
+                plasma_modifier = (plasma_ratio >= 1.0 ? 1 : 0);
+                return plasma_modifier;
+            }
         }
 
-        public override double MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
+        public virtual double LithiumModifier
+        {
+            get 
+            {
+                lithium_modifier = lithiumPartResource != null && lithiumPartResource.maxAmount > 0 ? (float)Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount) : 1;
+                return lithium_modifier;
+            }
+        }
+
+        public override double MaximumThermalPower
+        {
+            get {  return Math.Max(base.MaximumThermalPower * PlasmaModifier * LithiumModifier, 0.000000001f); }
+        }
+
+        public override double MaximumChargedPower 
+        {
+            get { return base.MaximumChargedPower * PlasmaModifier; } 
+        }
 
         public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 

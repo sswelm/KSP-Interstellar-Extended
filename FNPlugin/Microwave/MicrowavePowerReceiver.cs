@@ -19,7 +19,7 @@ namespace FNPlugin
         public string animName;
         [KSPField(isPersistant = false)]
         public string animTName;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Collector Area")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Collector Area", guiUnits = " m2")]
         public float collectorArea = 1;
         [KSPField(isPersistant = false)]
         public bool isThermalReceiver;
@@ -29,7 +29,7 @@ namespace FNPlugin
         public float ThermalTemp;
         [KSPField(isPersistant = false)]
         public float ThermalPower;
-        [KSPField(isPersistant = false, guiActiveEditor= true, guiName= "Radius")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
         public float radius;
         [KSPField(isPersistant = false)]
         public float heatTransportationEfficiency = 0.7f;
@@ -43,9 +43,6 @@ namespace FNPlugin
         public float receiverType = 0;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
-        [KSPField(isPersistant = false)]
-        public float maximumPowerRecieved = 6000;
-
 
         [KSPField(isPersistant = false)]
         public float thermalPropulsionEfficiency = 1;
@@ -73,6 +70,8 @@ namespace FNPlugin
         public string toteff;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float receiptPower = 100;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
+        public float maximumPower = 10000;
 
         //Internal 
         protected double waste_heat_production;
@@ -131,7 +130,7 @@ namespace FNPlugin
             get { return this.isThermalReceiver; }
         }
 
-        public float RawMaximumPower { get { return maximumPowerRecieved; } }
+        public float RawMaximumPower { get { return maximumPower; } }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
@@ -459,7 +458,7 @@ namespace FNPlugin
                     connectedsatsi = activeSatsIncr;
                     connectedrelaysi = usedRelays.Count;
 
-                    powerInputMegajoules = total_power / 1000.0 * microwaveDishEfficiency * atmosphericefficiency * receiptPower / 100.0f;
+                    powerInputMegajoules = Math.Min(maximumPower, total_power / 1000.0 * microwaveDishEfficiency * atmosphericefficiency * receiptPower / 100.0f);
                     powerInput = powerInputMegajoules * 1000.0f;
                 }
 
