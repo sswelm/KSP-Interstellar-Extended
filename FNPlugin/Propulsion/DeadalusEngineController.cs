@@ -26,8 +26,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Fusion", guiFormat = "F2", guiUnits = "%")]
         public float fusionPercentage = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
-        public float effectiveThrust = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Fuel Flow", guiFormat = "F8", guiUnits = " U")]
+        public double effectiveThrust = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Fuel Flow", guiFormat = "F8", guiUnits = " U")]
         public double calculatedFuelflow = 0;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Helium-3 Usage", guiFormat = "F2", guiUnits = " L/day")]
@@ -45,7 +45,9 @@ namespace FNPlugin
         public float maxAtmosphereDensity = 0.001f;
 
         [KSPField(isPersistant = false)]
-        public float efficiency = 0.19f;
+        public float efficiency = 0.25f;
+        [KSPField(isPersistant = false)]
+        public float efficiencyUpgraded = 0.5f;
         [KSPField(isPersistant = false)]
         public float leathalDistance = 2000;
         [KSPField(isPersistant = false)]
@@ -80,8 +82,8 @@ namespace FNPlugin
         protected ModuleEngines curEngineT;
 
         private double propellantAverageDensity;
-        private float densityLqdDeuterium;
-        private float densityLqdHelium3;
+        private double densityLqdDeuterium;
+        private double densityLqdHelium3;
         private double deteuriumFraction;
         private double helium3Fraction;
         
@@ -111,6 +113,7 @@ namespace FNPlugin
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
+        public float Efficiency { get { return isupgraded ? efficiencyUpgraded : efficiency; } }
         public float MaximumThrust { get { return isupgraded ? maxThrustUpgraded : maxThrust; } }
         public float FusionWasteHeat { get { return isupgraded ? fusionWasteHeatUpgraded : fusionWasteHeat; } }
 
@@ -244,15 +247,14 @@ namespace FNPlugin
                 effectiveThrust = MaximumThrust * fusionRatio;
                 calculatedFuelflow = effectiveThrust / engineIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)calculatedFuelflow;
-                curEngineT.maxThrust = effectiveThrust;
+                curEngineT.maxThrust = (float)effectiveThrust;
 
-                deuteriumUsageDay = curEngineT.currentThrottle * calculatedFuelflow * 1600 * GameConstants.EARTH_DAY_SECONDS;
-                helium3UsageDay = curEngineT.currentThrottle * calculatedFuelflow  * 1600 * GameConstants.EARTH_DAY_SECONDS;
+                deuteriumUsageDay = curEngineT.currentThrottle * calculatedFuelflow * 1600 * PluginHelper.SecondsInDay;
+                helium3UsageDay = curEngineT.currentThrottle * calculatedFuelflow * 1600 * PluginHelper.SecondsInDay;
 
-                if (!curEngineT.getFlameoutState)
+                if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
                 {
-                    if (fusionRatio < 0.01)
-                        curEngineT.status = "Insufficient Electricity";
+                    curEngineT.status = "Insufficient Electricity";
                 }
             }
             else if (this.vessel.packed && curEngineT.enabled)
@@ -264,18 +266,18 @@ namespace FNPlugin
                 double demandMass;
                 CalculateDeltaVV(this.vessel.GetTotalMass(), TimeWarp.fixedDeltaTime, MaximumThrust * fusionRatio, engineIsp, this.part.transform.up, out demandMass);
 
-                var deteuriumRequestAmount = (demandMass * deteuriumFraction) / densityLqdDeuterium;
-                var helium3RequestAmount = (demandMass * helium3Fraction) / densityLqdHelium3;
+                var deteuriumRequestAmount = demandMass * deteuriumFraction / densityLqdDeuterium;
+                var helium3RequestAmount = demandMass * helium3Fraction / densityLqdHelium3;
 
-                deuteriumUsageDay = deteuriumRequestAmount / TimeWarp.fixedDeltaTime * GameConstants.EARTH_DAY_SECONDS;
-                helium3UsageDay = helium3RequestAmount / TimeWarp.fixedDeltaTime * GameConstants.EARTH_DAY_SECONDS;
+                deuteriumUsageDay = deteuriumRequestAmount / TimeWarp.fixedDeltaTime * PluginHelper.SecondsInDay;
+                helium3UsageDay = helium3RequestAmount / TimeWarp.fixedDeltaTime * PluginHelper.SecondsInDay;
 
-                var recievedDeuterium = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deteuriumRequestAmount);
-                var recievedHelium3 = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3RequestAmount);
+                var recievedDeuterium = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deteuriumRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var recievedHelium3 = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3RequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
 
                 var recievedRatio = Math.Min(recievedDeuterium / deteuriumRequestAmount, recievedHelium3 / helium3RequestAmount) * fusionRatio;
 
-                effectiveThrust = MaximumThrust * (float)recievedRatio;
+                effectiveThrust = MaximumThrust * recievedRatio;
 
                 var deltaVV = CalculateDeltaVV(this.vessel.GetTotalMass(), TimeWarp.fixedDeltaTime, MaximumThrust * recievedRatio, engineIsp, this.part.transform.up, out demandMass);
 
@@ -284,6 +286,8 @@ namespace FNPlugin
             }
             else
             {
+                deuteriumUsageDay = 0;
+                helium3UsageDay = 0;
                 fusionPercentage = 0;
                 effectiveThrust = 0;
                 var maxFuelFlow = MaximumThrust / engineIsp / PluginHelper.GravityConstant;
@@ -299,7 +303,7 @@ namespace FNPlugin
             var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.01 ? plasma_ratio : 0;
 
             // Lasers produce Wasteheat
-            supplyFNResource(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
+            supplyFNResource(recievedPower * (1 - Efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
 
             // The Aborbed wasteheat from Fusion
             supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
@@ -311,7 +315,7 @@ namespace FNPlugin
         public virtual Vector3d CalculateDeltaVV(double m0, double dT, double thrust, double isp, Vector3d thrustUV, out double demandMass)
         {
             // Mass flow rate
-            var mdot = thrust / (isp * 9.81f);
+            var mdot = thrust / (isp * GameConstants.STANDARD_GRAVITY);
             // Change in mass over time interval dT
             var dm = mdot * dT;
             // Resource demand from propellants with mass
@@ -319,7 +323,7 @@ namespace FNPlugin
             // Mass at end of time interval dT
             var m1 = m0 - dm;
             // deltaV amount
-            var deltaV = isp * 9.81f * Math.Log(m0 / m1);
+            var deltaV = isp * GameConstants.STANDARD_GRAVITY * Math.Log(m0 / m1);
             // Return deltaV vector
             return deltaV * thrustUV;
         }

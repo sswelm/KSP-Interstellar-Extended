@@ -59,13 +59,13 @@ namespace FNPlugin
         public const double telescopeBaseScience = 0.1666667;
         public const double telescopeGLensScience = 5;
 
-        public const double antimatter_initiated_antimatter_cons_constant = 6.5075e-6;
-        public const double antimatter_initiated_uf4_cons_constant = 1.0 / 128700.0;
-        public const double antimatter_initiated_d_he3_cons_constant = 4.0 / 9.0;
-        public const double antimatter_initiated_upgraded_d_he3_cons_constant = antimatter_initiated_d_he3_cons_constant * 1.037037;
-        public const double antimatter_initiated_upgraded_uf4_cons_constant = antimatter_initiated_uf4_cons_constant / 3.0;
+        //public const double antimatter_initiated_antimatter_cons_constant = 6.5075e-6;
+        //public const double antimatter_initiated_uf4_cons_constant = 1.0 / 128700.0;
+        //public const double antimatter_initiated_d_he3_cons_constant = 4.0 / 9.0;
+        //public const double antimatter_initiated_upgraded_d_he3_cons_constant = antimatter_initiated_d_he3_cons_constant * 1.037037;
+        //public const double antimatter_initiated_upgraded_uf4_cons_constant = antimatter_initiated_uf4_cons_constant / 3.0;
 
-        public const double tritiumBreedRate = 428244.662271 / 0.222678566;
+        public const double tritiumBreedRate = 428244.662271 / 0.17639;  // 0.222678566;
         public const double helium_boiloff_fraction = 1.667794e-8;
         public const double ammoniaHydrogenFractionByMass = 0.17647;
 

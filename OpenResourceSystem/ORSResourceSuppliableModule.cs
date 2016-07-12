@@ -114,7 +114,7 @@ namespace OpenResourceSystem
             return manager.getCurrentResourceDemand();
         }
 
-        public float getStableResourceSupply(String resourcename)
+        public double getStableResourceSupply(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
                 return 0;
@@ -123,7 +123,7 @@ namespace OpenResourceSystem
             return manager.getStableResourceSupply();
         }
 
-        public float getCurrentHighPriorityResourceDemand(String resourcename)
+        public double getCurrentHighPriorityResourceDemand(String resourcename)
         {
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
                 return 0;

@@ -139,6 +139,10 @@ namespace FNPlugin
 
         public static Dictionary<string, string> OrsResourceMappings { get; private set; }
 
+        private static int _secondsInDay = GameConstants.KEBRIN_DAY_SECONDS;
+        public static int SecondsInDay { get { return _secondsInDay; } }
+
+
         private static double _maxAtmosphericAltitudeMult = 1;
         public static double MaxAtmosphericAltitudeMult { get { return _maxAtmosphericAltitudeMult; } }
 
@@ -587,6 +591,11 @@ namespace FNPlugin
                         int totalValues = pairs * 2;
                         for (int i = 0; i < totalValues; i += 2)
                             OrsResourceMappings.Add(splitValues[i], splitValues[i + 1]);
+                    }
+                    if (plugin_settings.HasValue("MinutesInDay"))
+                    {
+                        PluginHelper._secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
+                        Debug.Log("[KSP Interstellar] SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
                     }
                     if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
                     {

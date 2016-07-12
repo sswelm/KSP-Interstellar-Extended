@@ -166,9 +166,9 @@ namespace OpenResourceSystem
 			return managed_supply_per_second * TimeWarp.fixedDeltaTime;
 		}
 
-        public float getStableResourceSupply() 
+        public double getStableResourceSupply() 
         {
-            return (float) stored_stable_supply;
+            return  stored_stable_supply;
         }
 
         public float getResourceSupply() 
@@ -196,9 +196,9 @@ namespace OpenResourceSystem
 			return (float) current_resource_demand;
 		}
 
-        public float getCurrentHighPriorityResourceDemand() 
+        public double getCurrentHighPriorityResourceDemand() 
         {
-            return (float)stored_current_hp_demand;
+            return stored_current_hp_demand;
 		}
 
 		public float getCurrentUnfilledResourceDemand() 

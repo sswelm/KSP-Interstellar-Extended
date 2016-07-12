@@ -21,7 +21,7 @@ namespace FNPlugin
         public bool relay;
 
         [KSPField(isPersistant = true)]
-        protected float nuclear_power = 0;
+        protected double nuclear_power = 0;
         [KSPField(isPersistant = true)]
         protected float solar_power = 0;
 
@@ -39,11 +39,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumPower = 10000;
 
+        [KSPField(isPersistant = false)]
+        public float powerMult = 1;
+
         //Internal
         protected Animation anim;
         protected float displayed_solar_power = 0;
 
-        //protected List<ExternalPowerSourePartModule> externalPowerSources = new List<ExternalPowerSourePartModule>();
         protected List<FNGenerator> generators;
         protected List<MicrowavePowerReceiver> receivers;
         protected List<ModuleDeployableSolarPanel> panels;
@@ -164,16 +166,6 @@ namespace FNPlugin
             }
 
             this.part.force_activate();
-
-           // Debug.Log("[KSPI] - MicrowavePowerTransmitter - Looking for externalPowerSources");
-           // foreach (Part vesselpart in vessel.Parts)
-           // {
-           //     if (vesselpart.partName == "reactor-25")
-           //     {
-           //         externalPowerSources.Add(new ExternalPowerSourePartModule() { Name = "reactor-25", Power = 2 });
-           //         Debug.Log("[KSPI] - MicrowavePowerTransmitter - found " + vesselpart.partInfo.title);
-           //     }
-           //}
         }
 
         public override void OnUpdate()
@@ -218,24 +210,12 @@ namespace FNPlugin
             base.OnFixedUpdate();
             if (IsEnabled && !relay)
             {
-                foreach (FNGenerator generator in generators)
-                {
-                    if (!generator.isActive()) continue;
+                var availableReactorPower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
 
-                    IThermalSource thermal_source = generator.getThermalSource();
+                var requestedPower = Math.Min(maximumPower, availableReactorPower * transmitPower / 100);
+                var receivedPower = consumeFNResource(requestedPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                    if (thermal_source == null || thermal_source.IsVolatileSource) continue;
-
-                    float output = (float)generator.getMaxPowerOutput();
-                    if (thermal_source is InterstellarFusionReactor)
-                    {
-                        InterstellarFusionReactor fusion_reactor = thermal_source as InterstellarFusionReactor;
-                        output = output * 0.92f;
-                    }
-                    output = Math.Min(output * transmitPower / 100.0f, maximumPower);
-                    float gpower = consumeFNResource(output * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                    nuclear_power += gpower * 1000 / TimeWarp.fixedDeltaTime;
-                }
+                nuclear_power += receivedPower * 1000 / TimeWarp.fixedDeltaTime;
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
@@ -253,7 +233,7 @@ namespace FNPlugin
                         }
                     }
 
-                    double spower = part.RequestResource("ElectricCharge", output * TimeWarp.fixedDeltaTime);
+                    double spower = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, output * TimeWarp.fixedDeltaTime);
 
                     var distanceBetweenVesselAndSun  = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
                     var distanceBetweenSunAndKerbin = Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);

@@ -83,6 +83,8 @@ namespace FNPlugin
 
         public float NeutronsRatio { get { return _neutrons_ratio; } }
 
+        public float TritiumBreedModifier { get { return _neutrons_ratio; } }
+
         public double FuelEfficencyMultiplier { get { return _fuel_efficency_multiplier; } }
     }
 }

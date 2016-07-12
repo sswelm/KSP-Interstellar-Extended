@@ -190,7 +190,7 @@ namespace FNPlugin
 
 		public void setupThermalPower(){
 			activeExchangers = FNThermalHeatExchanger.getActiveExchangersForVessel(vessel);
-            _thermalpower = getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
+            _thermalpower = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
 		}
 
 		public override void OnStart(PartModule.StartState state) 

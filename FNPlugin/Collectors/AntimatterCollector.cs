@@ -57,7 +57,7 @@ namespace FNPlugin
             double flux = vessel.mainBody.GetBeltAntiparticles(vessel.altitude, lat);
             part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Antimatter, -flux * TimeWarp.fixedDeltaTime);
             last_active_time = (float)Planetarium.GetUniversalTime();
-            collection_rate_d = flux * GameConstants.EARTH_DAY_SECONDS;
+            collection_rate_d = flux * PluginHelper.SecondsInDay;
         }
     }
 }

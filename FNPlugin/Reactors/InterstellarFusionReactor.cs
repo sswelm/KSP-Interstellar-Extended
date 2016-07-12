@@ -28,7 +28,7 @@ namespace FNPlugin
         public string electricPowerMaintenance;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Modifier", guiFormat = "F6")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Modifier", guiFormat = "F6")]
         public float plasma_modifier = 1.0f;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Lithium Modifier", guiFormat = "F6")]
         public float lithium_modifier = 1.0f;
@@ -202,7 +202,7 @@ namespace FNPlugin
             }
             GUILayout.EndHorizontal();
 
-            PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_label);
+            PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_style, text_style);
         }
     }
 }

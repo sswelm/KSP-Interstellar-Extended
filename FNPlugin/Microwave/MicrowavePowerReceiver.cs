@@ -73,6 +73,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumPower = 10000;
 
+        [KSPField(isPersistant = false)]
+        public float powerMult = 1;
+
         //Internal 
         protected double waste_heat_production;
         protected Dictionary<Vessel, double> received_power = new Dictionary<Vessel, double>();
@@ -130,7 +133,7 @@ namespace FNPlugin
             get { return this.isThermalReceiver; }
         }
 
-        public float RawMaximumPower { get { return maximumPower; } }
+        public float RawMaximumPower { get { return maximumPower * powerMult; } }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
@@ -458,7 +461,7 @@ namespace FNPlugin
                     connectedsatsi = activeSatsIncr;
                     connectedrelaysi = usedRelays.Count;
 
-                    powerInputMegajoules = Math.Min(maximumPower, total_power / 1000.0 * microwaveDishEfficiency * atmosphericefficiency * receiptPower / 100.0f);
+                    powerInputMegajoules = Math.Min(maximumPower * powerMult, total_power / 1000.0 * microwaveDishEfficiency * atmosphericefficiency * receiptPower / 100.0f);
                     powerInput = powerInputMegajoules * 1000.0f;
                 }
 

@@ -741,7 +741,7 @@ namespace FNPlugin
 
             if (IsCharging)
             {
-                float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                float available_power = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 double powerDraw = Math.Max(minPowerRequirementForLightSpeed, Math.Min((maxExoticMatter - currentExoticMatter) / 0.001, available_power));
 
                 double power_returned = consumeFNResource(powerDraw * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
@@ -807,7 +807,7 @@ namespace FNPlugin
         {
             if (!IsEnabled || exotic_power_required <= 0) return;
 
-            float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+            float available_power = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
             float new_warp_factor = engine_throtle[selected_factor];
 
