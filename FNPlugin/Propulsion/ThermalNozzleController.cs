@@ -42,7 +42,7 @@ namespace FNPlugin
         public float sootHeatDivider = 150;
         [KSPField(isPersistant = false)]
         public float sootThrustDivider = 150;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "delayedThrottleFactor")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "delayedThrottleFactor")]
         public float delayedThrottleFactor = 0.5f;
 
         [KSPField(isPersistant = false)]
@@ -103,9 +103,8 @@ namespace FNPlugin
         public bool showPartTemperature = true;
         [KSPField(isPersistant = false, guiActive = true)]
         public bool limitedByMaxThermalNozzleIsp = true;
-        [KSPField(isPersistant = false, guiActive = true)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public float baseMaxIsp;
-
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
         public float radius;
@@ -133,7 +132,6 @@ namespace FNPlugin
         public float _propellantSootFactorMinThrotle;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Equilibrium Soot")]
         public float _propellantSootFactorEquilibrium;
-
         [KSPField(isPersistant = false, guiActive = false, guiName = "Temperature")]
         public string temperatureStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "ISP / Thrust Mult")]
@@ -142,7 +140,7 @@ namespace FNPlugin
         public float _thrustPropellantMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")] // modified by tweakscale with exponent 3
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float baseHeatProduction = 100;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Heat Production")]
         public double engineHeatProduction;
@@ -174,14 +172,13 @@ namespace FNPlugin
         protected double max_thrust_in_space;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust In Current")]
         protected double max_thrust_in_current_atmosphere;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Final Engine Thrust")]
         protected double final_max_engine_thrust;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "MaxISP")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
         protected float _maxISP;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
         protected float _minISP;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3")]
         protected double calculatedMaxThrust;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow")]
         protected double max_fuel_flow_rate = 0;
@@ -207,7 +204,6 @@ namespace FNPlugin
         protected int _propType = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Is Neutron Absorber")]
         protected bool _isNeutronAbsorber = false;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Power", guiUnits = " MJ")]
         protected double _currentMaximumPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Modifier")]
@@ -216,13 +212,12 @@ namespace FNPlugin
         protected double _availableThermalPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Delayed Throttle")]
         protected float delayedThrottle = 0;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
         double airflowHeatModifier;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         int pre_coolers_active;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         int intakes_open;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         int total_intakes;
@@ -1347,7 +1342,7 @@ namespace FNPlugin
 
         private void UpdateMaxIsp()
         {
-            baseMaxIsp = Mathf.Sqrt(AttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset);
+            baseMaxIsp = (float)Math.Sqrt(AttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset);
 
             if (baseMaxIsp > GameConstants.MaxThermalNozzleIsp && limitedByMaxThermalNozzleIsp)
                 baseMaxIsp = GameConstants.MaxThermalNozzleIsp;
@@ -1478,7 +1473,7 @@ namespace FNPlugin
             return propellantlist;
         }
 
-        private float GetHeatThrustModifier()
+        private double GetHeatThrustModifier()
         {
             float coretempthreshold = PluginHelper.ThrustCoreTempThreshold;
             float lowcoretempbase = PluginHelper.LowCoreTempBaseThrust;
@@ -1487,14 +1482,14 @@ namespace FNPlugin
                 ? 1.0f
                 : AttachedReactor.CoreTemperature < coretempthreshold
                     ? (AttachedReactor.CoreTemperature + lowcoretempbase) / (coretempthreshold + lowcoretempbase)
-                    : 1.0f + PluginHelper.HighCoreTempThrustMult * Mathf.Max(Mathf.Log10(AttachedReactor.CoreTemperature / coretempthreshold), 0);
+                    : 1.0f + PluginHelper.HighCoreTempThrustMult * Math.Max(Math.Log10(AttachedReactor.CoreTemperature / coretempthreshold), 0);
         }
 
         private float CurrentPowerThrustMultiplier
         {
             get
             {
-                return _propellantIsLFO
+                return _currentpropellant_is_jet
                     ? powerTrustMultiplierJet  //* (jetTechBonus / 21.472)
                     : powerTrustMultiplier;
             }

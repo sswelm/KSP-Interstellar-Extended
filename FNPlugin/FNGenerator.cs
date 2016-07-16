@@ -117,7 +117,7 @@ namespace FNPlugin
 
         // Internal
         protected float coldBathTemp = 500;
-        protected float hotBathTemp = 1;
+        protected double hotBathTemp = 1;
         protected float outputPower;
         protected float _totalEff;
         protected float sectracker = 0;
@@ -575,7 +575,7 @@ namespace FNPlugin
 
                 if (!chargedParticleMode) // thermal mode
                 {
-                    carnotEff =  Math.Max(Math.Min(1.0f - coldBathTemp / hotBathTemp, 1), 0);
+                    carnotEff = Math.Max(Math.Min(1.0f - (float)coldBathTemp / (float)hotBathTemp, 1), 0);
                     _totalEff = carnotEff * pCarnotEff * attachedThermalSource.ThermalEnergyEfficiency;
 
                     if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)

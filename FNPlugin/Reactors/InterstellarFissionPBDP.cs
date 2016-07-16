@@ -58,16 +58,16 @@ namespace FNPlugin
 
         private float ThermalRatioEfficiency
         {
-            get { return reactorType == 4 || heatThrottling ? Mathf.Pow((ZeroPowerTemp - CoreTemperature) / optimalTempDifference, thermalRatioEfficiencyModifier) : 1; }
+            get { return reactorType == 4 || heatThrottling ? (float)Math.Pow((ZeroPowerTemp - CoreTemperature) / optimalTempDifference, thermalRatioEfficiencyModifier) : 1; }
         }
 
-        private float OptimalTemp { get { return base.CoreTemperature; } }
+        private float OptimalTemp { get { return (float)base.CoreTemperature; } }
 
-        private float ZeroPowerTemp { get { return base.CoreTemperature * 1.25f ; } }
+        private float ZeroPowerTemp { get { return (float)base.CoreTemperature * 1.25f; } }
 
         public override bool IsNuclear { get { return true; } }
 
-        public override float CoreTemperature
+        public override double CoreTemperature
         {
             get
             {

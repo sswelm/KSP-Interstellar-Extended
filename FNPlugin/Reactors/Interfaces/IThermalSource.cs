@@ -62,9 +62,9 @@ namespace FNPlugin
 
         double MaximumChargedPower { get; }
 
-        float CoreTemperature { get; }
+        double CoreTemperature { get; }
 
-        float HotBathTemperature { get; }
+        double HotBathTemperature { get; }
 
         bool IsSelfContained { get; }
 

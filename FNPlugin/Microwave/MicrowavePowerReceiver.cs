@@ -213,9 +213,9 @@ namespace FNPlugin
         public bool IsSelfContained { get { return false; } }
 
         //public float CoreTemperature { get { return powerHeatBase + (float)Math.Pow(powerHeatMultiplier * powerInputMegajoules, powerHeatExponent);  } }
-        public float CoreTemperature { get { return powerHeatBase; } }
+        public double CoreTemperature { get { return powerHeatBase; } }
 
-        public float HotBathTemperature  {  get { return CoreTemperature * 1.5f; } }
+        public double HotBathTemperature  {  get { return CoreTemperature * 1.5f; } }
 
         public double StableMaximumReactorPower { get { return receiverIsEnabled ? ThermalPower : 0; } }
 

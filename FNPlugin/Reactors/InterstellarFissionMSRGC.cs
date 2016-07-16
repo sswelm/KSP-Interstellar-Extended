@@ -157,7 +157,7 @@ namespace FNPlugin
             }
         }
 
-        public override float CoreTemperature
+        public override double CoreTemperature
         {
             get
             {

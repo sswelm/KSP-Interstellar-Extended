@@ -7,7 +7,7 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
-	class DeadalusEngineController : FNResourceSuppliableModule, IUpgradeableModule 
+	class DaedalusEngineController : FNResourceSuppliableModule, IUpgradeableModule 
     {
         // Persistant
 		[KSPField(isPersistant = true)]
@@ -59,6 +59,8 @@ namespace FNPlugin
         public float fusionWasteHeatUpgraded = 10000;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
+        [KSPField(isPersistant = false)]
+        public float powerRequirementMultiplier = 1;
         [KSPField(isPersistant = false)]
         public float maxTemp = 3200;
 
@@ -116,6 +118,14 @@ namespace FNPlugin
         public float Efficiency { get { return isupgraded ? efficiencyUpgraded : efficiency; } }
         public float MaximumThrust { get { return isupgraded ? maxThrustUpgraded : maxThrust; } }
         public float FusionWasteHeat { get { return isupgraded ? fusionWasteHeatUpgraded : fusionWasteHeat; } }
+
+        public float PowerRequirement
+        {
+            get
+            {
+                return powerRequirement * powerRequirementMultiplier;
+            }
+        }
 
         public void upgradePartModule()
         {
@@ -290,16 +300,22 @@ namespace FNPlugin
                 helium3UsageDay = 0;
                 fusionPercentage = 0;
                 effectiveThrust = 0;
+
+                FloatCurve newAtmosphereCurve = new FloatCurve();
+                newAtmosphereCurve.Add(0, (float)engineIsp);
+                curEngineT.atmosphereCurve = newAtmosphereCurve;
+
                 var maxFuelFlow = MaximumThrust / engineIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
+                curEngineT.maxThrust = MaximumThrust;
             }
         }
 
         private float ProcessPowerAndWaste()
         {
             // Calculate Fusion Ratio
-            var recievedPower = consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
-            var plasma_ratio = recievedPower / (powerRequirement * TimeWarp.fixedDeltaTime);
+            var recievedPower = consumeFNResource(PowerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            var plasma_ratio = recievedPower / (PowerRequirement * TimeWarp.fixedDeltaTime);
             var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.01 ? plasma_ratio : 0;
 
             // Lasers produce Wasteheat

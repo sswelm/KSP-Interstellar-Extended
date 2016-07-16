@@ -14,6 +14,9 @@ namespace FNPlugin
         public bool allowJumpStart = true;
 
         [KSPField(isPersistant = false)]
+        public bool powerIsAffectedByLithium = true;
+
+        [KSPField(isPersistant = false)]
         public float fusionEnergyGainFactorMk1 = 10;
         [KSPField(isPersistant = false)]
         public float fusionEnergyGainFactorMk2 = 20;
@@ -31,7 +34,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Modifier", guiFormat = "F6")]
         public float plasma_modifier = 1.0f;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Lithium Modifier", guiFormat = "F6")]
-        public float lithium_modifier = 1.0f;
+        public double lithium_modifier = 1.0f;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
 
@@ -53,11 +56,13 @@ namespace FNPlugin
             }
         }
 
-        public virtual double LithiumModifier
+        public double LithiumModifier
         {
             get 
             {
-                lithium_modifier = lithiumPartResource != null && lithiumPartResource.maxAmount > 0 ? (float)Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount) : 1;
+                lithium_modifier = powerIsAffectedByLithium && lithiumPartResource != null && lithiumPartResource.maxAmount > 0 
+                    ? Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount) 
+                    : 1;
                 return lithium_modifier;
             }
         }

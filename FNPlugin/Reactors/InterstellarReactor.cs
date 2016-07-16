@@ -41,6 +41,8 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public double neutronEmbrittlementDamage;
         [KSPField(isPersistant = true)]
+        public double maxEmbrittlementFraction = 0.5;
+        [KSPField(isPersistant = true)]
         public float windowPositionX = 20;
         [KSPField(isPersistant = true)]
         public float windowPositionY = 20;
@@ -48,6 +50,8 @@ namespace FNPlugin
         public int currentGenerationType;
         [KSPField(isPersistant = true)]
         public float storedPowerMultiplier = 1;
+        [KSPField(isPersistant = true)]
+        public float stored_fuel_ratio = 1;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk2 = null;
@@ -354,6 +358,8 @@ namespace FNPlugin
         protected double currentIsThermalEnergyGenratorActive;
         protected double currentIsChargedEnergyGenratorActive;
 
+        private bool isFixedUpdatedCalled;
+
         protected ElectricGeneratorType _firstGeneratorType;
 
         public List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
@@ -599,7 +605,7 @@ namespace FNPlugin
             } 
         }
 
-        public virtual float CoreTemperature 
+        public virtual double CoreTemperature 
         {
             get
             {
@@ -615,13 +621,15 @@ namespace FNPlugin
                 else
                     baseCoreTemperature = coreTemperatureMk1;
 
-                var modifiedBaseCoreTemperature = baseCoreTemperature * (float)Math.Pow(ReactorEmbrittlemenConditionRatio, 2);
+                var modifiedBaseCoreTemperature = baseCoreTemperature * Math.Max(maxEmbrittlementFraction,  (float)Math.Pow(ReactorEmbrittlemenConditionRatio, 2));
+
+                //maxEmbrittlementFraction
 
                 return modifiedBaseCoreTemperature;
             }
         }
 
-        public float HotBathTemperature 
+        public double HotBathTemperature 
         { 
             get
             {
@@ -634,7 +642,7 @@ namespace FNPlugin
 
         public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
-        public virtual double ReactorEmbrittlemenConditionRatio { get { return (float)Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), 0.01), 1);  } }
+        public virtual double ReactorEmbrittlemenConditionRatio { get { return (float)Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1); } }
 
         public virtual double NormalisedMaximumPower
         {
@@ -1102,6 +1110,12 @@ namespace FNPlugin
                 return;
             }
 
+            if (!isFixedUpdatedCalled)
+            {
+                isFixedUpdatedCalled = true;
+                UpdateCapacities(stored_fuel_ratio);
+            }
+
             base.OnFixedUpdate();
 
             // add alternator power
@@ -1138,11 +1152,11 @@ namespace FNPlugin
 
                 geeForceModifier = hasBuoyancyEffects ? Math.Min(Math.Max(1 - ((part.vessel.geeForce - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1) : 1;
 
-                float fuel_ratio = (float)Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => GetFuelRatio(fuel, FuelEfficiency, max_power_to_supply * geeForceModifier)), 1);
+                stored_fuel_ratio = (float)Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => GetFuelRatio(fuel, FuelEfficiency, max_power_to_supply * geeForceModifier)), 1);
 
-                UpdateThermalCapacity(fuel_ratio);
+                UpdateCapacities(stored_fuel_ratio);
 
-                min_throttle = fuel_ratio > 0 ? MinimumThrottle / fuel_ratio : 1;
+                min_throttle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
                 effective_minimum_throtle = connectedEngines.Any()
                     ? Math.Max(connectedEngines.Max(e => e.CurrentThrottle), min_throttle)
                     : min_throttle;
@@ -1158,7 +1172,7 @@ namespace FNPlugin
 
                 // Charged Power
                 fixed_maximum_charged_power = MaximumChargedPower * TimeWarp.fixedDeltaTime;
-                max_charged_to_supply_fixed = Math.Max(fixed_maximum_charged_power, 0) * fuel_ratio * geeForceModifier * engineThrottleModifier;
+                max_charged_to_supply_fixed = Math.Max(fixed_maximum_charged_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier;
                 max_charged_to_supply_nominal = max_charged_to_supply_fixed / TimeWarp.fixedDeltaTime;
 
                 raw_charged_power_received = supplyManagedFNResourceWithMinimumRatio(max_charged_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
@@ -1166,7 +1180,7 @@ namespace FNPlugin
 
                 // Thermal Power
                 fixed_maximum_thermal_power = MaximumThermalPower * TimeWarp.fixedDeltaTime;
-                max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * fuel_ratio * geeForceModifier * engineThrottleModifier;
+                max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier;
                 max_thermal_to_supply_nominal = max_thermal_to_supply_fixed / TimeWarp.fixedDeltaTime;
                 raw_thermal_power_received = supplyManagedFNResourceWithMinimumRatio(max_thermal_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
@@ -1177,8 +1191,8 @@ namespace FNPlugin
                 var chargedpower_shortagage_ratio = thermal_power_ratio > charged_power_ratio ? thermal_power_ratio - charged_power_ratio : 0;
 
                 // fix any inbalance in power draw
-                balanced_thermal_power_received = raw_thermal_power_received + (thermal_shortage_ratio * fixed_maximum_thermal_power * fuel_ratio * geeForceModifier * engineThrottleModifier);
-                balanced_charged_power_received = raw_charged_power_received + (chargedpower_shortagage_ratio * fixed_maximum_charged_power * fuel_ratio * geeForceModifier * engineThrottleModifier);
+                balanced_thermal_power_received = raw_thermal_power_received + (thermal_shortage_ratio * fixed_maximum_thermal_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
+                balanced_charged_power_received = raw_charged_power_received + (chargedpower_shortagage_ratio * fixed_maximum_charged_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
 
                 // update GUI
                 ongoing_neutron_power_generated = balanced_thermal_power_received / TimeWarp.fixedDeltaTime;
@@ -1233,7 +1247,9 @@ namespace FNPlugin
                 decay_ongoing = true;
             }
             else
+            {
                 powerPcnt = 0;
+            }
 
             if (!IsEnabled)
             {
@@ -1252,7 +1268,8 @@ namespace FNPlugin
 
         }
 
-        private void UpdateThermalCapacity(float fuel_ratio)
+
+        private void UpdateCapacities(float fuel_ratio)
         {
             // calculate thermalpower capacity
             if (TimeWarp.fixedDeltaTime != previousTimeWarp)
@@ -1377,7 +1394,7 @@ namespace FNPlugin
 
         public virtual float GetCoreTempAtRadiatorTemp(float rad_temp)
         {
-            return CoreTemperature;
+            return (float)CoreTemperature;
         }
 
         public virtual double GetThermalPowerAtTemp(float temp)
@@ -1637,7 +1654,7 @@ namespace FNPlugin
                 if (ChargedPowerRatio < 1.0)
                     PrintToGUILayout("Thermal Power", PluginHelper.getFormattedPowerString(ongoing_neutron_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower, "0.0", "0.000"), bold_style, text_style);
                 if (ChargedPowerRatio > 0)
-                    PrintToGUILayout("Charged Power", PluginHelper.getFormattedPowerString(ongoing_charged_power_generated) + " test / " + PluginHelper.getFormattedPowerString(MaximumChargedPower, "0.0", "0.000"), bold_style, text_style);
+                    PrintToGUILayout("Charged Power", PluginHelper.getFormattedPowerString(ongoing_charged_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower, "0.0", "0.000"), bold_style, text_style);
 
                 if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null)
                 {

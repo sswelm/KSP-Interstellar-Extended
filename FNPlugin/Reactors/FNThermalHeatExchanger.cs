@@ -138,9 +138,9 @@ namespace FNPlugin
 
         public bool IsSelfContained { get { return false; } }
 
-        public float CoreTemperature { get { return 1500; } }
+        public double CoreTemperature { get { return 1500; } }
 
-        public float HotBathTemperature { get { return CoreTemperature * 1.5f; } }
+        public double HotBathTemperature { get { return CoreTemperature * 1.5f; } }
 
         public double StableMaximumReactorPower { get { return MaximumThermalPower; } }
 
