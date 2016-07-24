@@ -59,6 +59,8 @@ namespace FNPlugin
         public const double telescopeBaseScience = 0.1666667;
         public const double telescopeGLensScience = 5;
 
+        public const double speedOfLight = 299792458;
+
         //public const double antimatter_initiated_antimatter_cons_constant = 6.5075e-6;
         //public const double antimatter_initiated_uf4_cons_constant = 1.0 / 128700.0;
         //public const double antimatter_initiated_d_he3_cons_constant = 4.0 / 9.0;
@@ -80,7 +82,7 @@ namespace FNPlugin
         public const float STANDARD_GRAVITY = 9.80665f;
 
         public const double dilution_factor = 15000.0;
-        public const double LfoFuelThrustModifier = 2.2222;
+        //public const double LfoFuelThrustModifier = 2.2222;
         public const float IspCoreTemperatureMultiplier = 22.371670613f;
         public const float BaseThrustPowerMultiplier = 2000;
         public const float HighCoreTempThrustMultiplier = 1600;

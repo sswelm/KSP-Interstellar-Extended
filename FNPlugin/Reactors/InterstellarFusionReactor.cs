@@ -10,6 +10,9 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
+        [KSPField(isPersistant = true)]
+        public string fuel_mode_name = string.Empty;
+
         [KSPField(isPersistant = true, guiActive = false)]
         public bool allowJumpStart = true;
 
@@ -79,7 +82,7 @@ namespace FNPlugin
 
         public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
-        public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
+        public override bool IsFuelNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
         public float PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
 
@@ -144,6 +147,7 @@ namespace FNPlugin
                 fuel_mode = 0;
 
             current_fuel_mode = fuel_modes[fuel_mode];
+            fuel_mode_name = current_fuel_mode.ModeGUIName;
 
             UpdateFuelMode();
 
@@ -182,6 +186,7 @@ namespace FNPlugin
                 fuel_mode = fuel_modes.Count - 1;
 
             current_fuel_mode = fuel_modes[fuel_mode];
+            fuel_mode_name = current_fuel_mode.ModeGUIName;
 
             UpdateFuelMode();
 
@@ -208,6 +213,19 @@ namespace FNPlugin
             GUILayout.EndHorizontal();
 
             PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_style, text_style);
+        }
+
+        protected override void setDefaultFuelMode()
+        {
+            if (String.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
+            {
+                current_fuel_mode = fuel_modes.First(m => m.ModeGUIName == fuel_mode_name);
+                fuel_mode = fuel_modes.IndexOf(current_fuel_mode);
+                return;
+            }
+
+            current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
+            fuel_mode_name = current_fuel_mode.ModeGUIName;
         }
     }
 }

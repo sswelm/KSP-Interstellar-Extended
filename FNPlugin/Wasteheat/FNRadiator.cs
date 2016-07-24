@@ -65,8 +65,10 @@ namespace FNPlugin
         public string surfaceAreaUpgradeTechReq = null;
         [KSPField(isPersistant = false, guiActive = false)]
         public float surfaceAreaUpgradeMult = 1.6f;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public float effectiveAreaMultiplier = 1;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Color Ratio")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Color Ratio")]
         public float colorRatio;
 
         // non persistant
@@ -89,8 +91,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float emissiveColorPower = 6;
         [KSPField(isPersistant = false)]
-		public string upgradedName;
-        [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
         public string colorHeat = "_EmissiveColor";
@@ -104,15 +104,14 @@ namespace FNPlugin
 		public string radiatorTempStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Part Temp")]
         public string partTempStr;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double radiatorArea = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiativeArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float areaMultiplier = 4;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float radiativeAreaFraction = 1;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiatorArea;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
@@ -130,16 +129,10 @@ namespace FNPlugin
 
         //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Called")]
         //public int callCounter;
-
-
         //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Core Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         //public bool isCoreRadiator = false;
         //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Global Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         //public bool globalCooling = true;
-
-        const float rad_const_h = 1000;
-        const String kspShader = "KSP/Emissive/Bumped Specular";
-
         //[KSPField(isPersistant = false, guiActive = true, guiName = "Overcooling")]
         //public float overcooling = 0.25f;
         //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Part cooling", guiFormat = "F6")]
@@ -148,12 +141,10 @@ namespace FNPlugin
         //public double currentHeating;
         //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Total cooling", guiFormat = "F6")]
         //public double totalCooling = 0;
-
         //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Skin Exposed Area", guiFormat = "F6")]
         //public double skinExposedArea;
         //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Radiative Area", guiFormat = "F6")]
         //public double radiativeArea;
-
         //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Cooling Target")]
         //public string hottestPartName;
         //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Surface temperature", guiFormat = "F6")]
@@ -166,6 +157,9 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Energy Transfer", guiFormat = "F1")]
         private double _maxEnergyTransfer;
+
+        const float rad_const_h = 1000;
+        const String kspShader = "KSP/Emissive/Bumped Specular";
 
 		protected Animation deployAnim;
 		protected float radiatedThermalPower;
@@ -217,9 +211,11 @@ namespace FNPlugin
                     //? part.radiativeArea * radiativeAreaFraction * areaMultiplier 
                     //: radiatorArea * areaMultiplier;
 
-                effectiveRadiativeArea = radiatorArea * areaMultiplier;
+                effectiveRadiativeArea = radiatorArea * areaMultiplier * effectiveAreaMultiplier;
 
-                return hasSurfaceAreaUpgradeTechReq ? effectiveRadiativeArea * surfaceAreaUpgradeMult : effectiveRadiativeArea; 
+                return hasSurfaceAreaUpgradeTechReq 
+                    ? effectiveRadiativeArea * surfaceAreaUpgradeMult 
+                    : effectiveRadiativeArea; 
             }
         }
 
@@ -414,7 +410,6 @@ namespace FNPlugin
 			if (isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) { return; }
 
 			isupgraded = true;
-			//radiatorType = upgradedName;
             radiatorTempStr = RadiatorTemperature + "K";
 
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);

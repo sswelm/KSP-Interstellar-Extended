@@ -11,7 +11,9 @@ namespace FNPlugin
     {
         void Start()
         {
-            //GameEvents.onVesselChange.Add(OnVesselChange);
+            GameEvents.onVesselGoOffRails.Add(OnVesselGoOffRails);
+            GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
+            GameEvents.onSetSpeedMode.Add(OnSetSpeedModeChange);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
             GameEvents.onVesselLoaded.Add(OnVesselLoaded);
             GameEvents.OnTechnologyResearched.Add(OnTechnologyResearched);
@@ -21,7 +23,9 @@ namespace FNPlugin
         }
         void OnDestroy()
         {
-            //GameEvents.onVesselChange.Remove(OnVesselChange);
+            GameEvents.onVesselGoOffRails.Remove(OnVesselGoOffRails);
+            GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
+            GameEvents.onSetSpeedMode.Remove(OnSetSpeedModeChange);
             GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
             GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
             GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
@@ -44,6 +48,21 @@ namespace FNPlugin
         void OnTechnologyResearched(GameEvents.HostTargetAction<RDTech, RDTech.OperationResult> change)
         {
             Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnTechnologyResearched");
+        }
+
+        void OnSetSpeedModeChange(FlightGlobals.SpeedDisplayModes evt)
+        {
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnSetSpeedModeChange");
+        }
+
+        void OnVesselGoOnRails(Vessel vessel)
+        {
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOnRails");
+        }
+
+        void OnVesselGoOffRails(Vessel vessel)
+        {
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOffRails");
         }
 
         void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
@@ -143,6 +162,9 @@ namespace FNPlugin
         public static int SecondsInDay { get { return _secondsInDay; } }
 
 
+        private static double _speedOfLightMult = GameConstants.speedOfLight;
+        public static double SpeedOfLightMult { get { return _speedOfLightMult; } }
+ 
         private static double _maxAtmosphericAltitudeMult = 1;
         public static double MaxAtmosphericAltitudeMult { get { return _maxAtmosphericAltitudeMult; } }
 
@@ -176,8 +198,8 @@ namespace FNPlugin
         private static float _maxPowerDrawForExoticMatterMult = 1;
         public static float MaxPowerDrawForExoticMatterMult { get { return _maxPowerDrawForExoticMatterMult; } }
 
-        private static double _lfoFuelThrustModifier = GameConstants.LfoFuelThrustModifier;
-        public static double LfoFuelThrustModifier { get { return _lfoFuelThrustModifier; } }
+        //private static double _lfoFuelThrustModifier = GameConstants.LfoFuelThrustModifier;
+        //public static double LfoFuelThrustModifier { get { return _lfoFuelThrustModifier; } }
 
         private static double _electricEngineIspMult = 1;
         public static double ElectricEngineIspMult { get { return _electricEngineIspMult; } }
@@ -592,10 +614,15 @@ namespace FNPlugin
                         for (int i = 0; i < totalValues; i += 2)
                             OrsResourceMappings.Add(splitValues[i], splitValues[i + 1]);
                     }
-                    if (plugin_settings.HasValue("MinutesInDay"))
+                    if (plugin_settings.HasValue("SecondsInDay"))
                     {
-                        PluginHelper._secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
+                        _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
                         Debug.Log("[KSP Interstellar] SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
+                    }
+                    if (plugin_settings.HasValue("SpeedOfLightMult"))
+                    {
+                        _speedOfLightMult = double.Parse(plugin_settings.GetValue("SpeedOfLightMult"));
+                        Debug.Log("[KSP Interstellar] SpeedOfLight set to: " + PluginHelper.SpeedOfLightMult.ToString());
                     }
                     if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
                     {
@@ -665,11 +692,11 @@ namespace FNPlugin
                         PluginHelper._globalElectricEnginePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalElectricEnginePowerMaxTrustMult"));
                         Debug.Log("[KSP Interstellar] Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
                     }
-                    if (plugin_settings.HasValue("LfoFuelTrustModifier"))
-                    {
-                        PluginHelper._lfoFuelThrustModifier = double.Parse(plugin_settings.GetValue("LfoFuelTrustModifier"));
-                        Debug.Log("[KSP Interstellar] Maximum Lfo Fuel Thrust Multiplier set to: " + PluginHelper.LfoFuelThrustModifier.ToString("0.0"));
-                    }
+                    //if (plugin_settings.HasValue("LfoFuelTrustModifier"))
+                    //{
+                    //    PluginHelper._lfoFuelThrustModifier = double.Parse(plugin_settings.GetValue("LfoFuelTrustModifier"));
+                    //    Debug.Log("[KSP Interstellar] Maximum Lfo Fuel Thrust Multiplier set to: " + PluginHelper.LfoFuelThrustModifier.ToString("0.0"));
+                    //}
                     if (plugin_settings.HasValue("MaxThermalNozzleIsp"))
                     {
                         PluginHelper._maxThermalNozzleIsp = float.Parse(plugin_settings.GetValue("MaxThermalNozzleIsp"));
@@ -917,6 +944,31 @@ namespace FNPlugin
                 if (lateralOffset.magnitude < referenceBody.Radius - min_height) return false;
             }
             return true;
+        }
+
+        public static AnimationState[] SetUpAnimation(string animationName, Part part)
+        {
+            var states = new List<AnimationState>();
+            foreach (var animation in part.FindModelAnimators(animationName))
+            {
+                var animationState = animation[animationName];
+                animationState.speed = 0;
+                animationState.enabled = true;
+                animationState.wrapMode = WrapMode.ClampForever;
+                animation.Blend(animationName);
+                states.Add(animationState);
+            }
+            return states.ToArray();
+        }
+
+        public static void SetAnimationRatio(float ratio, AnimationState[] animationState)
+        {
+            if (animationState == null) return;
+
+            foreach (AnimationState anim in animationState)
+            {
+                anim.normalizedTime = ratio;
+            }
         }
 
     }

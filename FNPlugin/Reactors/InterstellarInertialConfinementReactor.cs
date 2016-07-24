@@ -273,10 +273,5 @@ namespace FNPlugin
             return 1;
         }
 
-        protected override void setDefaultFuelMode()
-        {
-            current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
-        }
-
     }
 }

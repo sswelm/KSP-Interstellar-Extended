@@ -20,7 +20,6 @@ namespace InterstellarFuelSwitch
         public double latendHeatVaporation;
         public double specificHeatCapacity;
 
-
         public IFSresource(string name)
         {
             ID = name.GetHashCode();
@@ -97,6 +96,8 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActiveEditor = false)]
         public string tankResourceMassDivider = "";
 
+        [KSPField]
+        public bool orderBySwitchName = false;
         [KSPField]
         public float initialPrefabAmount = 0;
         [KSPField]
@@ -1252,7 +1253,10 @@ namespace InterstellarFuelSwitch
                         modularTank.SwitchName = modularTank.GuiName;
                 }
 
-                var maxNrTanks = _modularTankList.Max(t => t.Resources.Count);
+                //var maxNrTanks = _modularTankList.Max(t => t.Resources.Count);
+
+                if (orderBySwitchName)
+                    _modularTankList = _modularTankList.OrderBy(m => m.SwitchName).ToList();
             }
             catch (Exception e)
             {

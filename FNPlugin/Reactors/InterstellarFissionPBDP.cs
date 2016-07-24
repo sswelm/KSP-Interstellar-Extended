@@ -50,7 +50,7 @@ namespace FNPlugin
 
         public double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
-        public override bool IsNeutronRich { get { return current_fuel_mode != null && !current_fuel_mode.Aneutronic; } }
+        public override bool IsFuelNeutronRich { get { return current_fuel_mode != null && !current_fuel_mode.Aneutronic; } }
 
         public override double MaximumThermalPower { get { return base.MaximumThermalPower * (float)ThermalRatioEfficiency; } }
 

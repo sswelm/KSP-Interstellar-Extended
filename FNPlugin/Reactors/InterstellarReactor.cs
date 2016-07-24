@@ -119,6 +119,8 @@ namespace FNPlugin
 
         // Settings
         [KSPField(isPersistant = false)]
+        public int reactorModeTechBonus = 0;
+        [KSPField(isPersistant = false)]
         public bool canBeCombinedWithLab = false;
         [KSPField(isPersistant = false)]
         public bool canBreedTritium = false;
@@ -215,6 +217,8 @@ namespace FNPlugin
         public bool showSpecialisedUI = true;
         [KSPField(isPersistant = false)]
         public bool fastNeutrons = true;
+        [KSPField(isPersistant = false)]
+        public bool canUseNeutronicFuels = true;
 
         // Visible imput parameters 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Bimodel upgrade tech")]
@@ -306,6 +310,7 @@ namespace FNPlugin
         protected double helium_produced_per_second;
         protected long update_count;
         protected long last_draw_update;
+        protected double staticBreedRate;
 
         [KSPField(isPersistant = false, guiActive = false)]
         protected double raw_charged_power_received = 0;
@@ -359,6 +364,8 @@ namespace FNPlugin
         protected double currentIsChargedEnergyGenratorActive;
 
         private bool isFixedUpdatedCalled;
+
+        protected AnimationState[] animationState;
 
         protected ElectricGeneratorType _firstGeneratorType;
 
@@ -666,7 +673,7 @@ namespace FNPlugin
 
         public virtual bool IsVolatileSource { get { return false; } }
 
-        public virtual bool IsNeutronRich { get { return false; } }
+        public virtual bool IsFuelNeutronRich { get { return false; } }
 
         public virtual double MaximumPower { get { return MaximumThermalPower + MaximumChargedPower; } }
 
@@ -693,6 +700,14 @@ namespace FNPlugin
                     rawPowerOutput = powerOutputMk1;
 
                 return rawPowerOutput * powerOutputMultiplier;
+            }
+        }
+
+        public int ReactorTechLevel
+        {
+            get
+            {
+                return (int)CurrentGenerationType + reactorModeTechBonus;
             }
         }
 
@@ -736,7 +751,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Enable Tritium Breeding", active = false)]
         public void StartBreedTritiumEvent()
         {
-            if (!IsNeutronRich) return;
+            if (!IsFuelNeutronRich) return;
 
             breedtritium = true;
         }
@@ -744,7 +759,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Disable Tritium Breeding", active = true)]
         public void StopBreedTritiumEvent()
         {
-            if (!IsNeutronRich) return;
+            if (!IsFuelNeutronRich) return;
 
             breedtritium = false;
         }
@@ -840,6 +855,7 @@ namespace FNPlugin
             _firstGeneratorType = ElectricGeneratorType.unknown;
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirmentOrEmpty(bimodelUpgradeTechReq);
+            staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
 
             if (!part.Resources.Contains(FNResourceManager.FNRESOURCE_THERMALPOWER))
             {
@@ -913,6 +929,9 @@ namespace FNPlugin
             if (IsEnabled && last_active_time > 0)
                 DoPersistentResourceUpdate();
 
+            if (!String.IsNullOrEmpty(animName))
+                animationState = PluginHelper.SetUpAnimation(animName, this.part);
+
             // only force activate if not with a engine model
             var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine == null)
@@ -925,12 +944,6 @@ namespace FNPlugin
             }
 
             Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
-
-            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
-            //} catch (Exception e)
-            //{
-            //    UnityEngine.Debug.LogError("[KSPI] - Error OnFixedUpdate " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
-            //}
         }
 
         private void UpdateReactorCharacteristics()
@@ -1066,8 +1079,8 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            Events["StartBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && !breedtritium && IsNeutronRich && IsEnabled;
-            Events["StopBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && breedtritium && IsNeutronRich && IsEnabled;
+            Events["StartBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && !breedtritium && IsFuelNeutronRich && IsEnabled;
+            Events["StopBreedTritiumEvent"].active = canDisableTritiumBreeding && canBreedTritium && breedtritium && IsFuelNeutronRich && IsEnabled;
             UpdateFuelMode();
 
             coretempStr = CoreTemperature.ToString("0") + " K";
@@ -1205,6 +1218,9 @@ namespace FNPlugin
 
                 total_power_per_frame = total_power_received;
                 ongoing_consumption_rate = total_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
+
+                PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, 4), animationState);
+
                 powerPcnt = 100 * ongoing_consumption_rate;
 
                 // consume fuel
@@ -1235,6 +1251,7 @@ namespace FNPlugin
             }
             else if (IsEnabled && IsNuclear && MaximumPower > 0 && (Planetarium.GetUniversalTime() - last_active_time <= 3 * PluginHelper.SecondsInDay))
             {
+                PluginHelper.SetAnimationRatio(0, animationState);
                 double power_fraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / PluginHelper.SecondsInDay / 24.0 * 9.0);
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
                 raw_thermal_power_received = supplyManagedFNResourceWithMinimumRatio(power_to_supply, 1, FNResourceManager.FNRESOURCE_THERMALPOWER);
@@ -1248,6 +1265,7 @@ namespace FNPlugin
             }
             else
             {
+                PluginHelper.SetAnimationRatio(0, animationState);
                 powerPcnt = 0;
             }
 
@@ -1365,7 +1383,7 @@ namespace FNPlugin
             }
 
             // calculate current maximum litlium consumption
-            var breed_rate = current_fuel_mode.TritiumBreedModifier * neutron_power_received_each_second * fixedDeltaTime / breedDivider / GameConstants.tritiumBreedRate;
+            var breed_rate = current_fuel_mode.TritiumBreedModifier * staticBreedRate * neutron_power_received_each_second * fixedDeltaTime;
             var lith_rate = breed_rate / lithium_def.density;
 
             // get spare room tritium
@@ -1489,6 +1507,8 @@ namespace FNPlugin
                 .Where(fm =>
                     (fm.SupportedReactorTypes & ReactorType) == ReactorType
                     && PluginHelper.HasTechRequirmentOrEmpty(fm.TechRequirement)
+                    && ReactorTechLevel >= fm.TechLevel
+                    && (fm.Aneutronic || canUseNeutronicFuels)
                     ).ToList();
         }
 
@@ -1658,7 +1678,7 @@ namespace FNPlugin
 
                 if (current_fuel_mode != null & current_fuel_mode.ReactorFuels != null)
                 {
-                    if (IsNeutronRich && breedtritium)
+                    if (IsFuelNeutronRich && breedtritium && canBreedTritium)
                     {
                         var totalLithiumAmount = partResourcesThatContainLithium.Sum(m => m.amount);
                         var totalLithiumMaxAmount = partResourcesThatContainLithium.Sum(m => m.maxAmount);
@@ -1678,12 +1698,12 @@ namespace FNPlugin
                         var lithium_lifetime_total_days = lithium_consumption_day > 0 ? totalLithiumAmount / lithium_consumption_day : 0;
 
                         int lithium_lifetime_years = (int)Math.Floor(lithium_lifetime_total_days / GameConstants.EARTH_YEAR_IN_DAYS);
-                        double lithium_lifetime_years_remainder_in_days = lithium_lifetime_total_days % GameConstants.EARTH_YEAR_IN_DAYS;
+                        var lithium_lifetime_years_remainder_in_days = lithium_lifetime_total_days % GameConstants.EARTH_YEAR_IN_DAYS;
 
                         int lithium_lifetime_remaining_days = (int)Math.Floor(lithium_lifetime_years_remainder_in_days);
-                        double lithium_lifetime_remaining_days_remainer = lithium_lifetime_years_remainder_in_days % 1;
+                        var lithium_lifetime_remaining_days_remainer = lithium_lifetime_years_remainder_in_days % 1;
 
-                        double lithium_lifetime_remaining_hours = lithium_lifetime_remaining_days_remainer * (PluginHelper.SecondsInDay / GameConstants.HOUR_SECONDS);
+                        var lithium_lifetime_remaining_hours = lithium_lifetime_remaining_days_remainer * PluginHelper.SecondsInDay / GameConstants.HOUR_SECONDS;
 
                         PrintToGUILayout("Lithium Remaining", lithium_lifetime_years + " years " + lithium_lifetime_remaining_days + " days " + lithium_lifetime_remaining_hours.ToString("0.0000") + " hours", bold_style, text_style);
 
@@ -1691,7 +1711,7 @@ namespace FNPlugin
                         PrintToGUILayout("Helium Storage", MassHeliumAmount.ToString("0.00000") + " kg / " + MassHeliumMaxAmount.ToString("0.00000") + " kg", bold_style, text_style);
                     }
                     else
-                        PrintToGUILayout("Is Neutron rich", IsNeutronRich.ToString(), bold_style, text_style);
+                        PrintToGUILayout("Is Neutron rich", IsFuelNeutronRich.ToString(), bold_style, text_style);
 
                     GUILayout.BeginHorizontal();
                     GUILayout.Label("Fuel", bold_style, GUILayout.Width(150));

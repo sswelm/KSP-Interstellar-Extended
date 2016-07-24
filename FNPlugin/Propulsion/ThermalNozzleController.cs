@@ -409,9 +409,9 @@ namespace FNPlugin
             part.skinInternalConductionMult = skinInternalConductionMult;
 
             if (!String.IsNullOrEmpty(pulseAnimationName))
-                pulseAnimationState = SetUpAnimation(pulseAnimationName, this.part);
+                pulseAnimationState = PluginHelper.SetUpAnimation(pulseAnimationName, this.part);
             if (!String.IsNullOrEmpty(emiAnimationName))
-                emiAnimationState = SetUpAnimation(emiAnimationName, this.part);
+                emiAnimationState = PluginHelper.SetUpAnimation(emiAnimationName, this.part);
 
             PartResource wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
 
@@ -1075,14 +1075,14 @@ namespace FNPlugin
                 }
 
                 if (pulseDuration > 0 && calculatedMaxThrust > 0 && increase > 0 && myAttachedEngine.currentThrottle > 0 && currentAnimatioRatio < pulseDuration)
-                    SetAnimationRatio(1, emiAnimationState);
+                    PluginHelper.SetAnimationRatio(1, emiAnimationState);
                 else
-                    SetAnimationRatio(0, emiAnimationState);
+                    PluginHelper.SetAnimationRatio(0, emiAnimationState);
 
                 if (currentAnimatioRatio > 1 + (2 - (myAttachedEngine.currentThrottle * 2)))
                     currentAnimatioRatio = 0;
 
-                SetAnimationRatio(Math.Max(Math.Min(currentAnimatioRatio, 1), 0), pulseAnimationState);
+                PluginHelper.SetAnimationRatio(Math.Max(Math.Min(currentAnimatioRatio, 1), 0), pulseAnimationState);
             }
             catch (Exception e)
             {
@@ -1136,7 +1136,7 @@ namespace FNPlugin
                 if (_availableThermalPower > 0 && _maxISP > 0)
                 {
                     var ispRatio = _currentpropellant_is_jet ? current_isp / _maxISP : 1;
-                    var thrustLimit = myAttachedEngine.thrustPercentage / 100.0f;
+                    var thrustLimit = myAttachedEngine.thrustPercentage / 100f;
                     engineMaxThrust = Math.Max(thrustLimit * GetPowerThrustModifier() * GetHeatThrustModifier() * thermal_power_received / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.001f);
                     calculatedMaxThrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio;
                 }
@@ -1264,22 +1264,22 @@ namespace FNPlugin
                     part.Effect(_particleFXName, (float)Math.Max(0.1f * myAttachedEngine.currentThrottle, Math.Min(Math.Pow( thermal_power_received / requested_thermal_power, 0.5), delayedThrottle)));
                 }
 
-                if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && nozzleStaticPresure > 1)
-                {
-                    _savedReputationCost += max_fuel_flow_rate * _fuelToxicity * TimeWarp.fixedDeltaTime * Mathf.Pow(nozzleStaticPresure / 100, 3);
-                    if (_savedReputationCost > 1)
-                    {
-                        float flooredReputationCost = (int)Math.Floor(_savedReputationCost);
+                //if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && nozzleStaticPresure > 1)
+                //{
+                //    _savedReputationCost += max_fuel_flow_rate * _fuelToxicity * TimeWarp.fixedDeltaTime * Mathf.Pow(nozzleStaticPresure / 100, 3);
+                //    if (_savedReputationCost > 1)
+                //    {
+                //        float flooredReputationCost = (int)Math.Floor(_savedReputationCost);
 
-                        if (Reputation.Instance != null)
-                            Reputation.Instance.addReputation_discrete(-flooredReputationCost, TransactionReasons.None);
-                        else
-                            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - No Reputation found, was not able to reduce reputation by " + flooredReputationCost);
+                //        if (Reputation.Instance != null)
+                //            Reputation.Instance.addReputation_discrete(-flooredReputationCost, TransactionReasons.None);
+                //        else
+                //            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - No Reputation found, was not able to reduce reputation by " + flooredReputationCost);
 
-                        ScreenMessages.PostScreenMessage("You are poisoning the environment with " + _fuelmode + " from your exhaust!", 5.0f, ScreenMessageStyle.LOWER_CENTER);
-                        _savedReputationCost -= flooredReputationCost;
-                    }
-                }
+                //        ScreenMessages.PostScreenMessage("You are poisoning the environment with " + _fuelmode + " from your exhaust!", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                //        _savedReputationCost -= flooredReputationCost;
+                //    }
+                //}
             }
             catch (Exception e)
             {
@@ -1588,29 +1588,6 @@ namespace FNPlugin
             return propellantlist;
         }
 
-        private static AnimationState[] SetUpAnimation(string animationName, Part part)
-        {
-            var states = new List<AnimationState>();
-            foreach (var animation in part.FindModelAnimators(animationName))
-            {
-                var animationState = animation[animationName];
-                animationState.speed = 0;
-                animationState.enabled = true;
-                animationState.wrapMode = WrapMode.ClampForever;
-                animation.Blend(animationName);
-                states.Add(animationState);
-            }
-            return states.ToArray();
-        }
 
-        private void SetAnimationRatio(float ratio, AnimationState[] animationState)
-        {
-            if (animationState == null) return;
-
-            foreach (AnimationState anim in animationState)
-            {
-                anim.normalizedTime = ratio;
-            }
-        }
     }
 }

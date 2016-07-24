@@ -125,7 +125,7 @@ namespace FNPlugin
             }
         }
 
-        public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
+        public override bool IsFuelNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
         public override bool IsNuclear { get { return true; } }
 
