@@ -153,7 +153,6 @@ namespace FNPlugin
         protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
 
         // protected
-        //protected float selectedIsp = 15500f;
         protected bool hasrequiredupgrade = false;
 		protected bool radhazard = false;
 		protected float minISP = 0;
