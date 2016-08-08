@@ -42,7 +42,7 @@ namespace FNPlugin
         public float sootHeatDivider = 150;
         [KSPField(isPersistant = false)]
         public float sootThrustDivider = 150;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "delayedThrottleFactor")]
+        [KSPField(isPersistant = false)]
         public float delayedThrottleFactor = 0.5f;
 
         [KSPField(isPersistant = false)]
@@ -101,7 +101,7 @@ namespace FNPlugin
         public string EffectNameLithium = String.Empty;
         [KSPField(isPersistant = false)]
         public bool showPartTemperature = true;
-        [KSPField(isPersistant = false, guiActive = true)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public bool limitedByMaxThermalNozzleIsp = true;
         [KSPField(isPersistant = false, guiActive = false)]
         public float baseMaxIsp;
@@ -132,7 +132,7 @@ namespace FNPlugin
         public float _propellantSootFactorMinThrotle;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Equilibrium Soot")]
         public float _propellantSootFactorEquilibrium;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Temperature")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Temperature")]
         public string temperatureStr = "";
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "ISP / Thrust Mult")]
         public string thrustIspMultiplier = "";

@@ -28,6 +28,8 @@ namespace FNPlugin
         //Persistent False
         [KSPField(isPersistant = false)]
         public string animName;
+        [KSPField(isPersistant = false)]
+        public bool canTransmit = false;
 
         //GUI 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Transmitter")]
@@ -172,10 +174,11 @@ namespace FNPlugin
         {
             bool receiver_on = has_receiver && part_receiver.isActive();
 
-            Events["ActivateTransmitter"].active = !IsEnabled && !relay && !receiver_on;
-            Events["DeactivateTransmitter"].active = IsEnabled && !relay;
+            Events["ActivateTransmitter"].active = canTransmit && !IsEnabled && !relay && !receiver_on;
+            Events["DeactivateTransmitter"].active = canTransmit && IsEnabled && !relay;
             Events["ActivateRelay"].active = !IsEnabled && !relay && !receiver_on;
             Events["DeactivateRelay"].active = IsEnabled && relay;
+
             Fields["beamedpower"].guiActive = IsEnabled && !relay;
             Fields["transmitPower"].guiActive = IsEnabled && !relay;
 

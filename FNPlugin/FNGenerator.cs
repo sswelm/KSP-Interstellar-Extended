@@ -62,7 +62,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float upgradedDirectConversionEff = 0.865f;
         [KSPField(isPersistant = false)]
-        public float carnotEff;
+        public double carnotEff;
         [KSPField(isPersistant = false)]
         public bool maintainsMegaWattPowerBuffer = true;
         [KSPField(isPersistant = false)]
@@ -119,7 +119,7 @@ namespace FNPlugin
         protected float coldBathTemp = 500;
         protected double hotBathTemp = 1;
         protected float outputPower;
-        protected float _totalEff;
+        protected double _totalEff;
         protected float sectracker = 0;
         protected bool play_down = true;
         protected bool play_up = true;
@@ -575,8 +575,8 @@ namespace FNPlugin
 
                 if (!chargedParticleMode) // thermal mode
                 {
-                    carnotEff = Math.Max(Math.Min(1.0f - (float)coldBathTemp / (float)hotBathTemp, 1), 0);
-                    _totalEff = carnotEff * pCarnotEff * attachedThermalSource.ThermalEnergyEfficiency;
+                    carnotEff = Math.Max(Math.Min(1.0f - coldBathTemp / hotBathTemp, 1), 0);
+                    _totalEff = Math.Min(pCarnotEff, carnotEff * pCarnotEff * attachedThermalSource.ThermalEnergyEfficiency);
 
                     if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
                     {

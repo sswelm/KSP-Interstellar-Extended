@@ -41,7 +41,7 @@ namespace FNPlugin
         public double relativity;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Time Dilation", guiFormat = "F10")]
         public double timeDilation;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Universal Time", guiFormat = "F4", guiUnits = " s")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Universal Time", guiFormat = "F4", guiUnits = " s")]
         public double universalTime;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Mission Time" , guiFormat = "F4", guiUnits = " s")]
         public double missionTime ;
@@ -80,7 +80,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Stored Throtle")]
         public float storedThrotle = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Benchmark", guiFormat = "F3", guiUnits = " ms")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Benchmark", guiFormat = "F3", guiUnits = " ms")]
         public float onFixedUpdateBenchmark;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
@@ -134,6 +134,8 @@ namespace FNPlugin
 
         protected bool hasrequiredupgrade = false;
 		protected bool radhazard = false;
+        private bool warpToReal = false;
+
 		protected float engineIsp = 0;
 		protected double standard_tritium_rate = 0;
         protected ModuleEngines curEngineT;
@@ -144,13 +146,16 @@ namespace FNPlugin
         private double deteuriumFraction;
         private double helium3Fraction;
 
+        private BaseEvent deactivateRadSafetyEvent;
+        private BaseEvent activateRadSafetyEvent;
+        private BaseEvent retrofitEngineEvent;
+        private BaseField radhazardstrField;
+
         private List<PartResource> deteuriumPartResources;
         private List<PartResource> helium3PartResources;
 
         private double percentageDeteuriumFuelRemaining;
         private double percentageHelium3FuelRemaining;
-
-        private bool warpToReal = false;
 
         private Stopwatch stopWatch;
 
@@ -239,8 +244,6 @@ namespace FNPlugin
 
             if (state == StartState.Editor)
             {
-                vesselLifetime = 0.0;
-
                 // fetch all parts 
                 var fetchedShipParts = EditorLogic.fetch.ship.parts;
 
@@ -256,6 +259,12 @@ namespace FNPlugin
                 deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
                 helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
             }
+
+            // bind with fields and events
+            deactivateRadSafetyEvent = Events["DeactivateRadSafety"];
+            activateRadSafetyEvent = Events["ActivateRadSafety"];
+            retrofitEngineEvent = Events["RetrofitEngine"];
+            radhazardstrField = Fields["radhazardstr"];
 		}
 
         public void Update()
@@ -286,9 +295,9 @@ namespace FNPlugin
                 warpToReal = false;
             }
 
-            Events["DeactivateRadSafety"].active = rad_safety_features;
-            Events["ActivateRadSafety"].active = !rad_safety_features;
-            Events["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+            deactivateRadSafetyEvent.active = rad_safety_features;
+            activateRadSafetyEvent.active = !rad_safety_features;
+            retrofitEngineEvent.active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
 
 			if (curEngineT.isOperational && !IsEnabled) 
             {
@@ -311,12 +320,12 @@ namespace FNPlugin
 					radhazardstr = kerbal_hazard_count.ToString () + " Kerbals.";
                 else 
 					radhazardstr = kerbal_hazard_count.ToString () + " Kerbal.";
-				
-				Fields["radhazardstr"].guiActive = true;
+
+                radhazardstrField.guiActive = true;
 			} 
             else 
             {
-				Fields["radhazardstr"].guiActive = false;
+                radhazardstrField.guiActive = false;
 				radhazard = false;
 				radhazardstr = "None.";
 			}
@@ -401,12 +410,9 @@ namespace FNPlugin
 
             if (throttle > 0 && !this.vessel.packed)
             {
-                FloatCurve newAtmosphereCurve = new FloatCurve();
-                newAtmosphereCurve.Add(0, (float)effectiveIsp);
-                newAtmosphereCurve.Add(maxAtmosphereDensity, 0);
-                curEngineT.atmosphereCurve = newAtmosphereCurve;
+                UpdateAtmosphericCurve();
 
-                fusionRatio = ProcessPowerAndWaste(throttle);
+                fusionRatio = ProcessPowerAndWasteHeat(throttle, TimeWarp.fixedDeltaTime);
 
                 // Update FuelFlow
                 effectiveThrust = timeDilation * timeDilation * MaximumThrust * fusionRatio;
@@ -414,8 +420,12 @@ namespace FNPlugin
                 curEngineT.maxFuelFlow = (float)calculatedFuelflow;
                 curEngineT.maxThrust = (float)effectiveThrust;
 
-                deuteriumUsageDay = curEngineT.currentThrottle * calculatedFuelflow * 1600 * PluginHelper.SecondsInDay;
-                helium3UsageDay = curEngineT.currentThrottle * calculatedFuelflow * 1600 * PluginHelper.SecondsInDay;
+                // calculate day usage
+                var demandedMass = calculatedFuelflow / propellantAverageDensity;
+                var deteuriumRequestAmount = demandedMass * deteuriumFraction / densityLqdDeuterium;
+                var helium3RequestAmount = demandedMass * helium3Fraction / densityLqdHelium3;
+                deuteriumUsageDay = deteuriumRequestAmount * PluginHelper.SecondsInDay;
+                helium3UsageDay = helium3RequestAmount * PluginHelper.SecondsInDay;
 
                 if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
                 {
@@ -426,28 +436,25 @@ namespace FNPlugin
             {
                 warpToReal = true; // Set to true for transition to realtime
 
-                fusionRatio = maximizeThrust ? ProcessPowerAndWaste(1) : ProcessPowerAndWaste(storedThrotle);
+                fusionRatio = maximizeThrust ? ProcessPowerAndWasteHeat(1, TimeWarp.fixedDeltaTime) : ProcessPowerAndWasteHeat(storedThrotle, TimeWarp.fixedDeltaTime);
 
                 if (TimeWarp.fixedDeltaTime > 20)
                 {
-                    var calculationSteps = TimeWarp.fixedDeltaTime / 20;
-
-                    var deltaCalculations = (float)Math.Ceiling(calculationSteps);
-
+                    var deltaCalculations = (float)Math.Ceiling(TimeWarp.fixedDeltaTime / 20);
                     var deltaTimeStep = TimeWarp.fixedDeltaTime / deltaCalculations;
 
                     for (int step = 0; step < deltaCalculations; step++)
                     {
-                        PersistantThrust(deltaTimeStep, universalTime + (step * deltaTimeStep));
+                        PersistantThrust(deltaTimeStep, universalTime + (step * deltaTimeStep), this.part.transform.up, this.vessel.GetTotalMass());
                         CalculateTimeDialation();
                     }
                 }
                 else
-                    PersistantThrust(TimeWarp.fixedDeltaTime, universalTime);
+                    PersistantThrust(TimeWarp.fixedDeltaTime, universalTime, this.part.transform.up, this.vessel.GetTotalMass());
             }
             else
             {
-                if (!(percentageFuelRemaining > (100 - fuelLimit) && lightSpeedRatio < speedLimit))
+                if (!(percentageFuelRemaining > (100 - fuelLimit) || lightSpeedRatio > speedLimit))
                 {
                     warpToReal = false;
                     vessel.ctrlState.mainThrottle = 0;
@@ -457,10 +464,7 @@ namespace FNPlugin
                 helium3UsageDay = 0;
                 fusionPercentage = 0;
 
-                FloatCurve newAtmosphereCurve = new FloatCurve();
-                newAtmosphereCurve.Add(0, (float)effectiveIsp);
-                newAtmosphereCurve.Add(maxAtmosphereDensity, 0);
-                curEngineT.atmosphereCurve = newAtmosphereCurve;
+                UpdateAtmosphericCurve();
 
                 effectiveThrust = timeDilation * timeDilation * MaximumThrust;
 
@@ -470,23 +474,30 @@ namespace FNPlugin
             }
 
             stopWatch.Stop();
-
             onFixedUpdateBenchmark = stopWatch.ElapsedTicks * (1f / Stopwatch.Frequency) * 1000;
         }
 
-        private void PersistantThrust(float fixedDetlataTime, double universalTime )
+        private void UpdateAtmosphericCurve()
+        {
+            FloatCurve newAtmosphereCurve = new FloatCurve();
+            newAtmosphereCurve.Add(0, (float)effectiveIsp);
+            newAtmosphereCurve.Add(maxAtmosphereDensity, 0);
+            curEngineT.atmosphereCurve = newAtmosphereCurve;
+        }
+
+        private void PersistantThrust(float fixedDeltaTime, double universalTime, Vector3d thrustUV, float vesselMass)
         {
             var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust;
-            var timeDiaLationEngineIsp = timeDilation * engineIsp;
+            var timeDialationEngineIsp = timeDilation * engineIsp;
 
             double demandMass;
-            CalculateDeltaVV(this.vessel.GetTotalMass(), fixedDetlataTime, timeDilationMaximumThrust * fusionRatio, timeDiaLationEngineIsp, propellantAverageDensity, this.part.transform.up, out demandMass);
+            CalculateDeltaVV(vesselMass, fixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, propellantAverageDensity, thrustUV, out demandMass);
 
             var deteuriumRequestAmount = demandMass * deteuriumFraction / densityLqdDeuterium;
             var helium3RequestAmount = demandMass * helium3Fraction / densityLqdHelium3;
 
-            deuteriumUsageDay = deteuriumRequestAmount / fixedDetlataTime * PluginHelper.SecondsInDay;
-            helium3UsageDay = helium3RequestAmount / fixedDetlataTime * PluginHelper.SecondsInDay;
+            deuteriumUsageDay = deteuriumRequestAmount / fixedDeltaTime * PluginHelper.SecondsInDay;
+            helium3UsageDay = helium3RequestAmount / fixedDeltaTime * PluginHelper.SecondsInDay;
 
             // request deteurium
             var recievedDeuterium = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deteuriumRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
@@ -506,16 +517,16 @@ namespace FNPlugin
 
             effectiveThrust = timeDilationMaximumThrust * recievedRatio;
 
-            var deltaVV = CalculateDeltaVV(this.vessel.GetTotalMass(), fixedDetlataTime, effectiveThrust, timeDiaLationEngineIsp, propellantAverageDensity, this.part.transform.up, out demandMass);
+            var deltaVV = CalculateDeltaVV(vesselMass, fixedDeltaTime, effectiveThrust, timeDialationEngineIsp, propellantAverageDensity, thrustUV, out demandMass);
 
             if (recievedRatio > 0.01)
                 vessel.orbit.Perturb(deltaVV, universalTime);
         }
 
-        private double ProcessPowerAndWaste(float throtle)
+        private double ProcessPowerAndWasteHeat(float throtle, float fixedDeltaTime)
         {
             // Calculate Fusion Ratio
-            var powerRequirementFixed = PowerRequirement * TimeWarp.fixedDeltaTime;
+            var powerRequirementFixed = PowerRequirement * fixedDeltaTime;
             var requestedPower = (curEngineT.thrustPercentage / 100) * throtle * powerRequirementFixed;
             var recievedPower = consumeFNResource(requestedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
             var plasma_ratio = powerRequirementFixed > 0 ? recievedPower / powerRequirementFixed : 0;
@@ -525,7 +536,7 @@ namespace FNPlugin
             supplyFNResource(recievedPower * (1 - Efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
 
             // The Aborbed wasteheat from Fusion
-            supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+            supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
             fusionPercentage = fusionRatio * 100;
 
@@ -533,7 +544,7 @@ namespace FNPlugin
         }
 
         // Calculate DeltaV vector and update resource demand from mass (demandMass)
-        public virtual Vector3d CalculateDeltaVV(double totalMass, double deltaTime, double thrust, double isp, double averageDensity, Vector3d thrustUV, out double demandMass)
+        public static Vector3d CalculateDeltaVV(float totalMass, double deltaTime, double thrust, double isp, double averageDensity, Vector3d thrustUV, out double demandMass)
         {
             // Mass flow rate
             var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
@@ -607,7 +618,7 @@ namespace FNPlugin
 
         public override int getPowerPriority() 
         {
-            return 1;
+            return 2;
         }
 	}
 }
