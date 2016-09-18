@@ -18,12 +18,19 @@ namespace FNPlugin
         public bool isHybrid = false;
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
-        [KSPField(isPersistant = true)]
-        public bool engineInit = false;
+
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
         [KSPField(isPersistant = true, guiActive = false, guiName = "Soot Accumulation", guiUnits = " %")]
         public float sootAccumulationPercentage;
+        [KSPField(isPersistant = true)]
+        public bool isDeployed = false;
+
+
+        [KSPField(isPersistant = true)]
+        public double animationStarted = 0;
+        [KSPField(isPersistant = false)]
+        public bool initialized = false;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
@@ -70,6 +77,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float skinSkinConductionMult = 1;
 
+        [KSPField(isPersistant = false)]
+        public string deployAnimationName = String.Empty;
         [KSPField(isPersistant = false)]
         public string pulseAnimationName = String.Empty;
         [KSPField(isPersistant = false)]
@@ -235,7 +244,7 @@ namespace FNPlugin
         protected bool _fuelRequiresUpgrade;
         protected string _fuelTechRequirement;
         protected float _fuelToxicity;
-        protected double _savedReputationCost;
+        //protected double _savedReputationCost;
         protected float _heatDecompositionFraction;
 
         protected float _minDecompositionTemp;
@@ -252,6 +261,7 @@ namespace FNPlugin
 
         List<Propellant> list_of_propellants = new List<Propellant>();
 
+        protected Animation deployAnim;
         protected AnimationState[] pulseAnimationState;
         protected AnimationState[] emiAnimationState;
         protected int thrustLimitRatio = 0;
@@ -408,6 +418,8 @@ namespace FNPlugin
             part.skinThermalMassModifier = skinThermalMassModifier;
             part.skinInternalConductionMult = skinInternalConductionMult;
 
+            if (!String.IsNullOrEmpty(deployAnimationName))
+                deployAnim = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
             if (!String.IsNullOrEmpty(pulseAnimationName))
                 pulseAnimationState = PluginHelper.SetUpAnimation(pulseAnimationName, this.part);
             if (!String.IsNullOrEmpty(emiAnimationName))
@@ -453,10 +465,6 @@ namespace FNPlugin
             _vesselResourceIntakes = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.resourceName == PluginHelper.IntakeAir).ToList();
             _vesselThermalNozzles = vessel.FindPartModulesImplementing<IEngineNoozle>();
 
-            // if engine isn't already initialised, initialise it
-            if (engineInit == false)
-                engineInit = true;
-
             // if we can upgrade, let's do so
             if (isupgraded)
                 upgradePartModule();
@@ -499,13 +507,13 @@ namespace FNPlugin
             if (myAttachedEngine is ModuleEnginesFX)
             {
                 if (!String.IsNullOrEmpty(EffectNameJet))
-                    part.Effect(EffectNameJet, 0);
+                    part.Effect(EffectNameJet, 0, -1);
                 if (!String.IsNullOrEmpty(EffectNameLFO))
-                    part.Effect(EffectNameLFO, 0);
+                    part.Effect(EffectNameLFO, 0, -1);
                 if (!String.IsNullOrEmpty(EffectNameNonLFO))
-                    part.Effect(EffectNameNonLFO, 0);
+                    part.Effect(EffectNameNonLFO, 0, -1);
                 if (!String.IsNullOrEmpty(EffectNameLithium))
-                    part.Effect(EffectNameLithium, 0);
+                    part.Effect(EffectNameLithium, 0, -1);
 
                 if (_currentpropellant_is_jet && !String.IsNullOrEmpty(EffectNameJet))
                     _particleFXName = EffectNameJet;
@@ -570,22 +578,52 @@ namespace FNPlugin
                     IsEnabled = true;
                     part.force_activate();
                 }
-                updatePropellantBar();
+                //updatePropellantBar();
+
+                if (IsEnabled && deployAnim != null && !initialized)
+                {
+                    if (isDeployed)
+                    {
+                        deployAnim[deployAnimationName].normalizedTime = 1;
+                        deployAnim[deployAnimationName].layer = 1;
+                        deployAnim.Blend(deployAnimationName, part.mass);
+                        initialized = true;
+                    }
+                    else if (animationStarted == 0)
+                    {
+                        deployAnim[deployAnimationName].normalizedTime = 0;
+                        deployAnim[deployAnimationName].speed = 1;
+                        deployAnim[deployAnimationName].layer = 1;
+                        deployAnim.Blend(deployAnimationName, part.mass);
+                        myAttachedEngine.Shutdown();
+                        animationStarted = Planetarium.GetUniversalTime();
+                    }
+                    else if ((Planetarium.GetUniversalTime() > animationStarted + deployAnim[deployAnimationName].length))
+                    {
+                        initialized = true;
+                        isDeployed = true;
+                        myAttachedEngine.Activate();
+                    }
+                }
             }
         }
 
         public void updatePropellantBar()
         {
-            float currentpropellant = 0;
-            float maxpropellant = 0;
+            double currentpropellant = 0;
+            double maxpropellant = 0;
 
-            List<PartResource> partresources = part.GetConnectedResources(list_of_propellants.FirstOrDefault().name).ToList();
+            //List<PartResource> partresources = part.GetConnectedResources(list_of_propellants.FirstOrDefault().name).ToList();
+            //foreach (PartResource partresource in partresources)
+            //{
+            //    currentpropellant += (float)partresource.amount;
+            //    maxpropellant += (float)partresource.maxAmount;
+            //}
 
-            foreach (PartResource partresource in partresources)
-            {
-                currentpropellant += (float)partresource.amount;
-                maxpropellant += (float)partresource.maxAmount;
-            }
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(list_of_propellants.FirstOrDefault().name);
+
+            if (resourceDefinition != null)
+                part.GetConnectedResourceTotals(resourceDefinition.id, out currentpropellant, out maxpropellant);
         }
 
         public override void OnActive()
@@ -617,7 +655,6 @@ namespace FNPlugin
                     if (curprop.drawStackGauge && HighLogic.LoadedSceneIsFlight)
                     {
                         curprop.drawStackGauge = false;
-               
                     }
 
                     if (list_of_propellants == null)
@@ -658,9 +695,15 @@ namespace FNPlugin
                     foreach (Propellant curEngine_propellant in list_of_propellants)
                     {
                         var extendedPropellant = curEngine_propellant as ExtendedPropellant;
-                        IEnumerable<PartResource> partresources = part.GetConnectedResources(extendedPropellant.StoragePropellantName);
+                        //IEnumerable<PartResource> partresources = part.GetConnectedResources(extendedPropellant.StoragePropellantName);
+                        var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(extendedPropellant.StoragePropellantName);
+                        double amount = 0;
+                        double maxAmount = 0;
+                        if (resourceDefinition != null)
+                            part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
 
-                        if (!partresources.Any() || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
+                        //if (!partresources.Any() || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
+                        if (maxAmount == 0)
                         {
                             if (notifySwitching)
                                 missingResources += curEngine_propellant.name + " ";
@@ -800,7 +843,7 @@ namespace FNPlugin
 
                     var curveChange = jetTechBonus / 5.368f;
 
-                    velCurve.Add(0, 0.05f + jetTechBonusPercentage);
+                    velCurve.Add(0, 0.05f + jetTechBonusPercentage / 2);
                     velCurve.Add(2.5f - curveChange, 1f);
                     velCurve.Add(4f + curveChange, 1f);
                     velCurve.Add(12f, 0 + jetTechBonusPercentage);
@@ -1019,7 +1062,7 @@ namespace FNPlugin
 
                     if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                     {
-                        part.Effect(_particleFXName, 0);
+                        part.Effect(_particleFXName, 0, -1);
                     }
                 }
 
@@ -1069,9 +1112,9 @@ namespace FNPlugin
                 if (pulseDuration > 0 && !String.IsNullOrEmpty(_particleFXName) && myAttachedEngine is ModuleEnginesFX)
                 {
                     if (increase > 0 && calculatedMaxThrust > 0 && myAttachedEngine.currentThrottle > 0 && currentAnimatioRatio < pulseDuration)
-                        part.Effect(_particleFXName, 1 - currentAnimatioRatio / pulseDuration);
+                        part.Effect(_particleFXName, 1 - currentAnimatioRatio / pulseDuration, -1);
                     else
-                        part.Effect(_particleFXName, 0);
+                        part.Effect(_particleFXName, 0, -1);
                 }
 
                 if (pulseDuration > 0 && calculatedMaxThrust > 0 && increase > 0 && myAttachedEngine.currentThrottle > 0 && currentAnimatioRatio < pulseDuration)
@@ -1191,9 +1234,7 @@ namespace FNPlugin
                     vcurveAtCurrentVelocity = myAttachedEngine.velCurve.Evaluate((float)(vessel.speed / vessel.speedOfSound));
 
                     if (vcurveAtCurrentVelocity > 0 && !float.IsInfinity(vcurveAtCurrentVelocity) && !float.IsNaN(vcurveAtCurrentVelocity))
-                    {
                         calculatedMaxThrust *= vcurveAtCurrentVelocity;
-                    }
                     else
                     {
                         max_fuel_flow_rate = 0;
@@ -1260,9 +1301,7 @@ namespace FNPlugin
 				myAttachedEngine.heatProduction = (float)engineHeatProduction;
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
-                {
-                    part.Effect(_particleFXName, (float)Math.Max(0.1f * myAttachedEngine.currentThrottle, Math.Min(Math.Pow( thermal_power_received / requested_thermal_power, 0.5), delayedThrottle)));
-                }
+                    part.Effect(_particleFXName, (float)Math.Max(0.1f * myAttachedEngine.currentThrottle, Math.Min(Math.Pow( thermal_power_received / requested_thermal_power, 0.5), delayedThrottle)), -1);
 
                 //if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && nozzleStaticPresure > 1)
                 //{
@@ -1391,13 +1430,16 @@ namespace FNPlugin
             if (updating)
             {
                 nozzles.ForEach(nozzle => nozzle.Static_updating = false);
-                List<PartResource> partresources = vess.rootPart.GetConnectedResources(resourcename).ToList();
+                //List<PartResource> partresources = vess.rootPart.GetConnectedResources(resourcename).ToList();
+                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourcename);
 
                 double currentintakeatm = 0;
                 double maxintakeatm = 0;
 
-                partresources.ForEach(partresource => currentintakeatm += partresource.amount);
-                partresources.ForEach(partresource => maxintakeatm += partresource.maxAmount);
+                //partresources.ForEach(partresource => currentintakeatm += partresource.amount);
+                //partresources.ForEach(partresource => maxintakeatm += partresource.maxAmount);
+
+                vess.rootPart.GetConnectedResourceTotals(resourceDefinition.id, out currentintakeatm, out maxintakeatm);
 
                 intake_amounts[resourcename] = currentintakeatm;
                 intake_maxamounts[resourcename] = maxintakeatm;
@@ -1490,7 +1532,7 @@ namespace FNPlugin
             get
             {
                 return _currentpropellant_is_jet
-                    ? powerTrustMultiplierJet  //* (jetTechBonus / 21.472)
+                    ? powerTrustMultiplierJet  
                     : powerTrustMultiplier;
             }
         }

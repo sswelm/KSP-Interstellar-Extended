@@ -152,6 +152,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string animName;
         [KSPField(isPersistant = false)]
+        public string loopingAnimationName;
+
+        [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = false)]
         public string originalName;
@@ -326,7 +329,7 @@ namespace FNPlugin
         protected GUIStyle text_style;
         
         protected int nrAvailableUpgradeTechs;
-        
+        protected double currentAnimatioRatio;
         protected double total_power_per_frame;
         protected bool decay_ongoing = false;
         protected Rect windowPosition;
@@ -335,11 +338,7 @@ namespace FNPlugin
 
         protected float previousTimeWarp;
         protected bool? hasBimodelUpgradeTechReq;
-        //protected IEngineNoozle connectedEngine;
         protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
-        protected List<PartResource> partResourcesThatContainLithium;
-        protected List<PartResource> partResourcesThatContainTritium;
-        protected List<PartResource> partResourcesThatContainHelium4;
 
         protected PartResourceDefinition lithium_def;
         protected  PartResourceDefinition tritium_def; 
@@ -366,6 +365,7 @@ namespace FNPlugin
         private bool isFixedUpdatedCalled;
 
         protected AnimationState[] animationState;
+        protected AnimationState[] loopingAnimation;
 
         protected ElectricGeneratorType _firstGeneratorType;
 
@@ -864,7 +864,8 @@ namespace FNPlugin
                 node.AddValue("maxAmount", PowerOutput);
                 node.AddValue("possibleAmount", 0);
                 part.AddResource(node);
-                part.Resources.UpdateList();
+                //part.Resources.UpdateList();
+                //part.vessel.UpdateVesselResourceSet();
             }
 
             // while in edit mode, listen to on attach event
@@ -872,9 +873,9 @@ namespace FNPlugin
                 part.OnEditorAttach += OnEditorAttach;
 
             // initialise resource defenitions
-            thermalPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_THERMALPOWER);
-            chargedPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-            wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+            thermalPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_THERMALPOWER);
+            chargedPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+            wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
 
             // calculate WasteHeat Capacity
             partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
@@ -920,17 +921,13 @@ namespace FNPlugin
                 ? PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium7)
                 : PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
 
-            partResourcesThatContainHelium4 = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Helium4Gas).ToList();
-            partResourcesThatContainTritium = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdTritium).ToList();
-            partResourcesThatContainLithium = fastNeutrons
-                ? part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Lithium7).ToList()
-                : part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Lithium6).ToList();
-
             if (IsEnabled && last_active_time > 0)
                 DoPersistentResourceUpdate();
 
             if (!String.IsNullOrEmpty(animName))
                 animationState = PluginHelper.SetUpAnimation(animName, this.part);
+            if (!String.IsNullOrEmpty(loopingAnimationName))
+                loopingAnimation = PluginHelper.SetUpAnimation(loopingAnimationName, this.part);
 
             // only force activate if not with a engine model
             var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
@@ -1132,7 +1129,7 @@ namespace FNPlugin
             base.OnFixedUpdate();
 
             // add alternator power
-            if (IsEnabled && alternatorPowerKW != 0 && part.mass > 0)
+            if (IsEnabled && alternatorPowerKW != 0)
             {
                 part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -alternatorPowerKW * TimeWarp.fixedDeltaTime);
                 //part.temperature = part.temperature + (TimeWarp.fixedDeltaTime * alternatorPowerKW / 1000.0 / part.mass);
@@ -1219,6 +1216,7 @@ namespace FNPlugin
                 total_power_per_frame = total_power_received;
                 ongoing_consumption_rate = total_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
 
+                
                 PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, 4), animationState);
 
                 powerPcnt = 100 * ongoing_consumption_rate;
@@ -1387,7 +1385,10 @@ namespace FNPlugin
             var lith_rate = breed_rate / lithium_def.density;
 
             // get spare room tritium
-            var spareRoomTritiumAmount = partResourcesThatContainTritium.Sum(r => r.maxAmount - r.amount);
+            double amount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(tritium_def.id, out amount, out maxAmount);
+            var spareRoomTritiumAmount = maxAmount - amount; 
 
             // limit lithium consumption to maximum tritium storage
             var maximumTritiumProduction = lith_rate * tritium_molar_mass_ratio * lithium_def.density / tritium_def.density;
@@ -1581,7 +1582,14 @@ namespace FNPlugin
             }
 
             if (HighLogic.LoadedSceneIsFlight)
-                return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount);
+            {
+                //return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount);
+                double amount;
+                double maxAmount;
+                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
+                part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
+                return amount;
+            }
             else
                 return part.FindAmountOfAvailableFuel(fuel.FuelName, 4);
         }
@@ -1600,7 +1608,14 @@ namespace FNPlugin
             }
 
             if (HighLogic.LoadedSceneIsFlight)
-                return part.GetConnectedResources(product.FuelName).Sum(rs => rs.amount);
+            {
+                //return part.GetConnectedResources(product.FuelName).Sum(rs => rs.amount);
+                double amount;
+                double maxAmount;
+                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(product.FuelName);
+                part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
+                return amount;
+            }
             else
                 return part.FindAmountOfAvailableFuel(product.FuelName, 4);
         }
@@ -1619,7 +1634,14 @@ namespace FNPlugin
             }
 
             if (HighLogic.LoadedSceneIsFlight)
-                return part.GetConnectedResources(product.FuelName).Sum(rs => rs.maxAmount);
+            {
+                //return part.GetConnectedResources(product.FuelName).Sum(rs => rs.maxAmount);
+                double amount;
+                double maxAmount;
+                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(product.FuelName);
+                part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
+                return maxAmount;
+            }
             else
                 return part.FindMaxAmountOfAvailableFuel(product.FuelName, 4);
         }
@@ -1680,12 +1702,17 @@ namespace FNPlugin
                 {
                     if (IsFuelNeutronRich && breedtritium && canBreedTritium)
                     {
-                        var totalLithiumAmount = partResourcesThatContainLithium.Sum(m => m.amount);
-                        var totalLithiumMaxAmount = partResourcesThatContainLithium.Sum(m => m.maxAmount);
-                        var totalTritiumAmount = partResourcesThatContainTritium.Sum(r => r.amount);
-                        var totalTritiumMaxAmount = partResourcesThatContainTritium.Sum(r => r.maxAmount);
-                        var totalHeliumAmount = partResourcesThatContainHelium4.Sum(r => r.amount);
-                        var totalHeliumMaxAmount = partResourcesThatContainHelium4.Sum(r => r.maxAmount);
+                        double totalLithiumAmount;
+                        double totalLithiumMaxAmount;
+                        part.GetConnectedResourceTotals(lithium_def.id, out totalLithiumAmount, out totalLithiumMaxAmount);
+
+                        double totalTritiumAmount;
+                        double totalTritiumMaxAmount;
+                        part.GetConnectedResourceTotals(helium_def.id, out totalTritiumAmount, out totalTritiumMaxAmount);
+
+                        double totalHeliumAmount;
+                        double totalHeliumMaxAmount;
+                        part.GetConnectedResourceTotals(helium_def.id, out totalHeliumAmount, out totalHeliumMaxAmount);
 
                         var MassHeliumAmount = totalHeliumAmount * helium_def.density * 1000;
                         var MassHeliumMaxAmount = totalHeliumMaxAmount * helium_def.density * 1000;

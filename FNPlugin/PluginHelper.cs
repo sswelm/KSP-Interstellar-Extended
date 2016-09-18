@@ -161,6 +161,8 @@ namespace FNPlugin
         private static int _secondsInDay = GameConstants.KEBRIN_DAY_SECONDS;
         public static int SecondsInDay { get { return _secondsInDay; } }
 
+        private static double _apertureDiameterMult = 1;
+        public static double ApertureDiameterMult { get { return _apertureDiameterMult; } }
 
         private static double _speedOfLightMult = GameConstants.speedOfLight;
         public static double SpeedOfLightMult { get { return _speedOfLightMult; } }
@@ -519,7 +521,9 @@ namespace FNPlugin
 
         public static Vector3d getVesselPos(Vessel v)
         {
-            Vector3d v1p = (v.state == Vessel.State.ACTIVE) ? (Vector3d)v.transform.position : v.GetWorldPos3D();
+            Vector3d v1p = (v.state == Vessel.State.ACTIVE) 
+                ? (Vector3d)v.transform.position 
+                : v.GetWorldPos3D();
             return v1p;
         }
 
@@ -619,10 +623,15 @@ namespace FNPlugin
                         _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
                         Debug.Log("[KSP Interstellar] SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
                     }
+                    if (plugin_settings.HasValue("ApertureDiameterMult"))
+                    {
+                        _apertureDiameterMult = double.Parse(plugin_settings.GetValue("ApertureDiameterMult"));
+                        Debug.Log("[KSP Interstellar] Aperture Diameter Multiplier set to: " + PluginHelper.ApertureDiameterMult.ToString());
+                    }
                     if (plugin_settings.HasValue("SpeedOfLightMult"))
                     {
                         _speedOfLightMult = double.Parse(plugin_settings.GetValue("SpeedOfLightMult"));
-                        Debug.Log("[KSP Interstellar] SpeedOfLight set to: " + PluginHelper.SpeedOfLightMult.ToString());
+                        Debug.Log("[KSP Interstellar] Speed Of Light Multiplier set to: " + PluginHelper.SpeedOfLightMult.ToString());
                     }
                     if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
                     {
@@ -970,6 +979,8 @@ namespace FNPlugin
                 anim.normalizedTime = ratio;
             }
         }
+
+
 
     }
 }

@@ -92,10 +92,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\Numbers.cs" />
     <Compile Include="Extensions\OrbitExtensions.cs" />
     <Compile Include="Extensions\ParseTools.cs" />
     <Compile Include="Extensions\PartExtensions.cs" />
     <Compile Include="Extensions\ThermalSourceSearchResult.cs" />
+    <Compile Include="Microwave\BeamGenerator.cs" />
     <Compile Include="Microwave\IElectricPowerSource.cs" />
     <Compile Include="Propulsion\AlcubierreDrive.cs" />
     <Compile Include="Propulsion\Contract\IEngineNoozle.cs" />
@@ -179,7 +181,7 @@
     <Compile Include="Refinery\UF4Ammonolysiser.cs" />
     <Compile Include="Toolbar\VABThermalUI.cs" />
     <Compile Include="Radiation\VanAllen.cs" />
-    <Compile Include="FNGenerator.cs" />
+    <Compile Include="Wasteheat\FNGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Science\ComputerCore.cs" />
     <Compile Include="Microwave\InterstellarRCSModule.cs" />

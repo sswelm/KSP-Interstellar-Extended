@@ -562,21 +562,15 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 0 ");
-
                 // find selected tank
                 var selectedTank = calledByPlayer || String.IsNullOrEmpty(selectedTankSetupTxt)
                     ? selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]
                     : _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt) 
                         ?? (selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]);
 
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 1 ");
-
                 // update txt and index for future
                 selectedTankSetupTxt = selectedTank.GuiName;
                 selectedTankSetup = _modularTankList.IndexOf(selectedTank);
-
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 2 ");
 
                 // create new ResourceNode
                 var newResources = new List<string>();
@@ -604,8 +598,6 @@ namespace InterstellarFuelSwitch
                         configuredAmounts = String.Empty;
                 }
 
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 3 ");
-
                 if (configuredFlowStates.Length > 0)
                 {
                     // empty configuration if switched by user
@@ -624,8 +616,6 @@ namespace InterstellarFuelSwitch
                     if (!HighLogic.LoadedSceneIsEditor)
                         configuredFlowStates = String.Empty;
                 }
-
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 4 ");
 
                 // imitialise minimum boiloff temperature at current part temperature
                 //double minimumBoiloffTemerature = -1;
@@ -682,9 +672,6 @@ namespace InterstellarFuelSwitch
                     newResourceNodes.Add(newResourceNode);
                 }
 
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 5 ");
-
-
                 //// prepare part to initialise temerature 
                 //if (minimumBoiloffTemerature != -1)
                 //{
@@ -699,14 +686,10 @@ namespace InterstellarFuelSwitch
                 var finalResourceNodes = new List<ConfigNode>();
 
                 // remove all resources except those we ignore
-                //PartResource[] partResources = currentPart.GetComponents<PartResource>();
-                //foreach (PartResource resource in partResources)
                 List<PartResource> resourcesDeleteList = new List<PartResource>();
 
                 foreach (PartResource resource in part.Resources)
                 {
-                    Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 5a for" + resource.resourceName);
-
                     if (activeResourceList.Contains(resource.resourceName))
                     {
                         if (newResourceNodes.Count > 0)
@@ -726,25 +709,13 @@ namespace InterstellarFuelSwitch
                         newResourceNode.AddValue("amount", resource.amount);
 
                         finalResourceNodes.Add(newResourceNode);
-                        //DestroyImmediate(resource);
                     }
                 }
 
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 5b deletion of " + resourcesDeleteList.Count + " items");
-
                 foreach (var resource in resourcesDeleteList)
                 {
-                    Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 5b deletion of " + resource.resourceName);
-                    //currentPart.Resources.dict.Remove(resource.info.id);
-                    var result = currentPart.Resources.Remove(resource.info.id);
-
-                    if (result)
-                        Debug.Log("InsterstellarFuelSwitch SetupTankInPart removed resource from currentPart.Resources ");
-                    else
-                        Debug.LogError("InsterstellarFuelSwitch SetupTankInPart failed to removed resource from currentPart.Resources ");
+                    currentPart.Resources.Remove(resource.info.id);
                 }
-
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 6 ");
 
                 // add any remaining bew nodes
                 if (newResourceNodes.Count > 0)
@@ -763,24 +734,7 @@ namespace InterstellarFuelSwitch
                     }
                 }
 
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 7 ");
-
-                // This also needs to be done when going from a setup with resources to a setup with no resources.
-                //currentPart.Resources.UpdateList();
-
-                //if (part.vessel == null)
-                //    Debug.LogError("InsterstellarFuelSwitch SetupTankInPart part.vessel is null ");
-                //else
-                //    Debug.Log("InsterstellarFuelSwitch SetupTankInPart part.vessel is found ");
-
-                //if (part.vessel != null)
-                //    part.vessel.UpdateVesselResourceSet();
-
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 8 ");
-
                 UpdateCost();
-
-                Debug.Log("InsterstellarFuelSwitch SetupTankInPart setep 9 ");
 
                 return newResources;
             }

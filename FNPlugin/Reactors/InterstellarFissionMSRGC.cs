@@ -112,7 +112,8 @@ namespace FNPlugin
                 if (!part.Resources.Contains(fuel.FuelName) || !part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides)) return; // avoid exceptions, just in case
                 PartResource fuel_reactor = part.Resources[fuel.FuelName];
                 PartResource actinides_reactor = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-                List<PartResource> fuel_resources = part.GetConnectedResources(fuel.FuelName).ToList();
+                List<PartResource> fuel_resources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.FuelName)).ToList();
+
                 double spare_capacity_for_fuel = fuel_reactor.maxAmount - actinides_reactor.amount;
                 fuel_resources.ForEach(res =>
                 {
@@ -271,7 +272,8 @@ namespace FNPlugin
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
             {
                 PartResource fuel_reactor = part.Resources[fuel.FuelName];
-                List<PartResource> swap_resource_list = part.GetConnectedResources(fuel.FuelName).ToList();
+                List<PartResource> swap_resource_list = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.FuelName)).ToList();
+
                 swap_resource_list.ForEach(res =>
                 {
                     double spare_capacity_for_fuel = res.maxAmount - res.amount;

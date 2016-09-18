@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Linq;
 
 namespace FNPlugin
 {
@@ -201,7 +202,9 @@ namespace FNPlugin
             if (this.vessel == FlightGlobals.ActiveVessel)
             {
                 // print("found vessel event!");
-                var resources = vessel.GetActiveResources();
+                //var resources = vessel.GetActiveResources();
+                var resources = vessel.parts.SelectMany(p => p.Resources).ToList();
+
                 for (int i = 0; i < resources.Count; i++)
                 {
                     // print("vessel has resources!");
@@ -222,7 +225,8 @@ namespace FNPlugin
             if (this.vessel == FlightGlobals.ActiveVessel)
             {
                 //print("found vessel event!");
-                var resources = vessel.GetActiveResources();
+                //var resources = vessel.GetActiveResources();
+                var resources = vessel.parts.SelectMany(p => p.Resources).ToList();
                 for (int i = 0; i < resources.Count; i++)
                 {
                     //print("vessel has resources!");

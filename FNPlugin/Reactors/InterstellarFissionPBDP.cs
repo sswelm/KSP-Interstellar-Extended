@@ -12,10 +12,10 @@ namespace FNPlugin
         // Persistant False
         [KSPField(isPersistant = false)]
         public bool heatThrottling = false;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiUnits= "%", guiName = "Overheating")]
-        public float overheatPercentage;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiUnits= "%", guiName = "Overheating", guiFormat = "F3")]
+        public double overheatPercentage;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wasteheat Ratio")]
-        public float resourceBarRatio;
+        public double resourceBarRatio;
         [KSPField(isPersistant = false)]
         public float thermalRatioEfficiencyModifier = 0.81f;
         [KSPField(isPersistant = false)]
@@ -23,13 +23,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float minimumChargdIspMult = 11.4f;
         [KSPField(isPersistant = false)]
-        public float coreTemperatureWasteheatPower = 0.25f;
+        public float coreTemperatureWasteheatPower = 0.3f;
         [KSPField(isPersistant = false)]
         public float coreTemperatureWasteheatModifier = -0.2f;
         [KSPField(isPersistant = false)]
         public float coreTemperatureWasteheatMultiplier = 1.25f;
 
-        private float optimalTempDifference;
+        private double optimalTempDifference;
      
 
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
@@ -56,14 +56,14 @@ namespace FNPlugin
 
         public override double MaximumChargedPower { get { return base.MaximumChargedPower * (float)ThermalRatioEfficiency; } }
 
-        private float ThermalRatioEfficiency
+        private double ThermalRatioEfficiency
         {
-            get { return reactorType == 4 || heatThrottling ? (float)Math.Pow((ZeroPowerTemp - CoreTemperature) / optimalTempDifference, thermalRatioEfficiencyModifier) : 1; }
+            get { return reactorType == 4 || heatThrottling ? Math.Pow((ZeroPowerTemp - CoreTemperature) / optimalTempDifference, thermalRatioEfficiencyModifier) : 1; }
         }
 
         private float OptimalTemp { get { return (float)base.CoreTemperature; } }
 
-        private float ZeroPowerTemp { get { return (float)base.CoreTemperature * 1.25f; } }
+        private double ZeroPowerTemp { get { return base.CoreTemperature * 1.25f; } }
 
         public override bool IsNuclear { get { return true; } }
 
@@ -73,10 +73,10 @@ namespace FNPlugin
             {
                 if (HighLogic.LoadedSceneIsFlight && (reactorType == 4 || heatThrottling) ) 
                 {
-                    resourceBarRatio = (float)getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
                     var temperatureIncrease = Math.Max(Math.Pow(resourceBarRatio, coreTemperatureWasteheatPower) + coreTemperatureWasteheatModifier, 0) * coreTemperatureWasteheatMultiplier * optimalTempDifference;
 
-                    return (float)Math.Min(Math.Max(OptimalTemp + temperatureIncrease, OptimalTemp), ZeroPowerTemp);
+                    return Math.Min(Math.Max(OptimalTemp + temperatureIncrease, OptimalTemp), ZeroPowerTemp);
                 } 
                 return base.CoreTemperature;
             }
