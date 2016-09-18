@@ -54,7 +54,7 @@ namespace FNPlugin
 
 		public override void OnStart(PartModule.StartState state) 
         {
-            var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+            var wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
             // calculate WasteHeat Capacity
             if (wasteheatPowerResource != null)
             {

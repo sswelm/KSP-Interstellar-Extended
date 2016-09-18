@@ -96,6 +96,7 @@
     <Compile Include="ORSGameConstants.cs" />
     <Compile Include="ORSOceanicResourceHandler.cs" />
     <Compile Include="ORSPartExtensions.cs" />
+    <Compile Include="ParseTools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ORSResourceAbundanceMarker.cs" />
   </ItemGroup>

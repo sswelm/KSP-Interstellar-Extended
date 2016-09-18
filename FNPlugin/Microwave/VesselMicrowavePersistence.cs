@@ -8,23 +8,28 @@ namespace FNPlugin
     class VesselMicrowavePersistence
     {
         Vessel vessel;
-        double nuclear_power;
-        double solar_power;
+        private bool isactive;
+
+        private double aperture;
+        private double nuclear_power;
+        private double solar_power;
+        private double power_capacity;
 
         public VesselMicrowavePersistence(Vessel vessel)
         {
             this.vessel = vessel;
+            SupportedTransmitWavelengths = new List<WaveLengthData>();
         }
 
         public double getAvailablePower()
         {
             double power = 0;
-            if (PluginHelper.lineOfSightToSun(vessel) && solar_power > 0)
+            if (solar_power > 0.001 && PluginHelper.lineOfSightToSun(vessel))
             {
                 var distanceBetweenVesselAndSun = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
                 var distanceBetweenSunAndKerbin = Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
                 double inv_square_mult = Math.Pow(distanceBetweenVesselAndSun, 2) / Math.Pow(distanceBetweenSunAndKerbin, 2);
-                power = nuclear_power + solar_power / inv_square_mult;
+                power = Math.Min(power_capacity, nuclear_power + solar_power / inv_square_mult);
             }
             else
                 power = nuclear_power;
@@ -32,29 +37,41 @@ namespace FNPlugin
             return power;
         }
 
-        public double getNuclearPower()
+        public Vessel Vessel
         {
-            return nuclear_power;
+            get { return this.vessel; }
         }
 
-        public double getSolarPower()
+        public bool IsActive
         {
-            return solar_power;
+            get { return this.isactive; }
+            set { this.isactive = value; }
         }
 
-        public Vessel getVessel()
+        public double SolarPower
         {
-            return vessel;
+            get { return this.solar_power; }
+            set { this.solar_power = value; }
         }
 
-        public void setNuclearPower(double nuclear_power)
+        public double NuclearPower
         {
-            this.nuclear_power = nuclear_power;
+            get { return this.nuclear_power; }
+            set { this.nuclear_power = value; }
         }
 
-        public void setSolarPower(double solar_power)
+        public double Aperture
         {
-            this.solar_power = solar_power;
+            get { return aperture != 0 ? this.aperture : 5; }
+            set { this.aperture = value; }
         }
+
+        public double PowerCapacity
+        {
+            get { return power_capacity != 0 ? this.power_capacity : 2; }
+            set { this.power_capacity = value; }
+        }
+
+        public List<WaveLengthData> SupportedTransmitWavelengths { get; private set; }
     }
 }

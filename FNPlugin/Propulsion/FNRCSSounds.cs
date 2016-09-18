@@ -129,11 +129,9 @@ namespace FNPlugin
                             m = ResourceFlowMode.ALL_VESSEL;
                         }
 
-                        part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(rcsModule.resourceName).id,
-                            m, resourceList);
+                        double amount = 0;
                         double totalAmount = 0;
-                        foreach (PartResource r in resourceList)
-                            totalAmount += r.amount;
+                        part.GetConnectedResourceTotals(PartResourceLibrary.Instance.GetDefinition(rcsModule.resourceName).id, out amount, out totalAmount);
 
                         if (totalAmount >= 0.01) // 0.01 is the smallest amount shown in the resource menu.
                         {

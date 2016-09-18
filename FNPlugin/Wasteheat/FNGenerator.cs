@@ -79,7 +79,7 @@ namespace FNPlugin
         public float rawMaximumPower;
 
         // Debugging
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Scale Multiplier")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public float storedMassMultiplier;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
         public float partMass;
@@ -89,9 +89,6 @@ namespace FNPlugin
         public float initialMass;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Delta Mass", guiUnits = " t")]
         public float moduleMassDelta;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Default Mass", guiUnits = " t")]
-        public float defaultMass;
-
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW")]
@@ -207,20 +204,11 @@ namespace FNPlugin
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            try
-            {
-                //Debug.Log("GetModuleMass called in FNGenerator");
-                this.defaultMass = defaultMass;
+            //this.defaultMass = defaultMass;
 
-                moduleMassDelta = targetMass - initialMass;
+            moduleMassDelta = targetMass - initialMass;
 
-                return moduleMassDelta;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch GetModuleMass Error: " + e.Message);
-                throw;
-            }
+            return moduleMassDelta;
         }
 
         public void upgradePartModule()
@@ -255,17 +243,14 @@ namespace FNPlugin
             // calculate WasteHeat Capacity
             if (maintainsMegaWattPowerBuffer)
             {
-                var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-                if (wasteheatPowerResource != null)
-                {
-                    var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
-                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
-                }
+                var wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }
 
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
-            megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
+            megajouleResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
 
             base.OnStart(state);
             generatorType = originalName;
@@ -694,9 +679,9 @@ namespace FNPlugin
                     }
                 }
 
-                PartResource electricChargeResource = part.Resources.list.FirstOrDefault(r => r.resourceName == "ElectricCharge");
-                if (electricChargeResource != null)
+                if (part.Resources.Contains(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE))
                 {
+                    PartResource electricChargeResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
                     electricChargeResource.maxAmount = requiredMegawattCapacity;
                     electricChargeResource.amount = maxStableMegaWattPower <= 0 ? 0 : Math.Min(electricChargeResource.maxAmount, electricChargeResource.amount);
                 }
@@ -736,14 +721,14 @@ namespace FNPlugin
                 else
                     powerDownFraction -= 0.01;
 
-                PartResource megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
+                PartResource megajouleResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
                 if (megajouleResource != null)
                 {
                     megajouleResource.maxAmount = Math.Max(0.0001, megajouleResource.maxAmount * powerDownFraction);
                     megajouleResource.amount = Math.Min(megajouleResource.maxAmount, megajouleResource.amount);
                 }
 
-                PartResource electricChargeResource = part.Resources.list.FirstOrDefault(r => r.resourceName == "ElectricCharge");
+                PartResource electricChargeResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
                 if (electricChargeResource != null)
                 {
                     electricChargeResource.maxAmount = Math.Max(0.0001, electricChargeResource.maxAmount * powerDownFraction);
@@ -752,14 +737,14 @@ namespace FNPlugin
             }
             else
             {
-                PartResource megajouleResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
+                PartResource megajouleResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES);
                 if (megajouleResource != null)
                 {
                     megajouleResource.maxAmount = 0.0001;
                     megajouleResource.amount = 0;
                 }
 
-                PartResource electricChargeResource = part.Resources.list.FirstOrDefault(r => r.resourceName == "ElectricCharge");
+                PartResource electricChargeResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
                 if (electricChargeResource != null)
                 {
                     electricChargeResource.maxAmount = 0.0001;

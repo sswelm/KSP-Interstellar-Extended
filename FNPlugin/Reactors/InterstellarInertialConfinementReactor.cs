@@ -169,6 +169,8 @@ namespace FNPlugin
         {
             base.OnFixedUpdate();
 
+            UpdateLoopingAnimation(ongoing_consumption_rate * powerPercentage / 100);
+
             if (!IsEnabled && !isChargingForJumpstart)
             {
                 plasma_ratio = 0;
@@ -235,6 +237,19 @@ namespace FNPlugin
                 if (plasma_ratio < 0.01)
                     plasma_ratio = 0;
             }
+        }
+
+        public void UpdateLoopingAnimation(double percentage)
+        {
+            if (loopingAnimation == null)
+                return;
+
+            currentAnimatioRatio += TimeWarp.fixedDeltaTime * percentage;
+
+            if (currentAnimatioRatio >= 1)
+                currentAnimatioRatio -= 1;
+
+            PluginHelper.SetAnimationRatio((float)Math.Max(Math.Min(currentAnimatioRatio, 1), 0), loopingAnimation);
         }
 
         private void ProcessCharging()
