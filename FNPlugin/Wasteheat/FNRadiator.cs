@@ -20,8 +20,11 @@ namespace FNPlugin
 		public bool radiatorIsEnabled;
         [KSPField(isPersistant = true)]
         public bool radiatorInit;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Automated")]
+
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Automated"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool isAutomated = true;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Pivot"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool pivotEnabled = true;
 
         [KSPField(isPersistant = false)]
         public bool showColorHeat = true;
@@ -133,13 +136,14 @@ namespace FNPlugin
 		protected float convectedThermalPower;
 		protected float current_rad_temp;
 		protected float directionrotate = 1;
-		protected Vector3 original_eulers;
-		protected Transform pivot;
+		//protected Vector3 original_eulers;
+		//protected Transform pivot;
         protected long update_count = 0;
 		protected int explode_counter = 0;
         protected int nrAvailableUpgradeTechs;
-        
-        private Renderer[] array;
+
+        private CelestialBody star;
+        private Renderer[] renderArray;
         private AnimationState[] heatStates;
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
@@ -297,15 +301,6 @@ namespace FNPlugin
             return average_temp;
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Enable Automation", active = true)]
-        public void SwitchAutomation()
-        {
-            isAutomated = !isAutomated;
-
-            UpdateEnableAutomation();
-        }
-
-
 		[KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Deploy Radiator", active = true)]
 		public void DeployRadiator() 
         {
@@ -364,12 +359,6 @@ namespace FNPlugin
             deployAnim.Blend(animName, 2f);
         }
 
-        [KSPAction("Switch Automation")]
-        public void SwitchAutomationAction(KSPActionParam param)
-        {
-            SwitchAutomation();
-        }
-
 		[KSPAction("Deploy Radiator")]
 		public void DeployRadiatorAction(KSPActionParam param) 
         {
@@ -406,8 +395,6 @@ namespace FNPlugin
                 part.emissiveConstant = 1.6;
 
             radiatorType = RadiatorType;
-
-            UpdateEnableAutomation();
 
             effectiveRadiatorArea = EffectiveRadiatorArea;
 
@@ -459,6 +446,16 @@ namespace FNPlugin
                 return;
             }
 
+            int depth = 0;
+            star = FlightGlobals.currentMainBody;
+            while (depth < 10 && star != null && star.GetTemperature(0) < 2000)
+            {
+                star = star.referenceBody;
+                depth++;
+            }
+            if (star == null)
+                star = FlightGlobals.Bodies[0];
+
             // find all thermal sources
             list_of_thermal_sources = vessel.FindPartModulesImplementing<IThermalSource>().Where(tc => tc.IsThermalSource).ToList();
 
@@ -474,17 +471,10 @@ namespace FNPlugin
             // add to static list of all radiators
             FNRadiator.list_of_all_radiators.Add(this);
 
-            array = part.FindModelComponents<Renderer>();
+            renderArray = part.FindModelComponents<Renderer>().ToArray();
 
             if (isDeployable)
-            {
                 UnityEngine.Debug.Log("[KSPI] - OnStart.Start isDeployable");
-
-                pivot = part.FindModelTransform("suntransform");
-
-                if (pivot != null)
-                    original_eulers = pivot.transform.localEulerAngles;
-            }
             else
                 radiatorIsEnabled = true;
 
@@ -515,16 +505,14 @@ namespace FNPlugin
             return states.ToArray();
         }
 
-        private void UpdateEnableAutomation()
-        {
-            Events["SwitchAutomation"].active = isDeployable;
-            Events["SwitchAutomation"].guiName = isAutomated ? "Disable Automation" : "Enable Automation";
-        }
-
         public void Update()
         {
-            Events["DeployRadiator"].active = !radiatorIsEnabled && isDeployable && _moduleDeployableRadiator == null;
-            Events["RetractRadiator"].active = radiatorIsEnabled && isDeployable && _moduleDeployableRadiator == null;
+            var isUndefined = _moduleDeployableRadiator == null 
+                || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING 
+                || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTING;
+
+            Events["DeployRadiator"].active = !radiatorIsEnabled && isDeployable && isUndefined;
+            Events["RetractRadiator"].active = radiatorIsEnabled && isDeployable && isUndefined;
         }
 
         public override void OnUpdate() // is called while in flight
@@ -532,8 +520,6 @@ namespace FNPlugin
             if (update_count > 8)
             {
                 update_count = 0;
-
-                UpdateEnableAutomation();
 
                 Fields["thermalPowerConvStr"].guiActive = convectedThermalPower > 0;
 
@@ -560,9 +546,6 @@ namespace FNPlugin
                 radiatorTempStr = current_rad_temp.ToString("0.0") + "K / " + RadiatorTemperature.ToString("0.0") + "K";
 
                 partTempStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
-
-                //last_draw_update = update_count;
-                
 
                 if (showColorHeat)
                     ColorHeat();
@@ -649,30 +632,11 @@ namespace FNPlugin
 
                     current_rad_temp = instantaneous_rad_temp;
 
-                    if (isDeployable && pivot != null && _moduleDeployableRadiator != null && _moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED)
-                    {
-                        pivot.Rotate(Vector3.up * 5f * TimeWarp.fixedDeltaTime * directionrotate);
-
-                        Vector3 sunpos = FlightGlobals.Bodies[0].transform.position;
-                        Vector3 flatVectorToTarget = sunpos - transform.position;
-
-                        flatVectorToTarget = flatVectorToTarget.normalized;
-                        float dot = Mathf.Asin(Vector3.Dot(pivot.transform.right, flatVectorToTarget)) / Mathf.PI * 180.0f;
-
-                        float anglediff = -dot;
-                        directionrotate = anglediff / 5 / TimeWarp.fixedDeltaTime;
-                        directionrotate = Mathf.Min(3, directionrotate);
-                        directionrotate = Mathf.Max(-3, directionrotate);
-
-                        part.maximum_drag = 0.8f;
-                        part.minimum_drag = 0.8f;
-                    }
+                    if (_moduleDeployableRadiator)
+                        _moduleDeployableRadiator.hasPivot = pivotEnabled;
                 }
                 else
                 {
-                    if (isDeployable && pivot != null)
-                        pivot.transform.localEulerAngles = original_eulers;
-
                     double fixed_thermal_power_dissip = Mathf.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7f * TimeWarp.fixedDeltaTime;
 
                     radiatedThermalPower = (float)consumeWasteHeat(fixed_thermal_power_dissip);
@@ -688,8 +652,6 @@ namespace FNPlugin
             {
                 Debug.LogError("FNReactor.FixedUpdate" + e.Message);
             }
-
-
         }
 
         private void DeployMentControl(float dynamic_pressure)
@@ -814,7 +776,7 @@ namespace FNPlugin
 
             var emissiveColor = new Color(colorRatio, 0.0f, 0.0f, 0.5f);
 
-            foreach (Renderer renderer in array)
+            foreach (Renderer renderer in renderArray)
             {
                 if (renderer.material.shader.name != kspShader)
                     renderer.material.shader = Shader.Find(kspShader);
