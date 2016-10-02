@@ -1,4 +1,10 @@
-﻿1.7.11, 2016-04-21
+﻿1.7.12, 2016-05-02
+- Updated for KSP 1.1.2.
+- Now uses KSP-AVC for version checking. If KSP-AVC is not installed, the bundled
+  MiniAVC will be used. The "Toolbar Update Available" button on the toolbar has
+  been removed.
+
+1.7.11, 2016-04-21
 - Updated for KSP 1.1.0.
 
 1.7.10, 2015-11-10
