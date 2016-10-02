@@ -22,8 +22,10 @@ namespace FNPlugin
         //}
 
         // Persistent True
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true)]
         public bool IsEnabled;
+        [KSPField(isPersistant = true, guiActive = true)]
+        public bool isDeployed = false;
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
@@ -153,6 +155,10 @@ namespace FNPlugin
         public string animName;
         [KSPField(isPersistant = false)]
         public string loopingAnimationName;
+        [KSPField(isPersistant = false)]
+        public string startupAnimationName;
+        [KSPField(isPersistant = false)]
+        public string shutdownAnimationName;
 
         [KSPField(isPersistant = false)]
         public string upgradedName;
@@ -302,6 +308,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Requested", guiFormat = "F6")]
         protected double ongoing_charged_power_requested;
 
+        [KSPField(isPersistant = false, guiActive = true)]
+        public bool initialized = false;
+        [KSPField(isPersistant = true)]
+        public double animationStarted = 0;
+
         // value types
         protected bool hasrequiredupgrade = false;
         protected int deactivate_timer = 0;
@@ -364,8 +375,14 @@ namespace FNPlugin
 
         private bool isFixedUpdatedCalled;
 
-        protected AnimationState[] animationState;
-        protected AnimationState[] loopingAnimation;
+       // protected AnimationState[] startupAnimation;
+       // protected Animation shutdownAnimation;
+        protected AnimationState[] pulseAnimation;
+        //protected AnimationState[] loopingAnimation;
+
+        protected ModuleAnimateGeneric startupAnimation;
+        protected ModuleAnimateGeneric shutdownAnimation;
+        protected ModuleAnimateGeneric loopingAnimation;
 
         protected ElectricGeneratorType _firstGeneratorType;
 
@@ -925,9 +942,28 @@ namespace FNPlugin
                 DoPersistentResourceUpdate();
 
             if (!String.IsNullOrEmpty(animName))
-                animationState = PluginHelper.SetUpAnimation(animName, this.part);
+                pulseAnimation = PluginHelper.SetUpAnimation(animName, this.part);
             if (!String.IsNullOrEmpty(loopingAnimationName))
-                loopingAnimation = PluginHelper.SetUpAnimation(loopingAnimationName, this.part);
+            {
+                //loopingAnimation = PluginHelper.SetUpAnimation(loopingAnimationName, this.part);
+                loopingAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == loopingAnimationName);
+            }
+            if (!String.IsNullOrEmpty(startupAnimationName))
+            {
+                startupAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == startupAnimationName );
+
+                //startupAnimation = PluginHelper.SetUpAnimation(startupAnimationName, this.part);
+                //startupAnimation = part.FindModelAnimators(startupAnimationName).FirstOrDefault();
+                //if (startupAnimation == null)
+                //    ScreenMessages.PostScreenMessage("Failed to find startupAnimation " + startupAnimationName, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+                //else
+                //    ScreenMessages.PostScreenMessage("Succesfully Found startupAnimation " + startupAnimationName, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+            }
+            if (!String.IsNullOrEmpty(shutdownAnimationName))
+            {
+                shutdownAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == shutdownAnimationName);
+                //    shutdownAnimation = part.FindModelAnimators(shutdownAnimationName).FirstOrDefault();
+            }
 
             // only force activate if not with a engine model
             var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
@@ -1217,7 +1253,7 @@ namespace FNPlugin
                 ongoing_consumption_rate = total_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
 
                 
-                PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, 4), animationState);
+                PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, 4), pulseAnimation);
 
                 powerPcnt = 100 * ongoing_consumption_rate;
 
@@ -1249,7 +1285,7 @@ namespace FNPlugin
             }
             else if (IsEnabled && IsNuclear && MaximumPower > 0 && (Planetarium.GetUniversalTime() - last_active_time <= 3 * PluginHelper.SecondsInDay))
             {
-                PluginHelper.SetAnimationRatio(0, animationState);
+                PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 double power_fraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / PluginHelper.SecondsInDay / 24.0 * 9.0);
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
                 raw_thermal_power_received = supplyManagedFNResourceWithMinimumRatio(power_to_supply, 1, FNResourceManager.FNRESOURCE_THERMALPOWER);
@@ -1263,7 +1299,7 @@ namespace FNPlugin
             }
             else
             {
-                PluginHelper.SetAnimationRatio(0, animationState);
+                PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 powerPcnt = 0;
             }
 

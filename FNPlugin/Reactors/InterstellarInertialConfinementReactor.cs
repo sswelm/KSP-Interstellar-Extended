@@ -35,6 +35,8 @@ namespace FNPlugin
         // UI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Scalar")]
+        public float animationScalar;
 
         // protected fields
         protected float power_consumed;
@@ -161,6 +163,36 @@ namespace FNPlugin
 
             electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
 
+            if (startupAnimation != null && !initialized)
+            {
+                if (IsEnabled)
+                {
+                    animationScalar = startupAnimation.GetScalar;
+                    if (animationStarted == 0)
+                    {
+                        startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));
+                        animationStarted = Planetarium.GetUniversalTime();
+                    }
+                    else if (!startupAnimation.IsMoving())
+                    {
+                        startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Deactivate));
+                        animationStarted = 0;
+                        initialized = true;
+                        isDeployed = true;
+                    }
+                }
+                else // Not Enabled
+                {
+                    // continiously start
+                    startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));
+                    startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Deactivate));
+                }
+            }
+            else if (startupAnimation == null)
+            {
+                isDeployed = true;
+            }
+
             // call base class
             base.OnUpdate();
         }
@@ -192,7 +224,7 @@ namespace FNPlugin
                 var shortage = StartupPower - power_consumed;
                 if (shortage <= accumulatedElectricChargeInMW)
                 {
-                    ScreenMessages.PostScreenMessage("Attempting to Jump start", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                    //ScreenMessages.PostScreenMessage("Attempting to Jump start", 5.0f, ScreenMessageStyle.LOWER_CENTER);
                     power_consumed += (float)accumulatedElectricChargeInMW;
                 }
             }
@@ -239,17 +271,36 @@ namespace FNPlugin
             }
         }
 
-        public void UpdateLoopingAnimation(double percentage)
+        public void UpdateLoopingAnimation(double ratio)
         {
             if (loopingAnimation == null)
                 return;
 
-            currentAnimatioRatio += TimeWarp.fixedDeltaTime * percentage;
+            if (!isDeployed)
+                return;
 
-            if (currentAnimatioRatio >= 1)
-                currentAnimatioRatio -= 1;
+            if (!IsEnabled)
+            {
+                if (initialized && shutdownAnimation != null && !loopingAnimation.IsMoving())
+                {
+                    if (animationStarted == 0)
+                    {
+                        animationStarted = Planetarium.GetUniversalTime();
+                        shutdownAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));
+                    }
+                    else if (!shutdownAnimation.IsMoving())
+                    {
+                        shutdownAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Deactivate));
+                        initialized = false;
+                        isDeployed = true;
+                        //doOnce = false;
+                    }
+                }
+                return;
+            }
 
-            PluginHelper.SetAnimationRatio((float)Math.Max(Math.Min(currentAnimatioRatio, 1), 0), loopingAnimation);
+            if (!loopingAnimation.IsMoving())
+                loopingAnimation.Toggle();
         }
 
         private void ProcessCharging()

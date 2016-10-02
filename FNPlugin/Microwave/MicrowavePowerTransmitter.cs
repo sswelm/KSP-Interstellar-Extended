@@ -221,7 +221,7 @@ namespace FNPlugin
 
             UpdateRelayWavelength();
 
-            ScreenMessages.PostScreenMessage("Microwave Transmitter Updated Wvelength", 10.0f, ScreenMessageStyle.UPPER_CENTER);
+            //ScreenMessages.PostScreenMessage("Microwave Transmitter Updated Wvelength", 10.0f, ScreenMessageStyle.UPPER_CENTER);
 
             anim = part.FindModelAnimators(animName).FirstOrDefault();
             if ( anim != null &&  part_receiver == null)
@@ -244,7 +244,7 @@ namespace FNPlugin
 
             
             this.part.force_activate();
-            ScreenMessages.PostScreenMessage("Microwave Transmitter Force Activated", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+            //ScreenMessages.PostScreenMessage("Microwave Transmitter Force Activated", 5.0f, ScreenMessageStyle.UPPER_CENTER);
         }
 
         /// <summary>
