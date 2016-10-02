@@ -132,8 +132,8 @@ namespace FNPlugin
         const String kspShader = "KSP/Emissive/Bumped Specular";
 
 		protected Animation deployAnim;
-		protected float radiatedThermalPower;
-		protected float convectedThermalPower;
+		protected double radiatedThermalPower;
+		protected double convectedThermalPower;
 		protected float current_rad_temp;
 		protected float directionrotate = 1;
 		//protected Vector3 original_eulers;
@@ -532,7 +532,8 @@ namespace FNPlugin
                         radiatorIsEnabled = false;
                 }
 
-                if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED) || _moduleDeployableRadiator == null)
+                //if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED) || _moduleDeployableRadiator == null)
+                if (radiatorIsEnabled)
                 {
                     thermalPowerDissipStr = radiatedThermalPower.ToString("0.000") + "MW";
                     thermalPowerConvStr = convectedThermalPower.ToString("0.000") + "MW";
@@ -583,13 +584,14 @@ namespace FNPlugin
                     if (!radiatorIsEnabled)
                         conv_power_dissip = conv_power_dissip / 2.0f;
 
-                    convectedThermalPower = (float)consumeWasteHeat(conv_power_dissip);
+                    convectedThermalPower = consumeWasteHeat(conv_power_dissip);
 
                     if (update_count == 6 && isDeployable)
                         DeployMentControl(dynamic_pressure);
                 }
                 else
                 {
+                    convectedThermalPower = 0;
                     pressureLoad = 0;
                     if (!radiatorIsEnabled && isAutomated)
                         Deploy();
@@ -619,9 +621,9 @@ namespace FNPlugin
                     if (Double.IsNaN(fixed_thermal_power_dissip))
                         Debug.LogWarning("FNRadiator: OnFixedUpdate Single.IsNaN detected in fixed_thermal_power_dissip");
 
-                    radiatedThermalPower = (float)consumeWasteHeat(fixed_thermal_power_dissip);
+                    radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
 
-                    if (Single.IsNaN(radiatedThermalPower))
+                    if (Double.IsNaN(radiatedThermalPower))
                         Debug.LogError("FNRadiator: OnFixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + fixed_thermal_power_dissip + ")");
 
                     instantaneous_rad_temp = Mathf.Min(radiator_temperature_temp_val * 1.014f, RadiatorTemperature);
@@ -639,7 +641,7 @@ namespace FNPlugin
                 {
                     double fixed_thermal_power_dissip = Mathf.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7f * TimeWarp.fixedDeltaTime;
 
-                    radiatedThermalPower = (float)consumeWasteHeat(fixed_thermal_power_dissip);
+                    radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
 
                     instantaneous_rad_temp = Mathf.Min(radiator_temperature_temp_val * 1.014f, RadiatorTemperature);
                     instantaneous_rad_temp = Mathf.Max(instantaneous_rad_temp, Mathf.Max((float)FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody), 2.7f));
@@ -696,7 +698,8 @@ namespace FNPlugin
 
         private double consumeWasteHeat(double wasteheatToConsume)
         {
-            if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED) || _moduleDeployableRadiator == null)
+            //if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED) || _moduleDeployableRadiator == null)
+            if (radiatorIsEnabled)
             {
                 var consumedWasteheat = consumeFNResource(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT);
 

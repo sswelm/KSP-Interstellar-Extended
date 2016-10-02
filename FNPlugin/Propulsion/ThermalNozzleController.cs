@@ -571,59 +571,41 @@ namespace FNPlugin
 
             Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade && isJet;
 
-            if (myAttachedEngine != null)
-            {
-                if (myAttachedEngine.isOperational && !IsEnabled)
-                {
-                    IsEnabled = true;
-                    part.force_activate();
-                }
-                //updatePropellantBar();
+            if (myAttachedEngine == null)
+                return;
 
-                if (IsEnabled && deployAnim != null && !initialized)
+            if (myAttachedEngine.isOperational && !IsEnabled)
+            {
+                IsEnabled = true;
+                part.force_activate();
+            }
+
+            if (IsEnabled && deployAnim != null && !initialized)
+            {
+                if (isDeployed)
                 {
-                    if (isDeployed)
-                    {
-                        deployAnim[deployAnimationName].normalizedTime = 1;
-                        deployAnim[deployAnimationName].layer = 1;
-                        deployAnim.Blend(deployAnimationName, part.mass);
-                        initialized = true;
-                    }
-                    else if (animationStarted == 0)
-                    {
-                        deployAnim[deployAnimationName].normalizedTime = 0;
-                        deployAnim[deployAnimationName].speed = 1;
-                        deployAnim[deployAnimationName].layer = 1;
-                        deployAnim.Blend(deployAnimationName, part.mass);
-                        myAttachedEngine.Shutdown();
-                        animationStarted = Planetarium.GetUniversalTime();
-                    }
-                    else if ((Planetarium.GetUniversalTime() > animationStarted + deployAnim[deployAnimationName].length))
-                    {
-                        initialized = true;
-                        isDeployed = true;
-                        myAttachedEngine.Activate();
-                    }
+                    deployAnim[deployAnimationName].normalizedTime = 1;
+                    deployAnim[deployAnimationName].layer = 1;
+                    deployAnim.Blend(deployAnimationName, part.mass);
+                    initialized = true;
+                }
+                else if (animationStarted == 0)
+                {
+                    deployAnim[deployAnimationName].normalizedTime = 0;
+                    deployAnim[deployAnimationName].speed = 1;
+                    deployAnim[deployAnimationName].layer = 1;
+                    deployAnim.Blend(deployAnimationName, part.mass);
+                    myAttachedEngine.Shutdown();
+                    animationStarted = Planetarium.GetUniversalTime();
+                }
+                else if ((Planetarium.GetUniversalTime() > animationStarted + deployAnim[deployAnimationName].length))
+                {
+                    initialized = true;
+                    isDeployed = true;
+                    myAttachedEngine.Activate();
                 }
             }
-        }
 
-        public void updatePropellantBar()
-        {
-            double currentpropellant = 0;
-            double maxpropellant = 0;
-
-            //List<PartResource> partresources = part.GetConnectedResources(list_of_propellants.FirstOrDefault().name).ToList();
-            //foreach (PartResource partresource in partresources)
-            //{
-            //    currentpropellant += (float)partresource.amount;
-            //    maxpropellant += (float)partresource.maxAmount;
-            //}
-
-            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(list_of_propellants.FirstOrDefault().name);
-
-            if (resourceDefinition != null)
-                part.GetConnectedResourceTotals(resourceDefinition.id, out currentpropellant, out maxpropellant);
         }
 
         public override void OnActive()
@@ -631,7 +613,6 @@ namespace FNPlugin
             base.OnActive();
             SetupPropellants(true, true);
         }
-
 
         public void SetupPropellants(bool forward = true, bool notifySwitching = false)
         {
