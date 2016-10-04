@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using System;
 
 namespace InterstellarFuelSwitch
 {
@@ -14,7 +15,8 @@ namespace InterstellarFuelSwitch
         public string previousButtonName = "Prev part variant";
         [KSPField]
         public string switcherDescription = "Mesh";
-
+        [KSPField]
+        public string tankSwitchNames = string.Empty;
         [KSPField]
         public string objectDisplayNames = string.Empty;
         [KSPField]
@@ -47,6 +49,8 @@ namespace InterstellarFuelSwitch
         private List<List<Transform>> objectTransforms = new List<List<Transform>>();
         private List<int> fuelTankSetupList = new List<int>();
         private List<string> objectDisplayList = new List<string>();
+        private List<string> tankSwitchNamesList = new List<string>();
+
         private InterstellarFuelSwitch fuelSwitch;
         private InterstellarDebugMessages debug;
 
@@ -60,7 +64,7 @@ namespace InterstellarFuelSwitch
         public void nextObjectEvent()
         {
             selectedObject++;
-            if (selectedObject >= objectTransforms.Count)
+            if (selectedObject >= objectDisplayList.Count)
                 selectedObject = 0;
 
             switchToObject(selectedObject, true);            
@@ -71,7 +75,7 @@ namespace InterstellarFuelSwitch
         {
             selectedObject--;
             if (selectedObject < 0)
-                selectedObject = objectTransforms.Count - 1;
+                selectedObject = objectDisplayList.Count - 1;
 
             switchToObject(selectedObject, true);            
         }
@@ -109,21 +113,22 @@ namespace InterstellarFuelSwitch
         {
             setObject(objectNumber, calledByPlayer);
 
-            if (updateSymmetry)
+            if (!updateSymmetry)
+                return;
+
+            for (int i = 0; i < part.symmetryCounterparts.Count; i++)
             {
-                for (int i = 0; i < part.symmetryCounterparts.Count; i++)
+                InterstellarMeshSwitch[] symSwitch = part.symmetryCounterparts[i].GetComponents<InterstellarMeshSwitch>();
+                for (int j = 0; j < symSwitch.Length; j++)
                 {
-                    InterstellarMeshSwitch[] symSwitch = part.symmetryCounterparts[i].GetComponents<InterstellarMeshSwitch>();
-                    for (int j = 0; j < symSwitch.Length; j++)
+                    if (symSwitch[j].moduleID == moduleID)
                     {
-                        if (symSwitch[j].moduleID == moduleID)
-                        {
-                            symSwitch[j].selectedObject = selectedObject;
-                            symSwitch[j].setObject(objectNumber, calledByPlayer);
-                        }
+                        symSwitch[j].selectedObject = selectedObject;
+                        symSwitch[j].setObject(objectNumber, calledByPlayer);
                     }
                 }
             }
+
         }
 
         private void setObject(int objectNumber, bool calledByPlayer)
@@ -142,24 +147,28 @@ namespace InterstellarFuelSwitch
                         var collider = objectTransforms[i][j].gameObject.GetComponent<Collider>();
                         if (collider != null)
                             collider.enabled = false;
-                    }                    
+                    }
                 }
             }
-            
-            // enable the selected one last because there might be several entries with the same object, and we don't want to disable it after it's been enabled.
-            for (int i = 0; i < objectTransforms[objectNumber].Count; i++)
+
+            if (objectNumber < objectTransforms.Count)
             {
-                objectTransforms[objectNumber][i].gameObject.SetActive(true);
-                if (affectColliders)
+                // enable the selected one last because there might be several entries with the same object, and we don't want to disable it after it's been enabled.
+                for (int i = 0; i < objectTransforms[objectNumber].Count; i++)
                 {
-                    var colloder = objectTransforms[objectNumber][i].gameObject.GetComponent<Collider>();
-                    if (colloder != null)
+                    objectTransforms[objectNumber][i].gameObject.SetActive(true);
+                    if (affectColliders)
                     {
-                        debug.debugMessage("InterstellarMeshSwitch: Setting collider true on new active object");
-                        colloder.enabled = true;
+                        var colloder = objectTransforms[objectNumber][i].gameObject.GetComponent<Collider>();
+                        if (colloder != null)
+                        {
+                            debug.debugMessage("InterstellarMeshSwitch: Setting collider true on new active object");
+                            colloder.enabled = true;
+                        }
                     }
-                }                
-            }            
+                }
+            }
+
 
             if (useFuelSwitchModule)
             {
@@ -171,6 +180,7 @@ namespace InterstellarFuelSwitch
             }
 
             setCurrentObjectName();
+
         }
 
         private void setCurrentObjectName()
@@ -202,7 +212,7 @@ namespace InterstellarFuelSwitch
             chooseField.guiActiveEditor = hasSwitchChooseOption;
 
             var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;
-            chooseOption.options = objectDisplayList.ToArray();
+            chooseOption.options = tankSwitchNamesList.ToArray();
             chooseOption.onFieldChanged = UpdateFromGUI;
 
             if (!showPreviousButton) 
@@ -216,34 +226,49 @@ namespace InterstellarFuelSwitch
 
         public void initializeData()
         {
-            if (!initialized)
+            try
             {
-                debug = new InterstellarDebugMessages(debugMode, "InterstellarMeshSwitch");
-                // you can't have fuel switching without symmetry, it breaks the editor GUI.
-                if (useFuelSwitchModule) 
-                    updateSymmetry = true;
-
-                parseObjectNames();
-                fuelTankSetupList = ParseTools.ParseIntegers(fuelTankSetups);
-                objectDisplayList = ParseTools.ParseNames(objectDisplayNames);
-
-                if (useFuelSwitchModule)
+                if (!initialized)
                 {
-                    fuelSwitch = part.GetComponent<InterstellarFuelSwitch>();
-                    if (fuelSwitch == null)
+                    debug = new InterstellarDebugMessages(debugMode, "InterstellarMeshSwitch");
+                    // you can't have fuel switching without symmetry, it breaks the editor GUI.
+                    if (useFuelSwitchModule)
+                        updateSymmetry = true;
+
+                    parseObjectNames();
+                    fuelTankSetupList = ParseTools.ParseIntegers(fuelTankSetups);
+                    objectDisplayList = ParseTools.ParseNames(objectDisplayNames);
+
+                    tankSwitchNamesList = new List<string>();
+
+                    // add any missing names
+                    var tankSwitchNamesListTmp = ParseTools.ParseNames(tankSwitchNames);
+                    for (int i = 0; i < objectDisplayList.Count; i++)
                     {
-                        useFuelSwitchModule = false;
-                        debug.debugMessage("no FSfuelSwitch module found, despite useFuelSwitchModule being true");
+                        if (i < tankSwitchNamesListTmp.Count)
+                            tankSwitchNamesList.Add(tankSwitchNamesListTmp[i]);
+                        else
+                            tankSwitchNamesList.Add(objectDisplayList[i]);
                     }
+
+                    if (useFuelSwitchModule)
+                    {
+                        fuelSwitch = part.GetComponent<InterstellarFuelSwitch>();
+                        if (fuelSwitch == null)
+                        {
+                            useFuelSwitchModule = false;
+                            debug.debugMessage("no FSfuelSwitch module found, despite useFuelSwitchModule being true");
+                        }
+                    }
+                    initialized = true;
                 }
-                initialized = true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("InterstellarMeshSwitch initializeData Error: " + e.Message);
+                throw;
             }
         }
-
-        //public float GetModuleCost()
-        //{
-        //    return moduleCost;
-        //}
 
         public override string GetInfo()
         {
