@@ -19,6 +19,7 @@ namespace FNPlugin
         private const String _DEPLETED_FUEL = "DepletedFuel";
         private const String _VACUUM_PLASMA = "VacuumPlasma";
         private const String _EXOTIC_MATTER = "ExoticMatter";
+        private const String _INTAKE_AIR = "IntakeAir";
         private const String _LITHIUM7 = "Lithium";
         private const String _LITHIUM6 = "Lithium6";
         private const String _PLUTONIUM_238 = "Plutonium-238";
@@ -67,6 +68,7 @@ namespace FNPlugin
         public String Hydrazine { get { return _hydrazine; } }
         public String IntakeAtmosphere { get { return _INTAKE_ATMOSPHERE; } }
         public String Lithium6 { get { return _LITHIUM6; } }
+        public String IntakeAir { get { return _INTAKE_AIR; } }
         public String Lithium7 { get { return _LITHIUM7; } }
         public String Methane { get { return _methane; } }
         public String Nitrogen { get { return _nitrogen; } }

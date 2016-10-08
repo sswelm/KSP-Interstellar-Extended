@@ -1,9 +1,9 @@
-﻿using OpenResourceSystem;
+﻿using FNPlugin.Extensions;
+using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using FNPlugin.Extensions;
 using UnityEngine;
 
 namespace FNPlugin
@@ -413,10 +413,12 @@ namespace FNPlugin
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
+            if (_attached_engine == null) return;
+
             if (_attached_engine is ModuleEnginesFX)
                 ElectricEngineControllerFX.getAllPropellants().ForEach(prop => part.Effect(prop.ParticleFXName, 0, -1)); // set all FX to zero
 
-            if (Current_propellant == null || _attached_engine == null) return;
+            if (Current_propellant == null) return;
 
             // retrieve power
             maxEffectivePower = MaxEffectivePower;
@@ -451,17 +453,17 @@ namespace FNPlugin
             {
                 var max_thrust_with_current_throttle = max_thrust_in_space * ModifiedThrotte;
                 var actual_max_thrust = Current_propellant.SupportedEngines == 8 ? max_thrust_with_current_throttle
-                    : Math.Max(max_thrust_with_current_throttle - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.0);
+                    : Math.Max(max_thrust_with_current_throttle - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0);
 
                 if (actual_max_thrust > 0 && !double.IsNaN(actual_max_thrust) && max_thrust_with_current_throttle > 0 && !double.IsNaN(max_thrust_with_current_throttle))
                 {
                     updateISP(actual_max_thrust / max_thrust_with_current_throttle);
-                    _attached_engine.maxFuelFlow = (float)_max_fuel_flow_rate * (ModifiedThrotte / _attached_engine.currentThrottle);
+                    _attached_engine.maxFuelFlow = (float)Math.Max(_max_fuel_flow_rate * (ModifiedThrotte / _attached_engine.currentThrottle), 0.0000000001);
                 }
                 else
                 {
                     updateISP(0.000001);
-                    _attached_engine.maxFuelFlow = 0;
+                    _attached_engine.maxFuelFlow = 0.0000000001f;
                 }
 
                 if (_attached_engine is ModuleEnginesFX)
@@ -469,18 +471,17 @@ namespace FNPlugin
             }
             else
             {
-
-                var actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0.0);
+                var actual_max_thrust = Math.Max(max_thrust_in_space - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0);
 
                 if (!double.IsNaN(actual_max_thrust) && !double.IsInfinity(actual_max_thrust) && actual_max_thrust > 0 && max_thrust_in_space > 0)
                 {
                     updateISP(actual_max_thrust / max_thrust_in_space);
-                    _attached_engine.maxFuelFlow = (float)_max_fuel_flow_rate;
+                    _attached_engine.maxFuelFlow = (float)Math.Max(_max_fuel_flow_rate, 0.0000000001);
                 }
                 else
                 {
                     updateISP(1);
-                    _attached_engine.maxFuelFlow = 0;
+                    _attached_engine.maxFuelFlow = 0.0000000001f;
                 }
 
                 if (_attached_engine is ModuleEnginesFX)
