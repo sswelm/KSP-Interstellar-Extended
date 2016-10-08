@@ -22,9 +22,9 @@ namespace FNPlugin
         //}
 
         // Persistent True
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true, guiActive = false)]
         public bool IsEnabled;
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true, guiActive = false)]
         public bool isDeployed = false;
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
@@ -308,7 +308,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Requested", guiFormat = "F6")]
         protected double ongoing_charged_power_requested;
 
-        [KSPField(isPersistant = false, guiActive = true)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public bool initialized = false;
         [KSPField(isPersistant = true)]
         public double animationStarted = 0;
@@ -1196,7 +1196,9 @@ namespace FNPlugin
                 var engineThrottleModifier = disableAtZeroThrottle && connectedEngines.Any() && connectedEngines.All(e => e.CurrentThrottle == 0) ? 0 : 1;
                 max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
 
-                geeForceModifier = hasBuoyancyEffects ? Math.Min(Math.Max(1 - ((part.vessel.geeForce - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1) : 1;
+                geeForceModifier = hasBuoyancyEffects 
+                    ? Math.Min(Math.Max(1 - ((part.vessel.geeForce - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1) 
+                    : 1;
 
                 stored_fuel_ratio = (float)Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => GetFuelRatio(fuel, FuelEfficiency, max_power_to_supply * geeForceModifier)), 1);
 
@@ -1260,7 +1262,7 @@ namespace FNPlugin
                 // consume fuel
                 foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
                 {
-                    ConsumeReactorFuel(fuel, total_power_received);
+                    ConsumeReactorFuel(fuel, total_power_received / geeForceModifier);
                 }
 
                 // refresh production list
@@ -1269,7 +1271,7 @@ namespace FNPlugin
                 // produce reactor products
                 foreach (ReactorProduct product in current_fuel_mode.ReactorProducts)
                 {
-                    var product_supply = total_power_received * product.ProductUsePerMJ * fuelUsePerMJMult;
+                    var product_supply = total_power_received * product.ProductUsePerMJ * fuelUsePerMJMult / geeForceModifier;
                     var massProduced = ProduceReactorProduct(product, product_supply);
 
                     reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });

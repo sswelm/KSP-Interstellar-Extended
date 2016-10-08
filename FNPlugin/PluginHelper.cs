@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenResourceSystem;
+using System.Text;
+using KSP.IO;
+using KSP.UI.Screens;
 
 namespace FNPlugin
 {
@@ -129,8 +132,10 @@ namespace FNPlugin
         protected static bool plugin_init = false;
         protected static GameDatabase gdb;
         protected static bool resources_configured = false;
-
-        public const string IntakeAir = "IntakeAir"; 
+        
+        static protected bool buttonAdded;
+        static protected Texture2D appIcon = null;
+        static protected ApplicationLauncherButton appLauncherButton = null;
 
         #region Static Properties
 
@@ -574,8 +579,67 @@ namespace FNPlugin
             }
         }
 
+        public ApplicationLauncherButton InitializeApplicationButton()
+        {
+            ApplicationLauncherButton appButton = null;
+            VABThermalUI.render_window = false;
+            PluginHelper.using_toolbar = true;
+
+            appIcon = GameDatabase.Instance.GetTexture("WarpPlugin/Category/WarpPlugin", false);
+
+            if (appIcon != null)
+            {
+                appButton = ApplicationLauncher.Instance.AddModApplication(
+                    OnAppLauncherTrue,
+                    OnAppLauncherFalse,
+                    null,
+                    null,
+                    null,
+                    null,
+                    ApplicationLauncher.AppScenes.ALWAYS,
+                    appIcon);
+
+                buttonAdded = true;
+            }
+
+            return appButton;
+        }
+
+
+        void OnAppLauncherTrue()
+        {
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                FlightUIStarter.hide_button = false;
+                FlightUIStarter.show_window = true;
+                VABThermalUI.render_window = false;
+            }
+            else
+            {
+                FlightUIStarter.hide_button = false;
+                FlightUIStarter.show_window = false;
+                VABThermalUI.render_window = true;
+            }
+        }
+
+        void OnAppLauncherFalse()
+        {
+            FlightUIStarter.hide_button = true;
+            FlightUIStarter.show_window = false;
+            VABThermalUI.render_window = false;
+        }
+
         public void Update()
         {
+            if (ApplicationLauncher.Ready && !buttonAdded)
+            {
+                appLauncherButton = InitializeApplicationButton();
+                if (appLauncherButton != null)
+                    appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.ALWAYS;
+
+                buttonAdded = true;
+            }
+
             this.enabled = true;
             AvailablePart intakePart = PartLoader.getPartInfoByName("CircularIntake");
             if (intakePart != null)
@@ -825,7 +889,7 @@ namespace FNPlugin
 
                     ModuleResourceIntake intake = prefab_available_part.FindModuleImplementing<ModuleResourceIntake>();
 
-                    if (intake != null && intake.resourceName == PluginHelper.IntakeAir)
+                    if (intake != null && intake.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir)
                     {
                         var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
                         prefab_available_part.Modules.Add(pm);
@@ -837,7 +901,7 @@ namespace FNPlugin
                         //pm.useIntakeCompensation = intake.useIntakeCompensation;
                         //pm.storesResource = intake.storesResource;
 
-                        PartResource intake_air_resource = prefab_available_part.Resources[PluginHelper.IntakeAir];
+                        PartResource intake_air_resource = prefab_available_part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAir];
 
                         if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
                         {
