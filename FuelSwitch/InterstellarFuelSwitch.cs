@@ -509,6 +509,7 @@ namespace InterstellarFuelSwitch
 
                 // update Dry Mass
                 UpdateDryMass();
+                UpdateGuiResourceMass();
                 UpdateMassRatio();
 
                 if (HighLogic.LoadedSceneIsEditor)
@@ -860,10 +861,10 @@ namespace InterstellarFuelSwitch
             var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
             var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource2.maxAmount;
 
-            var maxWetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
+            wetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
 
-            if (part.mass > 0 && maxWetMass > 0 && dryMass > 0)
-                massRatioStr = ToRoundedString(1 / (dryMass / maxWetMass));
+            if (wetMass > 0 && dryMass > 0)
+                massRatioStr = ToRoundedString(1 / (dryMass / wetMass));
         }
 
         private string ToRoundedString(double value)
@@ -1205,6 +1206,7 @@ namespace InterstellarFuelSwitch
             this.defaultMass = defaultMass;
 
             UpdateDryMass();
+            UpdateGuiResourceMass();
             UpdateMassRatio();
 
             moduleMassDelta = dryMass - initialMass;
