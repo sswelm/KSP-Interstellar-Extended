@@ -193,7 +193,7 @@ namespace FNPlugin
         protected double max_fuel_flow_rate = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "MaxPressureThresshold")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
         protected float maxPressureThresholdAtKerbinSurface;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Ratio")]
         protected double thermalRatio;
@@ -418,6 +418,8 @@ namespace FNPlugin
             part.skinThermalMassModifier = skinThermalMassModifier;
             part.skinInternalConductionMult = skinInternalConductionMult;
 
+            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - setup animation");
+
             if (!String.IsNullOrEmpty(deployAnimationName))
                 deployAnim = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
             if (!String.IsNullOrEmpty(pulseAnimationName))
@@ -425,9 +427,10 @@ namespace FNPlugin
             if (!String.IsNullOrEmpty(emiAnimationName))
                 emiAnimationState = PluginHelper.SetUpAnimation(emiAnimationName, this.part);
 
-            PartResource wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
 
             // calculate WasteHeat Capacity
+            PartResource wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
             if (wasteheatPowerResource != null)
             {
                 var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
@@ -436,10 +439,15 @@ namespace FNPlugin
             }
 
             engineType = originalName;
+
+            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - find module implementing <ModuleEngines>");
+
             myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
 
             // find attached thermal source
             ConnectToThermalSource();
+
+            maxPressureThresholdAtKerbinSurface = exitArea * (float)GameConstants.EarthAtmospherePressureAtSeaLevel;
 
             if (state == StartState.Editor)
             {
@@ -485,20 +493,18 @@ namespace FNPlugin
             jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3);
             jetTechBonusPercentage = jetTechBonus / 26.84f;
 
-            SetupPropellants();
-
-            maxPressureThresholdAtKerbinSurface = exitArea * (float)GameConstants.EarthAtmospherePressureAtSeaLevel;
-
             hasstarted = true;
+
+            Fields["temperatureStr"].guiActive = showPartTemperature;
+            //Fields["chargedParticlePropulsionIsp"].guiActive = showChargedParticlePropulsionIsp;
 
             try
             {
-                Fields["temperatureStr"].guiActive = showPartTemperature;
-                //Fields["chargedParticlePropulsionIsp"].guiActive = showChargedParticlePropulsionIsp;
+                SetupPropellants();
             }
             catch
             {
-                Debug.LogError("OnStart Exception in Field Visibility Configuration");
+                Debug.LogError("OnStart Exception in SetupPropellants");
             }
         }
 
@@ -528,6 +534,8 @@ namespace FNPlugin
 
         private void ConnectToThermalSource()
         {
+            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
+
             var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 1);
 
             if (source == null || source.Source == null)
@@ -913,8 +921,8 @@ namespace FNPlugin
                 double max_thrust_in_space = thrust;
                 thrust *= _thrustPropellantMultiplier;
 
-                myAttachedEngine.maxFuelFlow = (float)(thrust / (PluginHelper.GravityConstant * _maxISP));
-                myAttachedEngine.maxThrust = (float)thrust;
+                myAttachedEngine.maxFuelFlow = (float)Math.Max(thrust / (PluginHelper.GravityConstant * _maxISP), 0.0000000001);
+                myAttachedEngine.maxThrust = (float)Math.Max(thrust, 0.00001);
 
                 double max_thrust_in_current_atmosphere = max_thrust_in_space;
 
@@ -967,7 +975,7 @@ namespace FNPlugin
                         myAttachedEngine.Events["Shutdown"].Invoke();
                         ScreenMessages.PostScreenMessage("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     }
-                    myAttachedEngine.maxFuelFlow = 0;
+                    myAttachedEngine.maxFuelFlow = 0.0000000001f;
                     return;
                 }
 
@@ -1046,7 +1054,7 @@ namespace FNPlugin
                     myAttachedEngine.maxThrust = (float)calculatedMaxThrust;
 
                     // set engines maximum fuel flow
-                    myAttachedEngine.maxFuelFlow = (float)Math.Min(1000f, max_fuel_flow_rate);
+                    myAttachedEngine.maxFuelFlow = (float)Math.Max(Math.Min(1000f, max_fuel_flow_rate), 0.0000000001);
 
                     if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                     {
@@ -1262,7 +1270,7 @@ namespace FNPlugin
                     max_fuel_flow_rate = Math.Max(max_fuel_flow_rate * atmospheric_limit, 0.0000000001);
 
                 // set engines maximum fuel flow
-                myAttachedEngine.maxFuelFlow = (float)Math.Min(1000, max_fuel_flow_rate);
+                myAttachedEngine.maxFuelFlow = (float)Math.Max(Math.Min(1000, max_fuel_flow_rate), 0.0000000001);
 
 				// Calculate
                 pre_coolers_active = _vesselPrecoolers.Sum(prc => prc.ValidAttachedIntakes); ;
@@ -1494,6 +1502,8 @@ namespace FNPlugin
 
         public static ConfigNode[] getPropellants(bool isJet)
         {
+            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - getPropellants");
+
             ConfigNode[] propellantlist = isJet
                 ? GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_NTR_PROPELLANT")
                 : GameDatabase.Instance.GetConfigNodes("BASIC_NTR_PROPELLANT");

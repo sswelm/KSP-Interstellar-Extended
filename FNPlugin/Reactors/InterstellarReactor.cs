@@ -144,7 +144,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float bonusBufferFactor = 0.05f;
         [KSPField(isPersistant = false)]
-        public float heatTransportationEfficiency = 0.8f;
+        public float heatTransportationEfficiency = 0.85f;
         [KSPField(isPersistant = false)]
         public float ReactorTemp = 0;
         [KSPField(isPersistant = false)]
