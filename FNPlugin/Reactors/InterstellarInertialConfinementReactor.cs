@@ -39,7 +39,7 @@ namespace FNPlugin
         public float animationScalar;
 
         // protected fields
-        protected float power_consumed;
+        protected double power_consumed;
         protected bool fusion_alert = false;
         protected int shutdown_c = 0;
         protected int jumpstartPowerTime = 0;
@@ -72,6 +72,7 @@ namespace FNPlugin
                 {
                     jumpstartPowerTime = 100;
                     IsEnabled = true;
+                    reactor_power_ratio = 1;
                 }
 
                 UnityEngine.Debug.LogWarning("[KSPI] - InterstellarInertialConfinementReactor.OnStart allowJumpStart");
@@ -93,7 +94,7 @@ namespace FNPlugin
             } 
         }
 
-	    public float LaserPowerRequirements
+	    public double LaserPowerRequirements
 	    {
 		    get 
             { 
@@ -105,7 +106,7 @@ namespace FNPlugin
             }
 	    }
 
-        public float StartupPower
+        public double StartupPower
         {
             get 
             {
@@ -215,8 +216,20 @@ namespace FNPlugin
 
             ProcessCharging();
 
+            var powerRequested = LaserPowerRequirements * TimeWarp.fixedDeltaTime * Math.Max(reactor_power_ratio, 0.00001);
+
             // consume reactor power requirements
-            power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            var powerReceived = consumeFNResource(powerRequested, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+            // retreive any shortage from buffer
+            if (IsEnabled)
+            {
+                var powerRequirmentMetRatio = powerReceived / powerRequested;
+                powerReceived = powerReceived + part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, (1 - powerRequirmentMetRatio) * powerRequested);
+            }
+
+            // adjust power to optimal power
+            power_consumed = LaserPowerRequirements * (powerReceived / powerRequested);
 
             // verify if we need startup with accumulated power
             if (TimeWarp.fixedDeltaTime <= 0.1 && accumulatedElectricChargeInMW > 0 && power_consumed < StartupPower && (accumulatedElectricChargeInMW + power_consumed) >= StartupPower)
@@ -229,7 +242,7 @@ namespace FNPlugin
                 }
             }
 
-	        //plasma_ratio = power_consumed / LaserPowerRequirements;
+            //plasma_ratio = power_consumed / LaserPowerRequirements;
             if (isSwappingFuelMode)
             {
                 plasma_ratio = 1;
@@ -257,7 +270,8 @@ namespace FNPlugin
                 plasma_ratio = 1;
                 isChargingForJumpstart = false;
                 IsEnabled = true;
-                framesPlasmaRatioIsGood++;
+                if (framesPlasmaRatioIsGood < 100)
+                    framesPlasmaRatioIsGood++;
                 if (framesPlasmaRatioIsGood > 10)
                     accumulatedElectricChargeInMW = 0;
             }

@@ -54,6 +54,8 @@ namespace FNPlugin
         public float storedPowerMultiplier = 1;
         [KSPField(isPersistant = true)]
         public float stored_fuel_ratio = 1;
+        [KSPField(isPersistant = true)]
+        public double reactor_power_ratio = 1;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk2 = null;
@@ -387,6 +389,8 @@ namespace FNPlugin
         protected ElectricGeneratorType _firstGeneratorType;
 
         public List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
+
+
 
 
         public double ProducedThermalHeat { get{ return ongoing_neutron_power_generated; } }
@@ -944,26 +948,11 @@ namespace FNPlugin
             if (!String.IsNullOrEmpty(animName))
                 pulseAnimation = PluginHelper.SetUpAnimation(animName, this.part);
             if (!String.IsNullOrEmpty(loopingAnimationName))
-            {
-                //loopingAnimation = PluginHelper.SetUpAnimation(loopingAnimationName, this.part);
                 loopingAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == loopingAnimationName);
-            }
             if (!String.IsNullOrEmpty(startupAnimationName))
-            {
                 startupAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == startupAnimationName );
-
-                //startupAnimation = PluginHelper.SetUpAnimation(startupAnimationName, this.part);
-                //startupAnimation = part.FindModelAnimators(startupAnimationName).FirstOrDefault();
-                //if (startupAnimation == null)
-                //    ScreenMessages.PostScreenMessage("Failed to find startupAnimation " + startupAnimationName, 20.0f, ScreenMessageStyle.UPPER_CENTER);
-                //else
-                //    ScreenMessages.PostScreenMessage("Succesfully Found startupAnimation " + startupAnimationName, 20.0f, ScreenMessageStyle.UPPER_CENTER);
-            }
             if (!String.IsNullOrEmpty(shutdownAnimationName))
-            {
                 shutdownAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == shutdownAnimationName);
-                //    shutdownAnimation = part.FindModelAnimators(shutdownAnimationName).FirstOrDefault();
-            }
 
             // only force activate if not with a engine model
             var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
@@ -1172,6 +1161,11 @@ namespace FNPlugin
             }
         }
 
+        //protected virtual void PowerMaintenance(double powerRatio)
+        //{
+        //    // override by children
+        //}
+
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
             storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
@@ -1226,6 +1220,8 @@ namespace FNPlugin
                 raw_charged_power_received = supplyManagedFNResourceWithMinimumRatio(max_charged_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 double charged_power_ratio = max_charged_to_supply_fixed > 0 ? raw_charged_power_received / max_charged_to_supply_fixed : 0;
 
+                
+
                 // Thermal Power
                 fixed_maximum_thermal_power = MaximumThermalPower * TimeWarp.fixedDeltaTime;
                 max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier;
@@ -1234,6 +1230,8 @@ namespace FNPlugin
 
                 // add additional power
                 double thermal_power_ratio = max_thermal_to_supply_fixed > 0 && (1 - ChargedPowerRatio) > 0 ? raw_thermal_power_received / max_thermal_to_supply_fixed : 0;
+
+                reactor_power_ratio = Math.Max(charged_power_ratio, thermal_power_ratio);
 
                 var thermal_shortage_ratio = charged_power_ratio > thermal_power_ratio ? charged_power_ratio - thermal_power_ratio : 0;
                 var chargedpower_shortagage_ratio = thermal_power_ratio > charged_power_ratio ? thermal_power_ratio - charged_power_ratio : 0;
@@ -1287,6 +1285,7 @@ namespace FNPlugin
             }
             else if (IsEnabled && IsNuclear && MaximumPower > 0 && (Planetarium.GetUniversalTime() - last_active_time <= 3 * PluginHelper.SecondsInDay))
             {
+                reactor_power_ratio = 0;
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 double power_fraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / PluginHelper.SecondsInDay / 24.0 * 9.0);
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
@@ -1298,9 +1297,11 @@ namespace FNPlugin
                 supplyFNResource(raw_thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 powerPcnt = 100 * ongoing_consumption_rate;
                 decay_ongoing = true;
+
             }
             else
             {
+                reactor_power_ratio = 0;
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 powerPcnt = 0;
             }

@@ -204,7 +204,8 @@ namespace FNPlugin
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            //this.defaultMass = defaultMass;
+            if (!calculatedMass)
+                return 0;
 
             moduleMassDelta = targetMass - initialMass;
 
@@ -371,10 +372,7 @@ namespace FNPlugin
         {
             // verify if mass calculation is active
             if (!calculatedMass)
-            {
-                Debug.Log("calculatedMass is false ");
                 return;
-            }
 
             // update part mass
 
