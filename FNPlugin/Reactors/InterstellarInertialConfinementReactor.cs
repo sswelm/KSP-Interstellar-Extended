@@ -216,16 +216,24 @@ namespace FNPlugin
 
             ProcessCharging();
 
+            // determiine amount of power needed
             var powerRequested = LaserPowerRequirements * TimeWarp.fixedDeltaTime * Math.Max(reactor_power_ratio, 0.00001);
 
             // consume reactor power requirements
             var powerReceived = consumeFNResource(powerRequested, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
             // retreive any shortage from buffer
-            if (IsEnabled)
+            if (IsEnabled && powerReceived < powerRequested)
             {
-                var powerRequirmentMetRatio = powerReceived / powerRequested;
-                powerReceived = powerReceived + part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, (1 - powerRequirmentMetRatio) * powerRequested);
+                // retreive megawath ratio
+                var megaWattStorageRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                // only use buffer if we have sufficient in storage
+                if (megaWattStorageRatio > 0.5)
+                {
+                    var powerRequirmentMetRatio = powerReceived / powerRequested;
+                    powerReceived = powerReceived + part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, (1 - powerRequirmentMetRatio) * powerRequested);
+                }
             }
 
             // adjust power to optimal power

@@ -160,8 +160,7 @@ namespace InterstellarFuelSwitch
 
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
         public string tankGuiName = String.Empty;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Added cost")]
-        public double addedCost = 0;
+
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Mass Ratio")]
         public string massRatioStr = "";
 
@@ -183,7 +182,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public float storedMassMultiplier = 1;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Wet mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Max Wet mass", guiUnits = " t", guiFormat = "F4")]
         public double wetMass;
         [KSPField(guiActiveEditor = false, guiActive = false)]
         public string resourceAmountStr0 = "";
@@ -200,6 +199,13 @@ namespace InterstellarFuelSwitch
         public float massExponent = 3;
         [KSPField(isPersistant = true)]
         public bool traceBoiloff;
+
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double dryCost = 0;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Resource cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double resourceCost = 0;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Total Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double totalCost = 0;
 
         private InterstellarTextureSwitch2 textureSwitch;
 
@@ -431,7 +437,9 @@ namespace InterstellarFuelSwitch
                 _previousTankSetupEvent.guiActiveEditor = hasGUI && availableInEditor;
                 _previousTankSetupEvent.guiName = previousTankSetupText;
 
-                Fields["addedCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["dryCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["resourceCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["totalCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
 
                 if (useTextureSwitchModule)
                 {
@@ -511,6 +519,7 @@ namespace InterstellarFuelSwitch
                 UpdateDryMass();
                 UpdateGuiResourceMass();
                 UpdateMassRatio();
+                UpdateCost();
 
                 if (HighLogic.LoadedSceneIsEditor)
                 {
@@ -771,20 +780,33 @@ namespace InterstellarFuelSwitch
 
         private double UpdateCost()
         {
+            dryCost = part.partInfo.cost * storedMassMultiplier;
+
             if (selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
-                return _modularTankList[selectedTankSetup].tankCost;
+                dryCost += _modularTankList[selectedTankSetup].tankCost * storedMassMultiplier;
 
-            addedCost = 0;
-            if (_partRresourceDefinition0 == null || _partResource0 == null) return addedCost;
-            addedCost += _partRresourceDefinition0.unitCost * (float)_partResource0.maxAmount;
+            totalCost = dryCost;
+            resourceCost = 0;
+            
+            if (_partRresourceDefinition0 == null || _partResource0 == null)
+                return totalCost;
 
-            if (_partRresourceDefinition1 == null || _partResource1 == null) return addedCost;
-            addedCost += _partRresourceDefinition1.unitCost * (float)_partResource1.maxAmount;
+            resourceCost += _partRresourceDefinition0.unitCost * (float)_partResource0.amount;
+            totalCost += _partRresourceDefinition0.unitCost * (float)_partResource0.maxAmount;
 
-            if (_partRresourceDefinition2 != null && _partResource2 != null)
-                addedCost += _partRresourceDefinition2.unitCost * (float)_partResource2.maxAmount;
+            if (_partRresourceDefinition1 == null || _partResource1 == null)
+                return totalCost;
 
-            return addedCost;
+            resourceCost += _partRresourceDefinition1.unitCost * (float)_partResource1.amount;
+            totalCost += _partRresourceDefinition1.unitCost * (float)_partResource1.maxAmount;
+
+            if (_partRresourceDefinition2 == null || _partResource2 == null)
+                return totalCost;
+
+            resourceCost += _partRresourceDefinition2.unitCost * (float)_partResource2.amount;
+            totalCost = _partRresourceDefinition2.unitCost * (float)_partResource2.maxAmount; ;
+
+            return totalCost;
         }
 
         private void UpdateDryMass()
@@ -991,6 +1013,7 @@ namespace InterstellarFuelSwitch
             UpdateDryMass();
             UpdateGuiResourceMass();
             UpdateMassRatio();
+            UpdateCost();
 
             configuredAmounts = String.Empty;;
             configuredFlowStates = String.Empty;
