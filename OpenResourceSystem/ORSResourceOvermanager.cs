@@ -9,42 +9,47 @@ namespace OpenResourceSystem
     {
         protected static Dictionary<String, ORSResourceOvermanager> resources_managers = new Dictionary<String, ORSResourceOvermanager>();
 
-        public static ORSResourceOvermanager getResourceOvermanagerForResource(String resource_name) {
+        public static ORSResourceOvermanager getResourceOvermanagerForResource(String resource_name) 
+        {
             ORSResourceOvermanager fnro;
-            if (resources_managers.ContainsKey(resource_name)) {
-                fnro = resources_managers[resource_name];
-            }else {
+
+            if (!resources_managers.TryGetValue(resource_name, out fnro))
+            {
                 fnro = new ORSResourceOvermanager(resource_name);
-                resources_managers.Add(resource_name,fnro);
+                resources_managers.Add(resource_name, fnro);
             }
+
             return fnro;
         }
 
         protected Dictionary<Vessel, ORSResourceManager> managers;
         protected String resource_name;
 
-        public ORSResourceOvermanager() {
+        public ORSResourceOvermanager() {}
 
-        }
-
-        public ORSResourceOvermanager(String name) {
+        public ORSResourceOvermanager(String name) 
+        {
             managers = new Dictionary<Vessel, ORSResourceManager>();
             this.resource_name = name;
         }
 
-        public bool hasManagerForVessel(Vessel vess) {
+        public bool hasManagerForVessel(Vessel vess) 
+        {
             return managers.ContainsKey(vess);
         }
 
-        public ORSResourceManager getManagerForVessel(Vessel vess) {
+        public ORSResourceManager getManagerForVessel(Vessel vess) 
+        {
             return managers[vess];
         }
 
-        public void deleteManagerForVessel(Vessel vess) {
+        public void deleteManagerForVessel(Vessel vess) 
+        {
             managers.Remove(vess);
         }
 
-        public void deleteManager(ORSResourceManager manager) {
+        public void deleteManager(ORSResourceManager manager) 
+        {
             managers.Remove(manager.getVessel());
         }
 
