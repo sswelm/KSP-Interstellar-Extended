@@ -72,6 +72,8 @@ namespace InterstellarFuelSwitch
 
         // Config properties
         [KSPField]
+        public string tankId = "";
+        [KSPField]
         public string resourceGui = "";
         [KSPField]
         public string tankSwitchNames = "";
@@ -119,7 +121,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool displayCurrentBoilOffTemp = false;
         [KSPField]
-        public bool displayCurrentTankCost = false;
+        public bool displayTankCost = false;
         [KSPField]
         public bool hasSwitchChooseOption = true;
         [KSPField]
@@ -132,6 +134,8 @@ namespace InterstellarFuelSwitch
         public bool availableInEditor = true;
         [KSPField(guiActive = false)]
         public bool isEmpty = false;
+        [KSPField]
+        public bool returnDryMass = false;
 
         [KSPField]
         public string inEditorSwitchingTechReq;
@@ -437,9 +441,9 @@ namespace InterstellarFuelSwitch
                 _previousTankSetupEvent.guiActiveEditor = hasGUI && availableInEditor;
                 _previousTankSetupEvent.guiName = previousTankSetupText;
 
-                Fields["dryCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
-                Fields["resourceCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
-                Fields["totalCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["resourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["totalCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
 
                 if (useTextureSwitchModule)
                 {
@@ -785,7 +789,7 @@ namespace InterstellarFuelSwitch
             if (selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
                 dryCost += _modularTankList[selectedTankSetup].tankCost * storedMassMultiplier;
 
-            totalCost = dryCost;
+            totalCost = 0;
             resourceCost = 0;
             
             if (_partRresourceDefinition0 == null || _partResource0 == null)
@@ -1232,9 +1236,16 @@ namespace InterstellarFuelSwitch
             UpdateGuiResourceMass();
             UpdateMassRatio();
 
-            moduleMassDelta = dryMass - initialMass;
+            if (returnDryMass)
+            {
+                return (float)dryMass;
+            }
+            else
+            {
+                moduleMassDelta = dryMass - initialMass;
 
-            return (float)moduleMassDelta;
+                return (float)moduleMassDelta;
+            }
         }
 
         public override string GetInfo()
