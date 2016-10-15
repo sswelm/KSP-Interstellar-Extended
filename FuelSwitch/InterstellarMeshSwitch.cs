@@ -2,6 +2,7 @@
 using System.Text;
 using UnityEngine;
 using System;
+using System.Linq;
 
 namespace InterstellarFuelSwitch
 {
@@ -23,6 +24,8 @@ namespace InterstellarFuelSwitch
         public bool showPreviousButton = true;
         [KSPField]
         public bool useFuelSwitchModule = false;
+        [KSPField]
+        public string searchTankId = "";
         [KSPField]
         public string fuelTankSetups = "0";
         [KSPField]
@@ -253,7 +256,17 @@ namespace InterstellarFuelSwitch
 
                     if (useFuelSwitchModule)
                     {
-                        fuelSwitch = part.GetComponent<InterstellarFuelSwitch>();
+                        var fuelSwitches = part.FindModulesImplementing<InterstellarFuelSwitch>();
+
+                        if (!String.IsNullOrEmpty(searchTankId))
+                        {
+                            fuelSwitch = fuelSwitches.FirstOrDefault(m => m.tankId == searchTankId);
+                        }
+
+                        if (fuelSwitch == null)
+                            fuelSwitch = fuelSwitches.FirstOrDefault();
+
+                        //searchTankId
                         if (fuelSwitch == null)
                         {
                             useFuelSwitchModule = false;

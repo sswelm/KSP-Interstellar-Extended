@@ -841,8 +841,8 @@ namespace FNPlugin
 
                     velCurve.Add(0, 0.05f + jetTechBonusPercentage / 2);
                     velCurve.Add(2.5f - curveChange, 1f);
-                    velCurve.Add(4f + curveChange, 1f);
-                    velCurve.Add(12f, 0 + jetTechBonusPercentage);
+                    velCurve.Add(5f + curveChange, 1f);
+                    velCurve.Add(25f, 0 + jetTechBonusPercentage);
                 }
                 else if (jetPerformanceProfile == 1)
                 {
@@ -1058,6 +1058,7 @@ namespace FNPlugin
 
                     if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                     {
+                        
                         part.Effect(_particleFXName, 0, -1);
                     }
                 }
@@ -1298,7 +1299,9 @@ namespace FNPlugin
 				myAttachedEngine.heatProduction = (float)engineHeatProduction;
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
-                    part.Effect(_particleFXName, (float)Math.Max(0.1f * myAttachedEngine.currentThrottle, Math.Min(Math.Pow( thermal_power_received / requested_thermal_power, 0.5), delayedThrottle)), -1);
+                {
+                    part.Effect(_particleFXName, (float)Math.Max(0.1f * myAttachedEngine.currentThrottle, Math.Min(Math.Pow(thermal_power_received / requested_thermal_power, 0.5), delayedThrottle)), -1);
+                }
 
                 //if (_fuelToxicity > 0 && max_fuel_flow_rate > 0 && nozzleStaticPresure > 1)
                 //{
