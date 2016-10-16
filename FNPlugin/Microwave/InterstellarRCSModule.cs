@@ -140,9 +140,21 @@ namespace FNPlugin
             if (HighLogic.LoadedSceneIsFlight)
             {
                 // you can have any fuel you want in the editor but not in flight
-                List<PartResource> totalpartresources = part.GetConnectedResources(new_propellant.name).ToList();
+                //List<PartResource> totalpartresources = part.GetConnectedResources(new_propellant.name).ToList();
 
-                if (!totalpartresources.Any() && maxSwitching > 0)
+                //if (!totalpartresources.Any() && maxSwitching > 0)
+                //{
+                //    SwitchPropellant(moveNext, --maxSwitching);
+                //    return;
+                //}
+
+                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(new_propellant.name);
+                
+                double amount;
+                double maxAmount;
+                part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
+
+                if (maxAmount > 0  && maxSwitching > 0)
                 {
                     SwitchPropellant(moveNext, --maxSwitching);
                     return;

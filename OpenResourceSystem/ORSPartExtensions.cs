@@ -5,20 +5,11 @@ using System.Text;
 
 namespace OpenResourceSystem 
 {
-    public static class ORSPartExtensions 
+    public static class ORSPartExtensions
     {
-
-        public static IEnumerable<PartResource> GetConnectedResources(this Part part, PartResourceDefinition definition) 
+        public static IEnumerable<PartResource> GetConnectedResources(this Part part, String resourcename)
         {
-            List<PartResource> resources = new List<PartResource>();
-            part.GetConnectedResources(definition.id, definition.resourceFlowMode, resources);
-            return resources;
-        }
-
-        public static IEnumerable<PartResource> GetConnectedResources(this Part part, String resourcename) 
-        {
-            PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resourcename);
-            return GetConnectedResources(part, definition);
+            return part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == resourcename));
         }
 
         public static double ImprovedRequestResource(this Part part, String resourcename, double resource_amount) 
@@ -30,7 +21,5 @@ namespace OpenResourceSystem
         {
             return ORSHelper.fixedRequestResourceSpareCapacity(part, resourcename);
         }
-
-        
     }
 }

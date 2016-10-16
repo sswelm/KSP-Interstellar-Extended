@@ -23,11 +23,8 @@ namespace OpenResourceSystem
         protected Dictionary<ORSResourceSuppliable, double> power_draws;
 
         protected Dictionary<ORSResourceSupplier, double> power_supplies;
-        //protected Dictionary<ORSResourceSupplier, double> power_supplies_stable;
 
-		//List<PartResource> partresources;
         protected String resource_name;
-        //protected Dictionary<MegajouleSuppliable, float> power_returned;
         protected double currentPowerSupply = 0;
 		protected double stable_supply = 0;
 		protected double stored_stable_supply = 0;
@@ -127,20 +124,35 @@ namespace OpenResourceSystem
 
         public double getResourceAvailability()
         {
-            return my_part.GetConnectedResources(resource_name).ToList()
-                .Sum(partresource => partresource.amount); ;
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
+
+            double amount;
+            double maxAmount;
+            my_part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
+
+            return amount;
         }
 
 		public double getSpareResourceCapacity() 
         {
-            return my_part.GetConnectedResources(resource_name).ToList()
-                .Sum(partresource => partresource.maxAmount - partresource.amount); ;
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
+
+            double amount;
+            double maxAmount;
+            my_part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
+
+            return maxAmount - amount;
 		}
 
         public double getTotalResourceCapacity()
         {
-            return my_part.GetConnectedResources(resource_name).ToList()
-                .Sum(partresource => partresource.maxAmount);
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
+
+            double amount;
+            double maxAmount;
+            my_part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
+
+            return maxAmount;
 		}
 
         public float managedPowerSupplyWithMinimumRatio(ORSResourceSupplier pm, float power, float rat_min) 
@@ -166,9 +178,9 @@ namespace OpenResourceSystem
 			return managed_supply_per_second * TimeWarp.fixedDeltaTime;
 		}
 
-        public float getStableResourceSupply() 
+        public double getStableResourceSupply() 
         {
-            return (float) stored_stable_supply;
+            return  stored_stable_supply;
         }
 
         public float getResourceSupply() 
@@ -196,9 +208,9 @@ namespace OpenResourceSystem
 			return (float) current_resource_demand;
 		}
 
-        public float getCurrentHighPriorityResourceDemand() 
+        public double getCurrentHighPriorityResourceDemand() 
         {
-            return (float)stored_current_hp_demand;
+            return stored_current_hp_demand;
 		}
 
 		public float getCurrentUnfilledResourceDemand() 
@@ -257,18 +269,10 @@ namespace OpenResourceSystem
 			high_priority_resource_demand = 0;
 			charge_resource_demand = 0;
 
-			//Debug.Log ("Early:" + powersupply);
-
-            //stored power
-            List<PartResource> partresources = my_part.GetConnectedResources(resource_name).ToList();
-            double currentmegajoules = 0;
-			double maxmegajoules = 0;
-
-            foreach (PartResource partresource in partresources) 
-            {
-                currentmegajoules += partresource.amount;
-				maxmegajoules += partresource.maxAmount;
-            }
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
+            double currentmegajoules;
+            double maxmegajoules;
+            my_part.GetConnectedResourceTotals(resourceDefinition.id, out currentmegajoules, out maxmegajoules);
 
 			if (maxmegajoules > 0) 
 				resource_bar_ratio = currentmegajoules / maxmegajoules;
@@ -277,7 +281,6 @@ namespace OpenResourceSystem
 
 			double missingmegajoules = maxmegajoules - currentmegajoules;
             currentPowerSupply += currentmegajoules;
-			//Debug.Log ("Current:" + currentmegajoules);
 
 			double demand_supply_ratio = 0;
 			double high_priority_demand_supply_ratio = 0;
@@ -296,18 +299,25 @@ namespace OpenResourceSystem
 			//Prioritise supplying stock ElectricCharge resource
 			if (String.Equals(this.resource_name, ORSResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) 
             {
-				List<PartResource> electric_charge_resources = my_part.GetConnectedResources ("ElectricCharge").ToList(); 
-				double stock_electric_charge_needed = 0;
-				foreach (PartResource partresource in electric_charge_resources) {
-					stock_electric_charge_needed += partresource.maxAmount - partresource.amount;
-				}
+				//List<PartResource> electric_charge_resources = my_part.GetConnectedResources ("ElectricCharge").ToList(); 
+                //double stock_electric_charge_needed = 0;
+                //foreach (PartResource partresource in electric_charge_resources) {
+                //    stock_electric_charge_needed += partresource.maxAmount - partresource.amount;
+                //}
+
+                var electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ORSResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
+                double amount;
+                double maxAmount;
+                my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
+                double stock_electric_charge_needed = maxAmount - amount;
+
 				double power_supplied = Math.Min(currentPowerSupply*1000*TimeWarp.fixedDeltaTime, stock_electric_charge_needed);
                 if (stock_electric_charge_needed > 0) {
                     current_resource_demand += stock_electric_charge_needed / 1000.0 / TimeWarp.fixedDeltaTime;
                     charge_resource_demand += stock_electric_charge_needed / 1000.0 / TimeWarp.fixedDeltaTime;
                 }
 				if (power_supplied > 0) {
-                    currentPowerSupply += my_part.RequestResource("ElectricCharge", -power_supplied) / 1000 / TimeWarp.fixedDeltaTime;
+                    currentPowerSupply += my_part.RequestResource(ORSResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -power_supplied) / 1000 / TimeWarp.fixedDeltaTime;
 				}
 			}
 

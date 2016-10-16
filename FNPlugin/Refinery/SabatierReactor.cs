@@ -22,7 +22,7 @@ namespace FNPlugin.Refinery
         protected double _methane_density;
         protected double _hydrogen_density;
         protected double _oxygen_density;
-
+        
         protected double _hydrogen_consumption_rate;
         protected double _carbondioxide_consumption_rate;
 

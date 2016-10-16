@@ -19,7 +19,6 @@ namespace InterstellarFuelSwitch
         public double unitCost;
         public double latendHeatVaporation;
         public double specificHeatCapacity;
-        
 
         public IFSresource(string name)
         {
@@ -46,29 +45,34 @@ namespace InterstellarFuelSwitch
         public double tankCost;
         public double tankMass;
         public double resourceMassDivider;
+        public double resourceMassDividerAddition;
 
         public List<IFSresource> Resources = new List<IFSresource>();
 
-        public double FullMass { get { return Resources.Sum(m => m.FullMass); } }
+        public double FullResourceMass { get { return Resources.Sum(m => m.FullMass); } }
     }
 
-    public class InterstellarFuelSwitch : PartModule, IRescalable<InterstellarFuelSwitch> , IPartCostModifier, IPartMassModifier 
+    public class InterstellarFuelSwitch : PartModule, IRescalable<InterstellarFuelSwitch>, IPartCostModifier, IPartMassModifier
     {
         // Persistants
         [KSPField(isPersistant = true)]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.Editor, suppressEditorShipModified = true)]
         public int selectedTankSetup = -1;
+        [KSPField(isPersistant = true)]
+        public int inFlightTankSetup = -1;
 
         [KSPField(isPersistant = true)]
         public string configuredAmounts = "";
         [KSPField(isPersistant = true)]
-        public string selectedTankSetupTxt;
+        public string configuredFlowStates = "";
         [KSPField(isPersistant = true)]
-        public bool gameLoaded = false;
+        public string selectedTankSetupTxt;
         [KSPField(isPersistant = true)]
         public bool configLoaded = false;
 
         // Config properties
+        [KSPField]
+        public string tankId = "";
         [KSPField]
         public string resourceGui = "";
         [KSPField]
@@ -93,8 +97,15 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActiveEditor = false)]
         public float baseResourceMassDivider = 0;
         [KSPField(guiActiveEditor = false)]
-        public string tankResourceMassDivider = "";
+        public string tankResourceMassDivider = string.Empty;
+        [KSPField(guiActiveEditor = false)]
+        public string tankResourceMassDividerAddition = string.Empty;
 
+        [KSPField(guiActiveEditor = false)]
+        public bool overrideMassWithTankDividers = false;
+
+        [KSPField]
+        public bool orderBySwitchName = false;
         [KSPField]
         public float initialPrefabAmount = 0;
         [KSPField]
@@ -110,11 +121,11 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool displayCurrentBoilOffTemp = false;
         [KSPField]
-        public bool displayCurrentTankCost = false;
+        public bool displayTankCost = false;
         [KSPField]
         public bool hasSwitchChooseOption = true;
         [KSPField]
-        public bool hasGUI = false;
+        public bool hasGUI = true;
         [KSPField]
         public bool boiloffActive = false;
         [KSPField(guiActive = false)]
@@ -123,6 +134,8 @@ namespace InterstellarFuelSwitch
         public bool availableInEditor = true;
         [KSPField(guiActive = false)]
         public bool isEmpty = false;
+        [KSPField]
+        public bool returnDryMass = false;
 
         [KSPField]
         public string inEditorSwitchingTechReq;
@@ -130,24 +143,12 @@ namespace InterstellarFuelSwitch
         public string inFlightSwitchingTechReq;
         [KSPField]
         public bool useTextureSwitchModule = false;
-        //[KSPField(guiActiveEditor = false)]
-        //public float initiaAmount;
-
-        //[KSPField]
-        //public bool showTemperature = false;
         [KSPField]
         public bool showTankName = true;
         [KSPField]
         public bool showInfo = true; // if false, does not feed info to the part list pop up info menu
         [KSPField]
         public string resourcesFormat = "0.0000";
-
-        //[KSPField]
-        //public string resourcesToIgnore = ""; // obsolete
-        //[KSPField]
-        //public float heatConvectiveConstant = 0.01f;
-        //[KSPField]
-        //public float heatConductivity = 0.01f;
 
         //dummyvalues
         [KSPField]
@@ -156,25 +157,20 @@ namespace InterstellarFuelSwitch
         public float massMultiplier;
 
         // Gui
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Temp")]
-        public string partTemperatureStr = String.Empty;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Specific Heat")]
         public string specificHeatStr = String.Empty;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Absorbed")]
-        public string boiloffEnergy = String.Empty; 
+        public string boiloffEnergy = String.Empty;
 
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
-        public string tankGuiName = String.Empty; 
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Added cost")]
-        public float addedCost = 0;
-        //[KSPField(guiActive = false, guiActiveEditor = false, guiName = "Boiloff Temp")]
-        //public string currentBoiloffTempStr = "";
+        public string tankGuiName = String.Empty;
+
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Mass Ratio")]
         public string massRatioStr = "";
 
 
         // Debug
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t", guiFormat= "F4")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t", guiFormat = "F4")]
         public double dryMass = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Part mass", guiUnits = " t", guiFormat = "F4")]
         public double currentPartMass;
@@ -190,7 +186,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public float storedMassMultiplier = 1;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Wet mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Max Wet mass", guiUnits = " t", guiFormat = "F4")]
         public double wetMass;
         [KSPField(guiActiveEditor = false, guiActive = false)]
         public string resourceAmountStr0 = "";
@@ -201,12 +197,6 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Total mass", guiUnits = " t", guiFormat = "F4")]
         public double totalMass;
 
-        // Obsolete
-        //[KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Volume Multiplier")]
-        //public float volumeMultiplier = 1;
-        //[KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Mass Multiplier")]
-        //public float massMultiplier = 1;
-
         [KSPField(guiActiveEditor = false, guiName = "Volume Exponent")]
         public float volumeExponent = 3;
         [KSPField(guiActiveEditor = false, guiName = "Mass Exponent")]
@@ -214,15 +204,21 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public bool traceBoiloff;
 
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double dryCost = 0;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Resource cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double resourceCost = 0;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Total Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double totalCost = 0;
+
         private InterstellarTextureSwitch2 textureSwitch;
+
+        private List<string> currentResources;
         private List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
+        private UIPartActionWindow tweakableUI;
         private HashSet<string> activeResourceList = new HashSet<string>();
 
-        private List<double> weightList;
-        private List<double> tankCostList;
-        private List<double> tankResourceMassDividerList;
         private bool initialized = false;
-
         private double initializePartTemperature = -1;
 
         private PartResource _partResource0;
@@ -233,35 +229,39 @@ namespace InterstellarFuelSwitch
         private PartResourceDefinition _partRresourceDefinition1;
         private PartResourceDefinition _partRresourceDefinition2;
 
-        BaseField _chooseField;
-        BaseEvent _nextTankSetupEvent;
-        BaseEvent _previousTankSetupEvent;
+        private BaseField _field0;
+        private BaseField _field1;
+        private BaseField _field2;
 
-        List<string> currentResources;
+        private BaseField _tankGuiNameField;
+        private BaseField _chooseField;
 
-        UIPartActionWindow tweakableUI;
+        private BaseEvent _nextTankSetupEvent;
+        private BaseEvent _previousTankSetupEvent;
 
-	    public virtual void OnRescale(TweakScale.ScalingFactor factor)
-	    {
-		    try
-		    {
-			    storedVolumeMultiplier = Mathf.Pow(factor.absolute.linear, volumeExponent);
-			    storedMassMultiplier = Mathf.Pow(factor.absolute.linear, massExponent);
+        private static HashSet<string> researchedTechs;
+
+        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        {
+            try
+            {
+                storedVolumeMultiplier = Mathf.Pow(factor.absolute.linear, volumeExponent);
+                storedMassMultiplier = Mathf.Pow(factor.absolute.linear, massExponent);
 
                 //part.heatConvectiveConstant = this.heatConvectiveConstant * (float)Math.Pow(factor.absolute.linear, 1);
                 //part.heatConductivity = this.heatConductivity * (float)Math.Pow(factor.absolute.linear, 1);
 
                 initialMass = part.prefabMass * storedMassMultiplier;
-		    }
-		    catch (Exception e)
-		    {
+            }
+            catch (Exception e)
+            {
                 Debug.LogError("InsterstellarFuelSwitch OnRescale Error: " + e.Message);
-			    throw;
-		    }
-	    }
+                throw;
+            }
+        }
 
-	    public override void OnStart(PartModule.StartState state)
-	    {
+        public override void OnStart(PartModule.StartState state)
+        {
             try
             {
                 initialMass = part.prefabMass * storedMassMultiplier;
@@ -272,16 +272,40 @@ namespace InterstellarFuelSwitch
                 InitializeData();
 
                 if (selectedTankSetup == -1)
+                {
                     selectedTankSetup = 0;
+                    for (int i = 0; i < _modularTankList.Count; i++)
+                    {
+                        var modularTank = _modularTankList[i];
+
+                        bool isSimilar = true;
+                        foreach (var resource in modularTank.Resources)
+                        {
+                            if (!part.Resources.Contains(resource.name))
+                            {
+                                isSimilar = false;
+                                break;
+                            }
+                        }
+                        if (isSimilar)
+                        {
+                            selectedTankSetup = i;
+                            break;
+                        }
+                    }
+                }
 
                 this.enabled = true;
 
-                AssignResourcesToPart(false);
                 if (state != StartState.Editor)
-                    gameLoaded = true;
+                {
+                    if (inFlightTankSetup == -1)
+                        inFlightTankSetup = selectedTankSetup;
+                    else
+                        selectedTankSetup = inFlightTankSetup;
+                }
 
-                _nextTankSetupEvent = Events["nextTankSetupEvent"];
-                _previousTankSetupEvent = Events["previousTankSetupEvent"];
+                AssignResourcesToPart(false);
 
                 _chooseField = Fields["selectedTankSetup"];
                 _chooseField.guiName = switcherDescription;
@@ -309,7 +333,7 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch OnStart Error: " + e.Message);
                 throw;
             }
-	    }
+        }
 
         private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
         {
@@ -325,23 +349,17 @@ namespace InterstellarFuelSwitch
         }
 
         // Called by external classes
-	    public int SelectTankSetup(int newTankIndex, bool calledByPlayer)
-	    {
-            //Debug.Log("InsterstellarFuelSwitch SelectTankSetup called with newTankSetup = " + newTankIndex + " calledByPlayer = " + calledByPlayer);
+        public int SelectTankSetup(int newTankIndex, bool calledByPlayer)
+        {
             try
             {
                 InitializeData();
-                //Debug.Log("InsterstellarFuelSwitch SelectTankSetup has Initialised Data");
 
                 if (selectedTankSetup == newTankIndex)
-                {
-                    //Debug.Log("InsterstellarFuelSwitch SelectTankSetup selectedTankSetup == newTankIndex");
                     return newTankIndex;
-                }
 
                 var oldSelectedTankSetup = selectedTankSetup;
                 selectedTankSetup = newTankIndex;
-                //Debug.Log("InsterstellarFuelSwitch SelectTankSetup has set selectedTankSetup to " + newTankIndex);
 
                 if (!_modularTankList[selectedTankSetup].hasTech)
                 {
@@ -351,12 +369,8 @@ namespace InterstellarFuelSwitch
                         previousTankSetupEvent();
                 }
                 else
-                {
                     AssignResourcesToPart(calledByPlayer);
-                    //Debug.Log("InsterstellarFuelSwitch SelectTankSetup AssignResourcesToPart");
-                }
 
-                //Debug.Log("InsterstellarFuelSwitch SelectTankSetup Returns " + selectedTankSetup);
                 return selectedTankSetup;
             }
             catch (Exception e)
@@ -364,10 +378,10 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch SelectTankSetup Error: " + e.Message);
                 throw;
             }
-	    }
+        }
 
-	    public override void OnAwake()
-	    {
+        public override void OnAwake()
+        {
             try
             {
                 if (configLoaded)
@@ -378,33 +392,30 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch OnAwake Error: " + e.Message);
                 throw;
             }
-	    }
+        }
 
-	    public override void OnLoad(ConfigNode partNode)
-	    {
-            try
-            {
-                base.OnLoad(partNode);
+        public override void OnLoad(ConfigNode partNode)
+        {
+            base.OnLoad(partNode);
 
-                if (!configLoaded)
-                    InitializeData();
+            if (!configLoaded)
+                InitializeData();
 
-                configLoaded = true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch OnLoad Error: " + e.Message);
-                throw;
-            }
-	    }
+            configLoaded = true;
+        }
 
-	    private void InitializeData()
-	    {
+        private void InitializeData()
+        {
             try
             {
                 // Prevent execution to once per Scene switch
                 if (initialized)
                     return;
+
+                _field0 = Fields["resourceAmountStr0"];
+                _field1 = Fields["resourceAmountStr1"];
+                _field2 = Fields["resourceAmountStr2"];
+                _tankGuiNameField = Fields["tankGuiName"];
 
                 availableInEditor = String.IsNullOrEmpty(inEditorSwitchingTechReq) ? availableInEditor : hasTech(inEditorSwitchingTechReq);
                 availableInFlight = String.IsNullOrEmpty(inFlightSwitchingTechReq) ? availableInFlight : hasTech(inFlightSwitchingTechReq);
@@ -420,17 +431,19 @@ namespace InterstellarFuelSwitch
                     }
                 }
 
-                var nextEvent = Events["nextTankSetupEvent"];
-                nextEvent.guiActive = hasGUI && availableInFlight;
-                nextEvent.guiActiveEditor = hasGUI && availableInEditor;
-                nextEvent.guiName = nextTankSetupText;
+                _nextTankSetupEvent = Events["nextTankSetupEvent"];
+                _nextTankSetupEvent.guiActive = hasGUI && availableInFlight;
+                _nextTankSetupEvent.guiActiveEditor = hasGUI && availableInEditor;
+                _nextTankSetupEvent.guiName = nextTankSetupText;
 
-                var previousEvent = Events["previousTankSetupEvent"];
-                previousEvent.guiActive = hasGUI && availableInFlight;
-                previousEvent.guiActiveEditor = hasGUI && availableInEditor;
-                previousEvent.guiName = previousTankSetupText;
+                _previousTankSetupEvent = Events["previousTankSetupEvent"];
+                _previousTankSetupEvent.guiActive = hasGUI && availableInFlight;
+                _previousTankSetupEvent.guiActiveEditor = hasGUI && availableInEditor;
+                _previousTankSetupEvent.guiName = previousTankSetupText;
 
-                Fields["addedCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["resourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["totalCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
 
                 if (useTextureSwitchModule)
                 {
@@ -449,11 +462,11 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch InitializeData Error: " + e.Message);
                 throw;
             }
-	    }
+        }
 
-	    [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next tank setup")]
-	    public void nextTankSetupEvent()
-	    {
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next tank setup")]
+        public void nextTankSetupEvent()
+        {
             try
             {
                 selectedTankSetup++;
@@ -471,11 +484,11 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch nextTankSetupEvent Error: " + e.Message);
                 throw;
             }
-	    }
+        }
 
-	    [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Previous tank setup")]
-	    public void previousTankSetupEvent()
-	    {
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Previous tank setup")]
+        public void previousTankSetupEvent()
+        {
             try
             {
                 selectedTankSetup--;
@@ -492,10 +505,10 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch previousTankSetupEvent Error: " + e.Message);
                 throw;
             }
-	    }
+        }
 
-	    private void AssignResourcesToPart(bool calledByPlayer = false)
-	    {
+        private void AssignResourcesToPart(bool calledByPlayer = false)
+        {
             try
             {
                 // destroying a resource messes up the gui in editor, but not in flight.
@@ -508,7 +521,9 @@ namespace InterstellarFuelSwitch
 
                 // update Dry Mass
                 UpdateDryMass();
+                UpdateGuiResourceMass();
                 UpdateMassRatio();
+                UpdateCost();
 
                 if (HighLogic.LoadedSceneIsEditor)
                 {
@@ -540,45 +555,32 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch AssignResourcesToPart Error " + e.Message);
                 throw;
             }
-	    }
+        }
 
         public void UpdateTexture(bool calledByPlayer)
         {
-            //Debug.Log("InsterstellarFuelSwitch UpdateTexture");
-
             if (textureSwitch != null)
                 textureSwitch.SelectTankSetup(selectedTankSetup, calledByPlayer);
         }
 
         public void UpdateTankName()
         {
-            var selectedTank = _modularTankList[selectedTankSetup];
-            tankGuiName = selectedTank.GuiName;
-            Fields["tankGuiName"].guiActive = showTankName && !String.IsNullOrEmpty(tankGuiName);
-            Fields["tankGuiName"].guiActiveEditor = showTankName && !String.IsNullOrEmpty(tankGuiName);
+            tankGuiName = _modularTankList[selectedTankSetup].GuiName;
 
-
-            //if (displayCurrentBoilOffTemp)
-            //{
-            //    Fields["currentBoiloffTempStr"].guiActive = true;
-            //    Fields["currentBoiloffTempStr"].guiActiveEditor = true;
-            //    currentBoiloffTempStr = selectedTank.Resources[0].boiloffTemp.ToString("0.00");
-            //}
-            //else
-            //{
-            //    Fields["currentBoiloffTempStr"].guiActive = false;
-            //    Fields["currentBoiloffTempStr"].guiActiveEditor = false;
-            //}
+            bool tankGuiNameIsNotEmpty = !String.IsNullOrEmpty(tankGuiName);
+            _tankGuiNameField.guiActive = showTankName && tankGuiNameIsNotEmpty;
+            _tankGuiNameField.guiActiveEditor = showTankName && tankGuiNameIsNotEmpty;
         }
 
-	    private List<string> SetupTankInPart(Part currentPart, bool calledByPlayer)
-	    {
+        private List<string> SetupTankInPart(Part currentPart, bool calledByPlayer)
+        {
             try
             {
                 // find selected tank
                 var selectedTank = calledByPlayer || String.IsNullOrEmpty(selectedTankSetupTxt)
                     ? selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]
-                    : _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt) ?? (selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]);
+                    : _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt) 
+                        ?? (selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]);
 
                 // update txt and index for future
                 selectedTankSetupTxt = selectedTank.GuiName;
@@ -588,18 +590,17 @@ namespace InterstellarFuelSwitch
                 var newResources = new List<string>();
                 var newResourceNodes = new List<ConfigNode>();
                 var parsedConfigAmount = new List<float>();
+                var parsedConfigFlowStates = new List<bool>();
 
                 // parse configured amounts
                 if (configuredAmounts.Length > 0)
                 {
                     // empty configuration if switched by user
                     if (calledByPlayer)
-                    {
                         configuredAmounts = String.Empty;
-                    }
 
-                    string[] configAmount = configuredAmounts.Split(',');
-                    foreach (string item in configAmount)
+                    string[] configAmounts = configuredAmounts.Split(',');
+                    foreach (string item in configAmounts)
                     {
                         float value;
                         if (float.TryParse(item, out value))
@@ -608,9 +609,26 @@ namespace InterstellarFuelSwitch
 
                     // empty configuration if in flight
                     if (!HighLogic.LoadedSceneIsEditor)
-                    {
                         configuredAmounts = String.Empty;
+                }
+
+                if (configuredFlowStates.Length > 0)
+                {
+                    // empty configuration if switched by user
+                    if (calledByPlayer)
+                        configuredFlowStates = String.Empty;
+
+                    string[] configFlowStates = configuredFlowStates.Split(',');
+                    foreach (string item in configFlowStates)
+                    {
+                        bool value;
+                        if (bool.TryParse(item, out value))
+                            parsedConfigFlowStates.Add(value);
                     }
+
+                    // empty configuration if in flight
+                    if (!HighLogic.LoadedSceneIsEditor)
+                        configuredFlowStates = String.Empty;
                 }
 
                 // imitialise minimum boiloff temperature at current part temperature
@@ -633,7 +651,7 @@ namespace InterstellarFuelSwitch
 
                     newResourceNode.AddValue("name", selectedTankResource.name);
                     newResourceNode.AddValue("maxAmount", maxAmount);
-
+                   
                     PartResource existingResource = null;
                     if (!HighLogic.LoadedSceneIsEditor || (HighLogic.LoadedSceneIsEditor && !calledByPlayer))
                     {
@@ -648,8 +666,9 @@ namespace InterstellarFuelSwitch
                     }
 
                     double resourceNodeAmount;
+                   
                     if (existingResource != null)
-                        resourceNodeAmount = Math.Min(existingResource.amount, maxAmount);
+                        resourceNodeAmount =  Math.Min((existingResource.amount / existingResource.maxAmount) * maxAmount, maxAmount);
                     else if (!HighLogic.LoadedSceneIsEditor && resourceId < parsedConfigAmount.Count)
                         resourceNodeAmount = parsedConfigAmount[resourceId];
                     else if (!HighLogic.LoadedSceneIsEditor && calledByPlayer)
@@ -658,9 +677,14 @@ namespace InterstellarFuelSwitch
                         resourceNodeAmount = selectedTank.Resources[resourceId].amount * storedVolumeMultiplier;
 
                     newResourceNode.AddValue("amount", resourceNodeAmount);
+
+                    if (existingResource != null)
+                        newResourceNode.AddValue("flowState", existingResource.flowState);
+                    else if (resourceId < parsedConfigFlowStates.Count)
+                        newResourceNode.AddValue("flowState", parsedConfigFlowStates[resourceId]);
+
                     newResourceNodes.Add(newResourceNode);
                 }
-
 
                 //// prepare part to initialise temerature 
                 //if (minimumBoiloffTemerature != -1)
@@ -676,8 +700,9 @@ namespace InterstellarFuelSwitch
                 var finalResourceNodes = new List<ConfigNode>();
 
                 // remove all resources except those we ignore
-                PartResource[] partResources = currentPart.GetComponents<PartResource>();
-                foreach (PartResource resource in partResources)
+                List<PartResource> resourcesDeleteList = new List<PartResource>();
+
+                foreach (PartResource resource in part.Resources)
                 {
                     if (activeResourceList.Contains(resource.resourceName))
                     {
@@ -687,8 +712,8 @@ namespace InterstellarFuelSwitch
                             newResourceNodes.Clear();
                         }
 
-                        currentPart.Resources.list.Remove(resource);
-                        DestroyImmediate(resource);
+                        resourcesDeleteList.Add(resource);
+                        //DestroyImmediate(resource);
                     }
                     else
                     {
@@ -698,13 +723,12 @@ namespace InterstellarFuelSwitch
                         newResourceNode.AddValue("amount", resource.amount);
 
                         finalResourceNodes.Add(newResourceNode);
-                        Debug.Log("InsterstellarFuelSwitch SetupTankInPart created confignode for: " + resource.resourceName);
-
-                        // remove all
-                        currentPart.Resources.list.Remove(resource);
-                        DestroyImmediate(resource);
-                        Debug.Log("InsterstellarFuelSwitch SetupTankInPart remove resource " + resource.resourceName);
                     }
+                }
+
+                foreach (var resource in resourcesDeleteList)
+                {
+                    currentPart.Resources.Remove(resource.info.id);
                 }
 
                 // add any remaining bew nodes
@@ -724,8 +748,6 @@ namespace InterstellarFuelSwitch
                     }
                 }
 
-                // This also needs to be done when going from a setup with resources to a setup with no resources.
-                currentPart.Resources.UpdateList();
                 UpdateCost();
 
                 return newResources;
@@ -735,7 +757,7 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("InsterstellarFuelSwitch SetupTankInPart Error: " + e.Message);
                 throw;
             }
-	    }
+        }
 
         public void ConfigureResourceMassGui(List<string> newResources)
         {
@@ -743,118 +765,103 @@ namespace InterstellarFuelSwitch
             _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinition(newResources[1]) : null;
             _partRresourceDefinition2 = newResources.Count > 2 ? PartResourceLibrary.Instance.GetDefinition(newResources[2]) : null;
 
-            var field0 = Fields["resourceAmountStr0"];
-            var field1 = Fields["resourceAmountStr1"];
-            var field2 = Fields["resourceAmountStr2"];
+            _field0.guiName = _partRresourceDefinition0 != null ? _partRresourceDefinition0.name : ":";
+            _field1.guiName = _partRresourceDefinition1 != null ? _partRresourceDefinition1.name : ":";
+            _field2.guiName = _partRresourceDefinition2 != null ? _partRresourceDefinition2.name : ":";
 
-            field0.guiName = _partRresourceDefinition0 != null ? _partRresourceDefinition0.name : ":";
-            field1.guiName = _partRresourceDefinition1 != null ? _partRresourceDefinition1.name : ":";
-            field2.guiName = _partRresourceDefinition2 != null ? _partRresourceDefinition2.name : ":";
+            _field0.guiActive = _partRresourceDefinition0 != null;
+            _field1.guiActive = _partRresourceDefinition1 != null;
+            _field2.guiActive = _partRresourceDefinition2 != null;
 
-            field0.guiActive = _partRresourceDefinition0 != null;
-            field1.guiActive = _partRresourceDefinition1 != null;
-            field2.guiActive = _partRresourceDefinition2 != null;
+            _field0.guiActiveEditor = _partRresourceDefinition0 != null;
+            _field1.guiActiveEditor = _partRresourceDefinition1 != null;
+            _field2.guiActiveEditor = _partRresourceDefinition2 != null;
 
-            field0.guiActiveEditor = _partRresourceDefinition0 != null;
-            field1.guiActiveEditor = _partRresourceDefinition1 != null;
-            field2.guiActiveEditor = _partRresourceDefinition2 != null;
-
-            _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition0.name);
-            _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition1.name);
-            _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition2.name);
+            _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources.dict[_partRresourceDefinition0.id];
+            _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources.dict[_partRresourceDefinition1.id];
+            _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.dict[_partRresourceDefinition2.id];
         }
 
-	    private float UpdateCost()
-	    {
-            try
-            {
-                if (selectedTankSetup >= 0 && selectedTankSetup < tankCostList.Count)
-                {
-                    addedCost = (float)tankCostList[selectedTankSetup];
-                    return addedCost;
-                }
+        private double UpdateCost()
+        {
+            dryCost = part.partInfo.cost * storedMassMultiplier;
 
-                addedCost = 0;
-                if (_partRresourceDefinition0 == null || _partResource0 == null) return addedCost;
-                addedCost += _partRresourceDefinition0.unitCost * (float)_partResource0.maxAmount;
+            if (selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
+                dryCost += _modularTankList[selectedTankSetup].tankCost * storedMassMultiplier;
 
-                if (_partRresourceDefinition1 == null || _partResource1 == null) return addedCost;
-                addedCost += _partRresourceDefinition1.unitCost * (float)_partResource1.maxAmount;
+            totalCost = 0;
+            resourceCost = 0;
+            
+            if (_partRresourceDefinition0 == null || _partResource0 == null)
+                return totalCost;
 
-                if (_partRresourceDefinition2 != null && _partResource2 != null)
-                    addedCost += _partRresourceDefinition2.unitCost * (float)_partResource2.maxAmount;
+            resourceCost += _partRresourceDefinition0.unitCost * (float)_partResource0.amount;
+            totalCost += _partRresourceDefinition0.unitCost * (float)_partResource0.maxAmount;
 
-                return addedCost;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch UpdateCost Error: " + e.Message);
-                throw;
-            }
-	    }
+            if (_partRresourceDefinition1 == null || _partResource1 == null)
+                return totalCost;
+
+            resourceCost += _partRresourceDefinition1.unitCost * (float)_partResource1.amount;
+            totalCost += _partRresourceDefinition1.unitCost * (float)_partResource1.maxAmount;
+
+            if (_partRresourceDefinition2 == null || _partResource2 == null)
+                return totalCost;
+
+            resourceCost += _partRresourceDefinition2.unitCost * (float)_partResource2.amount;
+            totalCost = _partRresourceDefinition2.unitCost * (float)_partResource2.maxAmount; ;
+
+            return totalCost;
+        }
 
         private void UpdateDryMass()
         {
             // update Dry Mass
-            dryMass = CalculateDryMass(selectedTankSetup);
+            dryMass = CalculateDryMass(HighLogic.LoadedSceneIsFlight ? inFlightTankSetup : selectedTankSetup);
         }
 
         private double CalculateDryMass(int tankSetupIndex)
         {
             double mass = basePartMass;
-            //Debug.LogError("CalculateDryMass basePartMass: " + basePartMass);
 
-            // use tankMass if defined
-            if (weightList != null && tankSetupIndex >= 0 && tankSetupIndex < weightList.Count)
+            if (tankSetupIndex >= 0 && tankSetupIndex < _modularTankList.Count)
             {
-                mass += weightList[tankSetupIndex];
-                //Debug.LogError("CalculateDryMass UpdateCost weight: " + weightList[tankSetupIndex]);
-            }
+                var currentTank = _modularTankList[tankSetupIndex];
 
-            // use baseResourceMassDivider if specified
-            if (baseResourceMassDivider > 0 && tankSetupIndex >= 0 && tankSetupIndex < _modularTankList.Count)
-            {
-                mass += _modularTankList[tankSetupIndex].FullMass / baseResourceMassDivider;
-                //Debug.LogError("CalculateDryMass FullMass: " + _modularTankList[tankSetupIndex].FullMass);
-                //Debug.LogError("CalculateDryMass baseResourceMassDivider: " + baseResourceMassDivider);
-            }
+                var totalTankResourceMassDivider = currentTank.resourceMassDivider + currentTank.resourceMassDividerAddition;
 
-            // use tankResourceMassDividerList if specified
-            if (tankSetupIndex >= 0 && tankSetupIndex < _modularTankList.Count && tankSetupIndex < tankResourceMassDividerList.Count && tankResourceMassDividerList[tankSetupIndex] > 0)
-            {
-                mass += _modularTankList[tankSetupIndex].FullMass / tankResourceMassDividerList[tankSetupIndex];
-                //Debug.LogError("CalculateDryMass FullMass: " + _modularTankList[tankSetupIndex].FullMass);
-                //Debug.LogError("CalculateDryMass tankResourceMassDivider: " + tankResourceMassDividerList[tankSetupIndex]);
+                if (overrideMassWithTankDividers && totalTankResourceMassDivider > 0)
+                    mass = currentTank.FullResourceMass / totalTankResourceMassDivider;
+                else
+                {
+                    mass += currentTank.tankMass;
+
+                    // use baseResourceMassDivider if specified
+                    if (baseResourceMassDivider > 0)
+                        mass += currentTank.FullResourceMass / baseResourceMassDivider;
+
+                    // use resourceMassDivider if specified
+                    if (totalTankResourceMassDivider > 0)
+                        mass += currentTank.FullResourceMass / totalTankResourceMassDivider;
+                }
             }
 
             // prevent 0 mass
             if (mass == 0)
-            {
-                //Debug.LogError("CalculateDryMass Mass == 0 setting mass to " + initialMass);
                 mass = initialMass;
-            }
 
-            return mass * storedMassMultiplier; 
+            return mass * storedMassMultiplier;
         }
 
-	    private string formatMassStr(double amount)
+        private string formatMassStr(double amount)
         {
-            try
-            {
-                if (amount >= 1)
-                    return (amount).ToString(resourcesFormat) + " t";
-                if (amount >= 1e-3)
-                    return (amount * 1e3).ToString(resourcesFormat) + " kg";
-                if (amount >= 1e-6)
-                    return (amount * 1e6).ToString(resourcesFormat) + " g";
+            if (amount >= 1)
+                return (amount).ToString(resourcesFormat) + " t";
+            if (amount >= 1e-3)
+                return (amount * 1e3).ToString(resourcesFormat) + " kg";
+            if (amount >= 1e-6)
+                return (amount * 1e6).ToString(resourcesFormat) + " g";
 
-                return (amount * 1e9).ToString(resourcesFormat) + " mg";
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch formatMassStr Error: " + e.Message);
-                throw;
-            }
+            return (amount * 1e9).ToString(resourcesFormat) + " mg";
         }
 
         private void UpdateGuiResourceMass()
@@ -867,8 +874,7 @@ namespace InterstellarFuelSwitch
             var currentResourceMassAmount1 = missing1 ? 0 : _partRresourceDefinition1.density * _partResource1.amount;
             var currentResourceMassAmount2 = missing2 ? 0 : _partRresourceDefinition2.density * _partResource2.amount;
 
-            wetMass = currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2;
-            totalMass = dryMass + wetMass;
+            totalMass = dryMass + currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2;
 
             resourceAmountStr0 = missing0 ? String.Empty : formatMassStr(currentResourceMassAmount0);
             resourceAmountStr1 = missing1 ? String.Empty : formatMassStr(currentResourceMassAmount1);
@@ -881,10 +887,10 @@ namespace InterstellarFuelSwitch
             var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
             var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource2.maxAmount;
 
-            var maxWetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
+            wetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
 
-            if (part.mass > 0 && maxWetMass > 0)
-                massRatioStr = ToRoundedString(1 / (dryMass / maxWetMass));
+            if (wetMass > 0 && dryMass > 0)
+                massRatioStr = ToRoundedString(1 / (dryMass / wetMass));
         }
 
         private string ToRoundedString(double value)
@@ -906,13 +912,10 @@ namespace InterstellarFuelSwitch
         {
             if (initializePartTemperature != -1 && initializePartTemperature > 0)
             {
-                //Debug.Log("InsterstellarFuelSwitch OnUpdate initialise part temperature at " + initializePartTemperature);
                 part.temperature = initializePartTemperature;
                 initializePartTemperature = -1;
                 traceBoiloff = true;
             }
-
-
         }
 
         public void ProcessBoiloff()
@@ -933,7 +936,7 @@ namespace InterstellarFuelSwitch
 
                     var deltaTemperatureDifferenceInKelvin = currentTemperature - resource.boiloffTemp;
 
-                    PartResource partResource = part.Resources.list.FirstOrDefault(r => r.resourceName == resource.name);
+                    PartResource partResource = part.Resources.FirstOrDefault(r => r.resourceName == resource.name);
                     PartResourceDefinition resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource.name);
 
                     if (resourceDefinition == null || partResource == null) continue;
@@ -973,7 +976,7 @@ namespace InterstellarFuelSwitch
         ////public override void OnFixedUpdate()
         ////{
         ////    currentPartMass = part.mass;
-            
+
         ////    ProcessBoiloff();
 
         ////    partTemperatureStr = part.temperature + " K";
@@ -981,12 +984,10 @@ namespace InterstellarFuelSwitch
         ////    base.OnFixedUpdate();
         ////}
 
-	    // Note: do note remove, it is called by KSP
+        // Note: do note remove, it is called by KSP
         public void Update()
         {
             currentPartMass = part.mass;
-
-            partTemperatureStr = part.temperature + " K";
 
             if (currentResources != null)
                 ConfigureResourceMassGui(currentResources);
@@ -996,25 +997,35 @@ namespace InterstellarFuelSwitch
                 UpdateGuiResourceMass();
 
                 //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
-                isEmpty = !part.Resources.list.Any(r => r.amount > r.maxAmount / 1000);
+                isEmpty = !part.Resources.Any(r => r.amount > r.maxAmount / 1000);
                 var showSwitchButtons = availableInFlight && isEmpty;
 
-                //_chooseField.guiActive = showSwitchButtons;
                 _nextTankSetupEvent.guiActive = showSwitchButtons;
                 _previousTankSetupEvent.guiActive = showSwitchButtons;
 
                 return;
+            }
+            else
+            {
+                var showSwitchButtons = availableInEditor && _modularTankList[selectedTankSetup].Resources.Count == 1;
+
+                _nextTankSetupEvent.guiActiveEditor = showSwitchButtons;
+                _previousTankSetupEvent.guiActiveEditor = showSwitchButtons;
             }
 
             // update Dry Mass
             UpdateDryMass();
             UpdateGuiResourceMass();
             UpdateMassRatio();
+            UpdateCost();
 
-            configuredAmounts = "";
-            foreach (var resoure in part.Resources.list)
+            configuredAmounts = String.Empty;;
+            configuredFlowStates = String.Empty;
+
+            foreach (var resoure in part.Resources)
             {
                 configuredAmounts += resoure.amount + ",";
+                configuredFlowStates += resoure.flowState.ToString() + ",";
             }
         }
 
@@ -1022,9 +1033,10 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                weightList = ParseTools.ParseDoubles(tankMass, () => tankMass);
-                tankCostList = ParseTools.ParseDoubles(tankCost, () => tankCost);
-                tankResourceMassDividerList = ParseTools.ParseDoubles(tankResourceMassDivider, () => tankResourceMassDivider);  
+                var weightList = ParseTools.ParseDoubles(tankMass, () => tankMass);
+                var tankCostList = ParseTools.ParseDoubles(tankCost, () => tankCost);
+                var tankResourceMassDividerList = ParseTools.ParseDoubles(tankResourceMassDivider, () => tankResourceMassDivider);
+                var tankResourceMassDividerAdditionList = ParseTools.ParseDoubles(tankResourceMassDividerAddition, () => tankResourceMassDividerAddition);
 
                 // First find the amounts each tank type is filled with
                 List<List<double>> resourceList = new List<List<double>>();
@@ -1141,6 +1153,9 @@ namespace InterstellarFuelSwitch
                     if (currentResourceCounter < tankResourceMassDividerList.Count)
                         modularTank.resourceMassDivider = tankResourceMassDividerList[currentResourceCounter];
 
+                    if (currentResourceCounter < tankResourceMassDividerAdditionList.Count)
+                        modularTank.resourceMassDividerAddition = tankResourceMassDividerAdditionList[currentResourceCounter];
+
                     // initialise tank cost
                     if (currentResourceCounter < tankCostList.Count)
                         modularTank.tankCost = tankCostList[currentResourceCounter];
@@ -1173,7 +1188,7 @@ namespace InterstellarFuelSwitch
                     // ensure there is always a gui name
                     if (string.IsNullOrEmpty(modularTank.GuiName))
                     {
-                        var names =  modularTank.Resources.Select(m => m.name);
+                        var names = modularTank.Resources.Select(m => m.name);
                         modularTank.GuiName = String.Empty;
                         foreach (var name in names)
                         {
@@ -1188,7 +1203,8 @@ namespace InterstellarFuelSwitch
                         modularTank.SwitchName = modularTank.GuiName;
                 }
 
-                var maxNrTanks = _modularTankList.Max(t => t.Resources.Count);
+                if (orderBySwitchName)
+                    _modularTankList = _modularTankList.OrderBy(m => m.SwitchName).ToList();
             }
             catch (Exception e)
             {
@@ -1199,15 +1215,7 @@ namespace InterstellarFuelSwitch
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            try
-            {
-                return UpdateCost();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch GetModuleCost Error:" + e.Message);
-                throw;
-            }
+            return (float)UpdateCost();
         }
 
         public ModifierChangeWhen GetModuleCostChangeWhen()
@@ -1217,68 +1225,60 @@ namespace InterstellarFuelSwitch
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
         {
-           return ModifierChangeWhen.STAGED;
+            return ModifierChangeWhen.STAGED;
         }
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
-            try
+            this.defaultMass = defaultMass;
+
+            UpdateDryMass();
+            UpdateGuiResourceMass();
+            UpdateMassRatio();
+
+            if (returnDryMass)
             {
-                this.defaultMass = defaultMass;
-
-                UpdateDryMass();
-                UpdateMassRatio();
-
+                return (float)dryMass;
+            }
+            else
+            {
                 moduleMassDelta = dryMass - initialMass;
 
                 return (float)moduleMassDelta;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch GetModuleMass Error: " + e.Message);
-                throw;
             }
         }
 
         public override string GetInfo()
         {
-            try
+            if (!showInfo) return string.Empty;
+
+            var info = new StringBuilder();
+
+            info.AppendLine("Fuel tank setups available:");
+            info.AppendLine();
+
+            foreach (var module in _modularTankList)
             {
-                if (!showInfo) return string.Empty;
+                int count = 0;
+                info.Append("* ");
 
-                var info = new StringBuilder();
-
-                info.AppendLine("Fuel tank setups available:");
-                info.AppendLine();
-
-                foreach (var module in _modularTankList)
+                foreach (var resource in module.Resources)
                 {
-                    int count = 0;
-                    info.Append("* ");
-
-                    foreach (var resource in module.Resources)
+                    if (count > 0)
+                        info.Append(" + ");
+                    if (resource.maxAmount > 0)
                     {
-                        if (count > 0)
-                            info.Append(" + ");
-                        if (resource.maxAmount > 0)
-                        {
-                            info.Append(resource.maxAmount);
-                            info.Append(" ");
-                        }
-                        info.Append(resource.name);
-
-                        count++;
+                        info.Append(resource.maxAmount);
+                        info.Append(" ");
                     }
+                    info.Append(resource.name);
 
-                    info.AppendLine();
+                    count++;
                 }
-                return info.ToString();
+
+                info.AppendLine();
             }
-            catch (Exception e)
-            {
-                Debug.LogError("InsterstellarFuelSwitch GetInfo Error " + e.Message);
-                throw;
-            }
+            return info.ToString();
         }
 
         private bool hasTech(string techid)
@@ -1311,7 +1311,7 @@ namespace InterstellarFuelSwitch
                 return false;
         }
 
-        private static HashSet<string> researchedTechs;
+        
 
         private void LoadSaveFile()
         {
@@ -1335,5 +1335,5 @@ namespace InterstellarFuelSwitch
                 }
             }
         }
-    } 
+    }
 }

@@ -6,11 +6,11 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
     class MicrowaveSources : MonoBehaviour
     {
-        public Dictionary<Vessel, VesselMicrowavePersistence> transmitters = new Dictionary<Vessel, VesselMicrowavePersistence>();
-        public Dictionary<Vessel, VesselRelayPersistence> relays = new Dictionary<Vessel, VesselRelayPersistence>();
+        public Dictionary<Vessel, VesselMicrowavePersistence> globalTransmitters = new Dictionary<Vessel, VesselMicrowavePersistence>();
+        public Dictionary<Vessel, VesselRelayPersistence> globalRelays = new Dictionary<Vessel, VesselRelayPersistence>();
 
         public static MicrowaveSources instance
         {
@@ -25,75 +25,83 @@ namespace FNPlugin
             Debug.Log("[KSP Interstellar]: MicrowaveSources initialized");
         }
 
-        uint unloaded_counter = 0;
+        int unloaded_counter = -1;
+        bool initialized = false;
 
         public void calculateTransmitters()
         {
             unloaded_counter++;
-            foreach (var vessel in FlightGlobals.Vessels)
+
+            if (unloaded_counter > FlightGlobals.Vessels.Count)
+                unloaded_counter = 0;
+
+            //foreach (var vessel in FlightGlobals.Vessels)
+            for (int i = 0; i < FlightGlobals.Vessels.Count; i++ )
             {
-                // if vessek is offloaded to rails, parse file system
+                var vessel = FlightGlobals.Vessels[i];
+
+                // if vessel is offloaded to rails, parse file system
                 if (vessel.state == Vessel.State.INACTIVE)
                 {
-                    if (unloaded_counter % 100 != 1)                // sometimes rebuild unloaded vessels as transmitters and relays
+                    //if (unloaded_counter % 101 != 1)                // sometimes rebuild unloaded vessels as transmitters and relays
+                    //    continue;
+                    if (initialized && i != unloaded_counter)
                         continue;
-                    // parse transmitter
-                    var trans_pers = new VesselMicrowavePersistence(vessel);
-                    trans_pers.setNuclearPower(MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel.protoVessel));
-                    trans_pers.setSolarPower(MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel.protoVessel));
 
-                    if (trans_pers.getAvailablePower() > 1.0)
-                        transmitters[vessel] = trans_pers;
+                    //Debug.Log("[KSP Interstellar]: update tranmitter for offloaded vessel " + i);
+
+                    // add if vessel can act as a transmitter or relay
+                    var trans_pers = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForProtoVessel(vessel);
+                    if (trans_pers.IsActive && trans_pers.getAvailablePower() > 0.001)
+                        globalTransmitters[vessel] = trans_pers;
                     else
-                        transmitters.Remove(vessel);
-                    // parse relay
-                    var persistence = new VesselRelayPersistence(vessel);
-                    persistence.setActive(MicrowavePowerTransmitter.vesselIsRelay(vessel.protoVessel));
-                    if (persistence.isActive())
-                        relays[vessel] = persistence;
+                        globalTransmitters.Remove(vessel);
+
+                    // obly add if vessel can act as a relay
+                    var relayPower = MicrowavePowerTransmitter.getVesselRelayPersistanceForProtoVessel(vessel);
+                    if (relayPower.IsActive)
+                        globalRelays[vessel] = relayPower;
                     else
-                        relays.Remove(vessel);
+                        globalRelays.Remove(vessel);
+
                     continue;
                 }
 
                 // if vessel is dead
                 if (vessel.state == Vessel.State.DEAD)
                 {
-                    transmitters.Remove(vessel);
-                    relays.Remove(vessel);
+                    globalTransmitters.Remove(vessel);
+                    globalRelays.Remove(vessel);
                     continue;
                 }
 
                 // if vessel is loaded
-                var transes = vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>();
-                if (transes.Count > 0)
+                if (vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>().Any())
                 {
-                    var persistence = new VesselMicrowavePersistence(vessel);
-                    persistence.setNuclearPower(MicrowavePowerTransmitter.getEnumeratedNuclearPowerForVessel(vessel));
-                    persistence.setSolarPower(MicrowavePowerTransmitter.getEnumeratedSolarPowerForVessel(vessel));
-
-                    if (persistence.getAvailablePower() > 1.0)
-                        transmitters[vessel] = persistence;
+                    // add if vessel can act as a transmitter or relay
+                    var transmitterPower = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel(vessel);
+                    if (transmitterPower.IsActive && transmitterPower.getAvailablePower() > 0.001)
+                        globalTransmitters[vessel] = transmitterPower;
                     else
-                        transmitters.Remove(vessel);
-                }
+                        globalTransmitters.Remove(vessel);
 
-                if (MicrowavePowerTransmitter.vesselIsRelay(vessel))
-                {
-                    var persistence = new VesselRelayPersistence(vessel);
-                    persistence.setActive(true);
-                    if (persistence.isActive())
-                        relays[vessel] = persistence;
+                    // obly add if vessel can act as a relay
+                    var relayPower = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel(vessel);
+                    if (relayPower.IsActive)
+                        globalRelays[vessel] = relayPower;
                     else
-                        relays.Remove(vessel);
+                        globalRelays.Remove(vessel);
                 }
             }
+            initialized = true;
+
         }
 
         uint counter = 0;
-        void Update()                  // update every 40 frames
+        void Update()                  
         {
-            if (counter++ % 40 == 0 && HighLogic.LoadedSceneIsGame)
+            // update every 41e frame
+            if (counter++ % 41 == 0 && HighLogic.LoadedSceneIsFlight)
                 calculateTransmitters();
         }
     }
