@@ -70,7 +70,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    jumpstartPowerTime = 100;
+                    jumpstartPowerTime = 50;
                     IsEnabled = true;
                     reactor_power_ratio = 1;
                 }
@@ -228,7 +228,7 @@ namespace FNPlugin
                 // retreive megawath ratio
                 var megaWattStorageRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                // only use buffer if we have sufficient in storage
+                //only use buffer if we have sufficient in storage
                 if (megaWattStorageRatio > 0.5)
                 {
                     var powerRequirmentMetRatio = powerReceived / powerRequested;
@@ -247,6 +247,8 @@ namespace FNPlugin
                 {
                     //ScreenMessages.PostScreenMessage("Attempting to Jump start", 5.0f, ScreenMessageStyle.LOWER_CENTER);
                     power_consumed += (float)accumulatedElectricChargeInMW;
+                    accumulatedElectricChargeInMW -= shortage;
+                    jumpstartPowerTime = 50;
                 }
             }
 

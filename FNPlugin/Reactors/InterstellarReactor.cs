@@ -1220,8 +1220,6 @@ namespace FNPlugin
                 raw_charged_power_received = supplyManagedFNResourceWithMinimumRatio(max_charged_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 double charged_power_ratio = max_charged_to_supply_fixed > 0 ? raw_charged_power_received / max_charged_to_supply_fixed : 0;
 
-                
-
                 // Thermal Power
                 fixed_maximum_thermal_power = MaximumThermalPower * TimeWarp.fixedDeltaTime;
                 max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier;
@@ -1503,7 +1501,7 @@ namespace FNPlugin
                 sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
                 foreach (ReactorFuel fuel in fm.ReactorFuels)
                 {
-                    sb.AppendLine(fuel.FuelName + " " + fuel.FuelUsePerMJ * fuelUsePerMJMult * PowerOutput * fm.NormalisedReactionRate * PluginHelper.SecondsInDay / fuelEfficiency + fuel.Unit + "/day");
+                    sb.AppendLine(fuel.FuelName + " " + fuel.TonsFuelUsePerMJ * fuelUsePerMJMult * PowerOutput * fm.NormalisedReactionRate * PluginHelper.SecondsInDay / fuelEfficiency + fuel.Unit + "/day");
                 }
                 sb.AppendLine("---");
             });
@@ -1571,20 +1569,20 @@ namespace FNPlugin
 
         protected double ConsumeReactorFuel(ReactorFuel fuel, double MJpower)
         {
-            var consume_amount = MJpower * fuel.FuelUsePerMJ * fuelUsePerMJMult;
+            var consume_amount_in_Ton = MJpower * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult;
             
             if (!fuel.ConsumeGlobal)
             {
                 if (part.Resources.Contains(fuel.FuelName))
                 {
-                    double amount = Math.Min(consume_amount / FuelEfficiency, part.Resources[fuel.FuelName].amount);
+                    double amount = Math.Min(consume_amount_in_Ton / FuelEfficiency, part.Resources[fuel.FuelName].amount);
                     part.Resources[fuel.FuelName].amount -= amount;
                     return amount;
                 }
                 else
                     return 0;
             }
-            return part.RequestResource(fuel.FuelName, consume_amount / FuelEfficiency);
+            return part.RequestResource(fuel.FuelName, consume_amount_in_Ton / FuelEfficiency);
         }
 
         protected virtual double ProduceReactorProduct(ReactorProduct product, double produce_amount)
@@ -1786,9 +1784,10 @@ namespace FNPlugin
                     //double fuel_lifetime_d = double.MaxValue;
                     foreach (var fuel in current_fuel_mode.ReactorFuels)
                     {
-                        double availability = GetFuelAvailability(fuel);
-                        PrintToGUILayout(fuel.FuelName + " Reserves", (availability * fuel.Density * 1000).ToString("0.000000") + " kg", bold_style, text_style);
-                        double fuel_use_per_day = total_power_per_frame * fuel.FuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                        double availability = GetFuelAvailability(fuel) * fuel.Density * 1000;
+
+                        PrintToGUILayout(fuel.FuelName + " Reserves", availability.ToString("0.000000") + " kg", bold_style, text_style);
+                        double fuel_use_per_day = total_power_per_frame * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * PluginHelper.SecondsInDay;
 
                         double fuel_lifetime_d = fuel_use_per_day > 0 ? availability / fuel_use_per_day : 0;
 
