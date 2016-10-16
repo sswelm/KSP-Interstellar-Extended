@@ -27,6 +27,7 @@ namespace FNPlugin
         protected bool _requires_lab;
         protected bool _requires_upgrade;
         protected int _techLevel;
+        protected bool _aneutronic;
 
         public ReactorFuelMode(ConfigNode node) 
         {
@@ -47,6 +48,7 @@ namespace FNPlugin
             _requires_lab = node.HasValue("RequiresLab") ? Boolean.Parse(node.GetValue("RequiresLab")) : false;
             _requires_upgrade = node.HasValue("RequiresUpgrade") ? Boolean.Parse(node.GetValue("RequiresUpgrade")) : false;
             _techLevel = node.HasValue("TechLevel") ? Int32.Parse(node.GetValue("TechLevel")) : 0;
+            _aneutronic = node.HasValue("Aneutronic") ? Boolean.Parse(node.GetValue("Aneutronic")) : false;
 
             ConfigNode[] fuel_nodes = node.GetNodes("FUEL");
             _fuels = fuel_nodes.Select(nd => new ReactorFuel(nd)).ToList();
@@ -65,7 +67,7 @@ namespace FNPlugin
 
         public IList<ReactorProduct> ReactorProducts { get { return _products; } }
 
-        public bool Aneutronic { get { return _neutrons_ratio == 0; } }
+        public bool Aneutronic { get { return _aneutronic; } }
 
         public bool RequiresLab { get { return _requires_lab; } }
 
@@ -82,6 +84,8 @@ namespace FNPlugin
         public int TechLevel { get { return _techLevel; } }
 
         public float NeutronsRatio { get { return _neutrons_ratio; } }
+
+        public float TritiumBreedModifier { get { return _neutrons_ratio; } }
 
         public double FuelEfficencyMultiplier { get { return _fuel_efficency_multiplier; } }
     }

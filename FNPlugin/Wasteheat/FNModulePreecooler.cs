@@ -25,7 +25,7 @@ namespace FNPlugin
             UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - Onstart start search for Air Intake module to cool");
 
             // first check if part itself has an air intake
-            attachedIntake = part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == PluginHelper.IntakeAir);
+            attachedIntake = part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir);
 
             if (attachedIntake != null)
                 UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - Found Airintake on self");
@@ -35,7 +35,7 @@ namespace FNPlugin
                 // then look to connect radial attached children
                 radialAttachedIntakes = part.children
                     .Where(p => p.attachMode == AttachModes.SRF_ATTACH)
-                    .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == PluginHelper.IntakeAir).ToList();
+                    .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir).ToList();
 
                 if (radialAttachedIntakes.Count > 0)
                     UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - Found Airintake in children");
@@ -59,7 +59,7 @@ namespace FNPlugin
                         continue;
                     }
 
-                    attachedIntake = attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == PluginHelper.IntakeAir);
+                    attachedIntake = attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir);
 
                     if (attachedIntake != null)
                     {
@@ -78,7 +78,7 @@ namespace FNPlugin
                         // then look to connect radial attached children
                         radialAttachedIntakes = attach_node.attachedPart.children
                             .Where(p => p.attachMode == AttachModes.SRF_ATTACH)
-                            .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == PluginHelper.IntakeAir).ToList();
+                            .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir).ToList();
 
                         if (radialAttachedIntakes.Count > 0)
                         {
@@ -92,7 +92,7 @@ namespace FNPlugin
                         {
                             UnityEngine.Debug.Log("[KSPI] - FNModulePreecooler - look for Air intakes in part " + subAttach_node.attachedPart.name);
 
-                            attachedIntake = subAttach_node.attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == PluginHelper.IntakeAir);
+                            attachedIntake = subAttach_node.attachedPart.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir);
 
                             if (attachedIntake != null)
                             {
@@ -103,7 +103,7 @@ namespace FNPlugin
                             // then look to connect radial attached children
                             radialAttachedIntakes = subAttach_node.attachedPart.children
                                 .Where(p => p.attachMode == AttachModes.SRF_ATTACH)
-                                .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == PluginHelper.IntakeAir).ToList();
+                                .SelectMany(p => p.FindModulesImplementing<ModuleResourceIntake>()).Where(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir).ToList();
 
                             if (radialAttachedIntakes.Count > 0)
                             {

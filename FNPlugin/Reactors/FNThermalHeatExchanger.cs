@@ -138,9 +138,9 @@ namespace FNPlugin
 
         public bool IsSelfContained { get { return false; } }
 
-        public float CoreTemperature { get { return 1500; } }
+        public double CoreTemperature { get { return 1500; } }
 
-        public float HotBathTemperature { get { return CoreTemperature * 1.5f; } }
+        public double HotBathTemperature { get { return CoreTemperature * 1.5f; } }
 
         public double StableMaximumReactorPower { get { return MaximumThermalPower; } }
 
@@ -190,7 +190,7 @@ namespace FNPlugin
 
 		public void setupThermalPower(){
 			activeExchangers = FNThermalHeatExchanger.getActiveExchangersForVessel(vessel);
-            _thermalpower = getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
+            _thermalpower = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
 		}
 
 		public override void OnStart(PartModule.StartState state) 

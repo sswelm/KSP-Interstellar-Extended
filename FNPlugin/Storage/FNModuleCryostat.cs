@@ -23,11 +23,11 @@ namespace FNPlugin
         public float resourceRatioExp = 0.5f;
         [KSPField(isPersistant = false)]
         public float boilOffRate;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public float powerReqKW;
         //[KSPField(isPersistant = false)]
         //public float fullPowerReqKW = 0;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public float powerReqMult = 1f;
         [KSPField(isPersistant = false)]
         public float boilOffMultiplier;
@@ -59,14 +59,14 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Boiloff")]
         public string boiloffStr;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Environment Factor")]
-        public float environmentFactor;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Temperature")]
-        public float externalTemperature;
+        public double environmentFactor;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Temperature", guiFormat = "F3", guiUnits = " K")]
+        public double externalTemperature;
 
         protected float boiloff;
         protected PartResource cryostat_resource;
         protected float recievedPowerKW;
-        protected float currentPowerReq;
+        protected double currentPowerReq;
 
         [KSPEvent(guiName = "Deactivate Cooling", guiActive = true, guiActiveEditor = false, guiActiveUnfocused = false)]
         public void Deactivate()
@@ -109,12 +109,21 @@ namespace FNPlugin
                 Fields["boiloffStr"].guiActive = showBoiloff && boiloff > 0.00001;
                 Fields["externalTemperature"].guiActive = showTemp && coolingIsRelevant;
 
+                if (!coolingIsRelevant)
+                    return;
+
                 var atmosphereModifier = convectionMod == -1 ? 0 : convectionMod + (FlightGlobals.getStaticPressure(vessel.transform.position) / 100) / (convectionMod + 1);
 
-                externalTemperature = (float)part.temperature;
+                externalTemperature = part.temperature;
+                if (Double.IsNaN(externalTemperature))
+                {
+                    part.temperature = part.skinTemperature;
+                    externalTemperature = part.skinTemperature;
+                }
 
                 var temperatureModifier = Math.Max(0, externalTemperature - boilOffTemp) / 300; //273.15;
-                environmentFactor = (float)(atmosphereModifier * temperatureModifier);
+
+                environmentFactor = atmosphereModifier * temperatureModifier;
 
                 if (powerReqKW > 0)
                 {
@@ -145,7 +154,7 @@ namespace FNPlugin
         // FixedUpdate is also called while not staged
         public void FixedUpdate()
         {
-            if (cryostat_resource == null || cryostat_resource.amount <= 0.0)
+            if (cryostat_resource == null || cryostat_resource.amount <= 0.0000001)
             {
                 boiloff = 0;
                 return;
@@ -155,7 +164,7 @@ namespace FNPlugin
             {
                 var fixedPowerReqKW = (float)(currentPowerReq * TimeWarp.fixedDeltaTime);
 
-                float fixedRecievedChargeKW = consumeFNResource(fixedPowerReqKW / 1000.0f, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f;
+                float fixedRecievedChargeKW = consumeFNResource(fixedPowerReqKW / 1000, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
 
                 if (currentPowerReq < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
                     fixedRecievedChargeKW += part.RequestResource("ElectricCharge", fixedPowerReqKW - fixedRecievedChargeKW);
@@ -193,7 +202,7 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            return "Power Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW\n Powered Boil Off Fraction: " + boilOffRate * GameConstants.EARH_DAY_SECONDS + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * GameConstants.EARH_DAY_SECONDS + " /day";
+            return "Power Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW\n Powered Boil Off Fraction: " + boilOffRate * PluginHelper.SecondsInDay + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * PluginHelper.SecondsInDay + " /day";
         }
     }
 }

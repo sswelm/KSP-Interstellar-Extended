@@ -20,6 +20,7 @@ namespace FNPlugin
         protected double efficiency;
         protected float ispMultiplier;
         protected float thrustMultiplier;
+        protected float decomposedIspMult;
         protected float thrustMultiplierCold;
         protected Propellant propellant;
         protected String propellantname;
@@ -27,12 +28,15 @@ namespace FNPlugin
         protected String effectname;
         protected double wasteheatMultiplier;
         protected string techRquirement;
+        
 
         public int SupportedEngines { get { return prop_type;} }
 
         public double Efficiency { get { return efficiency; } }
 
         public float IspMultiplier { get { return ispMultiplier; } }
+
+        public float DecomposedIspMult { get { return decomposedIspMult; } }
 
         public float ThrustMultiplier { get { return thrustMultiplier; } }
 
@@ -53,15 +57,18 @@ namespace FNPlugin
         public ElectricEnginePropellant(ConfigNode node) 
         {
             propellantname = node.GetValue("name");
-            propellantguiname = node.GetValue("guiName");
-            ispMultiplier = Convert.ToSingle(node.GetValue("ispMultiplier"));
+
+            propellantguiname = node.HasValue("guiName") ? node.GetValue("guiName") : propellantname;
+            ispMultiplier = node.HasValue("ispMultiplier") ? Convert.ToSingle(node.GetValue("ispMultiplier")) : 1;
+            decomposedIspMult = node.HasValue("decomposedIspMult") ? Convert.ToSingle(node.GetValue("decomposedIspMult")) : ispMultiplier;
             thrustMultiplier = node.HasValue("thrustMultiplier") ? Convert.ToSingle(node.GetValue("thrustMultiplier")) : 1;
             thrustMultiplierCold = node.HasValue("thrustMultiplierCold") ? Convert.ToSingle(node.GetValue("thrustMultiplierCold")) : thrustMultiplier;
             wasteheatMultiplier = node.HasValue("wasteheatMultiplier") ? Convert.ToDouble(node.GetValue("wasteheatMultiplier")) : 1;
-            efficiency = Convert.ToDouble(node.GetValue("efficiency"));
-            prop_type = Convert.ToInt32(node.GetValue("type"));
-            effectname = node.GetValue("effectName");
+            efficiency = node.HasValue("efficiency") ? Convert.ToDouble(node.GetValue("efficiency")) : 1;
+            prop_type = node.HasValue("type") ? Convert.ToInt32(node.GetValue("type")) : 1;
+            effectname = node.HasValue("effectName")  ? node.GetValue("effectName") : "none";
             techRquirement = node.HasValue("techRequirement") ? node.GetValue("techRequirement") : String.Empty;
+
             ConfigNode propellantnode = node.GetNode("PROPELLANT");
             propellant = new Propellant();
             propellant.Load(propellantnode);

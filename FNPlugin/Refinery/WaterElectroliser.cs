@@ -12,7 +12,9 @@ namespace FNPlugin.Refinery
         const int labelWidth = 200;
         const int valueWidth = 200;
 
-        const double hydrogenMassByFraction = (2 * 1.008) / (15.999 + (2 * 1.008));
+        const double protiumAtomicMass = 1.00782503207;
+        const double oxygenAtomicMass = 15.999;
+        const double hydrogenMassByFraction = (2 * protiumAtomicMass) / (oxygenAtomicMass + (2 * protiumAtomicMass)); // 0.1119067
         const double oxygenMassByFraction = 1 - hydrogenMassByFraction;
 
         protected Part _part;

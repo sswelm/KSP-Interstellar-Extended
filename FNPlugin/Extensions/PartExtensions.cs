@@ -124,5 +124,30 @@ namespace FNPlugin
 
             return amount;
         }
+
+        public static double FindMaxAmountOfAvailableFuel(this Part currentPart, String resourcename, int maxChildDepth, Part previousPart = null)
+        {
+            double maxAmount = 0;
+
+            if (currentPart.Resources.Contains(resourcename))
+            {
+                var partResourceAmount = currentPart.Resources[resourcename].maxAmount;
+                //UnityEngine.Debug.Log("[KSPI] - found " + partResourceAmount.ToString("0.0000") + " " + resourcename + " resource in " + currentPart.name);
+                maxAmount += partResourceAmount;
+            }
+
+            if (currentPart.parent != null && currentPart.parent != previousPart)
+                maxAmount += FindMaxAmountOfAvailableFuel(currentPart.parent, resourcename, maxChildDepth, currentPart);
+
+            if (maxChildDepth > 0)
+            {
+                foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
+                {
+                    maxAmount += FindMaxAmountOfAvailableFuel(child, resourcename, (maxChildDepth - 1), currentPart);
+                }
+            }
+
+            return maxAmount;
+        }
     }
 }

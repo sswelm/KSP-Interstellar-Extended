@@ -234,6 +234,11 @@ namespace FNPlugin
             return computercoreType;
         }
 
+        public override int getPowerPriority()
+        {
+            return 1;
+        }
+
         public override string GetInfo()
         {
             string desc = "Power Requirements: " + megajouleRate.ToString("0.0") + " MW\n";

@@ -35,15 +35,22 @@ namespace FNPlugin
         // UI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Scalar")]
+        public float animationScalar;
 
         // protected fields
-        protected float power_consumed;
+        protected double power_consumed;
         protected bool fusion_alert = false;
         protected int shutdown_c = 0;
         protected int jumpstartPowerTime = 0;
 
         protected BaseField powerPercentageField;
         protected BaseField isChargingField;
+
+        public override double PlasmaModifier
+        {
+            get { return (plasma_ratio >= 0.01 ? Math.Min(plasma_ratio, 1) : 0); }
+        }
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -65,6 +72,7 @@ namespace FNPlugin
                 {
                     jumpstartPowerTime = 100;
                     IsEnabled = true;
+                    reactor_power_ratio = 1;
                 }
 
                 UnityEngine.Debug.LogWarning("[KSPI] - InterstellarInertialConfinementReactor.OnStart allowJumpStart");
@@ -86,7 +94,7 @@ namespace FNPlugin
             } 
         }
 
-	    public float LaserPowerRequirements
+	    public double LaserPowerRequirements
 	    {
 		    get 
             { 
@@ -98,7 +106,7 @@ namespace FNPlugin
             }
 	    }
 
-        public float StartupPower
+        public double StartupPower
         {
             get 
             {
@@ -119,13 +127,13 @@ namespace FNPlugin
             return isupgraded ? false : true;
         }
 
-		public override double MaximumThermalPower { get { 
-				float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
-				return (powerPercentage / 100) *  NormalisedMaximumPower  * plasmaModifier * (1 - (float)ChargedPowerRatio); } }
-
-		public override double MaximumChargedPower { get {
-				float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
-				return (powerPercentage / 100) * NormalisedMaximumPower * plasmaModifier * (float)ChargedPowerRatio; } }
+		public override double MaximumChargedPower 
+        { 
+            get 
+            {
+				return (powerPercentage / 100) * NormalisedMaximumPower * PlasmaModifier * ChargedPowerRatio; 
+            } 
+        }
 
         public override void Update()
         {
@@ -154,9 +162,37 @@ namespace FNPlugin
 
             Fields["accumulatedChargeStr"].guiActive = plasma_ratio < 1;
 
-            //powerPercentageField.guiActive = !IsEnabled && !isChargingForJumpstart;
-
             electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(LaserPowerRequirements);
+
+            if (startupAnimation != null && !initialized)
+            {
+                if (IsEnabled)
+                {
+                    animationScalar = startupAnimation.GetScalar;
+                    if (animationStarted == 0)
+                    {
+                        startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));
+                        animationStarted = Planetarium.GetUniversalTime();
+                    }
+                    else if (!startupAnimation.IsMoving())
+                    {
+                        startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Deactivate));
+                        animationStarted = 0;
+                        initialized = true;
+                        isDeployed = true;
+                    }
+                }
+                else // Not Enabled
+                {
+                    // continiously start
+                    startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));
+                    startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Deactivate));
+                }
+            }
+            else if (startupAnimation == null)
+            {
+                isDeployed = true;
+            }
 
             // call base class
             base.OnUpdate();
@@ -165,6 +201,8 @@ namespace FNPlugin
         public override void OnFixedUpdate() 
         {
             base.OnFixedUpdate();
+
+            UpdateLoopingAnimation(ongoing_consumption_rate * powerPercentage / 100);
 
             if (!IsEnabled && !isChargingForJumpstart)
             {
@@ -178,8 +216,28 @@ namespace FNPlugin
 
             ProcessCharging();
 
+            // determiine amount of power needed
+            var powerRequested = LaserPowerRequirements * TimeWarp.fixedDeltaTime * Math.Max(reactor_power_ratio, 0.00001);
+
             // consume reactor power requirements
-            power_consumed = consumeFNResource(LaserPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            var powerReceived = consumeFNResource(powerRequested, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+            // retreive any shortage from buffer
+            if (IsEnabled && powerReceived < powerRequested)
+            {
+                // retreive megawath ratio
+                var megaWattStorageRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                // only use buffer if we have sufficient in storage
+                if (megaWattStorageRatio > 0.5)
+                {
+                    var powerRequirmentMetRatio = powerReceived / powerRequested;
+                    powerReceived = powerReceived + part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, (1 - powerRequirmentMetRatio) * powerRequested);
+                }
+            }
+
+            // adjust power to optimal power
+            power_consumed = LaserPowerRequirements * (powerReceived / powerRequested);
 
             // verify if we need startup with accumulated power
             if (TimeWarp.fixedDeltaTime <= 0.1 && accumulatedElectricChargeInMW > 0 && power_consumed < StartupPower && (accumulatedElectricChargeInMW + power_consumed) >= StartupPower)
@@ -187,12 +245,12 @@ namespace FNPlugin
                 var shortage = StartupPower - power_consumed;
                 if (shortage <= accumulatedElectricChargeInMW)
                 {
-                    ScreenMessages.PostScreenMessage("Attempting to Jump start", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                    //ScreenMessages.PostScreenMessage("Attempting to Jump start", 5.0f, ScreenMessageStyle.LOWER_CENTER);
                     power_consumed += (float)accumulatedElectricChargeInMW;
                 }
             }
 
-	        //plasma_ratio = power_consumed / LaserPowerRequirements;
+            //plasma_ratio = power_consumed / LaserPowerRequirements;
             if (isSwappingFuelMode)
             {
                 plasma_ratio = 1;
@@ -220,7 +278,8 @@ namespace FNPlugin
                 plasma_ratio = 1;
                 isChargingForJumpstart = false;
                 IsEnabled = true;
-                framesPlasmaRatioIsGood++;
+                if (framesPlasmaRatioIsGood < 100)
+                    framesPlasmaRatioIsGood++;
                 if (framesPlasmaRatioIsGood > 10)
                     accumulatedElectricChargeInMW = 0;
             }
@@ -232,6 +291,38 @@ namespace FNPlugin
                 if (plasma_ratio < 0.01)
                     plasma_ratio = 0;
             }
+        }
+
+        public void UpdateLoopingAnimation(double ratio)
+        {
+            if (loopingAnimation == null)
+                return;
+
+            if (!isDeployed)
+                return;
+
+            if (!IsEnabled)
+            {
+                if (initialized && shutdownAnimation != null && !loopingAnimation.IsMoving())
+                {
+                    if (animationStarted == 0)
+                    {
+                        animationStarted = Planetarium.GetUniversalTime();
+                        shutdownAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));
+                    }
+                    else if (!shutdownAnimation.IsMoving())
+                    {
+                        shutdownAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Deactivate));
+                        initialized = false;
+                        isDeployed = true;
+                        //doOnce = false;
+                    }
+                }
+                return;
+            }
+
+            if (!loopingAnimation.IsMoving())
+                loopingAnimation.Toggle();
         }
 
         private void ProcessCharging()
@@ -268,11 +359,6 @@ namespace FNPlugin
         public override int getPowerPriority() 
         {
             return 1;
-        }
-
-        protected override void setDefaultFuelMode()
-        {
-            current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
         }
 
     }

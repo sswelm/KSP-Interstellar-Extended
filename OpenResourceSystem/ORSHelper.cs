@@ -36,7 +36,13 @@ namespace OpenResourceSystem
 
         public static double fixedRequestResourceSpareCapacity(Part part, string resourcename)
         {
-            return part.GetConnectedResources(resourcename).Sum(r => r.maxAmount - r.amount);
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourcename);
+
+            double amount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
+
+            return maxAmount - amount;
         }
 
         public static float fixedRequestResource(Part part, string resourcename, float resource_amount) 

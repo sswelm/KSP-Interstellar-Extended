@@ -137,7 +137,7 @@ namespace FNPlugin
 
                     Vector3d thrustV = this.part.transform.up; // Thrust direction
                     Vector3d deltaVV = deltaV * thrustV; // DeltaV vector
-                    vessel.orbit.Perturb(deltaVV, UT, TimeWarp.fixedDeltaTime); // Update vessel orbit
+                    vessel.orbit.Perturb(deltaVV, UT); // Update vessel orbit
                     //this.rigidbody.AddRelativeForce(deltaVV, ForceMode.Impulse);
                 }
                 // Otherwise, if throttle is turned on, and demand out is 0, show warning

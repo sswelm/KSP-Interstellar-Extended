@@ -197,7 +197,7 @@ namespace FNPlugin
 
         private void calculateTimeToHeliumDepletion()
         {
-            List<PartResource> helium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Helium).ToList();
+            List<PartResource> helium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium4).ToList();
             double max_helium = helium_resources.Sum(hr => hr.maxAmount);
             double cur_helium = helium_resources.Sum(hr => hr.amount);
             double helium_fraction = (max_helium > 0) ? cur_helium / max_helium : cur_helium;

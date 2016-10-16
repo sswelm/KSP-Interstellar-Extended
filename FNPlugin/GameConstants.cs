@@ -59,18 +59,21 @@ namespace FNPlugin
         public const double telescopeBaseScience = 0.1666667;
         public const double telescopeGLensScience = 5;
 
-        public const double antimatter_initiated_antimatter_cons_constant = 6.5075e-6;
-        public const double antimatter_initiated_uf4_cons_constant = 1.0 / 128700.0;
-        public const double antimatter_initiated_d_he3_cons_constant = 4.0 / 9.0;
-        public const double antimatter_initiated_upgraded_d_he3_cons_constant = antimatter_initiated_d_he3_cons_constant * 1.037037;
-        public const double antimatter_initiated_upgraded_uf4_cons_constant = antimatter_initiated_uf4_cons_constant / 3.0;
+        public const double speedOfLight = 299792458;
 
-        public const double tritiumBreedRate = 428244.662271 / 0.222678566;
+        //public const double antimatter_initiated_antimatter_cons_constant = 6.5075e-6;
+        //public const double antimatter_initiated_uf4_cons_constant = 1.0 / 128700.0;
+        //public const double antimatter_initiated_d_he3_cons_constant = 4.0 / 9.0;
+        //public const double antimatter_initiated_upgraded_d_he3_cons_constant = antimatter_initiated_d_he3_cons_constant * 1.037037;
+        //public const double antimatter_initiated_upgraded_uf4_cons_constant = antimatter_initiated_uf4_cons_constant / 3.0;
+
+        public const double tritiumBreedRate = 428244.662271 / 0.17639;  // 0.222678566;
         public const double helium_boiloff_fraction = 1.667794e-8;
         public const double ammoniaHydrogenFractionByMass = 0.17647;
 
         public const int MAX_ANTIMATTER_TANK_STORED_CHARGE = 1000;
-        public const int EARH_DAY_SECONDS = 86400;
+        public const int EARTH_DAY_SECONDS = 86400;
+        public const int EARTH_YEAR_IN_DAYS = 365;
         public const int KEBRIN_DAY_SECONDS = 21600;
         public const int HOUR_SECONDS = 3600;
 
@@ -79,7 +82,7 @@ namespace FNPlugin
         public const float STANDARD_GRAVITY = 9.80665f;
 
         public const double dilution_factor = 15000.0;
-        public const double LfoFuelThrustModifier = 2.2222;
+        //public const double LfoFuelThrustModifier = 2.2222;
         public const float IspCoreTemperatureMultiplier = 22.371670613f;
         public const float BaseThrustPowerMultiplier = 2000;
         public const float HighCoreTempThrustMultiplier = 1600;

@@ -117,6 +117,8 @@ namespace FNPlugin
         private Collider warp_effect1_collider;
         private Collider warp_effect2_collider;
 
+        private PartResourceDefinition exoticResourceDefinition;
+
 
         [KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
         public void StartCharging()
@@ -139,9 +141,11 @@ namespace FNPlugin
             IsCharging = false;
 
             // flush all exotic matter
-            List<PartResource> exoticResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
-            float exotic_matter_available = (float)exoticResources.Sum(res => res.amount);
-            part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_matter_available);
+            double exoticMatterAmount;
+            double exoticMatterMaxAmount;
+            part.GetConnectedResourceTotals(exoticResourceDefinition.id, out exoticMatterAmount, out exoticMatterMaxAmount);
+
+            part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exoticMatterAmount);
         }
 
         [KSPAction("Start Charging")]
@@ -185,8 +189,9 @@ namespace FNPlugin
                 return;
             }
 
-            List<PartResource> resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
-            float exotic_matter_available = (float)resources.Sum(res => res.amount);
+            double exotic_matter_available;
+            double total_exotic_matter_available;
+            part.GetConnectedResourceTotals(exoticResourceDefinition.id, out exotic_matter_available, out total_exotic_matter_available);
 
             if (exotic_matter_available < exotic_power_required)
             {
@@ -393,7 +398,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            var exoticMatterResource = part.Resources.list.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.ExoticMatter);
+            exoticResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.ExoticMatter);
+            var exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
             // reset Exotic Matter Capacity
             if (exoticMatterResource != null)
             {
@@ -681,7 +687,7 @@ namespace FNPlugin
             PowerRequirementForMaximumAllowedLightSpeed = GetPowerRequirementForWarp(engine_throtle[maximumWarpSpeedFactor]);
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(engine_throtle[selected_factor]);
 
-            var exoticMatterResource = part.Resources.list.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.ExoticMatter);
+            var exoticMatterResource = part.Resources.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.ExoticMatter);
             // calculate Exotic Matter Capacity
             if (exoticMatterResource != null && !double.IsNaN(exotic_power_required) && !double.IsInfinity(exotic_power_required) && exotic_power_required > 0)
             {
@@ -727,21 +733,14 @@ namespace FNPlugin
 
         private void WarpdriveCharging()
         {
-            float currentExoticMatter = 0;
-            float maxExoticMatter = 0;
+            double currentExoticMatter = 0;
+            double maxExoticMatter = 0;
 
-            List<PartResource> exoticResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
-            List<PartResource> partresources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.ExoticMatter).ToList();
-
-            foreach (PartResource partresource in partresources)
-            {
-                currentExoticMatter += (float)partresource.amount;
-                maxExoticMatter += (float)partresource.maxAmount;
-            }
+            part.GetConnectedResourceTotals(exoticResourceDefinition.id, out currentExoticMatter, out maxExoticMatter);
 
             if (IsCharging)
             {
-                float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                float available_power = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 double powerDraw = Math.Max(minPowerRequirementForLightSpeed, Math.Min((maxExoticMatter - currentExoticMatter) / 0.001, available_power));
 
                 double power_returned = consumeFNResource(powerDraw * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
@@ -759,7 +758,7 @@ namespace FNPlugin
                     return;
                 }
 
-                if (exoticResources.Sum(res => res.amount) < exotic_power_required)
+                if (currentExoticMatter < exotic_power_required)
                 {
                     part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -power_returned * 0.001 * TimeWarp.fixedDeltaTime);
                 }
@@ -769,26 +768,21 @@ namespace FNPlugin
 
             if (!IsEnabled)
             {
-                float exotic_matter_available = (float)exoticResources.Sum(res => res.amount);
-
-                if (exotic_matter_available < exotic_power_required)
+                if (currentExoticMatter < exotic_power_required)
                 {
-                    float electrical_current_pct = (float)(100.0f * exotic_matter_available / exotic_power_required);
+                    double electrical_current_pct = 100.0 * currentExoticMatter / exotic_power_required;
                     DriveStatus = String.Format("Charging: ") + electrical_current_pct.ToString("0.00") + String.Format("%");
                 }
                 else
                     DriveStatus = "Ready.";
 
-                //warp_effect2.renderer.enabled = false;
-                //warp_effect.renderer.enabled = false;
                 warp_effect2_renderer.enabled = false;
                 warp_effect1_renderer.enabled = false;
             }
             else
             {
                 DriveStatus = "Active.";
-                //warp_effect2.renderer.enabled = true;
-                //warp_effect.renderer.enabled = true;
+;
                 warp_effect2_renderer.enabled = true;
                 warp_effect1_renderer.enabled = true;
             }
@@ -807,7 +801,7 @@ namespace FNPlugin
         {
             if (!IsEnabled || exotic_power_required <= 0) return;
 
-            float available_power = getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+            float available_power = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
             float new_warp_factor = engine_throtle[selected_factor];
 

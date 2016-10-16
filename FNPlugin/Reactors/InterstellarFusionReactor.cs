@@ -10,8 +10,14 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
+        [KSPField(isPersistant = true)]
+        public string fuel_mode_name = string.Empty;
+
         [KSPField(isPersistant = true, guiActive = false)]
         public bool allowJumpStart = true;
+
+        [KSPField(isPersistant = false)]
+        public bool powerIsAffectedByLithium = true;
 
         [KSPField(isPersistant = false)]
         public float fusionEnergyGainFactorMk1 = 10;
@@ -28,6 +34,10 @@ namespace FNPlugin
         public string electricPowerMaintenance;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
         public float plasma_ratio = 1.0f;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Modifier", guiFormat = "F6")]
+        public float plasma_modifier = 1.0f;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Lithium Modifier", guiFormat = "F6")]
+        public double lithium_modifier = 1.0f;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
 
@@ -40,21 +50,39 @@ namespace FNPlugin
 
         public override double StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
 
-        public override double MaximumThermalPower 
-        { 
+        public virtual double PlasmaModifier
+        {
             get 
             {
-                float plasmaModifier = (plasma_ratio >= 1.0 ? 1 : 0);
-
-                return Math.Max(base.MaximumThermalPower * plasmaModifier, 0.000000001f); 
-            } 
+                plasma_modifier = (plasma_ratio >= 1.0 ? 1 : 0);
+                return plasma_modifier;
+            }
         }
 
-        public override double MaximumChargedPower { get { return base.MaximumChargedPower * (plasma_ratio >= 1.0 ? 1 : 0.000000001f); } }
+        public double LithiumModifier
+        {
+            get 
+            {
+                lithium_modifier = powerIsAffectedByLithium && lithiumPartResource != null && lithiumPartResource.maxAmount > 0 
+                    ? Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount) 
+                    : 1;
+                return lithium_modifier;
+            }
+        }
+
+        public override double MaximumThermalPower
+        {
+            get {  return Math.Max(base.MaximumThermalPower * PlasmaModifier * LithiumModifier, 0.000000001f); }
+        }
+
+        public override double MaximumChargedPower 
+        {
+            get { return base.MaximumChargedPower * PlasmaModifier; } 
+        }
 
         public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
-        public override bool IsNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
+        public override bool IsFuelNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
         public float PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
 
@@ -79,7 +107,7 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
 
-            lithiumPartResource = part.Resources.list.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.Lithium);
+            lithiumPartResource = part.Resources.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.Lithium7);
 
             // call Interstellar Reactor Onstart
             base.OnStart(state);
@@ -119,6 +147,7 @@ namespace FNPlugin
                 fuel_mode = 0;
 
             current_fuel_mode = fuel_modes[fuel_mode];
+            fuel_mode_name = current_fuel_mode.ModeGUIName;
 
             UpdateFuelMode();
 
@@ -157,6 +186,7 @@ namespace FNPlugin
                 fuel_mode = fuel_modes.Count - 1;
 
             current_fuel_mode = fuel_modes[fuel_mode];
+            fuel_mode_name = current_fuel_mode.ModeGUIName;
 
             UpdateFuelMode();
 
@@ -182,7 +212,20 @@ namespace FNPlugin
             }
             GUILayout.EndHorizontal();
 
-            PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_label);
+            PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_style, text_style);
+        }
+
+        protected override void setDefaultFuelMode()
+        {
+            if (String.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
+            {
+                current_fuel_mode = fuel_modes.First(m => m.ModeGUIName == fuel_mode_name);
+                fuel_mode = fuel_modes.IndexOf(current_fuel_mode);
+                return;
+            }
+
+            current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
+            fuel_mode_name = current_fuel_mode.ModeGUIName;
         }
     }
 }

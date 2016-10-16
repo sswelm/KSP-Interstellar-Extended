@@ -20,16 +20,6 @@ namespace FNPlugin
 			} 
 		}
 
-        public override double MaximumThermalPower
-        {
-            get
-            {
-                float lithiumModifier = lithiumPartResource != null ? (float)Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount) : 1;
-
-                return Math.Max(base.MaximumThermalPower * lithiumModifier, 0.000000001f);
-            }
-        }
-
         public override void OnUpdate() 
         {
             base.OnUpdate();
@@ -133,11 +123,5 @@ namespace FNPlugin
         {
             return 1;
         }
-
-        protected override void setDefaultFuelMode()
-        {
-            current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
-        }
-
     }
 }

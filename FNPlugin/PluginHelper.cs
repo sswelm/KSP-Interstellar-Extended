@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenResourceSystem;
+using System.Text;
+using KSP.IO;
+using KSP.UI.Screens;
 
 namespace FNPlugin
 {
@@ -11,7 +14,9 @@ namespace FNPlugin
     {
         void Start()
         {
-            //GameEvents.onVesselChange.Add(OnVesselChange);
+            GameEvents.onVesselGoOffRails.Add(OnVesselGoOffRails);
+            GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
+            GameEvents.onSetSpeedMode.Add(OnSetSpeedModeChange);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
             GameEvents.onVesselLoaded.Add(OnVesselLoaded);
             GameEvents.OnTechnologyResearched.Add(OnTechnologyResearched);
@@ -21,7 +26,9 @@ namespace FNPlugin
         }
         void OnDestroy()
         {
-            //GameEvents.onVesselChange.Remove(OnVesselChange);
+            GameEvents.onVesselGoOffRails.Remove(OnVesselGoOffRails);
+            GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
+            GameEvents.onSetSpeedMode.Remove(OnSetSpeedModeChange);
             GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
             GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
             GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
@@ -44,6 +51,21 @@ namespace FNPlugin
         void OnTechnologyResearched(GameEvents.HostTargetAction<RDTech, RDTech.OperationResult> change)
         {
             Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnTechnologyResearched");
+        }
+
+        void OnSetSpeedModeChange(FlightGlobals.SpeedDisplayModes evt)
+        {
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnSetSpeedModeChange");
+        }
+
+        void OnVesselGoOnRails(Vessel vessel)
+        {
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOnRails");
+        }
+
+        void OnVesselGoOffRails(Vessel vessel)
+        {
+            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOffRails");
         }
 
         void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
@@ -110,8 +132,10 @@ namespace FNPlugin
         protected static bool plugin_init = false;
         protected static GameDatabase gdb;
         protected static bool resources_configured = false;
-
-        public const string IntakeAir = "IntakeAir"; 
+        
+        static protected bool buttonAdded;
+        static protected Texture2D appIcon = null;
+        static protected ApplicationLauncherButton appLauncherButton = null;
 
         #region Static Properties
 
@@ -139,6 +163,15 @@ namespace FNPlugin
 
         public static Dictionary<string, string> OrsResourceMappings { get; private set; }
 
+        private static int _secondsInDay = GameConstants.KEBRIN_DAY_SECONDS;
+        public static int SecondsInDay { get { return _secondsInDay; } }
+
+        private static double _apertureDiameterMult = 1;
+        public static double ApertureDiameterMult { get { return _apertureDiameterMult; } }
+
+        private static double _speedOfLightMult = GameConstants.speedOfLight;
+        public static double SpeedOfLightMult { get { return _speedOfLightMult; } }
+ 
         private static double _maxAtmosphericAltitudeMult = 1;
         public static double MaxAtmosphericAltitudeMult { get { return _maxAtmosphericAltitudeMult; } }
 
@@ -172,8 +205,8 @@ namespace FNPlugin
         private static float _maxPowerDrawForExoticMatterMult = 1;
         public static float MaxPowerDrawForExoticMatterMult { get { return _maxPowerDrawForExoticMatterMult; } }
 
-        private static double _lfoFuelThrustModifier = GameConstants.LfoFuelThrustModifier;
-        public static double LfoFuelThrustModifier { get { return _lfoFuelThrustModifier; } }
+        //private static double _lfoFuelThrustModifier = GameConstants.LfoFuelThrustModifier;
+        //public static double LfoFuelThrustModifier { get { return _lfoFuelThrustModifier; } }
 
         private static double _electricEngineIspMult = 1;
         public static double ElectricEngineIspMult { get { return _electricEngineIspMult; } }
@@ -493,7 +526,9 @@ namespace FNPlugin
 
         public static Vector3d getVesselPos(Vessel v)
         {
-            Vector3d v1p = (v.state == Vessel.State.ACTIVE) ? (Vector3d)v.transform.position : v.GetWorldPos3D();
+            Vector3d v1p = (v.state == Vessel.State.ACTIVE) 
+                ? (Vector3d)v.transform.position 
+                : v.GetWorldPos3D();
             return v1p;
         }
 
@@ -544,8 +579,67 @@ namespace FNPlugin
             }
         }
 
+        public ApplicationLauncherButton InitializeApplicationButton()
+        {
+            ApplicationLauncherButton appButton = null;
+            VABThermalUI.render_window = false;
+            PluginHelper.using_toolbar = true;
+
+            appIcon = GameDatabase.Instance.GetTexture("WarpPlugin/Category/WarpPlugin", false);
+
+            if (appIcon != null)
+            {
+                appButton = ApplicationLauncher.Instance.AddModApplication(
+                    OnAppLauncherTrue,
+                    OnAppLauncherFalse,
+                    null,
+                    null,
+                    null,
+                    null,
+                    ApplicationLauncher.AppScenes.ALWAYS,
+                    appIcon);
+
+                buttonAdded = true;
+            }
+
+            return appButton;
+        }
+
+
+        void OnAppLauncherTrue()
+        {
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                FlightUIStarter.hide_button = false;
+                FlightUIStarter.show_window = true;
+                VABThermalUI.render_window = false;
+            }
+            else
+            {
+                FlightUIStarter.hide_button = false;
+                FlightUIStarter.show_window = false;
+                VABThermalUI.render_window = true;
+            }
+        }
+
+        void OnAppLauncherFalse()
+        {
+            FlightUIStarter.hide_button = true;
+            FlightUIStarter.show_window = false;
+            VABThermalUI.render_window = false;
+        }
+
         public void Update()
         {
+            if (ApplicationLauncher.Ready && !buttonAdded)
+            {
+                appLauncherButton = InitializeApplicationButton();
+                if (appLauncherButton != null)
+                    appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.ALWAYS;
+
+                buttonAdded = true;
+            }
+
             this.enabled = true;
             AvailablePart intakePart = PartLoader.getPartInfoByName("CircularIntake");
             if (intakePart != null)
@@ -587,6 +681,21 @@ namespace FNPlugin
                         int totalValues = pairs * 2;
                         for (int i = 0; i < totalValues; i += 2)
                             OrsResourceMappings.Add(splitValues[i], splitValues[i + 1]);
+                    }
+                    if (plugin_settings.HasValue("SecondsInDay"))
+                    {
+                        _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
+                        Debug.Log("[KSP Interstellar] SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
+                    }
+                    if (plugin_settings.HasValue("ApertureDiameterMult"))
+                    {
+                        _apertureDiameterMult = double.Parse(plugin_settings.GetValue("ApertureDiameterMult"));
+                        Debug.Log("[KSP Interstellar] Aperture Diameter Multiplier set to: " + PluginHelper.ApertureDiameterMult.ToString());
+                    }
+                    if (plugin_settings.HasValue("SpeedOfLightMult"))
+                    {
+                        _speedOfLightMult = double.Parse(plugin_settings.GetValue("SpeedOfLightMult"));
+                        Debug.Log("[KSP Interstellar] Speed Of Light Multiplier set to: " + PluginHelper.SpeedOfLightMult.ToString());
                     }
                     if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
                     {
@@ -656,11 +765,11 @@ namespace FNPlugin
                         PluginHelper._globalElectricEnginePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalElectricEnginePowerMaxTrustMult"));
                         Debug.Log("[KSP Interstellar] Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
                     }
-                    if (plugin_settings.HasValue("LfoFuelTrustModifier"))
-                    {
-                        PluginHelper._lfoFuelThrustModifier = double.Parse(plugin_settings.GetValue("LfoFuelTrustModifier"));
-                        Debug.Log("[KSP Interstellar] Maximum Lfo Fuel Thrust Multiplier set to: " + PluginHelper.LfoFuelThrustModifier.ToString("0.0"));
-                    }
+                    //if (plugin_settings.HasValue("LfoFuelTrustModifier"))
+                    //{
+                    //    PluginHelper._lfoFuelThrustModifier = double.Parse(plugin_settings.GetValue("LfoFuelTrustModifier"));
+                    //    Debug.Log("[KSP Interstellar] Maximum Lfo Fuel Thrust Multiplier set to: " + PluginHelper.LfoFuelThrustModifier.ToString("0.0"));
+                    //}
                     if (plugin_settings.HasValue("MaxThermalNozzleIsp"))
                     {
                         PluginHelper._maxThermalNozzleIsp = float.Parse(plugin_settings.GetValue("MaxThermalNozzleIsp"));
@@ -780,7 +889,7 @@ namespace FNPlugin
 
                     ModuleResourceIntake intake = prefab_available_part.FindModuleImplementing<ModuleResourceIntake>();
 
-                    if (intake != null && intake.resourceName == PluginHelper.IntakeAir)
+                    if (intake != null && intake.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir)
                     {
                         var pm = prefab_available_part.gameObject.AddComponent<AtmosphericIntake>();
                         prefab_available_part.Modules.Add(pm);
@@ -792,7 +901,7 @@ namespace FNPlugin
                         //pm.useIntakeCompensation = intake.useIntakeCompensation;
                         //pm.storesResource = intake.storesResource;
 
-                        PartResource intake_air_resource = prefab_available_part.Resources[PluginHelper.IntakeAir];
+                        PartResource intake_air_resource = prefab_available_part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAir];
 
                         if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
                         {
@@ -909,6 +1018,33 @@ namespace FNPlugin
             }
             return true;
         }
+
+        public static AnimationState[] SetUpAnimation(string animationName, Part part)
+        {
+            var states = new List<AnimationState>();
+            foreach (var animation in part.FindModelAnimators(animationName))
+            {
+                var animationState = animation[animationName];
+                animationState.speed = 0;
+                animationState.enabled = true;
+                animationState.wrapMode = WrapMode.ClampForever;
+                animation.Blend(animationName);
+                states.Add(animationState);
+            }
+            return states.ToArray();
+        }
+
+        public static void SetAnimationRatio(float ratio, AnimationState[] animationState)
+        {
+            if (animationState == null) return;
+
+            foreach (AnimationState anim in animationState)
+            {
+                anim.normalizedTime = ratio;
+            }
+        }
+
+
 
     }
 }
