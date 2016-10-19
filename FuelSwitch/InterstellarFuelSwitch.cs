@@ -345,7 +345,7 @@ namespace InterstellarFuelSwitch
                     previousTankSetupEvent();
             }
             else
-                AssignResourcesToPart(true);
+                AssignResourcesToPart(true, true);
         }
 
         // Called by external classes
@@ -369,7 +369,7 @@ namespace InterstellarFuelSwitch
                         previousTankSetupEvent();
                 }
                 else
-                    AssignResourcesToPart(calledByPlayer);
+                    AssignResourcesToPart(calledByPlayer, true);
 
                 return selectedTankSetup;
             }
@@ -477,7 +477,7 @@ namespace InterstellarFuelSwitch
                 if (!_modularTankList[selectedTankSetup].hasTech)
                     nextTankSetupEvent();
 
-                AssignResourcesToPart(true);
+                AssignResourcesToPart(true, true);
             }
             catch (Exception e)
             {
@@ -498,7 +498,7 @@ namespace InterstellarFuelSwitch
                 if (!_modularTankList[selectedTankSetup].hasTech)
                     previousTankSetupEvent();
 
-                AssignResourcesToPart(true);
+                AssignResourcesToPart(true, true);
             }
             catch (Exception e)
             {
@@ -507,7 +507,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        private void AssignResourcesToPart(bool calledByPlayer = false)
+        private void AssignResourcesToPart(bool calledByPlayer = false, bool affectSymCounterparts = false)
         {
             try
             {
@@ -525,20 +525,19 @@ namespace InterstellarFuelSwitch
                 UpdateMassRatio();
                 UpdateCost();
 
-                if (HighLogic.LoadedSceneIsEditor)
+                if (HighLogic.LoadedSceneIsEditor && affectSymCounterparts)
                 {
-                    foreach (var symPart in part.symmetryCounterparts)
+                    foreach (Part symPart in part.symmetryCounterparts)
                     {
-                        var symNewResources = SetupTankInPart(symPart, calledByPlayer);
+                        InterstellarFuelSwitch symSwitch = String.IsNullOrEmpty(tankId) 
+                            ? symPart.FindModulesImplementing<InterstellarFuelSwitch>().FirstOrDefault()
+                            : symPart.FindModulesImplementing<InterstellarFuelSwitch>().FirstOrDefault(m => m.tankId == tankId);
 
-                        InterstellarFuelSwitch symSwitch = symPart.GetComponent<InterstellarFuelSwitch>();
                         if (symSwitch != null)
                         {
                             symSwitch.selectedTankSetup = selectedTankSetup;
                             symSwitch.selectedTankSetupTxt = selectedTankSetupTxt;
-                            symSwitch.ConfigureResourceMassGui(symNewResources);
-                            symSwitch.UpdateTankName();
-                            symSwitch.UpdateTexture(calledByPlayer);
+                            symSwitch.AssignResourcesToPart(calledByPlayer, false);
                         }
                     }
                 }
@@ -548,7 +547,6 @@ namespace InterstellarFuelSwitch
 
                 if (tweakableUI != null)
                     tweakableUI.displayDirty = true;
-
             }
             catch (Exception e)
             {
@@ -702,7 +700,7 @@ namespace InterstellarFuelSwitch
                 // remove all resources except those we ignore
                 List<PartResource> resourcesDeleteList = new List<PartResource>();
 
-                foreach (PartResource resource in part.Resources)
+                foreach (PartResource resource in currentPart.Resources)
                 {
                     if (activeResourceList.Contains(resource.resourceName))
                     {
@@ -728,7 +726,7 @@ namespace InterstellarFuelSwitch
 
                 foreach (var resource in resourcesDeleteList)
                 {
-                    currentPart.Resources.Remove(resource.info.id);
+                    currentPart.Resources.Remove(resource);
                 }
 
                 // add any remaining bew nodes
@@ -777,9 +775,9 @@ namespace InterstellarFuelSwitch
             _field1.guiActiveEditor = _partRresourceDefinition1 != null;
             _field2.guiActiveEditor = _partRresourceDefinition2 != null;
 
-            _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources.dict[_partRresourceDefinition0.id];
-            _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources.dict[_partRresourceDefinition1.id];
-            _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.dict[_partRresourceDefinition2.id];
+            _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources[newResources[0]];
+            _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources[newResources[1]];
+            _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources[newResources[2]];
         }
 
         private double UpdateCost()
