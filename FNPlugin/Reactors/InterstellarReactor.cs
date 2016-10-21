@@ -684,9 +684,9 @@ namespace FNPlugin
 
         public virtual double MinimumPower { get { return MaximumPower * MinimumThrottle; } }
 
-        public virtual double MaximumThermalPower { get { return NormalisedMaximumPower * (1 - (float)ChargedPowerRatio); } }
+        public virtual double MaximumThermalPower { get { return NormalisedMaximumPower * (1 - ChargedPowerRatio); } }
 
-        public virtual double MaximumChargedPower { get { return NormalisedMaximumPower * (float)ChargedPowerRatio; } }
+        public virtual double MaximumChargedPower { get { return NormalisedMaximumPower * ChargedPowerRatio; } }
 
         public virtual bool IsNuclear { get { return false; } }
 

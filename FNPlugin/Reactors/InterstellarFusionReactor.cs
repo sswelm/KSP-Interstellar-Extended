@@ -86,6 +86,8 @@ namespace FNPlugin
 
         public float PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
 
+        public float NormalizedPowerRequirment { get { return PowerRequirement * current_fuel_mode.NormalisedPowerRequirements; } }
+
 
         public float FusionEnergyGainFactor
         {
