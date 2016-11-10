@@ -29,12 +29,14 @@ namespace FNPlugin
                 var distanceBetweenVesselAndSun = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
                 var distanceBetweenSunAndKerbin = Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
                 double inv_square_mult = Math.Pow(distanceBetweenVesselAndSun, 2) / Math.Pow(distanceBetweenSunAndKerbin, 2);
-                power = Math.Min(power_capacity, nuclear_power + solar_power / inv_square_mult);
+                power = solar_power / inv_square_mult;
             }
-            else
-                power = nuclear_power;
 
-            return power;
+            power += nuclear_power;
+
+            var finalpower = Math.Min(1000 * power_capacity, power);
+
+            return finalpower;
         }
 
         public Vessel Vessel

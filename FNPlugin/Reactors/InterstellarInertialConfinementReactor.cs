@@ -36,8 +36,8 @@ namespace FNPlugin
         // UI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Scalar")]
-        public float animationScalar;
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Scalar")]
+        //public float animationScalar;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power Requirment")]
         public float currentLaserPowerRequirements = 0;
 
@@ -187,7 +187,7 @@ namespace FNPlugin
             {
                 if (IsEnabled)
                 {
-                    animationScalar = startupAnimation.GetScalar;
+                    //animationScalar = startupAnimation.GetScalar;
                     if (animationStarted == 0)
                     {
                         startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));

@@ -78,6 +78,11 @@ namespace OpenResourceSystem
                                 body_atmospheric_resource_list.Add(refBody, bodyAtmosphericComposition);
                             }
                         }
+                        else
+                        {
+                            // add empty
+                            body_atmospheric_resource_list.Add(refBody, bodyAtmosphericComposition);
+                        }
                     }
                 }
             } 

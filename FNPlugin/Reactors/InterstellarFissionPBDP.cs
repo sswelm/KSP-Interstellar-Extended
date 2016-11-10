@@ -110,14 +110,14 @@ namespace FNPlugin
             return true;
         }
 
-        public override float GetCoreTempAtRadiatorTemp(float rad_temp)
+        public override double GetCoreTempAtRadiatorTemp(double rad_temp)
         {
             if (heatThrottling)
             {
-                float pfr_temp = 0;
+                double pfr_temp = 0;
 
                 if (!double.IsNaN(rad_temp) && !double.IsInfinity(rad_temp))
-                    pfr_temp = (float)Math.Min(Math.Max(rad_temp * 1.5, OptimalTemp), ZeroPowerTemp);
+                    pfr_temp = Math.Min(Math.Max(rad_temp * 1.5, OptimalTemp), ZeroPowerTemp);
                 else
                     pfr_temp = OptimalTemp;
 
@@ -126,13 +126,13 @@ namespace FNPlugin
             return base.GetCoreTempAtRadiatorTemp(rad_temp);
         }
 
-        public override double GetThermalPowerAtTemp(float temp)
+        public override double GetThermalPowerAtTemp(double temp)
         {
             if (reactorType == 4 || heatThrottling)
             {
-                float rel_temp_diff;
+                double rel_temp_diff;
                 if (temp > OptimalTemp && temp < ZeroPowerTemp)
-                    rel_temp_diff = (float)Math.Pow((ZeroPowerTemp - temp) / (ZeroPowerTemp - OptimalTemp), thermalRatioEfficiencyModifier);
+                    rel_temp_diff = Math.Pow((ZeroPowerTemp - temp) / (ZeroPowerTemp - OptimalTemp), thermalRatioEfficiencyModifier);
                 else
                     rel_temp_diff = 1;
 

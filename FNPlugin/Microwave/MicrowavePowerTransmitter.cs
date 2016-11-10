@@ -11,6 +11,8 @@ namespace FNPlugin
     {
         //Persistent 
         [KSPField(isPersistant = true)]
+        protected string partId;
+        [KSPField(isPersistant = true)]
         protected bool IsEnabled;
         [KSPField(isPersistant = true)]
         protected bool relay;
@@ -20,19 +22,35 @@ namespace FNPlugin
         protected double solar_power = 0;
         [KSPField(isPersistant = true)]
         protected double power_capacity = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Wavelength", guiFormat = "F9", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Wavelength", guiFormat = "F8", guiUnits = " m")]
         public double wavelength = 0;
         [KSPField(isPersistant = true)]
         public double atmosphericAbsorption = 0.1;
-
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Min Relay Wavelength", guiFormat = "F8", guiUnits = " m")]
         public double minimumRelayWavelenght;
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Max Relay Wavelength", guiFormat = "F8", guiUnits = " m")]
         public double maximumRelayWavelenght;
         [KSPField(isPersistant = true)]
         public double aperture = 1;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName= "Is Mirror")]
+        public bool isMirror = false;
 
         //Non Persistent 
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Air Absorbtion Percentage")]
+        public double atmosphericAbsorptionPercentage;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Water Absorbtion Percentage")]
+        public double waterAbsorptionPercentage;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Absorbtion Percentage", guiFormat = "F4", guiUnits = "%")]
+        public double totalAbsorptionPercentage;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Body")]
+        public string body_name;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Biome Name")]
+        public string biome_desc;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Moisture Modifier", guiFormat = "F4")]
+        public double moistureModifier;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
+        public bool canFunctionOnSurface = false;
+
         [KSPField(isPersistant = false)]
         public float atmosphereToleranceModifier = 1;
         [KSPField(isPersistant = false)]
@@ -41,17 +59,14 @@ namespace FNPlugin
         public bool canTransmit = false;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
         public bool canRelay = false;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
-        public bool canFunctionOnSurface = false;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
-        public bool isMirror = false;
+
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public int compatibleBeamTypes = 1;
 
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public double nativeWaveLength = 0.003189281;
         [KSPField(isPersistant = false, guiActiveEditor = false)]
-        public double nativeAtmosphericAbsorptionPercentage = 10; 
+        public double nativeAtmosphericAbsorptionPercentage = 10;
 
         //GUI 
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Aperture Diameter", guiFormat = "F2", guiUnits = " m")]
@@ -60,10 +75,12 @@ namespace FNPlugin
         public string statusStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Beamed Power")]
         public string beamedpower;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Reactor Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Solar Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
+        public float solarPowertransmission = 100;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F2")]
-        public float maximumPower = 10000;
+        public double maximumPower = 10000;
 
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
@@ -71,12 +88,15 @@ namespace FNPlugin
         //Internal
         protected Animation anim;
         protected bool hasLinkedReceivers = false;
-        protected float displayed_solar_power = 0;
+        protected double displayed_solar_power = 0;
 
         protected List<ModuleDeployableSolarPanel> panels;
         protected MicrowavePowerReceiver part_receiver;
         protected List<MicrowavePowerReceiver> vessel_recievers;
-        protected BeamGenerator beamGenerator;
+
+        protected BeamGenerator activeBeamGenerator;
+        protected List<BeamGenerator> beamGenerators;
+
 
         [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = true)]
         public void ActivateTransmitter()
@@ -93,7 +113,7 @@ namespace FNPlugin
 
             // update wavelength
             wavelength = Wavelength;
-            atmosphericAbsorption = AtmosphericAbsorption;
+            atmosphericAbsorption = CombinedAtmosphericAbsorption;
         }
 
         [KSPEvent(guiActive = true, guiName = "Deactivate Transmitter", active = false)]
@@ -150,14 +170,14 @@ namespace FNPlugin
             if (isMirror)
             {
                 this.wavelength = Wavelength;
-                this.atmosphericAbsorption = AtmosphericAbsorption;
+                this.atmosphericAbsorption = CombinedAtmosphericAbsorption;
                 this.hasLinkedReceivers = true;
                 return;
             }
 
             // update stored variables
             this.wavelength = Wavelength;
-            this.atmosphericAbsorption = AtmosphericAbsorption;
+            this.atmosphericAbsorption = CombinedAtmosphericAbsorption;
 
             // collected all recievers relevant for relay
             var recieversConfiguredForRelay = vessel_recievers.Where(m => m.linkedForRelay).ToList();
@@ -203,6 +223,9 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            if (String.IsNullOrEmpty(partId))
+                partId = Guid.NewGuid().ToString();
+
             // store  aperture
             aperture = apertureDiameter;
 
@@ -259,30 +282,29 @@ namespace FNPlugin
         {
             try
             {
-                // first look locally
-                beamGenerator = part.FindModulesImplementing<BeamGenerator>().FirstOrDefault(m => (m.beamType & compatibleBeamTypes) == m.beamType);
-                if (beamGenerator != null)
-                    beamGenerator.fixedMass = true;
+                // connect with bbeam gnerators 
+                beamGenerators = part.FindModulesImplementing<BeamGenerator>().Where(m => (m.beamType & compatibleBeamTypes) == m.beamType).ToList();
 
-                // then look at parent
-                if (beamGenerator == null && part.parent != null)
-                    beamGenerator = part.parent.FindModulesImplementing<BeamGenerator>().FirstOrDefault(m => (m.beamType & compatibleBeamTypes) == m.beamType);
-
-                // otherwise find first compatible part attached
-                if (beamGenerator == null)
+                if (beamGenerators.Count == 0 && part.parent != null)
                 {
-                    beamGenerator = part.attachNodes
+                    beamGenerators.AddRange(part.parent.FindModulesImplementing<BeamGenerator>().Where(m => (m.beamType & compatibleBeamTypes) == m.beamType));
+                }
+
+                if (beamGenerators.Count == 0)
+                {
+                    var attachedParts =  part.attachNodes
                         .Where(m => m.attachedPart != null)
                         .Select(m => m.attachedPart)
                         .SelectMany(m => m.FindModulesImplementing<BeamGenerator>())
-                        .FirstOrDefault(m => (m.beamType & compatibleBeamTypes) == m.beamType);
+                        .Where(m => (m.beamType & compatibleBeamTypes) == m.beamType);
+
+                    beamGenerators.AddRange(attachedParts);
                 }
 
-                if (beamGenerator != null)
-                {
-                    beamGenerator.UpdateMass(this.maximumPower);
-                    wavelength = beamGenerator.wavelength;
-                }
+                activeBeamGenerator = beamGenerators.FirstOrDefault();
+
+                if (activeBeamGenerator != null)
+                    activeBeamGenerator.UpdateMass(this.maximumPower);
             }
             catch (Exception ex)
             {
@@ -310,6 +332,19 @@ namespace FNPlugin
             }
         }
 
+        public void Update()
+        {
+            if (activeBeamGenerator == null)
+                return;
+
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI updated wave data");
+            wavelength = activeBeamGenerator.wavelength;
+            atmosphericAbsorptionPercentage = activeBeamGenerator.atmosphericAbsorptionPercentage;
+            waterAbsorptionPercentage = activeBeamGenerator.waterAbsorptionPercentage * moistureModifier;
+            totalAbsorptionPercentage = atmosphericAbsorptionPercentage + waterAbsorptionPercentage;
+            atmosphericAbsorption = totalAbsorptionPercentage / 100;
+        }
+
         public override void OnUpdate()
         {
             UpdateRelayWavelength();
@@ -329,8 +364,8 @@ namespace FNPlugin
             var canOperateInCurrentEnvironment = this.canFunctionOnSurface || vesselInSpace;
             var vesselCanTransmit = canTransmit && canOperateInCurrentEnvironment;
 
-            Events["ActivateTransmitter"].active = beamGenerator != null && vesselCanTransmit && !IsEnabled && !relay && !receiver_on && canBeActive;
-            Events["DeactivateTransmitter"].active = beamGenerator != null && vesselCanTransmit && IsEnabled && !relay;
+            Events["ActivateTransmitter"].active = activeBeamGenerator != null && vesselCanTransmit && !IsEnabled && !relay && !receiver_on && canBeActive;
+            Events["DeactivateTransmitter"].active = activeBeamGenerator != null && vesselCanTransmit && IsEnabled && !relay;
 
             var vesselCanRelay = this.hasLinkedReceivers && canOperateInCurrentEnvironment;
 
@@ -369,44 +404,45 @@ namespace FNPlugin
             displayed_solar_power = 0;
             power_capacity = maximumPower;
 
+            CollectBiomeData();
+
             base.OnFixedUpdate();
-            if (beamGenerator != null && IsEnabled && !relay)
+            if (activeBeamGenerator != null && IsEnabled && !relay)
             {
+                var reactorPowerTransmissionRatio = transmitPower / 100;
+                var solarPowertransmissionRatio = solarPowertransmission / 100;
+                var transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100;
+                var transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100;
+
                 var availableReactorPower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
-               
-                var requestedPower = Math.Min(maximumPower, availableReactorPower * transmitPower / 100);
-                var receivedPower = consumeFNResource(requestedPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                nuclear_power += beamGenerator.efficiencyPercentage * receivedPower * 10 / TimeWarp.fixedDeltaTime;
+                var requestedPower = Math.Min(maximumPower, availableReactorPower * reactorPowerTransmissionRatio);
+                var receivedPowerFixedDelta = consumeFNResource(requestedPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                // generate wasteheat for converting lectric power to beamed power
-                supplyFNResource(receivedPower * (100 - beamGenerator.efficiencyPercentage) * 0.01, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                nuclear_power += 1000 * reactorPowerTransmissionRatio * receivedPowerFixedDelta / TimeWarp.fixedDeltaTime;
+
+                // generate wasteheat for converting electric power to beamed power
+                supplyFNResource(receivedPowerFixedDelta * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
                     double output = panel.flowRate;
 
-                    // attempt to retrieve all solar power output
-                    if (output == 0.0)
-                    {
-                        var partModulesList = panel.part.parent.Modules;
-                        foreach (var module in partModulesList)
-                        {
-                            var solarmodule = module as ModuleDeployableSolarPanel;
-                            if (solarmodule != null)
-                                output += solarmodule.flowRate;
-                        }
-                    }
+                    double spower = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, transmissionEfficiencyRatio * output * TimeWarp.fixedDeltaTime * solarPowertransmissionRatio);
 
-                    double spower = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, output * TimeWarp.fixedDeltaTime);
+                    displayed_solar_power += spower / TimeWarp.fixedDeltaTime;
 
+                    //scale solar power to what it would be in Kerbin orbit for file storage
                     var distanceBetweenVesselAndSun  = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
                     var distanceBetweenSunAndKerbin = Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
                     double inv_square_mult = Math.Pow(distanceBetweenSunAndKerbin, 2) / Math.Pow(distanceBetweenVesselAndSun, 2);
 
-                    displayed_solar_power += (float)(spower / TimeWarp.fixedDeltaTime);
-                    //scale solar power to what it would be in Kerbin orbit for file storage
-                    solar_power += (spower / TimeWarp.fixedDeltaTime / inv_square_mult);
+                    var effectiveSolarPower = spower / TimeWarp.fixedDeltaTime / inv_square_mult;
+
+                    solar_power += effectiveSolarPower;
+
+                    // solar power converted to beamed power also generates wasteheat
+                    supplyFNResource(effectiveSolarPower * TimeWarp.fixedDeltaTime * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
             }
 
@@ -417,6 +453,41 @@ namespace FNPlugin
                 solar_power = 0;
         }
 
+        private void CollectBiomeData()
+        {
+            try
+            {
+                double lat = vessel.latitude * Math.PI / 180d;
+                double lon = vessel.longitude * Math.PI / 180d;
+
+                body_name = part.vessel.mainBody.name;
+                biome_desc = part.vessel.mainBody.BiomeMap.GetAtt(lat, lon).name;
+
+                double cloud_variance;
+                if (body_name == "Kerbin")
+                {
+                    if (biome_desc == "Desert" || biome_desc == "Ice Caps")
+                        moistureModifier = 0.5;
+                    else if (biome_desc == " Water")
+                        moistureModifier = 1;
+                    else if (biome_desc == "BadLands")
+                        moistureModifier = 0.3;
+                    else
+                        moistureModifier = 0.8;
+
+                    cloud_variance = 0.5d + (Planetarium.GetUniversalTime() % 3600 / 7200d);
+                }
+                else
+                    cloud_variance = 1;
+                double latitude_variance = ((180d - lat) / 180d);
+
+                moistureModifier = 2 * moistureModifier * latitude_variance * cloud_variance;
+            }
+            catch (NullReferenceException)
+            {
+            }
+        }
+
         public double getPowerCapacity()
         {
             return power_capacity > 0 ? power_capacity : maximumPower;
@@ -424,12 +495,14 @@ namespace FNPlugin
 
         public double Wavelength
         {
-            get { return beamGenerator != null ? beamGenerator.wavelength : nativeWaveLength; }
+            get { return activeBeamGenerator != null ? activeBeamGenerator.wavelength : nativeWaveLength; }
         }
 
-        public double AtmosphericAbsorption
+        public double CombinedAtmosphericAbsorption
         {
-            get { return beamGenerator != null ? beamGenerator.atmosphericAbsorptionPercentage / 100 : nativeAtmosphericAbsorptionPercentage / 100; }
+            get { return activeBeamGenerator != null
+                ? (atmosphericAbsorptionPercentage + waterAbsorptionPercentage) / 100d 
+                : nativeAtmosphericAbsorptionPercentage / 100d; } 
         }
 
         public double getNuclearPower()
@@ -468,7 +541,17 @@ namespace FNPlugin
             if (!relay.IsActive)
                 return relay;
 
-            relay.SupportedTransmitWavelengths.AddRange(relays.Select(m => new WaveLengthData() { wavelength = m.Wavelength, atmosphericAbsorption = m.AtmosphericAbsorption }).Distinct());
+            // Add guid if missing
+            relays.ForEach(m => m.partId = string.IsNullOrEmpty(m.partId) ? Guid.NewGuid().ToString() : m.partId);
+
+            relay.SupportedTransmitWavelengths.AddRange(relays.Select(m => new WaveLengthData() 
+            {
+                partId = new Guid(m.partId), 
+                wavelength = m.Wavelength,
+                isMirror = m.isMirror,
+                atmosphericAbsorption = m.CombinedAtmosphericAbsorption 
+            })
+            .Distinct());
             
             relay.Aperture = relays.Average(m => m.aperture) * Math.Sqrt(relays.Count);
             relay.PowerCapacity = relays.Sum(m => m.getPowerCapacity());
@@ -488,7 +571,16 @@ namespace FNPlugin
             if (!vesselTransmitters.IsActive)
                 return vesselTransmitters;
 
-            vesselTransmitters.SupportedTransmitWavelengths.AddRange(transmitters.Select(m => new WaveLengthData() { wavelength = m.Wavelength, atmosphericAbsorption = m.AtmosphericAbsorption }));
+            // Add guid if missing
+            transmitters.ForEach(m => m.partId = string.IsNullOrEmpty(m.partId) ? Guid.NewGuid().ToString() : m.partId );
+
+            vesselTransmitters.SupportedTransmitWavelengths.AddRange(transmitters.Select(m => new WaveLengthData() 
+            { 
+                partId = new Guid(m.partId), 
+                wavelength = m.Wavelength, 
+                isMirror = m.isMirror,
+                atmosphericAbsorption = m.CombinedAtmosphericAbsorption 
+            }));
 
             vesselTransmitters.Aperture = transmitters.Average(m => m.aperture) * Math.Sqrt(transmitters.Count);
             vesselTransmitters.NuclearPower = transmitters.Sum(m => m.getNuclearPower());
@@ -532,12 +624,32 @@ namespace FNPlugin
                             totalSolarPower += double.Parse(protomodule.moduleValues.GetValue("solar_power"));
                             totalPowerCapacity += double.Parse(protomodule.moduleValues.GetValue("power_capacity"));
 
-                            var wavelength = double.Parse(protomodule.moduleValues.GetValue("wavelength"));
+                            double wavelength = double.Parse(protomodule.moduleValues.GetValue("wavelength"));
+
                             if (!transmitter.SupportedTransmitWavelengths.Any(m => m.wavelength == wavelength))
                             {
+                                bool isMirror = false;
+                                try { bool.TryParse(protomodule.moduleValues.GetValue("isMirror"), out isMirror); }
+                                catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while reading isMirror" + e.Message); }
+
+                                string partId = null;
+                                try { protomodule.moduleValues.GetValue("partId"); }
+                                catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while reading partId" + e.Message); }
+
+                                if (String.IsNullOrEmpty(partId))
+                                    try
+                                    {
+                                        partId = Guid.NewGuid().ToString();
+                                        protomodule.moduleValues.SetValue("partId", partId, true);
+                                        UnityEngine.Debug.Log("[KSPI] - Writen partId " + partId);
+                                    }
+                                    catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while writing partId" + e.Message); }
+
                                 transmitter.SupportedTransmitWavelengths.Add(new WaveLengthData()
                                 {
+                                    partId = partId == null ? Guid.Empty : new Guid(partId),
                                     wavelength = wavelength,
+                                    isMirror = isMirror,
                                     atmosphericAbsorption = double.Parse(protomodule.moduleValues.GetValue("atmosphericAbsorption"))
                                 });
                             }
@@ -591,11 +703,30 @@ namespace FNPlugin
                                 maximumRelayWavelenght = relayWavelenghtMax;
 
                             var wavelength = double.Parse(protomodule.moduleValues.GetValue("wavelength"));
+
+                            bool isMirror = false;
+                            try { bool.TryParse(protomodule.moduleValues.GetValue("isMirror"), out isMirror); }
+                            catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while reading isMirror" + e.Message); }
+
                             if (!relay.SupportedTransmitWavelengths.Any(m => m.wavelength == wavelength))
                             {
+                                string partId = null;
+                                try { protomodule.moduleValues.GetValue("partId"); }
+                                catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while reading partId" + e.Message); }
+
+                                if (String.IsNullOrEmpty(partId))
+                                    try{
+                                        partId = Guid.NewGuid().ToString();
+                                        protomodule.moduleValues.SetValue("partId", partId, true);
+                                        UnityEngine.Debug.Log("[KSPI] - Writen partId " + partId);
+                                    }
+                                    catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while writing partId" + e.Message); }
+
                                 relay.SupportedTransmitWavelengths.Add(new WaveLengthData() 
                                 {
+                                    partId = partId == null ? Guid.Empty : new Guid(partId),
                                     wavelength = wavelength,
+                                    isMirror = isMirror,
                                     atmosphericAbsorption = double.Parse(protomodule.moduleValues.GetValue("atmosphericAbsorption"))
                                 });
                             }

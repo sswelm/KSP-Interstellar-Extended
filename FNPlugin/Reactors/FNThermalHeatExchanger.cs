@@ -226,25 +226,33 @@ namespace FNPlugin
 			setupThermalPower ();
 		}
 
-        public float GetCoreTempAtRadiatorTemp(float rad_temp) {  return 1500; }
+        public double GetCoreTempAtRadiatorTemp(double rad_temp)
+        {  
+            return 1500; 
+        }
 
-        public double GetThermalPowerAtTemp(float temp) {
+        public double GetThermalPowerAtTemp(double temp) 
+        {
             return _thermalpower;
         }
 
-		public float GetRadius() {
+		public float GetRadius() 
+        {
 			return radius;
 		}
 
-        public bool isActive() {
+        public bool isActive() 
+        {
             return IsEnabled;
         }
 
-        public void EnableIfPossible() {
+        public void EnableIfPossible() 
+        {
             IsEnabled = true;
         }
 
-        public bool shouldScaleDownJetISP() {
+        public bool shouldScaleDownJetISP() 
+        {
             return false;
         }
 
@@ -252,7 +260,8 @@ namespace FNPlugin
             return false;
         }
 
-        public float getMinimumThermalPower() {
+        public float getMinimumThermalPower() 
+        {
             return 0;
         }
 

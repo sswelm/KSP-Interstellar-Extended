@@ -69,6 +69,8 @@ namespace InterstellarFuelSwitch
         public string selectedTankSetupTxt;
         [KSPField(isPersistant = true)]
         public bool configLoaded = false;
+        [KSPField(isPersistant = true)]
+        public string initialTankSetup;
 
         // Config properties
         [KSPField]
@@ -91,6 +93,9 @@ namespace InterstellarFuelSwitch
         public string resourceRatios = "";
         [KSPField]
         public string initialResourceAmounts = "";
+
+        [KSPField(guiActiveEditor = false)]
+        public bool adaptiveTankSelection = false;
 
         [KSPField(guiActiveEditor = false)]
         public float basePartMass = 0;
@@ -204,6 +209,8 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public bool traceBoiloff;
 
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Max Wet cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double maxResourceCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
         public double dryCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Resource cost", guiFormat = "F3", guiUnits = " Ѵ")]
@@ -271,26 +278,54 @@ namespace InterstellarFuelSwitch
 
                 InitializeData();
 
-                if (selectedTankSetup == -1)
+                if (adaptiveTankSelection || selectedTankSetup == -1)
                 {
-                    selectedTankSetup = 0;
+                    if (selectedTankSetup == -1)
+                    {
+                        initialTankSetup = String.Join(";", part.Resources.Select(m => m.resourceName).ToArray());
+                    }
+
+                    //Debug.Log("InsterstellarFuelSwitch OnStart part currently has following resources: " + String.Join(";", part.Resources.Select(m => m.resourceName).ToArray()));
+                    
                     for (int i = 0; i < _modularTankList.Count; i++)
                     {
                         var modularTank = _modularTankList[i];
 
+                        //Debug.Log("InsterstellarFuelSwitch OnStart check similarity with tank: " + modularTank.GuiName);
+
                         bool isSimilar = true;
                         foreach (var resource in modularTank.Resources)
                         {
+                            //Debug.Log("InsterstellarFuelSwitch OnStart check similarity with resource: " + resource.name);
+
                             if (!part.Resources.Contains(resource.name))
                             {
+                                //Debug.Log("InsterstellarFuelSwitch OnStart did not find " + resource.name );
                                 isSimilar = false;
                                 break;
+                            }
+                            else if (adaptiveTankSelection && selectedTankSetup != -1)
+                            {
+                                if (part.Resources[resource.name].maxAmount != resource.maxAmount)
+                                {
+                                    //Debug.Log("InsterstellarFuelSwitch OnStart did not find maxAmount " + resource.maxAmount);
+                                    isSimilar = false;
+                                    break;
+                                }
                             }
                         }
                         if (isSimilar)
                         {
                             selectedTankSetup = i;
+                            //Debug.Log("InsterstellarFuelSwitch OnStart found existing resource to be similar with tank: " + _modularTankList[selectedTankSetup].GuiName);
+                            if (adaptiveTankSelection)
+                                selectedTankSetupTxt = _modularTankList[selectedTankSetup].GuiName;
                             break;
+                        }
+
+                        if (selectedTankSetup == -1)
+                        {
+                            selectedTankSetup = 0;
                         }
                     }
                 }
@@ -443,6 +478,7 @@ namespace InterstellarFuelSwitch
 
                 Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["resourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["maxResourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["totalCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
 
                 if (useTextureSwitchModule)
@@ -629,15 +665,9 @@ namespace InterstellarFuelSwitch
                         configuredFlowStates = String.Empty;
                 }
 
-                // imitialise minimum boiloff temperature at current part temperature
-                //double minimumBoiloffTemerature = -1;
-
                 for (int resourceId = 0; resourceId < selectedTank.Resources.Count; resourceId++)
                 {
                     var selectedTankResource = selectedTank.Resources[resourceId];
-
-                    //if (minimumBoiloffTemerature == -1 || (selectedTankResource.boiloffTemp > 0 && selectedTankResource.boiloffTemp < minimumBoiloffTemerature))
-                    //    minimumBoiloffTemerature = selectedTankResource.boiloffTemp;
 
                     if (selectedTankResource.name == "Structural")
                         continue;
@@ -683,17 +713,6 @@ namespace InterstellarFuelSwitch
 
                     newResourceNodes.Add(newResourceNode);
                 }
-
-                //// prepare part to initialise temerature 
-                //if (minimumBoiloffTemerature != -1)
-                //{
-                //    var currentFuelswitch = part.FindModuleImplementing<InterstellarFuelSwitch>();
-                //    if (currentFuelswitch != null)
-                //    {
-                //        Debug.Log("InsterstellarFuelSwitch SetupTankInPart prepared to initialise part temperature at " + minimumBoiloffTemerature);
-                //        currentFuelswitch.initializePartTemperature = minimumBoiloffTemerature;
-                //    }
-                //}
 
                 var finalResourceNodes = new List<ConfigNode>();
 
@@ -746,6 +765,8 @@ namespace InterstellarFuelSwitch
                     }
                 }
 
+                //storedTankSetup = String.Join(";", part.Resources.Select(m => m.resourceName).ToArray());
+
                 UpdateCost();
 
                 return newResources;
@@ -787,28 +808,77 @@ namespace InterstellarFuelSwitch
             if (selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
                 dryCost += _modularTankList[selectedTankSetup].tankCost * storedMassMultiplier;
 
-            totalCost = 0;
             resourceCost = 0;
-            
-            if (_partRresourceDefinition0 == null || _partResource0 == null)
-                return totalCost;
+            maxResourceCost = 0;
 
-            resourceCost += _partRresourceDefinition0.unitCost * (float)_partResource0.amount;
-            totalCost += _partRresourceDefinition0.unitCost * (float)_partResource0.maxAmount;
+            if (_partRresourceDefinition0 == null || _partResource0 == null)
+            {
+                totalCost = dryCost;
+                return 0;
+            }
+
+            bool preserveInitialMass = true;
+            if (!String.IsNullOrEmpty(initialTankSetup))
+            {
+                string[] initialTankSetupArray = initialTankSetup.Split(';');
+
+                foreach (var resourcename in initialTankSetupArray)
+                {
+                    if (!part.Resources.Contains(resourcename))
+                    {
+                        preserveInitialMass = false;
+                        break;
+                    }
+                }
+            }
+
+            resourceCost += _partRresourceDefinition0.unitCost * _partResource0.amount;
+            maxResourceCost += _partRresourceDefinition0.unitCost * _partResource0.maxAmount;
 
             if (_partRresourceDefinition1 == null || _partResource1 == null)
-                return totalCost;
+            {
+                if (preserveInitialMass)
+                {
+                    totalCost = dryCost - maxResourceCost + resourceCost;
+                    return 0;
+                }
+                else
+                {
+                    totalCost = dryCost + resourceCost;
+                    return maxResourceCost;
+                }
+            }
 
-            resourceCost += _partRresourceDefinition1.unitCost * (float)_partResource1.amount;
-            totalCost += _partRresourceDefinition1.unitCost * (float)_partResource1.maxAmount;
+            resourceCost += _partRresourceDefinition1.unitCost * _partResource1.amount;
+            maxResourceCost += _partRresourceDefinition1.unitCost * _partResource1.maxAmount;
 
             if (_partRresourceDefinition2 == null || _partResource2 == null)
-                return totalCost;
+            {
+                if (preserveInitialMass)
+                {
+                    totalCost = dryCost - maxResourceCost + resourceCost;
+                    return 0;
+                }
+                else
+                {
+                    totalCost = dryCost + resourceCost;
+                    return maxResourceCost;
+                }
+            }
 
-            resourceCost += _partRresourceDefinition2.unitCost * (float)_partResource2.amount;
-            totalCost = _partRresourceDefinition2.unitCost * (float)_partResource2.maxAmount; ;
+            resourceCost += _partRresourceDefinition2.unitCost * _partResource2.amount;
+            maxResourceCost = _partRresourceDefinition2.unitCost * _partResource2.maxAmount;
 
-            return totalCost;
+            if (preserveInitialMass)
+            {
+                totalCost = dryCost - maxResourceCost + resourceCost;
+                return 0;
+            }
+            else
+            {
+                totalCost = dryCost + resourceCost;
+                return maxResourceCost;
+            }
         }
 
         private void UpdateDryMass()

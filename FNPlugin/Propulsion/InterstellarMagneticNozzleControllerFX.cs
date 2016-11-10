@@ -20,7 +20,7 @@ namespace FNPlugin
         public float wasteHeatMultiplier = 1;
 
         // Non Persistant
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Charge", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max CP Power", guiUnits = " MW", guiFormat = "F3")]
         private double _max_charged_particles_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Particles", guiUnits = " MW")]
         private double _charged_particles_requested;
@@ -32,7 +32,7 @@ namespace FNPlugin
         private double _recievedElectricPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thrust", guiUnits = " kN")]
         private float _engineMaxThrust;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Free")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Free")]
         private double _hydrogenProduction;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Throtle Exponent")]
         protected float throtleExponent = 1;
@@ -182,7 +182,7 @@ namespace FNPlugin
                     : 0;
 
                 // set maximum flow
-                _attached_engine.maxFuelFlow = Math.Min(0.5f, (float)max_fuel_flow_rate);
+                _attached_engine.maxFuelFlow = Math.Max(Math.Min(0.5f, (float)max_fuel_flow_rate), 0.0000000001f);
 
                 // This whole thing may be inefficient, but it should clear up some confusion for people.
                 if (!_attached_engine.getFlameoutState)
@@ -195,7 +195,7 @@ namespace FNPlugin
             } 
             else if (_attached_engine != null)
             {
-                _attached_engine.maxFuelFlow = 0;
+                _attached_engine.maxFuelFlow = 0.0000000001f;
                 _recievedElectricPower = 0;
                 _charged_particles_requested = 0;
                 _charged_particles_received = 0;

@@ -163,6 +163,9 @@ namespace FNPlugin
 
         public static Dictionary<string, string> OrsResourceMappings { get; private set; }
 
+        private static KeyCode _thermalUiKey = KeyCode.I;
+        public static KeyCode ThermalUiKey { get { return _thermalUiKey; } }
+
         private static int _secondsInDay = GameConstants.KEBRIN_DAY_SECONDS;
         public static int SecondsInDay { get { return _secondsInDay; } }
 
@@ -682,6 +685,31 @@ namespace FNPlugin
                         for (int i = 0; i < totalValues; i += 2)
                             OrsResourceMappings.Add(splitValues[i], splitValues[i + 1]);
                     }
+
+                    if (plugin_settings.HasValue("ThermalUiKey"))
+                    {
+                        var thermalUiKeyStr = plugin_settings.GetValue("ThermalUiKey");
+
+                        int thermalUiKeyInt;
+                        if (int.TryParse(thermalUiKeyStr, out thermalUiKeyInt))
+                        {
+                            _thermalUiKey = (KeyCode)thermalUiKeyInt;
+                            Debug.Log("[KSP Interstellar] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
+                        }
+                        else
+                        {
+                            try
+                            {
+                                _thermalUiKey = (KeyCode)Enum.Parse(typeof(KeyCode), thermalUiKeyStr, true);
+                                Debug.Log("[KSP Interstellar] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
+                            }
+                            catch
+                            {
+                                Debug.LogError("[KSP Interstellar] failed to convert " + thermalUiKeyStr + " to a KeyCode for ThermalUiKey");
+                            }
+                        }
+                    }
+
                     if (plugin_settings.HasValue("SecondsInDay"))
                     {
                         _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));

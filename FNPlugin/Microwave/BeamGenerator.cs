@@ -10,17 +10,29 @@ namespace FNPlugin.Microwave
     [KSPModule("Beam Generator")]
     class BeamGenerator : PartModule, IPartMassModifier, IRescalable<BeamGenerator>
     {
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Wavelength")]
+        [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
+        public int selectedBeamConfiguration = 0;
+
+        [KSPField(isPersistant = true)]
+        public bool isInitialized = false;
+        [KSPField(isPersistant = false)]
+        public bool isLoaded = false;
+
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public int beamType = 1;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Beam Type")]
         public string beamTypeName = "";
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Wavelength", guiFormat = "F9", guiUnits = " m")]
-        public double wavelength = 0.003189281;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Atmospheric Absorption", guiFormat = "F4", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Wavelength Name")]
+        public string beamWaveName = "";
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Wavelength Length", guiFormat = "F9", guiUnits = " m")]
+        public double wavelength;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Atmospheric Absorption", guiFormat = "F3", guiUnits = "%")]
         public double atmosphericAbsorptionPercentage = 10;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Water Absorption", guiFormat = "F3", guiUnits = "%")]
+        public double waterAbsorptionPercentage = 10;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power to Beam Efficiency", guiFormat = "F0", guiUnits = "%")]
         public double efficiencyPercentage = 90;
-
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public float storedMassMultiplier;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Initial Mass", guiUnits = " t")]
@@ -34,6 +46,29 @@ namespace FNPlugin.Microwave
         public float powerMassFraction = 0.5f;
         [KSPField(isPersistant = false)]
         public bool fixedMass = false;
+
+        private BeamConfiguration activeConfiguration;
+
+        public BeamConfiguration ActiveConfiguration
+        {
+            get { return activeConfiguration; }
+        }
+
+        private IList<BeamConfiguration> beamConfigurations;
+
+        public IList<BeamConfiguration> BeamConfigurations 
+        {
+            get
+            {
+                if (beamConfigurations == null)
+                {
+                    beamConfigurations = part.FindModulesImplementing<BeamConfiguration>()
+                        .Where(m => PluginHelper.HasTechRequirementOrEmpty(m.techRequirement0))
+                        .OrderByDescending(m => m.wavelength).ToList();
+                }
+                return beamConfigurations;
+            }
+        }
 
         public void Update()
         {
@@ -68,6 +103,90 @@ namespace FNPlugin.Microwave
                 initialMass = part.prefabMass;
             if (targetMass == 0)
                 targetMass = part.prefabMass;
+
+            InitializeWavelengthSelector();
+        }
+
+        private void InitializeWavelengthSelector()
+        {
+            Debug.Log("[KSP Interstellar] Setup Transmit Beams Configurations for " + part.partInfo.title);
+
+            var chooseField = Fields["selectedBeamConfiguration"];
+            var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
+            var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
+
+            var names = BeamConfigurations.Select(m => m.beamWaveName).ToArray();
+
+            chooseOptionEditor.options = names;
+            chooseOptionFlight.options = names;
+
+            UpdateFromGUI(chooseField, selectedBeamConfiguration);
+
+            // connect on change event
+            chooseOptionEditor.onFieldChanged = UpdateFromGUI;
+            chooseOptionFlight.onFieldChanged = UpdateFromGUI;
+        }
+
+        private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
+        {
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI is called with " + selectedBeamConfiguration);
+
+            if (!BeamConfigurations.Any())
+                return;
+
+            if (isLoaded == false)
+                LoadInitialConfiguration();
+            else
+            {
+                if (selectedBeamConfiguration < BeamConfigurations.Count)
+                {
+                    //Debug.Log("[KSP Interstellar] UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
+                    activeConfiguration = BeamConfigurations[selectedBeamConfiguration];
+                }
+                else
+                {
+                    //Debug.Log("[KSP Interstellar] UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
+                    selectedBeamConfiguration = BeamConfigurations.Count - 1;
+                    activeConfiguration = BeamConfigurations.Last();
+                }
+            }
+
+            if (activeConfiguration == null)
+                return;
+
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI updated wave data");
+            wavelength = activeConfiguration.wavelength;
+            beamWaveName = activeConfiguration.beamWaveName;
+            atmosphericAbsorptionPercentage = activeConfiguration.atmosphericAbsorptionPercentage;
+            waterAbsorptionPercentage = activeConfiguration.waterAbsorptionPercentage;
+            efficiencyPercentage = activeConfiguration.efficiencyPercentage0;
+        }
+
+        private void LoadInitialConfiguration()
+        {
+            isLoaded = true;
+
+            var currentWavelength = wavelength != 0 ? wavelength : 1;
+
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI initialize initial beam configuration with wavelength target " + currentWavelength);
+
+            // find wavelength closes to target wavelength
+            activeConfiguration = BeamConfigurations.FirstOrDefault();
+            selectedBeamConfiguration = 0;
+            var lowestWavelengthDifference = Math.Abs(currentWavelength - activeConfiguration.wavelength);
+            if (BeamConfigurations.Count > 1)
+            {
+                foreach (var currentConfig in BeamConfigurations)
+                {
+                    var configWaveLengthDifference = Math.Abs(currentWavelength - currentConfig.wavelength);
+                    if (configWaveLengthDifference < lowestWavelengthDifference)
+                    {
+                        activeConfiguration = currentConfig;
+                        lowestWavelengthDifference = configWaveLengthDifference;
+                        selectedBeamConfiguration = BeamConfigurations.IndexOf(currentConfig);
+                    }
+                }
+            }
         }
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
@@ -87,9 +206,9 @@ namespace FNPlugin.Microwave
             var info = new StringBuilder();
 
             info.AppendLine("Beam type: " + beamTypeName);
-            info.AppendLine("wavelength: " + wavelength + "m");
-            info.AppendLine("atmospheric Absorption: " + atmosphericAbsorptionPercentage + "%");
-            info.AppendLine("Power to Beam Efficiency: " + efficiencyPercentage + "%");
+            //info.AppendLine("wavelength: " + wavelength + "m");
+            //info.AppendLine("atmospheric Absorption: " + atmosphericAbsorptionPercentage + "%");
+            //info.AppendLine("Power to Beam Efficiency: " + efficiencyPercentage + "%");
 
             return info.ToString();
         }
