@@ -169,8 +169,11 @@ namespace FNPlugin
         private static int _secondsInDay = GameConstants.KEBRIN_DAY_SECONDS;
         public static int SecondsInDay { get { return _secondsInDay; } }
 
-        private static double _apertureDiameterMult = 1;
-        public static double ApertureDiameterMult { get { return _apertureDiameterMult; } }
+        private static double _microwaveApertureDiameterMult = 10;
+        public static double MicrowaveApertureDiameterMult { get { return _microwaveApertureDiameterMult; } }
+
+        private static double _nonMicrowaveApertureDiameterMult = 1;
+        public static double NonMicrowaveApertureDiameterMult { get { return _nonMicrowaveApertureDiameterMult; } }
 
         private static double _speedOfLightMult = GameConstants.speedOfLight;
         public static double SpeedOfLightMult { get { return _speedOfLightMult; } }
@@ -715,11 +718,18 @@ namespace FNPlugin
                         _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
                         Debug.Log("[KSP Interstellar] SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
                     }
-                    if (plugin_settings.HasValue("ApertureDiameterMult"))
+
+                    if (plugin_settings.HasValue("MicrowaveApertureDiameterMult"))
                     {
-                        _apertureDiameterMult = double.Parse(plugin_settings.GetValue("ApertureDiameterMult"));
-                        Debug.Log("[KSP Interstellar] Aperture Diameter Multiplier set to: " + PluginHelper.ApertureDiameterMult.ToString());
+                        _microwaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("MicrowaveApertureDiameterMult"));
+                        Debug.Log("[KSP Interstellar] Microwave Aperture Diameter Multiplier set to: " + PluginHelper.MicrowaveApertureDiameterMult.ToString());
                     }
+                    if (plugin_settings.HasValue("NonMicrowaveApertureDiameterMult"))
+                    {
+                        _nonMicrowaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("NonMicrowaveApertureDiameterMult"));
+                        Debug.Log("[KSP Interstellar] Non Microwave Aperture Diameter Multiplier set to: " + PluginHelper.NonMicrowaveApertureDiameterMult.ToString());
+                    }
+
                     if (plugin_settings.HasValue("SpeedOfLightMult"))
                     {
                         _speedOfLightMult = double.Parse(plugin_settings.GetValue("SpeedOfLightMult"));

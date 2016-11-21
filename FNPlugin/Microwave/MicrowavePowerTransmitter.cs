@@ -426,6 +426,9 @@ namespace FNPlugin
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
+                    //panel.alignType = ModuleDeployablePart.PanelAlignType.X;
+                    //panel.panelType = ModuleDeployableSolarPanel.PanelType.CYLINDRICAL;
+
                     double output = panel.flowRate;
 
                     double spower = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, transmissionEfficiencyRatio * output * TimeWarp.fixedDeltaTime * solarPowertransmissionRatio);
@@ -600,7 +603,7 @@ namespace FNPlugin
             var transmitter = new VesselMicrowavePersistence(vessel);
 
             var totalCount = 0;
-            var totalWaveLength = 0.0;
+            //var totalWaveLength = 0.0;
             var totalAperture = 0.0;
             var totalNuclearPower = 0.0;
             var totalSolarPower = 0.0;
@@ -618,7 +621,7 @@ namespace FNPlugin
                         if (IsEnabled)
                         {
                             totalCount++;
-                            totalWaveLength += double.Parse(protomodule.moduleValues.GetValue("wavelength"));
+                            //totalWaveLength += double.Parse(protomodule.moduleValues.GetValue("wavelength"));
                             totalAperture += double.Parse(protomodule.moduleValues.GetValue("aperture"));
                             totalNuclearPower += double.Parse(protomodule.moduleValues.GetValue("nuclear_power"));
                             totalSolarPower += double.Parse(protomodule.moduleValues.GetValue("solar_power"));
@@ -641,7 +644,7 @@ namespace FNPlugin
                                     {
                                         partId = Guid.NewGuid().ToString();
                                         protomodule.moduleValues.SetValue("partId", partId, true);
-                                        UnityEngine.Debug.Log("[KSPI] - Writen partId " + partId);
+                                        //UnityEngine.Debug.Log("[KSPI] - Writen partId " + partId);
                                     }
                                     catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while writing partId" + e.Message); }
 
@@ -711,7 +714,7 @@ namespace FNPlugin
                             if (!relay.SupportedTransmitWavelengths.Any(m => m.wavelength == wavelength))
                             {
                                 string partId = null;
-                                try { protomodule.moduleValues.GetValue("partId"); }
+                                try { partId = protomodule.moduleValues.GetValue("partId"); }
                                 catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while reading partId" + e.Message); }
 
                                 if (String.IsNullOrEmpty(partId))

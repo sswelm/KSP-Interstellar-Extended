@@ -42,16 +42,23 @@ namespace FNPlugin
         public double targetWavelength = 0;
 
         //Persistent False
+        [KSPField(isPersistant = false)]
+        public int supportedPropellantAtoms = 121;
+        [KSPField(isPersistant = false)]
+        public int supportedPropellantTypes = 127;
+
         [KSPField(isPersistant = false, guiActive = false, guiName = "instance ID")]
         public int instanceId;
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public float facingThreshold = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public float facingSurfaceExponent = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public float facingEfficiencyExponent = 0.1f;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        public float spotsizeNormalizationExponent = 0.5f;
         [KSPField(isPersistant = false)]
         public bool canLinkup = true;
 
@@ -86,7 +93,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float powerHeatMultiplier = 20f;
         [KSPField(isPersistant = false)]
-        public float powerHeatBase = 3500f;
+        public float powerHeatBase = 3200f;
         [KSPField(isPersistant = false)]
         public float receiverType = 0;
         [KSPField(isPersistant = false)]
@@ -117,7 +124,7 @@ namespace FNPlugin
         //GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Wavelengths")]
         public int directWavelengths;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Facing Factor", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Facing Factor", guiFormat = "F5")]
         public double effectivefacingFactor;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Spot Size(s)")]
         public string effectiveSpotSize;
@@ -220,9 +227,9 @@ namespace FNPlugin
 
         public void DisconnectWithEngine(IEngineNoozle engine) { }
 
-        public int SupportedPropellantAtoms { get { return GameConstants.defaultSupportedPropellantAtoms; } }
+        public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
 
-        public int SupportedPropellantTypes { get { return GameConstants.defaultSupportedPropellantTypes; } }
+        public int SupportedPropellantTypes { get { return supportedPropellantTypes; } }
 
         public bool FullPowerForNonNeutronAbsorbants { get { return true; } }
 
@@ -589,7 +596,10 @@ namespace FNPlugin
             if (!String.IsNullOrEmpty(animGenericName))
                 genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == animGenericName);
 
-            this.part.force_activate();
+            if (!part.FindModulesImplementing<ModuleEngines>().Any())
+            {
+                this.part.force_activate();
+            }
 
             if (part_transmitter == null)
             {
@@ -611,8 +621,6 @@ namespace FNPlugin
                     genericAnimation.Toggle();
                 }
             }
-
-
         }
 
         private void InitializeThermalModeSwitcher()
@@ -805,7 +813,7 @@ namespace FNPlugin
             // display communication
             if (_monitorDataStore.Any())
             {
-                effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.spotsize.ToString("0.000")).ToArray());
+                effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.spotsize.ToString("0.0000")).ToArray());
                 //effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.partId.ToString()).ToArray());
                 //effectiveSpotSize = _monitorDataStore.Values.Count().ToString();
                 _monitorDataStore.Clear();
@@ -1131,20 +1139,39 @@ namespace FNPlugin
                 monitordata = new MonitorData() { partId = waveLengthData.partId };
                 _monitorDataStore.Add(waveLengthData.partId, monitordata);
             }
-            monitordata.spotsize = (distanceToSpot * waveLengthData.wavelength) / (transmitterAperture * PluginHelper.ApertureDiameterMult * apertureMultiplier);
+
+            var effectiveAperureBonus = waveLengthData.wavelength >= 0.001 
+                ? PluginHelper.MicrowaveApertureDiameterMult 
+                : PluginHelper.NonMicrowaveApertureDiameterMult;
+
+            monitordata.spotsize = (distanceToSpot * waveLengthData.wavelength) / (transmitterAperture * effectiveAperureBonus * apertureMultiplier);
 
             return monitordata.spotsize;
         }
 
-        protected double ComputeDistanceFacingEfficiency(double spotSize, double facingFactor, double recieverDiameter)
+        protected double ComputeDistanceFacingEfficiency(double spotSizeDiameter, double facingFactor, double recieverDiameter)
         {
-            if (facingFactor <= 0)
+            //Debug.Log("[KSP Interstellar]: ComputeDistanceFacingEfficiency spotSize: " + spotSize + " facingFactor: " + facingFactor + " recieverDiameter: " + recieverDiameter);
+
+            if (spotSizeDiameter <= 0)
+            {
+                Debug.LogError("ComputeDistanceFacingEfficiency spotSizeDiameter <= 0");
                 return 0;
+            }
 
-            if (recieverDiameter == 0)
-                recieverDiameter = 1;
+            if (facingFactor <= 0)
+            {
+                //Debug.LogError("ComputeDistanceFacingEfficiency facingFactor <= 0");
+                return 0;
+            }
 
-            effectiveDistanceFacingEfficiency = Math.Pow(facingFactor, facingEfficiencyExponent) * Math.Sqrt(Math.Min(1, recieverDiameter * facingFactor / spotSize));
+            if (recieverDiameter <= 0)
+            {
+                Debug.LogError("ComputeDistanceFacingEfficiency recieverDiameter <= 0");
+                return 0;
+            }
+
+            effectiveDistanceFacingEfficiency = Math.Pow(facingFactor, facingEfficiencyExponent) * Math.Pow(Math.Min(1, recieverDiameter * facingFactor / spotSizeDiameter), spotsizeNormalizationExponent);
 
             return effectiveDistanceFacingEfficiency;
         }
@@ -1158,7 +1185,12 @@ namespace FNPlugin
             double facingFactor;
             Vector3d directionVector = (PluginHelper.getVesselPos(transmitterVessel) - this.vessel.transform.position).normalized;
 
-            if (receiverType == 4) // used by single pivoting solar arrays
+            if( receiverType == 5)
+            {
+                //Scale energy reception based on angle of reciever to transmitter from bottom
+                facingFactor = Math.Max(0, -Vector3d.Dot(part.transform.up, directionVector));
+            }
+            else if (receiverType == 4) // used by single pivoting solar arrays
             {
                 facingFactor = Math.Min(1 -Math.Abs(Vector3d.Dot(part.transform.right, directionVector)), 1);
             }
@@ -1183,6 +1215,7 @@ namespace FNPlugin
                 facingFactor = Math.Max(0, Vector3d.Dot(part.transform.up, directionVector));
             }
 
+
             if (facingFactor > facingThreshold)
                 facingFactor = Math.Pow(facingFactor, facingSurfaceExponent);
             else
@@ -1190,13 +1223,15 @@ namespace FNPlugin
 
             if (receiverType == 2)
             {
-                var facingFactorB = Math.Round(0.499 + Math.Max(0, Vector3d.Dot(part.transform.up, directionVector)));
+                var facingFactorB = Math.Round(0.4999 + Math.Max(0, Vector3d.Dot(part.transform.up, directionVector)));
                 facingFactor = Math.Max(facingFactor, facingFactorB);
             }
 
-            effectivefacingFactor = CanBeActiveInAtmosphere ? facingFactor : highSpeedAtmosphereFactor * facingFactor;
+            var localfacingFactor = CanBeActiveInAtmosphere ? facingFactor : highSpeedAtmosphereFactor * facingFactor;
 
-            return effectivefacingFactor;
+            Debug.Log("[KSP Interstellar]: ComputeFacingFactor: " + localfacingFactor);
+
+            return localfacingFactor;
         }
 
         /// <summary>
@@ -1216,6 +1251,8 @@ namespace FNPlugin
 
             double recieverAtmosphericPresure = FlightGlobals.getStaticPressure(this.vessel.transform.position) / 100;
 
+            //Debug.Log("[KSP Interstellar]: MicrowaveSources.instance.globalTransmitters.Values.Count " + MicrowaveSources.instance.globalTransmitters.Values.Count + " for vessel " + this.vessel.id + " " + this.vessel.name);
+
             foreach (VesselMicrowavePersistence transmitter in MicrowaveSources.instance.globalTransmitters.Values)
             {
                 //first check for direct connection from current vessel to transmitters, will always be optimal
@@ -1229,16 +1266,26 @@ namespace FNPlugin
                     var possibleWavelengths = new List<MicrowaveRoute>();
                     double distanceInMeter = ComputeDistance(this.vessel, transmitter.Vessel);
                     double facingFactor = ComputeFacingFactor(transmitter.Vessel);
+
+                    //Debug.Log("[KSP Interstellar]: GetConnected Transmitters vessel " + transmitter.Vessel.id + " Facing factor " + facingFactor);
+
+                    effectivefacingFactor = facingFactor;
+
                     double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.transform.position) / 100;
 
                     foreach (WaveLengthData wavelenghtData in transmitter.SupportedTransmitWavelengths)
                     {
                         if (wavelenghtData.wavelength.NotWithin(this.maximumWavelength, this.minimumWavelength))
+                        {
+                            Debug.Log("[KSP Interstellar]: GetConnectedTransmitters: transmit wavelength " + wavelenghtData.wavelength + " is not within " + this.maximumWavelength + " and " + this.minimumWavelength);
                             continue;
+                        }
 
                         directWavelengths++;
 
                         double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture);
+
+                        Debug.Log("[KSP Interstellar]: GetConnectedTransmitters spotSize: " + spotsize + " facingFactor: " + facingFactor + " recieverDiameter: " + this.diameter);
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, this.diameter);
                         double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, this.vessel, transmitter.Vessel);
                         effectiveAtmosphereEfficency = atmosphereEfficency;
@@ -1278,6 +1325,9 @@ namespace FNPlugin
                     var possibleWavelengths = new List<MicrowaveRoute>();
                     double distanceInMeter = ComputeDistance(this.vessel, relay.Vessel);
                     double facingFactor = ComputeFacingFactor(relay.Vessel);
+
+                    Debug.Log("[KSP Interstellar]: GetConnected Relays: " + facingFactor);
+
                     double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.transform.position) / 100;
 
                     foreach (var wavelenghtData in relay.SupportedTransmitWavelengths)
