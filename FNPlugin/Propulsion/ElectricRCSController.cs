@@ -442,8 +442,10 @@ namespace FNPlugin
             }
         }
 
-        
 
+        /// <summary>
+        /// FixedUpdate is also called when not activated
+        /// </summary>
         public void FixedUpdate()
         {
             currentThrust = 0;

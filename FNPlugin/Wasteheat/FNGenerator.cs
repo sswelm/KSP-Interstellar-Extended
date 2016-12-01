@@ -295,7 +295,11 @@ namespace FNPlugin
             if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
 
-            this.part.force_activate();
+            // only force activate if no certain partmodules are not present
+            if (part.FindModuleImplementing<MicrowavePowerReceiver>() == null)
+            {
+                this.part.force_activate();
+            }
 
             anim = part.FindModelAnimators(animName).FirstOrDefault();
             if (anim != null)

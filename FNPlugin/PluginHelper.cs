@@ -504,10 +504,17 @@ namespace FNPlugin
             return config;
         }
 
+
         public static bool lineOfSightToSun(Vessel vess)
         {
             Vector3d a = PluginHelper.getVesselPos(vess);
             Vector3d b = FlightGlobals.Bodies[0].transform.position;
+
+            return lineOfSightToSun(a, b);
+        }
+
+        public static bool lineOfSightToSun(Vector3d vessel, Vector3d star)
+        {
             foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
             {
                 if (referenceBody.flightGlobalsIndex == 0)
@@ -515,8 +522,8 @@ namespace FNPlugin
                     continue;
                 }
 
-                Vector3d refminusa = referenceBody.position - a;
-                Vector3d bminusa = b - a;
+                Vector3d refminusa = referenceBody.position - vessel;
+                Vector3d bminusa = star - vessel;
                 if (Vector3d.Dot(refminusa, bminusa) > 0)
                 {
                     if (Vector3d.Dot(refminusa, bminusa.normalized) < bminusa.magnitude)
