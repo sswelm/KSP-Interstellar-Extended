@@ -163,11 +163,17 @@ namespace FNPlugin
 
         public static Dictionary<string, string> OrsResourceMappings { get; private set; }
 
+        private static KeyCode _thermalUiKey = KeyCode.I;
+        public static KeyCode ThermalUiKey { get { return _thermalUiKey; } }
+
         private static int _secondsInDay = GameConstants.KEBRIN_DAY_SECONDS;
         public static int SecondsInDay { get { return _secondsInDay; } }
 
-        private static double _apertureDiameterMult = 1;
-        public static double ApertureDiameterMult { get { return _apertureDiameterMult; } }
+        private static double _microwaveApertureDiameterMult = 10;
+        public static double MicrowaveApertureDiameterMult { get { return _microwaveApertureDiameterMult; } }
+
+        private static double _nonMicrowaveApertureDiameterMult = 1;
+        public static double NonMicrowaveApertureDiameterMult { get { return _nonMicrowaveApertureDiameterMult; } }
 
         private static double _speedOfLightMult = GameConstants.speedOfLight;
         public static double SpeedOfLightMult { get { return _speedOfLightMult; } }
@@ -498,10 +504,17 @@ namespace FNPlugin
             return config;
         }
 
+
         public static bool lineOfSightToSun(Vessel vess)
         {
             Vector3d a = PluginHelper.getVesselPos(vess);
             Vector3d b = FlightGlobals.Bodies[0].transform.position;
+
+            return lineOfSightToSun(a, b);
+        }
+
+        public static bool lineOfSightToSun(Vector3d vessel, Vector3d star)
+        {
             foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
             {
                 if (referenceBody.flightGlobalsIndex == 0)
@@ -509,8 +522,8 @@ namespace FNPlugin
                     continue;
                 }
 
-                Vector3d refminusa = referenceBody.position - a;
-                Vector3d bminusa = b - a;
+                Vector3d refminusa = referenceBody.position - vessel;
+                Vector3d bminusa = star - vessel;
                 if (Vector3d.Dot(refminusa, bminusa) > 0)
                 {
                     if (Vector3d.Dot(refminusa, bminusa.normalized) < bminusa.magnitude)
@@ -682,16 +695,48 @@ namespace FNPlugin
                         for (int i = 0; i < totalValues; i += 2)
                             OrsResourceMappings.Add(splitValues[i], splitValues[i + 1]);
                     }
+
+                    if (plugin_settings.HasValue("ThermalUiKey"))
+                    {
+                        var thermalUiKeyStr = plugin_settings.GetValue("ThermalUiKey");
+
+                        int thermalUiKeyInt;
+                        if (int.TryParse(thermalUiKeyStr, out thermalUiKeyInt))
+                        {
+                            _thermalUiKey = (KeyCode)thermalUiKeyInt;
+                            Debug.Log("[KSP Interstellar] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
+                        }
+                        else
+                        {
+                            try
+                            {
+                                _thermalUiKey = (KeyCode)Enum.Parse(typeof(KeyCode), thermalUiKeyStr, true);
+                                Debug.Log("[KSP Interstellar] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
+                            }
+                            catch
+                            {
+                                Debug.LogError("[KSP Interstellar] failed to convert " + thermalUiKeyStr + " to a KeyCode for ThermalUiKey");
+                            }
+                        }
+                    }
+
                     if (plugin_settings.HasValue("SecondsInDay"))
                     {
                         _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
                         Debug.Log("[KSP Interstellar] SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
                     }
-                    if (plugin_settings.HasValue("ApertureDiameterMult"))
+
+                    if (plugin_settings.HasValue("MicrowaveApertureDiameterMult"))
                     {
-                        _apertureDiameterMult = double.Parse(plugin_settings.GetValue("ApertureDiameterMult"));
-                        Debug.Log("[KSP Interstellar] Aperture Diameter Multiplier set to: " + PluginHelper.ApertureDiameterMult.ToString());
+                        _microwaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("MicrowaveApertureDiameterMult"));
+                        Debug.Log("[KSP Interstellar] Microwave Aperture Diameter Multiplier set to: " + PluginHelper.MicrowaveApertureDiameterMult.ToString());
                     }
+                    if (plugin_settings.HasValue("NonMicrowaveApertureDiameterMult"))
+                    {
+                        _nonMicrowaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("NonMicrowaveApertureDiameterMult"));
+                        Debug.Log("[KSP Interstellar] Non Microwave Aperture Diameter Multiplier set to: " + PluginHelper.NonMicrowaveApertureDiameterMult.ToString());
+                    }
+
                     if (plugin_settings.HasValue("SpeedOfLightMult"))
                     {
                         _speedOfLightMult = double.Parse(plugin_settings.GetValue("SpeedOfLightMult"));

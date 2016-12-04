@@ -80,9 +80,9 @@ namespace FNPlugin
 
         bool shouldScaleDownJetISP();
 
-        float GetCoreTempAtRadiatorTemp(float rad_temp);
+        double GetCoreTempAtRadiatorTemp(double rad_temp);
 
-        double GetThermalPowerAtTemp(float temp);
+        double GetThermalPowerAtTemp(double temp);
 
         bool IsThermalSource { get; }
 

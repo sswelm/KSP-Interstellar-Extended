@@ -209,291 +209,359 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
-            stopWatch = new Stopwatch();
-
-            speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
-
-            deteuriumResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
-            helium3ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium3);
-
-            densityLqdDeuterium = deteuriumResourceDefinition.density;
-            densityLqdHelium3 = helium3ResourceDefinition.density;
-
-            deteuriumFraction = densityLqdDeuterium / (densityLqdHelium3 + densityLqdDeuterium);
-            helium3Fraction = densityLqdHelium3 / (densityLqdHelium3 + densityLqdDeuterium);
-
-            propellantAverageDensity = densityLqdDeuterium / densityLqdHelium3;
-
-            part.maxTemp = maxTemp;
-            part.thermalMass = 1;
-            part.thermalMassModifier = 1;
-
-            engineType = originalName;
-            curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
-
-            if (curEngineT == null) return;
-
-            engineIsp = curEngineT.atmosphereCurve.Evaluate(0);
-
-            // if we can upgrade, let's do so
-            if (isupgraded)
-                upgradePartModule();
-            else if (this.HasTechsRequiredToUpgrade())
-                hasrequiredupgrade = true;
-
-            // calculate WasteHeat Capacity
-            part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
-
-            if (state == StartState.Editor && this.HasTechsRequiredToUpgrade())
+            try
             {
-                isupgraded = true;
-                upgradePartModule();
-            }
 
-            if (state == StartState.Editor)
+                stopWatch = new Stopwatch();
+
+                speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
+
+                deteuriumResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
+                helium3ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium3);
+
+                densityLqdDeuterium = deteuriumResourceDefinition.density;
+                densityLqdHelium3 = helium3ResourceDefinition.density;
+
+                deteuriumFraction = densityLqdDeuterium / (densityLqdHelium3 + densityLqdDeuterium);
+                helium3Fraction = densityLqdHelium3 / (densityLqdHelium3 + densityLqdDeuterium);
+
+                propellantAverageDensity = densityLqdDeuterium / densityLqdHelium3;
+
+                part.maxTemp = maxTemp;
+                part.thermalMass = 1;
+                part.thermalMassModifier = 1;
+
+                engineType = originalName;
+                curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
+
+                if (curEngineT == null) return;
+
+                engineIsp = curEngineT.atmosphereCurve.Evaluate(0);
+
+                // if we can upgrade, let's do so
+                if (isupgraded)
+                    upgradePartModule();
+                else if (this.HasTechsRequiredToUpgrade())
+                    hasrequiredupgrade = true;
+
+                // calculate WasteHeat Capacity
+                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+
+                if (state == StartState.Editor && this.HasTechsRequiredToUpgrade())
+                {
+                    isupgraded = true;
+                    upgradePartModule();
+                }
+
+                if (state == StartState.Editor)
+                {
+                    // fetch all parts 
+                    var fetchedShipParts = EditorLogic.fetch.ship.parts;
+
+                    deteuriumPartResources = fetchedShipParts
+                        .Where(m => m.Resources.Contains(InterstellarResourcesConfiguration.Instance.LqdDeuterium))
+                        .Select(m => m.Resources[InterstellarResourcesConfiguration.Instance.LqdDeuterium]).ToList();
+                    helium3PartResources = fetchedShipParts
+                        .Where(m => m.Resources.Contains(InterstellarResourcesConfiguration.Instance.LqdHelium3))
+                        .Select(m => m.Resources[InterstellarResourcesConfiguration.Instance.LqdHelium3]).ToList();
+                }
+                else
+                {
+                    //deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
+                    deteuriumPartResources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium)).ToList();
+
+                    //helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
+                    deteuriumPartResources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3)).ToList();
+                }
+
+                // bind with fields and events
+                deactivateRadSafetyEvent = Events["DeactivateRadSafety"];
+                activateRadSafetyEvent = Events["ActivateRadSafety"];
+                retrofitEngineEvent = Events["RetrofitEngine"];
+                radhazardstrField = Fields["radhazardstr"];
+            }
+            catch (Exception e)
             {
-                // fetch all parts 
-                var fetchedShipParts = EditorLogic.fetch.ship.parts;
-
-                deteuriumPartResources = fetchedShipParts
-                    .Where(m => m.Resources.Contains(InterstellarResourcesConfiguration.Instance.LqdDeuterium))
-                    .Select(m => m.Resources[InterstellarResourcesConfiguration.Instance.LqdDeuterium]).ToList();
-                helium3PartResources = fetchedShipParts
-                    .Where(m => m.Resources.Contains(InterstellarResourcesConfiguration.Instance.LqdHelium3))
-                    .Select(m => m.Resources[InterstellarResourcesConfiguration.Instance.LqdHelium3]).ToList();
+                UnityEngine.Debug.LogError("[KSPI] - Error OnStart " + e.Message + " stack " + e.StackTrace);
             }
-            else
-            {
-                //deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
-                deteuriumPartResources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium)).ToList();
-
-                //helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
-                deteuriumPartResources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3)).ToList();
-            }
-
-            // bind with fields and events
-            deactivateRadSafetyEvent = Events["DeactivateRadSafety"];
-            activateRadSafetyEvent = Events["ActivateRadSafety"];
-            retrofitEngineEvent = Events["RetrofitEngine"];
-            radhazardstrField = Fields["radhazardstr"];
 		}
 
         public void Update()
         {
-            //deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
-            //var deteuriumMaxAmount = deteuriumPartResources.Sum(m => m.maxAmount);
-            //var deteuriumAmount = deteuriumPartResources.Sum(m => m.amount);
-            double deteuriumAmount;
-            double deteuriumMaxAmount;
-            part.GetConnectedResourceTotals(deteuriumResourceDefinition.id, out deteuriumAmount, out deteuriumMaxAmount);
+            try
+            {
+                if (HighLogic.LoadedSceneIsEditor)
+                    return;
 
-            percentageDeteuriumFuelRemaining = deteuriumAmount / deteuriumMaxAmount * 100;
-            deuteriumAmounts = percentageDeteuriumFuelRemaining.ToString("0.0000") + "% " + deteuriumMaxAmount.ToString("0") + " L";
+                //deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
+                //var deteuriumMaxAmount = deteuriumPartResources.Sum(m => m.maxAmount);
+                //var deteuriumAmount = deteuriumPartResources.Sum(m => m.amount);
+                double deteuriumAmount;
+                double deteuriumMaxAmount;
+                part.GetConnectedResourceTotals(deteuriumResourceDefinition.id, out deteuriumAmount, out deteuriumMaxAmount);
 
-            //helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
-            //var helium3MaxAmount = helium3PartResources.Sum(m => m.maxAmount);
-            //var helium3Amount = helium3PartResources.Sum(m => m.amount);
-            double helium3Amount;
-            double helium3MaxAmount;
-            part.GetConnectedResourceTotals(helium3ResourceDefinition.id, out helium3Amount, out helium3MaxAmount);
+                percentageDeteuriumFuelRemaining = deteuriumAmount / deteuriumMaxAmount * 100;
+                deuteriumAmounts = percentageDeteuriumFuelRemaining.ToString("0.0000") + "% " + deteuriumMaxAmount.ToString("0") + " L";
 
-            percentageHelium3FuelRemaining = helium3Amount / helium3MaxAmount * 100;
-            helium3Amounts = percentageHelium3FuelRemaining.ToString("0.0000") + "% " + helium3MaxAmount.ToString("0") + " L";
+                //helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
+                //var helium3MaxAmount = helium3PartResources.Sum(m => m.maxAmount);
+                //var helium3Amount = helium3PartResources.Sum(m => m.amount);
 
-            percentageFuelRemaining = Math.Min(percentageDeteuriumFuelRemaining, percentageHelium3FuelRemaining);
+                double helium3Amount;
+                double helium3MaxAmount;
+                part.GetConnectedResourceTotals(helium3ResourceDefinition.id, out helium3Amount, out helium3MaxAmount);
+
+                percentageHelium3FuelRemaining = helium3Amount / helium3MaxAmount * 100;
+                helium3Amounts = percentageHelium3FuelRemaining.ToString("0.0000") + "% " + helium3MaxAmount.ToString("0") + " L";
+
+                percentageFuelRemaining = Math.Min(percentageDeteuriumFuelRemaining, percentageHelium3FuelRemaining);
+
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - Error Update " + e.Message + " stack " + e.StackTrace);
+            }
         }
 
 		public override void OnUpdate() 
         {
-            if (curEngineT == null) return;
-
-            // When transitioning from timewarp to real update throttle
-            if (warpToReal)
+            try
             {
-                vessel.ctrlState.mainThrottle = storedThrotle;
-                warpToReal = false;
+
+                if (curEngineT == null) return;
+
+                // When transitioning from timewarp to real update throttle
+                if (warpToReal)
+                {
+                    vessel.ctrlState.mainThrottle = storedThrotle;
+                    warpToReal = false;
+                }
+
+                deactivateRadSafetyEvent.active = rad_safety_features;
+                activateRadSafetyEvent.active = !rad_safety_features;
+                retrofitEngineEvent.active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+
+                if (curEngineT.isOperational && !IsEnabled)
+                {
+                    IsEnabled = true;
+                    part.force_activate();
+                }
+
+                int kerbal_hazard_count = 0;
+                foreach (Vessel vess in FlightGlobals.Vessels)
+                {
+                    float distance = (float)Vector3d.Distance(vessel.transform.position, vess.transform.position);
+                    if (distance < leathalDistance && vess != this.vessel)
+                        kerbal_hazard_count += vess.GetCrewCount();
+                }
+
+                if (kerbal_hazard_count > 0)
+                {
+                    radhazard = true;
+                    if (kerbal_hazard_count > 1)
+                        radhazardstr = kerbal_hazard_count.ToString() + " Kerbals.";
+                    else
+                        radhazardstr = kerbal_hazard_count.ToString() + " Kerbal.";
+
+                    radhazardstrField.guiActive = true;
+                }
+                else
+                {
+                    radhazardstrField.guiActive = false;
+                    radhazard = false;
+                    radhazardstr = "None.";
+                }
             }
-
-            deactivateRadSafetyEvent.active = rad_safety_features;
-            activateRadSafetyEvent.active = !rad_safety_features;
-            retrofitEngineEvent.active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
-
-			if (curEngineT.isOperational && !IsEnabled) 
+            catch (Exception e)
             {
-				IsEnabled = true;
-				part.force_activate ();
-			}
-
-			int kerbal_hazard_count = 0;
-			foreach (Vessel vess in FlightGlobals.Vessels) 
-            {
-				float distance = (float)Vector3d.Distance (vessel.transform.position, vess.transform.position);
-                if (distance < leathalDistance && vess != this.vessel)
-					kerbal_hazard_count += vess.GetCrewCount ();
-			}
-
-			if (kerbal_hazard_count > 0) 
-            {
-				radhazard = true;
-				if (kerbal_hazard_count > 1) 
-					radhazardstr = kerbal_hazard_count.ToString () + " Kerbals.";
-                else 
-					radhazardstr = kerbal_hazard_count.ToString () + " Kerbal.";
-
-                radhazardstrField.guiActive = true;
-			} 
-            else 
-            {
-                radhazardstrField.guiActive = false;
-				radhazard = false;
-				radhazardstr = "None.";
-			}
+                UnityEngine.Debug.LogError("[KSPI] - Error OnUpdate " + e.Message + " stack " + e.StackTrace);
+            }
 		}
 
         private void ShutDown(string reason)
         {
-            curEngineT.Events["Shutdown"].Invoke();
-            curEngineT.currentThrottle = 0;
-            curEngineT.requestedThrottle = 0;
-
-            ScreenMessages.PostScreenMessage(reason, 5.0f, ScreenMessageStyle.UPPER_CENTER);
-            foreach (FXGroup fx_group in part.fxGroups)
+            try
             {
-                fx_group.setActive(false);
+
+                curEngineT.Events["Shutdown"].Invoke();
+                curEngineT.currentThrottle = 0;
+                curEngineT.requestedThrottle = 0;
+
+                ScreenMessages.PostScreenMessage(reason, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                foreach (FXGroup fx_group in part.fxGroups)
+                {
+                    fx_group.setActive(false);
+                }
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - Error ShutDown " + e.Message + " stack " + e.StackTrace);
             }
         }
 
         private void CalculateTimeDialation()
         {
-            if (initialSpeed == 0 || vessel.missionTime == 0)
-                initialSpeed = vessel.obt_speed;
+            try
+            {
+                if (initialSpeed == 0 || vessel.missionTime == 0)
+                    initialSpeed = vessel.obt_speed;
 
-            lightSpeedRatio = Math.Min(Math.Max(vessel.obt_speed - initialSpeed, 0) / speedOfLight, 0.9999999999);
+                lightSpeedRatio = Math.Min(Math.Max(vessel.obt_speed - initialSpeed, 0) / speedOfLight, 0.9999999999);
 
-            relativity = 1 / Math.Sqrt(1 - lightSpeedRatio * lightSpeedRatio);
+                relativity = 1 / Math.Sqrt(1 - lightSpeedRatio * lightSpeedRatio);
 
-            timeDilation = 1 / relativity;
+                timeDilation = 1 / relativity;
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
+            }
         }
 
         public void FixedUpdate()
         {
-            if (!IsEnabled)
-                UpdateTime();
+            try
+            {
+                if (HighLogic.LoadedSceneIsEditor)
+                    return;
 
-            temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
+                if (!IsEnabled)
+                    UpdateTime();
+
+                temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - Error FixedUpdate " + e.Message + " stack " + e.StackTrace);
+            }
         }
 
         private void UpdateTime()
         {
-            missionTime = vessel.missionTime;
-            fixedDeltaTime = TimeWarp.fixedDeltaTime;
-            universalTime = Planetarium.GetUniversalTime();
-            CalculateTimeDialation();
-
-            if (vessel.missionTime > 0)
+            try
             {
-                if (vesselLifetime == 0)
-                    vesselLifetime = vessel.missionTime;
-                else
-                    vesselLifetime += TimeWarp.fixedDeltaTime * timeDilation;
+                missionTime = vessel.missionTime;
+                fixedDeltaTime = TimeWarp.fixedDeltaTime;
+                universalTime = Planetarium.GetUniversalTime();
+                CalculateTimeDialation();
+
+                if (vessel.missionTime > 0)
+                {
+                    if (vesselLifetime == 0)
+                        vesselLifetime = vessel.missionTime;
+                    else
+                        vesselLifetime += TimeWarp.fixedDeltaTime * timeDilation;
+                }
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - Error UpdateTime " + e.Message + " stack " + e.StackTrace);
             }
         }
 
 		public override void OnFixedUpdate()
         {
-            if (curEngineT == null) return;
-
-            stopWatch.Reset();
-            stopWatch.Start();
-
-            UpdateTime();
-
-            float throttle = curEngineT.currentThrottle > 0 ? Mathf.Max(curEngineT.currentThrottle, 0.01f) : 0;
-
-            if (throttle > 0)
+            try
             {
-                if (vessel.atmDensity > maxAtmosphereDensity)
-                    ShutDown("Inertial Fusion cannot operate in atmosphere!");
 
-                if (radhazard && rad_safety_features)
-                    ShutDown("Engines throttled down as they presently pose a radiation hazard");
-            }
+                if (curEngineT == null) return;
 
-            KillKerbalsWithRadiation(throttle);
+                stopWatch.Reset();
+                stopWatch.Start();
 
-            if (!this.vessel.packed && !warpToReal )
-                 storedThrotle = vessel.ctrlState.mainThrottle;
+                UpdateTime();
 
-            // Update ISP
-            effectiveIsp = timeDilation * engineIsp;
+                float throttle = curEngineT.currentThrottle > 0 ? Mathf.Max(curEngineT.currentThrottle, 0.01f) : 0;
 
-            if (throttle > 0 && !this.vessel.packed)
-            {
-                UpdateAtmosphericCurve();
-
-                fusionRatio = ProcessPowerAndWasteHeat(throttle, TimeWarp.fixedDeltaTime);
-
-                // Update FuelFlow
-                effectiveThrust = timeDilation * timeDilation * MaximumThrust * fusionRatio;
-                calculatedFuelflow = effectiveThrust / effectiveIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = (float)calculatedFuelflow;
-                curEngineT.maxThrust = (float)effectiveThrust;
-
-                // calculate day usage
-                var demandedMass = calculatedFuelflow / propellantAverageDensity;
-                var deteuriumRequestAmount = demandedMass * deteuriumFraction / densityLqdDeuterium;
-                var helium3RequestAmount = demandedMass * helium3Fraction / densityLqdHelium3;
-                deuteriumUsageDay = deteuriumRequestAmount * PluginHelper.SecondsInDay;
-                helium3UsageDay = helium3RequestAmount * PluginHelper.SecondsInDay;
-
-                if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
+                if (throttle > 0)
                 {
-                    curEngineT.status = "Insufficient Electricity";
+                    if (vessel.atmDensity > maxAtmosphereDensity)
+                        ShutDown("Inertial Fusion cannot operate in atmosphere!");
+
+                    if (radhazard && rad_safety_features)
+                        ShutDown("Engines throttled down as they presently pose a radiation hazard");
                 }
-            }
-            else if (this.vessel.packed && curEngineT.enabled && FlightGlobals.ActiveVessel == vessel && throttle > 0 && percentageFuelRemaining > (100 - fuelLimit) && lightSpeedRatio < speedLimit)
-            {
-                warpToReal = true; // Set to true for transition to realtime
 
-                fusionRatio = maximizeThrust ? ProcessPowerAndWasteHeat(1, TimeWarp.fixedDeltaTime) : ProcessPowerAndWasteHeat(storedThrotle, TimeWarp.fixedDeltaTime);
+                KillKerbalsWithRadiation(throttle);
 
-                if (TimeWarp.fixedDeltaTime > 20)
+                if (!this.vessel.packed && !warpToReal)
+                    storedThrotle = vessel.ctrlState.mainThrottle;
+
+                // Update ISP
+                effectiveIsp = timeDilation * engineIsp;
+
+                if (throttle > 0 && !this.vessel.packed)
                 {
-                    var deltaCalculations = (float)Math.Ceiling(TimeWarp.fixedDeltaTime / 20);
-                    var deltaTimeStep = TimeWarp.fixedDeltaTime / deltaCalculations;
+                    UpdateAtmosphericCurve();
 
-                    for (int step = 0; step < deltaCalculations; step++)
+                    fusionRatio = ProcessPowerAndWasteHeat(throttle, TimeWarp.fixedDeltaTime);
+
+                    // Update FuelFlow
+                    effectiveThrust = timeDilation * timeDilation * MaximumThrust * fusionRatio;
+                    calculatedFuelflow = effectiveThrust / effectiveIsp / PluginHelper.GravityConstant;
+                    curEngineT.maxFuelFlow = (float)calculatedFuelflow;
+                    curEngineT.maxThrust = (float)effectiveThrust;
+
+                    // calculate day usage
+                    var demandedMass = calculatedFuelflow / propellantAverageDensity;
+                    var deteuriumRequestAmount = demandedMass * deteuriumFraction / densityLqdDeuterium;
+                    var helium3RequestAmount = demandedMass * helium3Fraction / densityLqdHelium3;
+                    deuteriumUsageDay = deteuriumRequestAmount * PluginHelper.SecondsInDay;
+                    helium3UsageDay = helium3RequestAmount * PluginHelper.SecondsInDay;
+
+                    if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
                     {
-                        PersistantThrust(deltaTimeStep, universalTime + (step * deltaTimeStep), this.part.transform.up, this.vessel.GetTotalMass());
-                        CalculateTimeDialation();
+                        curEngineT.status = "Insufficient Electricity";
                     }
                 }
-                else
-                    PersistantThrust(TimeWarp.fixedDeltaTime, universalTime, this.part.transform.up, this.vessel.GetTotalMass());
-            }
-            else
-            {
-                if (!(percentageFuelRemaining > (100 - fuelLimit) || lightSpeedRatio > speedLimit))
+                else if (this.vessel.packed && curEngineT.enabled && FlightGlobals.ActiveVessel == vessel && throttle > 0 && percentageFuelRemaining > (100 - fuelLimit) && lightSpeedRatio < speedLimit)
                 {
-                    warpToReal = false;
-                    vessel.ctrlState.mainThrottle = 0;
+                    warpToReal = true; // Set to true for transition to realtime
+
+                    fusionRatio = maximizeThrust ? ProcessPowerAndWasteHeat(1, TimeWarp.fixedDeltaTime) : ProcessPowerAndWasteHeat(storedThrotle, TimeWarp.fixedDeltaTime);
+
+                    if (TimeWarp.fixedDeltaTime > 20)
+                    {
+                        var deltaCalculations = (float)Math.Ceiling(TimeWarp.fixedDeltaTime / 20);
+                        var deltaTimeStep = TimeWarp.fixedDeltaTime / deltaCalculations;
+
+                        for (int step = 0; step < deltaCalculations; step++)
+                        {
+                            PersistantThrust(deltaTimeStep, universalTime + (step * deltaTimeStep), this.part.transform.up, this.vessel.GetTotalMass());
+                            CalculateTimeDialation();
+                        }
+                    }
+                    else
+                        PersistantThrust(TimeWarp.fixedDeltaTime, universalTime, this.part.transform.up, this.vessel.GetTotalMass());
+                }
+                else
+                {
+                    if (!(percentageFuelRemaining > (100 - fuelLimit) || lightSpeedRatio > speedLimit))
+                    {
+                        warpToReal = false;
+                        vessel.ctrlState.mainThrottle = 0;
+                    }
+
+                    deuteriumUsageDay = 0;
+                    helium3UsageDay = 0;
+                    fusionPercentage = 0;
+
+                    UpdateAtmosphericCurve();
+
+                    effectiveThrust = timeDilation * timeDilation * MaximumThrust;
+
+                    var maxFuelFlow = effectiveThrust / effectiveIsp / PluginHelper.GravityConstant;
+                    curEngineT.maxFuelFlow = (float)maxFuelFlow;
+                    curEngineT.maxThrust = (float)effectiveThrust;
                 }
 
-                deuteriumUsageDay = 0;
-                helium3UsageDay = 0;
-                fusionPercentage = 0;
-
-                UpdateAtmosphericCurve();
-
-                effectiveThrust = timeDilation * timeDilation * MaximumThrust;
-
-                var maxFuelFlow = effectiveThrust / effectiveIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = (float)maxFuelFlow;
-                curEngineT.maxThrust = (float)effectiveThrust;
+                stopWatch.Stop();
+                onFixedUpdateBenchmark = stopWatch.ElapsedTicks * (1f / Stopwatch.Frequency) * 1000;
             }
-
-            stopWatch.Stop();
-            onFixedUpdateBenchmark = stopWatch.ElapsedTicks * (1f / Stopwatch.Frequency) * 1000;
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - Error UpdateTime " + e.Message + " stack " + e.StackTrace);
+            }
         }
 
         private void UpdateAtmosphericCurve()

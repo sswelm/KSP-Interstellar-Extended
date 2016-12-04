@@ -21,8 +21,9 @@ namespace FNPlugin
         public float startupMaximumGeforce = 10000;
         [KSPField(isPersistant = false)]
         public float startupMinimumChargePercentage = 0;
-        [KSPField(isPersistant = false)]
-        protected bool powerPercentageAffectsPowerRequirements = false;
+
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Power Affects Maintenance")]
+        public bool powerControlAffectsMaintenance = false;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 10)]
         public float powerPercentage = 100;
@@ -35,8 +36,10 @@ namespace FNPlugin
         // UI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Scalar")]
-        public float animationScalar;
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Scalar")]
+        //public float animationScalar;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Power Requirment")]
+        public float currentLaserPowerRequirements = 0;
 
         // protected fields
         protected double power_consumed;
@@ -50,6 +53,11 @@ namespace FNPlugin
         public override double PlasmaModifier
         {
             get { return (plasma_ratio >= 0.01 ? Math.Min(plasma_ratio, 1) : 0); }
+        }
+
+        public float PowerRatio
+        {
+            get { return powerPercentage / 100; }
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -70,7 +78,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    jumpstartPowerTime = 100;
+                    jumpstartPowerTime = 50;
                     IsEnabled = true;
                     reactor_power_ratio = 1;
                 }
@@ -84,8 +92,8 @@ namespace FNPlugin
         {
             get 
             {
-                var currentMinimumThrottle = (powerPercentage > 0 && base.MinimumThrottle > 0) 
-                    ? Mathf.Min(base.MinimumThrottle / (powerPercentage / 100), 1) 
+                var currentMinimumThrottle = (powerPercentage > 0 && base.MinimumThrottle > 0)
+                    ? Mathf.Min(base.MinimumThrottle / PowerRatio, 1) 
                     : base.MinimumThrottle;
 
                 minimumThrottlePercentage = currentMinimumThrottle * 100;
@@ -94,15 +102,18 @@ namespace FNPlugin
             } 
         }
 
+
+
 	    public double LaserPowerRequirements
 	    {
 		    get 
             { 
-                return current_fuel_mode == null 
-                    ? PowerRequirement 
-                    : powerPercentageAffectsPowerRequirements 
-                        ? powerPercentage * PowerRequirement * current_fuel_mode.NormalisedPowerRequirements 
-                        : PowerRequirement * current_fuel_mode.NormalisedPowerRequirements;
+                currentLaserPowerRequirements = current_fuel_mode == null 
+                    ? PowerRequirement
+                    : powerControlAffectsMaintenance 
+                        ? PowerRatio * NormalizedPowerRequirment
+                        : NormalizedPowerRequirment;
+                return currentLaserPowerRequirements;
             }
 	    }
 
@@ -131,8 +142,16 @@ namespace FNPlugin
         { 
             get 
             {
-				return (powerPercentage / 100) * NormalisedMaximumPower * PlasmaModifier * ChargedPowerRatio; 
+                return PowerRatio * base.MaximumChargedPower; 
             } 
+        }
+
+        public override double MaximumThermalPower
+        {
+            get
+            {
+                return PowerRatio * base.MaximumThermalPower;
+            }
         }
 
         public override void Update()
@@ -168,7 +187,7 @@ namespace FNPlugin
             {
                 if (IsEnabled)
                 {
-                    animationScalar = startupAnimation.GetScalar;
+                    //animationScalar = startupAnimation.GetScalar;
                     if (animationStarted == 0)
                     {
                         startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));
@@ -228,7 +247,7 @@ namespace FNPlugin
                 // retreive megawath ratio
                 var megaWattStorageRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                // only use buffer if we have sufficient in storage
+                //only use buffer if we have sufficient in storage
                 if (megaWattStorageRatio > 0.5)
                 {
                     var powerRequirmentMetRatio = powerReceived / powerRequested;
@@ -247,6 +266,8 @@ namespace FNPlugin
                 {
                     //ScreenMessages.PostScreenMessage("Attempting to Jump start", 5.0f, ScreenMessageStyle.LOWER_CENTER);
                     power_consumed += (float)accumulatedElectricChargeInMW;
+                    accumulatedElectricChargeInMW -= shortage;
+                    jumpstartPowerTime = 50;
                 }
             }
 

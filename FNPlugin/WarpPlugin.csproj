@@ -93,8 +93,10 @@
     <Compile Include="Extensions\ParseTools.cs" />
     <Compile Include="Extensions\PartExtensions.cs" />
     <Compile Include="Extensions\ThermalSourceSearchResult.cs" />
+    <Compile Include="Microwave\BeamConfiguration.cs" />
     <Compile Include="Microwave\BeamGenerator.cs" />
     <Compile Include="Microwave\IElectricPowerSource.cs" />
+    <Compile Include="Microwave\BandwidthConverter.cs" />
     <Compile Include="Propulsion\AlcubierreDrive.cs" />
     <Compile Include="Propulsion\Contract\IEngineNoozle.cs" />
     <Compile Include="Propulsion\ExtendedPropellant.cs" />
