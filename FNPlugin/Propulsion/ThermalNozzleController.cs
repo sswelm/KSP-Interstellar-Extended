@@ -1475,7 +1475,7 @@ namespace FNPlugin
 				}
 			}
 
-            if (intake_amounts.ContainsKey(resourcename))
+			if (intake_amounts.ContainsKey(resourcename))
                 return Math.Max(intake_amounts[resourcename], 0);
 
             return 0.00001;
@@ -1529,9 +1529,9 @@ namespace FNPlugin
 				{
 					fuel_flow_amounts.Add(resourcename, enum_rate);
 				}
-            }
+			}
 
-            if (fuel_flow_amounts.ContainsKey(resourcename))
+			if (fuel_flow_amounts.ContainsKey(resourcename))
                 return fuel_flow_amounts[resourcename];
 
             return 0.1;
