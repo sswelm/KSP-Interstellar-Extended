@@ -7,6 +7,8 @@ namespace FNPlugin
 {
     class WaveLengthData
     {
+        public Guid partId { get; set; }
+        public bool isMirror { get; set; }
         public double wavelength { get; set; }
         public double atmosphericAbsorption { get; set; }
 

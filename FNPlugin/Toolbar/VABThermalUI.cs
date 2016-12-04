@@ -40,7 +40,7 @@ namespace FNPlugin
 
         public void Update() 
         {
-            if (Input.GetKeyDown(KeyCode.I)) 
+            if (Input.GetKeyDown((KeyCode)PluginHelper.ThermalUiKey)) 
                 render_window = !render_window;
 
             // thermal logic
@@ -64,8 +64,8 @@ namespace FNPlugin
 
             foreach (IThermalSource tsource in thermal_sources) 
             {
-                float r_temp_100 = tsource.GetCoreTempAtRadiatorTemp((float)resting_radiator_temp_at_100pcnt);
-                float r_temp_30 = tsource.GetCoreTempAtRadiatorTemp((float)resting_radiator_temp_at_30pcnt);
+                double r_temp_100 = tsource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_100pcnt);
+                double r_temp_30 = tsource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_30pcnt);
                 total_source_power += tsource.GetThermalPowerAtTemp(r_temp_100);
                 source_temp_at_100pc = Math.Min(r_temp_100, source_temp_at_100pc);
                 source_temp_at_30pc = Math.Min(r_temp_30, source_temp_at_30pc);

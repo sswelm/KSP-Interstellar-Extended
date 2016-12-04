@@ -68,7 +68,7 @@ namespace FNPlugin
         public float surfaceAreaUpgradeMult = 1.6f;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Color Ratio")]
-        public float colorRatio;
+        public double colorRatio;
 
         // non persistant
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
@@ -122,7 +122,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Radiator Start Temp")]
         public float radiator_temperature_temp_val;
         [KSPField(isPersistant = false, guiActive = false)]
-        public float instantaneous_rad_temp;
+        public double instantaneous_rad_temp;
         [KSPField(isPersistant = false, guiActive = false, guiName = "WasteHeat Ratio")]
         public float wasteheatRatio;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Energy Transfer", guiFormat = "F1")]
@@ -134,7 +134,7 @@ namespace FNPlugin
 		protected Animation deployAnim;
 		protected double radiatedThermalPower;
 		protected double convectedThermalPower;
-		protected float current_rad_temp;
+		protected double current_rad_temp;
 		protected float directionrotate = 1;
 		//protected Vector3 original_eulers;
 		//protected Transform pivot;
@@ -256,17 +256,17 @@ namespace FNPlugin
 			return has_radiators;
 		}
 
-		public static float getAverageRadiatorTemperatureForVessel(Vessel vess) 
+		public static double getAverageRadiatorTemperatureForVessel(Vessel vess) 
         {
 			list_of_all_radiators.RemoveAll(item => item == null);
-			float average_temp = 0;
-			float n_radiators = 0;
+			double average_temp = 0;
+			double n_radiators = 0;
 			foreach (FNRadiator radiator in list_of_all_radiators) 
             {
 				if (radiator.vessel == vess) 
                 {
 					average_temp += radiator.getRadiatorTemperature ();
-					n_radiators+=1.0f;
+					n_radiators += 1.0f;
 				}
 			}
 
@@ -478,16 +478,12 @@ namespace FNPlugin
             else
                 radiatorIsEnabled = true;
 
-            UnityEngine.Debug.Log("[KSPI] - OnStart.Start I");
-
             if (radiatorInit == false)
                 radiatorInit = true;
 
             part.maxTemp = RadiatorTemperature;
 
             radiatorTempStr = RadiatorTemperature + "K";
-
-            UnityEngine.Debug.Log("[KSPI] - OnStart.Start J");
         }
 
         public static AnimationState[] SetUpAnimation(string animationName, Part part)
@@ -616,7 +612,7 @@ namespace FNPlugin
                     else
                         explode_counter = 0;
 
-                    double fixed_thermal_power_dissip = Mathf.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6f * TimeWarp.fixedDeltaTime;
+                    double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6f * TimeWarp.fixedDeltaTime;
 
                     if (Double.IsNaN(fixed_thermal_power_dissip))
                         Debug.LogWarning("FNRadiator: OnFixedUpdate Single.IsNaN detected in fixed_thermal_power_dissip");
@@ -627,9 +623,9 @@ namespace FNPlugin
                         Debug.LogError("FNRadiator: OnFixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + fixed_thermal_power_dissip + ")");
 
                     instantaneous_rad_temp = Mathf.Min(radiator_temperature_temp_val * 1.014f, RadiatorTemperature);
-                    instantaneous_rad_temp = Mathf.Max(instantaneous_rad_temp, Mathf.Max((float)FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7f));
+                    instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7f));
 
-                    if (Single.IsNaN(instantaneous_rad_temp))
+                    if (Double.IsNaN(instantaneous_rad_temp))
                         Debug.LogError("FNRadiator: OnFixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
 
                     current_rad_temp = instantaneous_rad_temp;
@@ -644,7 +640,7 @@ namespace FNPlugin
                     radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
 
                     instantaneous_rad_temp = Mathf.Min(radiator_temperature_temp_val * 1.014f, RadiatorTemperature);
-                    instantaneous_rad_temp = Mathf.Max(instantaneous_rad_temp, Mathf.Max((float)FlightGlobals.getExternalTemperature((float)vessel.altitude, vessel.mainBody), 2.7f));
+                    instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7f));
 
                     current_rad_temp = instantaneous_rad_temp;
                 }
@@ -721,7 +717,7 @@ namespace FNPlugin
             return false;
         }
 
-		public float getRadiatorTemperature() 
+		public double getRadiatorTemperature() 
         {
 			return current_rad_temp;
 		}
@@ -767,17 +763,17 @@ namespace FNPlugin
 
         private void ColorHeat()
         {
-            float currentTemperature = getRadiatorTemperature();
+            double currentTemperature = getRadiatorTemperature();
 
-            float partTempRatio = Mathf.Min((float)(part.temperature / (part.maxTemp * 0.95)), 1);
+            double partTempRatio = Mathf.Min((float)(part.temperature / (part.maxTemp * 0.95)), 1);
 
-            float radiatorTempRatio = Mathf.Min(currentTemperature / RadiatorTemperature, 1);
+            double radiatorTempRatio = Math.Min(currentTemperature / RadiatorTemperature, 1);
 
-            colorRatio = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
+            colorRatio = Math.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
 
-            SetHeatAnimationRatio(colorRatio);
+            SetHeatAnimationRatio((float)colorRatio);
 
-            var emissiveColor = new Color(colorRatio, 0.0f, 0.0f, 0.5f);
+            var emissiveColor = new Color((float)colorRatio, 0.0f, 0.0f, 0.5f);
 
             foreach (Renderer renderer in renderArray)
             {

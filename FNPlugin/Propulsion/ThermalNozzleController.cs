@@ -251,7 +251,7 @@ namespace FNPlugin
         protected float _maxDecompositionTemp;
         protected const float _hydroloxDecompositionEnergy = 16.2137f;
         protected Guid id = Guid.NewGuid();
-        protected ConfigNode[] propellants;
+        protected ConfigNode[] propellantsConfignodes;
 
         protected bool hasrequiredupgrade = false;
         protected bool hasstarted = false;
@@ -309,7 +309,7 @@ namespace FNPlugin
         public void NextPropellant()
         {
             fuel_mode++;
-            if (fuel_mode >= propellants.Length)
+            if (fuel_mode >= propellantsConfignodes.Length)
                 fuel_mode = 0;
 
             SetupPropellants(true);
@@ -320,7 +320,7 @@ namespace FNPlugin
         {
             fuel_mode--;
             if (fuel_mode < 0)
-                fuel_mode = propellants.Length - 1;
+                fuel_mode = propellantsConfignodes.Length - 1;
 
             SetupPropellants(false);
         }
@@ -374,16 +374,16 @@ namespace FNPlugin
 
             if (isJet)
             {
-                propellants = getPropellantsHybrid();
+                propellantsConfignodes = getPropellantsHybrid();
                 isHybrid = true;
             }
             else
-                propellants = getPropellants(isJet);
+                propellantsConfignodes = getPropellants(isJet);
         }
 
         public ConfigNode[] getPropellants()
         {
-            return propellants;
+            return propellantsConfignodes;
         }
 
         public void OnEditorAttach()
@@ -454,7 +454,7 @@ namespace FNPlugin
                 part.OnEditorAttach += OnEditorAttach;
                 part.OnEditorDetach += OnEditorDetach;
 
-                propellants = getPropellants(isJet);
+                propellantsConfignodes = getPropellants(isJet);
                 if (this.HasTechsRequiredToUpgrade())
                 {
                     isupgraded = true;
@@ -482,7 +482,7 @@ namespace FNPlugin
                     hasrequiredupgrade = true;
 
                 // if not, use basic propellants
-                propellants = getPropellants(isJet);
+                propellantsConfignodes = getPropellants(isJet);
             }
 
             bool hasJetUpgradeTech0 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech0);
@@ -636,7 +636,10 @@ namespace FNPlugin
 
             try
             {
-                ConfigNode chosenpropellant = propellants[fuel_mode];
+                ConfigNode chosenpropellant = propellantsConfignodes[fuel_mode];
+
+                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant chosenpropellant " + fuel_mode + " / " +  propellantsConfignodes.Count());
+
                 UpdatePropellantModeBehavior(chosenpropellant);
                 ConfigNode[] propellantNodes = chosenpropellant.GetNodes("PROPELLANT");
                 list_of_propellants.Clear();
@@ -720,7 +723,7 @@ namespace FNPlugin
                     }
 
                     // do the switch if needed
-                    if (next_propellant && (switches <= propellants.Length || fuel_mode != 0))
+                    if (next_propellant && (switches <= propellantsConfignodes.Length || fuel_mode != 0))
                     {// always shows the first fuel mode when all fuel mods are tested at least once
                         ++switches;
                         if (notifySwitching)
@@ -736,6 +739,8 @@ namespace FNPlugin
                 {
                     bool next_propellant = false;
 
+                    UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant " + list_of_propellants[0].name);
+
                     // Still ignore propellants that don't exist or we cannot use due to the limmitations of the engine
                     if (
 						( (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
@@ -746,12 +751,22 @@ namespace FNPlugin
                         || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                         || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
                         || ((_propType & this.supportedPropellantTypes) != _propType)
-						)  && (switches <= propellants.Length || fuel_mode != 0) ) 
+						)  && (switches <= propellantsConfignodes.Length || fuel_mode != 0) ) 
                     {
+                        if (((_atomType & this.supportedPropellantAtoms) != _atomType))
+                            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant nozzle atom " + this.supportedPropellantAtoms + " != " + _atomType);
+                        if (((_propType & this.supportedPropellantTypes) != _propType))
+                            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant nozzle type " + this.supportedPropellantTypes + " != " + _propType);
+
+                        if (((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType))
+                            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant reactor atom " + _myAttachedReactor.SupportedPropellantAtoms + " != " + _atomType);
+                        if (((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType))
+                            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant reactor type " + _myAttachedReactor.SupportedPropellantTypes + " != " + _propType);
+
                         next_propellant = true;
                     }
 
-                     if (next_propellant)
+                    if (next_propellant)
                     {
                         ++switches;
                         if (forward)

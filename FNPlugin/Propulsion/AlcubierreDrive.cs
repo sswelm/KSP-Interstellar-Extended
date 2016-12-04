@@ -448,6 +448,10 @@ namespace FNPlugin
                 Actions["ToggleWarpSpeedUpAction"].guiName = Events["ToggleWarpSpeedUp"].guiName = String.Format("Warp Speed (+)");
                 Actions["ToggleWarpSpeedDownAction"].guiName = Events["ToggleWarpSpeedDown"].guiName = String.Format("Warp Speed (-)");
 
+                minimum_selected_factor = engine_throtle.ToList().IndexOf(engine_throtle.First(w => w == 1f));
+                if (selected_factor == -1)
+                    selected_factor = minimum_selected_factor;
+
                 if (state == StartState.Editor) return;
 
                 if (!IsSlave)
@@ -620,9 +624,7 @@ namespace FNPlugin
             }
 
             warpdriveType = originalName;
-            minimum_selected_factor = engine_throtle.ToList().IndexOf(engine_throtle.First(w => w == 1f));
-            if (selected_factor == -1)
-                selected_factor = minimum_selected_factor;
+
         }
 
 
@@ -637,8 +639,6 @@ namespace FNPlugin
                 Events["RetrofitDrive"].active = !IsSlave && !isupgraded && ResearchAndDevelopment.Instance.Science >= UpgradeCost() && hasrequiredupgrade;
             else
                 Events["RetrofitDrive"].active = false;
-
-            WarpEngineThrottle = engine_throtle[selected_factor];
 
             if (animationState != null)
             {
@@ -662,6 +662,8 @@ namespace FNPlugin
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
         {
+            WarpEngineThrottle = engine_throtle[selected_factor];
+
             if (alcubierreDrives != null)
                 sumOfAlcubierreDrives = alcubierreDrives.Sum(p => p.partMass * (p.isupgraded ? 20 : 10));
 
@@ -695,10 +697,12 @@ namespace FNPlugin
                 exoticMatterResource.maxAmount = exotic_power_required;
                 exoticMatterResource.amount = exoticMatterResource.maxAmount * ratio;
             }
+
         }
 
         public override void OnFixedUpdate()
         {
+
             if (initiateWarpTimeout > 0)
                 InitiateWarp();
 
@@ -718,7 +722,10 @@ namespace FNPlugin
 
             warp_effect1_renderer.material.mainTexture = warp_textures[((int)tex_count) % warp_textures.Length];
             warp_effect2_renderer.material.mainTexture = warp_textures2[((int)tex_count + 8) % warp_textures.Length];
-            tex_count += 1f * engine_throtle[selected_factor];
+
+            WarpEngineThrottle = engine_throtle[selected_factor];
+
+            tex_count += 1f * WarpEngineThrottle;
 
             WarpdriveCharging();
 

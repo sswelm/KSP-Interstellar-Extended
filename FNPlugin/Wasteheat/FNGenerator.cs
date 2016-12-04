@@ -38,13 +38,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public bool calculatedMass = false;
         [KSPField(isPersistant = false)]
-        public float pCarnotEff = 0.31f;
+        public float pCarnotEff = 0.32f;
         [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = false)]
         public string originalName;
         [KSPField(isPersistant = false)]
-        public float upgradedpCarnotEff = 0.6f;
+        public float upgradedpCarnotEff = 0.64f;
         [KSPField(isPersistant = false)]
         public string animName;
         [KSPField(isPersistant = false)]
@@ -113,26 +113,29 @@ namespace FNPlugin
         public float requestedPower_f;
 
         // Internal
-        protected float coldBathTemp = 500;
+        protected double coldBathTemp = 500;
         protected double hotBathTemp = 1;
-        protected float outputPower;
+        protected double outputPower;
         protected double _totalEff;
-        protected float sectracker = 0;
+        protected double powerDownFraction;
+
         protected bool play_down = true;
         protected bool play_up = true;
-        protected IThermalSource attachedThermalSource;
         protected bool hasrequiredupgrade = false;
+
         protected long last_draw_update = 0;
-        protected int shutdown_counter = 0;
-        protected Animation anim;
-        protected bool hasstarted = false;
         protected long update_count = 0;
+
         protected int partDistance;
-        protected PartResource megajouleResource;
+        protected int shutdown_counter = 0;
         protected int startcount = 0;
-        protected PowerStates _powerState;
+        
         protected float powerCustomSettingFraction;
-        protected double powerDownFraction;
+
+        protected PartResource megajouleResource;
+        protected PowerStates _powerState;
+        protected IThermalSource attachedThermalSource;
+        protected Animation anim;
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -292,7 +295,11 @@ namespace FNPlugin
             if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
 
-            this.part.force_activate();
+            // only force activate if no certain partmodules are not present
+            if (part.FindModuleImplementing<MicrowavePowerReceiver>() == null)
+            {
+                this.part.force_activate();
+            }
 
             anim = part.FindModelAnimators(animName).FirstOrDefault();
             if (anim != null)
@@ -434,7 +441,7 @@ namespace FNPlugin
             if (IsEnabled)
             {
                 float percentOutputPower = (float)(_totalEff * 100.0);
-                float outputPowerReport = -outputPower;
+                double outputPowerReport = -outputPower;
                 if (update_count - last_draw_update > 10)
                 {
                     OutputPower = getPowerFormatString(outputPowerReport) + "_e";
@@ -499,7 +506,7 @@ namespace FNPlugin
         {
             if (attachedThermalSource == null) return;
 
-            var wasteHeateModifier = 1.0f - (float)getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+            //var wasteHeateModifier = 1.0 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
             hotBathTemp = attachedThermalSource.HotBathTemperature;  //+ wasteHeateModifier * FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
             coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel(vessel) * 0.75f;
 
@@ -563,7 +570,7 @@ namespace FNPlugin
 
                     if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
                     {
-                        //requestedPower_f = 0;
+                        requestedPower_f = 0;
                         //electricdtps = 0;
                         //max_electricdtps = 0;
                         //attachedThermalSource.RequestedThermalHeat = 0;
@@ -616,7 +623,7 @@ namespace FNPlugin
                     electricdtps = Math.Max(effective_input_power / TimeWarp.fixedDeltaTime, 0.0);
                     max_electricdtps = maxChargedPower * _totalEff * powerCustomSettingFraction;
                 }
-                outputPower = -(float)supplyFNResourceFixedMax(electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                outputPower = -supplyFNResourceFixedMax(electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
             }
             else
             {

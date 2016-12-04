@@ -260,7 +260,7 @@ namespace FNPlugin
 
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = (float)maxFuelFlow;
+                curEngineT.maxFuelFlow = Math.Max((float)maxFuelFlow, 0.0000001f);
 
                 if (!curEngineT.getFlameoutState)
                 {
