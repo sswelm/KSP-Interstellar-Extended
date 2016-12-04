@@ -151,6 +151,9 @@ namespace FNPlugin
         private BaseEvent retrofitEngineEvent;
         private BaseField radhazardstrField;
 
+        private PartResourceDefinition deteuriumResourceDefinition;
+        private PartResourceDefinition helium3ResourceDefinition;
+
         private List<PartResource> deteuriumPartResources;
         private List<PartResource> helium3PartResources;
 
@@ -209,8 +212,13 @@ namespace FNPlugin
             stopWatch = new Stopwatch();
 
             speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
-            densityLqdDeuterium = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium).density;
-            densityLqdHelium3 = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium3).density;
+
+            deteuriumResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
+            helium3ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium3);
+
+            densityLqdDeuterium = deteuriumResourceDefinition.density;
+            densityLqdHelium3 = helium3ResourceDefinition.density;
+
             deteuriumFraction = densityLqdDeuterium / (densityLqdHelium3 + densityLqdDeuterium);
             helium3Fraction = densityLqdHelium3 / (densityLqdHelium3 + densityLqdDeuterium);
 
@@ -256,8 +264,11 @@ namespace FNPlugin
             }
             else
             {
-                deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
-                helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
+                //deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
+                deteuriumPartResources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium)).ToList();
+
+                //helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
+                deteuriumPartResources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3)).ToList();
             }
 
             // bind with fields and events
@@ -269,15 +280,23 @@ namespace FNPlugin
 
         public void Update()
         {
-            deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
-            var deteuriumMaxAmount = deteuriumPartResources.Sum(m => m.maxAmount);
-            var deteuriumAmount = deteuriumPartResources.Sum(m => m.amount);
+            //deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
+            //var deteuriumMaxAmount = deteuriumPartResources.Sum(m => m.maxAmount);
+            //var deteuriumAmount = deteuriumPartResources.Sum(m => m.amount);
+            double deteuriumAmount;
+            double deteuriumMaxAmount;
+            part.GetConnectedResourceTotals(deteuriumResourceDefinition.id, out deteuriumAmount, out deteuriumMaxAmount);
+
             percentageDeteuriumFuelRemaining = deteuriumAmount / deteuriumMaxAmount * 100;
             deuteriumAmounts = percentageDeteuriumFuelRemaining.ToString("0.0000") + "% " + deteuriumMaxAmount.ToString("0") + " L";
 
-            helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
-            var helium3MaxAmount = helium3PartResources.Sum(m => m.maxAmount);
-            var helium3Amount = helium3PartResources.Sum(m => m.amount);
+            //helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
+            //var helium3MaxAmount = helium3PartResources.Sum(m => m.maxAmount);
+            //var helium3Amount = helium3PartResources.Sum(m => m.amount);
+            double helium3Amount;
+            double helium3MaxAmount;
+            part.GetConnectedResourceTotals(helium3ResourceDefinition.id, out helium3Amount, out helium3MaxAmount);
+
             percentageHelium3FuelRemaining = helium3Amount / helium3MaxAmount * 100;
             helium3Amounts = percentageHelium3FuelRemaining.ToString("0.0000") + "% " + helium3MaxAmount.ToString("0") + " L";
 

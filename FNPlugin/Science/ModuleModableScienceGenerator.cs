@@ -16,11 +16,11 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public string result_title;
         [KSPField(isPersistant = true)]
-        public float transmit_value;
+        public double transmit_value;
         [KSPField(isPersistant = true)]
-        public float recovery_value;
+        public double recovery_value;
         [KSPField(isPersistant = true)]
-        public float data_size;
+        public double data_size;
         [KSPField(isPersistant = true)]
         public float xmit_scalar;
         [KSPField(isPersistant = true)]
@@ -84,7 +84,7 @@ namespace FNPlugin
                     ExperimentsResultDialog.DisplayResult(merdp = new ModableExperimentResultDialogPage(
                             base.part,
                             this.science_data,
-                            this.science_data.transmitValue,
+                            this.science_data.baseTransmitValue,
                             0,
                             false,
                             "",
@@ -95,7 +95,7 @@ namespace FNPlugin
                             new Callback<ScienceData>(this.sendDataToComms),
                             new Callback<ScienceData>(this.sendDataToLab)));
 
-                    merdp.setUpScienceData(result_title, result_string, transmit_value, recovery_value, data_size, xmit_scalar, ref_value);
+                    merdp.setUpScienceData(result_title, result_string, (float)transmit_value, (float)recovery_value, (float)data_size, xmit_scalar, ref_value);
                 }
                 else
                     ExperimentsResultDialog.DisplayResult(merdp);
@@ -193,11 +193,12 @@ namespace FNPlugin
             // Do Nothing yet
             data.container = science_data.container;
             data.dataAmount = science_data.dataAmount;
-            data.labBoost = science_data.labBoost;
+            data.labValue = science_data.labValue;
             data.labValue = science_data.labValue;
             data.subjectID = science_data.subjectID;
             data.title = science_data.title;
-            data.transmitValue = science_data.transmitValue;
+            data.baseTransmitValue = science_data.baseTransmitValue;
+            data.transmitBonus = science_data.transmitBonus;
             data.triggered = science_data.triggered;
         }
 

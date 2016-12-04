@@ -19,9 +19,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
 
-        // Visible Non Persistant
-        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Reactor Power", guiUnits = " MW")]
-        //private float _max_reactor_power;
+        // Non Persistant
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Charge", guiUnits = " MW")]
         private double _max_charged_particles_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Particles", guiUnits = " MW")]
@@ -54,8 +52,8 @@ namespace FNPlugin
 
 		public override void OnStart(PartModule.StartState state) 
         {
-            var wasteheatPowerResource = part.Resources.list.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             // calculate WasteHeat Capacity
+            var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
             if (wasteheatPowerResource != null)
             {
                 var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
@@ -65,7 +63,7 @@ namespace FNPlugin
             
             if (state == StartState.Editor) return;
 
-            _attached_engine = this.part.FindModuleImplementing<ModuleEnginesFX>();  //this.part.Modules["ModuleEnginesFX"] as ModuleEnginesFX;
+            _attached_engine = this.part.FindModuleImplementing<ModuleEnginesFX>();
             _attached_warpable_engine = _attached_engine as ModuleEnginesWarp;
 
             if (_attached_engine != null)
@@ -93,7 +91,7 @@ namespace FNPlugin
 
             exchanger_thrust_divisor = radius > _attached_reactor.GetRadius()
                 ? _attached_reactor.GetRadius() * _attached_reactor.GetRadius() / radius / radius
-                : radius * radius / _attached_reactor.GetRadius() / _attached_reactor.GetRadius(); // Does this really need to be done each update? Or at all since it uses particles instead of thermal power?
+                : radius * radius / _attached_reactor.GetRadius() / _attached_reactor.GetRadius();
 		}
 
         private IChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)

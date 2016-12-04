@@ -28,7 +28,7 @@ namespace FNPlugin
             this.xmitDataScalar = xmitScalar;
             this.refValue = transmitValue;
             this.scienceValue = recoveryValue;
-            this.transmitValue = transmitValue;
+            this.baseTransmitValue = transmitValue;
         }
     }
 }

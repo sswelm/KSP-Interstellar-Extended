@@ -72,6 +72,8 @@ namespace InterstellarFuelSwitch
 
         // Config properties
         [KSPField]
+        public string tankId = "";
+        [KSPField]
         public string resourceGui = "";
         [KSPField]
         public string tankSwitchNames = "";
@@ -119,7 +121,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool displayCurrentBoilOffTemp = false;
         [KSPField]
-        public bool displayCurrentTankCost = false;
+        public bool displayTankCost = false;
         [KSPField]
         public bool hasSwitchChooseOption = true;
         [KSPField]
@@ -132,6 +134,8 @@ namespace InterstellarFuelSwitch
         public bool availableInEditor = true;
         [KSPField(guiActive = false)]
         public bool isEmpty = false;
+        [KSPField]
+        public bool returnDryMass = false;
 
         [KSPField]
         public string inEditorSwitchingTechReq;
@@ -160,8 +164,7 @@ namespace InterstellarFuelSwitch
 
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
         public string tankGuiName = String.Empty;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Added cost")]
-        public double addedCost = 0;
+
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Mass Ratio")]
         public string massRatioStr = "";
 
@@ -183,7 +186,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public float storedMassMultiplier = 1;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Wet mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Max Wet mass", guiUnits = " t", guiFormat = "F4")]
         public double wetMass;
         [KSPField(guiActiveEditor = false, guiActive = false)]
         public string resourceAmountStr0 = "";
@@ -200,6 +203,13 @@ namespace InterstellarFuelSwitch
         public float massExponent = 3;
         [KSPField(isPersistant = true)]
         public bool traceBoiloff;
+
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double dryCost = 0;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Resource cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double resourceCost = 0;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Total Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        public double totalCost = 0;
 
         private InterstellarTextureSwitch2 textureSwitch;
 
@@ -431,7 +441,9 @@ namespace InterstellarFuelSwitch
                 _previousTankSetupEvent.guiActiveEditor = hasGUI && availableInEditor;
                 _previousTankSetupEvent.guiName = previousTankSetupText;
 
-                Fields["addedCost"].guiActiveEditor = displayCurrentTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["resourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
+                Fields["totalCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
 
                 if (useTextureSwitchModule)
                 {
@@ -509,7 +521,9 @@ namespace InterstellarFuelSwitch
 
                 // update Dry Mass
                 UpdateDryMass();
+                UpdateGuiResourceMass();
                 UpdateMassRatio();
+                UpdateCost();
 
                 if (HighLogic.LoadedSceneIsEditor)
                 {
@@ -672,7 +686,6 @@ namespace InterstellarFuelSwitch
                     newResourceNodes.Add(newResourceNode);
                 }
 
-
                 //// prepare part to initialise temerature 
                 //if (minimumBoiloffTemerature != -1)
                 //{
@@ -687,8 +700,9 @@ namespace InterstellarFuelSwitch
                 var finalResourceNodes = new List<ConfigNode>();
 
                 // remove all resources except those we ignore
-                PartResource[] partResources = currentPart.GetComponents<PartResource>();
-                foreach (PartResource resource in partResources)
+                List<PartResource> resourcesDeleteList = new List<PartResource>();
+
+                foreach (PartResource resource in part.Resources)
                 {
                     if (activeResourceList.Contains(resource.resourceName))
                     {
@@ -698,8 +712,8 @@ namespace InterstellarFuelSwitch
                             newResourceNodes.Clear();
                         }
 
-                        currentPart.Resources.list.Remove(resource);
-                        DestroyImmediate(resource);
+                        resourcesDeleteList.Add(resource);
+                        //DestroyImmediate(resource);
                     }
                     else
                     {
@@ -709,11 +723,12 @@ namespace InterstellarFuelSwitch
                         newResourceNode.AddValue("amount", resource.amount);
 
                         finalResourceNodes.Add(newResourceNode);
-
-                        // remove all
-                        currentPart.Resources.list.Remove(resource);
-                        DestroyImmediate(resource);
                     }
+                }
+
+                foreach (var resource in resourcesDeleteList)
+                {
+                    currentPart.Resources.Remove(resource.info.id);
                 }
 
                 // add any remaining bew nodes
@@ -733,8 +748,6 @@ namespace InterstellarFuelSwitch
                     }
                 }
 
-                // This also needs to be done when going from a setup with resources to a setup with no resources.
-                currentPart.Resources.UpdateList();
                 UpdateCost();
 
                 return newResources;
@@ -764,27 +777,40 @@ namespace InterstellarFuelSwitch
             _field1.guiActiveEditor = _partRresourceDefinition1 != null;
             _field2.guiActiveEditor = _partRresourceDefinition2 != null;
 
-            _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition0.name);
-            _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition1.name);
-            _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.list.FirstOrDefault(r => r.resourceName == _partRresourceDefinition2.name);
+            _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources.dict[_partRresourceDefinition0.id];
+            _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources.dict[_partRresourceDefinition1.id];
+            _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources.dict[_partRresourceDefinition2.id];
         }
 
         private double UpdateCost()
         {
+            dryCost = part.partInfo.cost * storedMassMultiplier;
+
             if (selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
-                return _modularTankList[selectedTankSetup].tankCost;
+                dryCost += _modularTankList[selectedTankSetup].tankCost * storedMassMultiplier;
 
-            addedCost = 0;
-            if (_partRresourceDefinition0 == null || _partResource0 == null) return addedCost;
-            addedCost += _partRresourceDefinition0.unitCost * (float)_partResource0.maxAmount;
+            totalCost = 0;
+            resourceCost = 0;
+            
+            if (_partRresourceDefinition0 == null || _partResource0 == null)
+                return totalCost;
 
-            if (_partRresourceDefinition1 == null || _partResource1 == null) return addedCost;
-            addedCost += _partRresourceDefinition1.unitCost * (float)_partResource1.maxAmount;
+            resourceCost += _partRresourceDefinition0.unitCost * (float)_partResource0.amount;
+            totalCost += _partRresourceDefinition0.unitCost * (float)_partResource0.maxAmount;
 
-            if (_partRresourceDefinition2 != null && _partResource2 != null)
-                addedCost += _partRresourceDefinition2.unitCost * (float)_partResource2.maxAmount;
+            if (_partRresourceDefinition1 == null || _partResource1 == null)
+                return totalCost;
 
-            return addedCost;
+            resourceCost += _partRresourceDefinition1.unitCost * (float)_partResource1.amount;
+            totalCost += _partRresourceDefinition1.unitCost * (float)_partResource1.maxAmount;
+
+            if (_partRresourceDefinition2 == null || _partResource2 == null)
+                return totalCost;
+
+            resourceCost += _partRresourceDefinition2.unitCost * (float)_partResource2.amount;
+            totalCost = _partRresourceDefinition2.unitCost * (float)_partResource2.maxAmount; ;
+
+            return totalCost;
         }
 
         private void UpdateDryMass()
@@ -861,10 +887,10 @@ namespace InterstellarFuelSwitch
             var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
             var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource2.maxAmount;
 
-            var maxWetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
+            wetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
 
-            if (part.mass > 0 && maxWetMass > 0 && dryMass > 0)
-                massRatioStr = ToRoundedString(1 / (dryMass / maxWetMass));
+            if (wetMass > 0 && dryMass > 0)
+                massRatioStr = ToRoundedString(1 / (dryMass / wetMass));
         }
 
         private string ToRoundedString(double value)
@@ -910,7 +936,7 @@ namespace InterstellarFuelSwitch
 
                     var deltaTemperatureDifferenceInKelvin = currentTemperature - resource.boiloffTemp;
 
-                    PartResource partResource = part.Resources.list.FirstOrDefault(r => r.resourceName == resource.name);
+                    PartResource partResource = part.Resources.FirstOrDefault(r => r.resourceName == resource.name);
                     PartResourceDefinition resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource.name);
 
                     if (resourceDefinition == null || partResource == null) continue;
@@ -971,7 +997,7 @@ namespace InterstellarFuelSwitch
                 UpdateGuiResourceMass();
 
                 //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
-                isEmpty = !part.Resources.list.Any(r => r.amount > r.maxAmount / 1000);
+                isEmpty = !part.Resources.Any(r => r.amount > r.maxAmount / 1000);
                 var showSwitchButtons = availableInFlight && isEmpty;
 
                 _nextTankSetupEvent.guiActive = showSwitchButtons;
@@ -991,11 +1017,12 @@ namespace InterstellarFuelSwitch
             UpdateDryMass();
             UpdateGuiResourceMass();
             UpdateMassRatio();
+            UpdateCost();
 
             configuredAmounts = String.Empty;;
             configuredFlowStates = String.Empty;
 
-            foreach (var resoure in part.Resources.list)
+            foreach (var resoure in part.Resources)
             {
                 configuredAmounts += resoure.amount + ",";
                 configuredFlowStates += resoure.flowState.ToString() + ",";
@@ -1206,11 +1233,19 @@ namespace InterstellarFuelSwitch
             this.defaultMass = defaultMass;
 
             UpdateDryMass();
+            UpdateGuiResourceMass();
             UpdateMassRatio();
 
-            moduleMassDelta = dryMass - initialMass;
+            if (returnDryMass)
+            {
+                return (float)dryMass;
+            }
+            else
+            {
+                moduleMassDelta = dryMass - initialMass;
 
-            return (float)moduleMassDelta;
+                return (float)moduleMassDelta;
+            }
         }
 
         public override string GetInfo()

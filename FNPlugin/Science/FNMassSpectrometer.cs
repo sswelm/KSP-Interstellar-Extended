@@ -43,8 +43,9 @@ namespace FNPlugin
         {
             Events["showWindow"].active = !render_window;
             Events["hideWindow"].active = render_window;
-            if (!vessel.isActiveVessel || part == null) {
-                RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
+            if (!vessel.isActiveVessel || part == null) 
+            {
+                //RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
             }
         }
 

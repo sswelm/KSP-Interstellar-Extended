@@ -28,7 +28,7 @@ namespace FNPlugin
         public string intakeTransformName;
         [KSPField(isPersistant = false, guiName = "maxIntakeSpeed", guiActive = false, guiActiveEditor = false)]
         public float maxIntakeSpeed = 100;
-        [KSPField(isPersistant = false, guiName = "unitScalar", guiActive = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiName = "unitScalar", guiActive = false, guiActiveEditor = false)]
         public double unitScalar = 0.2f;
 		//[KSPField(isPersistant = false, guiName = "useIntakeCompensation", guiActiveEditor = false)]
 		//public bool useIntakeCompensation = true;

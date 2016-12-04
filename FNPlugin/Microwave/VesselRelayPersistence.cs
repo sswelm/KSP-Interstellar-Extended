@@ -5,53 +5,67 @@ using System.Text;
 
 namespace FNPlugin 
 {
+    class WaveLengthData
+    {
+        public double wavelength { get; set; }
+        public double atmosphericAbsorption { get; set; }
+
+        public override int GetHashCode()
+        {
+            return this.wavelength.GetHashCode();
+        }
+    }
+
     class VesselRelayPersistence 
     {
         Vessel vessel;
-        bool relay;
+        bool isActive;
+        double aperture;
+        double power_capacity;
+        double minimumRelayWavelenght;
+        double maximumRelayWavelenght;
 
         public VesselRelayPersistence(Vessel vessel) 
         {
             this.vessel = vessel;
+            SupportedTransmitWavelengths = new List<WaveLengthData>();
         }
 
-        public bool isActive() {
-            return relay;
-        }
+        public List<WaveLengthData> SupportedTransmitWavelengths { get; private set; }
 
-        public Vessel getVessel() 
+        public Vessel Vessel
         {
-            return vessel;
+            get { return vessel; }
         }
 
-        public void setActive(bool active) 
+        public bool IsActive
         {
-            relay = active;
+            get { return this.isActive; }
+            set { this.isActive = value; }
         }
 
-        /*
-        public bool lineOfSightTo(Vessel vess) 
+        public double Aperture
         {
-            Vector3d a = PluginHelper.getVesselPos(vessel);
-            Vector3d b = PluginHelper.getVesselPos(vess);
-            foreach (CelestialBody referenceBody in FlightGlobals.Bodies) 
-            {
-                Vector3d refminusa = referenceBody.position - a;
-                Vector3d bminusa = b - a;
-                if (Vector3d.Dot(refminusa, bminusa) > 0) 
-                {
-                    if (Vector3d.Dot(refminusa, bminusa.normalized) < bminusa.magnitude) 
-                    {
-                        Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
-                        if (tang.magnitude < referenceBody.Radius) 
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
+            get { return aperture != 0 ? this.aperture : 1; }
+            set { this.aperture = value; }
         }
-         */
+
+        public double PowerCapacity
+        {
+            get { return power_capacity != 0 ? this.power_capacity : 1000; }
+            set { this.power_capacity = value; }
+        }
+
+        public double MinimumRelayWavelenght
+        {
+            get { return minimumRelayWavelenght != 0 ? minimumRelayWavelenght : 0.003189281; }
+            set { minimumRelayWavelenght = value; }
+        }
+
+        public double MaximumRelayWavelenght
+        {
+            get { return maximumRelayWavelenght != 0 ? maximumRelayWavelenght: 0.008565499 ; }
+            set { maximumRelayWavelenght = value; }
+        }
     }
 }

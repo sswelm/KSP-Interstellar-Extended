@@ -107,7 +107,7 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
 
-            lithiumPartResource = part.Resources.list.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.Lithium7);
+            lithiumPartResource = part.Resources.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.Lithium7);
 
             // call Interstellar Reactor Onstart
             base.OnStart(state);
