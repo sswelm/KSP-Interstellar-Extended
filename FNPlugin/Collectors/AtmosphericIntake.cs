@@ -61,6 +61,8 @@ namespace FNPlugin
             jetTechBonusPercentage = 1 + (jetTechBonus / 10.736f);
         }
 
+		static bool forceFull = false;
+
         public void FixedUpdate()
         {
             if (vessel == null)
@@ -92,6 +94,10 @@ namespace FNPlugin
                             : (float)resource.maxAmount)
                         : 0;
                     resource.amount = airThisUpdate;
+					if (forceFull)
+					{
+						resource.amount = resource.maxAmount;
+					}
                     break;
                 }
             }
