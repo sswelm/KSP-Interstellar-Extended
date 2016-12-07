@@ -98,10 +98,12 @@ namespace FNPlugin
         protected List<BeamGenerator> beamGenerators;
 
 
-        [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = false)]
         public void ActivateTransmitter()
         {
             if (relay) return;
+
+            //this.part.force_activate();
 
             if (anim != null)
             {
@@ -130,7 +132,7 @@ namespace FNPlugin
             IsEnabled = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Relay", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Activate Relay", active = false)]
         public void ActivateRelay()
         {
             if (IsEnabled) return;
@@ -150,7 +152,7 @@ namespace FNPlugin
             relay = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Relay", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Deactivate Relay", active = false)]
         public void DeactivateRelay()
         {
             if (!relay) return;
@@ -266,7 +268,7 @@ namespace FNPlugin
             }
 
             
-            this.part.force_activate();
+            //this.part.force_activate();
             //ScreenMessages.PostScreenMessage("Microwave Transmitter Force Activated", 5.0f, ScreenMessageStyle.UPPER_CENTER);
         }
 
@@ -343,10 +345,9 @@ namespace FNPlugin
             waterAbsorptionPercentage = activeBeamGenerator.waterAbsorptionPercentage * moistureModifier;
             totalAbsorptionPercentage = atmosphericAbsorptionPercentage + waterAbsorptionPercentage;
             atmosphericAbsorption = totalAbsorptionPercentage / 100;
-        }
 
-        public override void OnUpdate()
-        {
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
             UpdateRelayWavelength();
 
             bool vesselInSpace = (vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.SUB_ORBITAL);
@@ -399,6 +400,14 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
+            if (!part.enabled)
+                base.OnFixedUpdate();
+        }
+
+        public void FixedUpdate()
+        {
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
             nuclear_power = 0;
             solar_power = 0;
             displayed_solar_power = 0;
@@ -407,6 +416,7 @@ namespace FNPlugin
             CollectBiomeData();
 
             base.OnFixedUpdate();
+
             if (activeBeamGenerator != null && IsEnabled && !relay)
             {
                 var reactorPowerTransmissionRatio = transmitPower / 100;
@@ -426,30 +436,42 @@ namespace FNPlugin
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
-                    double output = panel.flowRate;
+                    var multiplier = panel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES ? 1000 : 1;
 
-                    double spower = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, transmissionEfficiencyRatio * output * TimeWarp.fixedDeltaTime * solarPowertransmissionRatio);
+                    displayed_solar_power = panel._flowRate * multiplier;
 
-                    displayed_solar_power += spower / TimeWarp.fixedDeltaTime;
+                    solar_power += panel.chargeRate * panel._distMult * panel._efficMult * multiplier;;
 
-                    //scale solar power to what it would be in Kerbin orbit for file storage
-                    var distanceBetweenVesselAndSun  = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
-                    var distanceBetweenSunAndKerbin = Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
-                    double inv_square_mult = Math.Pow(distanceBetweenSunAndKerbin, 2) / Math.Pow(distanceBetweenVesselAndSun, 2);
+                    //panel.alignType = ModuleDeployablePart.PanelAlignType.X;
+                    //panel.panelType = ModuleDeployableSolarPanel.PanelType.CYLINDRICAL;
 
-                    var effectiveSolarPower = spower / TimeWarp.fixedDeltaTime / inv_square_mult;
+                    //double output = panel.flowRate;
 
-                    solar_power += effectiveSolarPower;
+                    //double spower = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, transmissionEfficiencyRatio * output * TimeWarp.fixedDeltaTime * solarPowertransmissionRatio);
 
-                    // solar power converted to beamed power also generates wasteheat
-                    supplyFNResource(effectiveSolarPower * TimeWarp.fixedDeltaTime * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    //displayed_solar_power += spower / TimeWarp.fixedDeltaTime;
+
+                    ////scale solar power to what it would be in Kerbin orbit for file storage
+                    //var distanceBetweenVesselAndSun  = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
+                    //var distanceBetweenSunAndKerbin = Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
+                    //double inv_square_mult = Math.Pow(distanceBetweenSunAndKerbin, 2) / Math.Pow(distanceBetweenVesselAndSun, 2);
+
+                    //var effectiveSolarPower = spower / TimeWarp.fixedDeltaTime / inv_square_mult;
+
+                    //solar_power += effectiveSolarPower;
+
+                    //// solar power converted to beamed power also generates wasteheat
+                    ////supplyFNResource(effectiveSolarPower * TimeWarp.fixedDeltaTime * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
             }
 
-            if (double.IsInfinity(nuclear_power) || double.IsNaN(nuclear_power))
+            // extract solar power from stable power
+            nuclear_power -= solar_power;
+
+            if (double.IsInfinity(nuclear_power) || double.IsNaN(nuclear_power) || nuclear_power < 0)
                 nuclear_power = 0;
 
-            if (double.IsInfinity(solar_power) || double.IsNaN(solar_power))
+            if (double.IsInfinity(solar_power) || double.IsNaN(solar_power) || solar_power < 0)
                 solar_power = 0;
         }
 
@@ -600,7 +622,6 @@ namespace FNPlugin
             var transmitter = new VesselMicrowavePersistence(vessel);
 
             var totalCount = 0;
-            var totalWaveLength = 0.0;
             var totalAperture = 0.0;
             var totalNuclearPower = 0.0;
             var totalSolarPower = 0.0;
@@ -618,7 +639,6 @@ namespace FNPlugin
                         if (IsEnabled)
                         {
                             totalCount++;
-                            totalWaveLength += double.Parse(protomodule.moduleValues.GetValue("wavelength"));
                             totalAperture += double.Parse(protomodule.moduleValues.GetValue("aperture"));
                             totalNuclearPower += double.Parse(protomodule.moduleValues.GetValue("nuclear_power"));
                             totalSolarPower += double.Parse(protomodule.moduleValues.GetValue("solar_power"));
@@ -641,7 +661,7 @@ namespace FNPlugin
                                     {
                                         partId = Guid.NewGuid().ToString();
                                         protomodule.moduleValues.SetValue("partId", partId, true);
-                                        UnityEngine.Debug.Log("[KSPI] - Writen partId " + partId);
+                                        //UnityEngine.Debug.Log("[KSPI] - Writen partId " + partId);
                                     }
                                     catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while writing partId" + e.Message); }
 
@@ -711,7 +731,7 @@ namespace FNPlugin
                             if (!relay.SupportedTransmitWavelengths.Any(m => m.wavelength == wavelength))
                             {
                                 string partId = null;
-                                try { protomodule.moduleValues.GetValue("partId"); }
+                                try { partId = protomodule.moduleValues.GetValue("partId"); }
                                 catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while reading partId" + e.Message); }
 
                                 if (String.IsNullOrEmpty(partId))

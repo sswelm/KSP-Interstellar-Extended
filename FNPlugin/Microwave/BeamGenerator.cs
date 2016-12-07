@@ -16,13 +16,18 @@ namespace FNPlugin.Microwave
 
         [KSPField(isPersistant = true)]
         public bool isInitialized = false;
+
+
+        [KSPField(isPersistant = false)]
+        public bool canSwitchWavelengthInFlight = true;
         [KSPField(isPersistant = false)]
         public bool isLoaded = false;
 
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Generator Type")]
+        public string beamTypeName = "";
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public int beamType = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Beam Type")]
-        public string beamTypeName = "";
+
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Wavelength Name")]
         public string beamWaveName = "";
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Wavelength Length", guiFormat = "F9", guiUnits = " m")]
@@ -114,6 +119,8 @@ namespace FNPlugin.Microwave
             var chooseField = Fields["selectedBeamConfiguration"];
             var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
             var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
+
+            chooseField.guiActive = canSwitchWavelengthInFlight;
 
             var names = BeamConfigurations.Select(m => m.beamWaveName).ToArray();
 

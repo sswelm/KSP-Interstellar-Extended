@@ -26,7 +26,7 @@ namespace FNPlugin
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedBandwidthConfiguration = 0;
 
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Receiver enabled")]
         public bool receiverIsEnabled;
         [KSPField(isPersistant = true)]
         public bool animatonDeployed = false;
@@ -38,22 +38,36 @@ namespace FNPlugin
         public bool thermalMode = false;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Receive Efficiency", guiUnits = "%", guiFormat = "F0")]
         public double efficiencyPercentage = GameConstants.microwave_dish_efficiency;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Target Wavelength", guiFormat = "F5")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Target Wavelength", guiFormat = "F5")]
         public double targetWavelength = 0;
 
         //Persistent False
+        [KSPField(isPersistant = false)]
+        public int supportedPropellantAtoms = 121;
+        [KSPField(isPersistant = false)]
+        public int supportedPropellantTypes = 127;
+
         [KSPField(isPersistant = false, guiActive = false, guiName = "instance ID")]
         public int instanceId;
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public float facingThreshold = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public float facingSurfaceExponent = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public float facingEfficiencyExponent = 0.1f;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        public float spotsizeNormalizationExponent = 0.5f;
         [KSPField(isPersistant = false)]
         public bool canLinkup = true;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Efficiency", guiFormat = "F4")]
+        public double solarReceptionEfficiency;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Surface Area", guiFormat = "F2")]
+        public double solarReceptionSurfaceArea;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "SolarFacing Exponent", guiFormat = "F2")]
+        public double solarFacingExponent = 1;
 
         [KSPField(isPersistant = false)]
         public string animName;
@@ -86,9 +100,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float powerHeatMultiplier = 20f;
         [KSPField(isPersistant = false)]
-        public float powerHeatBase = 3500f;
+        public float powerHeatBase = 3200f;
         [KSPField(isPersistant = false)]
-        public float receiverType = 0;
+        public int receiverType = 0;
         [KSPField(isPersistant = false)]
         public float receiverFracionBonus = 0;
         [KSPField(isPersistant = false)]
@@ -115,9 +129,12 @@ namespace FNPlugin
         public string bandWidthName;
 
         //GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Wavelengths")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
+        public float receiptPower = 100;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Direct Wavelengths")]
         public int directWavelengths;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Facing Factor", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Facing Factor", guiFormat = "F5")]
         public double effectivefacingFactor;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Spot Size(s)")]
         public string effectiveSpotSize;
@@ -128,7 +145,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Transmit Efficiency", guiFormat = "F4")]
         public double effectiveTransmitterEfficency;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Core Temperature")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Core Temperature")]
         public string coreTempererature;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Input Power")]
         public string beamedpower;
@@ -140,25 +157,37 @@ namespace FNPlugin
         public string networkDepthString;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Recieve Efficiency")]
         public string toteff;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
-        public float receiptPower = 100;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
+
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumPower = 5000;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumElectricPower = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumThermalPower = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Power Source", guiFormat = "F2", guiUnits = "MW")]
         public double maxAvailablePowerFromSource;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Route Efficiency", guiFormat = "F4", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Route Efficiency", guiFormat = "F4")]
         public double routeEfficiency;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Other Power Usage", guiFormat = "F2", guiUnits = " MW")]
         public double currentPowerUsageByOtherRecievers;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Remaining Beamed Power", guiFormat = "F2", guiUnits = " MW")]
         public double remainingPowerFromSource;
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Sun Facing Factor", guiFormat = "F4")]
+        public double solarFacingFactor;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Solar Flux", guiFormat = "F4")]
+        public double solarFlux;
+
         protected BaseField _radiusField;
         protected BaseField _coreTempereratureField;
+
+        protected BaseEvent _linkReceiverBaseEvent;
+        protected BaseEvent _unlinkReceiverBaseEvent;
+        protected BaseEvent _activateReceiverBaseEvent;
+        protected BaseEvent _disableReceiverBaseEvent;
+
+        protected ModuleDeployableSolarPanel deployableSolarPanel;
+        protected ModuleDeployableRadiator deployableRadiator;
 
         //Internal 
         protected bool isLoaded = false;
@@ -181,7 +210,7 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
-        public double ProducedThermalHeat { get { return powerInputMegajoules; } }
+        public double ProducedThermalHeat { get { return powerInputMegajoules + solarInputMegajoules; } }
 
         private double _requestedThermalHeat;
         public double RequestedThermalHeat
@@ -220,9 +249,9 @@ namespace FNPlugin
 
         public void DisconnectWithEngine(IEngineNoozle engine) { }
 
-        public int SupportedPropellantAtoms { get { return GameConstants.defaultSupportedPropellantAtoms; } }
+        public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
 
-        public int SupportedPropellantTypes { get { return GameConstants.defaultSupportedPropellantTypes; } }
+        public int SupportedPropellantTypes { get { return supportedPropellantTypes; } }
 
         public bool FullPowerForNonNeutronAbsorbants { get { return true; } }
 
@@ -303,16 +332,18 @@ namespace FNPlugin
         protected MicrowavePowerTransmitter part_transmitter;
         protected ModuleAnimateGeneric genericAnimation;
 
-        
+        protected CelestialBody localStar;
 
         protected int connectedsatsi = 0;
         protected int connectedrelaysi = 0;
         protected int networkDepth = 0;
         protected long deactivate_timer = 0;
+        protected double solarInputMegajoules = 0;
         protected double powerInputMegajoules = 0;
-        protected double powerInputKW = 0;
         protected double partBaseWasteheat;
         protected double partBaseMegajoules;
+
+        protected double fixedSolarInputMegajoules = 0;
 
         protected bool has_transmitter = false;
 
@@ -382,11 +413,26 @@ namespace FNPlugin
         {
             receiverIsEnabled = true;
 
+            // force activate to trigger any fairings and generators
+            this.part.force_activate();
+
             ShowDeployAnimation(forced);
         }
 
         private void ShowDeployAnimation(bool forced)
         {
+            Debug.Log("MicrowaveReceiver ShowDeployAnimation is called ");
+
+            if (deployableSolarPanel != null)
+            {
+                deployableSolarPanel.Extend();
+            }
+
+            if (deployableRadiator != null)
+            {
+                deployableRadiator.Extend();
+            }
+
             if (anim != null)
             {
                 if (forced || !animatonDeployed)
@@ -423,6 +469,16 @@ namespace FNPlugin
 
         private void ShowUndeployAnimation(bool forced)
         {
+            if (deployableSolarPanel != null)
+            {
+                deployableSolarPanel.Retract();
+            }
+
+            if (deployableRadiator != null)
+            {
+                deployableRadiator.Retract();
+            }
+
             if (anim != null)
             {
                 if (forced || animatonDeployed)
@@ -481,6 +537,34 @@ namespace FNPlugin
             }
         }
 
+        public static double PhotonicLaserMomentum(double Lambda, uint Time, ulong Wattage)//Lamdba= Wavelength in nanometers, Time in seconds, Wattage in normal Watts, returns momentum of whole laser
+        {
+            double EnergySingle = 6.626e-34 * 3e8 / Lambda;
+            double PhotonImpulse = Wattage * Time / EnergySingle;
+            double MomentumSingle = 6.626e-34 / Lambda;
+            double MomentumWhole = MomentumSingle * PhotonImpulse;
+
+            return 2 * MomentumWhole; //output is in Newtons per second
+        }
+
+        public static double PhotonicLaserMomentum2(double Lambda, int Time, long Wattage)//Lamdba= Wavelength in nanometers, Time in seconds, Wattage in normal Watts, returns momentum of whole laser
+        {
+            double PhotonImpulse;
+            double EnergyLaser = Wattage * Time;
+            double EnergySingle;
+            double MomentumSingle;
+            double relativisticMassSingle;
+            double MomentumWhole;
+            relativisticMassSingle = 6.626e-34 / (3e8 * Lambda);
+
+            EnergySingle = 6.626e-34 * 3e8 / Lambda;
+            PhotonImpulse = EnergyLaser / EnergySingle;
+            MomentumSingle = (6.626e-34 / (3e8 * Lambda)) * 3e8;
+            MomentumWhole = MomentumSingle * PhotonImpulse;
+
+            return 2 * MomentumWhole;
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER };
@@ -493,7 +577,15 @@ namespace FNPlugin
             InitializeBrandwitdhSelector();
 
             instanceId = GetInstanceID();
+
+            _linkReceiverBaseEvent = Events["LinkReceiver"];
+            _unlinkReceiverBaseEvent = Events["UnlinkReceiver"];
+            _activateReceiverBaseEvent = Events["ActivateReceiver"];
+            _disableReceiverBaseEvent = Events["DisableReceiver"];
+
             _radiusField = Fields["radius"];
+
+            coreTempererature = CoreTemperature.ToString("0.0") + " K";
             _coreTempereratureField = Fields["coreTempererature"];
 
             if (IsThermalSource)
@@ -567,6 +659,32 @@ namespace FNPlugin
                 has_transmitter = true;
             }
 
+            deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
+            if (deployableRadiator != null)
+            {
+                try
+                {
+                    deployableRadiator.Events["Extend"].guiActive = false;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
+                }
+            }
+
+            deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
+            if (deployableSolarPanel != null)
+            {
+                try
+                {
+                    deployableSolarPanel.Events["Extend"].guiActive = false;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Error while disabling solar button " + e.Message + " at " + e.StackTrace);
+                }
+            }
+
             if (!String.IsNullOrEmpty(animTName))
             {
                 animT = part.FindModelAnimators(animTName).FirstOrDefault();
@@ -581,15 +699,21 @@ namespace FNPlugin
                 }
             }
 
-            if (!String.IsNullOrEmpty(animName))
+            localStar = GetCurrentStar();
+
+            if (deployableSolarPanel == null && deployableRadiator == null && !String.IsNullOrEmpty(animName))
             {
                 anim = part.FindModelAnimators(animName).FirstOrDefault();
             }
 
+
             if (!String.IsNullOrEmpty(animGenericName))
                 genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == animGenericName);
 
-            this.part.force_activate();
+            //if (!part.FindModulesImplementing<ModuleEngines>().Any())
+            //{
+            //    this.part.force_activate();
+            //}
 
             if (part_transmitter == null)
             {
@@ -611,8 +735,6 @@ namespace FNPlugin
                     genericAnimation.Toggle();
                 }
             }
-
-
         }
 
         private void InitializeThermalModeSwitcher()
@@ -748,7 +870,7 @@ namespace FNPlugin
             }
         }
 
-        public bool CanBeActiveInAtmosphere
+        private bool CanBeActiveInAtmosphere
         {
             get
             {
@@ -771,16 +893,33 @@ namespace FNPlugin
             }
         }
 
-        public override void OnUpdate()
+        protected CelestialBody GetCurrentStar()
         {
+            int Depth = 0;
+            var star = FlightGlobals.currentMainBody;
+            while ((Depth < 10) && (star.GetTemperature(0) < 2000))
+            {
+                star = star.referenceBody;
+                Depth++;
+            }
+            if ((star.GetTemperature(0) < 2000) || (star.name == "Galactic Core"))
+                star = null;
+
+            return star;
+        }
+
+        public void Update()
+        {
+            if (HighLogic.LoadedSceneIsEditor) return;
+
             bool transmitter_on = has_transmitter && part_transmitter.isActive();
             bool canBeActive = CanBeActiveInAtmosphere;
 
-            Events["LinkReceiver"].active = canLinkup && !linkedForRelay && !receiverIsEnabled && !transmitter_on && canBeActive;
-            Events["UnlinkReceiver"].active = linkedForRelay;
+            _linkReceiverBaseEvent.active = canLinkup && !linkedForRelay && !receiverIsEnabled && !transmitter_on && canBeActive;
+            _unlinkReceiverBaseEvent.active = linkedForRelay;
             
-            Events["ActivateReceiver"].active = !linkedForRelay && !receiverIsEnabled && !transmitter_on && canBeActive;
-            Events["DisableReceiver"].active = receiverIsEnabled;
+            _activateReceiverBaseEvent.active = !linkedForRelay && !receiverIsEnabled && !transmitter_on && canBeActive;
+            _disableReceiverBaseEvent.active = receiverIsEnabled;
           
             Fields["toteff"].guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
 
@@ -789,10 +928,10 @@ namespace FNPlugin
 
             if (receiverIsEnabled)
             {
-                if (powerInputKW > 1000)
-                    beamedpower = (powerInputKW / 1000).ToString("0.00") + "MW";
+                if (ProducedThermalHeat > 1)
+                    beamedpower = (ProducedThermalHeat).ToString("0.00") + "MW";
                 else
-                    beamedpower = powerInputKW.ToString("0.00") + "KW";
+                    beamedpower = (ProducedThermalHeat / 1000).ToString("0.00") + "KW";
             }
             else
                 beamedpower = "Offline.";
@@ -805,45 +944,64 @@ namespace FNPlugin
             // display communication
             if (_monitorDataStore.Any())
             {
-                effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.spotsize.ToString("0.000")).ToArray());
+                effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.spotsize.ToString("0.0000")).ToArray());
                 //effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.partId.ToString()).ToArray());
                 //effectiveSpotSize = _monitorDataStore.Values.Count().ToString();
                 _monitorDataStore.Clear();
             }
 
-            if (receiverIsEnabled && anim != null && (!waitForAnimationToComplete || (!anim.isPlaying && waitForAnimationToComplete)))
+            //if (receiverIsEnabled && anim != null && (!waitForAnimationToComplete || (!anim.isPlaying && waitForAnimationToComplete)))
+            //{
+            //    waitForAnimationToComplete = false;
+
+            //    if (connectedsatsi > 0 || connectedrelaysi > 0)
+            //    {
+            //        if (!animatonDeployed)
+            //        {
+            //            //ScreenMessages.PostScreenMessage("Enable Microwave Receiver Tmp", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+            //            animatonDeployed = true;
+
+            //            if (anim[animName].normalizedTime == 1f)
+            //                anim[animName].normalizedTime = 0f;
+
+            //            anim[animName].speed = 1f;
+            //            anim.Blend(animName, 2f);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        if (animatonDeployed)
+            //        {
+            //            //ScreenMessages.PostScreenMessage("Disable Microwave Receiver Tmp", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+            //            animatonDeployed = false;
+
+            //            if (anim[animName].normalizedTime == 0)
+            //                anim[animName].normalizedTime = 1f;
+
+            //            anim[animName].speed = -1f;
+            //            anim.Blend(animName, 2f);
+            //        }
+            //    }
+            //}
+        }
+
+        private double GetSolarFacingFactor(CelestialBody localStar, Vector3 vesselPosition)
+        {
+            try
             {
-                waitForAnimationToComplete = false;
+                if (localStar == null)
+                    return 0;
 
-                if (connectedsatsi > 0 || connectedrelaysi > 0)
-                {
-                    if (!animatonDeployed)
-                    {
-                        //ScreenMessages.PostScreenMessage("Enable Microwave Receiver Tmp", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                        animatonDeployed = true;
+                Vector3 starPosition = localStar.transform.position;
 
-                        if (anim[animName].normalizedTime == 1f)
-                            anim[animName].normalizedTime = 0f;
+                ////if (!PluginHelper.lineOfSightToSun(vesselPosition, starPosition))
+                ////   return 0;
 
-                        anim[animName].speed = 1f;
-                        anim.Blend(animName, 2f);
-                    }
-                }
-                else
-                {
-                    if (animatonDeployed)
-                    {
-                        //ScreenMessages.PostScreenMessage("Disable Microwave Receiver Tmp", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                        animatonDeployed = false;
+                Vector3d dolarDirectionVector = (starPosition - vesselPosition).normalized;
+                return Math.Max(0, Vector3d.Dot(part.transform.up, dolarDirectionVector));
 
-                        if (anim[animName].normalizedTime == 0)
-                            anim[animName].normalizedTime = 1f;
-
-                        anim[animName].speed = -1f;
-                        anim.Blend(animName, 2f);
-                    }
-                }
             }
+            catch { return 0; }
         }
 
         uint counter = 0;       // OnFixedUpdate cycle counter
@@ -880,15 +1038,29 @@ namespace FNPlugin
             return Math.Exp(-absortion);
         }
 
+        public void FixedUpdate()
+        {
+            if (HighLogic.LoadedSceneIsEditor) return;
+
+            if (!part.enabled)
+                base.OnFixedUpdate();
+        }
+
+        /// <summary>
+        /// FixedUpdate is also called when not activated
+        /// </summary>
         public override void OnFixedUpdate()
         {
+            solarFlux = part.vessel.solarFlux;
             total_waste_heat_production = 0;
             currentIsThermalEnergyGenratorActive = 0;
 
             storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
             wasteheatRatio = Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
 
+
             base.OnFixedUpdate();
+
             if (receiverIsEnabled)
             {
                 if (wasteheatRatio >= 0.95 && !isThermalReceiver)
@@ -897,7 +1069,6 @@ namespace FNPlugin
                     deactivate_timer++;
                     if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2)
                         ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency microwave power shutdown occuring NOW!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-
                     return;
                 }
 
@@ -959,7 +1130,7 @@ namespace FNPlugin
 
                         // generate wasteheat
                         double received_waste_heat_production = satPower * (1 - efficiency_fraction);
-                        supplyFNResource(received_waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        //supplyFNResource(received_waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                         total_waste_heat_production += received_waste_heat_production;
 
@@ -987,11 +1158,30 @@ namespace FNPlugin
                     connectedrelaysi = usedRelays.Count;
 
                     powerInputMegajoules = total_power;
-                    powerInputKW = powerInputMegajoules * 1000.0f;
-
-                    // add alternator power
-                    part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -powerInputMegajoules * TimeWarp.fixedDeltaTime);
                 }
+
+                if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0 && solarFlux > 0)
+                {
+                    solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
+
+                    solarInputMegajoules = (solarFlux / 1e+6) * solarFacingFactor * solarReceptionEfficiency * solarReceptionSurfaceArea;
+
+                    fixedSolarInputMegajoules = supplyFNResource(solarInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+
+                    supplyFNResource(fixedSolarInputMegajoules, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                }
+                else
+                {
+                    solarInputMegajoules = 0;
+                    fixedSolarInputMegajoules = 0;
+                    solarFacingFactor = 0;
+                }
+
+                // add alternator power
+                part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -powerInputMegajoules * TimeWarp.fixedDeltaTime);
+
+                // add wasteheat
+                supplyFNResource(total_waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 if (powerInputMegajoules > 0 && wasteheatResource != null)
                 {
@@ -1003,7 +1193,11 @@ namespace FNPlugin
 
                 if (isThermalReceiverSlave || thermalMode)
                 {
-                    var cur_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER) / TimeWarp.fixedDeltaTime;
+                    var fixed_beamed_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+
+                    supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+
+                    var cur_thermal_power = (fixed_beamed_thermal_power + fixedSolarInputMegajoules) / TimeWarp.fixedDeltaTime;
 
                     var total_thermal_power = isThermalReceiver 
                         ? cur_thermal_power + thermalReceiverSlaves.Sum(m => m.ThermalPower) 
@@ -1131,20 +1325,39 @@ namespace FNPlugin
                 monitordata = new MonitorData() { partId = waveLengthData.partId };
                 _monitorDataStore.Add(waveLengthData.partId, monitordata);
             }
-            monitordata.spotsize = (distanceToSpot * waveLengthData.wavelength) / (transmitterAperture * PluginHelper.ApertureDiameterMult * apertureMultiplier);
+
+            var effectiveAperureBonus = waveLengthData.wavelength >= 0.001 
+                ? PluginHelper.MicrowaveApertureDiameterMult 
+                : PluginHelper.NonMicrowaveApertureDiameterMult;
+
+            monitordata.spotsize = (distanceToSpot * waveLengthData.wavelength) / (transmitterAperture * effectiveAperureBonus * apertureMultiplier);
 
             return monitordata.spotsize;
         }
 
-        protected double ComputeDistanceFacingEfficiency(double spotSize, double facingFactor, double recieverDiameter)
+        protected double ComputeDistanceFacingEfficiency(double spotSizeDiameter, double facingFactor, double recieverDiameter)
         {
-            if (facingFactor <= 0)
+            //Debug.Log("[KSP Interstellar]: ComputeDistanceFacingEfficiency spotSize: " + spotSize + " facingFactor: " + facingFactor + " recieverDiameter: " + recieverDiameter);
+
+            if (spotSizeDiameter <= 0)
+            {
+                Debug.LogError("ComputeDistanceFacingEfficiency spotSizeDiameter <= 0");
                 return 0;
+            }
 
-            if (recieverDiameter == 0)
-                recieverDiameter = 1;
+            if (facingFactor <= 0)
+            {
+                //Debug.LogError("ComputeDistanceFacingEfficiency facingFactor <= 0");
+                return 0;
+            }
 
-            effectiveDistanceFacingEfficiency = Math.Pow(facingFactor, facingEfficiencyExponent) * Math.Sqrt(Math.Min(1, recieverDiameter * facingFactor / spotSize));
+            if (recieverDiameter <= 0)
+            {
+                Debug.LogError("ComputeDistanceFacingEfficiency recieverDiameter <= 0");
+                return 0;
+            }
+
+            effectiveDistanceFacingEfficiency = Math.Pow(facingFactor, facingEfficiencyExponent) * Math.Pow(Math.Min(1, recieverDiameter * facingFactor / spotSizeDiameter), spotsizeNormalizationExponent);
 
             return effectiveDistanceFacingEfficiency;
         }
@@ -1155,10 +1368,20 @@ namespace FNPlugin
             if (highSpeedAtmosphereFactor == 0 && !CanBeActiveInAtmosphere)
                 return 0;
 
-            double facingFactor;
-            Vector3d directionVector = (PluginHelper.getVesselPos(transmitterVessel) - this.vessel.transform.position).normalized;
+            return ComputeFacingFactor(PluginHelper.getVesselPos(transmitterVessel), this.vessel.transform.position);
+        }
 
-            if (receiverType == 4) // used by single pivoting solar arrays
+        protected double ComputeFacingFactor(Vector3 transmitPosition, Vector3 receiverPosition)
+        {
+            double facingFactor;
+            Vector3d directionVector = (transmitPosition - receiverPosition).normalized;
+
+            if( receiverType == 5)
+            {
+                //Scale energy reception based on angle of reciever to transmitter from bottom
+                facingFactor = Math.Max(0, -Vector3d.Dot(part.transform.up, directionVector));
+            }
+            else if (receiverType == 4) // used by single pivoting solar arrays
             {
                 facingFactor = Math.Min(1 -Math.Abs(Vector3d.Dot(part.transform.right, directionVector)), 1);
             }
@@ -1183,6 +1406,7 @@ namespace FNPlugin
                 facingFactor = Math.Max(0, Vector3d.Dot(part.transform.up, directionVector));
             }
 
+
             if (facingFactor > facingThreshold)
                 facingFactor = Math.Pow(facingFactor, facingSurfaceExponent);
             else
@@ -1190,13 +1414,15 @@ namespace FNPlugin
 
             if (receiverType == 2)
             {
-                var facingFactorB = Math.Round(0.499 + Math.Max(0, Vector3d.Dot(part.transform.up, directionVector)));
+                var facingFactorB = Math.Round(0.4999 + Math.Max(0, Vector3d.Dot(part.transform.up, directionVector)));
                 facingFactor = Math.Max(facingFactor, facingFactorB);
             }
 
-            effectivefacingFactor = CanBeActiveInAtmosphere ? facingFactor : highSpeedAtmosphereFactor * facingFactor;
+            var localfacingFactor = CanBeActiveInAtmosphere ? facingFactor : highSpeedAtmosphereFactor * facingFactor;
 
-            return effectivefacingFactor;
+            //Debug.Log("[KSP Interstellar]: ComputeFacingFactor: " + localfacingFactor);
+
+            return localfacingFactor;
         }
 
         /// <summary>
@@ -1216,6 +1442,8 @@ namespace FNPlugin
 
             double recieverAtmosphericPresure = FlightGlobals.getStaticPressure(this.vessel.transform.position) / 100;
 
+            //Debug.Log("[KSP Interstellar]: MicrowaveSources.instance.globalTransmitters.Values.Count " + MicrowaveSources.instance.globalTransmitters.Values.Count + " for vessel " + this.vessel.id + " " + this.vessel.name);
+
             foreach (VesselMicrowavePersistence transmitter in MicrowaveSources.instance.globalTransmitters.Values)
             {
                 //first check for direct connection from current vessel to transmitters, will always be optimal
@@ -1229,16 +1457,26 @@ namespace FNPlugin
                     var possibleWavelengths = new List<MicrowaveRoute>();
                     double distanceInMeter = ComputeDistance(this.vessel, transmitter.Vessel);
                     double facingFactor = ComputeFacingFactor(transmitter.Vessel);
+
+                    //Debug.Log("[KSP Interstellar]: GetConnected Transmitters vessel " + transmitter.Vessel.id + " Facing factor " + facingFactor);
+
+                    effectivefacingFactor = facingFactor;
+
                     double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.transform.position) / 100;
 
                     foreach (WaveLengthData wavelenghtData in transmitter.SupportedTransmitWavelengths)
                     {
                         if (wavelenghtData.wavelength.NotWithin(this.maximumWavelength, this.minimumWavelength))
+                        {
+                            //Debug.Log("[KSP Interstellar]: GetConnectedTransmitters: transmit wavelength " + wavelenghtData.wavelength + " is not within " + this.maximumWavelength + " and " + this.minimumWavelength);
                             continue;
+                        }
 
                         directWavelengths++;
 
                         double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture);
+
+                        //Debug.Log("[KSP Interstellar]: GetConnectedTransmitters spotSize: " + spotsize + " facingFactor: " + facingFactor + " recieverDiameter: " + this.diameter);
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, this.diameter);
                         double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, this.vessel, transmitter.Vessel);
                         effectiveAtmosphereEfficency = atmosphereEfficency;
@@ -1278,6 +1516,9 @@ namespace FNPlugin
                     var possibleWavelengths = new List<MicrowaveRoute>();
                     double distanceInMeter = ComputeDistance(this.vessel, relay.Vessel);
                     double facingFactor = ComputeFacingFactor(relay.Vessel);
+
+                    //Debug.Log("[KSP Interstellar]: GetConnected Relays: " + facingFactor);
+
                     double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.transform.position) / 100;
 
                     foreach (var wavelenghtData in relay.SupportedTransmitWavelengths)
