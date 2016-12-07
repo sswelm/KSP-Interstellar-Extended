@@ -22,8 +22,7 @@ namespace FNPlugin
     [KSPModule("Electrical Generator")]
     class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerSource, IPartMassModifier, IRescalable<FNGenerator>
     {
-        // Persistent True
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true)]
         public bool IsEnabled = true;
         [KSPField(isPersistant = true)]
         public bool generatorInit = false;
@@ -91,7 +90,7 @@ namespace FNPlugin
         public float moduleMassDelta;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxChargedPower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxThermalPower;
@@ -233,7 +232,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            print("[KSP Interstellar]  Generator OnStart Begin " + startcount);
+            //print("[KSP Interstellar]  Generator OnStart Begin " + startcount);
 
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT };
             this.resources_to_supply = resources_to_supply;
@@ -298,6 +297,7 @@ namespace FNPlugin
             // only force activate if no certain partmodules are not present
             if (part.FindModuleImplementing<MicrowavePowerReceiver>() == null)
             {
+                Debug.Log("[WarpPlugin] Generator Force Activated");
                 this.part.force_activate();
             }
 
@@ -331,7 +331,7 @@ namespace FNPlugin
 
             UpdateHeatExchangedThrustDivisor();
 
-            print("[KSP Interstellar]  Generator OnStart Finished");
+            //print("[KSP Interstellar]  Generator OnStart Finished");
         }
 
         /// <summary>

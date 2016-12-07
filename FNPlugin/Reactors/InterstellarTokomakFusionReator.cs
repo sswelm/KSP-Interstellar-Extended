@@ -106,7 +106,7 @@ namespace FNPlugin
                     else
                         jumpstartPowerTime = 100;
                     
-                    UnityEngine.Debug.LogWarning("[KSPI] - InterstellarTokamakFusionReactor.OnStart allowJumpStart");
+                    UnityEngine.Debug.Log("[KSPI] - Jumpstart InterstellarTokamakFusionReactor ");
                 }
             }
 

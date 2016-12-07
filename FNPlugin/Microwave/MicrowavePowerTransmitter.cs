@@ -34,6 +34,8 @@ namespace FNPlugin
         public double aperture = 1;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName= "Is Mirror")]
         public bool isMirror = false;
+        [KSPField(isPersistant = true)]
+        public bool forceActivateAtStartup = false;
 
         //Non Persistent 
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Air Absorbtion Percentage")]
@@ -81,6 +83,8 @@ namespace FNPlugin
         public float solarPowertransmission = 100;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F2")]
         public double maximumPower = 10000;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Solar Power", guiFormat = "F2")]
+        protected double displayed_solar_power = 0;
 
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
@@ -88,7 +92,8 @@ namespace FNPlugin
         //Internal
         protected Animation anim;
         protected bool hasLinkedReceivers = false;
-        protected double displayed_solar_power = 0;
+
+
 
         protected List<ModuleDeployableSolarPanel> panels;
         protected MicrowavePowerReceiver part_receiver;
@@ -103,7 +108,8 @@ namespace FNPlugin
         {
             if (relay) return;
 
-            //this.part.force_activate();
+            this.part.force_activate();
+            forceActivateAtStartup = true;
 
             if (anim != null)
             {
@@ -267,8 +273,8 @@ namespace FNPlugin
                 anim.Play();
             }
 
-            
-            //this.part.force_activate();
+            if (forceActivateAtStartup)
+                this.part.force_activate();
             //ScreenMessages.PostScreenMessage("Microwave Transmitter Force Activated", 5.0f, ScreenMessageStyle.UPPER_CENTER);
         }
 
@@ -424,9 +430,10 @@ namespace FNPlugin
                 var transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100;
                 var transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100;
 
+                var megaJoulesBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 var availableReactorPower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
 
-                var requestedPower = Math.Min(maximumPower, availableReactorPower * reactorPowerTransmissionRatio);
+                var requestedPower = Math.Min(maximumPower, megaJoulesBarRatio * availableReactorPower * reactorPowerTransmissionRatio);
                 var receivedPowerFixedDelta = consumeFNResource(requestedPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 nuclear_power += 1000 * reactorPowerTransmissionRatio * receivedPowerFixedDelta / TimeWarp.fixedDeltaTime;
@@ -436,11 +443,12 @@ namespace FNPlugin
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
-                    var multiplier = panel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES ? 1000 : 1;
+                    var multiplier = panel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES ? 1000 
+                        : panel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE ? 1 : 0;
 
-                    displayed_solar_power = panel._flowRate * multiplier;
+                    displayed_solar_power += panel._flowRate * multiplier;
 
-                    solar_power += panel.chargeRate * panel._distMult * panel._efficMult * multiplier;;
+                    solar_power += panel.chargeRate * panel._distMult * panel._efficMult * multiplier;
 
                     //panel.alignType = ModuleDeployablePart.PanelAlignType.X;
                     //panel.panelType = ModuleDeployableSolarPanel.PanelType.CYLINDRICAL;

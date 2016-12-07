@@ -1456,8 +1456,18 @@ namespace FNPlugin
 
                 vess.rootPart.GetConnectedResourceTotals(resourceDefinition.id, out currentintakeatm, out maxintakeatm);
 
-                intake_amounts[resourcename] = currentintakeatm;
-                intake_maxamounts[resourcename] = maxintakeatm;
+                //intake_amounts[resourcename] = currentintakeatm;
+                //intake_maxamounts[resourcename] = maxintakeatm;
+
+                // to smooth out occilations in resource production, take a 90/10 weighted average of the previous frame production
+                if (intake_amounts.ContainsKey(resourcename))
+                    intake_amounts[resourcename] = (intake_amounts[resourcename] * 0.99) + (currentintakeatm * 0.01);
+                else
+                    intake_amounts[resourcename] = currentintakeatm;
+                if (intake_maxamounts.ContainsKey(resourcename))
+                    intake_maxamounts[resourcename] = (intake_maxamounts[resourcename] * 0.99) + (maxintakeatm * 0.01);
+                else
+                    intake_maxamounts[resourcename] = maxintakeatm;
             }
 
             if (intake_amounts.ContainsKey(resourcename))

@@ -31,8 +31,6 @@ namespace FNPlugin
         private double fixedMegajouleBufferSize;
         private double fixedElectricChargeBufferSize;
 
-       // double solar_maxSupply;
-
 		public override void OnStart(PartModule.StartState state) 
         {
 
@@ -69,21 +67,8 @@ namespace FNPlugin
                         fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
                     }
                 }
-
-                //if (isMegaJoule)
-                //{
-                //    partResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
-
-                //    List<PartResource> prl = part.GetConnectedResources(FNResourceManager.FNRESOURCE_MEGAJOULES).ToList();
-                //    solar_maxSupply = partResource.maxAmount;
-                //}
-                //else
-                //{
-                //    partResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
-
-                //    List<PartResource> prl = part.GetConnectedResources(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE).ToList();
-                //    solar_maxSupply = prl.Sum(pr => pr.maxAmount);
-                //}
+                else
+                    outputType = resourceType.other;
             }
 		}
 

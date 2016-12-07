@@ -245,9 +245,16 @@ namespace OpenResourceSystem
 
 		public void updatePartModule(PartModule pm) 
         {
-			my_vessel = pm.vessel;
-			my_part = pm.part;
-			my_partmodule = pm;
+            if (pm != null)
+            {
+                my_vessel = pm.vessel;
+                my_part = pm.part;
+                my_partmodule = pm;
+            }
+            else
+            {
+                my_partmodule = null;
+            }
 		}
 
 		public PartModule getPartModule() 
@@ -255,8 +262,11 @@ namespace OpenResourceSystem
 			return my_partmodule;
 		}
 
+        public bool IsUpdatedAtLeastOnce { get; set; }
+
         public void update() 
         {
+            IsUpdatedAtLeastOnce = true;
             stored_supply = currentPowerSupply;
 			stored_stable_supply = stable_supply;
             stored_resource_demand = current_resource_demand;

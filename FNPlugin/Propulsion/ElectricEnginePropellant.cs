@@ -28,7 +28,9 @@ namespace FNPlugin
         protected String effectname;
         protected double wasteheatMultiplier;
         protected string techRquirement;
-        
+        protected PartResourceDefinition resourceDefinition;
+
+        public PartResourceDefinition ResourceDefinition { get { return resourceDefinition; } }
 
         public int SupportedEngines { get { return prop_type;} }
 
@@ -88,6 +90,12 @@ namespace FNPlugin
             {
                 propellant_list = propellantlist.Select(prop => new ElectricEnginePropellant(prop))
                     .Where(eep => (eep.SupportedEngines & type) == type && PluginHelper.HasTechRequirmentOrEmpty(eep.TechRequirement)).ToList();
+            }
+
+            // initialize resource Defnitionions
+            foreach (var propellant in propellant_list)
+            {
+                propellant.resourceDefinition = PartResourceLibrary.Instance.GetDefinition(propellant.propellant.name);
             }
 
             return propellant_list;
