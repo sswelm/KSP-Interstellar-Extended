@@ -212,7 +212,6 @@ namespace FNPlugin
 
             reprocessor = new NuclearFuelReprocessor(part);
             anti_factory = new AntimatterFactory(part);
-            ConfigNode config = PluginHelper.getPluginSaveFile();
 
             part.force_activate();
 
@@ -320,7 +319,7 @@ namespace FNPlugin
                 { 
                     Fields["scienceRate"].guiActive = true;
                     Fields["collectedScience"].guiActive = true;
-                    double scienceratetmp = science_rate_f * PluginHelper.SecondsInDay;
+                    double scienceratetmp = science_rate_f * PluginHelper.SecondsInDay * PluginHelper.getScienceMultiplier(vessel);
                     scienceRate = scienceratetmp.ToString("0.0000") + "/Day";
                     collectedScience = science_to_add.ToString("0.000000");
                 }
@@ -505,22 +504,31 @@ namespace FNPlugin
 
             if (science_to_add > 0)
             {
-                result_title = experiment.experimentTitle;
+				ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "");
+				if (subject == null)
+					return false;
+				subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
+				subject.scienceCap = 167 * subject.subjectValue; ///PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, false);
+				subject.dataScale = 1.25f;
+
+				float remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
+				science_to_add = Math.Min(science_to_add, remaining_base_science);
+
+				// transmission of zero data breaks the experiment result dialog box
+				data_size = Math.Max(float.Epsilon, science_to_add * subject.dataScale);
+				science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Science Lab Data");
+
+				result_title = experiment.experimentTitle;
                 result_string = "Science experiments were conducted in the vicinity of " + vessel.mainBody.name + ".";
 
-                transmit_value = science_to_add;
-                recovery_value = science_to_add;
-                data_size = science_to_add * 1.25f;
+				recovery_value = science_to_add;
+                transmit_value = recovery_value;
                 xmit_scalar = 1;
                 
-                ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "");
-                subject.scienceCap = 167 * PluginHelper.getScienceMultiplier(vessel); //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, false);
                 ref_value = subject.scienceCap;
 
-                science_data = new ScienceData((float)science_to_add, 1, 0, subject.id, "Science Lab Data");
-
                 return true;
-            }
+			}
             return false;
         }
 
