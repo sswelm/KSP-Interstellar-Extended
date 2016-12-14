@@ -35,7 +35,7 @@ namespace FNPlugin
         public bool animatonDeployed = false;
         [KSPField(isPersistant = true)]
         public double wasteheatRatio = 0;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Linked for Relay")]
         public bool linkedForRelay;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Mode"), UI_Toggle(disabledText = "Electric", enabledText = "Thermal")]
         public bool thermalMode = false;
@@ -187,7 +187,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Sun Facing Factor", guiFormat = "F4")]
         public double solarFacingFactor;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Solar Flux", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
         public double solarFlux;
 
         protected BaseField _radiusField;
