@@ -86,35 +86,34 @@ namespace FNPlugin
                         science_vess_ref = probe_data.name;
                         bool transmitted = false;
                         string vessel_name = "";
-                        float science_amount = 0;
-                        int exp_number = 1;
+						float distribution_factor = 0;
 
-                        if (probe_data.HasValue("transmitted"))
+						if (probe_data.HasValue("transmitted"))
                             transmitted = bool.Parse(probe_data.GetValue("transmitted"));
                         if (probe_data.HasValue("vesselname"))
                             vessel_name = probe_data.GetValue("vesselname");
-                        if (probe_data.HasValue("science"))
-                            science_amount = float.Parse(probe_data.GetValue("science"));
-                        if (probe_data.HasValue("number"))
-                            exp_number = int.Parse(probe_data.GetValue("number"));
-
+						if (probe_data.HasValue("distribution_factor"))
+							distribution_factor = float.Parse(probe_data.GetValue("distribution_factor"));
+						
                         if (!transmitted)
                         {
                             ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.SrfLanded, vessel.mainBody, vessel.mainBody.name + "'s surface.");
                             if (subject == null)
-                            {
                                 return false;
-                            }
-                            result_string = vessel_name + " impacted into " + vessel.mainBody.name + " producing seismic activity.  From this data, information on the structure of " + vessel.mainBody.name + "'s crust can be determined.";
-                            transmit_value = science_amount;
-                            recovery_value = science_amount;
-                            subject.subjectValue = 1;
-                            subject.scientificValue = 1;
-                            subject.scienceCap = 50 * 10 * PluginHelper.getScienceMultiplier(vessel);  //PluginHelper.getImpactorScienceMultiplier(vessel.mainBody.flightGlobalsIndex);
-                            //subject.science = 0;
-                            data_size = science_amount * 2.5f;
-                            science_data = new ScienceData(science_amount, 1, 0, subject.id, "Impactor Data");
-                            ref_value = 50 * PluginHelper.getScienceMultiplier(vessel); // PluginHelper.getImpactorScienceMultiplier(vessel.mainBody.flightGlobalsIndex);
+							subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
+							subject.scienceCap = 10 * experiment.baseValue * subject.subjectValue;
+
+							float base_science = experiment.baseValue * distribution_factor;
+							data_size = base_science * subject.dataScale;
+							science_data = new ScienceData((float)data_size, 1f, 0f, subject.id, "Impactor Data");
+
+							result_string = vessel_name + " impacted into " + vessel.mainBody.name + " producing seismic activity.  From this data, information on the structure of " + vessel.mainBody.name + "'s crust can be determined.";
+
+							float science_amount = base_science * subject.subjectValue;
+							recovery_value = science_amount * subject.scientificValue;
+							transmit_value = recovery_value;
+							ref_value = subject.scienceCap;
+
                             return true;
                         }
                     }
@@ -172,8 +171,6 @@ namespace FNPlugin
                 }
                 config.Save(PluginHelper.PluginSaveFilePath);
             }
-
         }
-
     }
 }
