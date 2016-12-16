@@ -76,6 +76,7 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new WaterGasShift(this.part));
                 unsortedList.Add(new ReverseWaterGasShift(this.part));
                 unsortedList.Add(new MethanePyrolyser(this.part));
+                unsortedList.Add(new SolarWindProcessor(this.part));
             }
             catch (Exception e)
             {
