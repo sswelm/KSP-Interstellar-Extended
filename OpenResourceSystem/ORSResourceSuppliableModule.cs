@@ -289,8 +289,13 @@ namespace OpenResourceSystem
                     }
                 }
 
-                if (manager.getPartModule().vessel != this.vessel || manager.getPartModule() == null)
+                var partmodule = manager.getPartModule();
+
+                if (partmodule == null || partmodule.vessel != this.vessel ||  manager.IsUpdatedAtLeastOnce == false)
+                {
                     manager.updatePartModule(this);
+                    print("[ORS] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
+                }
 
                 if (manager.getPartModule() == this)
                     manager.update();

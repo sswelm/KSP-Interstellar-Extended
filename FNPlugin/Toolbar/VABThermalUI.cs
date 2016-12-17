@@ -84,7 +84,7 @@ namespace FNPlugin
             foreach (FNRadiator radiator in radiators) 
             {
                 double area = radiator.EffectiveRadiatorArea; 
-                double temp = radiator.RadiatorTemperature;
+                double temp = radiator.MaxRadiatorTemperature;
                 temp = Math.Min(temp, source_temp_at_100pc);
                 n_rads += 1;
                 rad_max_dissip += GameConstants.stefan_const * area * Math.Pow(temp, 4) / 1e6;

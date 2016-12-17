@@ -265,7 +265,7 @@ namespace FNPlugin
                 if (powerrequirementsMW < 2 && normalisedRevievedPowerMW <= powerrequirementsMW)
                 {
                     var requiredKW = (float)(powerrequirementsMW - normalisedRevievedPowerMW) * 1000;
-                    var recievedKW = ORSHelper.fixedRequestResource(part, "ElectricCharge", requiredKW * TimeWarp.fixedDeltaTime);
+                    var recievedKW = ORSHelper.fixedRequestResource(part, FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, requiredKW * TimeWarp.fixedDeltaTime);
                     powerreceivedMW += (recievedKW / 1000);
                 }
 
