@@ -574,7 +574,7 @@ namespace FNPlugin
             get
             {
                 if (hasBimodelUpgradeTechReq == null)
-                    hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirmentOrEmpty(bimodelUpgradeTechReq);
+                    hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
                 return (bool)hasBimodelUpgradeTechReq;
             }
         }
@@ -867,7 +867,7 @@ namespace FNPlugin
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
             _firstGeneratorType = ElectricGeneratorType.unknown;
             previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
-            hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirmentOrEmpty(bimodelUpgradeTechReq);
+            hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
             staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
 
             if (!part.Resources.Contains(FNResourceManager.FNRESOURCE_THERMALPOWER))
@@ -1536,7 +1536,7 @@ namespace FNPlugin
 			return fuelmodes.Select(node => new ReactorFuelMode(node))
                 .Where(fm =>
                     (fm.SupportedReactorTypes & ReactorType) == ReactorType
-                    && PluginHelper.HasTechRequirmentOrEmpty(fm.TechRequirement)
+                    && PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
                     && ReactorTechLevel >= fm.TechLevel
                     && (fm.Aneutronic || canUseNeutronicFuels)
                     ).ToList();

@@ -393,11 +393,6 @@ namespace FNPlugin
             return found;
         }
 
-        public static bool HasTechRequirmentOrEmpty(string techName)
-        {
-            return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
-        }
-
         public static bool upgradeAvailable(string techid)
         {
             if (String.IsNullOrEmpty(techid))
