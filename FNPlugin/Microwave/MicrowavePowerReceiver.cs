@@ -86,7 +86,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string animGenericName;
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Receiver Diameter", guiUnits = " m")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Receiver Diameter", guiUnits = " m")]
         public float diameter = 1;
         [KSPField(isPersistant = false)]
         public bool isThermalReceiver = false;
@@ -96,7 +96,7 @@ namespace FNPlugin
         public bool isThermalReceiverSlave = false;
         [KSPField(isPersistant = false)]
         public double ThermalPower;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Radius", guiUnits = " m")]
         public float radius = 2.5f;
         [KSPField(isPersistant = false)]
         public float alternatorRatio = 1;
@@ -105,6 +105,7 @@ namespace FNPlugin
         public double minimumWavelength = 0.00000001f;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "max Wavelength")]
         public double maximumWavelength = 1f; 
+
         [KSPField(isPersistant = false)]
         public float heatTransportationEfficiency = 0.7f;
         [KSPField(isPersistant = false)]
@@ -172,9 +173,9 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumPower = 5000;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumElectricPower = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumThermalPower = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Power Source", guiFormat = "F2", guiUnits = "MW")]
         public double maxAvailablePowerFromSource;
@@ -185,7 +186,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Remaining Beamed Power", guiFormat = "F2", guiUnits = " MW")]
         public double remainingPowerFromSource;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Sun Facing Factor", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Sun Facing Factor", guiFormat = "F4")]
         public double solarFacingFactor;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
         public double solarFlux;
@@ -430,7 +431,7 @@ namespace FNPlugin
 
             // force activate to trigger any fairings and generators
 
-            Debug.Log("MicrowaveReceiver For Activate ");
+            Debug.Log("MicrowaveReceiver Force Activate ");
             this.part.force_activate();
             forceActivateAtStartup = true;
 
@@ -958,7 +959,22 @@ namespace FNPlugin
             
             _activateReceiverBaseEvent.active = !linkedForRelay && !receiverIsEnabled && !transmitter_on && canBeActive;
             _disableReceiverBaseEvent.active = receiverIsEnabled;
-          
+
+            Fields["efficiencyPercentage"].guiActive = receiverIsEnabled;
+            Fields["effectiveSpotSize"].guiActive = receiverIsEnabled;
+            Fields["effectivefacingFactor"].guiActive = receiverIsEnabled;
+            Fields["receiptPower"].guiActive = receiverIsEnabled;
+            Fields["effectiveDistanceFacingEfficiency"].guiActive = receiverIsEnabled;
+            Fields["effectiveAtmosphereEfficency"].guiActive = receiverIsEnabled;
+            Fields["effectiveTransmitterEfficency"].guiActive = receiverIsEnabled;
+            Fields["maxAvailablePowerFromSource"].guiActive = receiverIsEnabled;
+            Fields["routeEfficiency"].guiActive = receiverIsEnabled;
+            Fields["currentPowerUsageByOtherRecievers"].guiActive = receiverIsEnabled;
+            Fields["remainingPowerFromSource"].guiActive = receiverIsEnabled;
+
+            Fields["solarFacingFactor"].guiActive = solarReceptionSurfaceArea > 0;
+            Fields["solarFlux"].guiActive = solarReceptionSurfaceArea > 0;
+
             Fields["toteff"].guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
 
             if (IsThermalSource)

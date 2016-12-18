@@ -22,7 +22,7 @@ namespace FNPlugin
         protected double solar_power = 0;
         [KSPField(isPersistant = true)]
         protected double power_capacity = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Wavelength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit Wavelength", guiFormat = "F8", guiUnits = " m")]
         public double wavelength = 0;
         [KSPField(isPersistant = true)]
         public double atmosphericAbsorption = 0.1;
@@ -42,7 +42,7 @@ namespace FNPlugin
         public double atmosphericAbsorptionPercentage;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Water Absorbtion Percentage")]
         public double waterAbsorptionPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Absorbtion Percentage", guiFormat = "F4", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Absorbtion Percentage", guiFormat = "F4", guiUnits = "%")]
         public double totalAbsorptionPercentage;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Body")]
         public string body_name;
@@ -71,7 +71,7 @@ namespace FNPlugin
         public double nativeAtmosphericAbsorptionPercentage = 10;
 
         //GUI 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Aperture Diameter", guiFormat = "F2", guiUnits = " m")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Aperture Diameter", guiFormat = "F2", guiUnits = " m")]
         public double apertureDiameter = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Transmitter")]
         public string statusStr;
@@ -85,27 +85,20 @@ namespace FNPlugin
         public double maximumPower = 10000;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Solar Power", guiFormat = "F2")]
         protected double displayed_solar_power = 0;
-
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Has Linked Receivers")]
+        public bool hasLinkedReceivers = false;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Can be active")]
+        public bool canBeActive;
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
 
         //Internal
         protected Animation anim;
-
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Has Linked Receivers")]
-        public bool hasLinkedReceivers = false;
-
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Can be active")]
-        public bool canBeActive;
-
-
         protected List<ModuleDeployableSolarPanel> panels;
         protected MicrowavePowerReceiver part_receiver;
         protected List<MicrowavePowerReceiver> vessel_recievers;
-
         protected BeamGenerator activeBeamGenerator;
         protected List<BeamGenerator> beamGenerators;
-
 
         [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = false)]
         public void ActivateTransmitter()
@@ -380,8 +373,12 @@ namespace FNPlugin
             Events["ActivateRelay"].active = transmitterCanRelay && !IsEnabled && !relay && !receiver_on && canBeActive;
             Events["DeactivateRelay"].active = transmitterCanRelay && IsEnabled && relay;
 
-            Fields["beamedpower"].guiActive = IsEnabled && !relay && canBeActive;
-            Fields["transmitPower"].guiActive = IsEnabled && !relay;
+            bool isTransmitting = IsEnabled && !relay;
+
+            Fields["beamedpower"].guiActive = isTransmitting && canBeActive;
+            Fields["transmitPower"].guiActive = isTransmitting;
+            Fields["solarPowertransmission"].guiActive = isTransmitting;
+            Fields["displayed_solar_power"].guiActive = isTransmitting;
 
             if (IsEnabled)
             {

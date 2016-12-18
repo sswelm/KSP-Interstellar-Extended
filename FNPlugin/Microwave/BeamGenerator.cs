@@ -52,6 +52,7 @@ namespace FNPlugin.Microwave
         [KSPField(isPersistant = false)]
         public bool fixedMass = false;
 
+
         private BeamConfiguration activeConfiguration;
 
         public BeamConfiguration ActiveConfiguration
@@ -166,7 +167,31 @@ namespace FNPlugin.Microwave
             beamWaveName = activeConfiguration.beamWaveName;
             atmosphericAbsorptionPercentage = activeConfiguration.atmosphericAbsorptionPercentage;
             waterAbsorptionPercentage = activeConfiguration.waterAbsorptionPercentage;
-            efficiencyPercentage = activeConfiguration.efficiencyPercentage0;
+
+            UpdateEfficiencyPercentage();
+        }
+
+        private void UpdateEfficiencyPercentage()
+        {
+            var techLevel = 0;
+
+            if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement3))
+                techLevel++;
+            if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement2))
+                techLevel++;
+            if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement1))
+                techLevel++;
+            if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement0))
+                techLevel++;
+
+            if (techLevel == 3)
+                efficiencyPercentage = activeConfiguration.efficiencyPercentage3;
+            else if (techLevel == 2)
+                efficiencyPercentage = activeConfiguration.efficiencyPercentage2;
+            else if (techLevel == 1)
+                efficiencyPercentage = activeConfiguration.efficiencyPercentage1;
+            else
+                efficiencyPercentage = activeConfiguration.efficiencyPercentage0;
         }
 
         private void LoadInitialConfiguration()

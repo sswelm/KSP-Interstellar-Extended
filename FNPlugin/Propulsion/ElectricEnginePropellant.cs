@@ -89,7 +89,7 @@ namespace FNPlugin
             else
             {
                 propellant_list = propellantlist.Select(prop => new ElectricEnginePropellant(prop))
-                    .Where(eep => (eep.SupportedEngines & type) == type && PluginHelper.HasTechRequirmentOrEmpty(eep.TechRequirement)).ToList();
+                    .Where(eep => (eep.SupportedEngines & type) == type && PluginHelper.HasTechRequirementOrEmpty(eep.TechRequirement)).ToList();
             }
 
             // initialize resource Defnitionions
