@@ -69,7 +69,7 @@ namespace InterstellarFuelSwitch
         public string selectedTankSetupTxt;
         [KSPField(isPersistant = true)]
         public bool configLoaded = false;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "Setup")]
         public string initialTankSetup;
 
         // Config properties
@@ -186,6 +186,8 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Default mass", guiUnits = " t", guiFormat = "F4")]
         public float defaultMass;
 
+        [KSPField(isPersistant = true, guiActiveEditor = false)]
+        public float storedFactorMultiplier = 1;
         [KSPField(isPersistant = true)]
         public float storedVolumeMultiplier = 1;
         [KSPField(isPersistant = true)]
@@ -252,6 +254,7 @@ namespace InterstellarFuelSwitch
         {
             try
             {
+                storedFactorMultiplier = factor.absolute.linear;
                 storedVolumeMultiplier = Mathf.Pow(factor.absolute.linear, volumeExponent);
                 storedMassMultiplier = Mathf.Pow(factor.absolute.linear, massExponent);
 
@@ -765,8 +768,6 @@ namespace InterstellarFuelSwitch
                     }
                 }
 
-                //storedTankSetup = String.Join(";", part.Resources.Select(m => m.resourceName).ToArray());
-
                 UpdateCost();
 
                 return newResources;
@@ -801,7 +802,7 @@ namespace InterstellarFuelSwitch
             _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources[newResources[2]];
         }
 
-        private double UpdateCost()
+        private double UpdateCost(float defaultCost = 0)
         {
             dryCost = part.partInfo.cost * storedMassMultiplier;
 
@@ -817,9 +818,10 @@ namespace InterstellarFuelSwitch
                 return 0;
             }
 
-            bool preserveInitialMass = true;
+            bool preserveInitialMass = false;
             if (!String.IsNullOrEmpty(initialTankSetup))
             {
+                preserveInitialMass = true;
                 string[] initialTankSetupArray = initialTankSetup.Split(';');
 
                 foreach (var resourcename in initialTankSetupArray)
@@ -832,8 +834,10 @@ namespace InterstellarFuelSwitch
                 }
             }
 
+            bool unaltered = (storedFactorMultiplier > 0.99 && storedFactorMultiplier < 1.01);
+
             resourceCost += _partRresourceDefinition0.unitCost * _partResource0.amount;
-            maxResourceCost += _partRresourceDefinition0.unitCost * _partResource0.maxAmount;
+            maxResourceCost += _partRresourceDefinition0.unitCost * _partResource0.maxAmount; //* selectedTank.Resources[0].maxAmount;
 
             if (_partRresourceDefinition1 == null || _partResource1 == null)
             {
@@ -845,7 +849,7 @@ namespace InterstellarFuelSwitch
                 else
                 {
                     totalCost = dryCost + resourceCost;
-                    return maxResourceCost;
+                    return unaltered ? maxResourceCost : (dryCost + resourceCost) * 0.1;
                 }
             }
 
@@ -862,7 +866,7 @@ namespace InterstellarFuelSwitch
                 else
                 {
                     totalCost = dryCost + resourceCost;
-                    return maxResourceCost;
+                    return unaltered ? maxResourceCost : (dryCost + resourceCost) * 0.1;
                 }
             }
 
@@ -877,7 +881,7 @@ namespace InterstellarFuelSwitch
             else
             {
                 totalCost = dryCost + resourceCost;
-                return maxResourceCost;
+                return unaltered ? maxResourceCost : (dryCost + resourceCost) * 0.1;
             }
         }
 
@@ -1283,7 +1287,7 @@ namespace InterstellarFuelSwitch
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            return (float)UpdateCost();
+            return (float)UpdateCost(defaultCost);
         }
 
         public ModifierChangeWhen GetModuleCostChangeWhen()

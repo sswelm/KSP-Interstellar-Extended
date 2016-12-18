@@ -65,6 +65,7 @@ namespace FNPlugin
 
     }
 
+<<<<<<< HEAD
     //class DaedalusEngineControllerAdvanced : FusionEngineControllerBase
     //{
     //    const float maxIsp = 10000000f;
@@ -88,6 +89,9 @@ namespace FNPlugin
     //}
 
     abstract class FusionEngineControllerBase : FNResourceSuppliableModule, IUpgradeableModule
+=======
+    abstract class FusionEngineControllerBase : FNResourceSuppliableModule, IUpgradeableModule 
+>>>>>>> refs/remotes/origin/master
     {
         // Persistant
         [KSPField(isPersistant = true)]
@@ -384,6 +388,7 @@ namespace FNPlugin
         {
             try
             {
+<<<<<<< HEAD
                 Debug.LogError("FusionEngine OnStart begin");
 
                 if (part == null)
@@ -394,6 +399,8 @@ namespace FNPlugin
 
 
 
+=======
+>>>>>>> refs/remotes/origin/master
                 part.maxTemp = maxTemp;
                 part.thermalMass = 1;
                 part.thermalMassModifier = 1;
@@ -417,8 +424,6 @@ namespace FNPlugin
                 part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
-
-                Debug.LogError("FusionEngine OnStart end");
             }
             catch (Exception e)
             {

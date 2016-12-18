@@ -102,19 +102,27 @@ namespace FNPlugin
 
             if (science_awaiting_addition > 0)
             {
-                result_title = "Infrared Telescope Experiment";
+				ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.InSpaceHigh, vessel.mainBody, "");
+				if (subject == null)
+					return false;
+				subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
+				subject.scienceCap = 167 * subject.subjectValue;   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,false);
+				subject.dataScale = 1.25f;
+
+				float remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
+				science_awaiting_addition = Math.Min(science_awaiting_addition, remaining_base_science);
+
+				// transmission of zero data breaks the experiment result dialog box
+				data_size = Math.Max(float.Epsilon, science_awaiting_addition * subject.dataScale);
+				science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Infrared Telescope Data");
+
+				result_title = "Infrared Telescope Experiment";
                 result_string = "Infrared telescope observations were recovered from the vicinity of " + vessel.mainBody.name + ".";
 
-                transmit_value = science_awaiting_addition;
-                recovery_value = science_awaiting_addition;
-                data_size = science_awaiting_addition * 1.25f;
+				recovery_value = science_awaiting_addition;
+				transmit_value = recovery_value;
                 xmit_scalar = 1;
-
-                ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.InSpaceHigh, vessel.mainBody, "");
-                subject.scienceCap = 167 * PluginHelper.getScienceMultiplier(vessel);   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,false);
                 ref_value = subject.scienceCap;
-
-                science_data = new ScienceData(science_awaiting_addition, 1, 0, subject.id, "Infrared Telescope Data");
 
                 return true;
             }
@@ -134,7 +142,7 @@ namespace FNPlugin
             Events["stopOberservations"].active = telescopeIsEnabled;
             Fields["sciencePerDay"].guiActive = telescopeIsEnabled;
             performPcnt = (perform_factor_d * 100).ToString("0.0") + "%";
-            sciencePerDay = (science_rate * 28800).ToString("0.00") + " Science/Day";
+            sciencePerDay = (science_rate * 28800 * PluginHelper.getScienceMultiplier(vessel)).ToString("0.00") + " Science/Day";
             double current_au = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position) / Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
             List<ITelescopeController> telescope_controllers = vessel.FindPartModulesImplementing<ITelescopeController>();
 
@@ -146,19 +154,19 @@ namespace FNPlugin
                     {
                         Events["beginOberservations2"].active = true;
                         gLensStr = (telescopeIsEnabled && dpo) ? "Ongoing." : "Available";
-                    } 
+                    }
                     else
                     {
                         Events["beginOberservations2"].active = false;
                         gLensStr = "Eccentricity: " + vessel.orbit.eccentricity.ToString("0.0") + "; < 0.8 Required";
                     }
-                } 
+                }
                 else
                 {
                     Events["beginOberservations2"].active = false;
                     gLensStr = current_au.ToString("0.0") + " AU; Required 548 AU";
                 }
-            } 
+            }
             else
             {
                 Events["beginOberservations2"].active = false;
@@ -166,7 +174,7 @@ namespace FNPlugin
             }
 
             if (helium_time_scale <= 0) performPcnt = "Helium Coolant Deprived.";
-            
+
         }
 
         public void FixedUpdate()

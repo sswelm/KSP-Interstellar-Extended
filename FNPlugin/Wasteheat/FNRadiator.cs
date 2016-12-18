@@ -720,9 +720,9 @@ namespace FNPlugin
 
         private void DeployMentControl(float dynamic_pressure)
         {
-            if (!isDeployable && dynamic_pressure > 0 && dynamic_pressure / 1.4854428818159e-3f * 100 > 100)
+            if (dynamic_pressure > 0 && dynamic_pressure / 1.4854428818159e-3f * 100 > 100)
             {
-                if (radiatorIsEnabled)
+                if (radiatorIsEnabled && isDeployable)
                 {
                     if (isAutomated)
                         Retract();

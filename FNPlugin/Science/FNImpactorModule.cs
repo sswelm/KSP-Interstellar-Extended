@@ -117,8 +117,7 @@ namespace FNPlugin
             int body = vessel.mainBody.flightGlobalsIndex;
             Vector3d net_vector = Vector3d.zero;
             bool first = true;
-            double net_science = 0;
-            double initial_science = 0;
+            double distribution_factor = 0;
 
             foreach (Vessel conf_vess in FlightGlobals.Vessels) 
             {
@@ -151,23 +150,20 @@ namespace FNPlugin
                     {
                         first = false;
                         net_vector = surface_vector;
-                        net_science = 50 * PluginHelper.getScienceMultiplier(vessel); //PluginHelper.getImpactorScienceMultiplier(body);
-                        initial_science = net_science;
+						distribution_factor = 1;
                     } 
                     else 
                     {
-                        net_science += (1.0 - Vector3d.Dot(surface_vector, net_vector.normalized)) * 50 * PluginHelper.getScienceMultiplier(vessel);  //PluginHelper.getImpactorScienceMultiplier(body);
+						distribution_factor += 1.0 - Vector3d.Dot(surface_vector, net_vector.normalized);
                         net_vector = net_vector + surface_vector;
                     }
                 }
             }
 
-            net_science = Math.Min(net_science, initial_science * 3.5); // no more than 3.5x boost to science by using multiple detectors
-            if (net_science > 0 && !double.IsInfinity(net_science) && !double.IsNaN(net_science)) 
+            distribution_factor = Math.Min(distribution_factor, 3.5); // no more than 3.5x boost to science by using multiple detectors
+            if (distribution_factor > 0 && !double.IsInfinity(distribution_factor) && !double.IsNaN(distribution_factor)) 
             {
 
-                double science_coeff = -science_experiment_number / 2.0;
-                net_science = net_science * Math.Exp(science_coeff);
                 ScreenMessages.PostScreenMessage("Impact Recorded, science report can now be accessed from one of your accelerometers deployed on this body.", 5f, ScreenMessageStyle.UPPER_CENTER);
                 this.lastImpactTime = Planetarium.GetUniversalTime();
                 Debug.Log("[KSP Interstellar] Impactor: Impact registered!");
@@ -175,8 +171,7 @@ namespace FNPlugin
                 ConfigNode impact_node = new ConfigNode(vessel_impact_node_string);
                 impact_node.AddValue(string.Intern("transmitted"), bool.FalseString);
                 impact_node.AddValue(string.Intern("vesselname"), vessel.vesselName);
-                impact_node.AddValue(string.Intern("science"), net_science);
-                impact_node.AddValue(string.Intern("number"), (science_experiment_number + 1).ToString("0"));
+                impact_node.AddValue(string.Intern("distribution_factor"), distribution_factor);
                 science_node.AddNode(impact_node);
 
                 config.Save(PluginHelper.PluginSaveFilePath);
