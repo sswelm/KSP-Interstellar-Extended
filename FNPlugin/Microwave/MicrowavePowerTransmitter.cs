@@ -26,39 +26,41 @@ namespace FNPlugin
         public double wavelength = 0;
         [KSPField(isPersistant = true)]
         public double atmosphericAbsorption = 0.1;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Min Relay Wavelength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Min Relay Wavelength", guiFormat = "F8", guiUnits = " m")]
         public double minimumRelayWavelenght;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Max Relay Wavelength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Max Relay Wavelength", guiFormat = "F8", guiUnits = " m")]
         public double maximumRelayWavelenght;
         [KSPField(isPersistant = true)]
         public double aperture = 1;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName= "Is Mirror")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName= "Is Mirror")]
         public bool isMirror = false;
+        [KSPField(isPersistant = true)]
+        public bool forceActivateAtStartup = false;
 
         //Non Persistent 
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Air Absorbtion Percentage")]
         public double atmosphericAbsorptionPercentage;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Water Absorbtion Percentage")]
         public double waterAbsorptionPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Absorbtion Percentage", guiFormat = "F4", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Absorbtion Percentage", guiFormat = "F4", guiUnits = "%")]
         public double totalAbsorptionPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Body")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Body")]
         public string body_name;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Biome Name")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Biome Name")]
         public string biome_desc;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Moisture Modifier", guiFormat = "F4")]
         public double moistureModifier;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public bool canFunctionOnSurface = false;
 
         [KSPField(isPersistant = false)]
         public float atmosphereToleranceModifier = 1;
         [KSPField(isPersistant = false)]
         public string animName;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Can Transmit")]
         public bool canTransmit = false;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true)]
-        public bool canRelay = false;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Build in Relay")]
+        public bool buildInRelay = false;
 
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public int compatibleBeamTypes = 1;
@@ -81,14 +83,21 @@ namespace FNPlugin
         public float solarPowertransmission = 100;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F2")]
         public double maximumPower = 10000;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Solar Power", guiFormat = "F2")]
+        protected double displayed_solar_power = 0;
 
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
 
         //Internal
         protected Animation anim;
-        protected bool hasLinkedReceivers = false;
-        protected double displayed_solar_power = 0;
+
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Has Linked Receivers")]
+        public bool hasLinkedReceivers = false;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Can be active")]
+        public bool canBeActive;
+
 
         protected List<ModuleDeployableSolarPanel> panels;
         protected MicrowavePowerReceiver part_receiver;
@@ -103,7 +112,8 @@ namespace FNPlugin
         {
             if (relay) return;
 
-            //this.part.force_activate();
+            this.part.force_activate();
+            forceActivateAtStartup = true;
 
             if (anim != null)
             {
@@ -185,7 +195,7 @@ namespace FNPlugin
             var recieversConfiguredForRelay = vessel_recievers.Where(m => m.linkedForRelay).ToList();
 
             // add build in relay if it can be used for relay
-            if (part_receiver != null && canRelay)
+            if (part_receiver != null && buildInRelay)
                 recieversConfiguredForRelay.Add(part_receiver);
 
             // determin if we can activat relay
@@ -267,8 +277,8 @@ namespace FNPlugin
                 anim.Play();
             }
 
-            
-            //this.part.force_activate();
+            if (forceActivateAtStartup)
+                this.part.force_activate();
             //ScreenMessages.PostScreenMessage("Microwave Transmitter Force Activated", 5.0f, ScreenMessageStyle.UPPER_CENTER);
         }
 
@@ -336,23 +346,20 @@ namespace FNPlugin
 
         public void Update()
         {
-            if (activeBeamGenerator == null)
-                return;
-
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI updated wave data");
-            wavelength = activeBeamGenerator.wavelength;
-            atmosphericAbsorptionPercentage = activeBeamGenerator.atmosphericAbsorptionPercentage;
-            waterAbsorptionPercentage = activeBeamGenerator.waterAbsorptionPercentage * moistureModifier;
-            totalAbsorptionPercentage = atmosphericAbsorptionPercentage + waterAbsorptionPercentage;
-            atmosphericAbsorption = totalAbsorptionPercentage / 100;
-
             if (!HighLogic.LoadedSceneIsFlight) return;
 
             UpdateRelayWavelength();
 
+
+
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI updated wave data");
+
+            totalAbsorptionPercentage = atmosphericAbsorptionPercentage + waterAbsorptionPercentage;
+            atmosphericAbsorption = totalAbsorptionPercentage / 100;
+
             bool vesselInSpace = (vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.SUB_ORBITAL);
             bool receiver_on = part_receiver != null && part_receiver.isActive();
-            bool canBeActive = CanBeActive;
+            canBeActive = CanBeActive;
 
             if (anim != null && !canBeActive && IsEnabled)
             {
@@ -368,10 +375,10 @@ namespace FNPlugin
             Events["ActivateTransmitter"].active = activeBeamGenerator != null && vesselCanTransmit && !IsEnabled && !relay && !receiver_on && canBeActive;
             Events["DeactivateTransmitter"].active = activeBeamGenerator != null && vesselCanTransmit && IsEnabled && !relay;
 
-            var vesselCanRelay = this.hasLinkedReceivers && canOperateInCurrentEnvironment;
+            var transmitterCanRelay = this.hasLinkedReceivers && canOperateInCurrentEnvironment;
 
-            Events["ActivateRelay"].active = vesselCanRelay && !IsEnabled && !relay && !receiver_on && canBeActive;
-            Events["DeactivateRelay"].active = vesselCanRelay && IsEnabled && relay;
+            Events["ActivateRelay"].active = transmitterCanRelay && !IsEnabled && !relay && !receiver_on && canBeActive;
+            Events["DeactivateRelay"].active = transmitterCanRelay && IsEnabled && relay;
 
             Fields["beamedpower"].guiActive = IsEnabled && !relay && canBeActive;
             Fields["transmitPower"].guiActive = IsEnabled && !relay;
@@ -385,6 +392,27 @@ namespace FNPlugin
             }
             else
                 statusStr = "Inactive.";
+
+            if (activeBeamGenerator == null)
+            {
+                var wavelegthField = Fields["wavelength"];
+                wavelegthField.guiActive = false;
+                wavelegthField.guiActiveEditor = false;
+
+                var atmosphericAbsorptionPercentageField = Fields["atmosphericAbsorptionPercentage"];
+                atmosphericAbsorptionPercentageField.guiActive = false;
+                atmosphericAbsorptionPercentageField.guiActiveEditor = false;
+
+                var waterAbsorptionPercentageField = Fields["waterAbsorptionPercentage"];
+                waterAbsorptionPercentageField.guiActive = false;
+                waterAbsorptionPercentageField.guiActiveEditor = false;
+
+                return;
+            }
+
+            wavelength = activeBeamGenerator.wavelength;
+            atmosphericAbsorptionPercentage = activeBeamGenerator.atmosphericAbsorptionPercentage;
+            waterAbsorptionPercentage = activeBeamGenerator.waterAbsorptionPercentage * moistureModifier;
 
             double inputPower = nuclear_power + displayed_solar_power;
             if (inputPower > 1000)
@@ -424,9 +452,10 @@ namespace FNPlugin
                 var transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100;
                 var transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100;
 
+                var megaJoulesBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 var availableReactorPower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
 
-                var requestedPower = Math.Min(maximumPower, availableReactorPower * reactorPowerTransmissionRatio);
+                var requestedPower = Math.Min(maximumPower, megaJoulesBarRatio * availableReactorPower * reactorPowerTransmissionRatio);
                 var receivedPowerFixedDelta = consumeFNResource(requestedPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 nuclear_power += 1000 * reactorPowerTransmissionRatio * receivedPowerFixedDelta / TimeWarp.fixedDeltaTime;
@@ -436,11 +465,12 @@ namespace FNPlugin
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
-                    var multiplier = panel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES ? 1000 : 1;
+                    var multiplier = panel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES ? 1000 
+                        : panel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE ? 1 : 0;
 
-                    displayed_solar_power = panel._flowRate * multiplier;
+                    displayed_solar_power += panel._flowRate * multiplier;
 
-                    solar_power += panel.chargeRate * panel._distMult * panel._efficMult * multiplier;;
+                    solar_power += panel.chargeRate * panel._distMult * panel._efficMult * multiplier;
 
                     //panel.alignType = ModuleDeployablePart.PanelAlignType.X;
                     //panel.panelType = ModuleDeployableSolarPanel.PanelType.CYLINDRICAL;

@@ -19,16 +19,18 @@ namespace FNPlugin
 
         public void setUpScienceData(string experiment_title, string experiment_results, float transmitValue, float recoveryValue, float data_size, float xmitScalar, float refValue)
         {
-            this.title = experiment_title;
+			this.title = experiment_title;
             this.resultText = experiment_results;
             //this.transmitValue = valueAfterTransmit;
-            this.valueAfterTransmit = transmitValue;
-            this.valueAfterRecovery = recoveryValue;
-            this.dataSize = data_size;
-            this.xmitDataScalar = xmitScalar;
-            this.refValue = transmitValue;
-            this.scienceValue = recoveryValue;
-            this.baseTransmitValue = transmitValue;
+
+			// No need for manual tinkering now
+            //this.valueAfterTransmit = transmitValue;
+            //this.valueAfterRecovery = recoveryValue;
+            //this.dataSize = data_size;
+            //this.xmitDataScalar = xmitScalar;
+            //this.refValue = refValue;
+            //this.scienceValue = recoveryValue;
+            //this.baseTransmitValue = transmitValue;
         }
     }
 }

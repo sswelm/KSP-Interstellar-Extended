@@ -221,7 +221,7 @@ namespace FNPlugin.Refinery
         private void updateStatusMessage()
         {
             if (_monoxide_production_rate > 0 && _water_production_rate > 0)
-                _status = "Water Gas Swifting";
+                _status = "Water Gas Shifting";
             else if (_fixedConsumptionRate <= 0.0000000001)
             {
                 if (_availableDioxideMass <= 0.0000000001)

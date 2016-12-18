@@ -30,28 +30,6 @@ namespace FNPlugin
         protected override float NeutronAbsorptionFractionAtMinIsp  { get { return neutronAbsorptionFractionAtMinIsp; } }
     }
 
-    //class DaedalusEngineControllerAdvanced : FusionEngineControllerBase
-    //{
-    //    const float maxIsp = 10000000f;
-    //    //const float minIsp = 1000000f;
-    //    //const float steps = (maxIsp - minIsp) / 100f;
-
-    //    // Persistant setting
-    //    //[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "Selected Isp"), UI_FloatRange(stepIncrement = steps, maxValue = maxIsp, minValue = minIsp)]
-    //    public float localIsp = maxIsp;
-
-    //    // settings
-    //    [KSPField(isPersistant = false)]
-    //    public float neutronAbsorptionFractionAtMinIsp = 0.5f;
-    //    [KSPField(isPersistant = false)]
-    //    public float maxThrustEfficiencyByIspPower = 2f;
-
-    //    protected override float SelectedIsp { get { return localIsp; } }
-    //    protected override float MaxIsp { get { return maxIsp; } }
-    //    protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
-    //    protected override float NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
-    //}
-
     abstract class FusionEngineControllerBase : FNResourceSuppliableModule, IUpgradeableModule 
     {
         // Persistant
@@ -279,14 +257,6 @@ namespace FNPlugin
         {
             try
             {
-                Debug.LogError("FusionEngine OnStart begin");
-
-                if (part == null)
-                {
-                    Debug.LogError("FusionEngine OnStart Part not found");
-                    return;
-                }
-
                 part.maxTemp = maxTemp;
                 part.thermalMass = 1;
                 part.thermalMassModifier = 1;
@@ -311,8 +281,6 @@ namespace FNPlugin
 
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
-
-                Debug.LogError("FusionEngine OnStart end");
             }
             catch (Exception e)
             {
