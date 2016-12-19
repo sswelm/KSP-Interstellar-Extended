@@ -24,7 +24,7 @@ namespace FNPlugin
         // GUI
         [KSPField(guiActive = true, guiName = "Solar Wind Concentration", guiUnits = "%")]
         protected string strSolarWindConc = "";
-        [KSPField(guiActive = true, guiName = "Distance from the local star")]
+        [KSPField(guiActive = true, guiName = "Distance from the sun")]
         protected string strStarDist = "";
         [KSPField(guiActive = true, guiName = "Status")]
         protected string strCollectingStatus = "";
@@ -90,12 +90,12 @@ namespace FNPlugin
             // verify any power was available in previous state
             if (fLastPowerPercentage < 0.01) return;
 
-            // here could be other checks - if the vessel is not too high, orbit eccentricity etc.
+            // here could be other checks, if deemed relevant - if the vessel is not too low/high, orbit eccentricity etc.
 
             // verify altitude is not too low
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
             {
-                ScreenMessages.PostScreenMessage("Error, vessel is in the atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("Error, vessel is in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
                 return;
             }
 
@@ -113,14 +113,14 @@ namespace FNPlugin
             Events["ActivateCollector"].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
             Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
 
-            Fields["strSolarWindConc"].guiActive = bIsEnabled;
-            Fields["strStarDist"].guiActive = bIsEnabled;
-            Fields["strCollectingStatus"].guiActive = bIsEnabled;
+            //Fields["strSolarWindConc"].guiActive = bIsEnabled;
+            //Fields["strStarDist"].guiActive = bIsEnabled;
+            //Fields["strCollectingStatus"].guiActive = bIsEnabled;
             Fields["strReceivedPower"].guiActive = bIsEnabled;
 
             dConcentrationSolarWind = CalculateSolarWindConcentration();
-            strSolarWindConc = (dConcentrationSolarWind * 100).ToString("");
-            strStarDist = dDistanceFromStar.ToString("") + " m";
+            strSolarWindConc = (dConcentrationSolarWind * 100).ToString("F2");
+            strStarDist = (dDistanceFromStar/1000).ToString("F2") + " km";
         }
 
         public override void OnFixedUpdate()
@@ -133,8 +133,11 @@ namespace FNPlugin
                     dConcentrationSolarWind = 0.0;
                 }
 
-                if (!bIsEnabled) return;
-
+                if (!bIsEnabled)
+                {
+                    strCollectingStatus = "Disabled";
+                    return;
+                }
                 // collect solar wind for a single frame
                 CollectSolarWind(TimeWarp.fixedDeltaTime, false);
 
@@ -150,6 +153,7 @@ namespace FNPlugin
         {
             if (!PluginHelper.lineOfSightToSun(vessel))
             {
+                strCollectingStatus = "No solar wind detected";
                 return dConcentrationSolarWind = 0.0;
             }
             //double distanceFromStar = Vector3.Distance(FlightGlobals.Bodies[0].transform.position, vessel.transform.position);
@@ -167,11 +171,7 @@ namespace FNPlugin
 
         private void CollectSolarWind(double deltaTimeInSeconds, bool offlineCollecting)
         {
-            if (dConcentrationSolarWind == 0.0)
-            {
-                strCollectingStatus = "Collecting not possible";
-                return;
-            }
+            dConcentrationSolarWind = CalculateSolarWindConcentration();
 
             string strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
             double dPowerRequirementsMW = (double)PluginHelper.PowerConsumptionMultiplier * 1.0; // change the number to change the power consumption
@@ -193,6 +193,9 @@ namespace FNPlugin
                 }
 
                 fLastPowerPercentage = offlineCollecting ? fLastPowerPercentage : (float)(dPowerReceivedMW / dPowerRequirementsMW / TimeWarp.fixedDeltaTime);
+
+                // show in GUI
+                strCollectingStatus = "Collecting solar wind";
             }
             else
             {
