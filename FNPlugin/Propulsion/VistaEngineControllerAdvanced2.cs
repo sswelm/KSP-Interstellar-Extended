@@ -35,7 +35,7 @@ namespace FNPlugin
             set
             {
                 bool test = atmophereCurve != null ? atmophereCurve.Evaluate(0) == 0 : true;
-                //ScreenMessages.PostScreenMessage("Setting OrigFloatCurve: " + test, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+
                 if (test)
                 {
 
@@ -45,7 +45,7 @@ namespace FNPlugin
         }
 
         protected override float SelectedIsp { get { return localIsp; } set { if (value > 0) { localIsp = value; } } }
-        protected override float MinIsp { get { return minIsp; } set { if (value <= 1000) { minIsp = value + .000001f; ShutDown("Engine Stall!"); } else { minIsp = value; } } }
+        protected override float MinIsp { get { return minIsp; } set { if (value <= 1000) { minIsp = value + .01f; ShutDown(""); } else { minIsp = value; } } }
         protected override float MaxIsp { get { return minIsp / maxMin; } }
         protected override float MaxMin { get { return maxMin; } }
         protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
@@ -188,7 +188,7 @@ namespace FNPlugin
         public ModuleEngines curEngineT;
         protected float CurveMaxISP;
 
-        protected double Altitude, lastAltitude;
+        protected double Altitude;
 
         public GenerationType EngineGenerationType { get; private set; }
 
@@ -317,10 +317,10 @@ namespace FNPlugin
                 {
 
                     BaseField IspField = Fields["localIsp"];
-                    lastAltitude = Altitude;
+                 
                     UI_FloatRange[] IspController = { IspField.uiControlFlight as UI_FloatRange, IspField.uiControlEditor as UI_FloatRange };
 
-                    //  IspField.uiControlFlight as UI_FloatRange;
+                    
 
                     for (int I = 0; I < IspController.Length; I++)
                     {
@@ -331,6 +331,7 @@ namespace FNPlugin
 
                         float StepNumb = (akIsp - akMinIsp) / StepIncrement;
                         akMinIsp = (float)Math.Round(OrigFloatCurve.Evaluate((float)Altitude));
+                        if (akMinIsp < 1) { akMinIsp = 1; }
                         akMaxIsp = (float)Math.Round(akMinIsp / MaxMin);
                         StepIncrement = (akMaxIsp - akMinIsp) / 100;
 
@@ -348,7 +349,8 @@ namespace FNPlugin
                 Debug.LogError("FusionEngine FCsetup exception: " + e.Message);
             }
         }
-
+     
+       
         public override void OnStart(PartModule.StartState state)
         {
             try
@@ -452,6 +454,18 @@ namespace FNPlugin
 
             return max;
         }
+         public void  UpdateISP()
+        {
+            
+            FloatCurve newIsp = new FloatCurve();
+            Altitude = vessel.atmDensity;
+            float OrigISP = OrigFloatCurve.Evaluate((float)Altitude);
+            FCsetup();
+            newIsp.Add((float)Altitude, SelectedIsp);
+            curEngineT.atmosphereCurve = newIsp;
+            MinIsp = OrigISP;
+
+        }
 
 
 
@@ -502,15 +516,9 @@ namespace FNPlugin
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)standard_tritium_rate / rateMultplier;
 
                 // Update ISP
-                FCsetup();
-                var currentIsp = SelectedIsp;
 
-                FloatCurve newIsp = new FloatCurve();
-                Altitude = vessel.atmDensity;
-                float OrigISP = OrigFloatCurve.Evaluate((float)Altitude);
-                newIsp.Add((float)Altitude, SelectedIsp);
-                curEngineT.atmosphereCurve = newIsp;
-                MinIsp = OrigISP;
+                var currentIsp = SelectedIsp;
+                UpdateISP();
 
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
@@ -528,16 +536,9 @@ namespace FNPlugin
                 absorbedWasteheat = 0;
                 laserWasteheat = 0;
                 fusionRatio = 0;
-                FCsetup();
                 var currentIsp = SelectedIsp;
 
-                FloatCurve newIsp = new FloatCurve();
-                Altitude = vessel.atmDensity;
-                float OrigISP = OrigFloatCurve.Evaluate((float)Altitude);
-                newIsp.Add((float)Altitude, SelectedIsp);
-                curEngineT.atmosphereCurve = newIsp;
-                MinIsp = OrigISP;
-
+                UpdateISP();
                 curEngineT.maxThrust = MaximumThrust;
                 var rateMultplier = MinIsp / SelectedIsp;
 
