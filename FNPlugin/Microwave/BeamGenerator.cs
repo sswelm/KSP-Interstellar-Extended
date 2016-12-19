@@ -140,7 +140,10 @@ namespace FNPlugin.Microwave
             //Debug.Log("[KSP Interstellar] UpdateFromGUI is called with " + selectedBeamConfiguration);
 
             if (!BeamConfigurations.Any())
+            {
+                //Debug.Log("[KSP Interstellar] UpdateFromGUI no BeamConfigurations found");
                 return;
+            }
 
             if (isLoaded == false)
                 LoadInitialConfiguration();
@@ -160,7 +163,10 @@ namespace FNPlugin.Microwave
             }
 
             if (activeConfiguration == null)
+            {
+                //Debug.Log("[KSP Interstellar] UpdateFromGUI no activeConfiguration found");
                 return;
+            }
 
             //Debug.Log("[KSP Interstellar] UpdateFromGUI updated wave data");
             wavelength = activeConfiguration.wavelength;
@@ -173,7 +179,9 @@ namespace FNPlugin.Microwave
 
         private void UpdateEfficiencyPercentage()
         {
-            var techLevel = 0;
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI UpdateEfficiencyPercentage");
+
+            var techLevel = -1;
 
             if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement3))
                 techLevel++;
@@ -190,8 +198,10 @@ namespace FNPlugin.Microwave
                 efficiencyPercentage = activeConfiguration.efficiencyPercentage2;
             else if (techLevel == 1)
                 efficiencyPercentage = activeConfiguration.efficiencyPercentage1;
-            else
+            else if (techLevel == 0)
                 efficiencyPercentage = activeConfiguration.efficiencyPercentage0;
+            else
+                efficiencyPercentage = 0;
         }
 
         private void LoadInitialConfiguration()

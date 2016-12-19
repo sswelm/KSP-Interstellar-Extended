@@ -73,16 +73,20 @@ namespace FNPlugin
         //GUI 
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Aperture Diameter", guiFormat = "F2", guiUnits = " m")]
         public double apertureDiameter = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Transmitter")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Transmit Status")]
         public string statusStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Beamed Power")]
-        public string beamedpower;
+
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Transmission Efficiency", guiUnits = "%")]
+        public double transmissionEfficiencyPercentage;
+
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reactor Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Solar Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float solarPowertransmission = 100;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F2")]
         public double maximumPower = 10000;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
+        public string beamedpower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Solar Power", guiFormat = "F2")]
         protected double displayed_solar_power = 0;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Has Linked Receivers")]
@@ -308,7 +312,7 @@ namespace FNPlugin
 
                 activeBeamGenerator = beamGenerators.FirstOrDefault();
 
-                if (activeBeamGenerator != null)
+                if (activeBeamGenerator != null && activeBeamGenerator.part != this.part)
                     activeBeamGenerator.UpdateMass(this.maximumPower);
             }
             catch (Exception ex)
@@ -431,6 +435,9 @@ namespace FNPlugin
 
         public void FixedUpdate()
         {
+            if (activeBeamGenerator != null)
+                transmissionEfficiencyPercentage = activeBeamGenerator.efficiencyPercentage;
+
             if (!HighLogic.LoadedSceneIsFlight) return;
 
             nuclear_power = 0;
@@ -455,7 +462,7 @@ namespace FNPlugin
                 var requestedPower = Math.Min(maximumPower, megaJoulesBarRatio * availableReactorPower * reactorPowerTransmissionRatio);
                 var receivedPowerFixedDelta = consumeFNResource(requestedPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                nuclear_power += 1000 * reactorPowerTransmissionRatio * receivedPowerFixedDelta / TimeWarp.fixedDeltaTime;
+                nuclear_power += 1000 * reactorPowerTransmissionRatio * transmissionEfficiencyRatio * receivedPowerFixedDelta / TimeWarp.fixedDeltaTime;
 
                 // generate wasteheat for converting electric power to beamed power
                 supplyFNResource(receivedPowerFixedDelta * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
