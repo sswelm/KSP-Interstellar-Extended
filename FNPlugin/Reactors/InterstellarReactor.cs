@@ -412,7 +412,7 @@ namespace FNPlugin
                 hydrogenMassSum += effectiveMass;
 
                 // remove product from store
-                var fuelAmount = product.fuelmode.Density > 0 ? (effectiveMass / product.fuelmode.Density) : 0;
+                var fuelAmount = product.fuelmode.DensityInTon > 0 ? (effectiveMass / product.fuelmode.DensityInTon) : 0;
                 if (fuelAmount == 0) continue;
 
                 part.RequestResource(product.fuelmode.FuelName, fuelAmount);
@@ -1259,8 +1259,8 @@ namespace FNPlugin
                 // produce reactor products
                 foreach (ReactorProduct product in current_fuel_mode.ReactorProducts)
                 {
-                    var product_supply = total_power_received * product.ProductUsePerMJ * fuelUsePerMJMult / geeForceModifier;
-                    var massProduced = ProduceReactorProduct(product, product_supply);
+                    
+                    var massProduced = ProduceReactorProduct(product, total_power_received / geeForceModifier);
 
                     reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
                 }
@@ -1493,7 +1493,7 @@ namespace FNPlugin
                 sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
                 foreach (ReactorFuel fuel in fm.ReactorFuels)
                 {
-                    sb.AppendLine(fuel.FuelName + " " + fuel.TonsFuelUsePerMJ * fuelUsePerMJMult * PowerOutput * fm.NormalisedReactionRate * PluginHelper.SecondsInDay / fuelEfficiency + fuel.Unit + "/day");
+                    sb.AppendLine(fuel.FuelName + " " + fuel.AmountFuelUsePerMJ * fuelUsePerMJMult * PowerOutput * fm.NormalisedReactionRate * PluginHelper.SecondsInDay / fuelEfficiency + fuel.Unit + "/day");
                 }
                 sb.AppendLine("---");
             });
@@ -1561,40 +1561,42 @@ namespace FNPlugin
 
         protected double ConsumeReactorFuel(ReactorFuel fuel, double MJpower)
         {
-            var consume_amount_in_Ton = MJpower * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult;
+            var consume_amount_in_unit_of_storage = MJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
             
             if (!fuel.ConsumeGlobal)
             {
                 if (part.Resources.Contains(fuel.FuelName))
                 {
-                    double amount = Math.Min(consume_amount_in_Ton / FuelEfficiency, part.Resources[fuel.FuelName].amount);
+                    double amount = Math.Min(consume_amount_in_unit_of_storage, part.Resources[fuel.FuelName].amount);
                     part.Resources[fuel.FuelName].amount -= amount;
                     return amount;
                 }
                 else
                     return 0;
             }
-            return part.RequestResource(fuel.FuelName, consume_amount_in_Ton / FuelEfficiency);
+            return part.RequestResource(fuel.FuelName, consume_amount_in_unit_of_storage);
         }
 
-        protected virtual double ProduceReactorProduct(ReactorProduct product, double produce_amount)
+        protected virtual double ProduceReactorProduct(ReactorProduct product, double MJpower)
         {
-            var effectiveAmount = produce_amount / FuelEfficiency;
+            var product_supply = MJpower * product.AmountProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
+
+            //var effectiveAmount = produce_amount / FuelEfficiency;
             if (!product.ProduceGlobal)
             {
                 if (part.Resources.Contains(product.FuelName))
                 {
                     double availableStorage = part.Resources[product.FuelName].maxAmount - part.Resources[product.FuelName].amount;
-                    double possibleAmount = Math.Min(effectiveAmount, availableStorage);
+                    double possibleAmount = Math.Min(product_supply, availableStorage);
                     part.Resources[product.FuelName].amount += possibleAmount;
-                    return effectiveAmount * product.Density;
+                    return product_supply * product.DensityInTon;
                 }
                 else
                     return 0;
             }
 
-            part.RequestResource(product.FuelName, -effectiveAmount);
-            return effectiveAmount * product.Density;
+            part.RequestResource(product.FuelName, -product_supply);
+            return product_supply * product.DensityInTon;
         }
 
         protected double GetFuelAvailability(ReactorFuel fuel)
@@ -1753,8 +1755,8 @@ namespace FNPlugin
                         PrintToGUILayout("Lithium Consumption", lithium_consumption_day.ToString("0.00000") + " L/day", bold_style, text_style);
                         var lithium_lifetime_total_days = lithium_consumption_day > 0 ? totalLithiumAmount / lithium_consumption_day : 0;
 
-                        int lithium_lifetime_years = (int)Math.Floor(lithium_lifetime_total_days / GameConstants.EARTH_YEAR_IN_DAYS);
-                        var lithium_lifetime_years_remainder_in_days = lithium_lifetime_total_days % GameConstants.EARTH_YEAR_IN_DAYS;
+                        int lithium_lifetime_years = (int)Math.Floor(lithium_lifetime_total_days / GameConstants.KERBIN_YEAR_IN_DAYS);
+                        var lithium_lifetime_years_remainder_in_days = lithium_lifetime_total_days % GameConstants.KERBIN_YEAR_IN_DAYS;
 
                         int lithium_lifetime_remaining_days = (int)Math.Floor(lithium_lifetime_years_remainder_in_days);
                         var lithium_lifetime_remaining_days_remainer = lithium_lifetime_years_remainder_in_days % 1;
@@ -1776,17 +1778,17 @@ namespace FNPlugin
                     //double fuel_lifetime_d = double.MaxValue;
                     foreach (var fuel in current_fuel_mode.ReactorFuels)
                     {
-                        double availability = GetFuelAvailability(fuel) * fuel.Density * 1000;
+                        double availabilityInKg = GetFuelAvailability(fuel) * fuel.DensityInKg;
 
-                        PrintToGUILayout(fuel.FuelName + " Reserves", availability.ToString("0.000000") + " kg", bold_style, text_style);
-                        double fuel_use_per_day = total_power_per_frame * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                        PrintToGUILayout(fuel.FuelName + " Reserves", availabilityInKg.ToString("0.000000") + " kg", bold_style, text_style);
+                        double kg_fuel_use_per_day = 1000 * total_power_per_frame * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * PluginHelper.SecondsInDay;
 
-                        double fuel_lifetime_d = fuel_use_per_day > 0 ? availability / fuel_use_per_day : 0;
+                        double fuel_lifetime_d = kg_fuel_use_per_day > 0 ? availabilityInKg / kg_fuel_use_per_day : 0;
 
-                        int lifetime_years = (int)Math.Floor(fuel_lifetime_d / GameConstants.EARTH_YEAR_IN_DAYS);
-                        double lifetime_years_day_remainder = fuel_lifetime_d % GameConstants.EARTH_YEAR_IN_DAYS;
+                        int lifetime_years = (int)Math.Floor(fuel_lifetime_d / GameConstants.KERBIN_YEAR_IN_DAYS);
+                        double lifetime_years_day_remainder = fuel_lifetime_d % GameConstants.KERBIN_YEAR_IN_DAYS;
 
-                        PrintToGUILayout(fuel.FuelName + " Consumption", fuel_use_per_day.ToString("0.000000") + " " + fuel.Unit + "/day", bold_style, text_style);
+                        PrintToGUILayout(fuel.FuelName + " Consumption", kg_fuel_use_per_day.ToString("0.000000") + " " + fuel.Unit + "/day", bold_style, text_style);
 
                         if (lifetime_years > 0)
                             PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetime_years) ? "-" : lifetime_years + " years " + (lifetime_years_day_remainder).ToString("0.00")) + " days", bold_style, text_style);
@@ -1800,18 +1802,18 @@ namespace FNPlugin
 
                     foreach (var product in current_fuel_mode.ReactorProducts)
                     {
-                        double availability = GetFuelAvailability(product);
-                        double maxAvailability = GetMaxFuelAvailability(product);
+                        double availabilityInKg = GetFuelAvailability(product) * product.DensityInKg;
+                        double maxAvailabilityInKg = GetMaxFuelAvailability(product) * product.DensityInKg;
 
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(product.FuelName + " Storage", bold_style, GUILayout.Width(150));
-                        GUILayout.Label((availability * product.Density * 1000).ToString("0.0000") + " kg / " + (maxAvailability * product.Density * 1000).ToString("0.0000") + " kg", text_style, GUILayout.Width(150));
+                        GUILayout.Label((availabilityInKg).ToString("0.0000") + " kg / " + (maxAvailabilityInKg).ToString("0.0000") + " kg", text_style, GUILayout.Width(150));
                         GUILayout.EndHorizontal();
 
-                        double fuel_use = total_power_per_frame * product.ProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                        double dayly_production_in_Kg = 1000 * total_power_per_frame * product.TonsProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * PluginHelper.SecondsInDay;
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(product.FuelName + " Production", bold_style, GUILayout.Width(150));
-                        GUILayout.Label(fuel_use.ToString("0.000000") + " " + product.Unit + "/day", text_style, GUILayout.Width(150));
+                        GUILayout.Label(dayly_production_in_Kg.ToString("0.000000") + " kg/day", text_style, GUILayout.Width(150));
                         GUILayout.EndHorizontal();
                     }
 

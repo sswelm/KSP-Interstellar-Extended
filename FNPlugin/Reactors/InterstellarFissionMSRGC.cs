@@ -141,7 +141,7 @@ namespace FNPlugin
 
                     if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
                     {
-                        double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => GetFuelAvailability(fuel) * fuel.Density);
+                        double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => GetFuelAvailability(fuel) * fuel.DensityInTon);
                         double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
                         double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
                         fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
@@ -246,12 +246,12 @@ namespace FNPlugin
                 double depleted_fuels_change = actinides_change * 0.2;
                 depleted_fuels_change = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.DepletedFuel, -depleted_fuels_change);
 
-                double sum_useage_per_mw = current_fuel_mode.ReactorFuels.Sum(fuel => fuel.TonsFuelUsePerMJ * fuelUsePerMJMult);
+                double sum_useage_per_mw = current_fuel_mode.ReactorFuels.Sum(fuel => fuel.AmountFuelUsePerMJ * fuelUsePerMJMult);
 
                 foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
                 {
                     PartResource fuel_resource = part.Resources[fuel.FuelName];
-                    double fraction = sum_useage_per_mw > 0.0 ? fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / sum_useage_per_mw : 1;
+                    double fraction = sum_useage_per_mw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sum_useage_per_mw : 1;
                     double new_fuel_amount = Math.Min(fuel_resource.amount + depleted_fuels_change * 4.0*fraction, fuel_resource.maxAmount);
                     fuel_resource.amount = new_fuel_amount;
                 }

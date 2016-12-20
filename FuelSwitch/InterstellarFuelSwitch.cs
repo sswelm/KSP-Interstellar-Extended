@@ -93,6 +93,8 @@ namespace InterstellarFuelSwitch
         public string resourceRatios = "";
         [KSPField]
         public string initialResourceAmounts = "";
+        [KSPField]
+        public bool ignoreInitialCost = false;
 
         [KSPField(guiActiveEditor = false)]
         public bool adaptiveTankSelection = false;
@@ -799,17 +801,17 @@ namespace InterstellarFuelSwitch
                 return 0;
             }
 
-            bool preserveInitialMass = false;
-            if (!String.IsNullOrEmpty(initialTankSetup))
+            bool preserveInitialCost = false;
+            if (!ignoreInitialCost && !String.IsNullOrEmpty(initialTankSetup))
             {
-                preserveInitialMass = true;
+                preserveInitialCost = true;
                 string[] initialTankSetupArray = initialTankSetup.Split(';');
 
                 foreach (var resourcename in initialTankSetupArray)
                 {
                     if (!part.Resources.Contains(resourcename))
                     {
-                        preserveInitialMass = false;
+                        preserveInitialCost = false;
                         break;
                     }
                 }
@@ -825,7 +827,7 @@ namespace InterstellarFuelSwitch
 
             if (_partRresourceDefinition1 == null || _partResource1 == null)
             {
-                if (preserveInitialMass)
+                if (preserveInitialCost)
                 {
                     totalCost = dryCost - maxResourceCost + resourceCost;
                     return 0;
@@ -842,7 +844,7 @@ namespace InterstellarFuelSwitch
 
             if (_partRresourceDefinition2 == null || _partResource2 == null)
             {
-                if (preserveInitialMass)
+                if (preserveInitialCost)
                 {
                     totalCost = dryCost - maxResourceCost + resourceCost;
                     return 0;
@@ -857,7 +859,7 @@ namespace InterstellarFuelSwitch
             resourceCost += _partRresourceDefinition2.unitCost * _partResource2.amount;
             maxResourceCost = _partRresourceDefinition2.unitCost * _partResource2.maxAmount;
 
-            if (preserveInitialMass)
+            if (preserveInitialCost)
             {
                 totalCost = dryCost - maxResourceCost + resourceCost;
                 return 0;

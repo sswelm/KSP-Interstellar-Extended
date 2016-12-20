@@ -155,8 +155,6 @@ namespace FNPlugin
         public double engineHeatProduction;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Treshold", guiUnits = " kN")]
         public double pressureTreshold;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmospheric Limit")]
-        public float atmospheric_limit;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_thermal_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Charge", guiUnits = " MJ")]
@@ -267,8 +265,6 @@ namespace FNPlugin
         protected int thrustLimitRatio = 0;
         protected double old_intake = 0;
         protected int partDistance = 0;
-        protected float old_atmospheric_limit;
-        protected double currentintakeatm;
 
         protected List<FNModulePreecooler> _vesselPrecoolers;
         protected List<ModuleResourceIntake> _vesselResourceIntakes;
@@ -895,27 +891,6 @@ namespace FNPlugin
             myAttachedEngine.atmosphereCurve = atmosphereIspCurve;
         }
 
-        public float GetAtmosphericLimit()
-        {
-            atmospheric_limit = 1.0f;
-            if (_currentpropellant_is_jet)
-            {
-                string resourcename = list_of_propellants[0].name;
-                currentintakeatm = getIntakeAvailable(vessel, resourcename);
-                var fuelRateThermalJets = GetFuelRateThermalJets(resourcename);
-
-                if (fuelRateThermalJets > 0)
-                {
-                    // divide current available intake resource by fuel useage across all engines
-                    atmospheric_limit = (float)Math.Min(currentintakeatm / fuelRateThermalJets, 1.0); ;
-                }
-                old_intake = currentintakeatm;
-            }
-            atmospheric_limit = Mathf.MoveTowards(old_atmospheric_limit, atmospheric_limit, 0.2f);
-            old_atmospheric_limit = atmospheric_limit;
-            return atmospheric_limit;
-        }
-
         public double GetNozzleFlowRate()
         {
             return myAttachedEngine.isOperational ? max_fuel_flow_rate : 0;
@@ -1017,8 +992,6 @@ namespace FNPlugin
                 else
                 {
                     consumedWasteHeat = 0;
-
-                    atmospheric_limit = GetAtmosphericLimit();
 
                     UpdateMaxIsp();
 
@@ -1159,7 +1132,7 @@ namespace FNPlugin
 
                 var chargedPowerModifier = _isNeutronAbsorber ? 1 : (AttachedReactor.FullPowerForNonNeutronAbsorbants ? 1 : AttachedReactor.ChargedPowerRatio);
 
-                thermal_modifiers = myAttachedEngine.currentThrottle * GetAtmosphericLimit() * AttachedReactor.GetFractionThermalReciever(id) * chargedPowerModifier;
+                thermal_modifiers = myAttachedEngine.currentThrottle * AttachedReactor.GetFractionThermalReciever(id) * chargedPowerModifier;
 
                 var maximum_requested_thermal_power = _currentMaximumPower * thermal_modifiers;
 
@@ -1281,9 +1254,6 @@ namespace FNPlugin
                     myAttachedEngine.maxThrust = (float)Math.Max(calculatedMaxThrust, 0.0001);
                 else
                     myAttachedEngine.maxThrust = (float)Math.Max(engineMaxThrust, 0.0001);
-
-                if (atmospheric_limit > 0 && atmospheric_limit != 1 && !float.IsInfinity(atmospheric_limit) && !float.IsNaN(atmospheric_limit))
-                    max_fuel_flow_rate = Math.Max(max_fuel_flow_rate * atmospheric_limit, 0.0000000001);
 
                 // set engines maximum fuel flow
                 myAttachedEngine.maxFuelFlow = (float)Math.Max(Math.Min(1000, max_fuel_flow_rate), 0.0000000001);
@@ -1425,106 +1395,6 @@ namespace FNPlugin
         public override int getPowerPriority()
         {
             return 1;
-        }
-
-        // Static Methods
-        // Amount of intake air available to use of a particular resource type
-        public static double getIntakeAvailable(Vessel vess, string resourcename)
-        {
-            List<IEngineNoozle> nozzles = vess.FindPartModulesImplementing<IEngineNoozle>();
-            bool updating = true;
-            foreach (IEngineNoozle nozzle in nozzles)
-            {
-                if (!nozzle.Static_updating)
-                {
-                    updating = false;
-                    break;
-                }
-            }
-
-            if (updating)
-            {
-                nozzles.ForEach(nozzle => nozzle.Static_updating = false);
-                //List<PartResource> partresources = vess.rootPart.GetConnectedResources(resourcename).ToList();
-                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resourcename);
-
-                double currentintakeatm = 0;
-                double maxintakeatm = 0;
-
-                //partresources.ForEach(partresource => currentintakeatm += partresource.amount);
-                //partresources.ForEach(partresource => maxintakeatm += partresource.maxAmount);
-
-                vess.rootPart.GetConnectedResourceTotals(resourceDefinition.id, out currentintakeatm, out maxintakeatm);
-
-                //intake_amounts[resourcename] = currentintakeatm;
-                //intake_maxamounts[resourcename] = maxintakeatm;
-
-                // to smooth out occilations in resource production, take a 90/10 weighted average of the previous frame production
-                if (intake_amounts.ContainsKey(resourcename))
-                    intake_amounts[resourcename] = (intake_amounts[resourcename] * 0.99) + (currentintakeatm * 0.01);
-                else
-                    intake_amounts[resourcename] = currentintakeatm;
-                if (intake_maxamounts.ContainsKey(resourcename))
-                    intake_maxamounts[resourcename] = (intake_maxamounts[resourcename] * 0.99) + (maxintakeatm * 0.01);
-                else
-                    intake_maxamounts[resourcename] = maxintakeatm;
-            }
-
-            if (intake_amounts.ContainsKey(resourcename))
-                return Math.Max(intake_amounts[resourcename], 0);
-
-            return 0.00001;
-        }
-
-        // enumeration of the fuel useage rates of all jets on a vessel
-        public double GetFuelRateThermalJets(string resourcename)
-        {
-            int engines = 0;
-            bool updating = true;
-            foreach (IEngineNoozle nozzle in _vesselThermalNozzles)
-            {
-                ConfigNode[] prop_node = nozzle.getPropellants();
-
-                if (prop_node == null) continue;
-
-                ConfigNode[] assprops = prop_node[nozzle.Fuel_mode].GetNodes("PROPELLANT");
-
-                if (prop_node[nozzle.Fuel_mode] == null || !assprops[0].GetValue("name").Equals(resourcename)) continue;
-
-                if (!nozzle.Static_updating2)
-                    updating = false;
-
-                if (nozzle.GetNozzleFlowRate() > 0)
-                    engines++;
-            }
-
-            if (updating)
-            {
-                double enum_rate = 0;
-                foreach (IEngineNoozle nozzle in _vesselThermalNozzles)
-                {
-                    ConfigNode[] prop_node = nozzle.getPropellants();
-
-                    if (prop_node == null) continue;
-
-                    ConfigNode[] assprops = prop_node[nozzle.Fuel_mode].GetNodes("PROPELLANT");
-
-                    if (prop_node[nozzle.Fuel_mode] == null || !assprops[0].GetValue("name").Equals(resourcename)) continue;
-
-                    enum_rate += nozzle.GetNozzleFlowRate();
-                    nozzle.Static_updating2 = false;
-                }
-
-                if (fuel_flow_amounts.ContainsKey(resourcename))
-                    fuel_flow_amounts[resourcename] = enum_rate;
-                else
-                    fuel_flow_amounts.Add(resourcename, enum_rate);
-            }
-
-            if (fuel_flow_amounts.ContainsKey(resourcename))
-                return fuel_flow_amounts[resourcename];
-
-            return 0.1;
         }
 
 
