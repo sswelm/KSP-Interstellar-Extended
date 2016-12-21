@@ -74,6 +74,7 @@ namespace FNPlugin
         public const int MAX_ANTIMATTER_TANK_STORED_CHARGE = 1000;
         public const int EARTH_DAY_SECONDS = 86400;
         public const int EARTH_YEAR_IN_DAYS = 365;
+        public const float KERBIN_YEAR_IN_DAYS = 426.08f;
         public const int KEBRIN_DAY_SECONDS = 21600;
         public const int HOUR_SECONDS = 3600;
 

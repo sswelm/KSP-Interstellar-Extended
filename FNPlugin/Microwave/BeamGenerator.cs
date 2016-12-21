@@ -52,6 +52,7 @@ namespace FNPlugin.Microwave
         [KSPField(isPersistant = false)]
         public bool fixedMass = false;
 
+
         private BeamConfiguration activeConfiguration;
 
         public BeamConfiguration ActiveConfiguration
@@ -139,7 +140,10 @@ namespace FNPlugin.Microwave
             //Debug.Log("[KSP Interstellar] UpdateFromGUI is called with " + selectedBeamConfiguration);
 
             if (!BeamConfigurations.Any())
+            {
+                //Debug.Log("[KSP Interstellar] UpdateFromGUI no BeamConfigurations found");
                 return;
+            }
 
             if (isLoaded == false)
                 LoadInitialConfiguration();
@@ -159,14 +163,45 @@ namespace FNPlugin.Microwave
             }
 
             if (activeConfiguration == null)
+            {
+                //Debug.Log("[KSP Interstellar] UpdateFromGUI no activeConfiguration found");
                 return;
+            }
 
             //Debug.Log("[KSP Interstellar] UpdateFromGUI updated wave data");
             wavelength = activeConfiguration.wavelength;
             beamWaveName = activeConfiguration.beamWaveName;
             atmosphericAbsorptionPercentage = activeConfiguration.atmosphericAbsorptionPercentage;
             waterAbsorptionPercentage = activeConfiguration.waterAbsorptionPercentage;
-            efficiencyPercentage = activeConfiguration.efficiencyPercentage0;
+
+            UpdateEfficiencyPercentage();
+        }
+
+        private void UpdateEfficiencyPercentage()
+        {
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI UpdateEfficiencyPercentage");
+
+            var techLevel = -1;
+
+            if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement3))
+                techLevel++;
+            if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement2))
+                techLevel++;
+            if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement1))
+                techLevel++;
+            if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement0))
+                techLevel++;
+
+            if (techLevel == 3)
+                efficiencyPercentage = activeConfiguration.efficiencyPercentage3;
+            else if (techLevel == 2)
+                efficiencyPercentage = activeConfiguration.efficiencyPercentage2;
+            else if (techLevel == 1)
+                efficiencyPercentage = activeConfiguration.efficiencyPercentage1;
+            else if (techLevel == 0)
+                efficiencyPercentage = activeConfiguration.efficiencyPercentage0;
+            else
+                efficiencyPercentage = 0;
         }
 
         private void LoadInitialConfiguration()
