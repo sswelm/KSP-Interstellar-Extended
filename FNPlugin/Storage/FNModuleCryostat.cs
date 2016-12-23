@@ -202,7 +202,8 @@ namespace FNPlugin
                 cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
                 boiloffStr = boiloff.ToString("0.000000") + " L/s " + cryostat_resource.resourceName;
 
-                ScreenMessages.PostScreenMessage("Warning: " + boiloffStr + " Boiloff", 0.1f, ScreenMessageStyle.UPPER_CENTER);
+                if (part.vessel.isActiveVessel)
+                    ScreenMessages.PostScreenMessage("Warning: " + boiloffStr + " Boiloff", 0.02f, ScreenMessageStyle.UPPER_CENTER);
             }
             else
                 boiloffStr = "0.000000 L/s " + cryostat_resource.resourceName;
