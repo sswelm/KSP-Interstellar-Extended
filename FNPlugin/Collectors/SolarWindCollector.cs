@@ -27,7 +27,7 @@ namespace FNPlugin
 
 
         // GUI
-        [KSPField(guiActive = true, guiName = "Solar Wind Concentration", guiUnits = "%")]
+        [KSPField(guiActive = true, guiName = "Solar Wind Concentration", guiUnits = "ions/m\xB2")]
         protected string strSolarWindConc = "";
         [KSPField(guiActive = true, guiName = "Distance from the sun")]
         protected string strStarDist = "";
@@ -35,6 +35,9 @@ namespace FNPlugin
         protected string strCollectingStatus = "";
         [KSPField(guiActive = true, guiName = "Power Usage")]
         protected string strReceivedPower = "";
+        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F2")]
+        public double solarFlux;
+
         // internals
         protected float fResourceFlow = 0;
 
@@ -77,6 +80,9 @@ namespace FNPlugin
         protected double dDistanceFromStar = 0; // distance of the current vessel from the system's star
         protected double dConcentrationSolarWind = 0;
         protected double dSolarWindSpareCapacity;
+        protected double dSolarWindDensity;
+
+        // protected CelestialBody localStar;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -118,8 +124,8 @@ namespace FNPlugin
 
             Fields["strReceivedPower"].guiActive = bIsEnabled;
 
-            dConcentrationSolarWind = CalculateSolarWindConcentration();
-            strSolarWindConc = (dConcentrationSolarWind * 100).ToString("F2");
+            dConcentrationSolarWind = CalculateSolarWindConcentration(part.vessel.solarFlux);
+            strSolarWindConc = dConcentrationSolarWind.ToString("F2");
             strStarDist = (dDistanceFromStar/1000).ToString("F2") + " km";
         }
 
@@ -130,9 +136,21 @@ namespace FNPlugin
                 if (!bIsEnabled)
                 {
                     strCollectingStatus = "Disabled";
-                    strStarDist = (CalculateDistanceToSun() / 1000).ToString("F2") + " km"; // trying to solve the bullshit
+                    strStarDist = (CalculateDistanceToSun() / 1000).ToString("F2") + " km"; 
                     return;
                 }
+
+                if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
+                {
+                    // strCollectingStatus = "Disabled, in atmo";
+                    ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                    strStarDist = (CalculateDistanceToSun() / 1000).ToString("F2") + " km";
+                    DisableCollector();
+                    return;
+
+                }
+                solarFlux = part.vessel.solarFlux; // pass the current solar flux to the gui
+
                 // collect solar wind for a single frame
                 CollectSolarWind(TimeWarp.fixedDeltaTime, false);
 
@@ -144,17 +162,13 @@ namespace FNPlugin
 
 
         // calculates solar wind concentration
-        private double CalculateSolarWindConcentration()
+        private static double CalculateSolarWindConcentration(double flux)
         {
-            // check if the vessel is not in shade
-            if (!PluginHelper.lineOfSightToSun(vessel))
-            {
-                strCollectingStatus = "No solar wind detected";
-                return dConcentrationSolarWind = 0.0;
-            }
-
-            dConcentrationSolarWind = dKerbinDistance / CalculateDistanceToSun(); // In Kerbin vicinity, the solar wind concentration will be around 100% and it will rise the closer the vessel gets to the sun
-            return dConcentrationSolarWind;
+            double dAvgKerbinSolarFlux = 1409.285; // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
+            double dAvgSolarWindPerSqM = 6000.0; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3). Here I am optimistic and say that ALL of those hit the collector's surface area of 1 square meter.
+            // solarFlux = part.vessel.solarFlux;
+            double dConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerSqM;
+            return dConcentration;
         }
 
         // calculates the distance to sun
@@ -168,13 +182,16 @@ namespace FNPlugin
         // the main collecting function
         private void CollectSolarWind(double deltaTimeInSeconds, bool offlineCollecting)
         {
-            dConcentrationSolarWind = CalculateSolarWindConcentration();
+            dConcentrationSolarWind = CalculateSolarWindConcentration(part.vessel.solarFlux);
 
             string strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
             double dPowerRequirementsMW = (double)PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
 
             // check for free space in solar wind 'tanks'
             dSolarWindSpareCapacity = part.GetResourceSpareCapacity(strSolarWindResourceName);
+
+            // get density
+            dSolarWindDensity = PartResourceLibrary.Instance.GetDefinition(strSolarWindResourceName).density;
 
             if (dConcentrationSolarWind > 0 && (dSolarWindSpareCapacity > 0))
             {
@@ -207,7 +224,8 @@ namespace FNPlugin
                 : (fLastPowerPercentage * dPowerRequirementsMW).ToString("0.0") + " MW / " + dPowerRequirementsMW.ToString("0.0") + " MW";
 
             // this is the first important bit - how much solar wind has been collected
-            double dResourceChange = ((dConcentrationSolarWind * surfaceArea)/1000) * effectiveness * fLastPowerPercentage * deltaTimeInSeconds;
+            // double dResourceChange = ((dConcentrationSolarWind * surfaceArea)/1000) * effectiveness * fLastPowerPercentage * deltaTimeInSeconds;
+            double dResourceChange = (dConcentrationSolarWind * surfaceArea * dSolarWindDensity) * effectiveness * fLastPowerPercentage * deltaTimeInSeconds;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
