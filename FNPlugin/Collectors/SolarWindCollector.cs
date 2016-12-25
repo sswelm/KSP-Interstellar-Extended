@@ -35,8 +35,6 @@ namespace FNPlugin
         protected string strCollectingStatus = "";
         [KSPField(guiActive = true, guiName = "Power Usage")]
         protected string strReceivedPower = "";
-        //[KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F2")]
-        //public double solarFlux;
 
         // internals
         protected float fResourceFlow = 0;
@@ -137,7 +135,7 @@ namespace FNPlugin
                 if (!bIsEnabled)
                 {
                     strCollectingStatus = "Disabled";
-                    strStarDist = (CalculateDistanceToSun(part.transform.position, localStar.transform.position) / 1000).ToString("F2") + " km"; 
+                    strStarDist = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
                     return;
                 }
 
@@ -145,16 +143,14 @@ namespace FNPlugin
                 {
                     // strCollectingStatus = "Disabled, in atmo";
                     ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
-                    strStarDist = (CalculateDistanceToSun(part.transform.position, localStar.transform.position) / 1000).ToString("F2") + " km";
+                    strStarDist = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
                     strSolarWindConc = "0";
                     DisableCollector();
                     return;
 
                 }
-                // solarFlux = part.vessel.solarFlux; // pass the current solar flux to the gui
 
-                strStarDist = (dDistanceFromStar / 1000).ToString("F2") + " km";
-
+                strStarDist = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
 
                 // collect solar wind for a single frame
                 CollectSolarWind(TimeWarp.fixedDeltaTime, false);
@@ -165,7 +161,7 @@ namespace FNPlugin
         }
 
         /** 
-         * If I am correct, this function should allow this module to also work in solar systems other than the vanilla KSP one. Appropriated (read: stolen) from Freethinker's MicrowavePowerReceiver.
+         * This function should allow this module to work in solar systems other than the vanilla KSP one as well. Credit to Freethinker's MicrowavePowerReceiver code.
          */
         protected CelestialBody GetCurrentStar()
         {
@@ -187,7 +183,7 @@ namespace FNPlugin
         {
             double dAvgKerbinSolarFlux = 1409.285; // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
             double dAvgSolarWindPerCubM = 6000.0; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3).
-            // solarFlux = part.vessel.solarFlux;
+
             double dConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerCubM;
             return dConcentration;
         }
@@ -195,8 +191,6 @@ namespace FNPlugin
         // calculates the distance to sun
         private static double CalculateDistanceToSun(Vector3d vesselPosition, Vector3d sunPosition)
         {
-            //Vector3d sunPosition = FlightGlobals.fetch.bodies[0].position;
-            //Vector3d vesselPosition = this.part.transform.position;
             double dDistance = Vector3d.Distance(vesselPosition,sunPosition);
             return dDistance;
         }
