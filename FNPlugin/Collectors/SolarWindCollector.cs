@@ -132,21 +132,21 @@ namespace FNPlugin
                 if (!bIsEnabled)
                 {
                     strCollectingStatus = "Disabled";
-                    strStarDist = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
+                    strStarDist = UpdateDistanceInGUI(); // passes the distance to the GUI
                     return;
                 }
 
                 if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
                 {
                     ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
-                    strStarDist = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
+                    strStarDist = UpdateDistanceInGUI();
                     strSolarWindConc = "0";
                     DisableCollector();
                     return;
 
                 }
 
-                strStarDist = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km"; // passes the distance to the local star to the GUI
+                strStarDist = UpdateDistanceInGUI();
 
                 // collect solar wind for a single frame
                 CollectSolarWind(TimeWarp.fixedDeltaTime, false);
@@ -190,6 +190,13 @@ namespace FNPlugin
         {
             double dDistance = Vector3d.Distance(vesselPosition,sunPosition);
             return dDistance;
+        }
+
+        // helper function for readying the distance for the GUI
+        private string UpdateDistanceInGUI()
+        {
+            string distance = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
+            return distance;
         }
 
         // the main collecting function
