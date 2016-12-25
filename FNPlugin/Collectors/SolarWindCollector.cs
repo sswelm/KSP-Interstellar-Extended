@@ -99,8 +99,6 @@ namespace FNPlugin
             // verify any power was available in previous state
             if (fLastPowerPercentage < 0.01) return;
 
-            // here could be other checks, if deemed relevant - if the vessel is not too low/high, orbit eccentricity etc.
-
             // verify altitude is not too low
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
             {
@@ -125,7 +123,6 @@ namespace FNPlugin
 
             dConcentrationSolarWind = CalculateSolarWindConcentration(part.vessel.solarFlux);
             strSolarWindConc = dConcentrationSolarWind.ToString("F2");
-            //strStarDist = (dDistanceFromStar/1000).ToString("F2") + " km";
         }
 
         public override void OnFixedUpdate()
@@ -141,7 +138,6 @@ namespace FNPlugin
 
                 if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
                 {
-                    // strCollectingStatus = "Disabled, in atmo";
                     ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
                     strStarDist = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
                     strSolarWindConc = "0";
@@ -150,7 +146,7 @@ namespace FNPlugin
 
                 }
 
-                strStarDist = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
+                strStarDist = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km"; // passes the distance to the local star to the GUI
 
                 // collect solar wind for a single frame
                 CollectSolarWind(TimeWarp.fixedDeltaTime, false);
@@ -162,12 +158,13 @@ namespace FNPlugin
 
         /** 
          * This function should allow this module to work in solar systems other than the vanilla KSP one as well. Credit to Freethinker's MicrowavePowerReceiver code.
+         * It checks current reference body's temperature at 0 altitude. If it is less than 2k K, it checks this body's reference body next and so on.
          */
         protected CelestialBody GetCurrentStar()
         {
             int iDepth = 0;
             var star = FlightGlobals.currentMainBody;
-            while ((iDepth < 10) && (star.GetTemperature(0) < 2000)) //* checks current reference body's temperature at 0 altitude. If it is less than 2k K, check this body's reference body next and so on.
+            while ((iDepth < 10) && (star.GetTemperature(0) < 2000))
             {
                 star = star.referenceBody;
                 iDepth++;
@@ -182,7 +179,7 @@ namespace FNPlugin
         private static double CalculateSolarWindConcentration(double flux)
         {
             double dAvgKerbinSolarFlux = 1409.285; // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
-            double dAvgSolarWindPerCubM = 6000.0; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3).
+            double dAvgSolarWindPerCubM = 6000.0; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
 
             double dConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerCubM;
             return dConcentration;
@@ -203,10 +200,10 @@ namespace FNPlugin
             string strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
             double dPowerRequirementsMW = (double)PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
 
-            // check for free space in solar wind 'tanks'
+            // checks for free space in solar wind 'tanks'
             dSolarWindSpareCapacity = part.GetResourceSpareCapacity(strSolarWindResourceName);
 
-            // get density
+            // gets density of the solar wind resource
             dSolarWindDensity = PartResourceLibrary.Instance.GetDefinition(strSolarWindResourceName).density;
 
             if (dConcentrationSolarWind > 0 && (dSolarWindSpareCapacity > 0))
@@ -239,13 +236,12 @@ namespace FNPlugin
                 ? (fLastPowerPercentage * dPowerRequirementsMW * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMW * 1000).ToString("0.0") + " KW"
                 : (fLastPowerPercentage * dPowerRequirementsMW).ToString("0.0") + " MW / " + dPowerRequirementsMW.ToString("0.0") + " MW";
 
-            // this is the first important bit - how much solar wind has been collected
-            // double dResourceChange = ((dConcentrationSolarWind * surfaceArea)/1000) * effectiveness * fLastPowerPercentage * deltaTimeInSeconds;
 
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
             double dResourceChange = (dConcentrationSolarWind * surfaceArea * dSolarWindDensity) * effectiveness * fLastPowerPercentage * deltaTimeInSeconds;
+
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
