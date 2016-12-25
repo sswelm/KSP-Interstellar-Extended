@@ -18,16 +18,16 @@ namespace FNPlugin
         public float fLastPowerPercentage;
 
         // Part properties
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Surface area", guiUnits = "m\xB2")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Surface area", guiUnits = " m\xB2")]
         public float surfaceArea = 0; // Surface area of the panel.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Collector effectiveness", guiFormat = "P1")]
         public float effectiveness = 1.0f; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = "MW")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
         public float mwRequirements = 1.0f; // MW requirements of the collector panel.
 
 
         // GUI
-        [KSPField(guiActive = true, guiName = "Solar Wind Concentration", guiUnits = "ions/m\xB2")]
+        [KSPField(guiActive = true, guiName = "Solar Wind Concentration", guiUnits = " ions/m\xB3")]
         protected string strSolarWindConc = "";
         [KSPField(guiActive = true, guiName = "Distance from the sun")]
         protected string strStarDist = "";
@@ -35,8 +35,8 @@ namespace FNPlugin
         protected string strCollectingStatus = "";
         [KSPField(guiActive = true, guiName = "Power Usage")]
         protected string strReceivedPower = "";
-        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F2")]
-        public double solarFlux;
+        //[KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F2")]
+        //public double solarFlux;
 
         // internals
         protected float fResourceFlow = 0;
@@ -82,13 +82,15 @@ namespace FNPlugin
         protected double dSolarWindSpareCapacity;
         protected double dSolarWindDensity;
 
-        // protected CelestialBody localStar;
+        protected CelestialBody localStar;
 
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return; // collecting won't work in editor
 
             this.part.force_activate();
+
+            localStar = GetCurrentStar();
 
             // verify collector was enabled 
             if (!bIsEnabled) return;
@@ -116,7 +118,6 @@ namespace FNPlugin
         }
 
 
-
         public override void OnUpdate()
         {
             Events["ActivateCollector"].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
@@ -126,7 +127,7 @@ namespace FNPlugin
 
             dConcentrationSolarWind = CalculateSolarWindConcentration(part.vessel.solarFlux);
             strSolarWindConc = dConcentrationSolarWind.ToString("F2");
-            strStarDist = (dDistanceFromStar/1000).ToString("F2") + " km";
+            //strStarDist = (dDistanceFromStar/1000).ToString("F2") + " km";
         }
 
         public override void OnFixedUpdate()
@@ -136,7 +137,7 @@ namespace FNPlugin
                 if (!bIsEnabled)
                 {
                     strCollectingStatus = "Disabled";
-                    strStarDist = (CalculateDistanceToSun() / 1000).ToString("F2") + " km"; 
+                    strStarDist = (CalculateDistanceToSun(part.transform.position, localStar.transform.position) / 1000).ToString("F2") + " km"; 
                     return;
                 }
 
@@ -144,12 +145,16 @@ namespace FNPlugin
                 {
                     // strCollectingStatus = "Disabled, in atmo";
                     ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
-                    strStarDist = (CalculateDistanceToSun() / 1000).ToString("F2") + " km";
+                    strStarDist = (CalculateDistanceToSun(part.transform.position, localStar.transform.position) / 1000).ToString("F2") + " km";
+                    strSolarWindConc = "0";
                     DisableCollector();
                     return;
 
                 }
-                solarFlux = part.vessel.solarFlux; // pass the current solar flux to the gui
+                // solarFlux = part.vessel.solarFlux; // pass the current solar flux to the gui
+
+                strStarDist = (dDistanceFromStar / 1000).ToString("F2") + " km";
+
 
                 // collect solar wind for a single frame
                 CollectSolarWind(TimeWarp.fixedDeltaTime, false);
@@ -159,24 +164,41 @@ namespace FNPlugin
             }
         }
 
+        /** 
+         * If I am correct, this function should allow this module to also work in solar systems other than the vanilla KSP one. Appropriated (read: stolen) from Freethinker's MicrowavePowerReceiver.
+         */
+        protected CelestialBody GetCurrentStar()
+        {
+            int iDepth = 0;
+            var star = FlightGlobals.currentMainBody;
+            while ((iDepth < 10) && (star.GetTemperature(0) < 2000)) //* checks current reference body's temperature at 0 altitude. If it is less than 2k K, check this body's reference body next and so on.
+            {
+                star = star.referenceBody;
+                iDepth++;
+            }
+            if ((star.GetTemperature(0) < 2000) || (star.name == "Galactic Core"))
+                star = null;
 
+            return star;
+        }
 
         // calculates solar wind concentration
         private static double CalculateSolarWindConcentration(double flux)
         {
             double dAvgKerbinSolarFlux = 1409.285; // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
-            double dAvgSolarWindPerSqM = 6000.0; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3). Here I am optimistic and say that ALL of those hit the collector's surface area of 1 square meter.
+            double dAvgSolarWindPerCubM = 6000.0; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3).
             // solarFlux = part.vessel.solarFlux;
-            double dConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerSqM;
+            double dConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerCubM;
             return dConcentration;
         }
 
         // calculates the distance to sun
-        private double CalculateDistanceToSun()
+        private static double CalculateDistanceToSun(Vector3d vesselPosition, Vector3d sunPosition)
         {
-            Vector3d sunPosition = FlightGlobals.fetch.bodies[0].position;
-            Vector3d vesselPosition = this.part.transform.position;
-            return dDistanceFromStar = Vector3d.Distance(vesselPosition,sunPosition);
+            //Vector3d sunPosition = FlightGlobals.fetch.bodies[0].position;
+            //Vector3d vesselPosition = this.part.transform.position;
+            double dDistance = Vector3d.Distance(vesselPosition,sunPosition);
+            return dDistance;
         }
 
         // the main collecting function
@@ -225,6 +247,10 @@ namespace FNPlugin
 
             // this is the first important bit - how much solar wind has been collected
             // double dResourceChange = ((dConcentrationSolarWind * surfaceArea)/1000) * effectiveness * fLastPowerPercentage * deltaTimeInSeconds;
+
+            /** The first important bit.
+             * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
+             * */
             double dResourceChange = (dConcentrationSolarWind * surfaceArea * dSolarWindDensity) * effectiveness * fLastPowerPercentage * deltaTimeInSeconds;
 
             // if the vessel has been out of focus, print out the collected amount for the player
