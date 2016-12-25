@@ -430,9 +430,7 @@ namespace FNPlugin
         public void FixedUpdate()
         {
             if (initializationCountdown > 0)
-            {
                 initializationCountdown--;
-            }
 
             if (!HighLogic.LoadedSceneIsFlight) return;
 
@@ -453,8 +451,6 @@ namespace FNPlugin
             var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
             var megaJoulesBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
             var powerAvailableForThisEngine = availablePower * _electrical_share_f;
-
-
 
             var currentPropellantEfficiency = CurrentPropellantEfficiency;
             var power_per_engine = megaJoulesBarRatio * ModifiedThrotte * EvaluateMaxThrust(powerAvailableForThisEngine) * CurrentIspMultiplier * _modifiedEngineBaseISP / GetPowerThrustModifier() * _g0;
@@ -564,7 +560,7 @@ namespace FNPlugin
             double demandMass;
 
             // determine fuel availability
-            if (propellantAverageDensity > 0)
+            if (propellantAverageDensity > 0 && !CheatOptions.InfinitePropellant)
             {
                 CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, propellantAverageDensity, thrustDirection, out demandMass);
 

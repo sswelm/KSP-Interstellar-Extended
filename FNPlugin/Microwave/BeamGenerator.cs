@@ -151,12 +151,12 @@ namespace FNPlugin.Microwave
             {
                 if (selectedBeamConfiguration < BeamConfigurations.Count)
                 {
-                    //Debug.Log("[KSP Interstellar] UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
+                    //Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedBeamConfiguration + " < orderedBeamGenerators.Count");
                     activeConfiguration = BeamConfigurations[selectedBeamConfiguration];
                 }
                 else
                 {
-                    //Debug.Log("[KSP Interstellar] UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
+                    //Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedBeamConfiguration + " >= orderedBeamGenerators.Count");
                     selectedBeamConfiguration = BeamConfigurations.Count - 1;
                     activeConfiguration = BeamConfigurations.Last();
                 }
@@ -164,15 +164,21 @@ namespace FNPlugin.Microwave
 
             if (activeConfiguration == null)
             {
-                //Debug.Log("[KSP Interstellar] UpdateFromGUI no activeConfiguration found");
+                Debug.Log("[KSP Interstellar] UpdateFromGUI no activeConfiguration found");
                 return;
             }
 
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI updated wave data");
-            wavelength = activeConfiguration.wavelength;
             beamWaveName = activeConfiguration.beamWaveName;
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI set beamWaveName to " + beamWaveName);
+            
+            wavelength = activeConfiguration.wavelength;
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI set wavelenth to " + wavelength);
+            
             atmosphericAbsorptionPercentage = activeConfiguration.atmosphericAbsorptionPercentage;
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI set atmosphericAbsorptionPercentage to " + atmosphericAbsorptionPercentage);
+
             waterAbsorptionPercentage = activeConfiguration.waterAbsorptionPercentage;
+            //Debug.Log("[KSP Interstellar] UpdateFromGUI set waterAbsorptionPercentage to " + waterAbsorptionPercentage);
 
             UpdateEfficiencyPercentage();
         }

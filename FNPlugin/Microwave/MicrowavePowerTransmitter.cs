@@ -75,10 +75,8 @@ namespace FNPlugin
         public double apertureDiameter = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Transmit Status")]
         public string statusStr;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Transmission Efficiency", guiUnits = "%")]
         public double transmissionEfficiencyPercentage;
-
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reactor Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Solar Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
@@ -379,6 +377,7 @@ namespace FNPlugin
 
             bool isTransmitting = IsEnabled && !relay;
 
+            Fields["apertureDiameter"].guiActive = isTransmitting; 
             Fields["beamedpower"].guiActive = isTransmitting && canBeActive;
             Fields["transmitPower"].guiActive = isTransmitting;
             Fields["solarPowertransmission"].guiActive = isTransmitting;

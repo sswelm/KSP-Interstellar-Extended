@@ -615,12 +615,10 @@ namespace FNPlugin
 
                 effectiveRadiatorArea = EffectiveRadiatorArea;
 
-                _maxEnergyTransfer = radiatorArea * 500 * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
+                _maxEnergyTransfer = radiatorArea * 1000 * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
 
                 if (_moduleActiveRadiator != null)
-                {
                     _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
-                }
 
                 if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))
                 {
