@@ -17,7 +17,6 @@ namespace FNPlugin
         public int fuel_mode;
         [KSPField(isPersistant = true)]
         public bool vacplasmaadded = false;
- 
 
         //Persistent False
         [KSPField(isPersistant = false)]
@@ -112,6 +111,8 @@ namespace FNPlugin
         protected double thrust_d = 0;
         protected double isp_d = 0;
         protected double throttle_d = 0;
+
+        protected PartResource vacuumPlasmaResource;
 
         private ElectricEnginePropellant _current_propellant;
         public ElectricEnginePropellant Current_propellant
@@ -211,6 +212,7 @@ namespace FNPlugin
                 _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.upgradeAvailable(gearsTechReq);
                 _modifiedEngineBaseISP = baseISP * PluginHelper.ElectricEngineIspMult;
                 _hasrequiredupgrade = this.HasTechsRequiredToUpgrade();
+                vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
 
                 if (_hasrequiredupgrade && (isupgraded || state == StartState.Editor))
                     upgradePartModule();
@@ -292,14 +294,6 @@ namespace FNPlugin
                 if (HighLogic.LoadedSceneIsFlight)
                 {
                     // you can have any fuel you want in the editor but not in flight
-                    //List<PartResource> totalpartresources = list_of_propellants.SelectMany(prop => part.GetConnectedResources(prop.name.Replace("LqdWater", "Water"))).ToList();
-                    //if (!list_of_propellants.All(prop => totalpartresources.Select(pr => pr.resourceName).Contains(prop.name.Replace("LqdWater", "Water"))) && _rep < _propellants.Count)
-                    //{
-                    //    _rep++;
-                    //    togglePropellant(moveNext);
-                    //    return;
-                    //}
-
                     var allVesselResourcesNames = part.vessel.parts.SelectMany(m => m.Resources).Select(m => m.resourceName).Distinct();
                     if (!list_of_propellants.All(prop => allVesselResourcesNames.Contains(prop.name.Replace("LqdWater", "Water"))) && _rep < _propellants.Count)
                     {
@@ -436,9 +430,7 @@ namespace FNPlugin
         public void FixedUpdate()
         {
             if (initializationCountdown > 0)
-            {
                 initializationCountdown--;
-            }
 
             if (!HighLogic.LoadedSceneIsFlight) return;
 
@@ -464,7 +456,7 @@ namespace FNPlugin
             var power_per_engine = megaJoulesBarRatio * ModifiedThrotte * EvaluateMaxThrust(powerAvailableForThisEngine) * CurrentIspMultiplier * _modifiedEngineBaseISP / GetPowerThrustModifier() * _g0;
 
             maxThrottlePower = maxEffectivePower * ModifiedThrotte;
-            power_request = currentPropellantEfficiency <= 0 ? 0 : Math.Min(power_per_engine  / currentPropellantEfficiency, maxThrottlePower);
+            power_request = currentPropellantEfficiency <= 0 ? 0 : Math.Min(power_per_engine / currentPropellantEfficiency, maxThrottlePower);
 
             var power_received = consumeFNResource(power_request * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
@@ -476,6 +468,8 @@ namespace FNPlugin
             _electrical_consumption_f = power_received;
             _heat_production_f = heat_production;
 
+
+
             var max_thrust_in_space = currentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseISP * ThrottleModifiedIsp() * _g0 * ModifiedThrotte);
 
             _maxISP = _modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
@@ -485,6 +479,7 @@ namespace FNPlugin
             throtle_max_thrust = Current_propellant.SupportedEngines == 8
                 ? max_thrust_with_current_throttle
                 : Math.Max(max_thrust_with_current_throttle - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0);
+
 
             float throttle = _attached_engine.currentThrottle > 0 ? Mathf.Max(_attached_engine.currentThrottle, 0.01f) : 0;
 
@@ -531,8 +526,10 @@ namespace FNPlugin
                     this.part.Effect(Current_propellant.ParticleFXName, 0, -1);
             }
 
-            if (isupgraded)
-                this.part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma].maxAmount);
+            if (isupgraded && vacuumPlasmaResource != null)
+            {
+                this.part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
+            }
         }
 
         public static Vector3d CalculateDeltaVV(float totalMass, double deltaTime, double thrust, double isp, double averageDensity, Vector3d thrustDirection, out double demandMass)
@@ -563,7 +560,7 @@ namespace FNPlugin
             double demandMass;
 
             // determine fuel availability
-            if (propellantAverageDensity > 0)
+            if (propellantAverageDensity > 0 && !CheatOptions.InfinitePropellant)
             {
                 CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, propellantAverageDensity, thrustDirection, out demandMass);
 

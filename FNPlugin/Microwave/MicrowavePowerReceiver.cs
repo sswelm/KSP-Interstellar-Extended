@@ -30,6 +30,10 @@ namespace FNPlugin
         public bool receiverIsEnabled;
         [KSPField(isPersistant = true)]
         public double storedTemp;
+        //[KSPField(isPersistant = true, guiActive = true)]
+        //public double emissiveConstant;
+        //[KSPField(isPersistant = true)]
+        //public bool isSolarReflector;
 
         [KSPField(isPersistant = true)]
         public bool animatonDeployed = false;
@@ -68,7 +72,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
         public float facingEfficiencyExponent = 0.1f;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
-        public float spotsizeNormalizationExponent = 0.5f;
+        public float spotsizeNormalizationExponent = 1f;
         [KSPField(isPersistant = false)]
         public bool canLinkup = true;
 
@@ -657,8 +661,9 @@ namespace FNPlugin
             if (state == StartState.Editor) { return; }
 
             // compensate for stock solar initialisation heating bug
-            part.temperature = storedTemp;
-            initializationCountdown = 50;
+
+
+            initializationCountdown = 10;
 
             if (forceActivateAtStartup)
                 part.force_activate();
@@ -776,6 +781,15 @@ namespace FNPlugin
                     genericAnimation.Toggle();
                 }
             }
+        }
+
+        public override void OnLoad(ConfigNode node)
+        {
+            //if (isSolarReflector)
+            //{
+                part.temperature = storedTemp;
+                part.skinTemperature = storedTemp;
+            //}
         }
 
         private void InitializeThermalModeSwitcher()
@@ -972,6 +986,10 @@ namespace FNPlugin
             Fields["currentPowerUsageByOtherRecievers"].guiActive = receiverIsEnabled;
             Fields["remainingPowerFromSource"].guiActive = receiverIsEnabled;
 
+            Fields["selectedBandwidthConfiguration"].guiActive = canSwitchBandwidthInEditor && receiverIsEnabled;
+            Fields["minimumWavelength"].guiActive = receiverIsEnabled;
+            Fields["maximumWavelength"].guiActive = receiverIsEnabled;
+
             Fields["solarFacingFactor"].guiActive = solarReceptionSurfaceArea > 0;
             Fields["solarFlux"].guiActive = solarReceptionSurfaceArea > 0;
 
@@ -1120,17 +1138,22 @@ namespace FNPlugin
 
             base.OnFixedUpdate();
 
+            //if (isSolarReflector)
+            //{
+                if (initializationCountdown > 0)
+                {
+                    initializationCountdown--;
 
-            if (initializationCountdown > 0)
-            {
-                part.temperature = storedTemp;
-                initializationCountdown--;
-            }
-            else
-            {
-                //store part temperature
-                storedTemp = part.temperature;
-            }
+                    part.temperature = storedTemp;
+                    part.skinTemperature = storedTemp;
+                }
+                else
+                {
+                    //store part temperature
+                    //part.emissiveConstant = emissiveConstant;
+                    storedTemp = part.temperature;
+                }
+            //}
 
             if (radiatorMode)
             {
