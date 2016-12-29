@@ -135,16 +135,14 @@ namespace FNPlugin
         {
             if (isupgraded)
             {
-                float power_returned = consumeFNResource(upgradedMegajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-
-                //if (moduleCommand != null)
-                //    moduleCommand.enabled = power_returned >= megajouleRate;
+                float power_returned = CheatOptions.InfiniteElectricity 
+                    ? upgradedMegajouleRate 
+                    : consumeFNResource(upgradedMegajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
                 electrical_power_ratio = power_returned / upgradedMegajouleRate;
                 float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
 
-                //var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed);
                 var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
 
                 science_rate_f = (float)(baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * power_returned / upgradedMegajouleRate / Math.Sqrt(altitude_multiplier));

@@ -206,7 +206,7 @@ namespace FNPlugin
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warpfactor);
 
-            if (currentPowerRequirementForWarp > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES))
+            if (!CheatOptions.InfiniteElectricity && currentPowerRequirementForWarp > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES))
             {
                 ScreenMessages.PostScreenMessage("Warp power requirement is higher that maximum power supply!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
@@ -240,7 +240,10 @@ namespace FNPlugin
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warp_factor);
 
-            float power_returned = consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            float power_returned = CheatOptions.InfiniteElectricity 
+                ? currentPowerRequirementForWarp 
+                : consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+
             if (power_returned < 0.99 * currentPowerRequirementForWarp)
             {
                 initiateWarpTimeout--;
@@ -747,10 +750,13 @@ namespace FNPlugin
 
             if (IsCharging)
             {
-                float available_power = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                double powerDraw = Math.Max(minPowerRequirementForLightSpeed, Math.Min((maxExoticMatter - currentExoticMatter) / 0.001, available_power));
+                double powerDraw = CheatOptions.InfiniteElectricity 
+                    ? (maxExoticMatter - currentExoticMatter) / 0.001
+                    : Math.Max(minPowerRequirementForLightSpeed, Math.Min((maxExoticMatter - currentExoticMatter) / 0.001, getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES)));
 
-                double power_returned = consumeFNResource(powerDraw * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                double power_returned = CheatOptions.InfiniteElectricity 
+                    ? powerDraw
+                    : consumeFNResource(powerDraw * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
                 if (power_returned < 0.99 * minPowerRequirementForLightSpeed)
                     insufficientPowerTimeout--;
@@ -770,7 +776,8 @@ namespace FNPlugin
                     part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -power_returned * 0.001 * TimeWarp.fixedDeltaTime);
                 }
 
-                supplyFNResource(-power_returned * 0.999 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResource(-power_returned * 0.999 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             }
 
             if (!IsEnabled)
@@ -808,13 +815,25 @@ namespace FNPlugin
         {
             if (!IsEnabled || exotic_power_required <= 0) return;
 
-            float available_power = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
-
             float new_warp_factor = engine_throtle[selected_factor];
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warp_factor);
-            float power_returned = consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-            supplyFNResource(-power_returned * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+            float available_power = CheatOptions.InfiniteElectricity 
+                ? currentPowerRequirementForWarp
+                : (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+            float power_returned;
+
+            if (CheatOptions.InfiniteElectricity)
+                power_returned = currentPowerRequirementForWarp;
+            else
+            {
+                power_returned = consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResource(-power_returned * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+            }
 
             // retreive vessel heading
             Vector3d new_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
@@ -855,7 +874,7 @@ namespace FNPlugin
                 selected_factor = maximumWarpSpeedFactor;
             }
 
-            if (hasPowerShortage)
+            if (!CheatOptions.InfiniteElectricity && hasPowerShortage)
             {
                 if (selected_factor == minimumPowerAllowedFactor || selected_factor == minimum_selected_factor || power_returned < 0.99 * PowerRequirementForMaximumAllowedLightSpeed)
                 {

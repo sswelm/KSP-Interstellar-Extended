@@ -275,7 +275,7 @@ namespace FNPlugin
         {
             powerEnabled = !powerEnabled;
 
-            power_recieved_f = powerEnabled ? (float)consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES) : 0;
+            power_recieved_f = powerEnabled ? CheatOptions.InfiniteElectricity ? 1 : (float)consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES) : 0;
             hasSufficientPower = power_recieved_f > 0.01;
             SetupPropellants();
             currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
@@ -401,7 +401,7 @@ namespace FNPlugin
             if (delayedVerificationPropellant)
             {
                 // test is we got any megajoules
-                power_recieved_f = (float)consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : (float)consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 hasSufficientPower = power_recieved_f > 0.01;
 
                 delayedVerificationPropellant = false;
@@ -473,12 +473,20 @@ namespace FNPlugin
                 float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
                 power_requested_f = currentThrust * maxIsp * efficencyModifier / currentThrustMultiplier;
                 power_requested_raw = power_requested_f * TimeWarp.fixedDeltaTime;
-                power_recieved_raw = consumeFNResource(power_requested_raw, FNResourceManager.FNRESOURCE_MEGAJOULES) + power_remainer_raw;
+
+                power_recieved_raw = CheatOptions.InfiniteElectricity 
+                    ? power_requested_raw 
+                    : consumeFNResource(power_requested_raw, FNResourceManager.FNRESOURCE_MEGAJOULES) + power_remainer_raw;
+
                 power_remainer_raw = 0;
                 power_recieved_f = power_recieved_raw / TimeWarp.fixedDeltaTime;
 
                 float heat_to_produce = power_recieved_f * (1 - efficency);
-                heat_production_f = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+
+                heat_production_f = CheatOptions.IgnoreMaxTemperature 
+                    ? heat_to_produce 
+                    : supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+
                 power_ratio = power_requested_f > 0 ? (float)Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
             }
             else

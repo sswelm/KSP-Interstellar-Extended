@@ -997,7 +997,10 @@ namespace FNPlugin
 
                     expectedMaxThrust = AttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP * GetHeatExchangerThrustDivisor();
                     calculatedMaxThrust = expectedMaxThrust;
-                    expectedMaxThrust *= _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / 200f);
+
+                    var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / 200f;
+
+                    expectedMaxThrust *= _thrustPropellantMultiplier * sootMult;
 
                     max_fuel_flow_rate = expectedMaxThrust / _maxISP / PluginHelper.GravityConstant;
 
@@ -1008,7 +1011,10 @@ namespace FNPlugin
                     current_isp = _maxISP * thrustAtmosphereRatio;
 
                     calculatedMaxThrust = Math.Max((calculatedMaxThrust - pressureTreshold), 0.00001);
-                    calculatedMaxThrust *= _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / sootThrustDivider);
+
+                    var sootModifier = CheatOptions.UnbreakableJoints ? 1 : sootHeatDivider > 0 ? 1f - (sootAccumulationPercentage / sootThrustDivider) : 1;
+
+                    calculatedMaxThrust *= _thrustPropellantMultiplier * sootModifier;
 
                     FloatCurve newISP = new FloatCurve();
 
@@ -1124,7 +1130,6 @@ namespace FNPlugin
         {
             try
             {
-
                 if (!AttachedReactor.IsActive)
                     AttachedReactor.EnableIfPossible();
 
@@ -1151,13 +1156,17 @@ namespace FNPlugin
 
                 UpdateSootAccumulation();
 
-                var sootModifier = sootHeatDivider > 0 ? 1f - (sootAccumulationPercentage / sootHeatDivider) : 1;
-                var wasteheatEfficiencyModifier = _maxISP > GameConstants.MaxThermalNozzleIsp ? wasteheatEfficiencyHighTemperature : wasteheatEfficiencyLowTemperature;
+                var sootModifier = CheatOptions.UnbreakableJoints ? 1 : sootHeatDivider > 0 ? 1f - (sootAccumulationPercentage / sootHeatDivider) : 1;
+
+                var wasteheatEfficiencyModifier = _maxISP > GameConstants.MaxThermalNozzleIsp 
+                    ? wasteheatEfficiencyHighTemperature 
+                    : wasteheatEfficiencyLowTemperature;
 
                 consumedWasteHeat = sootModifier * wasteheatEfficiencyModifier * thermal_power_received;
 
                 // consume wasteheat
-                consumeFNResource(consumedWasteHeat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    consumeFNResource(consumedWasteHeat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // calculate max thrust
                 heatExchangerThrustDivisor = GetHeatExchangerThrustDivisor();
@@ -1200,8 +1209,9 @@ namespace FNPlugin
 
                 if (!Double.IsInfinity(max_thrust_in_current_atmosphere) && !double.IsNaN(max_thrust_in_current_atmosphere))
                 {
-                    final_max_engine_thrust = max_thrust_in_current_atmosphere * _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / sootThrustDivider);
-                    calculatedMaxThrust *= _thrustPropellantMultiplier * (1f - sootAccumulationPercentage / sootThrustDivider);
+                    var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / sootThrustDivider;
+                    final_max_engine_thrust = max_thrust_in_current_atmosphere * _thrustPropellantMultiplier * sootMult;
+                    calculatedMaxThrust *= _thrustPropellantMultiplier * sootMult;
                 }
                 else
                 {
@@ -1313,6 +1323,9 @@ namespace FNPlugin
 
         private void UpdateSootAccumulation()
         {
+            if (!CheatOptions.UnbreakableJoints)
+                return;
+
             if (myAttachedEngine.currentThrottle > 0 && _propellantSootFactorFullThrotle != 0 || _propellantSootFactorMinThrotle != 0)
             {
                 float sootEffect;

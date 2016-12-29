@@ -501,7 +501,11 @@ namespace FNPlugin
                 // Calculate Fusion Ratio
                 enginePowerRequirement = CurrentPowerRequirement;
                 var requestedPowerFixed = enginePowerRequirement * TimeWarp.fixedDeltaTime;
-                var recievedPowerFixed = consumeFNResource(requestedPowerFixed, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                var recievedPowerFixed = CheatOptions.InfiniteElectricity 
+                    ? requestedPowerFixed 
+                    : consumeFNResource(requestedPowerFixed, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
                 var plasma_ratio = recievedPowerFixed / requestedPowerFixed;
                 fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;
 
@@ -509,7 +513,8 @@ namespace FNPlugin
                 laserWasteheat = laserWasteheatFixed / TimeWarp.fixedDeltaTime;
 
                 // Lasers produce Wasteheat
-                supplyFNResource(laserWasteheatFixed, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResource(laserWasteheatFixed, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
                 var rateMultplier = MinIsp / SelectedIsp;
@@ -522,7 +527,6 @@ namespace FNPlugin
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)standard_tritium_rate / rateMultplier;
 
                 // Update ISP
-
                 var currentIsp = SelectedIsp;
                 UpdateISP();
 

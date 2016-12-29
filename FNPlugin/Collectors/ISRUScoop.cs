@@ -14,12 +14,12 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public int currentresource = 0;
         [KSPField(isPersistant = true)]
-        public float last_active_time;
+        public double last_active_time;
         [KSPField(isPersistant = true)]
-        public float last_power_percentage ;
+        public double last_power_percentage ;
 
         // part proterties
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Scooped Air")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Scooped Air", guiFormat = "F6")]
         public float scoopair = 0;
         [KSPField(isPersistant = false, guiActiveEditor = false)]
         public float powerReqMult = 1;
@@ -193,7 +193,7 @@ namespace FNPlugin
             ScoopAthmosphere(TimeWarp.fixedDeltaTime, false);
 
             // store current time in case vesel is unloaded
-            last_active_time = (float)Planetarium.GetUniversalTime();
+            last_active_time = Planetarium.GetUniversalTime();
         }
 
         private void ScoopAthmosphere(double deltaTimeInSeconds, bool offlineCollecting)
@@ -219,7 +219,7 @@ namespace FNPlugin
             //double resourcedensity = PartResourceLibrary.Instance.GetDefinition(PluginHelper.atomspheric_resources_tocollect[currentresource]).density;
             double resourcedensity = PartResourceLibrary.Instance.GetDefinition(resourceStoragename).density;
 
-            var maxAltitudeAtmosphere = PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody);
+            double maxAltitudeAtmosphere = PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody);
             
             double upperAtmospherFraction = Math.Max(0, (vessel.altitude - maxAltitudeAtmosphere) / Math.Max(0.000001, maxAltitudeAtmosphere * PluginHelper.MaxAtmosphericAltitudeMult - maxAltitudeAtmosphere));
             double upperatmosphereDensity = 1 - upperAtmospherFraction;
@@ -251,25 +251,29 @@ namespace FNPlugin
 
             double airspeed = part.vessel.srf_velocity.magnitude + 40.0;
             double air = airspeed * (airDensity / 1000) * scoopair / resourcedensity;
-            double scoopedAtm = (float)(air * rescourceFraction);
-            double powerrequirementsMW = (scoopair / 0.15f) * 6f * (float)PluginHelper.PowerConsumptionMultiplier * powerReqMult;
+            double scoopedAtm = air * rescourceFraction;
+            double powerrequirementsMW = (scoopair / 0.15f) * 6f * PluginHelper.PowerConsumptionMultiplier * powerReqMult;
 
             if (scoopedAtm > 0 && part.GetResourceSpareCapacity(resourceStoragename) > 0)
             {
-                // calculate available power
-                float powerreceivedMW = Math.Max((float)consumeFNResource(powerrequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                var powerRequest = powerrequirementsMW * TimeWarp.fixedDeltaTime;
 
-                float normalisedRevievedPowerMW = powerreceivedMW / TimeWarp.fixedDeltaTime;
+                // calculate available power
+                double powerreceivedMW =  CheatOptions.InfiniteElectricity 
+                    ? powerRequest 
+                    : Math.Max(consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+
+                double normalisedRevievedPowerMW = powerreceivedMW / TimeWarp.fixedDeltaTime;
 
                 // if power requirement sufficiently low, retreive power from KW source
                 if (powerrequirementsMW < 2 && normalisedRevievedPowerMW <= powerrequirementsMW)
                 {
-                    var requiredKW = (float)(powerrequirementsMW - normalisedRevievedPowerMW) * 1000;
+                    var requiredKW = (powerrequirementsMW - normalisedRevievedPowerMW) * 1000;
                     var recievedKW = ORSHelper.fixedRequestResource(part, FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, requiredKW * TimeWarp.fixedDeltaTime);
                     powerreceivedMW += (recievedKW / 1000);
                 }
 
-                last_power_percentage = offlineCollecting ? last_power_percentage : (float)(powerreceivedMW / powerrequirementsMW / TimeWarp.fixedDeltaTime);
+                last_power_percentage = offlineCollecting ? last_power_percentage : powerreceivedMW / powerrequirementsMW / TimeWarp.fixedDeltaTime;
             }
             else
             {

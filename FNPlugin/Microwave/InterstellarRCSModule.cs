@@ -302,9 +302,17 @@ namespace FNPlugin
                 float currentIsp = attachedRCS.atmosphereCurve.Evaluate(curve_eval_point);
 
                 power_requested_f = currentThrust * currentIsp * efficencyModifier / currentThrustMultiplier;
-                power_recieved_f = consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+
+                power_recieved_f = CheatOptions.InfiniteElectricity 
+                    ? power_requested_f 
+                    : consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+
                 float heat_to_produce = power_recieved_f * (1 - efficency);
-                heat_production_f = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+
+                heat_production_f = CheatOptions.IgnoreMaxTemperature 
+                    ? heat_to_produce 
+                    : supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+
                 power_ratio = power_requested_f > 0 ? (float)Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
             }
             else

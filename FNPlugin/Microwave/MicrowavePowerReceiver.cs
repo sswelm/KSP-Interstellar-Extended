@@ -240,7 +240,14 @@ namespace FNPlugin
         }
         public double ThermalEfficiency
         {
-            get { return HighLogic.LoadedSceneIsFlight ? (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) : 1; }
+            get 
+            { 
+                return HighLogic.LoadedSceneIsFlight 
+                    ? CheatOptions.IgnoreMaxTemperature 
+                        ? 1 
+                        : (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) 
+                    : 1; 
+            }
         }
 
         public double MaximumRecievePower
@@ -1127,7 +1134,10 @@ namespace FNPlugin
             currentIsThermalEnergyGenratorActive = 0;
 
             storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
-            wasteheatRatio = Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
+
+            wasteheatRatio = CheatOptions.IgnoreMaxTemperature 
+                ? 0 
+                : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
 
             if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0)
             {
@@ -1278,7 +1288,8 @@ namespace FNPlugin
                 {
                     fixedSolarInputMegajoules = supplyFNResource(solarInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    supplyFNResource(fixedSolarInputMegajoules, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                        supplyFNResource(fixedSolarInputMegajoules, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 }
                 else
                 {
@@ -1291,8 +1302,8 @@ namespace FNPlugin
                 if (alternatorRatio != 0)
                     part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, alternatorRatio * -powerInputMegajoules * TimeWarp.fixedDeltaTime);
 
-                // add wasteheat
-                supplyFNResource(total_waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResource(total_waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 if (powerInputMegajoules > 0 && wasteheatResource != null)
                 {
@@ -1306,7 +1317,8 @@ namespace FNPlugin
                 {
                     var fixed_beamed_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                        supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
                     var cur_thermal_power = (fixed_beamed_thermal_power + fixedSolarInputMegajoules) / TimeWarp.fixedDeltaTime;
 

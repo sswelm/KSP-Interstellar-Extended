@@ -593,7 +593,8 @@ namespace FNPlugin
 
                     var effective_input_power = input_power * _totalEff;
 
-                    consumeFNResource(effective_input_power, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                        consumeFNResource(effective_input_power, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                     electricdtps = Math.Max(effective_input_power / TimeWarp.fixedDeltaTime, 0.0);
                     max_electricdtps = maxThermalPower * _totalEff * powerCustomSettingFraction;
@@ -618,7 +619,8 @@ namespace FNPlugin
 
                     var effective_input_power = input_power * _totalEff;
 
-                    consumeFNResource(effective_input_power, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                        consumeFNResource(effective_input_power, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                     electricdtps = Math.Max(effective_input_power / TimeWarp.fixedDeltaTime, 0.0);
                     max_electricdtps = maxChargedPower * _totalEff * powerCustomSettingFraction;

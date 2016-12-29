@@ -340,7 +340,7 @@ namespace InterstellarFuelSwitch
 
                 _chooseField = Fields["selectedTankSetup"];
                 _chooseField.guiName = switcherDescription;
-                _chooseField.guiActiveEditor = availableInEditor && hasSwitchChooseOption;
+                _chooseField.guiActiveEditor = hasSwitchChooseOption;
                 _chooseField.guiActive = false;
 
                 var chooseOptionEditor = _chooseField.uiControlEditor as UI_ChooseOption;

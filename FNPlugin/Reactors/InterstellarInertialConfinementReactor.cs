@@ -164,7 +164,7 @@ namespace FNPlugin
 
         public override void OnUpdate() 
         {
-            if (!isChargingForJumpstart && !isSwappingFuelMode && getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert) 
+            if (!CheatOptions.InfiniteElectricity && !isChargingForJumpstart && !isSwappingFuelMode && getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert) 
             {
                 ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 10.0f, ScreenMessageStyle.UPPER_CENTER);
                 fusion_alert = true;
@@ -239,10 +239,12 @@ namespace FNPlugin
             var powerRequested = LaserPowerRequirements * TimeWarp.fixedDeltaTime * Math.Max(reactor_power_ratio, 0.00001);
 
             // consume reactor power requirements
-            var powerReceived = consumeFNResource(powerRequested, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            var powerReceived = CheatOptions.InfiniteElectricity 
+                ? powerRequested 
+                : consumeFNResource(powerRequested, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
             // retreive any shortage from buffer
-            if (IsEnabled && powerReceived < powerRequested)
+            if (!CheatOptions.InfiniteElectricity &&  IsEnabled && powerReceived < powerRequested)
             {
                 // retreive megawath ratio
                 var megaWattStorageRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
@@ -356,7 +358,10 @@ namespace FNPlugin
                 if (neededPower > 0)
                 {
                     // verify we amount of power collected exceeds treshhold
-                    var returnedMegaJoulePower = consumeFNResource(neededPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    var returnedMegaJoulePower = CheatOptions.InfiniteElectricity 
+                        ? neededPower 
+                        : consumeFNResource(neededPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
                     if (startupMinimumChargePercentage == 0 || returnedMegaJoulePower / TimeWarp.fixedDeltaTime > (startupMinimumChargePercentage * StartupPower))
                     {
                         accumulatedElectricChargeInMW += returnedMegaJoulePower;

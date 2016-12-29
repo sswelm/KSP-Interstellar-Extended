@@ -127,6 +127,8 @@ namespace FNPlugin
         public void DeactivateTransmitter()
         {
             if (relay) return;
+
+            ScreenMessages.PostScreenMessage("Transmitter deactivated", 4.0f, ScreenMessageStyle.UPPER_CENTER);
  
             if (anim != null)
             {
@@ -161,6 +163,8 @@ namespace FNPlugin
         public void DeactivateRelay()
         {
             if (!relay) return;
+
+            ScreenMessages.PostScreenMessage("Relay deactivated", 4.0f, ScreenMessageStyle.UPPER_CENTER);
 
             if (anim != null)
             {
@@ -269,7 +273,8 @@ namespace FNPlugin
                     anim[animName].normalizedTime = 1f;
                     anim[animName].speed = -1f;
                 }
-                anim.Play();
+                //anim.Play();
+                anim.Blend(animName, part.mass);
             }
 
             if (forceActivateAtStartup)
@@ -381,7 +386,7 @@ namespace FNPlugin
             Fields["beamedpower"].guiActive = isTransmitting && canBeActive;
             Fields["transmitPower"].guiActive = isTransmitting;
             Fields["solarPowertransmission"].guiActive = isTransmitting;
-            Fields["displayed_solar_power"].guiActive = isTransmitting;
+            Fields["displayed_solar_power"].guiActive = isTransmitting && displayed_solar_power > 0;
 
             if (IsEnabled)
             {
@@ -450,21 +455,36 @@ namespace FNPlugin
 
             if (activeBeamGenerator != null && IsEnabled && !relay)
             {
-                var reactorPowerTransmissionRatio = transmitPower / 100;
-                var solarPowertransmissionRatio = solarPowertransmission / 100;
-                var transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100;
-                var transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100;
+                float reactorPowerTransmissionRatio = transmitPower / 100;
+                float solarPowertransmissionRatio = solarPowertransmission / 100;
 
-                var megaJoulesBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var availableReactorPower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                double transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100;
+                double transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100;
 
-                var requestedPower = Math.Min(maximumPower, megaJoulesBarRatio * availableReactorPower * reactorPowerTransmissionRatio);
-                var receivedPowerFixedDelta = consumeFNResource(requestedPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                double requestedPower;
+
+                if (CheatOptions.InfiniteElectricity)
+                {
+                    requestedPower = maximumPower;
+                }
+                else
+                {
+                    var availableReactorPower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+
+                    requestedPower = Math.Min(maximumPower, getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) * availableReactorPower * reactorPowerTransmissionRatio);
+                }
+
+                var fixedRequestedPower = requestedPower * TimeWarp.fixedDeltaTime;
+
+                var receivedPowerFixedDelta = CheatOptions.InfiniteElectricity 
+                    ? fixedRequestedPower
+                    : consumeFNResource(fixedRequestedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 nuclear_power += 1000 * reactorPowerTransmissionRatio * transmissionEfficiencyRatio * receivedPowerFixedDelta / TimeWarp.fixedDeltaTime;
 
                 // generate wasteheat for converting electric power to beamed power
-                supplyFNResource(receivedPowerFixedDelta * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResource(receivedPowerFixedDelta * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
@@ -666,10 +686,10 @@ namespace FNPlugin
                 {
                     if (protomodule.moduleName == "MicrowavePowerTransmitter")
                     {
-                        bool IsEnabled = bool.Parse(protomodule.moduleValues.GetValue("IsEnabled"));
+                        bool transmitterIsEnabled = bool.Parse(protomodule.moduleValues.GetValue("IsEnabled"));
 
                         // filter on active transmitters
-                        if (IsEnabled)
+                        if (transmitterIsEnabled)
                         {
                             totalCount++;
                             totalAperture += double.Parse(protomodule.moduleValues.GetValue("aperture"));

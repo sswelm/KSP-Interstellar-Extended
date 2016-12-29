@@ -23,7 +23,7 @@ namespace FNPlugin
         public string resourceGUIName;
         [KSPField(isPersistant = false)]
         public float resourceRatioExp = 0.5f;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public double boilOffRate;
         [KSPField(isPersistant = false, guiActive = false)]
         public float powerReqKW;
@@ -56,9 +56,9 @@ namespace FNPlugin
         public string StartActionName = "Activate Cooling";
         [KSPField(isPersistant = false)]
         public string StopActionName = "Deactivate Cooling";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Power")]
         public string powerStatusStr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Boiloff")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Boiloff")]
         public string boiloffStr;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Environment Factor")]
         public double environmentFactor;
@@ -66,7 +66,10 @@ namespace FNPlugin
         public double externalTemperature;
 
         protected int initializationCountdown;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "internal boiloff")]
         protected double boiloff;
+
         protected PartResource cryostat_resource;
         protected double recievedPowerKW;
         protected double currentPowerReq;
@@ -104,11 +107,13 @@ namespace FNPlugin
 
             if (cryostat_resource != null)
             {
-                bool coolingIsRelevant = powerReqKW > 0 && cryostat_resource.amount > 0;
+                var requiresPower = powerReqKW > 0;
 
-                Events["Activate"].active = isDisabled && coolingIsRelevant;
-                Events["Deactivate"].active = !isDisabled && coolingIsRelevant;
-                Fields["powerStatusStr"].guiActive = showPower && coolingIsRelevant;
+                bool coolingIsRelevant = cryostat_resource.amount > 0 && (boilOffRate > 0 || requiresPower);
+
+                Events["Activate"].active = isDisabled && requiresPower;
+                Events["Deactivate"].active = !isDisabled && requiresPower;
+                Fields["powerStatusStr"].guiActive = showPower && requiresPower;
                 Fields["boiloffStr"].guiActive = showBoiloff && boiloff > 0.00001;
                 Fields["externalTemperature"].guiActive = showTemp && coolingIsRelevant;
 
@@ -169,13 +174,13 @@ namespace FNPlugin
                 return;
             }
 
-
-
             if (!isDisabled && currentPowerReq > 0)
             {
                 var fixedPowerReqKW = currentPowerReq * TimeWarp.fixedDeltaTime;
 
-                double fixedRecievedChargeKW = consumeFNResource(fixedPowerReqKW / 1000, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
+                double fixedRecievedChargeKW = CheatOptions.InfiniteElectricity 
+                    ? fixedPowerReqKW / 1000 
+                    : consumeFNResource(fixedPowerReqKW / 1000, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
 
                 if (fixedRecievedChargeKW <= fixedPowerReqKW)
                     fixedRecievedChargeKW += part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, (fixedPowerReqKW - fixedRecievedChargeKW) / 1000) * 1000;
@@ -191,18 +196,20 @@ namespace FNPlugin
             else
                 recievedPowerKW = 0;
 
-            var boiloffReducuction = recievedPowerKW >= currentPowerReq
+            var hasExtraBoiloff = powerReqKW > 0 && recievedPowerKW < currentPowerReq;
+
+            var boiloffReducuction = !hasExtraBoiloff
                     ? boilOffRate
                     : (boilOffRate + (boilOffAddition * (1 - recievedPowerKW / currentPowerReq)));
 
-            boiloff = boiloffReducuction <= 0 ? 0 : environmentFactor * boiloffReducuction * boilOffMultiplier * boilOffBase;
+            boiloff = CheatOptions.IgnoreMaxTemperature ||  boiloffReducuction <= 0 ? 0 : environmentFactor * boiloffReducuction * boilOffMultiplier * boilOffBase;
 
-            if (boiloff > 0.000001)
+            if (boiloff > 0.000000001)
             {
                 cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
                 boiloffStr = boiloff.ToString("0.000000") + " L/s " + cryostat_resource.resourceName;
 
-                if (part.vessel.isActiveVessel)
+                if (hasExtraBoiloff && part.vessel.isActiveVessel)
                     ScreenMessages.PostScreenMessage("Warning: " + boiloffStr + " Boiloff", 0.02f, ScreenMessageStyle.UPPER_CENTER);
             }
             else

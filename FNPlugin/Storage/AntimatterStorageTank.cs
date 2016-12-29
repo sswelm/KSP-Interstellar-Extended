@@ -11,7 +11,7 @@ namespace FNPlugin
     {
         //Persistent True
         [KSPField(isPersistant = true)]
-        public float chargestatus = 1000.0f;
+        public double chargestatus = 1000.0f;
 
         //Persistent False
         [KSPField(isPersistant = false)]
@@ -28,11 +28,11 @@ namespace FNPlugin
 
         bool charging = false;
         bool should_charge = false;
-        float explosion_time = 0.35f;
+        double explosion_time = 0.35f;
         bool exploding = false;
-        float explosion_size = 5000;
-        float cur_explosion_size = 0;
-        float current_antimatter = 0;
+        double explosion_size = 5000;
+        double cur_explosion_size = 0;
+        double current_antimatter = 0;
         int explode_counter = 0;
         GameObject lightGameObject;
         protected PartResource antimatter;
@@ -140,8 +140,8 @@ namespace FNPlugin
             if (antimatter == null) return;
 
             float mult = 1;
-            current_antimatter = (float)antimatter.amount;
-            explosion_size = Mathf.Sqrt(current_antimatter) * 5.0f;
+            current_antimatter = antimatter.amount;
+            explosion_size = Math.Sqrt(current_antimatter) * 5.0;
 
             if (chargestatus > 0 && (current_antimatter > 0.00001 * antimatter.maxAmount))
                 chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
@@ -151,12 +151,17 @@ namespace FNPlugin
 
             if (!should_charge && current_antimatter <= 0.00001 * antimatter.maxAmount) return;
 
-            float charge_to_add = (float)consumeFNResource(mult * 2.0 * chargeNeeded / 1000.0 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f / chargeNeeded;
+            var powerRequest = mult * 2.0 * chargeNeeded / 1000.0 * TimeWarp.fixedDeltaTime;
+
+            double charge_to_add = CheatOptions.InfiniteElectricity
+                ? powerRequest 
+                : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000.0f / chargeNeeded;
+
             chargestatus += charge_to_add;
 
             if (charge_to_add < 2f * TimeWarp.fixedDeltaTime)
             {
-                float more_charge_to_add = ORSHelper.fixedRequestResource(part, "ElectricCharge", mult * 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
+                float more_charge_to_add = ORSHelper.fixedRequestResource(part, FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
                 charge_to_add += more_charge_to_add;
                 chargestatus += more_charge_to_add;
             }
@@ -194,17 +199,17 @@ namespace FNPlugin
         {
             if (!exploding || lightGameObject == null) return;
 
-            if (Mathf.Sqrt(cur_explosion_size) > explosion_size)
+            if (Math.Sqrt(cur_explosion_size) > explosion_size)
             {
                 lightGameObject.GetComponent<Collider>().enabled = false;
                 //Destroy (lightGameObject);
             }
 
             cur_explosion_size += TimeWarp.fixedDeltaTime * explosion_size * explosion_size / explosion_time;
-            lightGameObject.transform.localScale = new Vector3(Mathf.Sqrt(cur_explosion_size), Mathf.Sqrt(cur_explosion_size), Mathf.Sqrt(cur_explosion_size));
-            lightGameObject.GetComponent<Light>().range = Mathf.Sqrt(cur_explosion_size) * 15f;
+            lightGameObject.transform.localScale = new Vector3(Mathf.Sqrt((float)cur_explosion_size), Mathf.Sqrt((float)cur_explosion_size), Mathf.Sqrt((float)cur_explosion_size));
+            lightGameObject.GetComponent<Light>().range = Mathf.Sqrt((float)cur_explosion_size) * 15f;
 
-            if (Mathf.Sqrt(cur_explosion_size) <= explosion_size) return;
+            if (Math.Sqrt(cur_explosion_size) <= explosion_size) return;
 
             TimeWarp.SetRate(0, true);
             vessel.GoOffRails();

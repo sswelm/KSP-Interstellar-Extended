@@ -26,7 +26,7 @@ namespace FNPlugin
             if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) || part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount > 0.01) return;
 
             defuelCurrentFuel();
-            if (isCurrentFuelDepleted())
+            if (IsCurrentFuelDepleted())
             {
                 fuel_mode++;
                 if (fuel_mode >= fuel_modes.Count) 
@@ -134,27 +134,25 @@ namespace FNPlugin
         {
             get
             {
-                try
-                {
-                    if (!HighLogic.LoadedSceneIsFlight)
-                        return base.MaximumThermalPower;
+                if (!HighLogic.LoadedSceneIsFlight)
+                    return base.MaximumThermalPower;
 
-                    if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
-                    {
-                        double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => GetFuelAvailability(fuel) * fuel.DensityInTon);
-                        double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
-                        double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
-                        fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
-                        actinidesModifer = (float)Math.Sqrt(fuel_actinide_mass_ratio);
-                        return (float)(base.MaximumThermalPower * actinidesModifer);
-                    }
-                    return base.MaximumThermalPower;
-                }
-                catch (Exception error)
+                if (CheatOptions.UnbreakableJoints)
                 {
-                    UnityEngine.Debug.LogError("[KSPI] - InterstellarFissionMSRGC.MaximumThermalPower exception: " + error.Message);
+                    actinidesModifer = 1;
                     return base.MaximumThermalPower;
                 }
+
+                if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
+                {
+                    double fuel_mass = current_fuel_mode.ReactorFuels.Sum(fuel => GetFuelAvailability(fuel) * fuel.DensityInTon);
+                    double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
+                    double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
+                    fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
+                    actinidesModifer = (float)Math.Sqrt(fuel_actinide_mass_ratio);
+                    return (float)(base.MaximumThermalPower * actinidesModifer);
+                }
+                return base.MaximumThermalPower;
             }
         }
 
@@ -162,7 +160,7 @@ namespace FNPlugin
         {
             get
             {
-                if (HighLogic.LoadedSceneIsFlight && !isupgraded)
+                if (!CheatOptions.IgnoreMaxTemperature &&  HighLogic.LoadedSceneIsFlight && !isupgraded)
                 {
                     double temp_scale;
 
@@ -200,7 +198,7 @@ namespace FNPlugin
             base.OnStart(state);
 
             // auto switch if current fuel mode is depleted
-            if (isCurrentFuelDepleted())
+            if (IsCurrentFuelDepleted())
             {
                 fuel_mode++;
                 if (fuel_mode >= fuel_modes.Count) 
@@ -284,7 +282,7 @@ namespace FNPlugin
             }
         }
 
-        private bool isCurrentFuelDepleted()
+        private bool IsCurrentFuelDepleted()
         {
             return current_fuel_mode.ReactorFuels.Any(fuel => GetFuelAvailability(fuel) < 0.001);
         }

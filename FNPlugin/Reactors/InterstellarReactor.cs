@@ -641,7 +641,8 @@ namespace FNPlugin
                 else
                     baseCoreTemperature = coreTemperatureMk1;
 
-                var modifiedBaseCoreTemperature = baseCoreTemperature * Math.Max(maxEmbrittlementFraction,  Math.Pow(ReactorEmbrittlemenConditionRatio, 2));
+                var modifiedBaseCoreTemperature = baseCoreTemperature * 
+                    (CheatOptions.UnbreakableJoints ? 1 : Math.Max(maxEmbrittlementFraction,  Math.Pow(ReactorEmbrittlemenConditionRatio, 2)));
 
                 //maxEmbrittlementFraction
 
@@ -662,14 +663,19 @@ namespace FNPlugin
 
         public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
-        public virtual double ReactorEmbrittlemenConditionRatio { get { return Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1); } }
+        public virtual double ReactorEmbrittlemenConditionRatio 
+        { 
+            get { 
+                return Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1); 
+            } 
+        }
 
         public virtual double NormalisedMaximumPower
         {
             get
             {
                 double normalised_fuel_factor = current_fuel_mode == null ? 1.0f : current_fuel_mode.NormalisedReactionRate;
-                var result = RawPowerOutput * normalised_fuel_factor * Math.Sin(ReactorEmbrittlemenConditionRatio * Math.PI * 0.5);
+                var result = RawPowerOutput * normalised_fuel_factor * (CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlemenConditionRatio) * Math.PI * 0.5);
                 return result;
             }
         }
@@ -1102,14 +1108,16 @@ namespace FNPlugin
             {
                 if (IsEnabled)
                 {
-                    if (current_fuel_mode != null && !current_fuel_mode.ReactorFuels.Any(fuel => GetFuelAvailability(fuel) <= 0))
+                    if (CheatOptions.InfinitePropellant || (current_fuel_mode != null && !current_fuel_mode.ReactorFuels.Any(fuel => GetFuelAvailability(fuel) <= 0)))
                     {
                         currentTPwr = PluginHelper.getFormattedPowerString(ongoing_neutron_power_generated) + "_th";
                         currentCPwr = PluginHelper.getFormattedPowerString(ongoing_charged_power_generated) + "_cp";
                         statusStr = "Active (" + powerPcnt.ToString("0.00") + "%)";
                     }
                     else if (current_fuel_mode != null)
+                    {
                         statusStr = current_fuel_mode.ReactorFuels.FirstOrDefault(fuel => GetFuelAvailability(fuel) <= 0).FuelName + " Deprived";
+                    }
                 }
                 else
                 {
@@ -1182,11 +1190,13 @@ namespace FNPlugin
                 var engineThrottleModifier = disableAtZeroThrottle && connectedEngines.Any() && connectedEngines.All(e => e.CurrentThrottle == 0) ? 0 : 1;
                 max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
 
-                geeForceModifier = hasBuoyancyEffects 
+                geeForceModifier = !CheatOptions.UnbreakableJoints && hasBuoyancyEffects 
                     ? Math.Min(Math.Max(1 - ((part.vessel.geeForce - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1) 
                     : 1;
 
-                stored_fuel_ratio = Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => GetFuelRatio(fuel, FuelEfficiency, max_power_to_supply * geeForceModifier)), 1);
+                stored_fuel_ratio = CheatOptions.InfinitePropellant 
+                    ? 1 
+                    : Math.Min(current_fuel_mode.ReactorFuels.Min(fuel => GetFuelRatio(fuel, FuelEfficiency, max_power_to_supply * geeForceModifier)), 1);
 
                 UpdateCapacities(stored_fuel_ratio);
 
@@ -1236,7 +1246,10 @@ namespace FNPlugin
 
                 // Total
                 double total_power_received = balanced_thermal_power_received + balanced_charged_power_received;
-                neutronEmbrittlementDamage += total_power_received * current_fuel_mode.NeutronsRatio / neutronEmbrittlementDivider;
+
+                if (!CheatOptions.UnbreakableJoints)
+                    neutronEmbrittlementDamage += total_power_received * current_fuel_mode.NeutronsRatio / neutronEmbrittlementDivider;
+
                 ongoing_total_power_generated = total_power_received / TimeWarp.fixedDeltaTime;
 
                 total_power_per_frame = total_power_received;
@@ -1248,25 +1261,28 @@ namespace FNPlugin
                 powerPcnt = 100 * ongoing_consumption_rate;
 
                 // consume fuel
-                foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
+                if (!CheatOptions.InfinitePropellant)
                 {
-                    ConsumeReactorFuel(fuel, total_power_received / geeForceModifier);
-                }
+                    foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
+                    {
+                        ConsumeReactorFuel(fuel, total_power_received / geeForceModifier);
+                    }
 
-                // refresh production list
-                reactorProduction.Clear();
+                    // refresh production list
+                    reactorProduction.Clear();
 
-                // produce reactor products
-                foreach (ReactorProduct product in current_fuel_mode.ReactorProducts)
-                {
-                    
-                    var massProduced = ProduceReactorProduct(product, total_power_received / geeForceModifier);
+                    // produce reactor products
+                    foreach (ReactorProduct product in current_fuel_mode.ReactorProducts)
+                    {
+                        var massProduced = ProduceReactorProduct(product, total_power_received / geeForceModifier);
 
-                    reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
+                        reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
+                    }
                 }
 
                 // Waste Heat
-                supplyFNResource(total_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResource(total_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
                 BreedTritium(ongoing_neutron_power_generated, TimeWarp.fixedDeltaTime);
 
@@ -1284,7 +1300,10 @@ namespace FNPlugin
                 BreedTritium(ongoing_neutron_power_generated, TimeWarp.fixedDeltaTime);
 
                 ongoing_consumption_rate = MaximumPower > 0 ? raw_thermal_power_received / MaximumPower / TimeWarp.fixedDeltaTime : 0;
-                supplyFNResource(raw_thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResource(raw_thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+
                 powerPcnt = 100 * ongoing_consumption_rate;
                 decay_ongoing = true;
 
@@ -1395,6 +1414,9 @@ namespace FNPlugin
 
         protected double GetFuelRatio(ReactorFuel reactorFuel, double fuelEfficency, double megajoules)
         {
+            if (CheatOptions.InfinitePropellant)
+                return 1;
+
             var fuelUseForPower = reactorFuel.GetFuelUseForPower(fuelEfficency, megajoules, fuelUsePerMJMult);
 
             return GetFuelAvailability(reactorFuel) / fuelUseForPower;
@@ -1425,9 +1447,11 @@ namespace FNPlugin
             var lithium_request = lith_rate * maximumLitiumConsumtionRatio;
 
             // consume the lithium
-            var lith_used = fastNeutrons 
-                ? part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium7, lithium_request, ResourceFlowMode.STACK_PRIORITY_SEARCH)
-                : part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium6, lithium_request, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+            var lith_used = CheatOptions.InfinitePropellant 
+                ? lithium_request 
+                : fastNeutrons 
+                    ? part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium7, lithium_request, ResourceFlowMode.STACK_PRIORITY_SEARCH)
+                    : part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium6, lithium_request, ResourceFlowMode.STACK_PRIORITY_SEARCH);
 
             lithium_consumed_per_second = lith_used / fixedDeltaTime;
 
@@ -1436,8 +1460,13 @@ namespace FNPlugin
             var helium_production = lith_used * helium_molar_mass_ratio * lithium_def.density / helium_def.density;
 
             // produce tritium and helium
-            tritium_produced_per_second = -part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdTritium, -tritium_production) / fixedDeltaTime;
-            helium_produced_per_second = -part.RequestResource(InterstellarResourcesConfiguration.Instance.Helium4Gas, -helium_production) / fixedDeltaTime;
+            tritium_produced_per_second = CheatOptions.InfinitePropellant 
+                ? tritium_production / fixedDeltaTime 
+                : -part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdTritium, -tritium_production) / fixedDeltaTime;
+
+            helium_produced_per_second = CheatOptions.InfinitePropellant  
+                ? helium_production / fixedDeltaTime 
+                : -part.RequestResource(InterstellarResourcesConfiguration.Instance.Helium4Gas, -helium_production) / fixedDeltaTime;
         }
 
         public virtual double GetCoreTempAtRadiatorTemp(double rad_temp)
@@ -1503,6 +1532,9 @@ namespace FNPlugin
 
         protected void DoPersistentResourceUpdate()
         {
+            if (CheatOptions.InfinitePropellant)
+                return;
+
             // calculate delta time since last processing
             double delta_time_diff = Math.Max(Planetarium.GetUniversalTime() - last_active_time, 0);
 
@@ -1512,13 +1544,19 @@ namespace FNPlugin
                 ConsumeReactorFuel(fuel, delta_time_diff * ongoing_total_power_generated);
             }
 
+            // produce reactor products
+            foreach (ReactorProduct product in current_fuel_mode.ReactorProducts)
+            {
+                var massProduced = ProduceReactorProduct(product, delta_time_diff * ongoing_total_power_generated);
+            }
+
             // breed tritium
             BreedTritium(ongoing_neutron_power_generated, delta_time_diff);
         }
 
         protected bool ReactorIsOverheating()
         {
-            if (getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= emergencyPowerShutdownFraction && canShutdown)
+            if (!CheatOptions.IgnoreMaxTemperature && getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT) >= emergencyPowerShutdownFraction && canShutdown)
             {
                 deactivate_timer++;
                 if (deactivate_timer > 3)

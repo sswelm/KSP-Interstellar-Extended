@@ -59,11 +59,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Recieved Ratio", guiFormat = "F6")]
         public double recievedRatio = 0;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Deuterium Shortage", guiFormat = "F6")]
-        public double deuteriumShortage;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Heliume3 Shortage", guiFormat = "F6")]
-        public double helium3Shortage;
-
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true,  guiName = "Deuterium")]
         public string deuteriumAmounts;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Helium-3")]
@@ -518,7 +513,11 @@ namespace FNPlugin
                 {
                     warpToReal = true; // Set to true for transition to realtime
 
-                    fusionRatio = maximizeThrust ? ProcessPowerAndWasteHeat(1, TimeWarp.fixedDeltaTime) : ProcessPowerAndWasteHeat(storedThrotle, TimeWarp.fixedDeltaTime);
+                    fusionRatio = CheatOptions.InfiniteElectricity 
+                        ? 1 
+                        : maximizeThrust 
+                            ? ProcessPowerAndWasteHeat(1, TimeWarp.fixedDeltaTime) 
+                            : ProcessPowerAndWasteHeat(storedThrotle, TimeWarp.fixedDeltaTime);
 
                     if (TimeWarp.fixedDeltaTime > 20)
                     {
@@ -586,21 +585,26 @@ namespace FNPlugin
             deuteriumUsageDay = deteuriumRequestAmount / fixedDeltaTime * PluginHelper.SecondsInDay;
             helium3UsageDay = helium3RequestAmount / fixedDeltaTime * PluginHelper.SecondsInDay;
 
-            // request deteurium
-            var recievedDeuterium = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deteuriumRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-            deuteriumShortage = deteuriumRequestAmount - recievedDeuterium;
-            recievedDeuterium += part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deuteriumShortage, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-            deuteriumShortage = deteuriumRequestAmount - recievedDeuterium;
+            if (CheatOptions.InfinitePropellant)
+                recievedRatio = 1;
+            else
+            {
+                // request deteurium
+                var recievedDeuterium = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deteuriumRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var deuteriumShortage = deteuriumRequestAmount - recievedDeuterium;
+                recievedDeuterium += part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deuteriumShortage, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                deuteriumShortage = deteuriumRequestAmount - recievedDeuterium;
 
-            // request helium3
-            var recievedHelium3 = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3RequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-            helium3Shortage = helium3RequestAmount - recievedHelium3;
-            recievedHelium3 += part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3Shortage, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-            helium3Shortage = helium3RequestAmount - recievedHelium3;
+                // request helium3
+                var recievedHelium3 = part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3RequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var helium3Shortage = helium3RequestAmount - recievedHelium3;
+                recievedHelium3 += part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3Shortage, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                helium3Shortage = helium3RequestAmount - recievedHelium3;
 
-            recievedRatio = deteuriumRequestAmount > 0 && helium3RequestAmount > 0
-                ? Math.Min(recievedDeuterium / deteuriumRequestAmount, recievedHelium3 / helium3RequestAmount) * fusionRatio
-                : 0;
+                recievedRatio = deteuriumRequestAmount > 0 && helium3RequestAmount > 0
+                    ? Math.Min(recievedDeuterium / deteuriumRequestAmount, recievedHelium3 / helium3RequestAmount) * fusionRatio
+                    : 0;
+            }
 
             effectiveThrust = timeDilationMaximumThrust * recievedRatio;
 
@@ -615,15 +619,23 @@ namespace FNPlugin
             // Calculate Fusion Ratio
             var powerRequirementFixed = PowerRequirement * fixedDeltaTime;
             var requestedPower = (curEngineT.thrustPercentage / 100) * throtle * powerRequirementFixed;
-            var recievedPower = consumeFNResource(requestedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+            var recievedPower = CheatOptions.InfiniteElectricity 
+                ? requestedPower 
+                : consumeFNResource(requestedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
             var plasma_ratio = powerRequirementFixed > 0 ? recievedPower / powerRequirementFixed : 0;
             var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.01 ? plasma_ratio : 0;
 
-            // Lasers produce Wasteheat
-            supplyFNResource(recievedPower * (1 - Efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-            // The Aborbed wasteheat from Fusion
-            supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+            if (!CheatOptions.IgnoreMaxTemperature)
+            {
+                // Lasers produce Wasteheat
+                supplyFNResource(recievedPower * (1 - Efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+                // The Aborbed wasteheat from Fusion
+                supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+            }
 
             fusionPercentage = fusionRatio * 100;
 

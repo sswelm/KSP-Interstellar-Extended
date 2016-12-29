@@ -277,7 +277,8 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
 
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
@@ -364,21 +365,30 @@ namespace FNPlugin
                 // Calculate Fusion Ratio
                 enginePowerRequirement = CurrentPowerRequirement;
                 var requestedPowerFixed = enginePowerRequirement * TimeWarp.fixedDeltaTime;
-                var recievedPowerFixed = consumeFNResource(requestedPowerFixed, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                var recievedPowerFixed = CheatOptions.InfiniteElectricity  
+                    ? requestedPowerFixed 
+                    : consumeFNResource(requestedPowerFixed, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
                 var plasma_ratio = recievedPowerFixed / requestedPowerFixed;
                 fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;
 
                 var laserWasteheatFixed = recievedPowerFixed * (1 - LaserEfficiency);
                 laserWasteheat = laserWasteheatFixed / TimeWarp.fixedDeltaTime;
 
-                // Lasers produce Wasteheat
-                supplyFNResource(laserWasteheatFixed, FNResourceManager.FNRESOURCE_WASTEHEAT);
+
 
                 // The Aborbed wasteheat from Fusion
                 var rateMultplier = minISP / SelectedIsp;
                 var neutronbsorbionBonus = 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - minISP) / (MaxIsp - minISP)));
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;
-                supplyFNResource(absorbedWasteheat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+                // Lasers produce Wasteheat
+                if (!CheatOptions.IgnoreMaxTemperature)
+                {
+                    supplyFNResource(laserWasteheatFixed, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResource(absorbedWasteheat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                }
 
                 // change ratio propellants Hydrogen/Fusion
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;  
