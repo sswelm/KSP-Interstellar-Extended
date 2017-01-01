@@ -24,6 +24,8 @@ namespace FNPlugin
         public float effectiveness = 1.0f; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
         public float mwRequirements = 1.0f; // MW requirements of the collector panel.
+        [KSPField(isPersistant = false)]
+        public string animName;
 
 
         // GUI
@@ -44,6 +46,10 @@ namespace FNPlugin
         {
             bIsEnabled = true;
             OnUpdate();
+            if (IsCollectLegal() == true)
+            {
+                UpdatePartAnimation();
+            }
         }
 
         [KSPEvent(guiActive = true, guiName = "Disable Collector", active = true)]
@@ -51,6 +57,12 @@ namespace FNPlugin
         {
             bIsEnabled = false;
             OnUpdate();
+            // folding nimation will only play if the collector was extended before being disabled
+            if (bIsExtended == true)
+            {
+                UpdatePartAnimation();
+            }
+
         }
 
         [KSPAction("Activate Collector")]
@@ -79,6 +91,9 @@ namespace FNPlugin
         protected double dConcentrationSolarWind = 0;
         protected double dSolarWindSpareCapacity;
         protected double dSolarWindDensity;
+        protected Animation anim;
+        protected bool bIsExtended = false;
+        protected bool bChangeState = false;
 
         protected CelestialBody localStar;
 
@@ -89,6 +104,9 @@ namespace FNPlugin
             this.part.force_activate();
 
             localStar = GetCurrentStar();
+
+            // get the part's animation
+            anim = part.FindModelAnimators(animName).FirstOrDefault();
 
             // verify collector was enabled 
             if (!bIsEnabled) return;
@@ -136,14 +154,11 @@ namespace FNPlugin
                     return;
                 }
 
-                if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
+                // won't collect in atmosphere
+                if (IsCollectLegal() == false)
                 {
-                    ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
-                    strStarDist = UpdateDistanceInGUI();
-                    strSolarWindConc = "0";
                     DisableCollector();
                     return;
-
                 }
 
                 strStarDist = UpdateDistanceInGUI();
@@ -175,6 +190,52 @@ namespace FNPlugin
             return star;
         }
 
+        // checks if the vessel is not in atmosphere and if it can therefore collect solar wind. Could incorporate other checks if needed.
+        private bool IsCollectLegal()
+        {
+            bool bCanCollect = false;
+
+            if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
+            {
+                ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                strStarDist = UpdateDistanceInGUI();
+                strSolarWindConc = "0";
+                return bCanCollect;
+            }
+            else
+                return bCanCollect = true;
+        }
+
+        private void UpdatePartAnimation()
+        {
+            // if folded, plays the part extending animation
+            if (!bIsExtended)
+            {
+                if (anim != null)
+                {
+                    anim[animName].speed = 1f;
+                    anim[animName].normalizedTime = 0f;
+                    anim.Blend(animName, part.mass);
+                }
+                bIsExtended = true;
+                return;
+            }
+
+            // if extended, plays the part folding animation
+            if (bIsExtended)
+            {
+                if (anim != null)
+                {
+                    anim[animName].speed = -1f;
+                    anim[animName].normalizedTime = 1f;
+                    anim.Blend(animName, part.mass);
+                }
+                bIsExtended = false;
+                return;
+            }
+            return;
+        }
+
         // calculates solar wind concentration
         private static double CalculateSolarWindConcentration(double flux)
         {
@@ -188,7 +249,7 @@ namespace FNPlugin
         // calculates the distance to sun
         private static double CalculateDistanceToSun(Vector3d vesselPosition, Vector3d sunPosition)
         {
-            double dDistance = Vector3d.Distance(vesselPosition,sunPosition);
+            double dDistance = Vector3d.Distance(vesselPosition, sunPosition);
             return dDistance;
         }
 
