@@ -349,7 +349,7 @@ namespace FNPlugin
         protected int windowID = 90175467;
         protected bool render_window = false;
 
-        protected float previousTimeWarp;
+        protected float previousDeltaTime;
         protected bool? hasBimodelUpgradeTechReq;
         protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
 
@@ -481,14 +481,14 @@ namespace FNPlugin
         public double EfficencyConnectedChargedEnergyGenerator { get { return storedIsChargedEnergyGenratorActive; } }
 
 
-        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
         {
             currentIsThermalEnergyGenratorActive = efficency;
             if (_firstGeneratorType == ElectricGeneratorType.unknown)
                 _firstGeneratorType = generatorType;
         }
 
-        public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
+        public void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
         {
             currentIsChargedEnergyGenratorActive = efficency;
             if (_firstGeneratorType == ElectricGeneratorType.unknown)
@@ -742,7 +742,7 @@ namespace FNPlugin
             }
         }
 
-        [KSPEvent(guiActive = true, guiName = "Reactor Control Window", active = true, guiActiveUnfocused = true, unfocusedRange = 5f)]
+        [KSPEvent(guiActive = true, guiName = "Reactor Control Window", active = true, guiActiveUnfocused = true, unfocusedRange = 5f, guiActiveUncommand = true)]
         public void ToggleReactorControlWindow()
         {
             render_window = !render_window;
@@ -872,7 +872,7 @@ namespace FNPlugin
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
             _firstGeneratorType = ElectricGeneratorType.unknown;
-            previousTimeWarp = TimeWarp.fixedDeltaTime - 1.0e-6f;
+            previousDeltaTime = TimeWarp.fixedDeltaTime - 1.0e-6f;
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
             staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
 
@@ -935,7 +935,7 @@ namespace FNPlugin
             }
 
             tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdTritium);
-            helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
+            helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium4);
             lithium_def = fastNeutrons
                 ? PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium7)
                 : PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
@@ -1336,12 +1336,14 @@ namespace FNPlugin
         private void UpdateCapacities(double fuel_ratio)
         {
             // calculate thermalpower capacity
-            if (TimeWarp.fixedDeltaTime != previousTimeWarp)
+            if (TimeWarp.fixedDeltaTime != previousDeltaTime)
             {
                 if (thermalPowerResource != null)
                 {
-                    var requiredThermalCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumThermalPower);
-                    var previousThermalCapacity = Math.Max(0.0001, 10 * previousTimeWarp * MaximumThermalPower);
+                    //var stableThemalPowerBuffer = 10 * MaximumThermalPower;
+                    var requiredThermalCapacity = Math.Max(0.0001, 10 * MaximumThermalPower * TimeWarp.fixedDeltaTime);
+                    var previousThermalCapacity = Math.Max(0.0001, 10 * MaximumThermalPower * previousDeltaTime);
+                    var thermalPowerRatio = thermalPowerResource.amount / thermalPowerResource.maxAmount;
 
                     thermalPowerResource.maxAmount = requiredThermalCapacity;
 
@@ -1350,7 +1352,7 @@ namespace FNPlugin
                         // adjust to
                         thermalPowerResource.amount = requiredThermalCapacity > previousThermalCapacity
                                 ? Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerResource.amount + requiredThermalCapacity - previousThermalCapacity))
-                                : Math.Max(0, Math.Min(requiredThermalCapacity, (thermalPowerResource.amount / thermalPowerResource.maxAmount) * requiredThermalCapacity));
+                                : Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerRatio * requiredThermalCapacity));
                     }
                     else
                     {
@@ -1362,40 +1364,39 @@ namespace FNPlugin
 
                 if (chargedPowerResource != null)
                 {
-                    var requiredChargedCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumChargedPower);
-                    var previousChargedCapacity = Math.Max(0.0001, 10 * previousTimeWarp * MaximumChargedPower);
+                    var stableChargedPower = 10 * MaximumChargedPower;
+                    var requiredChargedCapacity = Math.Max(0.0001, 10 * MaximumChargedPower * TimeWarp.fixedDeltaTime);
+                    var previousChargedCapacity = Math.Max(0.0001, 10 * MaximumChargedPower * previousDeltaTime);
+                    var chargedPowerRatio = thermalPowerResource.amount / thermalPowerResource.maxAmount;
 
                     chargedPowerResource.maxAmount = requiredChargedCapacity;
                     chargedPowerResource.amount = requiredChargedCapacity > previousChargedCapacity
                         ? Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerResource.amount + requiredChargedCapacity - previousChargedCapacity))
-                        : Math.Max(0, Math.Min(requiredChargedCapacity, (chargedPowerResource.amount / chargedPowerResource.maxAmount) * requiredChargedCapacity));
+                        : Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerRatio * requiredChargedCapacity));
                 }
 
                 if (wasteheatPowerResource != null)
                 {
                     var requiredWasteheatCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * partBaseWasteheat);
-                    var previousWasteheatCapacity = Math.Max(0.0001, 10 * previousTimeWarp * partBaseWasteheat);
+                    var previousWasteheatCapacity = Math.Max(0.0001, 10 * previousDeltaTime * partBaseWasteheat);
 
                     var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
                     wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
                     wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
-
-                    //wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
-                    //wasteheatPowerResource.amount = requiredWasteheatCapacity > previousWasteheatCapacity
-                    //    ? Math.Max(0, Math.Min(requiredWasteheatCapacity, wasteheatPowerResource.amount + requiredWasteheatCapacity - previousWasteheatCapacity))
-                    //    : Math.Max(0, Math.Min(requiredWasteheatCapacity, (wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount) * requiredWasteheatCapacity));
                 }
             }
             else
             {
                 if (thermalPowerResource != null)
                 {
+                    //var stableThemalPowerBuffer = RawPowerOutput * (1 - ChargedPowerRatio);
                     thermalPowerResource.maxAmount = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumThermalPower);
                     thermalPowerResource.amount = Math.Min(thermalPowerResource.amount, thermalPowerResource.maxAmount);
                 }
 
                 if (chargedPowerResource != null)
                 {
+                    //var stableChargedPower = RawPowerOutput * ChargedPowerRatio;
                     chargedPowerResource.maxAmount = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumChargedPower);
                     chargedPowerResource.amount = Math.Min(chargedPowerResource.amount, chargedPowerResource.maxAmount);
                 }
@@ -1409,7 +1410,7 @@ namespace FNPlugin
                 }
             }
 
-            previousTimeWarp = TimeWarp.fixedDeltaTime;
+            previousDeltaTime = TimeWarp.fixedDeltaTime;
         }
 
         protected double GetFuelRatio(ReactorFuel reactorFuel, double fuelEfficency, double megajoules)
@@ -1461,12 +1462,12 @@ namespace FNPlugin
 
             // produce tritium and helium
             tritium_produced_per_second = CheatOptions.InfinitePropellant 
-                ? tritium_production / fixedDeltaTime 
-                : -part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdTritium, -tritium_production) / fixedDeltaTime;
+                ? tritium_production / fixedDeltaTime
+                : -part.RequestResource(tritium_def.name, -tritium_production) / fixedDeltaTime;
 
             helium_produced_per_second = CheatOptions.InfinitePropellant  
-                ? helium_production / fixedDeltaTime 
-                : -part.RequestResource(InterstellarResourcesConfiguration.Instance.Helium4Gas, -helium_production) / fixedDeltaTime;
+                ? helium_production / fixedDeltaTime
+                : -part.RequestResource(helium_def.name, -helium_production) / fixedDeltaTime;
         }
 
         public virtual double GetCoreTempAtRadiatorTemp(double rad_temp)
@@ -1777,7 +1778,7 @@ namespace FNPlugin
 
                         double totalTritiumAmount;
                         double totalTritiumMaxAmount;
-                        part.GetConnectedResourceTotals(helium_def.id, out totalTritiumAmount, out totalTritiumMaxAmount);
+                        part.GetConnectedResourceTotals(tritium_def.id, out totalTritiumAmount, out totalTritiumMaxAmount);
 
                         double totalHeliumAmount;
                         double totalHeliumMaxAmount;
@@ -1786,7 +1787,12 @@ namespace FNPlugin
                         var MassHeliumAmount = totalHeliumAmount * helium_def.density * 1000;
                         var MassHeliumMaxAmount = totalHeliumMaxAmount * helium_def.density * 1000;
 
-                        PrintToGUILayout("Tritium Breed Rate", 100 * current_fuel_mode.NeutronsRatio + "% " + (tritium_produced_per_second * PluginHelper.SecondsInDay).ToString("0.00000") + " L/day ", bold_style, text_style);
+                        var MassTritiumAmount = totalTritiumAmount * tritium_def.density * 1000;
+                        var MassTritiumMaxAmount = totalTritiumMaxAmount * tritium_def.density * 1000;
+
+                        var tritium_kg_day = tritium_produced_per_second * tritium_def.density * 1000 * PluginHelper.SecondsInDay;
+
+                        PrintToGUILayout("Tritium Breed Rate", 100 * current_fuel_mode.NeutronsRatio + "% " + tritium_kg_day.ToString("0.000000") + " kg/day ", bold_style, text_style);
                         PrintToGUILayout("Lithium Reserves", totalLithiumAmount.ToString("0.00000") + " L / " + totalLithiumMaxAmount.ToString("0.00000") + " L", bold_style, text_style);
 
                         var lithium_consumption_day = lithium_consumed_per_second * PluginHelper.SecondsInDay;
@@ -1803,8 +1809,8 @@ namespace FNPlugin
 
                         PrintToGUILayout("Lithium Remaining", lithium_lifetime_years + " years " + lithium_lifetime_remaining_days + " days " + lithium_lifetime_remaining_hours.ToString("0.0000") + " hours", bold_style, text_style);
 
-                        PrintToGUILayout("Tritium Storage", totalTritiumAmount.ToString("0.00000") + " L / " + totalTritiumMaxAmount.ToString("0.00000") + " L", bold_style, text_style);
-                        PrintToGUILayout("Helium Storage", MassHeliumAmount.ToString("0.00000") + " kg / " + MassHeliumMaxAmount.ToString("0.00000") + " kg", bold_style, text_style);
+                        PrintToGUILayout("Tritium Storage", MassTritiumAmount.ToString("0.000000") + " kg / " + MassTritiumMaxAmount.ToString("0.000000") + " kg", bold_style, text_style);
+                        PrintToGUILayout("Helium Storage", MassHeliumAmount.ToString("0.000000") + " kg / " + MassHeliumMaxAmount.ToString("0.000000") + " kg", bold_style, text_style);
                     }
                     else
                         PrintToGUILayout("Is Neutron rich", IsFuelNeutronRich.ToString(), bold_style, text_style);
