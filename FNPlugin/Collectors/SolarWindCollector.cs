@@ -108,6 +108,14 @@ namespace FNPlugin
             // get the part's animation
             anim = part.FindModelAnimators(animName).FirstOrDefault();
 
+            // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
+            List<ModuleAnimateGeneric> MAGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
+            foreach (ModuleAnimateGeneric MAG in MAGlist)
+            {
+                MAG.Fields["status"].guiActive = false;
+                MAG.Fields["status"].guiActiveEditor = false;
+            }
+
             // verify collector was enabled 
             if (!bIsEnabled) return;
 
@@ -138,6 +146,7 @@ namespace FNPlugin
             Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
 
             Fields["strReceivedPower"].guiActive = bIsEnabled;
+            
 
             dConcentrationSolarWind = CalculateSolarWindConcentration(part.vessel.solarFlux);
             strSolarWindConc = dConcentrationSolarWind.ToString("F2");
