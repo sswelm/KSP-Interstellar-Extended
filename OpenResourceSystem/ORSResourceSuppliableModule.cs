@@ -321,7 +321,5 @@ namespace OpenResourceSystem
         {
             return ORSResourceOvermanager.getResourceOvermanagerForResource(resourcename);
         }
-
-
     }
 }

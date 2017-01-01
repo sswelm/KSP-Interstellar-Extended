@@ -53,9 +53,9 @@ namespace FNPlugin
 
         public double EfficencyConnectedChargedEnergyGenerator { get { return 0; } }
 
-        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType){ currentIsThermalEnergyGeneratorActive = efficency;  }
+        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType){ currentIsThermalEnergyGeneratorActive = efficency;  }
 
-        public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType) { }
+        public void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType) { }
 
         public bool IsThermalSource { get { return true; } }
 

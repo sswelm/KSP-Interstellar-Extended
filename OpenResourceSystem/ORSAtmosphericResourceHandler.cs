@@ -10,7 +10,8 @@ namespace OpenResourceSystem
     {
         protected static Dictionary<int, List<ORSAtmosphericResource>> body_atmospheric_resource_list = new Dictionary<int, List<ORSAtmosphericResource>>();
 
-        public static double getAtmosphericResourceContent(int refBody, string resourcename) {
+        public static double getAtmosphericResourceContent(int refBody, string resourcename) 
+        {
             List<ORSAtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
             ORSAtmosphericResource resource = bodyAtmosphericComposition.FirstOrDefault(oor => oor.getResourceName() == resourcename);
             return resource != null ? resource.getResourceAbundance() : 0;

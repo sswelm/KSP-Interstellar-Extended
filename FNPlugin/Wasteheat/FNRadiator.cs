@@ -134,10 +134,12 @@ namespace FNPlugin
         const float rad_const_h = 1000;
         const String kspShader = "KSP/Emissive/Bumped Specular";
 
+        private Queue<double> temperatureQueue = new Queue<double>(10);
+
 		protected Animation deployAnim;
 		protected double radiatedThermalPower;
 		protected double convectedThermalPower;
-		protected double current_rad_temp;
+		
 		protected float directionrotate = 1;
 		//protected Vector3 original_eulers;
 		//protected Transform pivot;
@@ -268,15 +270,13 @@ namespace FNPlugin
         {
 			list_of_all_radiators.RemoveAll(item => item == null);
 			double average_temp = 0;
-			double n_radiators = 0;
-			foreach (FNRadiator radiator in list_of_all_radiators) 
+			int n_radiators = 0;
+
+            foreach (FNRadiator radiator in list_of_all_radiators.Where(r => r.vessel == vess))
             {
-				if (radiator.vessel == vess) 
-                {
-					average_temp += radiator.getRadiatorTemperature ();
-					n_radiators += 1.0f;
-				}
-			}
+                average_temp += radiator.GetAverateRadiatorTemperature();
+                n_radiators += 1;
+            }
 
 			if (n_radiators > 0) 
 				average_temp = average_temp / n_radiators;
@@ -406,7 +406,7 @@ namespace FNPlugin
         {
             radiatedThermalPower = 0;
             convectedThermalPower = 0;
-            current_rad_temp = 0;
+            CurrentRadiatorTemperature = 0;
             directionrotate = 1;
             update_count = 0;
             explode_counter = 0;
@@ -592,7 +592,7 @@ namespace FNPlugin
                     thermalPowerConvStr = "disabled";
                 }
 
-                radiatorTempStr = current_rad_temp.ToString("0.0") + "K / " + MaxRadiatorTemperature.ToString("0.0") + "K";
+                radiatorTempStr = CurrentRadiatorTemperature.ToString("0.0") + "K / " + MaxRadiatorTemperature.ToString("0.0") + "K";
 
                 partTempStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
 
@@ -625,7 +625,7 @@ namespace FNPlugin
                     pressure += dynamic_pressure;
                     double low_temp = FlightGlobals.getExternalTemperature(vessel.transform.position);
 
-                    double delta_temp = Math.Max(0, current_rad_temp - low_temp);
+                    double delta_temp = Math.Max(0, CurrentRadiatorTemperature - low_temp);
                     double conv_power_dissip = pressure * delta_temp * EffectiveRadiatorArea * rad_const_h / 1e6f * TimeWarp.fixedDeltaTime * convectiveBonus;
 
                     if (!radiatorIsEnabled)
@@ -660,7 +660,7 @@ namespace FNPlugin
 
                 if (radiatorIsEnabled)
                 {
-                    if (!CheatOptions.IgnoreMaxTemperature && wasteheatRatio >= 1 && current_rad_temp >= MaxRadiatorTemperature)
+                    if (!CheatOptions.IgnoreMaxTemperature && wasteheatRatio >= 1 && CurrentRadiatorTemperature >= MaxRadiatorTemperature)
                     {
                         explode_counter++;
                         if (explode_counter > 25)
@@ -688,7 +688,7 @@ namespace FNPlugin
                     if (Double.IsNaN(instantaneous_rad_temp))
                         Debug.LogError("FNRadiator: OnFixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
 
-                    current_rad_temp = instantaneous_rad_temp;
+                    CurrentRadiatorTemperature = instantaneous_rad_temp;
 
                     if (_moduleDeployableRadiator)
                         _moduleDeployableRadiator.hasPivot = pivotEnabled;
@@ -705,7 +705,7 @@ namespace FNPlugin
                     instantaneous_rad_temp = Math.Min(radiator_temperature_temp_val * 1.014, MaxRadiatorTemperature);
                     instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7f));
 
-                    current_rad_temp = instantaneous_rad_temp;
+                    CurrentRadiatorTemperature = instantaneous_rad_temp;
                 }
 
             }
@@ -779,10 +779,28 @@ namespace FNPlugin
             return false;
         }
 
-		public double getRadiatorTemperature() 
+
+
+        protected double current_rad_temp;
+		public double CurrentRadiatorTemperature 
         {
-			return current_rad_temp;
+            get 
+            {
+			    return current_rad_temp;
+            }
+            set
+            {
+                current_rad_temp = value;
+                temperatureQueue.Enqueue(current_rad_temp);
+                if (temperatureQueue.Count > 10)
+                    temperatureQueue.Dequeue();
+            }
 		}
+
+        public double GetAverateRadiatorTemperature()
+        {
+            return temperatureQueue.Count > 0 ? temperatureQueue.Sum(t => t) / temperatureQueue.Count : current_rad_temp;
+        }
 
 		public override string GetInfo() 
         {
@@ -827,7 +845,7 @@ namespace FNPlugin
         {
             try
             {
-                double currentTemperature = getRadiatorTemperature();
+                double currentTemperature = CurrentRadiatorTemperature;
 
                 double partTempRatio = Math.Min((part.temperature / (part.maxTemp * 0.95)), 1);
 

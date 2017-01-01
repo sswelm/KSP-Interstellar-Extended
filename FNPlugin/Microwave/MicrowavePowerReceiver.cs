@@ -65,13 +65,13 @@ namespace FNPlugin
         public int instanceId;
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingThreshold = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingSurfaceExponent = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingEfficiencyExponent = 0.1f;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float spotsizeNormalizationExponent = 1f;
         [KSPField(isPersistant = false)]
         public bool canLinkup = true;
@@ -151,7 +151,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Direct Wavelengths")]
         public int directWavelengths;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Facing Factor", guiFormat = "F5")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Facing Factor", guiFormat = "F5")]
         public double effectivefacingFactor;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Spot Size(s)")]
         public string effectiveSpotSize;
@@ -176,7 +176,7 @@ namespace FNPlugin
         public string toteff;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
-        public float maximumPower = 5000;
+        public float maximumPower = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumElectricPower = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
@@ -292,12 +292,12 @@ namespace FNPlugin
 
         public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
 
-        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
         {
             currentIsThermalEnergyGenratorActive = efficency;
         }
 
-        public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType) { }
+        public void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType) { }
 
         public bool IsThermalSource
         {

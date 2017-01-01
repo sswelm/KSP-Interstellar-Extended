@@ -13,6 +13,7 @@ namespace OpenResourceSystem
         public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
 		public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
+
 		public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
 		public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
 		protected const double passive_temp_p4 = 2947.295521;
@@ -20,8 +21,8 @@ namespace OpenResourceSystem
         protected Vessel my_vessel;
         protected Part my_part;
         protected PartModule my_partmodule;
-        protected Dictionary<ORSResourceSuppliable, double> power_draws;
 
+        protected Dictionary<ORSResourceSuppliable, double> power_draws;
         protected Dictionary<ORSResourceSupplier, double> power_supplies;
 
         protected String resource_name;
@@ -401,7 +402,6 @@ namespace OpenResourceSystem
 				}
 			}
 
-
             currentPowerSupply -= Math.Max(currentmegajoules, 0.0);
 
 			internl_power_extract = -currentPowerSupply * TimeWarp.fixedDeltaTime;
@@ -413,8 +413,9 @@ namespace OpenResourceSystem
             else
                 internl_power_extract = Math.Max(internl_power_extract, -missingmegajoules);
 
-            //my_part.RequestResource(this.resource_name, internl_power_extract);
-            ORSHelper.fixedRequestResource(my_part, this.resource_name, internl_power_extract);
+            my_part.RequestResource(this.resource_name, internl_power_extract);
+            //ORSHelper.fixedRequestResource(my_part, this.resource_name, internl_power_extract);
+
             currentPowerSupply = 0;
 			stable_supply = 0;
 
@@ -446,7 +447,8 @@ namespace OpenResourceSystem
             }
         }
 
-        protected virtual void doWindow(int windowID) {
+        protected virtual void doWindow(int windowID) 
+        {
            
         }
 

@@ -50,8 +50,8 @@ namespace FNPlugin
         public string biome_desc;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Moisture Modifier", guiFormat = "F4")]
         public double moistureModifier;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
-        public bool canFunctionOnSurface = false;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        public bool canFunctionOnSurface = true;
 
         [KSPField(isPersistant = false)]
         public float atmosphereToleranceModifier = 1;
