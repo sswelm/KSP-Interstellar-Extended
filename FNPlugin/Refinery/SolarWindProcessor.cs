@@ -171,7 +171,7 @@ namespace FNPlugin.Refinery
                 var fixedMaxPossibleHelium4Rate = allowOverflow ? fixedMaxHelium4Rate : Math.Min(_spareRoomHelium4Mass, fixedMaxHelium4Rate);
                 var fixedMaxPossibleMonoxideRate = allowOverflow ? fixedMaxMonoxideRate : Math.Min(_spareRoomMonoxideMass, fixedMaxMonoxideRate);
                 var fixedMaxPossibleNitrogenRate = allowOverflow ? fixedMaxNitrogenRate : Math.Min(_spareRoomNitrogenMass, fixedMaxNitrogenRate);
-                var fixedMaxPossibleNeonRate = allowOverflow ? fixedMaxNeonRate : Math.Min(_spareRoomNeonMass, fixedMaxNitrogenRate);
+                var fixedMaxPossibleNeonRate = allowOverflow ? fixedMaxNeonRate : Math.Min(_spareRoomNeonMass, fixedMaxNeonRate);
 
                 // finds the minimum of these five numbers (fixedMaxPossibleZZRate / fixedMaxZZRate), adapted from water electrolyser. Could be more pretty with a custom Min5() function, but eh.
                 _consumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate, fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate), fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate), fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate), fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate), fixedMaxPossibleNeonRate / fixedMaxNeonRate);
