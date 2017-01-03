@@ -1830,7 +1830,7 @@ namespace FNPlugin
                         int lifetime_years = (int)Math.Floor(fuel_lifetime_d / GameConstants.KERBIN_YEAR_IN_DAYS);
                         double lifetime_years_day_remainder = fuel_lifetime_d % GameConstants.KERBIN_YEAR_IN_DAYS;
 
-                        PrintToGUILayout(fuel.FuelName + " Consumption", kg_fuel_use_per_day.ToString("0.000000") + " " + fuel.Unit + "/day", bold_style, text_style);
+                        PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.getFormatedMassString(kg_fuel_use_per_day, "0.000000") + "/day", bold_style, text_style);
 
                         if (lifetime_years > 0)
                             PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetime_years) ? "-" : lifetime_years + " years " + (lifetime_years_day_remainder).ToString("0.00")) + " days", bold_style, text_style);

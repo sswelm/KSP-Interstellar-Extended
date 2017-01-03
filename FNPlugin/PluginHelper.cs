@@ -587,6 +587,14 @@ namespace FNPlugin
             }
         }
 
+        public static string getFormatedMassString(double massInKg, string format)
+        {
+            if (massInKg < 0.001)
+                return (massInKg * 1000).ToString(format) + " mg";
+            else
+                return (massInKg).ToString(format) + " kg";
+        }
+
         public ApplicationLauncherButton InitializeApplicationButton()
         {
             ApplicationLauncherButton appButton = null;
