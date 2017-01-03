@@ -46,7 +46,9 @@ namespace OpenResourceSystem
         protected GUIStyle green_label;
         protected GUIStyle red_label;
         protected GUIStyle right_align;
+
         protected double internl_power_extract = 0;
+        protected double internl_power_extract_remainder = 0;
 
         public ORSResourceManager(PartModule pm,String resource_name) 
         {
@@ -78,11 +80,6 @@ namespace OpenResourceSystem
             }
         }
 
-        public float powerSupply(ORSResourceSupplier pm, float power) 
-        {
-            return (float) powerSupply (pm,(double)power);
-        }
-
         public double powerSupply(ORSResourceSupplier pm, double power) 
         {
             currentPowerSupply += (power / TimeWarp.fixedDeltaTime);
@@ -96,11 +93,6 @@ namespace OpenResourceSystem
             return power;
         }
 
-        public float powerSupplyFixedMax(ORSResourceSupplier pm, float power, float maxpower) 
-        {
-			return (float) powerSupplyFixedMax (pm, (double)power,(double)maxpower);
-		}
-
         public double powerSupplyFixedMax(ORSResourceSupplier pm, double power, double maxpower) 
         {
 			currentPowerSupply += (power / TimeWarp.fixedDeltaTime);
@@ -111,11 +103,6 @@ namespace OpenResourceSystem
             else 
                 power_supplies.Add(pm, (power / TimeWarp.fixedDeltaTime));
 			return power;
-		}
-
-        public float managedPowerSupply(ORSResourceSupplier pm, float power) 
-        {
-			return managedPowerSupplyWithMinimumRatio (pm, power, 0);
 		}
 
         public double managedPowerSupply(ORSResourceSupplier pm, double power) 
@@ -156,11 +143,6 @@ namespace OpenResourceSystem
             return maxAmount;
 		}
 
-        public float managedPowerSupplyWithMinimumRatio(ORSResourceSupplier pm, float power, float rat_min) 
-        {
-            return (float) managedPowerSupplyWithMinimumRatio(pm, (double)power, (double)rat_min);
-		}
-
         public double managedPowerSupplyWithMinimumRatio(ORSResourceSupplier pm, double power, double rat_min) 
         {
 			var maximum_available_power_per_second = power / TimeWarp.fixedDeltaTime;
@@ -184,9 +166,9 @@ namespace OpenResourceSystem
             return  stored_stable_supply;
         }
 
-        public float getResourceSupply() 
+        public double getResourceSupply()
         {
-            return (float)stored_supply;
+            return stored_supply;
         }
 
         public double getDemandSupply()
@@ -199,14 +181,14 @@ namespace OpenResourceSystem
             return stored_resource_demand / stored_stable_supply;
         }
 
-        public float getResourceDemand() 
+        public double getResourceDemand()
         {
-            return (float)stored_resource_demand;
+            return stored_resource_demand;
         }
 
-		public float getCurrentResourceDemand() 
+		public double getCurrentResourceDemand() 
         {
-			return (float) current_resource_demand;
+			return current_resource_demand;
 		}
 
         public double getCurrentHighPriorityResourceDemand() 
@@ -214,24 +196,24 @@ namespace OpenResourceSystem
             return stored_current_hp_demand;
 		}
 
-		public float getCurrentUnfilledResourceDemand() 
+		public double getCurrentUnfilledResourceDemand() 
         {
-			return (float)(current_resource_demand - currentPowerSupply);
+			return current_resource_demand - currentPowerSupply;
 		}
 
-        public float GetRequiredResourceDemand()
+        public double GetRequiredResourceDemand()
         {
-            return getCurrentUnfilledResourceDemand() + (float)getSpareResourceCapacity() / TimeWarp.fixedDeltaTime;
+            return getCurrentUnfilledResourceDemand() + getSpareResourceCapacity() / TimeWarp.fixedDeltaTime;
         }
 
-        public float GetPowerSupply()
+        public double GetPowerSupply()
         {
-            return (float)currentPowerSupply;
+            return currentPowerSupply;
         }
 
-        public float GetCurrentRresourceDemand()
+        public double GetCurrentRresourceDemand()
         {
-            return (float)current_resource_demand;
+            return current_resource_demand;
         }
 
 		public double getResourceBarRatio() 
@@ -404,7 +386,7 @@ namespace OpenResourceSystem
 
             currentPowerSupply -= Math.Max(currentmegajoules, 0.0);
 
-			internl_power_extract = -currentPowerSupply * TimeWarp.fixedDeltaTime;
+            internl_power_extract = -currentPowerSupply * TimeWarp.fixedDeltaTime + internl_power_extract_remainder;
 
             pluginSpecificImpl();
 
@@ -413,8 +395,12 @@ namespace OpenResourceSystem
             else
                 internl_power_extract = Math.Max(internl_power_extract, -missingmegajoules);
 
-            my_part.RequestResource(this.resource_name, internl_power_extract);
+            var actual_power_extract  = my_part.RequestResource(this.resource_name, internl_power_extract);
             //ORSHelper.fixedRequestResource(my_part, this.resource_name, internl_power_extract);
+
+            internl_power_extract_remainder = internl_power_extract - actual_power_extract;
+
+            
 
             currentPowerSupply = 0;
 			stable_supply = 0;

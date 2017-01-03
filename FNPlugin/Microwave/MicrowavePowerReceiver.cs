@@ -304,7 +304,7 @@ namespace FNPlugin
             get { return this.isThermalReceiver; }
         }
 
-        public float RawMaximumPower { get { return (float)MaximumRecievePower; } }
+        public double RawMaximumPower { get { return MaximumRecievePower; } }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
@@ -379,7 +379,7 @@ namespace FNPlugin
 
         public double ChargedPowerRatio { get { return 0; } }
 
-        public float PowerBufferBonus { get { return 0; } }
+        public double PowerBufferBonus { get { return 0; } }
 
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 

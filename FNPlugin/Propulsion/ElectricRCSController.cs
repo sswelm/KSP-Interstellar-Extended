@@ -85,11 +85,11 @@ namespace FNPlugin
         private float power_ratio = 1;
         private float power_requested_f = 0;
         private float power_requested_raw = 0;
-        private float power_recieved_f = 1;
-        private float power_recieved_raw = 0;
-        private float power_remainer_raw;
+        private double power_recieved_f = 1;
+        private double power_recieved_raw = 0;
+        private double power_remainer_raw;
 
-        private float heat_production_f = 0;
+        private double heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
         private FNModuleRCSFX attachedModuleRCSFX;
@@ -481,7 +481,7 @@ namespace FNPlugin
                 power_remainer_raw = 0;
                 power_recieved_f = power_recieved_raw / TimeWarp.fixedDeltaTime;
 
-                float heat_to_produce = power_recieved_f * (1 - efficency);
+                double heat_to_produce = power_recieved_f * (1 - efficency);
 
                 heat_production_f = CheatOptions.IgnoreMaxTemperature 
                     ? heat_to_produce 

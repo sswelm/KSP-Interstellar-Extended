@@ -65,8 +65,8 @@ namespace FNPlugin
 
         private float power_ratio = 1;
         private float power_requested_f = 0;
-        private float power_recieved_f = 1;
-        private float heat_production_f = 0;
+        private double power_recieved_f = 1;
+        private double heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
         private float efficencyModifier;
@@ -307,7 +307,7 @@ namespace FNPlugin
                     ? power_requested_f 
                     : consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
-                float heat_to_produce = power_recieved_f * (1 - efficency);
+                double heat_to_produce = power_recieved_f * (1 - efficency);
 
                 heat_production_f = CheatOptions.IgnoreMaxTemperature 
                     ? heat_to_produce 

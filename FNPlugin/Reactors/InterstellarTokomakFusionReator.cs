@@ -7,11 +7,11 @@ namespace FNPlugin
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
         public bool fusion_alert = false;
-        public float power_consumed = 0.0f;
+        public double power_consumed = 0.0;
         public int jumpstartPowerTime = 0;
         public int fusionAlertFrames = 0;
 
-        public float HeatingPowerRequirements 
+        public double HeatingPowerRequirements 
 		{ 
 			get { 
 				return current_fuel_mode == null
@@ -40,7 +40,7 @@ namespace FNPlugin
             electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(HeatingPowerRequirements);
         }
 
-        private float GetPlasmaRatio(float consumedPower)
+        private float GetPlasmaRatio(double consumedPower)
         {
             return (float)Math.Round(HeatingPowerRequirements != 0.0f ? consumedPower / HeatingPowerRequirements : 1.0f, 4);
         }

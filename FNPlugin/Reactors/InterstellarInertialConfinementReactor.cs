@@ -39,7 +39,7 @@ namespace FNPlugin
         //[KSPField(isPersistant = false, guiActive = true, guiName = "Scalar")]
         //public float animationScalar;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power Requirment")]
-        public float currentLaserPowerRequirements = 0;
+        public double currentLaserPowerRequirements = 0;
 
         // protected fields
         protected double power_consumed;
@@ -108,7 +108,8 @@ namespace FNPlugin
 	    {
 		    get 
             { 
-                currentLaserPowerRequirements = current_fuel_mode == null 
+                currentLaserPowerRequirements = 
+                    current_fuel_mode == null 
                     ? PowerRequirement
                     : powerControlAffectsMaintenance 
                         ? PowerRatio * NormalizedPowerRequirment

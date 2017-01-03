@@ -63,7 +63,7 @@ namespace FNPlugin
 
         public double ChargedPowerRatio { get { return 0; } }
 
-        public float RawMaximumPower { get { return maximumPowerRecieved; } }
+        public double RawMaximumPower { get { return maximumPowerRecieved; } }
 
         public IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
 
@@ -124,7 +124,7 @@ namespace FNPlugin
 
         public double ProducedWasteHeat { get { return 0; } }
 
-        public float PowerBufferBonus { get { return 0; } }
+        public double PowerBufferBonus { get { return 0; } }
 
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 

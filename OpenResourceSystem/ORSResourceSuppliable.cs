@@ -9,7 +9,6 @@ namespace OpenResourceSystem
     {
         void receiveFNResource(double power_supplied,String resourcename);
         double consumeFNResource(double power_to_consume, String resourcename);
-        float consumeFNResource(float power_to_consume, String resourcename);
         string getResourceManagerDisplayName();
         int getPowerPriority();
     }

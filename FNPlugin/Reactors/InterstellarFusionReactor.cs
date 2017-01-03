@@ -86,9 +86,9 @@ namespace FNPlugin
 
         public override bool IsFuelNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
-        public float PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
+        public double PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
 
-        public float NormalizedPowerRequirment { get { return PowerRequirement * current_fuel_mode.NormalisedPowerRequirements; } }
+        public double NormalizedPowerRequirment { get { return PowerRequirement * current_fuel_mode.NormalisedPowerRequirements; } }
 
 
         public float FusionEnergyGainFactor

@@ -25,9 +25,7 @@ namespace FNPlugin
         /// <summary>
         /// // The absolute maximum amount of power the thermalsource can possbly produce
         /// </summary>
-        float RawMaximumPower { get; }
-
-
+        double RawMaximumPower { get; }
 
         /// <summary>
         /// Influences the Mass in Electric Generator
@@ -46,7 +44,7 @@ namespace FNPlugin
 
         double ProducedWasteHeat { get; }
 
-        float PowerBufferBonus { get; }
+        double PowerBufferBonus { get; }
 
         double StableMaximumReactorPower { get; }
 

@@ -144,7 +144,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float breedDivider = 100000.0f;
         [KSPField(isPersistant = false)]
-        public float bonusBufferFactor = 0.05f;
+        public double bonusBufferFactor = 0.05;
         [KSPField(isPersistant = false)]
         public float heatTransportationEfficiency = 0.85f;
         [KSPField(isPersistant = false)]
@@ -241,7 +241,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra upgrade Core temp Mult")]
         public float powerUpgradeCoreTempMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Active Raw Power", guiUnits = " MJ")]
-        public float currentRawPowerOutput;
+        public double currentRawPowerOutput;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Output (Basic)", guiUnits = " MW")]
         public float PowerOutput = 0;
@@ -587,9 +587,9 @@ namespace FNPlugin
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
-        public float PowerBufferBonus { get { return this.bonusBufferFactor; } }
+        public double PowerBufferBonus { get { return this.bonusBufferFactor; } }
 
-        public float RawMaximumPower { get { return RawPowerOutput; } }
+        public double RawMaximumPower { get { return RawPowerOutput; } }
 
         public virtual double FuelEfficiency
         {
@@ -643,8 +643,6 @@ namespace FNPlugin
 
                 var modifiedBaseCoreTemperature = baseCoreTemperature * 
                     (CheatOptions.UnbreakableJoints ? 1 : Math.Max(maxEmbrittlementFraction,  Math.Pow(ReactorEmbrittlemenConditionRatio, 2)));
-
-                //maxEmbrittlementFraction
 
                 return modifiedBaseCoreTemperature;
             }
@@ -702,7 +700,7 @@ namespace FNPlugin
 
         public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
 
-        public float RawPowerOutput
+        public double RawPowerOutput
         {
             get
             {
@@ -718,7 +716,7 @@ namespace FNPlugin
                 else
                     rawPowerOutput = powerOutputMk1;
 
-                return (float)(rawPowerOutput * powerOutputMultiplier);
+                return rawPowerOutput * powerOutputMultiplier;
             }
         }
 
