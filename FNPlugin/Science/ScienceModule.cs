@@ -427,7 +427,12 @@ namespace FNPlugin
 
             if (active_mode == 0)  // Research
             {
-                double electrical_power_provided = consumeFNResource(powerReqMult * PluginHelper.BasePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var powerRequest = powerReqMult * PluginHelper.BasePowerConsumption * TimeWarp.fixedDeltaTime;
+
+                double electrical_power_provided = CheatOptions.InfiniteElectricity
+                    ? powerRequest
+                    : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
                 electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult);
                 global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
 
@@ -446,7 +451,12 @@ namespace FNPlugin
             }
             else if (active_mode == 1) // Fuel Reprocessing
             {
-                double electrical_power_provided = consumeFNResource(powerReqMult * PluginHelper.BasePowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var powerRequest = powerReqMult * PluginHelper.BasePowerConsumption * TimeWarp.fixedDeltaTime;
+
+                double electrical_power_provided = CheatOptions.InfiniteElectricity 
+                    ? powerRequest
+                    : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                
                 electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult);
                 global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                 reprocessor.UpdateFrame(global_rate_multipliers, true);
@@ -458,7 +468,12 @@ namespace FNPlugin
             }
             else if (active_mode == 2) //Antimatter
             { 
-                double electrical_power_provided = consumeFNResource(powerReqMult * PluginHelper.BaseAMFPowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var powerRequest = powerReqMult * PluginHelper.BaseAMFPowerConsumption * TimeWarp.fixedDeltaTime;
+
+                double electrical_power_provided = CheatOptions.InfiniteElectricity 
+                    ? powerRequest 
+                    : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
                 electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseAMFPowerConsumption / powerReqMult);
                 global_rate_multipliers = crew_capacity_ratio * electrical_power_ratio;
                 anti_factory.produceAntimatterFrame(global_rate_multipliers);
@@ -472,7 +487,12 @@ namespace FNPlugin
             { 
                 if (vessel.Splashed)
                 {
-                    float electrical_power_provided = (float)consumeFNResource(powerReqMult * PluginHelper.BaseCentriPowerConsumption * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    var powerRequest = powerReqMult * PluginHelper.BaseCentriPowerConsumption * TimeWarp.fixedDeltaTime;
+
+                    double electrical_power_provided = CheatOptions.InfiniteElectricity 
+                        ? powerRequest 
+                        : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    
                     electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult);
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                     float deut_produced = (float)(global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f);

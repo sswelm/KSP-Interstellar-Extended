@@ -67,13 +67,14 @@ namespace FNPlugin
         //public const double antimatter_initiated_upgraded_d_he3_cons_constant = antimatter_initiated_d_he3_cons_constant * 1.037037;
         //public const double antimatter_initiated_upgraded_uf4_cons_constant = antimatter_initiated_uf4_cons_constant / 3.0;
 
-        public const double tritiumBreedRate = 428244.662271 / 0.17639;  // 0.222678566;
+        public const double tritiumBreedRate = 428244.662271 / 0.17639 / 1.25;  // 0.222678566;
         public const double helium_boiloff_fraction = 1.667794e-8;
         public const double ammoniaHydrogenFractionByMass = 0.17647;
 
         public const int MAX_ANTIMATTER_TANK_STORED_CHARGE = 1000;
         public const int EARTH_DAY_SECONDS = 86400;
         public const int EARTH_YEAR_IN_DAYS = 365;
+        public const float KERBIN_YEAR_IN_DAYS = 426.08f;
         public const int KEBRIN_DAY_SECONDS = 21600;
         public const int HOUR_SECONDS = 3600;
 

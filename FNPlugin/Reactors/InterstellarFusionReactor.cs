@@ -54,7 +54,7 @@ namespace FNPlugin
         {
             get 
             {
-                plasma_modifier = (plasma_ratio >= 1.0 ? 1 : 0);
+                plasma_modifier = plasma_ratio >= 1.0 ? 1 : 0;
                 return plasma_modifier;
             }
         }
@@ -63,9 +63,11 @@ namespace FNPlugin
         {
             get 
             {
-                lithium_modifier = powerIsAffectedByLithium && lithiumPartResource != null && lithiumPartResource.maxAmount > 0 
-                    ? Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount) 
-                    : 1;
+                lithium_modifier = CheatOptions.InfinitePropellant ? 1 
+                    : powerIsAffectedByLithium && lithiumPartResource != null && lithiumPartResource.maxAmount > 0 
+                        ? Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount) 
+                        : 1;
+
                 return lithium_modifier;
             }
         }
@@ -84,9 +86,9 @@ namespace FNPlugin
 
         public override bool IsFuelNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
 
-        public float PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
+        public double PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
 
-        public float NormalizedPowerRequirment { get { return PowerRequirement * current_fuel_mode.NormalisedPowerRequirements; } }
+        public double NormalizedPowerRequirment { get { return PowerRequirement * current_fuel_mode.NormalisedPowerRequirements; } }
 
 
         public float FusionEnergyGainFactor
@@ -166,7 +168,11 @@ namespace FNPlugin
 
         private bool HasAllFuels()
         {
+            if (CheatOptions.InfinitePropellant)
+                return true;
+
             bool hasAllFuels = true;
+
             foreach (var fuel in current_fuel_mode.ReactorFuels)
             {
                 if (GetFuelRatio(fuel, FuelEfficiency, NormalisedMaximumPower) < 1)

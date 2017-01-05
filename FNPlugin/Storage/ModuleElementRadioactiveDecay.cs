@@ -21,7 +21,7 @@ namespace FNPlugin
         public float convFactor = 1;
 
         [KSPField(isPersistant = true)]
-        public float lastActiveTime = 1;
+        public double lastActiveTime = 1;
 
         protected double density_rat = 1;
 
@@ -47,7 +47,7 @@ namespace FNPlugin
             if (resourceDefinitionsContainDecayProduct)
                 density_rat = decay_resource.info.density / PartResourceLibrary.Instance.GetDefinition(decayProduct).density;
 
-            if (decay_resource != null && time_diff > 0)
+            if (!CheatOptions.UnbreakableJoints && decay_resource != null && time_diff > 0)
             {
                 double n_0 = decay_resource.amount;
                 decay_resource.amount = n_0 * Math.Exp(-decayConstant * time_diff);
@@ -64,7 +64,10 @@ namespace FNPlugin
 
             if (!HighLogic.LoadedSceneIsFlight) return;
 
-            lastActiveTime = (float)Planetarium.GetUniversalTime();
+            lastActiveTime = Planetarium.GetUniversalTime();
+
+            if (CheatOptions.UnbreakableJoints)
+                return;
 
             double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
             decay_resource.amount -= decay_amount;

@@ -393,11 +393,6 @@ namespace FNPlugin
             return found;
         }
 
-        public static bool HasTechRequirmentOrEmpty(string techName)
-        {
-            return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
-        }
-
         public static bool upgradeAvailable(string techid)
         {
             if (String.IsNullOrEmpty(techid))
@@ -590,6 +585,14 @@ namespace FNPlugin
                         return (power * 1000).ToString(longFormat) + " KW";
                 }
             }
+        }
+
+        public static string getFormatedMassString(double massInKg, string format)
+        {
+            if (massInKg < 0.001)
+                return (massInKg * 1000).ToString(format) + " mg";
+            else
+                return (massInKg).ToString(format) + " kg";
         }
 
         public ApplicationLauncherButton InitializeApplicationButton()

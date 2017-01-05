@@ -76,6 +76,7 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new WaterGasShift(this.part));
                 unsortedList.Add(new ReverseWaterGasShift(this.part));
                 unsortedList.Add(new MethanePyrolyser(this.part));
+                unsortedList.Add(new SolarWindProcessor(this.part));
             }
             catch (Exception e)
             {
@@ -106,7 +107,11 @@ namespace FNPlugin.Refinery
 
             var totalPowerRequiredThisFrame = currentPowerReq * TimeWarp.fixedDeltaTime;
 
-            var fixedConsumedPowerMW = consumeFNResource(totalPowerRequiredThisFrame * (powerPercentage / 100), FNResourceManager.FNRESOURCE_MEGAJOULES);
+            var powerRequest = totalPowerRequiredThisFrame * (powerPercentage / 100);
+
+            var fixedConsumedPowerMW = CheatOptions.InfiniteElectricity
+                ? powerRequest
+                : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
             consumedPowerMW = fixedConsumedPowerMW / TimeWarp.fixedDeltaTime;
 

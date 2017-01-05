@@ -8,7 +8,6 @@ namespace InterstellarFuelSwitch
 {
 	public static class ParseTools
 	{
-
         public static double ParseDouble(string data)
         {
             var trimmed = data.Trim();

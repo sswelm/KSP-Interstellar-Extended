@@ -30,12 +30,16 @@ namespace FNPlugin
         public bool receiverIsEnabled;
         [KSPField(isPersistant = true)]
         public double storedTemp;
+        //[KSPField(isPersistant = true, guiActive = true)]
+        //public double emissiveConstant;
+        //[KSPField(isPersistant = true)]
+        //public bool isSolarReflector;
 
         [KSPField(isPersistant = true)]
         public bool animatonDeployed = false;
         [KSPField(isPersistant = true)]
         public double wasteheatRatio = 0;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Linked for Relay")]
         public bool linkedForRelay;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Mode"), UI_Toggle(disabledText = "Electric", enabledText = "Thermal")]
         public bool thermalMode = false;
@@ -61,14 +65,14 @@ namespace FNPlugin
         public int instanceId;
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingThreshold = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingSurfaceExponent = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingEfficiencyExponent = 0.1f;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
-        public float spotsizeNormalizationExponent = 0.5f;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        public float spotsizeNormalizationExponent = 1f;
         [KSPField(isPersistant = false)]
         public bool canLinkup = true;
 
@@ -86,7 +90,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string animGenericName;
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Receiver Diameter", guiUnits = " m")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Receiver Diameter", guiUnits = " m")]
         public float diameter = 1;
         [KSPField(isPersistant = false)]
         public bool isThermalReceiver = false;
@@ -96,7 +100,7 @@ namespace FNPlugin
         public bool isThermalReceiverSlave = false;
         [KSPField(isPersistant = false)]
         public double ThermalPower;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Radius", guiUnits = " m")]
         public float radius = 2.5f;
         [KSPField(isPersistant = false)]
         public float alternatorRatio = 1;
@@ -105,6 +109,7 @@ namespace FNPlugin
         public double minimumWavelength = 0.00000001f;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "max Wavelength")]
         public double maximumWavelength = 1f; 
+
         [KSPField(isPersistant = false)]
         public float heatTransportationEfficiency = 0.7f;
         [KSPField(isPersistant = false)]
@@ -146,7 +151,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Direct Wavelengths")]
         public int directWavelengths;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Facing Factor", guiFormat = "F5")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Facing Factor", guiFormat = "F5")]
         public double effectivefacingFactor;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Spot Size(s)")]
         public string effectiveSpotSize;
@@ -171,10 +176,10 @@ namespace FNPlugin
         public string toteff;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
-        public float maximumPower = 5000;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
+        public float maximumPower = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumElectricPower = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumThermalPower = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Power Source", guiFormat = "F2", guiUnits = "MW")]
         public double maxAvailablePowerFromSource;
@@ -185,9 +190,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Remaining Beamed Power", guiFormat = "F2", guiUnits = " MW")]
         public double remainingPowerFromSource;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Sun Facing Factor", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Sun Facing Factor", guiFormat = "F4")]
         public double solarFacingFactor;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Solar Flux", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
         public double solarFlux;
 
         protected BaseField _radiusField;
@@ -235,7 +240,14 @@ namespace FNPlugin
         }
         public double ThermalEfficiency
         {
-            get { return HighLogic.LoadedSceneIsFlight ? (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) : 1; }
+            get 
+            { 
+                return HighLogic.LoadedSceneIsFlight 
+                    ? CheatOptions.IgnoreMaxTemperature 
+                        ? 1 
+                        : (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) 
+                    : 1; 
+            }
         }
 
         public double MaximumRecievePower
@@ -280,19 +292,19 @@ namespace FNPlugin
 
         public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
 
-        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
         {
             currentIsThermalEnergyGenratorActive = efficency;
         }
 
-        public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType) { }
+        public void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType) { }
 
         public bool IsThermalSource
         {
             get { return this.isThermalReceiver; }
         }
 
-        public float RawMaximumPower { get { return (float)MaximumRecievePower; } }
+        public double RawMaximumPower { get { return MaximumRecievePower; } }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
@@ -367,7 +379,7 @@ namespace FNPlugin
 
         public double ChargedPowerRatio { get { return 0; } }
 
-        public float PowerBufferBonus { get { return 0; } }
+        public double PowerBufferBonus { get { return 0; } }
 
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
@@ -430,7 +442,7 @@ namespace FNPlugin
 
             // force activate to trigger any fairings and generators
 
-            Debug.Log("MicrowaveReceiver For Activate ");
+            Debug.Log("MicrowaveReceiver Force Activate ");
             this.part.force_activate();
             forceActivateAtStartup = true;
 
@@ -656,8 +668,9 @@ namespace FNPlugin
             if (state == StartState.Editor) { return; }
 
             // compensate for stock solar initialisation heating bug
-            part.temperature = storedTemp;
-            initializationCountdown = 50;
+
+
+            initializationCountdown = 10;
 
             if (forceActivateAtStartup)
                 part.force_activate();
@@ -775,6 +788,15 @@ namespace FNPlugin
                     genericAnimation.Toggle();
                 }
             }
+        }
+
+        public override void OnLoad(ConfigNode node)
+        {
+            //if (isSolarReflector)
+            //{
+                part.temperature = storedTemp;
+                part.skinTemperature = storedTemp;
+            //}
         }
 
         private void InitializeThermalModeSwitcher()
@@ -958,7 +980,26 @@ namespace FNPlugin
             
             _activateReceiverBaseEvent.active = !linkedForRelay && !receiverIsEnabled && !transmitter_on && canBeActive;
             _disableReceiverBaseEvent.active = receiverIsEnabled;
-          
+
+            Fields["efficiencyPercentage"].guiActive = receiverIsEnabled;
+            Fields["effectiveSpotSize"].guiActive = receiverIsEnabled;
+            Fields["effectivefacingFactor"].guiActive = receiverIsEnabled;
+            Fields["receiptPower"].guiActive = receiverIsEnabled;
+            Fields["effectiveDistanceFacingEfficiency"].guiActive = receiverIsEnabled;
+            Fields["effectiveAtmosphereEfficency"].guiActive = receiverIsEnabled;
+            Fields["effectiveTransmitterEfficency"].guiActive = receiverIsEnabled;
+            Fields["maxAvailablePowerFromSource"].guiActive = receiverIsEnabled;
+            Fields["routeEfficiency"].guiActive = receiverIsEnabled;
+            Fields["currentPowerUsageByOtherRecievers"].guiActive = receiverIsEnabled;
+            Fields["remainingPowerFromSource"].guiActive = receiverIsEnabled;
+
+            Fields["selectedBandwidthConfiguration"].guiActive = canSwitchBandwidthInEditor && receiverIsEnabled;
+            Fields["minimumWavelength"].guiActive = receiverIsEnabled;
+            Fields["maximumWavelength"].guiActive = receiverIsEnabled;
+
+            Fields["solarFacingFactor"].guiActive = solarReceptionSurfaceArea > 0;
+            Fields["solarFlux"].guiActive = solarReceptionSurfaceArea > 0;
+
             Fields["toteff"].guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
 
             if (IsThermalSource)
@@ -1093,7 +1134,10 @@ namespace FNPlugin
             currentIsThermalEnergyGenratorActive = 0;
 
             storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
-            wasteheatRatio = Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
+
+            wasteheatRatio = CheatOptions.IgnoreMaxTemperature 
+                ? 0 
+                : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
 
             if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0)
             {
@@ -1104,17 +1148,22 @@ namespace FNPlugin
 
             base.OnFixedUpdate();
 
+            //if (isSolarReflector)
+            //{
+                if (initializationCountdown > 0)
+                {
+                    initializationCountdown--;
 
-            if (initializationCountdown > 0)
-            {
-                part.temperature = storedTemp;
-                initializationCountdown--;
-            }
-            else
-            {
-                //store part temperature
-                storedTemp = part.temperature;
-            }
+                    part.temperature = storedTemp;
+                    part.skinTemperature = storedTemp;
+                }
+                else
+                {
+                    //store part temperature
+                    //part.emissiveConstant = emissiveConstant;
+                    storedTemp = part.temperature;
+                }
+            //}
 
             if (radiatorMode)
             {
@@ -1239,7 +1288,8 @@ namespace FNPlugin
                 {
                     fixedSolarInputMegajoules = supplyFNResource(solarInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    supplyFNResource(fixedSolarInputMegajoules, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                        supplyFNResource(fixedSolarInputMegajoules, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 }
                 else
                 {
@@ -1252,8 +1302,8 @@ namespace FNPlugin
                 if (alternatorRatio != 0)
                     part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, alternatorRatio * -powerInputMegajoules * TimeWarp.fixedDeltaTime);
 
-                // add wasteheat
-                supplyFNResource(total_waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResource(total_waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 if (powerInputMegajoules > 0 && wasteheatResource != null)
                 {
@@ -1267,7 +1317,8 @@ namespace FNPlugin
                 {
                     var fixed_beamed_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                        supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
                     var cur_thermal_power = (fixed_beamed_thermal_power + fixedSolarInputMegajoules) / TimeWarp.fixedDeltaTime;
 
