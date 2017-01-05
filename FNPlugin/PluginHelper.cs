@@ -612,7 +612,7 @@ namespace FNPlugin
                     null,
                     null,
                     null,
-                    ApplicationLauncher.AppScenes.ALWAYS,
+                    ApplicationLauncher.AppScenes.ALWAYS ^ ApplicationLauncher.AppScenes.MAINMENU,
                     appIcon);
 
                 buttonAdded = true;
@@ -651,7 +651,7 @@ namespace FNPlugin
             {
                 appLauncherButton = InitializeApplicationButton();
                 if (appLauncherButton != null)
-                    appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.ALWAYS;
+                    appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.ALWAYS ^ ApplicationLauncher.AppScenes.MAINMENU;
 
                 buttonAdded = true;
             }
