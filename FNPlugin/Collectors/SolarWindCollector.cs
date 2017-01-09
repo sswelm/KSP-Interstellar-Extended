@@ -16,6 +16,13 @@ namespace FNPlugin
         public float fLastActiveTime;
         [KSPField(isPersistant = true)]
         public float fLastPowerPercentage;
+        [KSPField(isPersistant = true)]
+        public double dLastMagnetoStrength;
+        [KSPField(isPersistant = true)]
+        public double dLastSolarConcentration;
+        [KSPField(isPersistant = true)]
+        protected bool bIsExtended = false;
+
 
         // Part properties
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Surface area", guiUnits = " m\xB2")]
@@ -24,6 +31,8 @@ namespace FNPlugin
         public float effectiveness = 1.0f; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
         public float mwRequirements = 1.0f; // MW requirements of the collector panel.
+        [KSPField(isPersistant = false)]
+        public string animName;
 
 
         // GUI
@@ -35,6 +44,8 @@ namespace FNPlugin
         protected string strCollectingStatus = "";
         [KSPField(guiActive = true, guiName = "Power Usage")]
         protected string strReceivedPower = "";
+        [KSPField(guiActive = true, guiName = "Magnetosphere shielding effect", guiUnits = " %")]
+        protected string strMagnetoStrength = "";
 
         // internals
         protected float fResourceFlow = 0;
@@ -44,6 +55,10 @@ namespace FNPlugin
         {
             bIsEnabled = true;
             OnUpdate();
+            if (IsCollectLegal() == true)
+            {
+                UpdatePartAnimation();
+            }
         }
 
         [KSPEvent(guiActive = true, guiName = "Disable Collector", active = true)]
@@ -51,6 +66,12 @@ namespace FNPlugin
         {
             bIsEnabled = false;
             OnUpdate();
+            // folding nimation will only play if the collector was extended before being disabled
+            if (bIsExtended == true)
+            {
+                UpdatePartAnimation();
+            }
+
         }
 
         [KSPAction("Activate Collector")]
@@ -79,6 +100,10 @@ namespace FNPlugin
         protected double dConcentrationSolarWind = 0;
         protected double dSolarWindSpareCapacity;
         protected double dSolarWindDensity;
+        protected Animation anim;
+        protected bool bChangeState = false;
+        protected double dMagnetoSphereStrengthRatio = 0;
+        protected double dShieldedEffectiveness = 0;
 
         protected CelestialBody localStar;
 
@@ -89,6 +114,17 @@ namespace FNPlugin
             this.part.force_activate();
 
             localStar = GetCurrentStar();
+
+            // get the part's animation
+            anim = part.FindModelAnimators(animName).FirstOrDefault();
+
+            // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
+            List<ModuleAnimateGeneric> MAGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
+            foreach (ModuleAnimateGeneric MAG in MAGlist)
+            {
+                MAG.Fields["status"].guiActive = false;
+                MAG.Fields["status"].guiActiveEditor = false;
+            }
 
             // verify collector was enabled 
             if (!bIsEnabled) return;
@@ -102,8 +138,14 @@ namespace FNPlugin
             // verify altitude is not too low
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
             {
-                ScreenMessages.PostScreenMessage("Error, vessel is in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("Solar Wind Collection Error, vessel in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
                 return;
+            }
+
+            // if the part should be extended (from last time), go to the extended animation
+            if (bIsExtended == true && anim != null)
+            {
+                anim[animName].normalizedTime = 1f;
             }
 
             // calculate time difference since last time the vessel was active
@@ -121,8 +163,11 @@ namespace FNPlugin
 
             Fields["strReceivedPower"].guiActive = bIsEnabled;
 
+
             dConcentrationSolarWind = CalculateSolarWindConcentration(part.vessel.solarFlux);
             strSolarWindConc = dConcentrationSolarWind.ToString("F2");
+            dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
+            strMagnetoStrength = UpdateMagnetoStrengthInGUI();
         }
 
         public override void OnFixedUpdate()
@@ -136,14 +181,11 @@ namespace FNPlugin
                     return;
                 }
 
-                if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
+                // won't collect in atmosphere
+                if (IsCollectLegal() == false)
                 {
-                    ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
-                    strStarDist = UpdateDistanceInGUI();
-                    strSolarWindConc = "0";
                     DisableCollector();
                     return;
-
                 }
 
                 strStarDist = UpdateDistanceInGUI();
@@ -153,6 +195,12 @@ namespace FNPlugin
 
                 // store current time in case vesel is unloaded
                 fLastActiveTime = (float)Planetarium.GetUniversalTime();
+                
+                // store current strength of the magnetic field in case vessel is unloaded
+                dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
+
+                // store current solar wind concentration in case vessel is unloaded
+                dLastSolarConcentration = CalculateSolarWindConcentration(part.vessel.solarFlux);
             }
         }
 
@@ -175,6 +223,71 @@ namespace FNPlugin
             return star;
         }
 
+        /* Calculates the strength of the magnetosphere. Will return 1 if in atmosphere, otherwise a ratio of max atmospheric altitude to current 
+         * altitude - so the ratio slowly lowers the higher the vessel is. Once above 10 times the max atmo altitude, 
+         * it returns 0 (we consider this to be the end of the magnetosphere's reach). The atmospheric check is there to make the GUI less messy.
+        */
+        private static double GetMagnetosphereRatio(double altitude, double maxatmoaltitude)
+        {
+            double dRatio; // helper double for this function
+
+            // atmospheric check for the sake of GUI
+            if (altitude <= maxatmoaltitude)
+            {
+                dRatio = 1;
+                return dRatio;
+            }
+            else
+                dRatio = (altitude < (maxatmoaltitude * 10)) ? maxatmoaltitude / altitude : 0;
+            return dRatio;
+        }
+
+        // checks if the vessel is not in atmosphere and if it can therefore collect solar wind. Could incorporate other checks if needed.
+        private bool IsCollectLegal()
+        {
+            bool bCanCollect = false;
+
+            if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
+            {
+                ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                strStarDist = UpdateDistanceInGUI();
+                strSolarWindConc = "0";
+                return bCanCollect;
+            }
+            else
+                return bCanCollect = true;
+        }
+
+        private void UpdatePartAnimation()
+        {
+            // if folded, plays the part extending animation
+            if (!bIsExtended)
+            {
+                if (anim != null)
+                {
+                    anim[animName].speed = 1f;
+                    anim[animName].normalizedTime = 0f; // normalizedTime at 0 is the start of the animation
+                    anim.Blend(animName, part.mass);
+                }
+                bIsExtended = true;
+                return;
+            }
+
+            // if extended, plays the part folding animation
+            if (bIsExtended)
+            {
+                if (anim != null)
+                {
+                    anim[animName].speed = -1f; // speed of 1 is normal playback, -1 is reverse playback (so in this case we go from the end of animation backwards)
+                    anim[animName].normalizedTime = 1f; // normalizedTime at 1 is the end of the animation
+                    anim.Blend(animName, part.mass);
+                }
+                bIsExtended = false;
+                return;
+            }
+            return;
+        }
+
         // calculates solar wind concentration
         private static double CalculateSolarWindConcentration(double flux)
         {
@@ -188,7 +301,7 @@ namespace FNPlugin
         // calculates the distance to sun
         private static double CalculateDistanceToSun(Vector3d vesselPosition, Vector3d sunPosition)
         {
-            double dDistance = Vector3d.Distance(vesselPosition,sunPosition);
+            double dDistance = Vector3d.Distance(vesselPosition, sunPosition);
             return dDistance;
         }
 
@@ -197,6 +310,12 @@ namespace FNPlugin
         {
             string distance = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
             return distance;
+        }
+
+        private string UpdateMagnetoStrengthInGUI()
+        {
+            string magneto = (GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))* 100).ToString("F1");
+            return magneto;
         }
 
         // the main collecting function
@@ -212,6 +331,11 @@ namespace FNPlugin
 
             // gets density of the solar wind resource
             dSolarWindDensity = PartResourceLibrary.Instance.GetDefinition(strSolarWindResourceName).density;
+
+            if (offlineCollecting)
+            {
+                dConcentrationSolarWind = dLastSolarConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the function at line 328
+            }
 
             if (dConcentrationSolarWind > 0 && (dSolarWindSpareCapacity > 0))
             {
@@ -232,6 +356,7 @@ namespace FNPlugin
                 // show in GUI
                 strCollectingStatus = "Collecting solar wind";
             }
+            
             else
             {
                 fLastPowerPercentage = 0;
@@ -243,17 +368,31 @@ namespace FNPlugin
                 ? (fLastPowerPercentage * dPowerRequirementsMW * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMW * 1000).ToString("0.0") + " KW"
                 : (fLastPowerPercentage * dPowerRequirementsMW).ToString("0.0") + " MW / " + dPowerRequirementsMW.ToString("0.0") + " MW";
 
+            // get the shielding effect provided by the magnetosphere
+            dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
 
+            // if online collecting, get the old values instead (simplification for the time being)
+            if (offlineCollecting)
+            {
+                dMagnetoSphereStrengthRatio = dLastMagnetoStrength;
+            }
+
+            if (dMagnetoSphereStrengthRatio == 0)
+            {
+                dShieldedEffectiveness = 1;
+            }
+            else
+                dShieldedEffectiveness = (1 - dMagnetoSphereStrengthRatio);
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            double dResourceChange = (dConcentrationSolarWind * surfaceArea * dSolarWindDensity) * effectiveness * fLastPowerPercentage * deltaTimeInSeconds;
-
+            double dResourceChange = (dConcentrationSolarWind * surfaceArea * dSolarWindDensity) * effectiveness * dShieldedEffectiveness * fLastPowerPercentage * deltaTimeInSeconds;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
             {
                 string strNumberFormat = dResourceChange > 100 ? "0" : "0.00";
+                // let the player know that offline collecting worked
                 ScreenMessages.PostScreenMessage("The Solar Wind Collector collected " + dResourceChange.ToString(strNumberFormat) + " units of " + strSolarWindResourceName, 10.0f, ScreenMessageStyle.LOWER_CENTER);
             }
 
