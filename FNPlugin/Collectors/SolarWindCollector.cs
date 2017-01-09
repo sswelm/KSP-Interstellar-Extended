@@ -229,8 +229,6 @@ namespace FNPlugin
         */
         private static double GetMagnetosphereRatio(double altitude, double maxatmoaltitude)
         {
-            //double dRatio = ((altitude > maxatmoaltitude) && (altitude < (maxatmoaltitude * 10))) ? maxatmoaltitude / altitude : 0;
-
             double dRatio; // helper double for this function
 
             // atmospheric check for the sake of GUI
@@ -289,8 +287,6 @@ namespace FNPlugin
             }
             return;
         }
-
-        // MagnetoSphereStrengthRatio = vessel.altitude<atmosphere.height* 10 ? vessel.altitude / atmosphere.height : 0
 
         // calculates solar wind concentration
         private static double CalculateSolarWindConcentration(double flux)
@@ -375,49 +371,10 @@ namespace FNPlugin
             // get the shielding effect provided by the magnetosphere
             dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
 
-            string helper = "";
-            Debug.Log("First check");
-            Debug.Log("dMagnetoSphereStrengthRatio =");
-            Debug.Log(dMagnetoSphereStrengthRatio.ToString(helper));
-            Debug.Log("dConcentrationSolarWind =");
-            Debug.Log(dConcentrationSolarWind.ToString(helper));
-            Debug.Log("(persistent)dLastSolarConcentration =");
-            Debug.Log(dLastSolarConcentration.ToString(helper));
-            Debug.Log("surfaceArea =");
-            Debug.Log(surfaceArea.ToString(helper));
-            Debug.Log("dSolarWindDensity =");
-            Debug.Log(dSolarWindDensity.ToString(helper));
-            Debug.Log("effectiveness =");
-            Debug.Log(effectiveness.ToString(helper));
-            Debug.Log("dShieldedEffectiveness =");
-            Debug.Log(dShieldedEffectiveness.ToString(helper));
-            Debug.Log("fLastPowerPercentage =");
-            Debug.Log(fLastPowerPercentage.ToString(helper));
-            Debug.Log("deltaTimeInSeconds = ");
-            Debug.Log(deltaTimeInSeconds.ToString(helper));
-
             // if online collecting, get the old values instead (simplification for the time being)
             if (offlineCollecting)
             {
                 dMagnetoSphereStrengthRatio = dLastMagnetoStrength;
-                // dConcentrationSolarWind = dLastSolarConcentration;
-                Debug.Log("Second check");
-                Debug.Log("dMagnetoSphereStrengthRatio =");
-                Debug.Log(dMagnetoSphereStrengthRatio.ToString(helper));
-                Debug.Log("dConcentrationSolarWind =");
-                Debug.Log(dConcentrationSolarWind.ToString(helper));
-                Debug.Log("surfaceArea =");
-                Debug.Log(surfaceArea.ToString(helper));
-                Debug.Log("dSolarWindDensity =");
-                Debug.Log(dSolarWindDensity.ToString(helper));
-                Debug.Log("effectiveness =");
-                Debug.Log(effectiveness.ToString(helper));
-                Debug.Log("dShieldedEffectiveness =");
-                Debug.Log(dShieldedEffectiveness.ToString(helper));
-                Debug.Log("fLastPowerPercentage =");
-                Debug.Log(fLastPowerPercentage.ToString(helper));
-                Debug.Log("deltaTimeInSeconds = ");
-                Debug.Log(deltaTimeInSeconds.ToString(helper));
             }
 
             if (dMagnetoSphereStrengthRatio == 0)
@@ -430,40 +387,12 @@ namespace FNPlugin
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
             double dResourceChange = (dConcentrationSolarWind * surfaceArea * dSolarWindDensity) * effectiveness * dShieldedEffectiveness * fLastPowerPercentage * deltaTimeInSeconds;
-            Debug.Log("Second and a half check");
-            Debug.Log("dShieldedEffectiveness =");
-            Debug.Log(dShieldedEffectiveness.ToString(helper));
-            Debug.Log("dResourceChange =");
-            Debug.Log(dResourceChange.ToString(helper));
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
             {
-                /*dShieldedEffectiveness = dLastMagnetoStrength == 0 // same bit as above, but this one is for offline collecting
-                    ? 1 
-                    : 1 - dLastMagnetoStrength;
-                    */
                 string strNumberFormat = dResourceChange > 100 ? "0" : "0.00";
-                // update the important bit with offline collecting values
-                // dResourceChange = (dLastSolarConcentration * surfaceArea * dSolarWindDensity) * effectiveness * dShieldedEffectiveness * fLastPowerPercentage * deltaTimeInSeconds;
                 // let the player know that offline collecting worked
-                Debug.Log("Third check");
-                Debug.Log("dMagnetoSphereStrengthRatio =");
-                Debug.Log(dMagnetoSphereStrengthRatio.ToString(helper));
-                Debug.Log("dConcentrationSolarWind =");
-                Debug.Log(dConcentrationSolarWind.ToString(helper));
-                Debug.Log("surfaceArea =");
-                Debug.Log(surfaceArea.ToString(helper));
-                Debug.Log("dSolarWindDensity =");
-                Debug.Log(dSolarWindDensity.ToString(helper));
-                Debug.Log("effectiveness =");
-                Debug.Log(effectiveness.ToString(helper));
-                Debug.Log("dShieldedEffectiveness =");
-                Debug.Log(dShieldedEffectiveness.ToString(helper));
-                Debug.Log("fLastPowerPercentage =");
-                Debug.Log(fLastPowerPercentage.ToString(helper));
-                Debug.Log("deltaTimeInSeconds = ");
-                Debug.Log(deltaTimeInSeconds.ToString(helper));
                 ScreenMessages.PostScreenMessage("The Solar Wind Collector collected " + dResourceChange.ToString(strNumberFormat) + " units of " + strSolarWindResourceName, 10.0f, ScreenMessageStyle.LOWER_CENTER);
             }
 
