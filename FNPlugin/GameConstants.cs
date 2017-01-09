@@ -21,7 +21,7 @@ namespace FNPlugin
         public const double waterElectrolysisEnergyPerTon = 18159;
         public const double aluminiumElectrolysisEnergyPerTon = 35485.714;
         public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
-        public const double EarthAtmospherePressureAtSeaLevel = 101.325;
+        public const float EarthAtmospherePressureAtSeaLevel = 101.325f;
         public const double KerbinAtmosphereDensityAtSeaLevel = 1.203016;
 
         public const double electrolysisMassRatio = 7.936429;

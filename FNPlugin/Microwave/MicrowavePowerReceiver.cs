@@ -377,6 +377,8 @@ namespace FNPlugin
         private static readonly double microwaveAngleTan = Math.Tan(GameConstants.microwave_angle);//this doesn't change during game so it's readonly 
         private static readonly double microwaveAngleTanSquared = microwaveAngleTan * microwaveAngleTan;
 
+        public double RawTotalPowerProduced { get { return ThermalPower * TimeWarp.fixedDeltaTime; } }
+
         public double ChargedPowerRatio { get { return 0; } }
 
         public double PowerBufferBonus { get { return 0; } }
@@ -1313,14 +1315,15 @@ namespace FNPlugin
                     wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
                 }
 
+
                 if (isThermalReceiverSlave || thermalMode)
                 {
-                    var fixed_beamed_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                    double fixed_beamed_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
                     if (!CheatOptions.IgnoreMaxTemperature)
                         supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
-                    var cur_thermal_power = (fixed_beamed_thermal_power + fixedSolarInputMegajoules) / TimeWarp.fixedDeltaTime;
+                    var cur_thermal_power = fixedSolarInputMegajoules + fixed_beamed_thermal_power / TimeWarp.fixedDeltaTime;
 
                     var total_thermal_power = isThermalReceiver 
                         ? cur_thermal_power + thermalReceiverSlaves.Sum(m => m.ThermalPower) 
@@ -1342,6 +1345,8 @@ namespace FNPlugin
                 {
                     supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 }
+
+                
             }
             else
             {

@@ -10,20 +10,11 @@ namespace FNPlugin
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class FlightUIStarter : MonoBehaviour
     {
-        protected Rect button_position;
-        protected Texture2D guibuttontexture;
-
         public static bool hide_button = false;
         public static bool show_window = false;
 
         public void Start()
         {
-            guibuttontexture = GameDatabase.Instance.GetTexture("WarpPlugin/UITextures/megajoule_click", false);
-            if (!PluginHelper.using_toolbar)
-            {
-                button_position = new Rect(Screen.width - guibuttontexture.width, Screen.height - guibuttontexture.height - 150, guibuttontexture.width, guibuttontexture.height);
-            }
-            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
 
         public void Update()
@@ -50,23 +41,8 @@ namespace FNPlugin
                 {
                     mega_manager.OnGUI();
 
-                    if (!PluginHelper.using_toolbar)
-                    {
-                        GUILayout.BeginArea(button_position);
-                        if (GUILayout.Button(guibuttontexture))
-                        {
-                            mega_manager.showWindow();
-                        }
-                        GUILayout.EndArea();
-                    }
-                    else
-                    {
-                        if (show_window)
-                        {
-                            mega_manager.showWindow();
-                            show_window = false;
-                        }
-                    }
+                    if (show_window)
+                        mega_manager.showWindow();
                 }
             }
 

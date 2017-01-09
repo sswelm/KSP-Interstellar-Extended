@@ -41,6 +41,8 @@ namespace FNPlugin
 
         public float MinimumThrottle { get { return 0; } }
 
+        public double RawTotalPowerProduced { get { return _thermalpower * TimeWarp.fixedDeltaTime; } }
+
         public int SupportedPropellantAtoms { get { return GameConstants.defaultSupportedPropellantAtoms; } }
 
         public int SupportedPropellantTypes { get { return GameConstants.defaultSupportedPropellantTypes; } }

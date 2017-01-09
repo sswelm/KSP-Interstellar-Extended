@@ -612,7 +612,7 @@ namespace FNPlugin
                     null,
                     null,
                     null,
-                    ApplicationLauncher.AppScenes.ALWAYS,
+                    ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.VAB,
                     appIcon);
 
                 buttonAdded = true;

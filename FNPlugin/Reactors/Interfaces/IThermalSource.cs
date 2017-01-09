@@ -27,6 +27,9 @@ namespace FNPlugin
         /// </summary>
         double RawMaximumPower { get; }
 
+
+        double RawTotalPowerProduced { get; }
+
         /// <summary>
         /// Influences the Mass in Electric Generator
         /// </summary>
