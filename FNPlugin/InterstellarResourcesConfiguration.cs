@@ -47,7 +47,8 @@ namespace FNPlugin
         private String _heavyWater = "HeavyWater";
         private String _tritium = "LqdTritium";
         private String _solarWind = "SolarWind";
-        private String _neon_gas = "NeonGas"; 
+        private String _neon_gas = "NeonGas";
+        private String _regolith = "Regolith";
 
         public String Actinides { get { return _ACTINIDES; } }
         public String Alumina { get { return _ALUMINA; } }
@@ -77,6 +78,7 @@ namespace FNPlugin
         public String Nitrogen { get { return _nitrogen; } }
         public String Oxygen { get { return _oxygen; } }
         public String Plutonium238 { get { return _PLUTONIUM_238; } }
+        public String Regolith { get { return _regolith; } }
         public String SolarWind { get { return _solarWind; } }
         public String ThoriumTetraflouride { get { return _THORIUM_TETRAFLOURIDE; } }
         public String LqdTritium { get { return _tritium; } }
@@ -170,10 +172,15 @@ namespace FNPlugin
                     _oxygen = plugin_settings.GetValue("OxygenResourceName");
                     Debug.Log("[KSP Interstellar] Oxygen resource name set to " + Oxygen);
                 }
+                if (plugin_settings.HasValue("RegolithResourceName"))
+                {
+                    _regolith = plugin_settings.GetValue("RegolithResourceName");
+                    Debug.Log("[KSP Interstellar] Regolith resource name set to " + Regolith);
+                }
                 if (plugin_settings.HasValue("SolarWindResourceName"))
                 {
                     _solarWind = plugin_settings.GetValue("SolarWindResourceName");
-                    Debug.Log("[KSP Interstellar] SolarWind resource name set to " + _solarWind);
+                    Debug.Log("[KSP Interstellar] SolarWind resource name set to " + SolarWind);
                 }
                 if (plugin_settings.HasValue("TritiumResourceName"))
                 {
