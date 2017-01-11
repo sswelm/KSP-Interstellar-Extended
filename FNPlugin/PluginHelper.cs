@@ -589,8 +589,10 @@ namespace FNPlugin
 
         public static string getFormatedMassString(double massInKg, string format)
         {
-            if (massInKg < 0.001)
-                return (massInKg * 1000).ToString(format) + " mg";
+            if (massInKg < 0.000001)
+                return (massInKg * 1000000).ToString(format) + " mg";
+            else if (massInKg < 0.001)
+                return (massInKg * 1000).ToString(format) + " g";
             else
                 return (massInKg).ToString(format) + " kg";
         }

@@ -192,7 +192,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Sun Facing Factor", guiFormat = "F4")]
         public double solarFacingFactor;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F2")]
         public double solarFlux;
 
         protected BaseField _radiusField;
@@ -207,6 +207,8 @@ namespace FNPlugin
         protected ModuleDeployableRadiator deployableRadiator;
         protected ModuleActiveRadiator activeRadiator;
         protected FNRadiator fnRadiator;
+
+        public Queue<double> solarFluxQueue = new Queue<double>();
 
         //Internal 
         protected bool isLoaded = false;
@@ -1147,7 +1149,12 @@ namespace FNPlugin
 
             if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0)
             {
-                solarFlux = part.vessel.solarFlux;
+                solarFluxQueue.Enqueue(part.vessel.solarFlux);
+
+                if (solarFluxQueue.Count > 50)
+                    solarFluxQueue.Dequeue();
+
+                solarFlux = solarFluxQueue.Average();
                 solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
                 solarInputMegajoules = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarFacingFactor * solarReceptionEfficiency;
             }
@@ -1327,7 +1334,7 @@ namespace FNPlugin
                     //if (!CheatOptions.IgnoreMaxTemperature)
                     //    supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
-                    var cur_thermal_power = fixedSolarInputMegajoules + fixed_beamed_thermal_power / TimeWarp.fixedDeltaTime;
+                    var cur_thermal_power = (fixedSolarInputMegajoules + fixed_beamed_thermal_power) / TimeWarp.fixedDeltaTime;
 
                     var total_thermal_power = isThermalReceiver 
                         ? cur_thermal_power + thermalReceiverSlaves.Sum(m => m.ThermalPower) 
