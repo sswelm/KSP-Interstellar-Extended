@@ -39,7 +39,7 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
-        public float MinimumThrottle { get { return 0; } }
+        public double MinimumThrottle { get { return 0; } }
 
         public double RawTotalPowerProduced { get { return _thermalpower * TimeWarp.fixedDeltaTime; } }
 

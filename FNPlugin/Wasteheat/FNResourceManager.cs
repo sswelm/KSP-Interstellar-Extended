@@ -18,9 +18,6 @@ namespace FNPlugin
 
         protected override void pluginSpecificImpl() 
         {
-            if (resource_name == FNRESOURCE_CHARGED_PARTICLES) 
-                flow_type = FNRESOURCE_FLOWTYPE_EVEN;
-
             if (String.Equals(this.resource_name, FNResourceManager.FNRESOURCE_WASTEHEAT) && !PluginHelper.IsThermalDissipationDisabled) 
             {   
                 // passive dissip of waste heat - a little bit of this

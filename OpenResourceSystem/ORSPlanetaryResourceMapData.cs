@@ -130,8 +130,9 @@ namespace OpenResourceSystem
                 ORSPlanetaryResourceInfo resource_info = body_resource_maps.Where(ri => ri.Value.getResourceName() == resourcename).FirstOrDefault().Value;
                 return getResourceAvailability(body, resource_info.getName(),lat,lng);
             }
-            catch(Exception) 
+            catch(Exception ex) 
             {
+                Debug.LogError("[ORS] - Exception in getResourceAvailabilityByRealResourceName: " + ex.Message);
                 ORSPlanetaryResourcePixel resource_pixel = new ORSPlanetaryResourcePixel(resourcename, 0, body);
                 return resource_pixel;
             }

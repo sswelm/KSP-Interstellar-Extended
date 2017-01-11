@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 
 namespace OpenResourceSystem {
-    class ORSAtmosphericExtractor : ORSResourceSuppliableModule{
+    class ORSAtmosphericExtractor : ORSResourceSuppliableModule
+    {
         //Persistent True
         [KSPField(isPersistant = true)]
         public bool IsEnabled = false;
@@ -93,57 +94,62 @@ namespace OpenResourceSystem {
             }
         }
 
-        public override void OnFixedUpdate() 
+        public override void OnFixedUpdate()
         {
-            if (IsEnabled) 
+            if (!IsEnabled)
+                return;
+
+
+            double power_requirements = powerConsumption;
+            double extraction_time = extractionRatePerTon;
+
+            if (vessel.altitude > ORSHelper.getMaxAtmosphericAltitude(vessel.mainBody))
             {
-                double power_requirements = powerConsumption;
-                double extraction_time = extractionRatePerTon;
-                if (vessel.altitude > ORSHelper.getMaxAtmosphericAltitude(vessel.mainBody)) {
+                IsEnabled = false;
+                return;
+            }
+
+            double electrical_power_provided = 0;
+            if (resourceManaged)
+            {
+                electrical_power_provided = consumeFNResource(power_requirements * TimeWarp.fixedDeltaTime, resourceToUse);
+            }
+            else
+            {
+                electrical_power_provided = part.RequestResource(resourceToUse, power_requirements * TimeWarp.fixedDeltaTime);
+            }
+
+            if (power_requirements > 0)
+            {
+                electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / power_requirements;
+            }
+            else
+            {
+                if (power_requirements < 0)
+                {
                     IsEnabled = false;
                     return;
                 }
-
-                double electrical_power_provided = 0;
-                if (resourceManaged) 
+                else
                 {
-                    electrical_power_provided = consumeFNResource(power_requirements * TimeWarp.fixedDeltaTime, resourceToUse);
-                } 
-                else 
-                {
-                    electrical_power_provided = part.RequestResource(resourceToUse, power_requirements * TimeWarp.fixedDeltaTime);
-                }
-
-                if (power_requirements > 0) 
-                {
-                    electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / power_requirements;
-                } 
-                else 
-                {
-                    if (power_requirements < 0) 
-                    {
-                        IsEnabled = false;
-                        return;
-                    } 
-                    else 
-                    {
-                        electrical_power_ratio = 1;
-                    }
-                }
-                double resource_abundance = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, resourceName);
-                double extraction_rate = resource_abundance * extraction_time * electrical_power_ratio * part.vessel.atmDensity;
-
-                if (resource_abundance > 0) 
-                {
-                    double resource_density = PartResourceLibrary.Instance.GetDefinition(resourceName).density;
-                    //extraction_rate_d = -part.RequestResource(resourceName, -extraction_rate / resource_density * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
-                    extraction_rate_d = -ORSHelper.fixedRequestResource(part,resourceName, -extraction_rate / resource_density * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
-                } 
-                else 
-                {
-                    IsEnabled = false;
+                    electrical_power_ratio = 1;
                 }
             }
+            double resource_abundance = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, resourceName);
+            double extraction_rate = resource_abundance * extraction_time * electrical_power_ratio * part.vessel.atmDensity;
+
+            if (resource_abundance > 0)
+            {
+                double resource_density = PartResourceLibrary.Instance.GetDefinition(resourceName).density;
+                
+                //extraction_rate_d = -ORSHelper.fixedRequestResource(part,resourceName, -extraction_rate / resource_density * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                extraction_rate_d = -part.RequestResource(resourceName, -extraction_rate / resource_density * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+            }
+            else
+            {
+                IsEnabled = false;
+            }
+
         }
 
         protected string formatMassStr(double mass) 

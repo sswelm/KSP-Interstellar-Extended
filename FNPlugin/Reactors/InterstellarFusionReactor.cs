@@ -54,7 +54,7 @@ namespace FNPlugin
         {
             get 
             {
-                plasma_modifier = plasma_ratio >= 1.0 ? 1 : 0;
+                plasma_modifier = plasma_ratio >= 1 ? 1 : 0;
                 return plasma_modifier;
             }
         }
@@ -110,7 +110,6 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-
             lithiumPartResource = part.Resources.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.Lithium7);
 
             // call Interstellar Reactor Onstart

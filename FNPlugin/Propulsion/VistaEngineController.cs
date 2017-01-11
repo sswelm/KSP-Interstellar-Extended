@@ -243,7 +243,7 @@ namespace FNPlugin
                     : consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPower / (powerRequirement * TimeWarp.fixedDeltaTime);
-                var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? Mathf.Pow((float)plasma_ratio, 6.0f) : 0;
+                var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? Math.Pow(plasma_ratio, 6.0) : 0;
 
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {

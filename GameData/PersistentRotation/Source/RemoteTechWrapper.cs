@@ -16,7 +16,7 @@ namespace PersistentRotation
         private static Type rtUtil_t;           //RTUtil
         private static Type rtFliCom_t;         //FlightComputer
         private static Type rtAttCom_t;         //AttitudeCommand
-        private static PropertyInfo fcAttCom_t;    //FlightComputer.currentFlightMode
+        private static PropertyInfo fcAttCom_t;    //FlightComputer._activeCommands
         private static FieldInfo acMode_t;      //AttitudeCommand.Mode
         private static PropertyInfo fcControllable_t;
         private static Reflection.DynamicMethod<Vessel> GetSignalProcessor;
@@ -47,29 +47,29 @@ namespace PersistentRotation
             rtAvailable = false;
             try
             {
-                Debug.Log("[PR] Initializing RemoteTech wrapper.");
+                Debug.Log("[PR] Initializing RemoteTech wrapper...");
                 rtUtil_t = Reflection.GetExportedType("RemoteTech", "RemoteTech.RTUtil");
-                if(rtUtil_t == null)
+                if (rtUtil_t == null)
                 {
                     return;
                 }
                 MethodInfo GetSignalProcessor_t = rtUtil_t.GetMethod("GetSignalProcessor", BindingFlags.Static | BindingFlags.Public);
-                if(GetSignalProcessor_t == null)
+                if (GetSignalProcessor_t == null)
                 {
                     return;
                 }
                 GetSignalProcessor = Reflection.CreateFunc<Vessel>(GetSignalProcessor_t);
-                if(GetSignalProcessor == null)
+                if (GetSignalProcessor == null)
                 {
                     return;
                 }
                 rtISigProc_t = Reflection.GetExportedType("RemoteTech", "RemoteTech.Modules.ModuleSPU");
-                if(rtISigProc_t == null)
+                if (rtISigProc_t == null)
                 {
                     return;
                 }
                 spFliCom_t = rtISigProc_t.GetProperty("FlightComputer", BindingFlags.Instance | BindingFlags.Public);
-                if(spFliCom_t == null)
+                if (spFliCom_t == null)
                 {
                     return;
                 }
@@ -78,13 +78,20 @@ namespace PersistentRotation
                 {
                     return;
                 }
-                fcAttCom_t = rtFliCom_t.GetProperty("currentFlightMode", BindingFlags.Instance | BindingFlags.Public);
+
+                /* 
+                From FlightComputer.cs in RemoteTech:
+                
+                public AttitudeCommand CurrentFlightMode => _activeCommands[0] as AttitudeCommand;
+                 */
+
+                fcAttCom_t = rtFliCom_t.GetProperty("CurrentFlightMode", BindingFlags.Instance | BindingFlags.Public); //changed currentFlightMode to CurrentFlightMode 
                 if (fcAttCom_t == null)
                 {
                     return;
                 }
                 rtAttCom_t = Reflection.GetExportedType("RemoteTech", "RemoteTech.FlightComputer.Commands.AttitudeCommand");
-                if(rtAttCom_t == null)
+                if (rtAttCom_t == null)
                 {
                     return;
                 }
@@ -93,13 +100,11 @@ namespace PersistentRotation
                 {
                     return;
                 }
-
                 fcControllable_t = rtFliCom_t.GetProperty("InputAllowed", BindingFlags.Instance | BindingFlags.Public);
-                if(fcControllable_t == null)
+                if (fcControllable_t == null)
                 {
                     return;
                 }
-
 
                 rtAvailable = true;
                 Debug.Log("[PR] RemoteTech reflection successfull!");
@@ -117,14 +122,14 @@ namespace PersistentRotation
             object currentFlightMode;
             object mode;
 
-            if(rtAvailable)
+            if (rtAvailable)
             {
                 signalProcessor = null;
 
                 if (vessel.loaded && vessel.parts.Count > 0)
                 {
                     var partModuleList = vessel.Parts.SelectMany(p => p.Modules.Cast<PartModule>()).Where(pm => pm.Fields.GetValue<bool>("IsRTSignalProcessor")).ToList();
-                    if (partModuleList.Count > 0) //necessary?
+                    if (partModuleList.Count > 0)
                     {
                         signalProcessor = partModuleList.FirstOrDefault(pm => pm.moduleName == "ModuleSPU");
                     }
@@ -200,7 +205,7 @@ namespace PersistentRotation
 
                     controllable = fcControllable_t.GetValue(flightComputer, null);
 
-                    if(controllable == null)
+                    if (controllable == null)
                     {
                         return true;
                     }

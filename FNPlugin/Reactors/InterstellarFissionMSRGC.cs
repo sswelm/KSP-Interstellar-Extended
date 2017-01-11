@@ -16,7 +16,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Actinides Modifier")]
-        public float actinidesModifer;
+        public double actinidesModifer;
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
 
@@ -149,8 +149,8 @@ namespace FNPlugin
                     double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
                     double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * current_fuel_mode.NormalisedReactionRate * 2.5), 1.0);
                     fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
-                    actinidesModifer = (float)Math.Sqrt(fuel_actinide_mass_ratio);
-                    return (float)(base.MaximumThermalPower * actinidesModifer);
+                    actinidesModifer = Math.Sqrt(fuel_actinide_mass_ratio);
+                    return base.MaximumThermalPower * actinidesModifer;
                 }
                 return base.MaximumThermalPower;
             }
@@ -170,7 +170,7 @@ namespace FNPlugin
                         temp_scale = base.CoreTemperature / 2.0;
 
                     double temp_diff = (base.CoreTemperature - temp_scale) * Math.Sqrt(powerPcnt / 100.0);
-                    return (float)(temp_scale + temp_diff);
+                    return temp_scale + temp_diff;
                 }
                 else
                     return base.CoreTemperature;

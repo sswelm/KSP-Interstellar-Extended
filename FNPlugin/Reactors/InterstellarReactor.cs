@@ -379,7 +379,7 @@ namespace FNPlugin
         protected double currentIsThermalEnergyGenratorActive;
         protected double currentIsChargedEnergyGenratorActive;
 
-        private bool isFixedUpdatedCalled;
+        protected bool isFixedUpdatedCalled;
         protected AnimationState[] pulseAnimation;
         protected ModuleAnimateGeneric startupAnimation;
         protected ModuleAnimateGeneric shutdownAnimation;
@@ -438,14 +438,12 @@ namespace FNPlugin
 
         public void ConnectWithEngine(IEngineNoozle engine)
         {
-            //connectedEngine = engine;
             if (!connectedEngines.Contains(engine))
                 connectedEngines.Add(engine);
         }
 
         public void DisconnectWithEngine(IEngineNoozle engine)
         {
-            //connectedEngine = engine;
             if (connectedEngines.Contains(engine))
                 connectedEngines.Remove(engine);
         }
@@ -462,7 +460,7 @@ namespace FNPlugin
             }
         }
 
-        public virtual float MinimumThrottle 
+        public virtual double MinimumThrottle 
         { 
             get {
                 if (CurrentGenerationType == GenerationType.Mk5)
@@ -561,7 +559,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("FNGenerator.OnRescale" + e.Message);
+                Debug.LogError("[KSPI] - FNGenerator.OnRescale" + e.Message);
             }
         }
 
@@ -1915,7 +1913,7 @@ namespace FNPlugin
 
             catch (Exception e)
             {
-                Debug.LogError("ElectricRCSController Window(" + windowID + "): " + e.Message);
+                Debug.LogError("[KSPI] - ElectricRCSController Window(" + windowID + "): " + e.Message);
                 throw;
             }
         }

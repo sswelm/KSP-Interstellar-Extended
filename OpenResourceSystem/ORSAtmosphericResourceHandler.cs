@@ -89,7 +89,7 @@ namespace OpenResourceSystem
             } 
             catch (Exception ex) 
             {
-                Debug.Log("[ORS] Exception while loading atmospheric resources : " + ex.ToString());
+                Debug.Log("[ORS] - Exception while loading atmospheric resources : " + ex.ToString());
             }
             return bodyAtmosphericComposition;
         }

@@ -27,7 +27,6 @@ namespace FNPlugin
         /// </summary>
         double RawMaximumPower { get; }
 
-
         double RawTotalPowerProduced { get; }
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace FNPlugin
 
         double StableMaximumReactorPower { get; }
 
-        float MinimumThrottle { get; }
+        double MinimumThrottle { get; }
 
         double MaximumPower { get; }
 

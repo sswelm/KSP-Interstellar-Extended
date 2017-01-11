@@ -490,7 +490,7 @@ namespace FNPlugin
             }
             catch
             {
-                Debug.LogError("OnStart Exception in SetupPropellants");
+                Debug.LogError("[KSPI] - OnStart Exception in SetupPropellants");
             }
         }
 

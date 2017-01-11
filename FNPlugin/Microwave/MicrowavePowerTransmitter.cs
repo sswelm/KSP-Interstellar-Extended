@@ -320,7 +320,7 @@ namespace FNPlugin
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSP Interstellar] Microwave Transmitter OnStart search for beamGenerator: " + ex);
+                Debug.LogError("[KSPI] Microwave Transmitter OnStart search for beamGenerator: " + ex);
             }
         }
 
@@ -558,8 +558,9 @@ namespace FNPlugin
 
                 moistureModifier = 2 * moistureModifier * latitude_variance * cloud_variance;
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException e)
             {
+                Debug.LogError("[KSPI] - NullReferenceException in GetSolarFacingFactor " + e.Message + " at " + e.StackTrace);
             }
         }
 

@@ -81,7 +81,7 @@ namespace FNPlugin.Refinery
             catch (Exception e)
             {
                 Debug.LogException(e, new UnityEngine.Object() { name = "ISRU Refinery" });
-                Debug.LogWarning("ISRU Refinery Exception " + e.Message);
+                Debug.LogWarning("[KSPI] - ISRU Refinery Exception " + e.Message);
             }
 
             _refinery_activities = unsortedList.OrderBy(a => a.ActivityName).ToList();

@@ -14,7 +14,7 @@ namespace FNPlugin
         [KSPField(guiName = "Atmosphere Flow", guiUnits = "U", guiFormat = "F3", isPersistant = false, guiActive = false)]
         public double airFlow;
         [KSPField(guiName = "Atmossphere Speed", guiUnits = "M/s", guiFormat = "F3", isPersistant = false, guiActive = false)]
-        public float airSpeed;
+        public double airSpeed;
         [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = true, guiFormat ="F6")]
         public double airThisUpdate;
         [KSPField(guiName = "intake Angle", isPersistant = false, guiActive = false)]
@@ -44,6 +44,7 @@ namespace FNPlugin
             Transform intakeTransform = part.FindModelTransform(intakeTransformName);
             if (intakeTransform == null)
                 Debug.Log("[KSPI] AtmosphericIntake unable to get intake transform for " + part.name);
+
             //_intake_direction = intakeTransform != null ? intakeTransform.forward.normalized : Vector3.forward;
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
 
@@ -66,17 +67,10 @@ namespace FNPlugin
             if (vessel == null)
                 return;
 
-            //airSpeed = (float)vessel.srf_velocity.magnitude + _intake_speed;
-            airSpeed = (float)vessel.speed + _intake_speed;
-
-            //intakeAngle = Mathf.Clamp(Vector3.Dot((Vector3)vessel.srf_velocity.normalized, _intake_direction), 0, 1);
-            //intakeExposure = (intakeAngle < aoaThreshold 
-            //    ? (1 - intakeAngle) * (airSpeed * unitScalar) + _intake_speed
-            //    : (1 - intakeAngle) * (airSpeed * unitScalar) * (float)Math.Pow(aoaThreshold / intakeAngle, 2) + _intake_speed);
-            
+            airSpeed = vessel.speed + _intake_speed;
             intakeExposure = (airSpeed * unitScalar) + _intake_speed;
             intakeExposure *= area * unitScalar * jetTechBonusPercentage;
-            airFlow = (float)vessel.atmDensity * intakeExposure / _resourceAtmosphere.density ;
+            airFlow = vessel.atmDensity * intakeExposure / _resourceAtmosphere.density ;
             airThisUpdate = airFlow * TimeWarp.fixedDeltaTime;
 
             if (!storesResource)
@@ -89,7 +83,7 @@ namespace FNPlugin
                     airThisUpdate = airThisUpdate >= 0
                         ? (airThisUpdate <= resource.maxAmount
                             ? airThisUpdate
-                            : (float)resource.maxAmount)
+                            : resource.maxAmount)
                         : 0;
                     resource.amount = airThisUpdate;
                     break;
@@ -97,25 +91,10 @@ namespace FNPlugin
             }
             else
             {
-                part.ImprovedRequestResource(_resourceAtmosphere.name, -airThisUpdate);
-                //part.RequestResource(_resourceAtmosphere.name, -airThisUpdate);
+                //part.ImprovedRequestResource(_resourceAtmosphere.name, -airThisUpdate);
+                part.RequestResource(_resourceAtmosphere.name, -airThisUpdate);
             }
 
-            //if (!useIntakeCompensation)
-            //    return;
-
-            //foreach (PartResource resource in part.Resources)
-            //{
-            //    if (resource.resourceName != _resourceAtmosphere.name)
-            //        continue;
-
-            //    if (airThisUpdate > resource.amount && resource.amount != 0.0)
-            //        _intake_speed = Mathf.Lerp(_intake_speed, 0f, TimeWarp.fixedDeltaTime);
-            //    else
-            //        _intake_speed = Mathf.Lerp(_intake_speed, maxIntakeSpeed, TimeWarp.fixedDeltaTime);
-
-            //    break;
-            //}
         }
 
     }

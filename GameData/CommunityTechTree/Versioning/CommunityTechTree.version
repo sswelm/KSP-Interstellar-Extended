@@ -1,0 +1,18 @@
+{
+    "NAME":"CommunityTechTree",
+    "URL":"https://raw.githubusercontent.com/ChrisAdderley/CommunityTechTree/master/GameData/CommunityTechTree/Versioning/CommunityTechTree.version",
+    "DOWNLOAD":"http://forum.kerbalspaceprogram.com/index.php?/topic/90530-113-community-tech-tree-24-last-updated-180416",
+    "VERSION":
+    {
+        "MAJOR":3,
+        "MINOR":0,
+        "PATCH":3,
+        "BUILD":0
+    },
+    "KSP_VERSION":
+    {
+        "MAJOR":1,
+        "MINOR":2,
+        "PATCH":2
+    }
+}

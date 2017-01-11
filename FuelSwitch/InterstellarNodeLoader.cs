@@ -56,9 +56,9 @@ namespace InterstellarFuelSwitch
                         Vector2 v2 = new Vector2(float.Parse(splitString[0]), float.Parse(splitString[1]));
                         resultCurve.Add(v2.x, v2.y, 0, 0);
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        Debug.Log("Error parsing vector2");
+                        Debug.Log("[IFS] - Error parsing vector2: " + e.Message);
                     }
                 }
             }

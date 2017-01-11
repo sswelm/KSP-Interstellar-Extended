@@ -31,7 +31,7 @@ namespace FNPlugin
         public bool isChargingForJumpstart;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
-        public float minimumThrottlePercentage;
+        public double minimumThrottlePercentage;
 
         // UI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
@@ -55,9 +55,9 @@ namespace FNPlugin
             get { return (plasma_ratio >= 0.01 ? Math.Min(plasma_ratio, 1) : 0); }
         }
 
-        public float PowerRatio
+        public double PowerRatio
         {
-            get { return powerPercentage / 100; }
+            get { return powerPercentage / 100.0; }
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -88,12 +88,12 @@ namespace FNPlugin
             
         }
 
-        public override float MinimumThrottle 
+        public override double MinimumThrottle 
         {
             get 
             {
                 var currentMinimumThrottle = (powerPercentage > 0 && base.MinimumThrottle > 0)
-                    ? Mathf.Min(base.MinimumThrottle / PowerRatio, 1) 
+                    ? Math.Min(base.MinimumThrottle / PowerRatio, 1) 
                     : base.MinimumThrottle;
 
                 minimumThrottlePercentage = currentMinimumThrottle * 100;
