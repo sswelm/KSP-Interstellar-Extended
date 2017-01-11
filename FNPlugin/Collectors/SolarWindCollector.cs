@@ -13,9 +13,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool bIsEnabled = false;
         [KSPField(isPersistant = true)]
-        public float fLastActiveTime;
+        public double dLastActiveTime;
         [KSPField(isPersistant = true)]
-        public float fLastPowerPercentage;
+        public double dLastPowerPercentage;
         [KSPField(isPersistant = true)]
         public double dLastMagnetoStrength;
         [KSPField(isPersistant = true)]
@@ -26,11 +26,11 @@ namespace FNPlugin
 
         // Part properties
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Surface area", guiUnits = " m\xB2")]
-        public float surfaceArea = 0; // Surface area of the panel.
+        public double surfaceArea = 0; // Surface area of the panel.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Collector effectiveness", guiFormat = "P1")]
-        public float effectiveness = 1.0f; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
+        public double effectiveness = 1.0; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
-        public float mwRequirements = 1.0f; // MW requirements of the collector panel.
+        public double mwRequirements = 1.0f; // MW requirements of the collector panel.
         [KSPField(isPersistant = false)]
         public string animName;
 
@@ -48,7 +48,7 @@ namespace FNPlugin
         protected string strMagnetoStrength = "";
 
         // internals
-        protected float fResourceFlow = 0;
+        protected double dResourceFlow = 0;
 
         [KSPEvent(guiActive = true, guiName = "Activate Collector", active = true)]
         public void ActivateCollector()
@@ -130,10 +130,10 @@ namespace FNPlugin
             if (!bIsEnabled) return;
 
             // verify a timestamp is available
-            if (fLastActiveTime == 0) return;
+            if (dLastActiveTime == 0) return;
 
             // verify any power was available in previous state
-            if (fLastPowerPercentage < 0.01) return;
+            if (dLastPowerPercentage < 0.01) return;
 
             // verify altitude is not too low
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
@@ -149,7 +149,7 @@ namespace FNPlugin
             }
 
             // calculate time difference since last time the vessel was active
-            double dTimeDifference = (Planetarium.GetUniversalTime() - fLastActiveTime) * 55;
+            double dTimeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
 
             // collect solar wind for entire duration
             CollectSolarWind(dTimeDifference, true);
@@ -194,7 +194,7 @@ namespace FNPlugin
                 CollectSolarWind(TimeWarp.fixedDeltaTime, false);
 
                 // store current time in case vesel is unloaded
-                fLastActiveTime = (float)Planetarium.GetUniversalTime();
+                dLastActiveTime = Planetarium.GetUniversalTime();
                 
                 // store current strength of the magnetic field in case vessel is unloaded
                 dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
@@ -308,7 +308,7 @@ namespace FNPlugin
         // helper function for readying the distance for the GUI
         private string UpdateDistanceInGUI()
         {
-            string distance = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F2") + " km";
+            string distance = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F0") + " km";
             return distance;
         }
 
@@ -324,7 +324,7 @@ namespace FNPlugin
             dConcentrationSolarWind = CalculateSolarWindConcentration(part.vessel.solarFlux);
 
             string strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
-            double dPowerRequirementsMW = (double)PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
+            double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
 
             // checks for free space in solar wind 'tanks'
             dSolarWindSpareCapacity = part.GetResourceSpareCapacity(strSolarWindResourceName);
@@ -340,7 +340,7 @@ namespace FNPlugin
             if (dConcentrationSolarWind > 0 && (dSolarWindSpareCapacity > 0))
             {
                 // calculate available power
-                double dPowerReceivedMW = Math.Max((double)consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
                 double dNormalisedRevievedPowerMW = dPowerReceivedMW / TimeWarp.fixedDeltaTime;
 
                 // if power requirement sufficiently low, retreive power from KW source
@@ -351,7 +351,7 @@ namespace FNPlugin
                     dPowerReceivedMW += (dReceivedKW / 1000);
                 }
 
-                fLastPowerPercentage = offlineCollecting ? fLastPowerPercentage : (float)(dPowerReceivedMW / dPowerRequirementsMW / TimeWarp.fixedDeltaTime);
+                dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : (dPowerReceivedMW / dPowerRequirementsMW / TimeWarp.fixedDeltaTime);
 
                 // show in GUI
                 strCollectingStatus = "Collecting solar wind";
@@ -359,14 +359,14 @@ namespace FNPlugin
             
             else
             {
-                fLastPowerPercentage = 0;
+                dLastPowerPercentage = 0;
                 dPowerRequirementsMW = 0;
             }
 
             // set the GUI string to state the number of KWs received if the MW requirements were lower than 2, otherwise in MW
             strReceivedPower = dPowerRequirementsMW < 2
-                ? (fLastPowerPercentage * dPowerRequirementsMW * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMW * 1000).ToString("0.0") + " KW"
-                : (fLastPowerPercentage * dPowerRequirementsMW).ToString("0.0") + " MW / " + dPowerRequirementsMW.ToString("0.0") + " MW";
+                ? (dLastPowerPercentage * dPowerRequirementsMW * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMW * 1000).ToString("0.0") + " KW"
+                : (dLastPowerPercentage * dPowerRequirementsMW).ToString("0.0") + " MW / " + dPowerRequirementsMW.ToString("0.0") + " MW";
 
             // get the shielding effect provided by the magnetosphere
             dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
@@ -386,7 +386,7 @@ namespace FNPlugin
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            double dResourceChange = (dConcentrationSolarWind * surfaceArea * dSolarWindDensity) * effectiveness * dShieldedEffectiveness * fLastPowerPercentage * deltaTimeInSeconds;
+            double dResourceChange = (dConcentrationSolarWind * surfaceArea * dSolarWindDensity) * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * deltaTimeInSeconds;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
@@ -397,8 +397,8 @@ namespace FNPlugin
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
-            fResourceFlow = (float)ORSHelper.fixedRequestResource(part, strSolarWindResourceName, -dResourceChange);
-            fResourceFlow = -fResourceFlow / TimeWarp.fixedDeltaTime;
+            dResourceFlow = ORSHelper.fixedRequestResource(part, strSolarWindResourceName, -dResourceChange);
+            dResourceFlow = -dResourceFlow / TimeWarp.fixedDeltaTime;
         }
 
     }
