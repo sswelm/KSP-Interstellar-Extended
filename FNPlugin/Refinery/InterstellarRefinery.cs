@@ -37,7 +37,7 @@ namespace FNPlugin.Refinery
 
         private List<IRefineryActivity> _refinery_activities;
         private IRefineryActivity _current_activity = null;
-        private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth, 100);
+        private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth, 150);
         private int _window_ID;
         private bool _render_window;
 
@@ -77,6 +77,8 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new ReverseWaterGasShift(this.part));
                 unsortedList.Add(new MethanePyrolyser(this.part));
                 unsortedList.Add(new SolarWindProcessor(this.part));
+                unsortedList.Add(new RegolithProcessor(this.part));
+
             }
             catch (Exception e)
             {

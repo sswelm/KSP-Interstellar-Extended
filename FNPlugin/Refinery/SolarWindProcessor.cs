@@ -199,7 +199,7 @@ namespace FNPlugin.Refinery
                 _solar_wind_consumption_rate = 0;
                 _hydrogen_production_rate = 0;
                 _liquid_helium3_production_rate = 0;
-                _liquid_helium3_production_rate = 0;
+                _liquid_helium4_production_rate = 0;
                 _monoxide_production_rate = 0;
                 _nitrogen_production_rate = 0;
                 _neon_production_rate = 0;
