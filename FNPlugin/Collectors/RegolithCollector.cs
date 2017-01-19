@@ -19,8 +19,8 @@ namespace FNPlugin.Collectors
         public double dLastPowerPercentage;
         [KSPField(isPersistant = true)]
         public double dLastRegolithConcentration;
-        [KSPField(isPersistant = true)]
-        protected bool bIsExtended = false;
+        //[KSPField(isPersistant = true)]
+        //protected bool bIsExtended = false;
 
 
         // Part properties
@@ -32,8 +32,10 @@ namespace FNPlugin.Collectors
         public double mwRequirements = 1.0; // MW requirements of the drill. Affects heat produced.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Waste Heat Modifier", guiFormat = "P1")]
         public double wasteHeatModifier = 1.0; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
-        [KSPField(isPersistant = false)]
-        public string animName;
+        //[KSPField(isPersistant = false)]
+        //public string deployAnimName;
+        //[KSPField(isPersistant = false)]
+        //public string activeAnimName;
         /*
         [KSPField(isPersistant = false)]
         public string deployAnimName;
@@ -47,11 +49,11 @@ namespace FNPlugin.Collectors
         protected string strRegolithConc = "";
         [KSPField(guiActive = true, guiName = "Distance from the sun")]
         protected string strStarDist = "";
-        [KSPField(guiActive = true, guiName = "Status")]
+        [KSPField(guiActive = true, guiName = "Drill status")]
         protected string strCollectingStatus = "";
         [KSPField(guiActive = true, guiName = "Power Usage")]
         protected string strReceivedPower = "";
-        [KSPField(guiActive = true, guiName = "Altitude")]
+        [KSPField(guiActive = true, guiName = "Altitude", guiUnits = " m")]
         protected string strAltitude = "";
 
         // internals
@@ -60,12 +62,23 @@ namespace FNPlugin.Collectors
         [KSPEvent(guiActive = true, guiName = "Activate Drill", active = true)]
         public void ActivateCollector()
         {
-            bIsEnabled = true;
-            OnUpdate();
-            if (IsCollectLegal() == true) // unfolding animation will only play if the collecting of resource is legal - remnant of solar wind collector code, should do no harm
+            if (IsCollectLegal() == true) // will only be activated if the collecting of resource is legal
             {
-                UpdatePartAnimation();
+                //UpdatePartAnimation();
+                bTouchDown = this.part.GroundContact; // Is the drill touching the ground?
+                if (bTouchDown == false) // if not, no collecting
+                {
+                    ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Deploy drill fully first.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
+                    DisableCollector();
+                    return;
+                }
+                bIsEnabled = true;
+                OnUpdate();
             }
+            
+            
+
+            
         }
 
         [KSPEvent(guiActive = true, guiName = "Disable Drill", active = true)]
@@ -73,12 +86,13 @@ namespace FNPlugin.Collectors
         {
             bIsEnabled = false;
             OnUpdate();
+            /*
             // folding animation will only play if the collector was extended before being disabled
             if (bIsExtended == true)
             {
                 UpdatePartAnimation();
             }
-
+            */
         }
 
         [KSPAction("Activate Drill")]
@@ -113,7 +127,7 @@ namespace FNPlugin.Collectors
         protected bool bChangeState = false;
         protected bool bTouchDown = false;
         uint counter = 0; // counter for update cycles, so that we can only do some calculations once in a while
-        
+        uint anotherCounter = 0; // counter for fixedupdate cycles, so that we can only do some calculations once in a while (I don't want to add complexity by using the previous counter in two places)
 
         protected CelestialBody localStar;
 
@@ -125,8 +139,11 @@ namespace FNPlugin.Collectors
 
             localStar = GetCurrentStar();
 
+            /*
             // get the part's animation
-            anim = part.FindModelAnimators(animName).FirstOrDefault();
+            anim = part.FindModelAnimators(deployAnimName)[0];
+            anim = part.FindModelAnimators(activeAnimName)[0];
+            */
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI part window so that it's less crowded
             List<ModuleAnimateGeneric> MAGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
@@ -148,16 +165,18 @@ namespace FNPlugin.Collectors
             // verify vessel is landed, not splashed and not in atmosphere
             if (IsCollectLegal() == false) return;
 
+            /*
             // if the part should be extended (from last time), go to the extended animation
             if (bIsExtended == true && anim != null)
             {
-                anim[animName].normalizedTime = 1f;
+                anim[deployAnimName].normalizedTime = 1f;
             }
+            */
 
             // calculate time difference since last time the vessel was active
             double dTimeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
 
-            bTouchDown = this.part.GroundContact; // is the drill touching the ground?
+            //bTouchDown = this.part.GroundContact; // is the drill touching the ground?
 
             // collect regolith for the amount of time that passed since last time (i.e. take care of offline collecting)
             CollectRegolith(dTimeDifference, true);
@@ -183,7 +202,7 @@ namespace FNPlugin.Collectors
                  */
                 strRegolithConc = IsCollectLegal() ? dConcentrationRegolith.ToString("F1") : "0"; // F1 string format means fixed point number with one decimal place (i.e. number 1234.567 would be formatted as 1234.5). I might change this eventually to P1 or P0 (num multiplied by hundred and percentage sign with 1 or 0 dec. places).
                 // Also update the current altitude in GUI
-                strAltitude = (vessel.altitude).ToString("F0");
+                strAltitude = (vessel.altitude < 15000) ? (vessel.altitude).ToString("F0") : "Too damn high";
             }
             
         }
@@ -205,16 +224,7 @@ namespace FNPlugin.Collectors
                     DisableCollector();
                     return;
                 }
-
-                bTouchDown = this.part.GroundContact; // Is the drill touching the ground?
-
-                if (bTouchDown == false) // if not, no collecting
-                {
-                    ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Disabling drill.", 10.0f, ScreenMessageStyle.LOWER_CENTER);
-                    DisableCollector();
-                    return;
-                }
-
+             
                 strStarDist = UpdateDistanceInGUI();
 
                 // collect solar wind for a single frame
@@ -225,7 +235,23 @@ namespace FNPlugin.Collectors
 
                 // store current solar wind concentration in case vessel is unloaded
                 dLastRegolithConcentration = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
-                
+
+                /* This bit will check if the regolith drill has not been retracted by the player while still running. The counter will 
+                 * delay the check so that it runs only once per hundred cycles. This should be enough and should make it more performance friendly and
+                 * also less prone to kraken glitches. It also makes sure that this doesn't run before the vessel is fully loaded and shown to the player.
+                 * Like wtf, Squad/Unity? Why is FixedUpdate running while the player is still looking at the loading screen, waiting for the vessel to load?
+                 */
+                if (++anotherCounter % 100 == 0)
+                {
+                    bTouchDown = this.part.GroundContact; // Is the drill touching the ground?
+                    if (bTouchDown == false) // if not, disable collecting
+                    {
+                        ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Disabling drill.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
+                        DisableCollector();
+                        return;
+                    }
+                }
+
             }
         }
 
@@ -262,7 +288,7 @@ namespace FNPlugin.Collectors
                 return bCanCollect;
             }
 
-            if (FlightGlobals.currentMainBody.atmosphere == true) // won't collect in atmosphere
+            else if (FlightGlobals.currentMainBody.atmosphere == true) // won't collect in atmosphere
             {
                 // ScreenMessages.PostScreenMessage("Regolith collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
                 strStarDist = UpdateDistanceInGUI();
@@ -270,52 +296,71 @@ namespace FNPlugin.Collectors
                 return bCanCollect;
             }
             else
-                return bCanCollect = true; // all checks green, ok to collect
+            {
+                bCanCollect = true;
+                return bCanCollect; // all checks green, ok to collect
+            }
         }
+
+
+        //private bool ToggleBool()
+        //{
+        //    if (bIsExtended == true)
+        //    {
+        //        return bIsExtended = false;
+        //    }
+        //    else
+        //        return bIsExtended = true;
+        //}
+
         /*
-        // coroutine that will wait for the specified amount of time before continuing
-        private IEnumerator PlayAnimAndWaitForIt(Animation anim)
-        {
-            anim[animName].speed = 1f;
-            anim[animName].normalizedTime = 0f; // normalizedTime at 0 is the start of the animation
-            anim.Blend(animName, part.mass);
-            yield return new WaitForSeconds(animLength);
-        }
-        */
-        private void UpdatePartAnimation()
+        private void UpdatePartAnimation() 
         {
             // if folded, plays the part extending animation
             if (!bIsExtended)
             {
+                
                 if (anim != null)
                 {
-                    anim[animName].speed = 1f;
-                    anim[animName].normalizedTime = 0f; // normalizedTime at 0 is the start of the animation
-                    anim.Blend(animName, part.mass);
-                    //StartCoroutine(PlayAnimAndWaitForIt(anim[animName].length)); // wait for the length of the animation
+                    anim[deployAnimName].speed = 1f;
+                    anim[deployAnimName].normalizedTime = 0f; // normalizedTime at 0 is the start of the animation
+                    anim.Blend(deployAnimName, part.mass);
+                    //StartCoroutine(PlayAnimAndWaitForIt(anim[animName].length)); 
+                    //yield return new WaitForSeconds(anim[animName].length); // wait for the length of the animation
+                    //Invoke("ToggleBool", anim[deployAnimName].length); // will invoke ToggleBool after the animation has been played completely
                 }
+                //else
+                //ToggleBool();
 
-                bIsExtended = true;
+                // PlayAnimAndWaitForIt(animName, 1f, 0f);
+                ToggleBool();
+                //bIsExtended = true;
                 return;
             }
 
             // if extended, plays the part folding animation
             if (bIsExtended)
             {
+
                 if (anim != null)
                 {
-                    anim[animName].speed = -1f; // speed of 1 is normal playback, -1 is reverse playback (so in this case we go from the end of animation backwards)
-                    anim[animName].normalizedTime = 1f; // normalizedTime at 1 is the end of the animation
-                    anim.Blend(animName, part.mass);
+                    anim[deployAnimName].speed = -1f; // speed of 1 is normal playback, -1 is reverse playback (so in this case we go from the end of animation backwards)
+                    anim[deployAnimName].normalizedTime = 1f; // normalizedTime at 1 is the end of the animation
+                    anim.Blend(deployAnimName, part.mass);
                     //StartCoroutine(WaitForAnim(anim[animName].length)); // wait for the length of the animation
+                    //yield return new WaitForSeconds(anim[animName].length);
+                    //Invoke("ToggleBool", anim[deployAnimName].length); // will invoke ToggleBool after the animation has been played completely
                 }
-
-                bIsExtended = false;
+                //else
+                //ToggleBool();
+                // PlayAnimAndWaitForIt(animName, -1f, 0f);
+                ToggleBool();
+                //bIsExtended = false;
                 return;
             }
             return;
         }
-
+        */
         // calculates regolith concentration - right now just based on the distance of the planet from the sun, so planets will have uniform distribution. We might add latitude as a factor etc.
         private static double CalculateRegolithConcentration(Vector3d planetPosition, Vector3d sunPosition, double altitude)
         {
@@ -327,7 +372,7 @@ namespace FNPlugin.Collectors
              * Go to a higher terrain and you will find **more** regolith. The + 500 shift is there so that even at altitude of 0 (i.e. Minmus flats etc.) there will
              * still be at least SOME regolith to be mined.
              */
-            double dAltModifier = altitude + 500 / 2500;
+            double dAltModifier = (altitude + 500.0) / 2500.0;
             double dConcentration =  dAltModifier * (dAvgMunDistance / (Vector3d.Distance(planetPosition, sunPosition))); // get a basic concentration. Should range from numbers lower than one for planets further away from the sun, to about 2.5 at Moho
             return dConcentration;
         }
