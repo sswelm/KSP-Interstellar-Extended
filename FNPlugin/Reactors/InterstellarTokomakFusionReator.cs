@@ -7,11 +7,11 @@ namespace FNPlugin
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
         public bool fusion_alert = false;
-        public float power_consumed = 0.0f;
+        public double power_consumed = 0.0;
         public int jumpstartPowerTime = 0;
         public int fusionAlertFrames = 0;
 
-        public float HeatingPowerRequirements 
+        public double HeatingPowerRequirements 
 		{ 
 			get { 
 				return current_fuel_mode == null
@@ -23,7 +23,7 @@ namespace FNPlugin
         public override void OnUpdate() 
         {
             base.OnUpdate();
-            if (!isSwappingFuelMode && getDemandStableSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) > 1.01 && IsEnabled && !fusion_alert)
+            if (!isSwappingFuelMode && (!CheatOptions.InfiniteElectricity && getDemandStableSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) > 1.01) && IsEnabled && !fusion_alert)
                 fusionAlertFrames++;
             else
             {
@@ -40,7 +40,7 @@ namespace FNPlugin
             electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(HeatingPowerRequirements);
         }
 
-        private float GetPlasmaRatio(float consumedPower)
+        private float GetPlasmaRatio(double consumedPower)
         {
             return (float)Math.Round(HeatingPowerRequirements != 0.0f ? consumedPower / HeatingPowerRequirements : 1.0f, 4);
         }
@@ -52,7 +52,10 @@ namespace FNPlugin
             if (HighLogic.LoadedSceneIsEditor) return;
 
             // consume from any stored megajoule source
-            power_consumed = part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, HeatingPowerRequirements * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime; 
+            power_consumed = CheatOptions.InfiniteElectricity 
+                ? HeatingPowerRequirements
+                : part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, HeatingPowerRequirements * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime; 
+
             plasma_ratio = GetPlasmaRatio(power_consumed);
             UnityEngine.Debug.Log("[KSPI] - InterstellarTokamakFusionReactor StartReactor plasma_ratio " + plasma_ratio);
             allowJumpStart = plasma_ratio == 1;
@@ -70,7 +73,11 @@ namespace FNPlugin
             base.OnFixedUpdate();
             if (IsEnabled) 
             {
-                power_consumed = consumeFNResource(HeatingPowerRequirements * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                var powerRequest = HeatingPowerRequirements * TimeWarp.fixedDeltaTime;
+
+                power_consumed = CheatOptions.InfiniteElectricity
+                    ? powerRequest
+                    : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
                 if(isSwappingFuelMode)
                 {

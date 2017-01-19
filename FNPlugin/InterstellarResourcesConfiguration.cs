@@ -46,7 +46,8 @@ namespace FNPlugin
         private String _water = "Water";
         private String _heavyWater = "HeavyWater";
         private String _tritium = "LqdTritium";
-        private String _solarWind = "SolarWind"; 
+        private String _solarWind = "SolarWind";
+        private String _neon_gas = "NeonGas"; 
 
         public String Actinides { get { return _ACTINIDES; } }
         public String Alumina { get { return _ALUMINA; } }
@@ -72,6 +73,7 @@ namespace FNPlugin
         public String IntakeAir { get { return _INTAKE_AIR; } }
         public String Lithium7 { get { return _LITHIUM7; } }
         public String Methane { get { return _methane; } }
+        public String NeonGas { get { return _neon_gas; } }
         public String Nitrogen { get { return _nitrogen; } }
         public String Oxygen { get { return _oxygen; } }
         public String Plutonium238 { get { return _PLUTONIUM_238; } }
@@ -112,17 +114,26 @@ namespace FNPlugin
                     _carbonMoxoxide = plugin_settings.GetValue("CarbonMonoxideResourceName");
                     Debug.Log("[KSP Interstellar] CarbonMonoxide resource name set to " + CarbonMoxoxide);
                 }
+                if (plugin_settings.HasValue("Helium4GasResourceName"))
+                {
+                    _helium4_gas = plugin_settings.GetValue("Helium4GasResourceName");
+                    Debug.Log("[KSP Interstellar] Helium4 Gas resource name set to " + LqdHelium4);
+                }
+                if (plugin_settings.HasValue("Helium3GasResourceName"))
+                {
+                    _helium3_gas = plugin_settings.GetValue("Helium3GasResourceName");
+                    Debug.Log("[KSP Interstellar] Helium3 Gas resource name set to " + LqdHelium4);
+                }
                 if (plugin_settings.HasValue("HeliumResourceName"))
                 {
                     _liquid_helium4 = plugin_settings.GetValue("HeliumResourceName");
-                    Debug.Log("[KSP Interstellar] Helium4 resource name set to " + LqdHelium4);
+                    Debug.Log("[KSP Interstellar] Helium4 Liquid resource name set to " + LqdHelium4);
                 }
                 if (plugin_settings.HasValue("Helium3ResourceName"))
                 {
                     _liquid_helium3 = plugin_settings.GetValue("Helium3ResourceName");
                     Debug.Log("[KSP Interstellar] Helium3 resource name set to " + LqdHelium3);
                 }
-
                 if (plugin_settings.HasValue("HydrazineResourceName"))
                 {
                     _hydrazine = plugin_settings.GetValue("HydrazineResourceName");
@@ -143,6 +154,11 @@ namespace FNPlugin
                 {
                     _methane = plugin_settings.GetValue("MethaneResourceName");
                     Debug.Log("[KSP Interstellar] Methane resource name set to " + Methane);
+                }
+                if (plugin_settings.HasValue("NeonResourceName"))
+                {
+                    _neon_gas = plugin_settings.GetValue("NeonResourceName");
+                    Debug.Log("[KSP Interstellar] Neon resource name set to " + NeonGas);
                 }
                 if (plugin_settings.HasValue("NitrogenResourceName"))
                 {

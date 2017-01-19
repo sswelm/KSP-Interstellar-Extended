@@ -154,11 +154,16 @@ namespace FNPlugin
                 var chargedParticleRatio = _attached_reactor.MaximumChargedPower > 0 ? _charged_particles_received / _attached_reactor.MaximumChargedPower : 0;
 
                 var consumedByEngine = _attached_warpable_engine != null ? _attached_warpable_engine.propellantUsed : 0;
-                _hydrogenProduction = chargedParticleRatio > 0 ? (float)_attached_reactor.UseProductForPropulsion(chargedParticleRatio, consumedByEngine) : 0;
-                
-                consumeFNResource(_charged_particles_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                _hydrogenProduction = !CheatOptions.InfinitePropellant && chargedParticleRatio > 0 ? _attached_reactor.UseProductForPropulsion(chargedParticleRatio, consumedByEngine) : 0;
+
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    consumeFNResource(_charged_particles_received * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+
                 _requestedElectricPower = _charged_particles_received * (0.05f * Math.Max(_attached_reactor_distance, 1));
-                _recievedElectricPower = consumeFNResource(_requestedElectricPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+
+                _recievedElectricPower = CheatOptions.InfiniteElectricity 
+                    ? _requestedElectricPower 
+                    : consumeFNResource(_requestedElectricPower * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
                 double megajoules_ratio = _recievedElectricPower / _requestedElectricPower;
                 megajoules_ratio = (double.IsNaN(megajoules_ratio) || double.IsInfinity(megajoules_ratio)) ? 0 : megajoules_ratio;

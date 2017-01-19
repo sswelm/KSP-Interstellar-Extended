@@ -143,7 +143,7 @@ namespace FNPlugin
 
         public double ThermalEfficiency
         {
-            get { return HighLogic.LoadedSceneIsFlight ? (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) : 1;}
+            get { return HighLogic.LoadedSceneIsFlight ? CheatOptions.IgnoreMaxTemperature ? 1 : (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) : 1; }
         }
 
         public bool IsOperational
@@ -448,21 +448,33 @@ namespace FNPlugin
             maxEffectivePower = MaxEffectivePower;
             var sumOfAllEffectivePower = vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.MaxEffectivePower);
             _electrical_share_f = sumOfAllEffectivePower > 0 ? maxEffectivePower / sumOfAllEffectivePower : 1;
-            var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
-            var megaJoulesBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
-            var powerAvailableForThisEngine = availablePower * _electrical_share_f;
-
-            var currentPropellantEfficiency = CurrentPropellantEfficiency;
-            var power_per_engine = megaJoulesBarRatio * ModifiedThrotte * EvaluateMaxThrust(powerAvailableForThisEngine) * CurrentIspMultiplier * _modifiedEngineBaseISP / GetPowerThrustModifier() * _g0;
 
             maxThrottlePower = maxEffectivePower * ModifiedThrotte;
-            power_request = currentPropellantEfficiency <= 0 ? 0 : Math.Min(power_per_engine / currentPropellantEfficiency, maxThrottlePower);
+            var currentPropellantEfficiency = CurrentPropellantEfficiency;
 
-            var power_received = consumeFNResource(power_request * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            if (CheatOptions.InfiniteElectricity)
+            {
+                power_request = maxThrottlePower;
+            }
+            else
+            {
+                var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                var megaJoulesBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var powerAvailableForThisEngine = availablePower * _electrical_share_f;
+                var power_per_engine = megaJoulesBarRatio * ModifiedThrotte * EvaluateMaxThrust(powerAvailableForThisEngine) * CurrentIspMultiplier * _modifiedEngineBaseISP / GetPowerThrustModifier() * _g0;
+                power_request = currentPropellantEfficiency <= 0 ? 0 : Math.Min(power_per_engine / currentPropellantEfficiency, maxThrottlePower);
+            }
+
+            var power_received = CheatOptions.InfiniteElectricity 
+                ? power_request 
+                : consumeFNResource(power_request * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
             // produce waste heat
             var heat_to_produce = power_received * (1 - currentPropellantEfficiency) * Current_propellant.WasteHeatMultiplier;
-            var heat_production = supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+
+            var heat_production = CheatOptions.IgnoreMaxTemperature 
+                ? heat_to_produce 
+                : supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
             // update GUI Values
             _electrical_consumption_f = power_received;
@@ -560,7 +572,7 @@ namespace FNPlugin
             double demandMass;
 
             // determine fuel availability
-            if (propellantAverageDensity > 0 && !CheatOptions.InfinitePropellant)
+            if (!CheatOptions.InfinitePropellant && propellantAverageDensity > 0)
             {
                 CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, propellantAverageDensity, thrustDirection, out demandMass);
 

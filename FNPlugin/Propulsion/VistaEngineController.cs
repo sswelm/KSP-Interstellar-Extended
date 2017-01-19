@@ -238,15 +238,21 @@ namespace FNPlugin
             if (throttle > 0)
             {
                 // Calculate Fusion Ratio
-                var recievedPower = consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var recievedPower = CheatOptions.InfiniteElectricity  
+                    ? powerRequirement * TimeWarp.fixedDeltaTime 
+                    : consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
                 var plasma_ratio = recievedPower / (powerRequirement * TimeWarp.fixedDeltaTime);
                 var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? Mathf.Pow((float)plasma_ratio, 6.0f) : 0;
 
-                // Lasers produce Wasteheat
-                supplyFNResource(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                {
+                    // Lasers produce Wasteheat
+                    supplyFNResource(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-                // The Aborbed wasteheat from Fusion
-                supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    // The Aborbed wasteheat from Fusion
+                    supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                }
 
                 // change ratio propellants Hydrogen/Fusion
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate / throttle / throttle);

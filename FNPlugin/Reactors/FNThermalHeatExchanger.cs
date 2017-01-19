@@ -53,9 +53,9 @@ namespace FNPlugin
 
         public double EfficencyConnectedChargedEnergyGenerator { get { return 0; } }
 
-        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType){ currentIsThermalEnergyGeneratorActive = efficency;  }
+        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType){ currentIsThermalEnergyGeneratorActive = efficency;  }
 
-        public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType) { }
+        public void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType) { }
 
         public bool IsThermalSource { get { return true; } }
 
@@ -63,7 +63,7 @@ namespace FNPlugin
 
         public double ChargedPowerRatio { get { return 0; } }
 
-        public float RawMaximumPower { get { return maximumPowerRecieved; } }
+        public double RawMaximumPower { get { return maximumPowerRecieved; } }
 
         public IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
 
@@ -124,7 +124,7 @@ namespace FNPlugin
 
         public double ProducedWasteHeat { get { return 0; } }
 
-        public float PowerBufferBonus { get { return 0; } }
+        public double PowerBufferBonus { get { return 0; } }
 
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 

@@ -25,9 +25,7 @@ namespace FNPlugin
         /// <summary>
         /// // The absolute maximum amount of power the thermalsource can possbly produce
         /// </summary>
-        float RawMaximumPower { get; }
-
-
+        double RawMaximumPower { get; }
 
         /// <summary>
         /// Influences the Mass in Electric Generator
@@ -46,7 +44,7 @@ namespace FNPlugin
 
         double ProducedWasteHeat { get; }
 
-        float PowerBufferBonus { get; }
+        double PowerBufferBonus { get; }
 
         double StableMaximumReactorPower { get; }
 
@@ -102,9 +100,9 @@ namespace FNPlugin
 
         IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
 
-        void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType);
+        void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType);
 
-        void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType);
+        void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType);
 
         bool ShouldApplyBalance(ElectricGeneratorType generatorType);
 

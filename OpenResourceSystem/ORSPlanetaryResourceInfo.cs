@@ -81,31 +81,38 @@ namespace OpenResourceSystem {
             return getPixelAbundanceValue(pix_x, pix_y);
         }
 
-        public void setDisplayTexture(string texpath) {
+        public void setDisplayTexture(string texpath) 
+        {
             displayTexture = texpath;
         }
 
-        public void setDisplayThreshold(double displayThreshold) {
+        public void setDisplayThreshold(double displayThreshold) 
+        {
             this.displayThreshold = displayThreshold;
         }
 
-        public void setResourceName(string resourcename) {
+        public void setResourceName(string resourcename) 
+        {
             this.resourcename = resourcename;
         }
 
-        public void setResourceScale(int scale) {
+        public void setResourceScale(int scale) 
+        {
             this.scale = scale;
         }
 
-        public void setScaleFactor(double scale_factor) {
+        public void setScaleFactor(double scale_factor) 
+        {
             this.scale_factor = scale_factor;
         }
 
-        public void setScaleMultiplier(double scale_multiplier) {
+        public void setScaleMultiplier(double scale_multiplier) 
+        {
             this.scale_multiplier = scale_multiplier;
         }
 
-        public void setResourceScale(string scalestr) {
+        public void setResourceScale(string scalestr) 
+        {
             if(scalestr == "LOG_SCALE") {
                 scale = ORSPlanetaryResourceInfo.LOG_SCALE;
             }else if (scalestr == "LINEAR_SCALE") {
@@ -113,39 +120,48 @@ namespace OpenResourceSystem {
             }
         }
 
-        public int getBody() {
+        public int getBody() 
+        {
             return body;
         }
 
-        public string getDisplayTexturePath() {
+        public string getDisplayTexturePath() 
+        {
             return displayTexture;
         }
 
-        public double getDisplayThreshold() {
+        public double getDisplayThreshold() 
+        {
             return displayThreshold;
         }
 
-        public string getName() {
+        public string getName() 
+        {
             return name;
         }
         
-        public Texture2D getResourceMap() {
+        public Texture2D getResourceMap() 
+        {
             return map;
         }
 
-        public string getResourceName() {
+        public string getResourceName() 
+        {
             return resourcename;
         }
 
-        public int getResourceScale() {
+        public int getResourceScale() 
+        {
             return scale;
         }
 
-        public double getScaleFactor() {
+        public double getScaleFactor() 
+        {
             return scale_factor;
         }
 
-        public double getScaleMultiplier() {
+        public double getScaleMultiplier() 
+        {
             return scale_multiplier;
         }
     }

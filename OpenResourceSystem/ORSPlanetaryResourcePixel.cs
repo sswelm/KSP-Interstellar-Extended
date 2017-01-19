@@ -21,23 +21,28 @@ namespace OpenResourceSystem
             this.body = body;
         }
 
-        public void setResourceName(string resourcename) {
+        public void setResourceName(string resourcename) 
+        {
             this.resourcename = resourcename;
         }
 
-        public string getResourceName() {
+        public string getResourceName() 
+        {
             return resourcename;
         }
 
-        public double getAmount() {
+        public double getAmount() 
+        {
             return quantity;
         }
 
-        public int getBody() {
+        public int getBody() 
+        {
             return body;
         }
 
-        public string getName() {
+        public string getName() 
+        {
             return name;
         }
     }

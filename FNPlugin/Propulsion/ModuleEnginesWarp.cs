@@ -125,8 +125,10 @@ namespace FNPlugin
                 //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
                 double dm = requestedFlow * TimeWarp.fixedDeltaTime; // Change in mass over dT
                 double demandReq = dm / density; // Resource demand
+
                 // Update vessel resource
-                propellantUsed = part.RequestResource(resourceDeltaV, demandReq);
+                propellantUsed = CheatOptions.InfinitePropellant ? demandReq : part.RequestResource(resourceDeltaV, demandReq);
+
                 // Calculate thrust and deltaV if demand output > 0
                 // TODO test if dm exceeds remaining propellant mass
                 if (propellantUsed > 0)

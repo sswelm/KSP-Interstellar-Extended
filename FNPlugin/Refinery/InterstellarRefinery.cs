@@ -107,7 +107,11 @@ namespace FNPlugin.Refinery
 
             var totalPowerRequiredThisFrame = currentPowerReq * TimeWarp.fixedDeltaTime;
 
-            var fixedConsumedPowerMW = consumeFNResource(totalPowerRequiredThisFrame * (powerPercentage / 100), FNResourceManager.FNRESOURCE_MEGAJOULES);
+            var powerRequest = totalPowerRequiredThisFrame * (powerPercentage / 100);
+
+            var fixedConsumedPowerMW = CheatOptions.InfiniteElectricity
+                ? powerRequest
+                : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
             consumedPowerMW = fixedConsumedPowerMW / TimeWarp.fixedDeltaTime;
 

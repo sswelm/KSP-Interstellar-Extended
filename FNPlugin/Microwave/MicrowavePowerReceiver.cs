@@ -65,13 +65,13 @@ namespace FNPlugin
         public int instanceId;
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingThreshold = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingSurfaceExponent = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingEfficiencyExponent = 0.1f;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float spotsizeNormalizationExponent = 1f;
         [KSPField(isPersistant = false)]
         public bool canLinkup = true;
@@ -151,7 +151,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Direct Wavelengths")]
         public int directWavelengths;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Facing Factor", guiFormat = "F5")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Facing Factor", guiFormat = "F5")]
         public double effectivefacingFactor;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Spot Size(s)")]
         public string effectiveSpotSize;
@@ -176,7 +176,7 @@ namespace FNPlugin
         public string toteff;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
-        public float maximumPower = 5000;
+        public float maximumPower = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumElectricPower = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
@@ -240,7 +240,14 @@ namespace FNPlugin
         }
         public double ThermalEfficiency
         {
-            get { return HighLogic.LoadedSceneIsFlight ? (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) : 1; }
+            get 
+            { 
+                return HighLogic.LoadedSceneIsFlight 
+                    ? CheatOptions.IgnoreMaxTemperature 
+                        ? 1 
+                        : (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) 
+                    : 1; 
+            }
         }
 
         public double MaximumRecievePower
@@ -285,19 +292,19 @@ namespace FNPlugin
 
         public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
 
-        public void NotifyActiveThermalEnergyGenrator(double efficency, ElectricGeneratorType generatorType)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
         {
             currentIsThermalEnergyGenratorActive = efficency;
         }
 
-        public void NotifyActiveChargedEnergyGenrator(double efficency, ElectricGeneratorType generatorType) { }
+        public void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType) { }
 
         public bool IsThermalSource
         {
             get { return this.isThermalReceiver; }
         }
 
-        public float RawMaximumPower { get { return (float)MaximumRecievePower; } }
+        public double RawMaximumPower { get { return MaximumRecievePower; } }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
@@ -372,7 +379,7 @@ namespace FNPlugin
 
         public double ChargedPowerRatio { get { return 0; } }
 
-        public float PowerBufferBonus { get { return 0; } }
+        public double PowerBufferBonus { get { return 0; } }
 
         public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
@@ -1127,7 +1134,10 @@ namespace FNPlugin
             currentIsThermalEnergyGenratorActive = 0;
 
             storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
-            wasteheatRatio = Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
+
+            wasteheatRatio = CheatOptions.IgnoreMaxTemperature 
+                ? 0 
+                : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
 
             if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0)
             {
@@ -1278,7 +1288,8 @@ namespace FNPlugin
                 {
                     fixedSolarInputMegajoules = supplyFNResource(solarInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    supplyFNResource(fixedSolarInputMegajoules, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                        supplyFNResource(fixedSolarInputMegajoules, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
                 }
                 else
                 {
@@ -1291,8 +1302,8 @@ namespace FNPlugin
                 if (alternatorRatio != 0)
                     part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, alternatorRatio * -powerInputMegajoules * TimeWarp.fixedDeltaTime);
 
-                // add wasteheat
-                supplyFNResource(total_waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResource(total_waste_heat_production * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 if (powerInputMegajoules > 0 && wasteheatResource != null)
                 {
@@ -1306,7 +1317,8 @@ namespace FNPlugin
                 {
                     var fixed_beamed_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                        supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
                     var cur_thermal_power = (fixed_beamed_thermal_power + fixedSolarInputMegajoules) / TimeWarp.fixedDeltaTime;
 
