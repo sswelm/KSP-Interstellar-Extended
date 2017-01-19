@@ -99,7 +99,7 @@ namespace FNPlugin
                 } 
                 catch (Exception ex)
                 {
-                    Debug.Log("[KSP Interstellar] ModuleSabreHeating threw Exception in OnFixedUpdate(): " + ex);
+                    Debug.Log("[KSPI] - ModuleSabreHeating threw Exception in OnFixedUpdate(): " + ex);
                 }
             }
         }

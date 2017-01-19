@@ -96,7 +96,7 @@ namespace FNPlugin.Microwave
             }
             catch (Exception e)
             {
-                Debug.LogError("BeamGenerator.OnRescale" + e.Message);
+                Debug.LogError("[KSPI] - BeamGenerator.OnRescale" + e.Message);
             }
         }
 

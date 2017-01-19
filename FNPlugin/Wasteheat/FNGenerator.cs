@@ -136,8 +136,8 @@ namespace FNPlugin
         protected int startcount = 0;
         
         protected float powerCustomSettingFraction;
-        private double _previousMaxStableMegaWattPower;
-        private float previousDeltaTime;
+        protected double _previousMaxStableMegaWattPower;
+        protected float previousDeltaTime;
 
         protected PartResource megajouleResource;
         protected PowerStates _powerState;
@@ -199,7 +199,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("FNGenerator.OnRescale" + e.Message);
+                Debug.LogError("[KSPI] - FNGenerator.OnRescale" + e.Message);
             }
         }
 
@@ -340,8 +340,6 @@ namespace FNPlugin
             FindAndAttachToThermalSource();
 
             UpdateHeatExchangedThrustDivisor();
-
-            //print("[KSP Interstellar]  Generator OnStart Finished");
         }
 
         /// <summary>
@@ -366,7 +364,7 @@ namespace FNPlugin
                 return;
 
             // otherwise look for other non selfcontained thermal sources
-            var searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 0, true);
+            var searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, p => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 3, 3, 3, true);
             if (searchResult == null) return;
 
             // verify cost is not higher than 1
@@ -396,7 +394,7 @@ namespace FNPlugin
             if (attachedThermalSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0)
             {
                 rawMaximumPower = attachedThermalSource.RawMaximumPower;
-                targetMass = (float)(massModifier * attachedThermalSource.ThermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
+                targetMass = (float)((massModifier * attachedThermalSource.ThermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider);
             }
             else
             {

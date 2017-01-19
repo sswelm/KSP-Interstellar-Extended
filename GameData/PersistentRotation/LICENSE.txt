@@ -1,5 +1,5 @@
 PersistentRotation including PersistentRotation.dll, Main.cs, Data.cs, Interface.cs, MechJebWrapper.cs, RemoteTechWrapper.cs, Reflection.cs - A modification for Kerbal Space Program by Squad
-Copyright (C) 2015 Markus Appel
+Copyright (C) 2015 - 2016 Markus Appel
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation;
 either version 3 of the License, or (at your option) any later version.

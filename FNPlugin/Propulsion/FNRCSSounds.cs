@@ -4,12 +4,14 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    public class FnRcsSounds : PartModule
+    class FnRcsSounds : PartModule
     {
         [KSPField]
-        public string rcsSoundFile = "RcsSounds/Sounds/RcsHeavy";
+        public string rcsSoundFile = "WarpPlugin/Sounds/RcsHeavy";
         [KSPField]
-        public string rcsShutoffSoundFile = "RcsSounds/Sounds/RcsHeavyShutoff";
+        public string rcsShutoffSoundFile = "WarpPlugin/Sounds/RcsHeavyShutoff";
+        [KSPField]
+        public string rcsColdGasSoundFile = "WarpPlugin/Sounds/RcsColdGas";
         [KSPField]
         public float rcsVolume = 0.5f;
         [KSPField]
@@ -21,8 +23,12 @@ namespace FNPlugin
 
         public FXGroup RcsSound = null;
         public FXGroup RcsShutoffSound = null;
+        public FXGroup RcsColdGasSound = null;
+
         private List<GameObject> RcsLights = new List<GameObject>();
         private bool Paused = false;
+
+        private ElectricRCSController electricRCSController;
 
         private ModuleRCS _rcsModule = null;
         public ModuleRCS rcsModule
@@ -36,52 +42,59 @@ namespace FNPlugin
             }
         }
 
+        //Create FX group for sounds
+        public bool CreateGroup(FXGroup group, string filename, bool loop)
+        {
+            if (name != string.Empty)
+            {
+                if (!GameDatabase.Instance.ExistsAudioClip(filename))
+                {
+                    //printToLog("[DPSoundFX]ERROR - file " + filename + ".* not found!", 3);
+                    Debug.LogError("[DPSoundFX]ERROR - file " + filename + ".* not found!");
+                    return false;
+                }
+                group.audio = gameObject.AddComponent<AudioSource>();
+                group.audio.volume = GameSettings.SHIP_VOLUME;
+                group.audio.rolloffMode = AudioRolloffMode.Logarithmic;
+                group.audio.dopplerLevel = 0f;
+                //group.audio.panLevel = 1f; Depreciated so we add 'spatialBlend' below
+                group.audio.spatialBlend = 1f;
+                group.audio.clip = GameDatabase.Instance.GetAudioClip(filename);
+                group.audio.loop = loop;
+                group.audio.playOnAwake = false;
+                return true;
+            }
+            return false;
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             try
             {
                 if (state == StartState.Editor || state == StartState.None) return;
 
+                electricRCSController = this.part.FindModuleImplementing<ElectricRCSController>();
+
                 // Works with squad sounds, not with rcsSoundFile.
                 if (!GameDatabase.Instance.ExistsAudioClip(rcsSoundFile))
-                {
                     Debug.LogError("RcsSounds: Audio file not found: " + rcsSoundFile);
-                }
 
-                if (RcsSound != null)
-                {
-                    RcsSound.audio = this.gameObject.AddComponent<AudioSource>();
-                    RcsSound.audio.dopplerLevel = 0f;
-                    RcsSound.audio.Stop();
-                    RcsSound.audio.clip = GameDatabase.Instance.GetAudioClip(rcsSoundFile);
-                    RcsSound.audio.loop = loopRcsSound;
-                    // Seek to a random position in the sound file so we don't have 
-                    // harmonic effects when burning at multiple RCS nozzles.
-                    RcsSound.audio.time = UnityEngine.Random.Range(0, RcsSound.audio.clip.length);
-                }
-                else
+                if (RcsSound == null)
                     Debug.LogError("RcsSounds: Sound FXGroup not found.");
 
-                if (RcsShutoffSound != null)
-                {
-                    RcsShutoffSound.audio = gameObject.AddComponent<AudioSource>();
-                    RcsShutoffSound.audio.dopplerLevel = 0f;
-                    RcsShutoffSound.audio.Stop();
-                    RcsShutoffSound.audio.clip = GameDatabase.Instance.GetAudioClip(rcsShutoffSoundFile);
-                    RcsShutoffSound.audio.loop = false;
-                }
-                else
+                if (RcsShutoffSound == null)
                     Debug.LogError("RcsSounds: Sound shuttof FXGroup not found.");
 
-                if (useLightingEffects)
-                    AddLights();
-
+                CreateGroup(RcsSound, rcsSoundFile, false);
+                CreateGroup(RcsShutoffSound, rcsShutoffSoundFile, false);
+                CreateGroup(RcsColdGasSound, rcsColdGasSoundFile, false);
+                
                 GameEvents.onGamePause.Add(new EventVoid.OnEvent(OnPause));
                 GameEvents.onGameUnpause.Add(new EventVoid.OnEvent(OnUnPause));
             }
             catch (Exception ex)
             {
-                Debug.LogError("RcsSounds OnStart: " + ex.Message);
+                Debug.LogError("[KSPI] - RcsSounds OnStart: " + ex.Message);
             }
         }
 
@@ -124,8 +137,9 @@ namespace FNPlugin
                         {
                             m = (ResourceFlowMode)Enum.Parse(typeof(ResourceFlowMode), rcsModule.resourceFlowMode);
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
+                            Debug.LogError("[KSPI] - RcsSounds OnUpdate: " + ex.Message);
                             m = ResourceFlowMode.ALL_VESSEL;
                         }
 
@@ -138,13 +152,6 @@ namespace FNPlugin
                             for (int i = 0; i < rcsModule.thrusterFX.Count; i++)
                             {
                                 rcsHighestPower = Mathf.Max(rcsHighestPower, rcsModule.thrusterFX[i].Power);
-                                if (useLightingEffects)
-                                {
-                                    var light = RcsLights[i].GetComponent<Light>();
-                                    light.enabled = rcsModule.thrusterFX[i].Active;
-                                    light.intensity = rcsModule.thrusterFX[i].Power;
-                                    light.spotAngle = Mathf.Lerp(0, 45, rcsModule.thrusterFX[i].Power);
-                                }
                             }
                             if (rcsHighestPower > 0.1f)
                                 // Don't respond to SAS idling.
@@ -156,20 +163,38 @@ namespace FNPlugin
                     {
                         soundVolume = GameSettings.SHIP_VOLUME * rcsVolume * rcsHighestPower;
                         soundPitch = Mathf.Lerp(0.5f, 1f, rcsHighestPower);
-                        RcsSound.audio.pitch = soundPitch;
-                        RcsSound.audio.volume = soundVolume;
-                        if (!RcsSound.audio.isPlaying)
-                            RcsSound.audio.Play();
+
+                        if (electricRCSController != null && !electricRCSController.hasSufficientPower)
+                        {
+                            RcsSound.audio.Stop();
+
+                            RcsColdGasSound.audio.pitch = soundPitch / 2;
+                            RcsColdGasSound.audio.volume = soundVolume;
+                            if (!RcsColdGasSound.audio.isPlaying)
+                                RcsColdGasSound.audio.Play();
+                        }
+                        else
+                        {
+                            if (electricRCSController != null)
+                                RcsColdGasSound.audio.Stop();
+
+                            RcsSound.audio.pitch = soundPitch;
+                            RcsSound.audio.volume = soundVolume;
+                            if (!RcsSound.audio.isPlaying)
+                                RcsSound.audio.Play();
+                        }
                         previouslyActive = true;
                     }
                     else
                     {
+                        if (electricRCSController != null)
+                            RcsColdGasSound.audio.Stop();
                         RcsSound.audio.Stop();
-                        if (useLightingEffects)
-                        {
-                            for (int i = 0; i < rcsModule.thrusterFX.Count; i++)
-                                RcsLights[i].GetComponent<Light>().enabled = false;
-                        }
+                        //if (useLightingEffects)
+                        //{
+                        //    for (int i = 0; i < rcsModule.thrusterFX.Count; i++)
+                        //        RcsLights[i].GetComponent<Light>().enabled = false;
+                        //}
                         if (previouslyActive)
                         {
                             if (!internalRcsSoundsOnly ||
@@ -185,7 +210,7 @@ namespace FNPlugin
             }
             catch (Exception ex)
             {
-                Debug.LogError("RcsSounds Error OnUpdate: " + ex.Message);
+                Debug.LogError("[KSPI] - RcsSounds Error OnUpdate: " + ex.Message);
             }
         }
 
@@ -193,19 +218,17 @@ namespace FNPlugin
         {
             foreach (Transform t in rcsModule.thrusterTransforms)
             {
+                // Only one Light is allowed per GameObject, so create a new GameObject each time.
                 GameObject rcsLight = new GameObject();
-                rcsLight.AddComponent<Light>();
-                var light = rcsLight.GetComponent<Light>();
-                light.color = Color.white;
-
-                light.type = LightType.Spot;
-                light.intensity = 1f;
-                light.range = 2f;
-                light.spotAngle = 45f;
-
-                light.transform.parent = t;
-                light.transform.position = t.transform.position;
-                light.transform.forward = t.transform.up;
+                Light light = rcsLight.AddComponent<Light>();
+                 //light.color = Color.white;
+                //light.type = LightType.Spot;
+                light.intensity = 1;
+                light.range = 5f;
+                //light.spotAngle = 45f;
+                //light.transform.parent = t;
+                //light.transform.position = t.transform.position;
+                //light.transform.forward = t.transform.up;
                 light.enabled = false;
                 rcsLight.AddComponent<MeshRenderer>();
                 RcsLights.Add(rcsLight);

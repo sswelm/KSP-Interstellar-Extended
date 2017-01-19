@@ -7,7 +7,7 @@ namespace OpenResourceSystem
 {
     public interface ORSResourceSuppliable 
     {
-        void receiveFNResource(double power_supplied,String resourcename);
+        void receiveFNResource(double power_supplied, String resourcename);
         double consumeFNResource(double power_to_consume, String resourcename);
         string getResourceManagerDisplayName();
         int getPowerPriority();

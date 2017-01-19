@@ -70,8 +70,11 @@ namespace FNPlugin
         protected double g0 = PluginHelper.GravityConstant;
 
         // GUI
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Is Powered")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
         public bool hasSufficientPower = true;
+        //[KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
+        //public bool isPowered = true;
+
         [KSPField(isPersistant = false, guiActive = true, guiName = "Consumption")]
         public string electricalPowerConsumptionStr = "";
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Efficency")]
@@ -83,22 +86,27 @@ namespace FNPlugin
         private bool rcsPartActive;
 
         private float power_ratio = 1;
-        private float power_requested_f = 0;
-        private float power_requested_raw = 0;
+        private double power_requested_f = 0;
+        private double power_requested_raw = 0;
         private double power_recieved_f = 1;
         private double power_recieved_raw = 0;
-        private double power_remainer_raw;
+        //private double power_remainer_raw;
 
         private double heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
         private FNModuleRCSFX attachedModuleRCSFX;
-        private float efficencyModifier;
+        private double efficencyModifier;
         private float currentMaxThrust;
         private float oldThrustLimiter;
         private bool oldPowerEnabled;
         private int insufficientPowerTimout = 2;
-        private bool delayedVerificationPropellant; 
+        private bool delayedVerificationPropellant;
+
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Maximum Buffer", guiFormat = "F3", guiUnits = " MW")]
+        private double maximumPowerBuffer;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Current Buffer", guiFormat = "F3", guiUnits = " MW")]
+        private double currentPowerBuffer;
 
         public ElectricEnginePropellant Current_propellant { get; set; }
 
@@ -328,6 +336,7 @@ namespace FNPlugin
                 String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
                 this.resources_to_supply = resources_to_supply;
 
+                maximumPowerBuffer = maxThrust * maxIsp * 0.01;
                 oldThrustLimiter = thrustLimiter;
                 oldPowerEnabled = powerEnabled;
                 efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
@@ -343,13 +352,13 @@ namespace FNPlugin
                 // find correct fuel mode index
                 if (!String.IsNullOrEmpty(fuel_mode_name))
                 {
-                    Debug.Log("ElectricRCSController OnStart loaded fuelmode " + fuel_mode_name);
+                    Debug.Log("[KSPI] - ElectricRCSController OnStart loaded fuelmode " + fuel_mode_name);
                     Current_propellant = _propellants.FirstOrDefault(p => p.PropellantName == fuel_mode_name);
                 }
                 if (Current_propellant != null && _propellants.Contains(Current_propellant))
                 {
                     fuel_mode = _propellants.IndexOf(Current_propellant);
-                    Debug.Log("ElectricRCSController OnStart index of fuelmode " + Current_propellant.PropellantGUIName + " = " + fuel_mode);
+                    Debug.Log("[KSPI] - ElectricRCSController OnStart index of fuelmode " + Current_propellant.PropellantGUIName + " = " + fuel_mode);
                 }
 
                 base.OnStart(state);
@@ -358,7 +367,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("ElectricRCSController OnStart Error: " + e.Message);
+                Debug.LogError("[KSPI] - ElectricRCSController OnStart Error: " + e.Message);
                 throw;
             }
          }
@@ -389,7 +398,7 @@ namespace FNPlugin
 
             propNameStr = Current_propellant.PropellantGUIName;
 
-            currentMaxThrust = baseThrust / (float)Current_propellant.IspMultiplier * currentThrustMultiplier;
+            currentMaxThrust = baseThrust / Current_propellant.IspMultiplier * currentThrustMultiplier;
 
             thrustStr = attachedRCS.thrusterPower.ToString("0.000") + " / " + currentMaxThrust.ToString("0.000") + " kN";
 
@@ -401,7 +410,7 @@ namespace FNPlugin
             if (delayedVerificationPropellant)
             {
                 // test is we got any megajoules
-                power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : (float)consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 hasSufficientPower = power_recieved_f > 0.01;
 
                 delayedVerificationPropellant = false;
@@ -470,15 +479,25 @@ namespace FNPlugin
 
             if (powerEnabled)
             {
-                float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
+                //float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
                 power_requested_f = currentThrust * maxIsp * efficencyModifier / currentThrustMultiplier;
-                power_requested_raw = power_requested_f * TimeWarp.fixedDeltaTime;
+
+                var power_required_raw = (power_requested_f * TimeWarp.fixedDeltaTime);
+                power_requested_raw = power_required_raw + (maximumPowerBuffer - currentPowerBuffer) * TimeWarp.fixedDeltaTime;
 
                 power_recieved_raw = CheatOptions.InfiniteElectricity 
                     ? power_requested_raw 
-                    : consumeFNResource(power_requested_raw, FNResourceManager.FNRESOURCE_MEGAJOULES) + power_remainer_raw;
+                    : consumeFNResource(power_requested_raw, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                power_remainer_raw = 0;
+                currentPowerBuffer = Math.Min(currentPowerBuffer + power_recieved_raw, maximumPowerBuffer);
+
+                if (power_required_raw < currentPowerBuffer)
+                {
+                    power_recieved_raw = power_required_raw;
+                    currentPowerBuffer -= power_required_raw;
+                }
+
+                //power_remainer_raw = 0;
                 power_recieved_f = power_recieved_raw / TimeWarp.fixedDeltaTime;
 
                 double heat_to_produce = power_recieved_f * (1 - efficency);
@@ -500,6 +519,7 @@ namespace FNPlugin
             {
                 if (insufficientPowerTimout < 1)
                 {
+                    //isPowered = false;
                     hasSufficientPower = false;
                     SetupPropellants();
                 }
@@ -508,6 +528,7 @@ namespace FNPlugin
             }
             else if (!hasSufficientPower && power_ratio > 0.9 && power_recieved_f > 0.01)
             {
+                //isPowered = true;
                 insufficientPowerTimout = 2;
                 hasSufficientPower = true;
                 SetupPropellants();
@@ -517,7 +538,7 @@ namespace FNPlugin
             if (hasSufficientPower)
                 power_recieved_raw -= power_requested_raw;
 
-            power_remainer_raw += power_recieved_raw;
+            //power_remainer_raw += power_recieved_raw;
             power_recieved_raw = 0;
         }
 

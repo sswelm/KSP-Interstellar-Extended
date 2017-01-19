@@ -427,7 +427,7 @@ namespace FNPlugin
             }
             catch (Exception ex)
             {
-                print(ex);
+                UnityEngine.Debug.LogError("[KSPI] - exception in getKerbalRadiationDose " + ex.Message);
                 return 0.0f;
             }
         }
@@ -446,7 +446,7 @@ namespace FNPlugin
             }
             catch (Exception ex)
             {
-                print(ex);
+                UnityEngine.Debug.LogError("[KSPI] - exception in getKerbalRadiationDose " + ex.Message);
                 return null;
             }
         }
@@ -473,7 +473,7 @@ namespace FNPlugin
             }
             catch (Exception ex)
             {
-                print(ex);
+                UnityEngine.Debug.LogError("[KSPI] - exception in getKerbalRadiationDose " + ex.Message);
             }
         }
 
@@ -589,8 +589,10 @@ namespace FNPlugin
 
         public static string getFormatedMassString(double massInKg, string format)
         {
-            if (massInKg < 0.001)
-                return (massInKg * 1000).ToString(format) + " mg";
+            if (massInKg < 0.000001)
+                return (massInKg * 1000000).ToString(format) + " mg";
+            else if (massInKg < 0.001)
+                return (massInKg * 1000).ToString(format) + " g";
             else
                 return (massInKg).ToString(format) + " kg";
         }
@@ -612,7 +614,7 @@ namespace FNPlugin
                     null,
                     null,
                     null,
-                    ApplicationLauncher.AppScenes.ALWAYS,
+                    ApplicationLauncher.AppScenes.NEVER,
                     appIcon);
 
                 buttonAdded = true;
@@ -651,7 +653,7 @@ namespace FNPlugin
             {
                 appLauncherButton = InitializeApplicationButton();
                 if (appLauncherButton != null)
-                    appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.ALWAYS;
+                    appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.FLIGHT;
 
                 buttonAdded = true;
             }
@@ -707,18 +709,18 @@ namespace FNPlugin
                         if (int.TryParse(thermalUiKeyStr, out thermalUiKeyInt))
                         {
                             _thermalUiKey = (KeyCode)thermalUiKeyInt;
-                            Debug.Log("[KSP Interstellar] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
+                            Debug.Log("[KSPI] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
                         }
                         else
                         {
                             try
                             {
                                 _thermalUiKey = (KeyCode)Enum.Parse(typeof(KeyCode), thermalUiKeyStr, true);
-                                Debug.Log("[KSP Interstellar] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
+                                Debug.Log("[KSPI] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
                             }
                             catch
                             {
-                                Debug.LogError("[KSP Interstellar] failed to convert " + thermalUiKeyStr + " to a KeyCode for ThermalUiKey");
+                                Debug.LogError("[KSPI] failed to convert " + thermalUiKeyStr + " to a KeyCode for ThermalUiKey");
                             }
                         }
                     }
@@ -726,74 +728,74 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("SecondsInDay"))
                     {
                         _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
-                        Debug.Log("[KSP Interstellar] SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
+                        Debug.Log("[KSPI] SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
                     }
 
                     if (plugin_settings.HasValue("MicrowaveApertureDiameterMult"))
                     {
                         _microwaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("MicrowaveApertureDiameterMult"));
-                        Debug.Log("[KSP Interstellar] Microwave Aperture Diameter Multiplier set to: " + PluginHelper.MicrowaveApertureDiameterMult.ToString());
+                        Debug.Log("[KSPI] Microwave Aperture Diameter Multiplier set to: " + PluginHelper.MicrowaveApertureDiameterMult.ToString());
                     }
                     if (plugin_settings.HasValue("NonMicrowaveApertureDiameterMult"))
                     {
                         _nonMicrowaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("NonMicrowaveApertureDiameterMult"));
-                        Debug.Log("[KSP Interstellar] Non Microwave Aperture Diameter Multiplier set to: " + PluginHelper.NonMicrowaveApertureDiameterMult.ToString());
+                        Debug.Log("[KSPI] Non Microwave Aperture Diameter Multiplier set to: " + PluginHelper.NonMicrowaveApertureDiameterMult.ToString());
                     }
 
                     if (plugin_settings.HasValue("SpeedOfLightMult"))
                     {
                         _speedOfLightMult = double.Parse(plugin_settings.GetValue("SpeedOfLightMult"));
-                        Debug.Log("[KSP Interstellar] Speed Of Light Multiplier set to: " + PluginHelper.SpeedOfLightMult.ToString());
+                        Debug.Log("[KSPI] Speed Of Light Multiplier set to: " + PluginHelper.SpeedOfLightMult.ToString());
                     }
                     if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
                     {
                         PluginHelper._radiationMechanicsDisabled = bool.Parse(plugin_settings.GetValue("RadiationMechanicsDisabled"));
-                        Debug.Log("[KSP Interstellar] Radiation Mechanics Disabled set to: " + PluginHelper.RadiationMechanicsDisabled.ToString());
+                        Debug.Log("[KSPI] Radiation Mechanics Disabled set to: " + PluginHelper.RadiationMechanicsDisabled.ToString());
                     }
                     if (plugin_settings.HasValue("ThermalMechanicsDisabled"))
                     {
                         PluginHelper._isThermalDissipationDisabled = bool.Parse(plugin_settings.GetValue("ThermalMechanicsDisabled"));
-                        Debug.Log("[KSP Interstellar] ThermalMechanics set to : " + (!PluginHelper.IsThermalDissipationDisabled).ToString());
+                        Debug.Log("[KSPI] ThermalMechanics set to : " + (!PluginHelper.IsThermalDissipationDisabled).ToString());
                     }
                     if (plugin_settings.HasValue("SolarPanelClampedHeating"))
                     {
                         PluginHelper._isPanelHeatingClamped = bool.Parse(plugin_settings.GetValue("SolarPanelClampedHeating"));
-                        Debug.Log("[KSP Interstellar] Solar panels clamped heating set to enabled: " + PluginHelper.IsSolarPanelHeatingClamped.ToString());
+                        Debug.Log("[KSPI] Solar panels clamped heating set to enabled: " + PluginHelper.IsSolarPanelHeatingClamped.ToString());
                     }
                     if (plugin_settings.HasValue("RecieverTempTweak"))
                     {
                         PluginHelper._isRecieverTempTweaked = bool.Parse(plugin_settings.GetValue("RecieverTempTweak"));
-                        Debug.Log("[KSP Interstellar] Microwave reciever CoreTemp tweak is set to enabled: " + PluginHelper.IsRecieverCoreTempTweaked.ToString());
+                        Debug.Log("[KSPI] Microwave reciever CoreTemp tweak is set to enabled: " + PluginHelper.IsRecieverCoreTempTweaked.ToString());
                     }
                     if (plugin_settings.HasValue("LimitedWarpTravel"))
                     {
                         PluginHelper._limitedWarpTravel = bool.Parse(plugin_settings.GetValue("LimitedWarpTravel"));
-                        Debug.Log("[KSP Interstellar] Apply Limited Warp Travel: " + PluginHelper.LimitedWarpTravel.ToString());
+                        Debug.Log("[KSPI] Apply Limited Warp Travel: " + PluginHelper.LimitedWarpTravel.ToString());
                     }
                     if (plugin_settings.HasValue("MatchDemandWithSupply"))
                     {
                         PluginHelper._matchDemandWithSupply = bool.Parse(plugin_settings.GetValue("MatchDemandWithSupply"));
-                        Debug.Log("[KSP Interstellar] Match Demand With Supply: " + PluginHelper.MatchDemandWithSupply.ToString());
+                        Debug.Log("[KSPI] Match Demand With Supply: " + PluginHelper.MatchDemandWithSupply.ToString());
                     }
                     if (plugin_settings.HasValue("MaxPowerDrawForExoticMatterMult"))
                     {
                         PluginHelper._maxPowerDrawForExoticMatterMult = float.Parse(plugin_settings.GetValue("MaxPowerDrawForExoticMatterMult"));
-                        Debug.Log("[KSP Interstellar] Max Power Draw For Exotic Matter Multiplier set to: " + PluginHelper.MaxPowerDrawForExoticMatterMult.ToString("0.000000"));
+                        Debug.Log("[KSPI] Max Power Draw For Exotic Matter Multiplier set to: " + PluginHelper.MaxPowerDrawForExoticMatterMult.ToString("0.000000"));
                     }
                     if (plugin_settings.HasValue("GravityConstant"))
                     {
                         PluginHelper._gravityConstant = Single.Parse(plugin_settings.GetValue("GravityConstant"));
-                        Debug.Log("[KSP Interstellar] Gravity constant set to: " + PluginHelper.GravityConstant.ToString("0.000000"));
+                        Debug.Log("[KSPI] Gravity constant set to: " + PluginHelper.GravityConstant.ToString("0.000000"));
                     }
                     if (plugin_settings.HasValue("IspCoreTempMult"))
                     {
                         PluginHelper._ispCoreTempMult = float.Parse(plugin_settings.GetValue("IspCoreTempMult"));
-                        Debug.Log("[KSP Interstellar] Isp core temperature multiplier set to: " + PluginHelper.IspCoreTempMult.ToString("0.000000"));
+                        Debug.Log("[KSPI] Isp core temperature multiplier set to: " + PluginHelper.IspCoreTempMult.ToString("0.000000"));
                     }
                     if (plugin_settings.HasValue("ElectricEngineIspMult"))
                     {
                         PluginHelper._electricEngineIspMult = double.Parse(plugin_settings.GetValue("ElectricEngineIspMult"));
-                        Debug.Log("[KSP Interstellar] Electric EngineIsp Multiplier set to: " + PluginHelper.ElectricEngineIspMult.ToString("0.000000"));
+                        Debug.Log("[KSPI] Electric EngineIsp Multiplier set to: " + PluginHelper.ElectricEngineIspMult.ToString("0.000000"));
                     }
 
 
@@ -801,116 +803,112 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("GlobalThermalNozzlePowerMaxTrustMult"))
                     {
                         PluginHelper._globalThermalNozzlePowerMaxThrustMult = float.Parse(plugin_settings.GetValue("GlobalThermalNozzlePowerMaxTrustMult"));
-                        Debug.Log("[KSP Interstellar] Maximum Global Thermal Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalThermalNozzlePowerMaxThrustMult.ToString("0.0"));
+                        Debug.Log("[KSPI] Maximum Global Thermal Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalThermalNozzlePowerMaxThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("GlobalMagneticNozzlePowerMaxTrustMult"))
                     {
                         PluginHelper._globalMagneticNozzlePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalMagneticNozzlePowerMaxTrustMult"));
-                        Debug.Log("[KSP Interstellar] Maximum Global Magnetic Nozzle Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalMagneticNozzlePowerMaxThrustMult.ToString("0.0"));
+                        Debug.Log("[KSPI] Maximum Global Magnetic Nozzle Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalMagneticNozzlePowerMaxThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("GlobalElectricEnginePowerMaxTrustMult"))
                     {
                         PluginHelper._globalElectricEnginePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalElectricEnginePowerMaxTrustMult"));
-                        Debug.Log("[KSP Interstellar] Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
+                        Debug.Log("[KSPI] Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
                     }
-                    //if (plugin_settings.HasValue("LfoFuelTrustModifier"))
-                    //{
-                    //    PluginHelper._lfoFuelThrustModifier = double.Parse(plugin_settings.GetValue("LfoFuelTrustModifier"));
-                    //    Debug.Log("[KSP Interstellar] Maximum Lfo Fuel Thrust Multiplier set to: " + PluginHelper.LfoFuelThrustModifier.ToString("0.0"));
-                    //}
+
                     if (plugin_settings.HasValue("MaxThermalNozzleIsp"))
                     {
                         PluginHelper._maxThermalNozzleIsp = float.Parse(plugin_settings.GetValue("MaxThermalNozzleIsp"));
-                        Debug.Log("[KSP Interstellar] Maximum Thermal Nozzle Isp set to: " + PluginHelper.MaxThermalNozzleIsp.ToString("0.0"));
+                        Debug.Log("[KSPI] Maximum Thermal Nozzle Isp set to: " + PluginHelper.MaxThermalNozzleIsp.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("EngineHeatProduction"))
                     {
                         PluginHelper._engineHeatProduction = float.Parse(plugin_settings.GetValue("EngineHeatProduction"));
-                        Debug.Log("[KSP Interstellar] EngineHeatProduction set to: " + PluginHelper.EngineHeatProduction.ToString("0.0"));
+                        Debug.Log("[KSPI] EngineHeatProduction set to: " + PluginHelper.EngineHeatProduction.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("EngineHeatProduction"))
                     {
                         PluginHelper._airflowHeatMult = float.Parse(plugin_settings.GetValue("AirflowHeatMult"));
-                        Debug.Log("[KSP Interstellar] AirflowHeatMultipler Isp set to: " + PluginHelper.AirflowHeatMult.ToString("0.0"));
+                        Debug.Log("[KSPI] AirflowHeatMultipler Isp set to: " + PluginHelper.AirflowHeatMult.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("TrustCoreTempThreshold"))
                     {
                         PluginHelper._thrustCoreTempThreshold = float.Parse(plugin_settings.GetValue("TrustCoreTempThreshold"));
-                        Debug.Log("[KSP Interstellar] Thrust core temperature threshold set to: " + PluginHelper.ThrustCoreTempThreshold.ToString("0.0"));
+                        Debug.Log("[KSPI] Thrust core temperature threshold set to: " + PluginHelper.ThrustCoreTempThreshold.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("LowCoreTempBaseTrust"))
                     {
                         PluginHelper._lowCoreTempBaseThrust = float.Parse(plugin_settings.GetValue("LowCoreTempBaseTrust"));
-                        Debug.Log("[KSP Interstellar] Low core temperature base thrust modifier set to: " + PluginHelper.LowCoreTempBaseThrust.ToString("0.0"));
+                        Debug.Log("[KSPI] Low core temperature base thrust modifier set to: " + PluginHelper.LowCoreTempBaseThrust.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("HighCoreTempTrustMult"))
                     {
                         PluginHelper._highCoreTempThrustMult = float.Parse(plugin_settings.GetValue("HighCoreTempTrustMult"));
-                        Debug.Log("[KSP Interstellar] High core temperature thrust divider set to: " + PluginHelper.HighCoreTempThrustMult.ToString("0.0"));
+                        Debug.Log("[KSPI] High core temperature thrust divider set to: " + PluginHelper.HighCoreTempThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("BasePowerConsumption"))
                     {
                         PluginHelper._basePowerConsumption = double.Parse(plugin_settings.GetValue("BasePowerConsumption"));
-                        Debug.Log("[KSP Interstellar] Base Power Consumption set to: " + PluginHelper.BasePowerConsumption.ToString("0.0"));
+                        Debug.Log("[KSPI] Base Power Consumption set to: " + PluginHelper.BasePowerConsumption.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("PowerConsumptionMultiplier"))
                     {
                         PluginHelper._powerConsumptionMultiplier = double.Parse(plugin_settings.GetValue("PowerConsumptionMultiplier"));
-                        Debug.Log("[KSP Interstellar] Base Power Consumption set to: " + PluginHelper.PowerConsumptionMultiplier.ToString("0.0"));
+                        Debug.Log("[KSPI] Base Power Consumption set to: " + PluginHelper.PowerConsumptionMultiplier.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("IspNtrPropellantModifierBase"))
                     {
                         PluginHelper._ispNtrPropellantModifierBase = float.Parse(plugin_settings.GetValue("IspNtrPropellantModifierBase"));
-                        Debug.Log("[KSP Interstellar] Isp Ntr Propellant Modifier Base set to: " + PluginHelper.IspNtrPropellantModifierBase.ToString("0.0"));
+                        Debug.Log("[KSPI] Isp Ntr Propellant Modifier Base set to: " + PluginHelper.IspNtrPropellantModifierBase.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("IspElectroPropellantModifierBase"))
                     {
                         PluginHelper._ispElectroPropellantModifierBase = float.Parse(plugin_settings.GetValue("IspNtrPropellantModifierBase"));
-                        Debug.Log("[KSP Interstellar] Isp Ntr Propellant Modifier Base set to: " + PluginHelper.IspElectroPropellantModifierBase.ToString("0.0"));
+                        Debug.Log("[KSPI] Isp Ntr Propellant Modifier Base set to: " + PluginHelper.IspElectroPropellantModifierBase.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("ElectricEnginePowerPropellantIspMultLimiter"))
                     {
                         PluginHelper._electricEnginePowerPropellantIspMultLimiter = float.Parse(plugin_settings.GetValue("ElectricEnginePowerPropellantIspMultLimiter"));
-                        Debug.Log("[KSP Interstellar] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEnginePowerPropellantIspMultLimiter.ToString("0.0"));
+                        Debug.Log("[KSPI] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEnginePowerPropellantIspMultLimiter.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("ElectricEngineAtmosphericDensityTrustLimiter"))
                     {
                         PluginHelper._electricEngineAtmosphericDensityThrustLimiter = float.Parse(plugin_settings.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));
-                        Debug.Log("[KSP Interstellar] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEngineAtmosphericDensityThrustLimiter.ToString("0.0"));
+                        Debug.Log("[KSPI] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEngineAtmosphericDensityThrustLimiter.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("MaxAtmosphericAltitudeMult"))
                     {
                         PluginHelper._maxAtmosphericAltitudeMult = double.Parse(plugin_settings.GetValue("MaxAtmosphericAltitudeMult"));
-                        Debug.Log("[KSP Interstellar] Maximum Atmospheric Altitude Multiplier set to: " + PluginHelper.MaxAtmosphericAltitudeMult.ToString("0.0"));
+                        Debug.Log("[KSPI] Maximum Atmospheric Altitude Multiplier set to: " + PluginHelper.MaxAtmosphericAltitudeMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("MinAtmosphericAirDensity"))
                     {
                         PluginHelper._minAtmosphericAirDensity = double.Parse(plugin_settings.GetValue("MinAtmosphericAirDensity"));
-                        Debug.Log("[KSP Interstellar] Minimum Atmospheric Air Density set to: " + PluginHelper.MinAtmosphericAirDensity.ToString("0.0"));
+                        Debug.Log("[KSPI] Minimum Atmospheric Air Density set to: " + PluginHelper.MinAtmosphericAirDensity.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("JetUpgradeTech0"))
                     {
                         PluginHelper.JetUpgradeTech0 = plugin_settings.GetValue("JetUpgradeTech0");
-                        Debug.Log("[KSP Interstellar] JetUpgradeTech0" + PluginHelper.JetUpgradeTech0);
+                        Debug.Log("[KSPI] JetUpgradeTech0" + PluginHelper.JetUpgradeTech0);
                     }
                     if (plugin_settings.HasValue("JetUpgradeTech1"))
                     {
                         PluginHelper.JetUpgradeTech1 = plugin_settings.GetValue("JetUpgradeTech1");
-                        Debug.Log("[KSP Interstellar] JetUpgradeTech1" + PluginHelper.JetUpgradeTech1);
+                        Debug.Log("[KSPI] JetUpgradeTech1" + PluginHelper.JetUpgradeTech1);
                     }
                     if (plugin_settings.HasValue("JetUpgradeTech2"))
                     {
                         PluginHelper.JetUpgradeTech2 = plugin_settings.GetValue("JetUpgradeTech2");
-                        Debug.Log("[KSP Interstellar] JetUpgradeTech2" + PluginHelper.JetUpgradeTech2);
+                        Debug.Log("[KSPI] JetUpgradeTech2" + PluginHelper.JetUpgradeTech2);
                     }
                     if (plugin_settings.HasValue("JetUpgradeTech3"))
                     {
                         PluginHelper.JetUpgradeTech3 = plugin_settings.GetValue("JetUpgradeTech3");
-                        Debug.Log("[KSP Interstellar] JetUpgradeTech3" + PluginHelper.JetUpgradeTech3);
+                        Debug.Log("[KSPI] JetUpgradeTech3" + PluginHelper.JetUpgradeTech3);
                     }
 
                     resources_configured = true;
@@ -1014,9 +1012,9 @@ namespace FNPlugin
                 catch (Exception ex)
                 {
                     if (prefab_available_part != null)
-                        print("[KSP Interstellar] Exception caught adding to: " + prefab_available_part.name + " part: " + ex.ToString());
+                        print("[KSPI] Exception caught adding to: " + prefab_available_part.name + " part: " + ex.ToString());
                     else
-                        print("[KSP Interstellar] Exception caught adding to unknown module");
+                        print("[KSPI] Exception caught adding to unknown module");
                 }
             }
         }

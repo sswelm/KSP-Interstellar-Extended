@@ -192,7 +192,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Sun Facing Factor", guiFormat = "F4")]
         public double solarFacingFactor;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F2")]
         public double solarFlux;
 
         protected BaseField _radiusField;
@@ -207,6 +207,8 @@ namespace FNPlugin
         protected ModuleDeployableRadiator deployableRadiator;
         protected ModuleActiveRadiator activeRadiator;
         protected FNRadiator fnRadiator;
+
+        public Queue<double> solarFluxQueue = new Queue<double>();
 
         //Internal 
         protected bool isLoaded = false;
@@ -270,7 +272,7 @@ namespace FNPlugin
             thermalReceiverSlaves.Add(receiver);
         }
 
-        public float MinimumThrottle { get { return 0; } }
+        public double MinimumThrottle { get { return 0; } }
 
         public void ConnectWithEngine(IEngineNoozle engine) { }
 
@@ -376,6 +378,8 @@ namespace FNPlugin
 
         private static readonly double microwaveAngleTan = Math.Tan(GameConstants.microwave_angle);//this doesn't change during game so it's readonly 
         private static readonly double microwaveAngleTanSquared = microwaveAngleTan * microwaveAngleTan;
+
+        public double RawTotalPowerProduced { get { return ThermalPower * TimeWarp.fixedDeltaTime; } }
 
         public double ChargedPowerRatio { get { return 0; } }
 
@@ -657,7 +661,7 @@ namespace FNPlugin
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("Error while disabling solar button " + e.Message + " at " + e.StackTrace);
+                    Debug.LogError("[KSPI] - Error while disabling solar button " + e.Message + " at " + e.StackTrace);
                 }
             }
 
@@ -734,7 +738,7 @@ namespace FNPlugin
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
+                    Debug.LogError("[KSPI] - Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
                 }
             }
 
@@ -842,7 +846,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("Error in MicrowaveReceiver InitializeBrandwitdhSelector " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI] Error in MicrowaveReceiver InitializeBrandwitdhSelector " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -854,7 +858,7 @@ namespace FNPlugin
 
                 var currentWavelength = targetWavelength != 0 ? targetWavelength : 1;
 
-                Debug.Log("[KSP Interstellar] LoadInitialConfiguration initialize initial beam configuration with wavelength target " + currentWavelength);
+                Debug.Log("[KSPI] LoadInitialConfiguration initialize initial beam configuration with wavelength target " + currentWavelength);
 
                 // find wavelength closes to target wavelength
                 activeBandwidthConfiguration = BandwidthConverters.FirstOrDefault();
@@ -878,7 +882,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("Error in MicrowaveReceiver LoadInitialConfiguration " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI] - Error in MicrowaveReceiver LoadInitialConfiguration " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -928,7 +932,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("Error in MicrowaveReceiver UpdateFromGUI " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI] - Error in MicrowaveReceiver UpdateFromGUI " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -1080,7 +1084,11 @@ namespace FNPlugin
                 return Math.Max(0, Vector3d.Dot(part.transform.up, dolarDirectionVector));
 
             }
-            catch { return 0; }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - Exception in GetSolarFacingFactor " + e.Message + " at " + e.StackTrace);
+                return 0; 
+            }
         }
 
         uint counter = 0;       // OnFixedUpdate cycle counter
@@ -1141,7 +1149,12 @@ namespace FNPlugin
 
             if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0)
             {
-                solarFlux = part.vessel.solarFlux;
+                solarFluxQueue.Enqueue(part.vessel.solarFlux);
+
+                if (solarFluxQueue.Count > 50)
+                    solarFluxQueue.Dequeue();
+
+                solarFlux = solarFluxQueue.Average();
                 solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
                 solarInputMegajoules = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarFacingFactor * solarReceptionEfficiency;
             }
@@ -1313,14 +1326,15 @@ namespace FNPlugin
                     wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
                 }
 
+
                 if (isThermalReceiverSlave || thermalMode)
                 {
-                    var fixed_beamed_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                    double fixed_beamed_thermal_power = supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    if (!CheatOptions.IgnoreMaxTemperature)
-                        supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                    //if (!CheatOptions.IgnoreMaxTemperature)
+                    //    supplyFNResource(fixed_beamed_thermal_power, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
-                    var cur_thermal_power = (fixed_beamed_thermal_power + fixedSolarInputMegajoules) / TimeWarp.fixedDeltaTime;
+                    var cur_thermal_power = (fixedSolarInputMegajoules + fixed_beamed_thermal_power) / TimeWarp.fixedDeltaTime;
 
                     var total_thermal_power = isThermalReceiver 
                         ? cur_thermal_power + thermalReceiverSlaves.Sum(m => m.ThermalPower) 
@@ -1342,6 +1356,8 @@ namespace FNPlugin
                 {
                     supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 }
+
+                
             }
             else
             {

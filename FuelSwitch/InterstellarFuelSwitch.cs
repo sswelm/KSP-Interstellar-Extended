@@ -267,7 +267,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch OnRescale Error: " + e.Message);
+                Debug.LogError("[IFS] - OnRescale Error: " + e.Message);
                 throw;
             }
         }
@@ -352,7 +352,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch OnStart Error: " + e.Message);
+                Debug.LogError("[IFS] - OnStart Error: " + e.Message);
                 throw;
             }
         }
@@ -397,7 +397,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch SelectTankSetup Error: " + e.Message);
+                Debug.LogError("[IFS] - SelectTankSetup Error: " + e.Message);
                 throw;
             }
         }
@@ -411,7 +411,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch OnAwake Error: " + e.Message);
+                Debug.LogError("[IFS] - OnAwake Error: " + e.Message);
                 throw;
             }
         }
@@ -482,7 +482,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch InitializeData Error: " + e.Message);
+                Debug.LogError("[IFS] - InitializeData Error: " + e.Message);
                 throw;
             }
         }
@@ -504,7 +504,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch nextTankSetupEvent Error: " + e.Message);
+                Debug.LogError("[IFS] - nextTankSetupEvent Error: " + e.Message);
                 throw;
             }
         }
@@ -525,7 +525,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch previousTankSetupEvent Error: " + e.Message);
+                Debug.LogError("[IFS] - previousTankSetupEvent Error: " + e.Message);
                 throw;
             }
         }
@@ -573,7 +573,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch AssignResourcesToPart Error " + e.Message);
+                Debug.LogError("[IFS] - AssignResourcesToPart Error " + e.Message);
                 throw;
             }
         }
@@ -757,7 +757,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch SetupTankInPart Error: " + e.Message);
+                Debug.LogError("[IFS] - SetupTankInPart Error: " + e.Message);
                 throw;
             }
         }
@@ -1020,7 +1020,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch ProcessBoiloff Error: " + e.Message);
+                Debug.LogError("[IFS] - ProcessBoiloff Error: " + e.Message);
                 throw;
             }
         }
@@ -1129,7 +1129,7 @@ namespace InterstellarFuelSwitch
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogWarning("InsterstellarFuelSwitch: error parsing resourceTankAmountArray amount " + tankCounter + "/" + amountCounter +
+                            Debug.LogWarning("[IFS] - error parsing resourceTankAmountArray amount " + tankCounter + "/" + amountCounter +
                                       ": '" + resourceTankAbsoluteAmountArray[tankCounter] + "': '" + resourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
 
@@ -1140,7 +1140,7 @@ namespace InterstellarFuelSwitch
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogWarning("InsterstellarFuelSwitch: error parsing initialResourceList amount " + tankCounter + "/" + amountCounter +
+                            Debug.LogWarning("[IFS] - error parsing initialResourceList amount " + tankCounter + "/" + amountCounter +
                                       ": '" + initialResourceList[tankCounter] + "': '" + initialResourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
 
@@ -1151,7 +1151,7 @@ namespace InterstellarFuelSwitch
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogWarning("InsterstellarFuelSwitch: error parsing boilOffTempList amount " + tankCounter + "/" + amountCounter +
+                            Debug.LogWarning("[IFS] - error parsing boilOffTempList amount " + tankCounter + "/" + amountCounter +
                                       ": '" + boilOffTempList[tankCounter] + "': '" + boilOffTempAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
 
@@ -1162,7 +1162,7 @@ namespace InterstellarFuelSwitch
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogWarning("InsterstellarFuelSwitch: error parsing latendHeatVaporation amount " + tankCounter + "/" + amountCounter +
+                            Debug.LogWarning("[IFS] - error parsing latendHeatVaporation amount " + tankCounter + "/" + amountCounter +
                                       ": '" + latendHeatVaporationList[tankCounter] + "': '" + latendHeatVaporationAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
                     }
@@ -1249,7 +1249,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InsterstellarFuelSwitch SetupTankList Error: " + e.Message);
+                Debug.LogError("[IFS] - SetupTankList Error: " + e.Message);
                 throw;
             }
         }

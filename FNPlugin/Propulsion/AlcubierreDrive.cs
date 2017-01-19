@@ -42,9 +42,9 @@ namespace FNPlugin
         public float powerRequirementMultiplier = 1;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Pull", guiUnits = "g", guiFormat = "F3")]
-        public float gravityPull;
+        public double gravityPull;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Warp Limit", guiUnits = "c", guiFormat = "F3")]
-        public float maximumWarpForGravityPull;
+        public double maximumWarpForGravityPull;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Mass", guiUnits = "t")]
         public float partMass;
@@ -56,17 +56,17 @@ namespace FNPlugin
         public float warpToMassRatio;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
-        public float magnitudeDiff;
+        public double magnitudeDiff;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Change")]
-        public float magnitudeChange;
+        public double magnitudeChange;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Req Exotic Matter", guiUnits = " MW", guiFormat = "F2")]
         protected float exotic_power_required = 1000;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Abs Min Power Warp", guiFormat = "F2", guiUnits = "MW")]
-        public float minPowerRequirementForLightSpeed;
+        public double minPowerRequirementForLightSpeed;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Cur Power for Warp ", guiFormat = "F2", guiUnits = "MW")]
-        public float currentPowerRequirementForWarp;
+        public double currentPowerRequirementForWarp;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Power Max Speed", guiFormat = "F2", guiUnits = "MW")]
-        public float PowerRequirementForMaximumAllowedLightSpeed;
+        public double PowerRequirementForMaximumAllowedLightSpeed;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
         public string warpdriveType = "Alcubierre Drive";
@@ -218,7 +218,7 @@ namespace FNPlugin
 
         private int initiateWarpTimeout;
 
-        private int GetMaximumFactor(float lightspeed)
+        private int GetMaximumFactor(double lightspeed)
         {
             int maxFactor = 0;
 
@@ -623,7 +623,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("KSPI - AlcubierreDrive OnStart 1 Exception " + e.Message);
+                UnityEngine.Debug.LogError("[KSPI] - AlcubierreDrive OnStart 1 Exception " + e.Message);
             }
 
             warpdriveType = originalName;
@@ -673,9 +673,9 @@ namespace FNPlugin
             if (vessel != null)
             {
                 vesselTotalMass = vessel.GetTotalMass();
-                gravityPull = (float)FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
+                gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
                 maximumWarpForGravityPull = vessel.mainBody.flightGlobalsIndex != 0
-                    ? 1 / (Mathf.Max(gravityPull - 0.006f, 0.001f) * 10)
+                    ? 1 / (Math.Max(gravityPull - 0.006, 0.001) * 10)
                     : 1 / gravityPull;
                 maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpForGravityPull);
                 maximumAllowedWarpThrotle = engine_throtle[maximumWarpSpeedFactor];
@@ -802,14 +802,12 @@ namespace FNPlugin
             }
         }
 
-        private float GetPowerRequirementForWarp(float lightspeedFraction)
+        private double GetPowerRequirementForWarp(double lightspeedFraction)
         {
-            var sqrtSpeed = Mathf.Sqrt(lightspeedFraction);
+            var sqrtSpeed = Math.Sqrt(lightspeedFraction);
             var powerModifier = lightspeedFraction < 1 ? 1 / sqrtSpeed : sqrtSpeed;
             return powerModifier * exotic_power_required;
         }
-
-
 
         public void UpdateWarpSpeed()
         {
@@ -839,8 +837,8 @@ namespace FNPlugin
             Vector3d new_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
 
             // detect any changes in vessel heading and heading stability
-            magnitudeDiff = (float)(active_part_heading - new_part_heading).magnitude;
-            magnitudeChange = (float)(previous_Frame_heading - new_part_heading).magnitude;
+            magnitudeDiff = (active_part_heading - new_part_heading).magnitude;
+            magnitudeChange = (previous_Frame_heading - new_part_heading).magnitude;
             previous_Frame_heading = new_part_heading;
 
             // detect power shortage

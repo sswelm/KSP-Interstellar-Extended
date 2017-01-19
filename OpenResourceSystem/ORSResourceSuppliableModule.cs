@@ -32,7 +32,7 @@ namespace OpenResourceSystem
             fnresource_supplied[resourcename] -= power_taken;
             ORSResourceManager mega_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
-            mega_manager.powerDraw(this, power);
+            mega_manager.powerDraw(this, power, power_taken);
             return power_taken;
         }
 

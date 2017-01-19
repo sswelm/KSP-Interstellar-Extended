@@ -136,7 +136,7 @@ namespace InterstellarFuelSwitch
 
         private void setObject(int objectNumber, bool calledByPlayer)
         {
-            initializeData();
+            InitializeData();
 
             for (int i = 0; i < objectTransforms.Count; i++)
             {
@@ -196,7 +196,7 @@ namespace InterstellarFuelSwitch
 
         public override void OnStart(PartModule.StartState state)
         {
-            initializeData();
+            InitializeData();
 
             switchToObject(selectedObject, false);
 
@@ -227,7 +227,7 @@ namespace InterstellarFuelSwitch
             switchToObject(selectedObject, true);
         }
 
-        public void initializeData()
+        public void InitializeData()
         {
             try
             {
@@ -278,7 +278,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("InterstellarMeshSwitch initializeData Error: " + e.Message);
+                Debug.LogError("[IFS] - InterstellarMeshSwitch.InitializeData Error: " + e.Message);
                 throw;
             }
         }

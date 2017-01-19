@@ -74,7 +74,7 @@ namespace OpenResourceSystem
             } 
             catch (Exception ex) 
             {
-                Debug.Log("[ORS] Exception while loading oceanic resources : " + ex.ToString());
+                Debug.Log("[ORS] - Exception while loading oceanic resources : " + ex.ToString());
             }
             return bodyOceanicComposition;
         }

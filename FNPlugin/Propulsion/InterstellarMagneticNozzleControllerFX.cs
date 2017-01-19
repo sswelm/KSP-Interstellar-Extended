@@ -35,7 +35,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Free")]
         private double _hydrogenProduction;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Throtle Exponent")]
-        protected float throtleExponent = 1;
+        protected double throtleExponent = 1;
 
 		//remove then possible
         public bool static_updating = true;
@@ -87,7 +87,7 @@ namespace FNPlugin
             double joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
             calculatedIsp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
 
-            throtleExponent = Mathf.Abs(Mathf.Log10(_attached_reactor.MinimumChargdIspMult / _attached_reactor.MaximumChargedIspMult));
+            throtleExponent = Math.Abs(Math.Log10(_attached_reactor.MinimumChargdIspMult / _attached_reactor.MaximumChargedIspMult));
 
             exchanger_thrust_divisor = radius > _attached_reactor.GetRadius()
                 ? _attached_reactor.GetRadius() * _attached_reactor.GetRadius() / radius / radius

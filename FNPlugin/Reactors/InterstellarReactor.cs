@@ -136,7 +136,7 @@ namespace FNPlugin
         public bool controlledByEngineThrottle = false;
         [KSPField(isPersistant = false)]
         public bool showShutDownInFlight = false;
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = false)]
         public float powerScaleExponent = 3;
 
         [KSPField(isPersistant = false)]
@@ -288,7 +288,7 @@ namespace FNPlugin
         protected double min_throttle;
 
         // Gui floats
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
         public float partMass = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F6")]
         public double maximumThermalPowerEffective = 0;
@@ -332,6 +332,8 @@ namespace FNPlugin
         protected double raw_charged_power_received = 0;
         [KSPField(isPersistant = false, guiActive = false)]
         protected double raw_thermal_power_received = 0;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public double rawTotalPowerProduced = 0;
 
         [KSPField(isPersistant = false, guiActive = false)]
         protected double balanced_thermal_power_received = 0;
@@ -368,6 +370,8 @@ namespace FNPlugin
 
         protected double tritium_molar_mass_ratio = 3.0160 / 7.0183;
         protected double helium_molar_mass_ratio = 4.0023 / 7.0183;
+
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Base Wasteheat", guiFormat = "F1")]
         protected double partBaseWasteheat;
 
         protected double storedIsThermalEnergyGenratorActive;
@@ -375,7 +379,7 @@ namespace FNPlugin
         protected double currentIsThermalEnergyGenratorActive;
         protected double currentIsChargedEnergyGenratorActive;
 
-        private bool isFixedUpdatedCalled;
+        protected bool isFixedUpdatedCalled;
         protected AnimationState[] pulseAnimation;
         protected ModuleAnimateGeneric startupAnimation;
         protected ModuleAnimateGeneric shutdownAnimation;
@@ -392,6 +396,11 @@ namespace FNPlugin
         { 
             get { return _requestedThermalHeat; } 
             set { _requestedThermalHeat = value; } 
+        }
+
+        public double RawTotalPowerProduced
+        {
+            get { return rawTotalPowerProduced; }
         }
 
         public double UseProductForPropulsion(double ratio, double consumedAmount)
@@ -429,14 +438,12 @@ namespace FNPlugin
 
         public void ConnectWithEngine(IEngineNoozle engine)
         {
-            //connectedEngine = engine;
             if (!connectedEngines.Contains(engine))
                 connectedEngines.Add(engine);
         }
 
         public void DisconnectWithEngine(IEngineNoozle engine)
         {
-            //connectedEngine = engine;
             if (connectedEngines.Contains(engine))
                 connectedEngines.Remove(engine);
         }
@@ -453,7 +460,7 @@ namespace FNPlugin
             }
         }
 
-        public virtual float MinimumThrottle 
+        public virtual double MinimumThrottle 
         { 
             get {
                 if (CurrentGenerationType == GenerationType.Mk5)
@@ -552,7 +559,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("FNGenerator.OnRescale" + e.Message);
+                Debug.LogError("[KSPI] - FNGenerator.OnRescale" + e.Message);
             }
         }
 
@@ -894,9 +901,6 @@ namespace FNPlugin
             chargedPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
             wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-            // calculate WasteHeat Capacity
-            partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
-
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
             this.resources_to_supply = resources_to_supply;
 
@@ -963,6 +967,12 @@ namespace FNPlugin
 
             Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
         }
+
+        //public override void OnStartFinished(PartModule.StartState state)
+        //{
+        //    // calculate WasteHeat Capacity
+        //    partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
+        //}
 
         private void UpdateReactorCharacteristics()
         {
@@ -1129,6 +1139,7 @@ namespace FNPlugin
             }
             //if (!vessel.isActiveVessel || part == null) RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
             update_count++;
+            partMass = part.mass;
         }
 
         /// <summary>
@@ -1226,6 +1237,8 @@ namespace FNPlugin
                 max_thermal_to_supply_nominal = max_thermal_to_supply_fixed / TimeWarp.fixedDeltaTime;
                 raw_thermal_power_received = supplyManagedFNResourceWithMinimumRatio(max_thermal_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
+                rawTotalPowerProduced = raw_thermal_power_received + raw_charged_power_received;
+
                 // add additional power
                 double thermal_power_ratio = max_thermal_to_supply_fixed > 0 && (1 - ChargedPowerRatio) > 0 ? raw_thermal_power_received / max_thermal_to_supply_fixed : 0;
 
@@ -1235,6 +1248,7 @@ namespace FNPlugin
                 var chargedpower_shortagage_ratio = thermal_power_ratio > charged_power_ratio ? thermal_power_ratio - charged_power_ratio : 0;
 
                 // fix any inbalance in power draw
+                
                 balanced_thermal_power_received = raw_thermal_power_received + (thermal_shortage_ratio * fixed_maximum_thermal_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
                 balanced_charged_power_received = raw_charged_power_received + (chargedpower_shortagage_ratio * fixed_maximum_charged_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
 
@@ -1279,8 +1293,8 @@ namespace FNPlugin
                 }
 
                 // Waste Heat
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResource(total_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                //if (!CheatOptions.IgnoreMaxTemperature)
+                //    supplyFNResource(total_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
                 BreedTritium(ongoing_neutron_power_generated, TimeWarp.fixedDeltaTime);
 
@@ -1289,18 +1303,22 @@ namespace FNPlugin
             }
             else if (IsEnabled && IsNuclear && MaximumPower > 0 && (Planetarium.GetUniversalTime() - last_active_time <= 3 * PluginHelper.SecondsInDay))
             {
+
                 reactor_power_ratio = 0;
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 double power_fraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / PluginHelper.SecondsInDay / 24.0 * 9.0);
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
                 raw_thermal_power_received = supplyManagedFNResourceWithMinimumRatio(power_to_supply, 1, FNResourceManager.FNRESOURCE_THERMALPOWER);
+
+                rawTotalPowerProduced = raw_thermal_power_received;
+
                 ongoing_neutron_power_generated = raw_thermal_power_received / TimeWarp.fixedDeltaTime;
                 BreedTritium(ongoing_neutron_power_generated, TimeWarp.fixedDeltaTime);
 
                 ongoing_consumption_rate = MaximumPower > 0 ? raw_thermal_power_received / MaximumPower / TimeWarp.fixedDeltaTime : 0;
 
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResource(raw_thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
+                //if (!CheatOptions.IgnoreMaxTemperature)
+                //    supplyFNResource(raw_thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
                 powerPcnt = 100 * ongoing_consumption_rate;
                 decay_ongoing = true;
@@ -1308,6 +1326,7 @@ namespace FNPlugin
             }
             else
             {
+                rawTotalPowerProduced = 0;
                 reactor_power_ratio = 0;
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 powerPcnt = 0;
@@ -1375,6 +1394,9 @@ namespace FNPlugin
 
                 if (wasteheatPowerResource != null)
                 {
+                    // calculate WasteHeat Capacity
+                    partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
+
                     var requiredWasteheatCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * partBaseWasteheat);
                     var previousWasteheatCapacity = Math.Max(0.0001, 10 * previousDeltaTime * partBaseWasteheat);
 
@@ -1891,7 +1913,7 @@ namespace FNPlugin
 
             catch (Exception e)
             {
-                Debug.LogError("ElectricRCSController Window(" + windowID + "): " + e.Message);
+                Debug.LogError("[KSPI] - ElectricRCSController Window(" + windowID + "): " + e.Message);
                 throw;
             }
         }

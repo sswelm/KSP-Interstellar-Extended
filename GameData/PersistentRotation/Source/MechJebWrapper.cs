@@ -73,6 +73,7 @@ namespace PersistentRotation
         /* MONOBEHAVIOUR METHODS */
         public static void Initialize()
         {
+            Debug.Log("[PR] Initializing MechJeb wrapper...");
             mjAvailable = false;
             try
             {

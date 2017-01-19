@@ -76,7 +76,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Stored Throtle")]
         public float storedThrotle = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Benchmark", guiFormat = "F3", guiUnits = " ms")]
-        public float onFixedUpdateBenchmark;
+        public double onFixedUpdateBenchmark;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
         public double effectiveThrust = 0;
@@ -206,7 +206,6 @@ namespace FNPlugin
         {
             try
             {
-
                 stopWatch = new Stopwatch();
 
                 speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
@@ -288,19 +287,12 @@ namespace FNPlugin
                 if (HighLogic.LoadedSceneIsEditor)
                     return;
 
-                //deteuriumPartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium).ToList();
-                //var deteuriumMaxAmount = deteuriumPartResources.Sum(m => m.maxAmount);
-                //var deteuriumAmount = deteuriumPartResources.Sum(m => m.amount);
                 double deteuriumAmount;
                 double deteuriumMaxAmount;
                 part.GetConnectedResourceTotals(deteuriumResourceDefinition.id, out deteuriumAmount, out deteuriumMaxAmount);
 
                 percentageDeteuriumFuelRemaining = deteuriumAmount / deteuriumMaxAmount * 100;
                 deuteriumAmounts = percentageDeteuriumFuelRemaining.ToString("0.0000") + "% " + deteuriumMaxAmount.ToString("0") + " L";
-
-                //helium3PartResources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium3).ToList();
-                //var helium3MaxAmount = helium3PartResources.Sum(m => m.maxAmount);
-                //var helium3Amount = helium3PartResources.Sum(m => m.amount);
 
                 double helium3Amount;
                 double helium3MaxAmount;
@@ -322,7 +314,6 @@ namespace FNPlugin
         {
             try
             {
-
                 if (curEngineT == null) return;
 
                 // When transitioning from timewarp to real update throttle
@@ -345,7 +336,7 @@ namespace FNPlugin
                 int kerbal_hazard_count = 0;
                 foreach (Vessel vess in FlightGlobals.Vessels)
                 {
-                    float distance = (float)Vector3d.Distance(vessel.transform.position, vess.transform.position);
+                    double distance = Vector3d.Distance(vessel.transform.position, vess.transform.position);
                     if (distance < leathalDistance && vess != this.vessel)
                         kerbal_hazard_count += vess.GetCrewCount();
                 }
@@ -555,7 +546,7 @@ namespace FNPlugin
                 }
 
                 stopWatch.Stop();
-                onFixedUpdateBenchmark = stopWatch.ElapsedTicks * (1f / Stopwatch.Frequency) * 1000;
+                onFixedUpdateBenchmark = stopWatch.ElapsedTicks * (1d / Stopwatch.Frequency) * 1000d;
             }
             catch (Exception e)
             {
@@ -618,7 +609,7 @@ namespace FNPlugin
         {
             // Calculate Fusion Ratio
             var powerRequirementFixed = PowerRequirement * fixedDeltaTime;
-            var requestedPower = (curEngineT.thrustPercentage / 100) * throtle * powerRequirementFixed;
+            var requestedPower = (curEngineT.thrustPercentage / 100d) * throtle * powerRequirementFixed;
 
             var recievedPower = CheatOptions.InfiniteElectricity 
                 ? requestedPower 
@@ -637,13 +628,13 @@ namespace FNPlugin
                 supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             }
 
-            fusionPercentage = fusionRatio * 100;
+            fusionPercentage = fusionRatio * 100d;
 
             return fusionRatio;
         }
 
         // Calculate DeltaV vector and update resource demand from mass (demandMass)
-        public static Vector3d CalculateDeltaVV(float totalMass, double deltaTime, double thrust, double isp, double averageDensity, Vector3d thrustUV, out double demandMass)
+        public static Vector3d CalculateDeltaVV(float totalMass, float deltaTime, double thrust, double isp, double averageDensity, Vector3d thrustUV, out double demandMass)
         {
             // Mass flow rate
             var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
@@ -673,24 +664,24 @@ namespace FNPlugin
 
             foreach (Vessel vess in FlightGlobals.Vessels)
             {
-                float distance = (float)Vector3d.Distance(vessel.transform.position, vess.transform.position);
+                double distance = Vector3d.Distance(vessel.transform.position, vess.transform.position);
 
                 if (distance >= leathalDistance || vess == this.vessel || vess.GetCrewCount() <= 0) continue;
 
-                float inv_sq_dist = distance / killDivider;
-                float inv_sq_mult = 1.0f / inv_sq_dist / inv_sq_dist;
+                double inv_sq_dist = distance / killDivider;
+                double inv_sq_mult = 1d / inv_sq_dist / inv_sq_dist;
                 foreach (ProtoCrewMember crew_member in vess.GetVesselCrew())
                 {
-                    if (UnityEngine.Random.value < (1.0 - death_prob * inv_sq_mult)) continue;
+                    if (UnityEngine.Random.value < (1d - death_prob * inv_sq_mult)) continue;
 
                     if (!vess.isEVA)
                     {
-                        ScreenMessages.PostScreenMessage(crew_member.name + " was killed by Neutron Radiation!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(crew_member.name + " was killed by Neutron Radiation!", 5f, ScreenMessageStyle.UPPER_CENTER);
                         crew_to_remove.Add(crew_member);
                     }
                     else
                     {
-                        ScreenMessages.PostScreenMessage(crew_member.name + " was killed by Neutron Radiation!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(crew_member.name + " was killed by Neutron Radiation!", 5f, ScreenMessageStyle.UPPER_CENTER);
                         vessels_to_remove.Add(vess);
                     }
                 }

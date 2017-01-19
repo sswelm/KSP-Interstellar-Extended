@@ -106,22 +106,22 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Throtle", guiFormat = "F2")]
         public float throttle;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Fusion Ratio", guiFormat = "F2")]
-        public float fusionRatio;
+        public double fusionRatio;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Requirement", guiFormat = "F2", guiUnits = " MW")]
         public float enginePowerRequirement;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Laser Wasteheat", guiFormat = "F2", guiUnits = " MW")]
         public double laserWasteheat;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Absorbed Wasteheat", guiFormat = "F2", guiUnits = " MW")]
-        public float absorbedWasteheat;
+        public double absorbedWasteheat;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Radiator Temp")]
-        public float coldBathTemp;
+        public double coldBathTemp;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Radiator Temp")]
-        public float maxTempatureRadiators;
+        public double maxTempatureRadiators;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Performance Radiators")]
-        public float radiatorPerformance;
+        public double radiatorPerformance;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Emisiveness")]
-        public float partEmissiveConstant;
+        public double partEmissiveConstant;
 
 
         // abstracts
@@ -266,7 +266,7 @@ namespace FNPlugin
 
                 if (curEngineT == null)
                 {
-                    Debug.LogError("FusionEngine OnStart Engine not found");
+                    Debug.LogWarning("[KSPI] - FusionEngine OnStart Engine not found");
                     return;
                 }
 
@@ -285,7 +285,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("FusionEngine OnStart eception: " + e.Message);
+                Debug.LogError("[KSPI] - FusionEngine OnStart eception: " + e.Message);
             }
 		}
 
@@ -371,12 +371,10 @@ namespace FNPlugin
                     : consumeFNResource(requestedPowerFixed, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPowerFixed / requestedPowerFixed;
-                fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;
+                fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? Math.Pow(plasma_ratio, 6) : 0;
 
                 var laserWasteheatFixed = recievedPowerFixed * (1 - LaserEfficiency);
                 laserWasteheat = laserWasteheatFixed / TimeWarp.fixedDeltaTime;
-
-
 
                 // The Aborbed wasteheat from Fusion
                 var rateMultplier = minISP / SelectedIsp;
@@ -391,8 +389,8 @@ namespace FNPlugin
                 }
 
                 // change ratio propellants Hydrogen/Fusion
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;  
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)standard_tritium_rate / rateMultplier; 
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate / rateMultplier);  
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate / rateMultplier); 
 
                 // Update ISP
                 var currentIsp = SelectedIsp; 
@@ -403,7 +401,7 @@ namespace FNPlugin
 
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = maxFuelFlow;
+                curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.maxThrust = MaximumThrust;
 
                 maximumThrust = MaximumThrust;
@@ -420,7 +418,7 @@ namespace FNPlugin
 
                 var currentIsp = SelectedIsp; 
                 FloatCurve newISP = new FloatCurve();
-                newISP.Add(0, (float)currentIsp);
+                newISP.Add(0, currentIsp);
                 newISP.Add(1, 0);
                 curEngineT.atmosphereCurve = newISP;
                 curEngineT.maxThrust = MaximumThrust;
@@ -428,14 +426,14 @@ namespace FNPlugin
 
                 var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = maxFuelFlow;
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate / rateMultplier);
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate / rateMultplier);
             }
 
-            coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
-            maxTempatureRadiators = (float)FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
-            radiatorPerformance = Mathf.Max(1 - (coldBathTemp / maxTempatureRadiators), 0.000001f);
-            partEmissiveConstant = (float)part.emissiveConstant;
+            coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
+            maxTempatureRadiators = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+            radiatorPerformance = Math.Max(1 - (coldBathTemp / maxTempatureRadiators), 0.000001);
+            partEmissiveConstant = part.emissiveConstant;
         }
 
         private void KillKerbalsWithRadiation(float throttle)

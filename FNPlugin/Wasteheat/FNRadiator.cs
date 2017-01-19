@@ -96,8 +96,8 @@ namespace FNPlugin
         public float wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
         public string colorHeat = "_EmissiveColor";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Pressure Load", guiFormat= "F2", guiUnits = "%")]
-        public float pressureLoad;
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Pressure Load", guiFormat= "F2", guiUnits = "%")]
+        //public float pressureLoad;
         [KSPField(isPersistant = false, guiActive = false)]
         public double dynamic_pressure;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Type")]
@@ -621,15 +621,15 @@ namespace FNPlugin
                 if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))
                 {
                     double pressure = FlightGlobals.getStaticPressure(vessel.transform.position) / 100;
-                    dynamic_pressure = 0.5f * pressure * 1.2041f * vessel.srf_velocity.sqrMagnitude / 101325.0f;
+                    dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325.0;
                     pressure += dynamic_pressure;
                     double low_temp = FlightGlobals.getExternalTemperature(vessel.transform.position);
 
                     double delta_temp = Math.Max(0, CurrentRadiatorTemperature - low_temp);
-                    double conv_power_dissip = pressure * delta_temp * EffectiveRadiatorArea * rad_const_h / 1e6f * TimeWarp.fixedDeltaTime * convectiveBonus;
+                    double conv_power_dissip = pressure * delta_temp * EffectiveRadiatorArea * rad_const_h / 1e6 * TimeWarp.fixedDeltaTime * convectiveBonus;
 
                     if (!radiatorIsEnabled)
-                        conv_power_dissip = conv_power_dissip / 2.0f;
+                        conv_power_dissip = conv_power_dissip / 2.0;
 
                     if (canRadiateHeat)
                         convectedThermalPower = consumeWasteHeat(conv_power_dissip);
@@ -642,7 +642,7 @@ namespace FNPlugin
                 else
                 {
                     convectedThermalPower = 0;
-                    pressureLoad = 0;
+                    //pressureLoad = 0;
                     if (!radiatorIsEnabled && isAutomated && canRadiateHeat)
                     {
                         UnityEngine.Debug.Log("[KSPI] - FixedUpdate Automated Deplotment ");
@@ -669,7 +669,7 @@ namespace FNPlugin
                     else
                         explode_counter = 0;
 
-                    double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6f * TimeWarp.fixedDeltaTime;
+                    double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6 * TimeWarp.fixedDeltaTime;
 
                     if (Double.IsNaN(fixed_thermal_power_dissip))
                         Debug.LogWarning("FNRadiator: OnFixedUpdate Single.IsNaN detected in fixed_thermal_power_dissip");
@@ -683,7 +683,7 @@ namespace FNPlugin
                         Debug.LogError("FNRadiator: OnFixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + fixed_thermal_power_dissip + ")");
 
                     instantaneous_rad_temp = Math.Min(radiator_temperature_temp_val * 1.014f, MaxRadiatorTemperature);
-                    instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7f));
+                    instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
 
                     if (Double.IsNaN(instantaneous_rad_temp))
                         Debug.LogError("FNRadiator: OnFixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
@@ -695,7 +695,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7f * TimeWarp.fixedDeltaTime;
+                    double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7 * TimeWarp.fixedDeltaTime;
 
                     if (canRadiateHeat)
                         radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
@@ -703,7 +703,7 @@ namespace FNPlugin
                         radiatedThermalPower = 0;
 
                     instantaneous_rad_temp = Math.Min(radiator_temperature_temp_val * 1.014, MaxRadiatorTemperature);
-                    instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7f));
+                    instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
                 }
@@ -711,7 +711,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("FNReactor.FixedUpdate" + e.Message);
+                Debug.LogError("[KSPI] - FNReactor.FixedUpdate" + e.Message);
             }
         }
 
@@ -859,7 +859,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("FNReactor.ColorHeat head" + e.Message);
+                Debug.LogError("[KSPI] - FNReactor.ColorHeat head" + e.Message);
             }
 
            try
@@ -909,7 +909,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("FNReactor.ColorHeat tail" + e.Message);
+                Debug.LogError("[KSPI] - FNReactor.ColorHeat tail" + e.Message);
             }
         }
 	}

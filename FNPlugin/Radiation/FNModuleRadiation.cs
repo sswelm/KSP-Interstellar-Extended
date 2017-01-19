@@ -49,7 +49,10 @@ namespace FNPlugin {
                     }
                 }
             }
-            catch (Exception ex) { }
+            catch (Exception ex) 
+            {
+                Debug.LogError("[KSPI] - FNModuleRadiation OnSave: " + ex.Message);
+            }
         }
 
         public override void OnLoad(ConfigNode node)

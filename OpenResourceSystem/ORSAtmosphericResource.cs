@@ -11,7 +11,8 @@ namespace OpenResourceSystem
         protected double abundance;
         protected string displayname;
 
-        public ORSAtmosphericResource(string resourcename, double abundance, string displayname) {
+        public ORSAtmosphericResource(string resourcename, double abundance, string displayname) 
+        {
             this.resourcename = resourcename;
             this.abundance = abundance;
             this.displayname = displayname;

@@ -320,7 +320,7 @@ namespace FNPlugin
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSP Interstellar] Microwave Transmitter OnStart search for beamGenerator: " + ex);
+                Debug.LogError("[KSPI] Microwave Transmitter OnStart search for beamGenerator: " + ex);
             }
         }
 
@@ -532,11 +532,25 @@ namespace FNPlugin
         {
             try
             {
+                moistureModifier = 0;
+                biome_desc = string.Empty;
+
+                if (part.vessel == null) return;
+
                 double lat = vessel.latitude * Math.PI / 180d;
                 double lon = vessel.longitude * Math.PI / 180d;
 
+                if (part.vessel.mainBody == null) return;
+
                 body_name = part.vessel.mainBody.name;
-                biome_desc = part.vessel.mainBody.BiomeMap.GetAtt(lat, lon).name;
+
+                if (part.vessel.mainBody.BiomeMap == null) return;
+
+                var attribute = part.vessel.mainBody.BiomeMap.GetAtt(lat, lon);
+
+                if (attribute == null) return;
+
+                biome_desc = attribute.name;
 
                 double cloud_variance;
                 if (body_name == "Kerbin")
@@ -554,12 +568,14 @@ namespace FNPlugin
                 }
                 else
                     cloud_variance = 1;
+
                 double latitude_variance = ((180d - lat) / 180d);
 
                 moistureModifier = 2 * moistureModifier * latitude_variance * cloud_variance;
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException e)
             {
+                Debug.LogError("[KSPI] - exception in CollectBiomeData " + e.Message + " at " + e.StackTrace);
             }
         }
 

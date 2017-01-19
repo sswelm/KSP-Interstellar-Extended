@@ -166,9 +166,9 @@ namespace InterstellarFuelSwitch
 			{
 				animationState = (SSTUAnimState)Enum.Parse(typeof(SSTUAnimState), deployedStatus);
 			}
-			catch(Exception e)
+			catch(Exception ex)
 			{
-				print (e.Message);
+                Debug.LogError("[ORS] - InterstellarAnimate in OnLoad: " + ex.Message);
 				animationState = SSTUAnimState.RETRACTED;
 			}
 			updateGuiLabels();
