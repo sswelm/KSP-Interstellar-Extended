@@ -19,8 +19,7 @@ namespace FNPlugin.Collectors
         public double dLastPowerPercentage;
         [KSPField(isPersistant = true)]
         public double dLastRegolithConcentration;
-        //[KSPField(isPersistant = true)]
-        //protected bool bIsExtended = false;
+
 
 
         // Part properties
@@ -32,16 +31,7 @@ namespace FNPlugin.Collectors
         public double mwRequirements = 1.0; // MW requirements of the drill. Affects heat produced.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Waste Heat Modifier", guiFormat = "P1")]
         public double wasteHeatModifier = 1.0; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
-        //[KSPField(isPersistant = false)]
-        //public string deployAnimName;
-        //[KSPField(isPersistant = false)]
-        //public string activeAnimName;
-        /*
-        [KSPField(isPersistant = false)]
-        public string deployAnimName;
-        [KSPField(isPersistant = false)]
-        public string activeAnimName;
-        */
+        
 
 
         // GUI
@@ -64,7 +54,6 @@ namespace FNPlugin.Collectors
         {
             if (IsCollectLegal() == true) // will only be activated if the collecting of resource is legal
             {
-                //UpdatePartAnimation();
                 bTouchDown = this.part.GroundContact; // Is the drill touching the ground?
                 if (bTouchDown == false) // if not, no collecting
                 {
@@ -86,13 +75,6 @@ namespace FNPlugin.Collectors
         {
             bIsEnabled = false;
             OnUpdate();
-            /*
-            // folding animation will only play if the collector was extended before being disabled
-            if (bIsExtended == true)
-            {
-                UpdatePartAnimation();
-            }
-            */
         }
 
         [KSPAction("Activate Drill")]
@@ -116,18 +98,16 @@ namespace FNPlugin.Collectors
                 ActivateCollector();
         }
 
-        const double dKerbinDistance = 13599840256; // distance of Kerbin from Sun/Kerbol in meters (i.e. AU)
+        
         protected double dDistanceFromStar = 0; // distance of the current vessel from the system's star
-        protected double dConcentrationRegolith = 0;
-        protected double dRegolithSpareCapacity = 0;
-        protected double dRegolithDensity;
-        protected double dTotalWasteHeatProduction = 0;
-        protected double dAltitude = 0;
-        protected Animation anim;
-        protected bool bChangeState = false;
-        protected bool bTouchDown = false;
-        uint counter = 0; // counter for update cycles, so that we can only do some calculations once in a while
-        uint anotherCounter = 0; // counter for fixedupdate cycles, so that we can only do some calculations once in a while (I don't want to add complexity by using the previous counter in two places)
+        protected double dConcentrationRegolith = 0; // regolith concentration at the current location
+        protected double dRegolithSpareCapacity = 0; // spare capacity for the regolith on the vessel
+        protected double dRegolithDensity; // 'density' of regolith at the current spot
+        protected double dTotalWasteHeatProduction = 0; // total waste heat produced in the cycle
+        protected double dAltitude = 0; // current terrain altitude
+        protected bool bTouchDown = false; // helper bool, is the part touching the ground
+        uint counter = 0; // helper counter for update cycles, so that we can only do some calculations once in a while
+        uint anotherCounter = 0; // helper counter for fixedupdate cycles, so that we can only do some calculations once in a while (I don't want to add complexity by using the previous counter in two places - also update and fixedupdate cycles can be out of sync, apparently)
 
         protected CelestialBody localStar;
 
@@ -138,12 +118,6 @@ namespace FNPlugin.Collectors
             this.part.force_activate();
 
             localStar = GetCurrentStar();
-
-            /*
-            // get the part's animation
-            anim = part.FindModelAnimators(deployAnimName)[0];
-            anim = part.FindModelAnimators(activeAnimName)[0];
-            */
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI part window so that it's less crowded
             List<ModuleAnimateGeneric> MAGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
@@ -164,14 +138,6 @@ namespace FNPlugin.Collectors
 
             // verify vessel is landed, not splashed and not in atmosphere
             if (IsCollectLegal() == false) return;
-
-            /*
-            // if the part should be extended (from last time), go to the extended animation
-            if (bIsExtended == true && anim != null)
-            {
-                anim[deployAnimName].normalizedTime = 1f;
-            }
-            */
 
             // calculate time difference since last time the vessel was active
             double dTimeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
@@ -256,7 +222,7 @@ namespace FNPlugin.Collectors
         }
 
         /** 
-         * This function should allow this module to work in solar systems other than the vanilla KSP one as well. There are some instance where it will fail (systems with a black hole instead of a star etc).
+         * This function should allow this module to work in solar systems other than the vanilla KSP one as well. There are some instances where it will fail (systems with a black hole instead of a star etc).
          * It checks current reference body's temperature at 0 altitude. If it is less than 2k K, it checks this body's reference body next and so on.
          */
         protected CelestialBody GetCurrentStar()
@@ -282,7 +248,6 @@ namespace FNPlugin.Collectors
 
             if (vessel.checkLanded() == false || vessel.checkSplashed() == true)
             {
-                // ScreenMessages.PostScreenMessage("Regolith collection not possible, vessel is not properly landed", 10.0f, ScreenMessageStyle.LOWER_CENTER);
                 strStarDist = UpdateDistanceInGUI();
                 strRegolithConc = "0";
                 return bCanCollect;
@@ -290,7 +255,6 @@ namespace FNPlugin.Collectors
 
             else if (FlightGlobals.currentMainBody.atmosphere == true) // won't collect in atmosphere
             {
-                // ScreenMessages.PostScreenMessage("Regolith collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
                 strStarDist = UpdateDistanceInGUI();
                 strRegolithConc = "0";
                 return bCanCollect;
@@ -303,69 +267,13 @@ namespace FNPlugin.Collectors
         }
 
 
-        //private bool ToggleBool()
-        //{
-        //    if (bIsExtended == true)
-        //    {
-        //        return bIsExtended = false;
-        //    }
-        //    else
-        //        return bIsExtended = true;
-        //}
-
-        /*
-        private void UpdatePartAnimation() 
-        {
-            // if folded, plays the part extending animation
-            if (!bIsExtended)
-            {
-                
-                if (anim != null)
-                {
-                    anim[deployAnimName].speed = 1f;
-                    anim[deployAnimName].normalizedTime = 0f; // normalizedTime at 0 is the start of the animation
-                    anim.Blend(deployAnimName, part.mass);
-                    //StartCoroutine(PlayAnimAndWaitForIt(anim[animName].length)); 
-                    //yield return new WaitForSeconds(anim[animName].length); // wait for the length of the animation
-                    //Invoke("ToggleBool", anim[deployAnimName].length); // will invoke ToggleBool after the animation has been played completely
-                }
-                //else
-                //ToggleBool();
-
-                // PlayAnimAndWaitForIt(animName, 1f, 0f);
-                ToggleBool();
-                //bIsExtended = true;
-                return;
-            }
-
-            // if extended, plays the part folding animation
-            if (bIsExtended)
-            {
-
-                if (anim != null)
-                {
-                    anim[deployAnimName].speed = -1f; // speed of 1 is normal playback, -1 is reverse playback (so in this case we go from the end of animation backwards)
-                    anim[deployAnimName].normalizedTime = 1f; // normalizedTime at 1 is the end of the animation
-                    anim.Blend(deployAnimName, part.mass);
-                    //StartCoroutine(WaitForAnim(anim[animName].length)); // wait for the length of the animation
-                    //yield return new WaitForSeconds(anim[animName].length);
-                    //Invoke("ToggleBool", anim[deployAnimName].length); // will invoke ToggleBool after the animation has been played completely
-                }
-                //else
-                //ToggleBool();
-                // PlayAnimAndWaitForIt(animName, -1f, 0f);
-                ToggleBool();
-                //bIsExtended = false;
-                return;
-            }
-            return;
-        }
-        */
         // calculates regolith concentration - right now just based on the distance of the planet from the sun, so planets will have uniform distribution. We might add latitude as a factor etc.
         private static double CalculateRegolithConcentration(Vector3d planetPosition, Vector3d sunPosition, double altitude)
         {
             double dAvgMunDistance = 13599840256; // if my reasoning is correct, this is not only the average distance of Kerbin, but also for the Mun. Maybe this is obvious to everyone else or wrong, but I'm tired, so there.
-            /* I decided to incorporate an altitude modifier. According to https://curator.jsc.nasa.gov/lunar/letss/regolith.pdf, most regolith on Moon is deposited in
+            
+             
+             /* I decided to incorporate an altitude modifier. According to https://curator.jsc.nasa.gov/lunar/letss/regolith.pdf, most regolith on Moon is deposited in
              * higher altitudes. This is great from a gameplay perspective, because it makes an incentive for players to collect regolith in more difficult circumstances 
              * (i.e. landing on highlands instead of flats etc.) and breaks the flatter-is-better base building strategy at least a bit.
              * This check will divide current altitude by 2500. At that arbitrarily-chosen altitude, we should be getting the basic concentration for the planet. 
@@ -404,21 +312,9 @@ namespace FNPlugin.Collectors
             // gets density of the regolith resource
             dRegolithDensity = PartResourceLibrary.Instance.GetDefinition(strRegolithResourceName).density;
 
-            //Debug.LogFormat("ResourceName {0}, PowerReqs {1}", strRegolithResourceName, dPowerRequirementsMW);
-            // checks for free space in regolith tanks FIX THIS
-            /*
-            * dRegolithSpareCapacity = this.part.GetResourceSpareCapacity(strRegolithResourceName);
-            * Debug.LogFormat("First assignement. dRegoSpareCap = {0}", dRegolithSpareCapacity);
-            */
             var partsThatContainRegolith = part.GetConnectedResources(strRegolithResourceName);
             dRegolithSpareCapacity = partsThatContainRegolith.Sum(r => r.maxAmount - r.amount);
-            //Debug.LogFormat("Second assignment. dRegoSpareCap = {0}", dRegolithSpareCapacity);
 
-            //dRegolithSpareCapacity = getSpareResourceCapacity(strRegolithResourceName);
-            //Debug.LogFormat("Third assignment. dRegoSpareCap = {0}", dRegolithSpareCapacity);
-
-
-            //Debug.LogFormat("Concentration before offline check {0}", dConcentrationRegolith);
             if (offlineCollecting)
             {
                 dConcentrationRegolith = dLastRegolithConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the above function CalculateRegolithConcentration correctly
@@ -426,10 +322,8 @@ namespace FNPlugin.Collectors
 
 
 
-            //Debug.LogFormat("After offline check: dConcentrationRegolith is {0}, dRegolithSpareCapacity is {1}", dConcentrationRegolith, dRegolithSpareCapacity);
             if (dConcentrationRegolith > 0 && (dRegolithSpareCapacity > 0))
             {
-                //Debug.Log("Inside power changing");
                 // calculate available power
                 double dPowerReceivedMW = Math.Max((double)consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
                 double dNormalisedRevievedPowerMW = dPowerReceivedMW / TimeWarp.fixedDeltaTime;
@@ -459,7 +353,6 @@ namespace FNPlugin.Collectors
                 ? (dLastPowerPercentage * dPowerRequirementsMW * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMW * 1000).ToString("0.0") + " KW"
                 : (dLastPowerPercentage * dPowerRequirementsMW).ToString("0.0") + " MW / " + dPowerRequirementsMW.ToString("0.0") + " MW";
             
-            //Debug.LogFormat("BIB. dConcentration = {0}, drillSize = {1}, dRegDens = {2}, effect = {3}, dLastPower = {4}, deltaTimeInSecs = {5}.", dConcentrationRegolith, drillSize, dRegolithDensity, effectiveness, dLastPowerPercentage, deltaTimeInSeconds);
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
