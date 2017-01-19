@@ -522,7 +522,7 @@ namespace FNPlugin
         {
             UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
 
-            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 10, 10, 10);
+            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 10, 10);
 
             if (source == null || source.Source == null)
             {

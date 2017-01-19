@@ -110,6 +110,7 @@
     <Compile Include="Propulsion\VistaEngineControllerAdvanced2.cs" />
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />
     <Compile Include="Collectors\AntimatterCollector.cs" />
+    <Compile Include="Refinery\RegolithProcessor.cs" />
     <Compile Include="Refinery\SolarWindProcessor.cs" />
     <Compile Include="Refinery\AntimatterFactory.cs" />
     <Compile Include="Collectors\AtmosphericIntake.cs" />

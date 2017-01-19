@@ -102,6 +102,8 @@ namespace FNPlugin
         protected BeamGenerator activeBeamGenerator;
         protected List<BeamGenerator> beamGenerators;
 
+        private int counter;
+
         [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = false)]
         public void ActivateTransmitter()
         {
@@ -654,7 +656,9 @@ namespace FNPlugin
 
         public static VesselMicrowavePersistence getVesselMicrowavePersistanceForVessel(Vessel vessel)
         {
-            List<MicrowavePowerTransmitter> transmitters = vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>().Where(m => m.IsEnabled).ToList();
+            var allTransmitterOnVessel = vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>();
+
+            List<MicrowavePowerTransmitter> transmitters = allTransmitterOnVessel.Where(m => m.IsEnabled).ToList();
 
             var vesselTransmitters = new VesselMicrowavePersistence(vessel);
             vesselTransmitters.IsActive = transmitters.Count > 0;

@@ -22,12 +22,12 @@ namespace FNPlugin.Extensions
             return this;
         }
 
-        public static ThermalSourceSearchResult BreadthFirstSearchForThermalSource(Part currentpart, Func<IThermalSource, bool> condition, int stackdepth, int parentdepth, int childdepth, int attachdepth, bool skipSelfContained = false)
+        public static ThermalSourceSearchResult BreadthFirstSearchForThermalSource(Part currentpart, Func<IThermalSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained = false)
         {
             // first search withouth parent search
             for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
             {
-                var source = FindThermalSource(currentpart, condition, currentDepth, parentdepth, childdepth, attachdepth, skipSelfContained);
+                var source = FindThermalSource(currentpart, condition, currentDepth, parentdepth, surfacedepth, skipSelfContained);
 
                 if (source != null)
                     return source;
@@ -36,14 +36,14 @@ namespace FNPlugin.Extensions
             return null;
         }
 
-        public static ThermalSourceSearchResult FindThermalSource(Part currentpart, Func<IThermalSource, bool> condition, int stackdepth, int parentdepth, int childdepth, int attachdepth, bool skipSelfContained )
+        public static ThermalSourceSearchResult FindThermalSource(Part currentpart, Func<IThermalSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained)
         {
-            if (stackdepth == 0)
+            if (stackdepth <= 0)
             {
                 var thermalsources = currentpart.FindModulesImplementing<IThermalSource>().Where(condition);
 
-                var source = skipSelfContained 
-                    ? thermalsources.FirstOrDefault(s => !s.IsSelfContained) 
+                var source = skipSelfContained
+                    ? thermalsources.FirstOrDefault(s => !s.IsSelfContained)
                     : thermalsources.FirstOrDefault();
 
                 if (source != null)
@@ -54,35 +54,34 @@ namespace FNPlugin.Extensions
 
             var thermalcostModifier = currentpart.FindModuleImplementing<ThermalPowerTransport>();
 
-            float stackDepthCost = thermalcostModifier != null ? thermalcostModifier.thermalCost : 1;
+            float stackDepthCost = thermalcostModifier != null 
+                ? thermalcostModifier.thermalCost 
+                : 1;
 
-            // look at parent
-            if (parentdepth > 0 && currentpart.parent != null)
+            // first look at stack attacked parts
+            foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null && (atn.nodeType == AttachNode.NodeType.Stack || atn.nodeType == AttachNode.NodeType.Dock)))
             {
-                var source = FindThermalSource(currentpart.parent, condition, (stackdepth - 1), (parentdepth - 1), childdepth, attachdepth, skipSelfContained);
+                var source = FindThermalSource(attachNodes.attachedPart, condition, (stackdepth - 1), parentdepth, surfacedepth, skipSelfContained);
 
                 if (source != null)
-                    return source.IncreaseCost(1);
+                    return source.IncreaseCost(stackDepthCost);
             }
 
-            // look at childs
-            if (childdepth > 0 && currentpart.children != null)
+            // then optionaly look at parent parts
+            if (parentdepth > 0 && currentpart.parent != null)
             {
-                foreach (var child in currentpart.children)
-                {
-                    var source = FindThermalSource(child, condition, (stackdepth - 1), parentdepth, (childdepth - 1), attachdepth, skipSelfContained);
+                var source = FindThermalSource(currentpart.parent, condition, (stackdepth - 1), (parentdepth - 1), surfacedepth, skipSelfContained);
 
-                    if (source != null)
-                        return source.IncreaseCost(1);
-                }
+                if (source != null)
+                    return source.IncreaseCost(stackDepthCost);
             }
 
-            // look at attachments
-            if (attachdepth > 0)
+            // then optionaly look at surface attached parts
+            if (surfacedepth > 0)
             {
-                foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null))
+                foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null && atn.nodeType == AttachNode.NodeType.Surface))
                 {
-                    var source = FindThermalSource(attachNodes.attachedPart, condition, (stackdepth - 1), parentdepth, childdepth, (attachdepth - 1), skipSelfContained);
+                    var source = FindThermalSource(attachNodes.attachedPart, condition, (stackdepth - 1), parentdepth, (surfacedepth - 1), skipSelfContained);
 
                     if (source != null)
                         return source.IncreaseCost(stackDepthCost);
