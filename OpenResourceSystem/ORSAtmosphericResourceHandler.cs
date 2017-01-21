@@ -129,6 +129,7 @@ namespace OpenResourceSystem
                     }
                     else if (minimumTemperature < 80)
                     {
+                        // it is a Uranus like planet, use Uranus as template
                         bodyAtmosphericComposition = getAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Uranus").flightGlobalsIndex);
                     }
                     else
