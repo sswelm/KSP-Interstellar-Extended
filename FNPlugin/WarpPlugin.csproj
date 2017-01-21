@@ -86,6 +86,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collectors\RegolithCollector.cs" />
     <Compile Include="Collectors\SolarWindCollector.cs" />
     <Compile Include="Extensions\Numbers.cs" />
     <Compile Include="Extensions\OrbitExtensions.cs" />

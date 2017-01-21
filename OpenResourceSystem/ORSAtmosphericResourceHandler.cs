@@ -61,7 +61,6 @@ namespace OpenResourceSystem
                 else 
                 {
                     ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
-                    //ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION").FirstOrDefault(c => c.name == "KSPI_AtmosphericPack");
 
                     Debug.Log("[ORS] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
                     if (atmospheric_resource_pack != null) 
@@ -69,6 +68,7 @@ namespace OpenResourceSystem
                         List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
                         if (atmospheric_resource_list.Any())
                         {
+                            // create atmospheric definition from file
                             bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new ORSAtmosphericResource(orsc.HasValue("resourceName") 
                                 ? orsc.GetValue("resourceName") 
                                 : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
@@ -81,9 +81,13 @@ namespace OpenResourceSystem
                         }
                         else
                         {
-                            // add empty
-                            body_atmospheric_resource_list.Add(refBody, bodyAtmosphericComposition);
+                            // add empty definition
+                            body_atmospheric_resource_list.Add(refBody, GenerateCompositionFromCelestrialBody(refBody));
                         }
+                    }
+                    else
+                    {
+                        Debug.LogError("[ORS]Failed to load atmospheric data");
                     }
                 }
             } 
@@ -93,5 +97,72 @@ namespace OpenResourceSystem
             }
             return bodyAtmosphericComposition;
         }
+
+        public static List<ORSAtmosphericResource> GenerateCompositionFromCelestrialBody(int refBody)
+        {
+            List<ORSAtmosphericResource> bodyAtmosphericComposition = new List<ORSAtmosphericResource>();
+
+            try
+            {
+                CelestialBody celestialBody = FlightGlobals.Bodies[refBody];
+
+                // return empty is no atmosphere
+                if (!celestialBody.atmosphere)
+                    return bodyAtmosphericComposition;
+
+                // Lookup homeworld
+                CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
+
+                double presureAtSurface = celestialBody.GetPressure(0);
+
+                if (celestialBody.Mass > homeworld.Mass * 10 && presureAtSurface > 1000)
+                {
+                    float minimumTemperature;
+                    float maximumTemperature;
+
+                    celestialBody.atmosphereTemperatureCurve.FindMinMaxValue(out minimumTemperature, out maximumTemperature);
+
+                    if (celestialBody.Density < 1)
+                    {
+                        // it is a gas Saturn like, use Uranus as template
+                        bodyAtmosphericComposition = getAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Saturn").flightGlobalsIndex);
+                    }
+                    else if (minimumTemperature < 80)
+                    {
+                        bodyAtmosphericComposition = getAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Uranus").flightGlobalsIndex);
+                    }
+                    else
+                    {
+                        // it is Jupiter Like, use Jupiter as template
+                        bodyAtmosphericComposition = getAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Jupiter").flightGlobalsIndex);
+                    }
+                }
+                else
+                {
+                    if (celestialBody.atmosphereContainsOxygen)
+                    {
+                        // it is a earth like use Earth as template
+                        bodyAtmosphericComposition = getAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Earth").flightGlobalsIndex);
+                    }
+                    else if (presureAtSurface > 200)
+                    {
+                        // it is a venus like use Venus as template
+                        bodyAtmosphericComposition = getAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Venus").flightGlobalsIndex);
+                    }
+                    else
+                    {
+                        // it is a mars like use Mars as template
+                        bodyAtmosphericComposition = getAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Mars").flightGlobalsIndex);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Log("[ORS] - Exception while generating atmosphere composition : " + ex.ToString());
+            }
+
+            return bodyAtmosphericComposition;
+        }
+
     }
 }
