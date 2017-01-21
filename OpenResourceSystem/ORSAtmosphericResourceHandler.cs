@@ -82,7 +82,7 @@ namespace OpenResourceSystem
                         else
                         {
                             // add empty definition
-                            body_atmospheric_resource_list.Add(refBody, GenerateCompositionFromCelestrialBody(refBody));
+                            body_atmospheric_resource_list.Add(refBody, GenerateCompositionFromCelestialBody(refBody));
                         }
                     }
                     else
@@ -98,7 +98,7 @@ namespace OpenResourceSystem
             return bodyAtmosphericComposition;
         }
 
-        public static List<ORSAtmosphericResource> GenerateCompositionFromCelestrialBody(int refBody)
+        public static List<ORSAtmosphericResource> GenerateCompositionFromCelestialBody(int refBody)
         {
             List<ORSAtmosphericResource> bodyAtmosphericComposition = new List<ORSAtmosphericResource>();
 
