@@ -278,8 +278,23 @@ namespace FNPlugin.Refinery
                 var fixedMaxPossibleNitrogenRate = allowOverflow ? fixedMaxNitrogenRate : Math.Min(_spareRoomNitrogenMass, fixedMaxNitrogenRate);
                 var fixedMaxPossibleWaterRate = allowOverflow ? fixedMaxWaterRate : Math.Min(_spareRoomWaterMass, fixedMaxWaterRate);
 
+                double arRatio = (fixedMaxArgonRate == 0) ? 0 : fixedMaxPossibleArgonRate / fixedMaxArgonRate;
+                double dioxRatio = (fixedMaxDioxideRate == 0) ? 0 : fixedMaxPossibleDioxideRate / fixedMaxDioxideRate;
+                double he3Ratio = (fixedMaxHelium3Rate == 0) ? 0 : fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate;
+                double he4Ratio = (fixedMaxHelium4Rate == 0) ? 0 : fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate;
+                double hydroRatio = (fixedMaxHydrogenRate == 0) ? 0 : fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate;
+                double methRatio = (fixedMaxMethaneRate == 0) ? 0 : fixedMaxPossibleMethaneRate / fixedMaxMethaneRate;
+                double monoxRatio = (fixedMaxMonoxideRate == 0) ? 0 : fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate;
+                double neonRatio = (fixedMaxNeonRate == 0) ? 0 : fixedMaxPossibleNeonRate / fixedMaxNeonRate;
+                double nitroRatio = (fixedMaxNitrogenRate == 0) ? 0 : fixedMaxPossibleNitrogenRate / fixedMaxPossibleNitrogenRate;
+                double waterRatio = (fixedMaxWaterRate == 0) ? 0 : fixedMaxPossibleWaterRate / fixedMaxWaterRate;
+
+                // finds a non-zero minimum
+                _consumptionStorageRatio = new double[] { arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, waterRatio }.Where(x => x > 0).Min();
+
+                //_consumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(arRatio, dioxRatio), he3Ratio), he4Ratio), hydroRatio), methRatio), monoxRatio), neonRatio), nitroRatio), waterRatio);
                 // finds the minimum of these ten numbers (fixedMaxPossibleZZZRate / fixedMaxZZZRate). More effective than separate method, I hear. Ugly as hell, though.
-                _consumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate, fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate), fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate), fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate), fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate), fixedMaxPossibleNeonRate / fixedMaxNeonRate), fixedMaxPossibleArgonRate / fixedMaxArgonRate), fixedMaxPossibleDioxideRate / fixedMaxDioxideRate), fixedMaxPossibleMethaneRate / fixedMaxMethaneRate), fixedMaxPossibleWaterRate / fixedMaxWaterRate);
+                //_consumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate, fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate), fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate), fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate), fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate), fixedMaxPossibleNeonRate / fixedMaxNeonRate), fixedMaxPossibleArgonRate / fixedMaxArgonRate), fixedMaxPossibleDioxideRate / fixedMaxDioxideRate), fixedMaxPossibleMethaneRate / fixedMaxMethaneRate), fixedMaxPossibleWaterRate / fixedMaxWaterRate);
 
                 // this consumes the resource, finally
                 _atmosphere_consumption_rate = _part.RequestResource(_atmosphere_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _atmosphere_density) / TimeWarp.fixedDeltaTime * _atmosphere_density;
