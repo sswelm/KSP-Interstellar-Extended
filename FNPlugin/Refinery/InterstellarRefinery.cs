@@ -78,6 +78,7 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new MethanePyrolyser(this.part));
                 unsortedList.Add(new SolarWindProcessor(this.part));
                 unsortedList.Add(new RegolithProcessor(this.part));
+                unsortedList.Add(new AtmosphericExtractor(this.part));
 
             }
             catch (Exception e)
