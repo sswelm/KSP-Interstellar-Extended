@@ -229,7 +229,8 @@ namespace FNPlugin.Refinery
             _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * atmosphereConsumptionRatio;
 
             // begin the intake atmosphere processing
-            if (_fixedConsumptionRate > 0 && ((((_spareRoomHydrogenMass > 0 || _spareRoomHelium3Mass > 0) || _spareRoomHelium4Mass > 0) || _spareRoomMonoxideMass > 0) || _spareRoomNitrogenMass > 0)) // check if there is anything to consume and spare room for at least one of the products
+            // check if there is anything to consume and if there is spare room for at least one of the products
+            if (_fixedConsumptionRate > 0 && (((((((((_spareRoomHydrogenMass > 0 || _spareRoomHelium3Mass > 0) || _spareRoomHelium4Mass > 0) || _spareRoomMonoxideMass > 0) || _spareRoomNitrogenMass > 0) || _spareRoomArgonMass > 0) || _spareRoomDioxideMass > 0) || _spareRoomMethaneMass > 0) || _spareRoomNeonMass > 0) || _spareRoomWaterMass > 0)) // pardon the length
             {
                 /* Now to get the actual percentages from ORSAtmosphericResourceHandler Freethinker extended.
                  * Calls getAtmosphericResourceContent which calls getAtmosphericCompositionForBody which (if there's no definition, i.e. we're using a custom solar system
@@ -278,6 +279,7 @@ namespace FNPlugin.Refinery
                 var fixedMaxPossibleNitrogenRate = allowOverflow ? fixedMaxNitrogenRate : Math.Min(_spareRoomNitrogenMass, fixedMaxNitrogenRate);
                 var fixedMaxPossibleWaterRate = allowOverflow ? fixedMaxWaterRate : Math.Min(_spareRoomWaterMass, fixedMaxWaterRate);
 
+                // Check if the denominator for each is zero (in that case, assign zero outright, so that we don't end up with an infinite mess on our hands)
                 double arRatio = (fixedMaxArgonRate == 0) ? 0 : fixedMaxPossibleArgonRate / fixedMaxArgonRate;
                 double dioxRatio = (fixedMaxDioxideRate == 0) ? 0 : fixedMaxPossibleDioxideRate / fixedMaxDioxideRate;
                 double he3Ratio = (fixedMaxHelium3Rate == 0) ? 0 : fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate;
@@ -289,12 +291,13 @@ namespace FNPlugin.Refinery
                 double nitroRatio = (fixedMaxNitrogenRate == 0) ? 0 : fixedMaxPossibleNitrogenRate / fixedMaxPossibleNitrogenRate;
                 double waterRatio = (fixedMaxWaterRate == 0) ? 0 : fixedMaxPossibleWaterRate / fixedMaxWaterRate;
 
-                // finds a non-zero minimum
+                /* finds a non-zero minimum of all the ratios (calculated above, as fixedMaxPossibleZZRate / fixedMaxZZRate). It needs to be non-zero 
+                 * so that the collecting works even when some of consitutents are absent from the local atmosphere (ie. when their definition is zero).
+                 * Otherwise the consumptionStorageRatio would be zero and thus no atmosphere would be consumed.
+                */
                 _consumptionStorageRatio = new double[] { arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, waterRatio }.Where(x => x > 0).Min();
 
-                //_consumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(arRatio, dioxRatio), he3Ratio), he4Ratio), hydroRatio), methRatio), monoxRatio), neonRatio), nitroRatio), waterRatio);
-                // finds the minimum of these ten numbers (fixedMaxPossibleZZZRate / fixedMaxZZZRate). More effective than separate method, I hear. Ugly as hell, though.
-                //_consumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate, fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate), fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate), fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate), fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate), fixedMaxPossibleNeonRate / fixedMaxNeonRate), fixedMaxPossibleArgonRate / fixedMaxArgonRate), fixedMaxPossibleDioxideRate / fixedMaxDioxideRate), fixedMaxPossibleMethaneRate / fixedMaxMethaneRate), fixedMaxPossibleWaterRate / fixedMaxWaterRate);
+                
 
                 // this consumes the resource, finally
                 _atmosphere_consumption_rate = _part.RequestResource(_atmosphere_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _atmosphere_density) / TimeWarp.fixedDeltaTime * _atmosphere_density;
@@ -355,7 +358,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Unprocessed Atmosphere Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_atmosphere_consumption_rate /*/ TimeWarp.fixedDeltaTime*/ * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((_atmosphere_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
