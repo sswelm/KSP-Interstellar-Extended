@@ -174,9 +174,12 @@ namespace FNPlugin
                 fusion_alert = false;
 
             if (isChargingField.guiActive)
-                accumulatedChargeStr = FNGenerator.getPowerFormatString(accumulatedElectricChargeInMW) + " / " + FNGenerator.getPowerFormatString(StartupPower);
+            {
+                accumulatedChargeStr = PluginHelper.getFormattedPowerString(accumulatedElectricChargeInMW, "0.0", "0.000")
+                    + " / " + PluginHelper.getFormattedPowerString(StartupPower, "0.0", "0.000");
+            }
             else if (part.vessel.geeForce > startupMaximumGeforce)
-                accumulatedChargeStr = part.vessel.geeForce.ToString("0.000")  + "g > " + startupMaximumGeforce + "g";
+                accumulatedChargeStr = part.vessel.geeForce.ToString("0.000") + "g > " + startupMaximumGeforce + "g";
             else
                 accumulatedChargeStr = String.Empty;
 
@@ -339,7 +342,6 @@ namespace FNPlugin
                         shutdownAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Deactivate));
                         initialized = false;
                         isDeployed = true;
-                        //doOnce = false;
                     }
                 }
                 return;

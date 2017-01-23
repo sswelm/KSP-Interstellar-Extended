@@ -43,13 +43,16 @@ namespace FNPlugin
                 // first check if vessel is dead
                 if (vessel.state == Vessel.State.DEAD)
                 {
-                    globalTransmitters.Remove(vessel);
-                    globalRelays.Remove(vessel);
-                    Debug.Log("[KSPI] - Unregisted Transmitter for vessel " + vessel.name + " " + vessel.id + " because is was destroyed!");
+                    if (globalTransmitters.ContainsKey(vessel))
+                    {
+                        globalTransmitters.Remove(vessel);
+                        globalRelays.Remove(vessel);
+                        Debug.Log("[KSPI] - Unregisted Transmitter for vessel " + vessel.name + " " + vessel.id + " because is was destroyed!");
+                    }
                     continue;
                 }
 
-                // if vessel is offloaded to rails, parse file system
+                // if vessel is offloaded on rails, parse file system
                 if (!vessel.loaded)
                 {
                     //if (unloaded_counter % 101 != 1)                // sometimes rebuild unloaded vessels as transmitters and relays

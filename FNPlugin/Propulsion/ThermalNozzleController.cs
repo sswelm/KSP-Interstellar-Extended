@@ -28,6 +28,8 @@ namespace FNPlugin
         public double animationStarted = 0;
 
         [KSPField(isPersistant = false)]
+        public float partMass = 1;
+        [KSPField(isPersistant = false)]
         public bool initialized = false;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
