@@ -13,12 +13,12 @@ namespace FNPlugin.Refinery
         // persistant
         [KSPField(isPersistant = true)]
         protected int lastBodyID = -1; // ID of the last body. Allows us to skip some expensive calls
-        
+
         /* Individual percentages of all consituents of the local atmosphere. These are bound to be found in different
          * concentrations in all atmospheres. These are persistant because getting them every update through 
          * the functions (see way below) would be wasteful. I'm placing them up here to make them easier to spot.
          */
-          
+
         [KSPField(isPersistant = true)]
         protected double _argonPercentage = 0; // percentage of argon in the local atmosphere
         [KSPField(isPersistant = true)]
@@ -39,8 +39,7 @@ namespace FNPlugin.Refinery
         protected double _nitrogenPercentage = 0;
         [KSPField(isPersistant = true)]
         protected double _waterPercentage = 0; // percentage of water vapour in the local atmosphere
-
-
+        
         const int labelWidth = 200;
         const int valueWidth = 200;
 
@@ -50,7 +49,7 @@ namespace FNPlugin.Refinery
         protected double _current_power;
         protected double _fixedConsumptionRate;
         protected double _consumptionStorageRatio;
-        
+
 
         protected double _atmosphere_density;
 
@@ -90,9 +89,9 @@ namespace FNPlugin.Refinery
         protected string _neon_resource_name;
         protected string _nitrogen_resource_name;
         protected string _water_resource_name;
+        protected double totalAirValue;
 
         protected double _current_rate;
-
 
         private GUIStyle _bold_label;
 
@@ -169,10 +168,32 @@ namespace FNPlugin.Refinery
         protected double _spareRoomNeonMass;
         protected double _spareRoomNitrogenMass;
         protected double _spareRoomWaterMass;
-        
-
+        List<AtmosphericIntake> intakesList; // create a new list for keeping track of atmo intakes
+        double tempAir;
 
         public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        {
+            ExtractAir(rateMultiplier, allowOverflow, TimeWarp.fixedDeltaTime, false);
+
+            updateStatusMessage();
+        }
+        /* This is just a short cycle that gets the total air production of all the intakes on the vessel per cycle
+         * and then stores the value in the persistent totalAirValue, so that this process can access it when offline collecting.
+         * tempAir is just a variable used to temporarily hold the total while cycling through parts, then gets reset at every engine update.
+         */
+        public double GetTotalAirScooped()
+        {   
+            intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>(); // add any atmo intake part on the vessel to our list
+            tempAir = 0; // reset tempAir before we go into the list
+            foreach (AtmosphericIntake intake in intakesList) // go through the list
+            {
+                // add the current intake's finalAir to our tempAir. When done with the foreach cycle, we will have the total amount of air these intakes collect per cycle
+                tempAir += intake.finalAir;
+            }
+            return tempAir;
+        }
+
+        public void ExtractAir(double rateMultiplier, bool allowOverflow, double deltaTimeInSecs, bool offlineCollecting)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
@@ -189,7 +210,7 @@ namespace FNPlugin.Refinery
             var partsThatContainNeon = _part.GetConnectedResources(_neon_resource_name);
             var partsThatContainNitrogen = _part.GetConnectedResources(_nitrogen_resource_name);
             var partsThatContainWater = _part.GetConnectedResources(_water_resource_name);
-            
+
 
             // determine the maximum amount of a resource the vessel can hold (ie. tank capacities combined)
             _maxCapacityAtmosphereMass = partsThatContainAtmosphere.Sum(p => p.maxAmount) * _atmosphere_density;
@@ -203,7 +224,7 @@ namespace FNPlugin.Refinery
             _maxCapacityNeonMass = partsThatContainNeon.Sum(p => p.maxAmount) * _neon_density;
             _maxCapacityNitrogenMass = partsThatContainNitrogen.Sum(p => p.maxAmount) * _nitrogen_density;
             _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _nitrogen_density;
-            
+
             // determine the amount of resources needed for processing (i.e. intake atmosphere) that the vessel actually holds
             _availableAtmosphereMass = partsThatContainAtmosphere.Sum(r => r.amount) * _atmosphere_density;
 
@@ -227,6 +248,8 @@ namespace FNPlugin.Refinery
                 : 0;
 
             _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * atmosphereConsumptionRatio;
+
+
 
             // begin the intake atmosphere processing
             // check if there is anything to consume and if there is spare room for at least one of the products
@@ -288,7 +311,7 @@ namespace FNPlugin.Refinery
                 double methRatio = (fixedMaxMethaneRate == 0) ? 0 : fixedMaxPossibleMethaneRate / fixedMaxMethaneRate;
                 double monoxRatio = (fixedMaxMonoxideRate == 0) ? 0 : fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate;
                 double neonRatio = (fixedMaxNeonRate == 0) ? 0 : fixedMaxPossibleNeonRate / fixedMaxNeonRate;
-                double nitroRatio = (fixedMaxNitrogenRate == 0) ? 0 : fixedMaxPossibleNitrogenRate / fixedMaxPossibleNitrogenRate;
+                double nitroRatio = (fixedMaxNitrogenRate == 0) ? 0 : fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate;
                 double waterRatio = (fixedMaxWaterRate == 0) ? 0 : fixedMaxPossibleWaterRate / fixedMaxWaterRate;
 
                 /* finds a non-zero minimum of all the ratios (calculated above, as fixedMaxPossibleZZRate / fixedMaxZZRate). It needs to be non-zero 
@@ -297,11 +320,21 @@ namespace FNPlugin.Refinery
                 */
                 _consumptionStorageRatio = new double[] { arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, waterRatio }.Where(x => x > 0).Min();
 
+                /* If the collecting is done offline
+                 * 
+                 */
+                if (offlineCollecting == true) // if we're collecting offline, we don't need to actually consume the resource, just provide the lines below with a number
+                {
+                    totalAirValue = GetTotalAirScooped();
+                    _atmosphere_consumption_rate = _consumptionStorageRatio * totalAirValue * deltaTimeInSecs / _atmosphere_density;
+                    ScreenMessages.PostScreenMessage("The atmospheric extractor processed " + _atmosphere_consumption_rate.ToString("F2") + " units of " + _atmosphere_resource_name, 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                }
+                else
+                {
+                    // this consumes the resource, finally
+                    _atmosphere_consumption_rate = _part.RequestResource(_atmosphere_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _atmosphere_density) / TimeWarp.fixedDeltaTime * _atmosphere_density;
+                }
                 
-
-                // this consumes the resource, finally
-                _atmosphere_consumption_rate = _part.RequestResource(_atmosphere_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _atmosphere_density) / TimeWarp.fixedDeltaTime * _atmosphere_density;
-
                 // calculate the rates of production for the individual constituents
                 var argon_rate_temp = _atmosphere_consumption_rate * _argonPercentage;
                 var dioxide_rate_temp = _atmosphere_consumption_rate * _dioxidePercentage;
@@ -314,6 +347,7 @@ namespace FNPlugin.Refinery
                 var nitrogen_rate_temp = _atmosphere_consumption_rate * _nitrogenPercentage;
                 var water_rate_temp = _atmosphere_consumption_rate * _waterPercentage;
 
+                // produce the resources
                 _argon_production_rate = -_part.RequestResource(_argon_resource_name, -argon_rate_temp * TimeWarp.fixedDeltaTime / _argon_density) / TimeWarp.fixedDeltaTime * _argon_density;
                 _dioxide_production_rate = -_part.RequestResource(_dioxide_resource_name, -dioxide_rate_temp * TimeWarp.fixedDeltaTime / _dioxide_density) / TimeWarp.fixedDeltaTime * _dioxide_density;
                 _gas_helium3_production_rate = -_part.RequestResource(_gas_helium3_resource_name, -helium3_rate_temp * TimeWarp.fixedDeltaTime / _gas_helium3_density) / TimeWarp.fixedDeltaTime * _gas_helium3_density;
@@ -340,8 +374,8 @@ namespace FNPlugin.Refinery
                 _nitrogen_production_rate = 0;
                 _water_production_rate = 0;
             }
-            updateStatusMessage();
         }
+
 
         public void UpdateGUI()
         {
@@ -357,12 +391,12 @@ namespace FNPlugin.Refinery
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Unprocessed Atmosphere Consumption", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Intake Atmo. Consumption", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(((_atmosphere_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Unprocessed Atmosphere Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Intake Atmo. Available", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(_availableAtmosphereMass.ToString("0.0000") + " mT / " + _maxCapacityAtmosphereMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
@@ -471,7 +505,7 @@ namespace FNPlugin.Refinery
         private void updateStatusMessage()
         {
             if (_atmosphere_consumption_rate > 0)
-                _status = "Processing of intake atmosphere ongoing";
+                _status = "Extracting atmosphere";
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = "Insufficient Power";
             else
