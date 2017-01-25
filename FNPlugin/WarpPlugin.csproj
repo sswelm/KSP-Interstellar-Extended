@@ -90,6 +90,7 @@
     <Compile Include="Collectors\SolarWindCollector.cs" />
     <Compile Include="Extensions\Numbers.cs" />
     <Compile Include="Extensions\OrbitExtensions.cs" />
+    <Compile Include="Extensions\AtmosphericResourceHandler.cs" />
     <Compile Include="Extensions\ParseTools.cs" />
     <Compile Include="Extensions\PartExtensions.cs" />
     <Compile Include="Extensions\ThermalSourceSearchResult.cs" />
