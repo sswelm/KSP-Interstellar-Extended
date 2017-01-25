@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using OpenResourceSystem;
 
-namespace OpenResourceSystem 
+namespace FNPlugin 
 {
-    public class ORSAtmosphericResourceHandler 
+    public class AtmosphericResourceHandler 
     {
         protected static Dictionary<int, List<ORSAtmosphericResource>> body_atmospheric_resource_list = new Dictionary<int, List<ORSAtmosphericResource>>();
 
@@ -98,9 +99,11 @@ namespace OpenResourceSystem
             return bodyAtmosphericComposition;
         }
 
+
         public static List<ORSAtmosphericResource> GenerateCompositionFromCelestialBody(int refBody)
         {
             List<ORSAtmosphericResource> bodyAtmosphericComposition = new List<ORSAtmosphericResource>();
+
 
             try
             {
@@ -159,10 +162,46 @@ namespace OpenResourceSystem
             }
             catch (Exception ex)
             {
-                Debug.Log("[ORS] - Exception while generating atmosphere composition : " + ex.ToString());
+                Debug.LogError("[ORS] - Exception while generating atmosphere composition from celestrial atmosphere properties : " + ex.ToString());
             }
 
             return bodyAtmosphericComposition;
+        }
+
+        public static List<ORSAtmosphericResource> GenerateCompositionFromResourceAbundances(int refBody)
+        {
+            List<ORSAtmosphericResource> bodyAtmosphericComposition = new List<ORSAtmosphericResource>();
+
+            try
+            {
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Water, ResourceMap.Instance.GetAbundance(CreateRequest("Water", refBody)), "Water"));
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Nitrogen, ResourceMap.Instance.GetAbundance(CreateRequest("Nitrogen", refBody)), "Nitrogen"));
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Oxygen, ResourceMap.Instance.GetAbundance(CreateRequest("Oxygen", refBody)), "Oxygen"));
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.CarbonDioxide, ResourceMap.Instance.GetAbundance(CreateRequest("CarbonDioxide", refBody)), "CarbonDioxide"));
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, ResourceMap.Instance.GetAbundance(CreateRequest("CarbonMoxoxide", refBody)), "CarbonMoxoxide"));
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Methane, ResourceMap.Instance.GetAbundance(CreateRequest("Methane", refBody)), "Methane"));
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Argon, ResourceMap.Instance.GetAbundance(CreateRequest("ArgonGas", refBody)), "Argon"));
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Hydrogen, ResourceMap.Instance.GetAbundance(CreateRequest("LqdHydrogen", refBody)), "Hydrogen"));
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Helium4Gas, ResourceMap.Instance.GetAbundance(CreateRequest("Helium", refBody)), "Helium-4"));
+                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Helium3Gas, ResourceMap.Instance.GetAbundance(CreateRequest("LqdHe3", refBody)), "Helium-3"));
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("[ORS] - Exception while generating atmosphere composition from defined abundances : " + ex.ToString());
+            }
+
+            return bodyAtmosphericComposition;
+        }
+
+        public static AbundanceRequest CreateRequest(string resourceName, int refBody)
+        {
+            return new AbundanceRequest
+            {
+                ResourceType = HarvestTypes.Atmospheric,
+                ResourceName = resourceName,
+                BodyId = refBody,
+                CheckForLock = false
+            };
         }
 
     }

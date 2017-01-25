@@ -123,6 +123,8 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
         public void StartCharging()
         {
+            Debug.Log("[KSPI] - Start Charging pressed");
+
             if (IsEnabled) return;
 
             if (warpToMassRatio < 1)
@@ -138,6 +140,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Stop Charging", active = false)]
         public void StopCharging()
         {
+            Debug.Log("[KSPI] - Stop Charging button pressed");
             IsCharging = false;
 
             // flush all exotic matter
@@ -151,18 +154,21 @@ namespace FNPlugin
         [KSPAction("Start Charging")]
         public void StartChargingAction(KSPActionParam param)
         {
+            Debug.Log("[KSPI] - Start Charging Action activated");
             StartCharging();
         }
 
         [KSPAction("Stop Charging")]
         public void StopChargingAction(KSPActionParam param)
         {
+            Debug.Log("[KSPI] - Stop Charging Action activated");
             StopCharging();
         }
 
         [KSPAction("Toggle Charging")]
         public void ToggleChargingAction(KSPActionParam param)
         {
+            Debug.Log("[KSPI] - Toggle Charging Action activated");
             if (IsCharging)
                 StopCharging();
             else
@@ -172,20 +178,25 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Activate Warp Drive", active = true)]
         public void ActivateWarpDrive()
         {
+            Debug.Log("[KSPI] - Activate Warp Drive button pressed");
             if (IsEnabled) return;
 
             isDeactivatingWarpDrive = false;
 
             if (warpToMassRatio < 1)
             {
-                ScreenMessages.PostScreenMessage("Not enough warp power to warp vessel", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                var message = "Not enough warp power to warp vessel";
+                Debug.Log("[KSPI] - " + message);
+                ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
 
             Vessel vess = this.part.vessel;
             if (vess.altitude <= PluginHelper.getMaxAtmosphericAltitude(vess.mainBody) && vess.mainBody.flightGlobalsIndex != 0)
             {
-                ScreenMessages.PostScreenMessage("Cannot activate warp drive within the atmosphere!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                var message = "Cannot activate warp drive within the atmosphere!";
+                Debug.Log("[KSPI] - " + message);
+                ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
 
@@ -195,7 +206,9 @@ namespace FNPlugin
 
             if (exotic_matter_available < exotic_power_required)
             {
-                ScreenMessages.PostScreenMessage("Warp drive isn't fully charged yet for Warp!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                var message = "Warp drive isn't fully charged yet for Warp!";
+                Debug.Log("[KSPI] - " + message);
+                ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
 
@@ -208,7 +221,9 @@ namespace FNPlugin
 
             if (!CheatOptions.InfiniteElectricity && currentPowerRequirementForWarp > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES))
             {
-                ScreenMessages.PostScreenMessage("Warp power requirement is higher that maximum power supply!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                var message = "Warp power requirement is higher that maximum power supply!";
+                Debug.Log("[KSPI] - " + message);
+                ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
 
@@ -233,6 +248,7 @@ namespace FNPlugin
 
         private void InitiateWarp()
         {
+            Debug.Log("[KSPI] - InitiateWarp started");
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
 
@@ -252,6 +268,7 @@ namespace FNPlugin
                 {
                     while (selected_factor != minimum_selected_factor)
                     {
+                        Debug.Log("[KSPI] - call ReduceWarpPower");
                         ReduceWarpPower();
                         new_warp_factor = engine_throtle[selected_factor];
                         currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warp_factor);
@@ -261,8 +278,9 @@ namespace FNPlugin
                 }
                 if (initiateWarpTimeout == 0)
                 {
-
-                    ScreenMessages.PostScreenMessage("Not enough power to initiate warp " + power_returned + " " + currentPowerRequirementForWarp, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    var message = "Not enough power to initiate warp!" + power_returned + " " + currentPowerRequirementForWarp;
+                    Debug.Log("[KSPI] - " + message);
+                    ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     IsCharging = true;
                     return;
                 }
@@ -282,10 +300,18 @@ namespace FNPlugin
             heading_act = active_part_heading * GameConstants.warpspeed * new_warp_factor;
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
+            Debug.Log("[KSPI] - GoOnRails");
             vessel.GoOnRails();
-            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
-            vessel.GoOffRails();
 
+            var newHeading = vessel.orbit.vel + heading_act;
+            Debug.Log("[KSPI] - UpdateFromStateVectors position x:" + vessel.orbit.pos.x + ",y:" + vessel.orbit.pos.y + ",z" + vessel.orbit.pos.z);
+            Debug.Log("[KSPI] - UpdateFromStateVectors velocity x:" + newHeading.x + ",y:" + newHeading.y + ",z" + newHeading.z);
+
+            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+
+            Debug.Log("[KSPI] - GoOffRails");
+            vessel.GoOffRails();
+            
             IsEnabled = true;
 
             existing_warpfactor = new_warp_factor;
@@ -295,6 +321,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Deactivate Warp Drive", active = false)]
         public void DeactivateWarpDrive()
         {
+            Debug.Log("[KSPI] - Deactivate Warp Drive event called");
             if (!IsEnabled)
                 return;
 
@@ -313,14 +340,22 @@ namespace FNPlugin
             heading.y = -heading.y;
             heading.z = -heading.z;
 
+            Debug.Log("[KSPI] - GoOnRails");
             vessel.GoOnRails();
-            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + heading, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+            
+            var newHeading = vessel.orbit.vel + heading;
+            Debug.Log("[KSPI] - UpdateFromStateVectors position x:" + vessel.orbit.pos.x + ",y:" + vessel.orbit.pos.y + ",z" + vessel.orbit.pos.z);
+            Debug.Log("[KSPI] - UpdateFromStateVectors velocity x:" + newHeading.x + ",y:" + newHeading.y + ",z" + newHeading.z);
+            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, newHeading, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+            
+            Debug.Log("[KSPI] - GoOffRails");
             vessel.GoOffRails();
         }
 
         [KSPEvent(guiActive = true, guiName = "Warp Throttle (+)", active = true)]
         public void ToggleWarpSpeedUp()
         {
+            Debug.Log("[KSPI] - Warp Throttle (+) button pressed");
             selected_factor++;
             if (selected_factor >= engine_throtle.Length)
                 selected_factor = engine_throtle.Length - 1;
@@ -332,6 +367,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Warp Throttle (-)", active = true)]
         public void ToggleWarpSpeedDown()
         {
+            Debug.Log("[KSPI] - Warp Throttle (-) button pressed");
             selected_factor--;
             if (selected_factor < 0)
                 selected_factor = 0;
@@ -343,6 +379,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Reduce Warp Power", active = true)]
         public void ReduceWarpPower()
         {
+            Debug.Log("[KSPI] - Reduce Warp Power button pressed");
             if (selected_factor == minimum_selected_factor) return;
 
             if (selected_factor < minimum_selected_factor)
@@ -354,36 +391,42 @@ namespace FNPlugin
         [KSPAction("Reduce Warp Drive")]
         public void ReduceWarpDriveAction(KSPActionParam param)
         {
+            Debug.Log("[KSPI] - ReduceWarpPower action activated");
             ReduceWarpPower();
         }
 
         [KSPAction("Activate Warp Drive")]
         public void ActivateWarpDriveAction(KSPActionParam param)
         {
+            Debug.Log("[KSPI] - Activate Warp Drive action activated");
             ActivateWarpDrive();
         }
 
         [KSPAction("Deactivate Warp Drive")]
         public void DeactivateWarpDriveAction(KSPActionParam param)
         {
+            Debug.Log("[KSPI] - Deactivate Warp Drive action activated");
             DeactivateWarpDrive();
         }
 
         [KSPAction("Warp Speed (+)")]
         public void ToggleWarpSpeedUpAction(KSPActionParam param)
         {
+            Debug.Log("[KSPI] - Warp Speed (+) action activated");
             ToggleWarpSpeedUp();
         }
 
         [KSPAction("Warp Speed (-)")]
         public void ToggleWarpSpeedDownAction(KSPActionParam param)
         {
+            Debug.Log("[KSPI] - Warp Speed (-) action activated");
             ToggleWarpSpeedDown();
         }
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitDrive()
         {
+            Debug.Log("[KSPI] - Retrofit button pressed");
             if (ResearchAndDevelopment.Instance == null) return;
 
             if (isupgraded || ResearchAndDevelopment.Instance.Science < UpgradeCost()) return;
@@ -766,8 +809,10 @@ namespace FNPlugin
                 if (insufficientPowerTimeout < 0)
                 {
                     insufficientPowerTimeout--;
+                    Debug.Log("[KSPI] - Not enough MW power to initiate stable warp field!");
                     ScreenMessages.PostScreenMessage("Not enough MW power to initiate stable warp field!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     StopCharging();
+
                     return;
                 }
 
@@ -788,7 +833,9 @@ namespace FNPlugin
                     DriveStatus = String.Format("Charging: ") + electrical_current_pct.ToString("0.00") + String.Format("%");
                 }
                 else
+                {
                     DriveStatus = "Ready.";
+                }
 
                 warp_effect2_renderer.enabled = false;
                 warp_effect1_renderer.enabled = false;
@@ -850,10 +897,11 @@ namespace FNPlugin
                 insufficientPowerTimeout = 10;
 
 
-            if (this.vessel.altitude < this.vessel.mainBody.atmosphereDepth * 2)
+            if (this.vessel.altitude < this.vessel.mainBody.atmosphereDepth * 3)
             {
                 if (vesselWasInOuterspace)
                 {
+                    Debug.Log("[KSPI] - Droped out of warp because close to atmosphere");
                     DeactivateWarpDrive();
                     return;
                 }
@@ -876,12 +924,15 @@ namespace FNPlugin
             {
                 if (selected_factor == minimumPowerAllowedFactor || selected_factor == minimum_selected_factor || power_returned < 0.99 * PowerRequirementForMaximumAllowedLightSpeed)
                 {
-                    ScreenMessages.PostScreenMessage("Critical Power shortage, deactivating warp");
+                    var message = "Critical Power shortage, deactivating warp";
+                    Debug.Log("[KSPI] - " + message);
+                    ScreenMessages.PostScreenMessage(message);
                     DeactivateWarpDrive();
                     return;
                 }
-
-                ScreenMessages.PostScreenMessage("Insufficient Power " + power_returned.ToString("0.0") + " / " + currentPowerRequirementForWarp.ToString("0.0") + ", reducing power drain");
+                var insufficientMessage = "Insufficient Power " + power_returned.ToString("0.0") + " / " + currentPowerRequirementForWarp.ToString("0.0") + ", reducing power drain";
+                Debug.Log("[KSPI] - " + insufficientMessage);
+                ScreenMessages.PostScreenMessage(insufficientMessage);
                 ReduceWarpPower();
             }
 
@@ -896,8 +947,15 @@ namespace FNPlugin
                 active_part_heading = new_part_heading;
                 serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
+                Debug.Log("[KSPI] - GoOnRails");
                 vessel.GoOnRails();
-                vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_heading + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+
+                var vel = vessel.orbit.vel + reverse_heading + heading_act;
+                Debug.Log("[KSPI] - UpdateFromStateVectors position x:" + vessel.orbit.pos.x + ",y:" + vessel.orbit.pos.y + ",z" + vessel.orbit.pos.z);
+                Debug.Log("[KSPI] - UpdateFromStateVectors velocity x:" + vel.x + ",y:" + vel.y + ",z" + vel.z);
+
+                vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vel, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+                Debug.Log("[KSPI] - GoOffRails");
                 vessel.GoOffRails();
             }
 

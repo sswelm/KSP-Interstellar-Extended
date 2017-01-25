@@ -20,7 +20,7 @@ namespace FNPlugin
         protected double nuclear_power = 0;
         [KSPField(isPersistant = true)]
         protected double solar_power = 0;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power Capacity", guiUnits = " MW", guiFormat = "F2")]
         protected double power_capacity = 0;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit Wavelength", guiFormat = "F8", guiUnits = " m")]
         public double wavelength = 0;
@@ -38,6 +38,7 @@ namespace FNPlugin
         public bool forceActivateAtStartup = false;
 
         //Non Persistent 
+
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Air Absorbtion Percentage")]
         public double atmosphericAbsorptionPercentage;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Water Absorbtion Percentage")]
@@ -53,6 +54,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public bool canFunctionOnSurface = true;
 
+        [KSPField(isPersistant = false)]
+        public double maximumPower = 10000;
         [KSPField(isPersistant = false)]
         public float atmosphereToleranceModifier = 1;
         [KSPField(isPersistant = false)]
@@ -81,8 +84,9 @@ namespace FNPlugin
         public float transmitPower = 100;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Solar Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float solarPowertransmission = 100;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F2")]
-        public double maximumPower = 10000;
+
+
+
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
         public string beamedpower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Solar Power", guiFormat = "F2")]
@@ -91,8 +95,12 @@ namespace FNPlugin
         public bool hasLinkedReceivers = false;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Can be active")]
         public bool canBeActive;
+
+        // Near Future Compatibility properties
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
+        [KSPField(isPersistant = false)]
+        public float powerHeatMultiplier = 1;
 
         //Internal
         protected Animation anim;
@@ -236,6 +244,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            power_capacity = maximumPower * powerMult;
+
             if (String.IsNullOrEmpty(partId))
                 partId = Guid.NewGuid().ToString();
 
@@ -348,13 +358,13 @@ namespace FNPlugin
 
         public void Update()
         {
-            if (!HighLogic.LoadedSceneIsFlight) return;
+            if (!HighLogic.LoadedSceneIsFlight)
+            {
+                power_capacity = maximumPower * powerMult;
+                return;
+            }
 
             UpdateRelayWavelength();
-
-
-
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI updated wave data");
 
             totalAbsorptionPercentage = atmosphericAbsorptionPercentage + waterAbsorptionPercentage;
             atmosphericAbsorption = totalAbsorptionPercentage / 100;
@@ -390,6 +400,11 @@ namespace FNPlugin
             Fields["solarPowertransmission"].guiActive = isTransmitting;
             Fields["displayed_solar_power"].guiActive = isTransmitting && displayed_solar_power > 0;
 
+            bool isLinkedForRelay = part_receiver != null && part_receiver.linkedForRelay;
+
+            Fields["moistureModifier"].guiActive = !isLinkedForRelay;
+            Fields["totalAbsorptionPercentage"].guiActive = !isLinkedForRelay;
+
             if (IsEnabled)
             {
                 if (relay)
@@ -398,7 +413,12 @@ namespace FNPlugin
                     statusStr = "Transmitter Active";
             }
             else
-                statusStr = "Inactive.";
+            {
+                if (isLinkedForRelay)
+                    statusStr = "Is Linked For Relay";
+                else
+                    statusStr = "Inactive.";
+            }
 
             if (activeBeamGenerator == null)
             {
@@ -449,7 +469,6 @@ namespace FNPlugin
             nuclear_power = 0;
             solar_power = 0;
             displayed_solar_power = 0;
-            power_capacity = maximumPower;
 
             CollectBiomeData();
 
@@ -467,13 +486,13 @@ namespace FNPlugin
 
                 if (CheatOptions.InfiniteElectricity)
                 {
-                    requestedPower = maximumPower;
+                    requestedPower = power_capacity;
                 }
                 else
                 {
                     var availableReactorPower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
 
-                    requestedPower = Math.Min(maximumPower, getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) * availableReactorPower * reactorPowerTransmissionRatio);
+                    requestedPower = Math.Min(power_capacity, getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) * availableReactorPower * reactorPowerTransmissionRatio);
                 }
 
                 var fixedRequestedPower = requestedPower * TimeWarp.fixedDeltaTime;
@@ -583,7 +602,7 @@ namespace FNPlugin
 
         public double getPowerCapacity()
         {
-            return power_capacity > 0 ? power_capacity : maximumPower;
+            return power_capacity;
         }
 
         public double Wavelength

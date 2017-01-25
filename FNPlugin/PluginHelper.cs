@@ -564,6 +564,29 @@ namespace FNPlugin
                 return vessel.mainBody.scienceValues.InSpaceHighDataValue;
         }
 
+        //public static string GetPowerFormatString(double power)
+        //{
+        //    if (power > 1000)
+        //    {
+        //        if (power > 20000)
+        //            return (power / 1000).ToString("0.0") + " GW";
+        //        else
+        //            return (power / 1000).ToString("0.00") + " GW";
+        //    }
+        //    else
+        //    {
+        //        if (power > 20)
+        //            return power.ToString("0.0") + " MW";
+        //        else
+        //        {
+        //            if (power > 1)
+        //                return power.ToString("0.00") + " MW";
+        //            else
+        //                return (power * 1000).ToString("0.0") + " KW";
+        //        }
+        //    }
+        //}
+
         public static string getFormattedPowerString(double power, string shortFormat = "0", string longFormat = "0.0")
         {
             if (power > 1000)
@@ -1064,6 +1087,8 @@ namespace FNPlugin
             }
             return true;
         }
+
+
 
         public static AnimationState[] SetUpAnimation(string animationName, Part part)
         {
