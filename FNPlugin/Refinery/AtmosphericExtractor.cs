@@ -38,6 +38,8 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true)]
         protected double _nitrogenPercentage = 0;
         [KSPField(isPersistant = true)]
+        protected double _oxygenPercentage = 0;
+        [KSPField(isPersistant = true)]
         protected double _waterPercentage = 0; // percentage of water vapour in the local atmosphere
         
         const int labelWidth = 200;
@@ -63,6 +65,7 @@ namespace FNPlugin.Refinery
         protected double _monoxide_density;
         protected double _neon_density;
         protected double _nitrogen_density;
+        protected double _oxygen_density;
         protected double _water_density; // water vapour can form a part of atmosphere as well
              
         protected double _atmosphere_consumption_rate;
@@ -76,6 +79,7 @@ namespace FNPlugin.Refinery
         protected double _monoxide_production_rate;
         protected double _neon_production_rate;
         protected double _nitrogen_production_rate;
+        protected double _oxygen_production_rate;
         protected double _water_production_rate;
 
         protected string _atmosphere_resource_name;
@@ -88,6 +92,7 @@ namespace FNPlugin.Refinery
         protected string _monoxide_resource_name;
         protected string _neon_resource_name;
         protected string _nitrogen_resource_name;
+        protected string _oxygen_resource_name;
         protected string _water_resource_name;
         protected double totalAirValue;
 
@@ -129,6 +134,7 @@ namespace FNPlugin.Refinery
             _monoxide_resource_name = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
             _neon_resource_name = InterstellarResourcesConfiguration.Instance.NeonGas;
             _nitrogen_resource_name = InterstellarResourcesConfiguration.Instance.Nitrogen;
+            _oxygen_resource_name = InterstellarResourcesConfiguration.Instance.Oxygen;
             _water_resource_name = InterstellarResourcesConfiguration.Instance.Water;
             
             // get the densities of all relevant resources
@@ -142,6 +148,7 @@ namespace FNPlugin.Refinery
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxide_resource_name).density;
             _neon_density = PartResourceLibrary.Instance.GetDefinition(_neon_resource_name).density;
             _nitrogen_density = PartResourceLibrary.Instance.GetDefinition(_nitrogen_resource_name).density;
+            _oxygen_density = PartResourceLibrary.Instance.GetDefinition(_oxygen_resource_name).density;
             _water_density = PartResourceLibrary.Instance.GetDefinition(_water_resource_name).density;
         }
 
@@ -155,6 +162,7 @@ namespace FNPlugin.Refinery
         protected double _maxCapacityMonoxideMass;
         protected double _maxCapacityNeonMass;
         protected double _maxCapacityNitrogenMass;
+        protected double _maxCapacityOxygenMass;
         protected double _maxCapacityWaterMass;
         
         protected double _availableAtmosphereMass;
@@ -167,6 +175,7 @@ namespace FNPlugin.Refinery
         protected double _spareRoomMonoxideMass;
         protected double _spareRoomNeonMass;
         protected double _spareRoomNitrogenMass;
+        protected double _spareRoomOxygenMass;
         protected double _spareRoomWaterMass;
         List<AtmosphericIntake> intakesList; // create a new list for keeping track of atmo intakes
         double tempAir;
@@ -209,6 +218,7 @@ namespace FNPlugin.Refinery
             var partsThatContainMonoxide = _part.GetConnectedResources(_monoxide_resource_name);
             var partsThatContainNeon = _part.GetConnectedResources(_neon_resource_name);
             var partsThatContainNitrogen = _part.GetConnectedResources(_nitrogen_resource_name);
+            var partsThatContainOxygen = _part.GetConnectedResources(_oxygen_resource_name);
             var partsThatContainWater = _part.GetConnectedResources(_water_resource_name);
 
 
@@ -223,7 +233,8 @@ namespace FNPlugin.Refinery
             _maxCapacityMonoxideMass = partsThatContainMonoxide.Sum(p => p.maxAmount) * _monoxide_density;
             _maxCapacityNeonMass = partsThatContainNeon.Sum(p => p.maxAmount) * _neon_density;
             _maxCapacityNitrogenMass = partsThatContainNitrogen.Sum(p => p.maxAmount) * _nitrogen_density;
-            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _nitrogen_density;
+            _maxCapacityOxygenMass = partsThatContainOxygen.Sum(p => p.maxAmount) * _oxygen_density;
+            _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _water_density;
 
             // determine the amount of resources needed for processing (i.e. intake atmosphere) that the vessel actually holds
             _availableAtmosphereMass = partsThatContainAtmosphere.Sum(r => r.amount) * _atmosphere_density;
@@ -238,6 +249,7 @@ namespace FNPlugin.Refinery
             _spareRoomMonoxideMass = partsThatContainMonoxide.Sum(r => r.maxAmount - r.amount) * _monoxide_density;
             _spareRoomNeonMass = partsThatContainNeon.Sum(r => r.maxAmount - r.amount) * _neon_density;
             _spareRoomNitrogenMass = partsThatContainNitrogen.Sum(r => r.maxAmount - r.amount) * _nitrogen_density;
+            _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygen_density;
             _spareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * _water_density;
 
 
@@ -253,7 +265,7 @@ namespace FNPlugin.Refinery
 
             // begin the intake atmosphere processing
             // check if there is anything to consume and if there is spare room for at least one of the products
-            if (_fixedConsumptionRate > 0 && (((((((((_spareRoomHydrogenMass > 0 || _spareRoomHelium3Mass > 0) || _spareRoomHelium4Mass > 0) || _spareRoomMonoxideMass > 0) || _spareRoomNitrogenMass > 0) || _spareRoomArgonMass > 0) || _spareRoomDioxideMass > 0) || _spareRoomMethaneMass > 0) || _spareRoomNeonMass > 0) || _spareRoomWaterMass > 0)) // pardon the length
+            if (_fixedConsumptionRate > 0 && ((((((((((_spareRoomHydrogenMass > 0 || _spareRoomHelium3Mass > 0) || _spareRoomHelium4Mass > 0) || _spareRoomMonoxideMass > 0) || _spareRoomNitrogenMass > 0) || _spareRoomArgonMass > 0) || _spareRoomDioxideMass > 0) || _spareRoomMethaneMass > 0) || _spareRoomNeonMass > 0) || _spareRoomWaterMass > 0) || _spareRoomOxygenMass > 0)) // pardon the length
             {
                 /* Now to get the actual percentages from ORSAtmosphericResourceHandler Freethinker extended.
                  * Calls getAtmosphericResourceContent which calls getAtmosphericCompositionForBody which (if there's no definition, i.e. we're using a custom solar system
@@ -273,6 +285,7 @@ namespace FNPlugin.Refinery
                     _monoxidePercentage = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _monoxide_resource_name);
                     _neonPercentage = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _neon_resource_name);
                     _nitrogenPercentage = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _nitrogen_resource_name);
+                    _oxygenPercentage = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _oxygen_resource_name);
                     _waterPercentage = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _water_resource_name);
 
                     lastBodyID = FlightGlobals.currentMainBody.flightGlobalsIndex; // reassign the id of current body to the lastBodyID variable, ie. remember this planet, so that we skip this check next time!
@@ -288,6 +301,7 @@ namespace FNPlugin.Refinery
                 var fixedMaxMonoxideRate = _fixedConsumptionRate * _monoxidePercentage;
                 var fixedMaxNeonRate = _fixedConsumptionRate * _neonPercentage;
                 var fixedMaxNitrogenRate = _fixedConsumptionRate * _nitrogenPercentage;
+                var fixedMaxOxygenRate = _fixedConsumptionRate * _oxygenPercentage;
                 var fixedMaxWaterRate = _fixedConsumptionRate * _waterPercentage;
 
                 // how much can we add to the tanks per cycle? If allowOverflow is on, just push it all in, regardless of if the tank can hold the amount. Otherwise adjust accordingly
@@ -300,6 +314,7 @@ namespace FNPlugin.Refinery
                 var fixedMaxPossibleMonoxideRate = allowOverflow ? fixedMaxMonoxideRate : Math.Min(_spareRoomMonoxideMass, fixedMaxMonoxideRate);
                 var fixedMaxPossibleNeonRate = allowOverflow ? fixedMaxNeonRate : Math.Min(_spareRoomNeonMass, fixedMaxNeonRate);
                 var fixedMaxPossibleNitrogenRate = allowOverflow ? fixedMaxNitrogenRate : Math.Min(_spareRoomNitrogenMass, fixedMaxNitrogenRate);
+                var fixedMaxPossibleOxygenRate = allowOverflow ? fixedMaxOxygenRate : Math.Min(_spareRoomOxygenMass, fixedMaxOxygenRate);
                 var fixedMaxPossibleWaterRate = allowOverflow ? fixedMaxWaterRate : Math.Min(_spareRoomWaterMass, fixedMaxWaterRate);
 
                 // Check if the denominator for each is zero (in that case, assign zero outright, so that we don't end up with an infinite mess on our hands)
@@ -312,13 +327,14 @@ namespace FNPlugin.Refinery
                 double monoxRatio = (fixedMaxMonoxideRate == 0) ? 0 : fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate;
                 double neonRatio = (fixedMaxNeonRate == 0) ? 0 : fixedMaxPossibleNeonRate / fixedMaxNeonRate;
                 double nitroRatio = (fixedMaxNitrogenRate == 0) ? 0 : fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate;
+                double oxyRatio = (fixedMaxOxygenRate == 0) ? 0 : fixedMaxPossibleOxygenRate / fixedMaxOxygenRate;
                 double waterRatio = (fixedMaxWaterRate == 0) ? 0 : fixedMaxPossibleWaterRate / fixedMaxWaterRate;
 
                 /* finds a non-zero minimum of all the ratios (calculated above, as fixedMaxPossibleZZRate / fixedMaxZZRate). It needs to be non-zero 
                  * so that the collecting works even when some of consitutents are absent from the local atmosphere (ie. when their definition is zero).
                  * Otherwise the consumptionStorageRatio would be zero and thus no atmosphere would be consumed.
                 */
-                _consumptionStorageRatio = new double[] { arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, waterRatio }.Where(x => x > 0).Min();
+                _consumptionStorageRatio = new double[] { arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, oxyRatio, waterRatio }.Where(x => x > 0).Min();
 
                 /* If the collecting is done offline
                  * 
@@ -345,6 +361,7 @@ namespace FNPlugin.Refinery
                 var monoxide_rate_temp = _atmosphere_consumption_rate * _monoxidePercentage;
                 var neon_rate_temp = _atmosphere_consumption_rate * _neonPercentage;
                 var nitrogen_rate_temp = _atmosphere_consumption_rate * _nitrogenPercentage;
+                var oxygen_rate_temp = _atmosphere_consumption_rate * _oxygenPercentage;
                 var water_rate_temp = _atmosphere_consumption_rate * _waterPercentage;
 
                 // produce the resources
@@ -357,6 +374,7 @@ namespace FNPlugin.Refinery
                 _monoxide_production_rate = -_part.RequestResource(_monoxide_resource_name, -monoxide_rate_temp * TimeWarp.fixedDeltaTime / _monoxide_density) / TimeWarp.fixedDeltaTime * _monoxide_density;
                 _neon_production_rate = -_part.RequestResource(_neon_resource_name, -neon_rate_temp * TimeWarp.fixedDeltaTime / _neon_density) / TimeWarp.fixedDeltaTime * _neon_density;
                 _nitrogen_production_rate = -_part.RequestResource(_nitrogen_resource_name, -nitrogen_rate_temp * TimeWarp.fixedDeltaTime / _nitrogen_density) / TimeWarp.fixedDeltaTime * _nitrogen_density;
+                _oxygen_production_rate = -_part.RequestResource(_oxygen_resource_name, -oxygen_rate_temp * TimeWarp.fixedDeltaTime / _oxygen_density) / TimeWarp.fixedDeltaTime * _oxygen_density;
                 _water_production_rate = -_part.RequestResource(_water_resource_name, -water_rate_temp * TimeWarp.fixedDeltaTime / _water_density) / TimeWarp.fixedDeltaTime * _water_density;
 
             }
@@ -372,6 +390,7 @@ namespace FNPlugin.Refinery
                 _monoxide_production_rate = 0;
                 _neon_production_rate = 0;
                 _nitrogen_production_rate = 0;
+                _oxygen_production_rate = 0;
                 _water_production_rate = 0;
             }
         }
@@ -488,6 +507,16 @@ namespace FNPlugin.Refinery
             GUILayout.BeginHorizontal();
             GUILayout.Label("Nitrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label((_nitrogen_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Oxygen Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(_spareRoomOxygenMass.ToString("0.0000") + " mT / " + _maxCapacityOxygenMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((_oxygen_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
