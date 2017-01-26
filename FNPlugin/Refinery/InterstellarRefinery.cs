@@ -21,7 +21,7 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true)]
         private double lastPowerRatio;
         [KSPField(isPersistant = true)]
-        private string lastActivityName;
+        private string lastActivityName = "";
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
