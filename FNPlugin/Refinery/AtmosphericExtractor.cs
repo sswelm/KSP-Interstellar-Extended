@@ -94,7 +94,6 @@ namespace FNPlugin.Refinery
         protected string _nitrogen_resource_name;
         protected string _oxygen_resource_name;
         protected string _water_resource_name;
-        protected double totalAirValue;
 
         protected double _current_rate;
 
@@ -190,7 +189,7 @@ namespace FNPlugin.Refinery
          * and then stores the value in the persistent totalAirValue, so that this process can access it when offline collecting.
          * tempAir is just a variable used to temporarily hold the total while cycling through parts, then gets reset at every engine update.
          */
-        public double GetTotalAirScooped()
+        public double GetTotalAirScoopedPerSecond()
         {
             intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>(); // add any atmo intake part on the vessel to our list
             tempAir = 0; // reset tempAir before we go into the list
@@ -236,9 +235,7 @@ namespace FNPlugin.Refinery
             _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _water_density;
 
             // determine the amount of resources needed for processing (i.e. intake atmosphere) that the vessel actually holds
-            _availableAtmosphereMass = offlineCollecting 
-                ? partsThatContainAtmosphere.Sum(r => r.maxAmount) * _atmosphere_density 
-                : partsThatContainAtmosphere.Sum(r => r.amount) * _atmosphere_density;
+            _availableAtmosphereMass = partsThatContainAtmosphere.Sum(r => r.amount) * _atmosphere_density;
 
             // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
             _spareRoomArgonMass = partsThatContainArgon.Sum(r => r.maxAmount - r.amount) * _argon_density;
@@ -253,19 +250,14 @@ namespace FNPlugin.Refinery
             _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygen_density;
             _spareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * _water_density;
 
-
             // this should determine how much resource this process can consume
             var fixedMaxAtmosphereConsumptionRate = _current_rate * fixedDeltaTime * _atmosphere_density;
-            var atmosphereConsumptionRatio = fixedMaxAtmosphereConsumptionRate > 0
-                ? Math.Min(fixedMaxAtmosphereConsumptionRate, _availableAtmosphereMass) / fixedMaxAtmosphereConsumptionRate
-                : 0;
+            var atmosphereConsumptionRatio = offlineCollecting ? 1 
+                    : fixedMaxAtmosphereConsumptionRate > 0
+                        ? Math.Min(fixedMaxAtmosphereConsumptionRate, _availableAtmosphereMass) / fixedMaxAtmosphereConsumptionRate
+                        : 0;
 
             _fixedConsumptionRate = _current_rate * fixedDeltaTime * atmosphereConsumptionRatio;
-
-            //if (fixedDeltaTime > 1)
-            //{
-            //    ScreenMessages.PostScreenMessage(" _current_rate = " + _current_rate + " fixedDeltaTime = " + fixedDeltaTime + " atmosphereConsumptionRatio = " + atmosphereConsumptionRatio + " fixedMaxAtmosphereConsumptionRate = " + fixedMaxAtmosphereConsumptionRate + " _atmosphere_density = " + _atmosphere_density + " _availableAtmosphereMass " + _availableAtmosphereMass, 60.0f, ScreenMessageStyle.UPPER_CENTER);
-            //}
 
             // begin the intake atmosphere processing
             // check if there is anything to consume and if there is spare room for at least one of the products
@@ -298,64 +290,61 @@ namespace FNPlugin.Refinery
                     lastBodyID = FlightGlobals.currentMainBody.flightGlobalsIndex; // reassign the id of current body to the lastBodyID variable, ie. remember this planet, so that we skip this check next time!
                 }
 
-                // how much of the consumed atmosphere is going to end up as these?
-                var fixedMaxArgonRate = _fixedConsumptionRate * _argonPercentage;
-                var fixedMaxDioxideRate = _fixedConsumptionRate * _dioxidePercentage;
-                var fixedMaxHelium3Rate = _fixedConsumptionRate * _helium3Percentage;
-                var fixedMaxHelium4Rate = _fixedConsumptionRate * _helium4Percentage;
-                var fixedMaxHydrogenRate = _fixedConsumptionRate * _hydrogenPercentage;
-                var fixedMaxMethaneRate = _fixedConsumptionRate * _methanePercentage;
-                var fixedMaxMonoxideRate = _fixedConsumptionRate * _monoxidePercentage;
-                var fixedMaxNeonRate = _fixedConsumptionRate * _neonPercentage;
-                var fixedMaxNitrogenRate = _fixedConsumptionRate * _nitrogenPercentage;
-                var fixedMaxOxygenRate = _fixedConsumptionRate * _oxygenPercentage;
-                var fixedMaxWaterRate = _fixedConsumptionRate * _waterPercentage;
-
-                // how much can we add to the tanks per cycle? If allowOverflow is on, just push it all in, regardless of if the tank can hold the amount. Otherwise adjust accordingly
-                var fixedMaxPossibleArgonRate = allowOverflow ? fixedMaxArgonRate : Math.Min(_spareRoomArgonMass, fixedMaxArgonRate);
-                var fixedMaxPossibleDioxideRate = allowOverflow ? fixedMaxDioxideRate : Math.Min(_spareRoomDioxideMass, fixedMaxDioxideRate);
-                var fixedMaxPossibleHelium3Rate = allowOverflow ? fixedMaxHelium3Rate : Math.Min(_spareRoomHelium3Mass, fixedMaxHelium3Rate);
-                var fixedMaxPossibleHelium4Rate = allowOverflow ? fixedMaxHelium4Rate : Math.Min(_spareRoomHelium4Mass, fixedMaxHelium4Rate);
-                var fixedMaxPossibleHydrogenRate = allowOverflow ? fixedMaxHydrogenRate : Math.Min(_spareRoomHydrogenMass, fixedMaxHydrogenRate);
-                var fixedMaxPossibleMethaneRate = allowOverflow ? fixedMaxMethaneRate : Math.Min(_spareRoomMethaneMass, fixedMaxMethaneRate);
-                var fixedMaxPossibleMonoxideRate = allowOverflow ? fixedMaxMonoxideRate : Math.Min(_spareRoomMonoxideMass, fixedMaxMonoxideRate);
-                var fixedMaxPossibleNeonRate = allowOverflow ? fixedMaxNeonRate : Math.Min(_spareRoomNeonMass, fixedMaxNeonRate);
-                var fixedMaxPossibleNitrogenRate = allowOverflow ? fixedMaxNitrogenRate : Math.Min(_spareRoomNitrogenMass, fixedMaxNitrogenRate);
-                var fixedMaxPossibleOxygenRate = allowOverflow ? fixedMaxOxygenRate : Math.Min(_spareRoomOxygenMass, fixedMaxOxygenRate);
-                var fixedMaxPossibleWaterRate = allowOverflow ? fixedMaxWaterRate : Math.Min(_spareRoomWaterMass, fixedMaxWaterRate);
-
-                // Check if the denominator for each is zero (in that case, assign zero outright, so that we don't end up with an infinite mess on our hands)
-                double arRatio = (fixedMaxArgonRate == 0) ? 0 : fixedMaxPossibleArgonRate / fixedMaxArgonRate;
-                double dioxRatio = (fixedMaxDioxideRate == 0) ? 0 : fixedMaxPossibleDioxideRate / fixedMaxDioxideRate;
-                double he3Ratio = (fixedMaxHelium3Rate == 0) ? 0 : fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate;
-                double he4Ratio = (fixedMaxHelium4Rate == 0) ? 0 : fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate;
-                double hydroRatio = (fixedMaxHydrogenRate == 0) ? 0 : fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate;
-                double methRatio = (fixedMaxMethaneRate == 0) ? 0 : fixedMaxPossibleMethaneRate / fixedMaxMethaneRate;
-                double monoxRatio = (fixedMaxMonoxideRate == 0) ? 0 : fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate;
-                double neonRatio = (fixedMaxNeonRate == 0) ? 0 : fixedMaxPossibleNeonRate / fixedMaxNeonRate;
-                double nitroRatio = (fixedMaxNitrogenRate == 0) ? 0 : fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate;
-                double oxyRatio = (fixedMaxOxygenRate == 0) ? 0 : fixedMaxPossibleOxygenRate / fixedMaxOxygenRate;
-                double waterRatio = (fixedMaxWaterRate == 0) ? 0 : fixedMaxPossibleWaterRate / fixedMaxWaterRate;
-
-                /* finds a non-zero minimum of all the ratios (calculated above, as fixedMaxPossibleZZRate / fixedMaxZZRate). It needs to be non-zero 
-                 * so that the collecting works even when some of consitutents are absent from the local atmosphere (ie. when their definition is zero).
-                 * Otherwise the consumptionStorageRatio would be zero and thus no atmosphere would be consumed.
-                */
-                _consumptionStorageRatio = new double[] { arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, oxyRatio, waterRatio }.Where(x => x > 0).Min();
-
-                /* If the collecting is done offline
-                 * 
-                 */
                 if (offlineCollecting) // if we're collecting offline, we don't need to actually consume the resource, just provide the lines below with a number
                 {
-                    totalAirValue = GetTotalAirScooped();
-                    _atmosphere_consumption_rate = _consumptionStorageRatio * totalAirValue * fixedDeltaTime / _atmosphere_density;
-                    ScreenMessages.PostScreenMessage("The atmospheric extractor processed " + _atmosphere_consumption_rate.ToString("F2") + " units of " + _atmosphere_resource_name, 60.0f, ScreenMessageStyle.UPPER_CENTER);
+                    var totalProcessed = Math.Min(_fixedConsumptionRate, GetTotalAirScoopedPerSecond() * fixedDeltaTime);
+                    ScreenMessages.PostScreenMessage("The atmospheric extractor processed " + _atmosphere_resource_name + " for " + fixedDeltaTime.ToString("F0") + " seconds", 60.0f, ScreenMessageStyle.UPPER_CENTER);
+
+                    _atmosphere_consumption_rate = totalProcessed / fixedDeltaTime;
                 }
                 else
                 {
+                    // how much of the consumed atmosphere is going to end up as these?
+                    var fixedMaxArgonRate = _fixedConsumptionRate * _argonPercentage;
+                    var fixedMaxDioxideRate = _fixedConsumptionRate * _dioxidePercentage;
+                    var fixedMaxHelium3Rate = _fixedConsumptionRate * _helium3Percentage;
+                    var fixedMaxHelium4Rate = _fixedConsumptionRate * _helium4Percentage;
+                    var fixedMaxHydrogenRate = _fixedConsumptionRate * _hydrogenPercentage;
+                    var fixedMaxMethaneRate = _fixedConsumptionRate * _methanePercentage;
+                    var fixedMaxMonoxideRate = _fixedConsumptionRate * _monoxidePercentage;
+                    var fixedMaxNeonRate = _fixedConsumptionRate * _neonPercentage;
+                    var fixedMaxNitrogenRate = _fixedConsumptionRate * _nitrogenPercentage;
+                    var fixedMaxOxygenRate = _fixedConsumptionRate * _oxygenPercentage;
+                    var fixedMaxWaterRate = _fixedConsumptionRate * _waterPercentage;
+
+                    // how much can we add to the tanks per cycle? If allowOverflow is on, just push it all in, regardless of if the tank can hold the amount. Otherwise adjust accordingly
+                    var fixedMaxPossibleArgonRate = allowOverflow ? fixedMaxArgonRate : Math.Min(_spareRoomArgonMass, fixedMaxArgonRate);
+                    var fixedMaxPossibleDioxideRate = allowOverflow ? fixedMaxDioxideRate : Math.Min(_spareRoomDioxideMass, fixedMaxDioxideRate);
+                    var fixedMaxPossibleHelium3Rate = allowOverflow ? fixedMaxHelium3Rate : Math.Min(_spareRoomHelium3Mass, fixedMaxHelium3Rate);
+                    var fixedMaxPossibleHelium4Rate = allowOverflow ? fixedMaxHelium4Rate : Math.Min(_spareRoomHelium4Mass, fixedMaxHelium4Rate);
+                    var fixedMaxPossibleHydrogenRate = allowOverflow ? fixedMaxHydrogenRate : Math.Min(_spareRoomHydrogenMass, fixedMaxHydrogenRate);
+                    var fixedMaxPossibleMethaneRate = allowOverflow ? fixedMaxMethaneRate : Math.Min(_spareRoomMethaneMass, fixedMaxMethaneRate);
+                    var fixedMaxPossibleMonoxideRate = allowOverflow ? fixedMaxMonoxideRate : Math.Min(_spareRoomMonoxideMass, fixedMaxMonoxideRate);
+                    var fixedMaxPossibleNeonRate = allowOverflow ? fixedMaxNeonRate : Math.Min(_spareRoomNeonMass, fixedMaxNeonRate);
+                    var fixedMaxPossibleNitrogenRate = allowOverflow ? fixedMaxNitrogenRate : Math.Min(_spareRoomNitrogenMass, fixedMaxNitrogenRate);
+                    var fixedMaxPossibleOxygenRate = allowOverflow ? fixedMaxOxygenRate : Math.Min(_spareRoomOxygenMass, fixedMaxOxygenRate);
+                    var fixedMaxPossibleWaterRate = allowOverflow ? fixedMaxWaterRate : Math.Min(_spareRoomWaterMass, fixedMaxWaterRate);
+
+                    // Check if the denominator for each is zero (in that case, assign zero outright, so that we don't end up with an infinite mess on our hands)
+                    double arRatio = (fixedMaxArgonRate == 0) ? 0 : fixedMaxPossibleArgonRate / fixedMaxArgonRate;
+                    double dioxRatio = (fixedMaxDioxideRate == 0) ? 0 : fixedMaxPossibleDioxideRate / fixedMaxDioxideRate;
+                    double he3Ratio = (fixedMaxHelium3Rate == 0) ? 0 : fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate;
+                    double he4Ratio = (fixedMaxHelium4Rate == 0) ? 0 : fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate;
+                    double hydroRatio = (fixedMaxHydrogenRate == 0) ? 0 : fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate;
+                    double methRatio = (fixedMaxMethaneRate == 0) ? 0 : fixedMaxPossibleMethaneRate / fixedMaxMethaneRate;
+                    double monoxRatio = (fixedMaxMonoxideRate == 0) ? 0 : fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate;
+                    double neonRatio = (fixedMaxNeonRate == 0) ? 0 : fixedMaxPossibleNeonRate / fixedMaxNeonRate;
+                    double nitroRatio = (fixedMaxNitrogenRate == 0) ? 0 : fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate;
+                    double oxyRatio = (fixedMaxOxygenRate == 0) ? 0 : fixedMaxPossibleOxygenRate / fixedMaxOxygenRate;
+                    double waterRatio = (fixedMaxWaterRate == 0) ? 0 : fixedMaxPossibleWaterRate / fixedMaxWaterRate;
+
+                    /* finds a non-zero minimum of all the ratios (calculated above, as fixedMaxPossibleZZRate / fixedMaxZZRate). It needs to be non-zero 
+                    * so that the collecting works even when some of consitutents are absent from the local atmosphere (ie. when their definition is zero).
+                    * Otherwise the consumptionStorageRatio would be zero and thus no atmosphere would be consumed. */
+                    _consumptionStorageRatio = new double[] { arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, oxyRatio, waterRatio }.Where(x => x > 0).Min();
+
                     // this consumes the resource, finally
-                    _atmosphere_consumption_rate = _part.RequestResource(_atmosphere_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _atmosphere_density) / TimeWarp.fixedDeltaTime * _atmosphere_density;
+                    _atmosphere_consumption_rate = _part.RequestResource(_atmosphere_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _atmosphere_density) / fixedDeltaTime * _atmosphere_density;
                 }
                 
                 // calculate the rates of production for the individual constituents

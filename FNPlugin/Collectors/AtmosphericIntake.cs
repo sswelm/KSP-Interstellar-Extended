@@ -113,8 +113,6 @@ namespace FNPlugin
 
         public void IntakeThatAir(double deltaTimeInSecs, bool offlineCollecting)
         {
-            
-
             airSpeed = vessel.speed + _intake_speed;
             intakeExposure = (airSpeed * unitScalar) + _intake_speed;
             intakeExposure *= area * unitScalar * jetTechBonusPercentage;
@@ -148,7 +146,7 @@ namespace FNPlugin
             if (startupCount > 10)
             {
                 // take the final airThisUpdate value and assign it to the finalAir property (this will in turn get used by atmo extractor)
-                finalAir = airThisUpdate;
+                finalAir = airThisUpdate / TimeWarp.fixedDeltaTime;
             }
             else
                 startupCount++;
