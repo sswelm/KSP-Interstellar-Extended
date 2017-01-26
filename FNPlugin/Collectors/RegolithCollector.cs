@@ -108,6 +108,18 @@ namespace FNPlugin.Collectors
         protected bool bTouchDown = false; // helper bool, is the part touching the ground
         uint counter = 0; // helper counter for update cycles, so that we can only do some calculations once in a while
         uint anotherCounter = 0; // helper counter for fixedupdate cycles, so that we can only do some calculations once in a while (I don't want to add complexity by using the previous counter in two places - also update and fixedupdate cycles can be out of sync, apparently)
+        protected double dFinalConcentration;
+        AbundanceRequest regolithRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
+        {
+            ResourceType = HarvestTypes.Planetary,
+            ResourceName = "Regolith",
+            BodyId = 1, // this will need to be updated before 'sending the request'
+            Latitude = 0, // this will need to be updated before 'sending the request'
+            Longitude = 0, // this will need to be updated before 'sending the request'
+            Altitude = 0, // this will need to be updated before 'sending the request'
+            CheckForLock = false
+        };
+
 
         protected CelestialBody localStar;
 
@@ -161,12 +173,13 @@ namespace FNPlugin.Collectors
             */
             if (++counter % 10 == 0) // increment counter then check if it is the tenth update
             {
-                dConcentrationRegolith = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude); 
+                //dConcentrationRegolith = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
+                dConcentrationRegolith = GetFinalConcentration();
 
                 /* If collecting is legal, update the regolith concentration in GUI, otherwise pass a zero string. 
                  * This way we shouldn't get readings when the vessel is flying or splashed or on a planet with an atmosphere.
                  */
-                strRegolithConc = IsCollectLegal() ? dConcentrationRegolith.ToString("F1") : "0"; // F1 string format means fixed point number with one decimal place (i.e. number 1234.567 would be formatted as 1234.5). I might change this eventually to P1 or P0 (num multiplied by hundred and percentage sign with 1 or 0 dec. places).
+                strRegolithConc = IsCollectLegal() ? dConcentrationRegolith.ToString("P0") : "0"; // F1 string format means fixed point number with one decimal place (i.e. number 1234.567 would be formatted as 1234.5). I might change this eventually to P1 or P0 (num multiplied by hundred and percentage sign with 1 or 0 dec. places).
                 // Also update the current altitude in GUI
                 strAltitude = (vessel.altitude < 15000) ? (vessel.altitude).ToString("F0") : "Too damn high";
             }
@@ -200,7 +213,9 @@ namespace FNPlugin.Collectors
                 dLastActiveTime = (float)Planetarium.GetUniversalTime();
 
                 // store current solar wind concentration in case vessel is unloaded
-                dLastRegolithConcentration = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
+                //dLastRegolithConcentration = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
+                dLastRegolithConcentration = GetFinalConcentration();
+
 
                 /* This bit will check if the regolith drill has not been retracted by the player while still running. The counter will 
                  * delay the check so that it runs only once per hundred cycles. This should be enough and should make it more performance friendly and
@@ -266,6 +281,23 @@ namespace FNPlugin.Collectors
             }
         }
 
+        private double GetFinalConcentration()
+        {
+            dFinalConcentration = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
+            dFinalConcentration += AdjustConcentrationForLocation();
+            return dFinalConcentration;
+        }
+
+        private double AdjustConcentrationForLocation()
+        {
+            double concentration = 0;
+            regolithRequest.BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex;
+            regolithRequest.Latitude = vessel.latitude;
+            regolithRequest.Longitude = vessel.longitude;
+            regolithRequest.Altitude = vessel.altitude;
+            concentration = ResourceMap.Instance.GetAbundance(regolithRequest);
+            return concentration;
+        }
 
         // calculates regolith concentration - right now just based on the distance of the planet from the sun, so planets will have uniform distribution. We might add latitude as a factor etc.
         private static double CalculateRegolithConcentration(Vector3d planetPosition, Vector3d sunPosition, double altitude)
@@ -304,7 +336,8 @@ namespace FNPlugin.Collectors
         private void CollectRegolith(double deltaTimeInSeconds, bool offlineCollecting)
         {
             //Debug.Log("Inside Collect function.");
-            dConcentrationRegolith = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
+            //dConcentrationRegolith = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
+            dConcentrationRegolith = GetFinalConcentration();
 
             string strRegolithResourceName = InterstellarResourcesConfiguration.Instance.Regolith;
             double dPowerRequirementsMW = (double)PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
@@ -363,7 +396,7 @@ namespace FNPlugin.Collectors
             {
                 string strNumberFormat = dResourceChange > 100 ? "0" : "0.00";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage("The Solar Wind Collector collected " + dResourceChange.ToString(strNumberFormat) + " units of " + strRegolithResourceName, 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("The Regolith Drill collected " + dResourceChange.ToString(strNumberFormat) + " units of " + strRegolithResourceName, 10.0f, ScreenMessageStyle.LOWER_CENTER);
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
