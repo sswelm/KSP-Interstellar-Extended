@@ -5,8 +5,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-
-
 namespace FNPlugin 
 {
     class FNMassSpectrometer : PartModule
@@ -33,20 +31,12 @@ namespace FNPlugin
         public override void OnStart(StartState state) 
         {
             if (state == StartState.Editor) return;
-            
-            
-            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
-            
         }
 
         public override void OnUpdate() 
         {
             Events["showWindow"].active = !render_window;
             Events["hideWindow"].active = render_window;
-            if (!vessel.isActiveVessel || part == null) 
-            {
-                //RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
-            }
         }
 
         private void OnGUI() 
@@ -76,19 +66,19 @@ namespace FNPlugin
                     GUILayout.Label("Abundance", bold_label, GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                     GUILayout.Space(5);
-                    foreach (ORSAtmosphericResource atmospheric_resource in AtmosphericResourceHandler.getAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex)) 
+                    foreach (AtmosphericResource atmospheric_resource in AtmosphericResourceHandler.getAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex)) 
                     {
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label(atmospheric_resource.getDisplayName(), GUILayout.Width(150));
+                        GUILayout.Label(atmospheric_resource.DisplayName, GUILayout.Width(150));
                         string resource_abundance_str;
-                        if (atmospheric_resource.getResourceAbundance() > 0.001) 
-                            resource_abundance_str = (atmospheric_resource.getResourceAbundance() * 100.0).ToString() + "%";
+                        if (atmospheric_resource.ResourceAbundance > 0.001) 
+                            resource_abundance_str = (atmospheric_resource.ResourceAbundance * 100.0).ToString() + "%";
                         else 
                         {
-                            if (atmospheric_resource.getResourceAbundance() > 0.000001) 
-                                resource_abundance_str = (atmospheric_resource.getResourceAbundance() * 1e6).ToString() + " ppm";
+                            if (atmospheric_resource.ResourceAbundance > 0.000001) 
+                                resource_abundance_str = (atmospheric_resource.ResourceAbundance * 1e6).ToString() + " ppm";
                             else 
-                                resource_abundance_str = (atmospheric_resource.getResourceAbundance() * 1e9).ToString() + " ppb";
+                                resource_abundance_str = (atmospheric_resource.ResourceAbundance * 1e9).ToString() + " ppb";
                         }
                         GUILayout.Label(resource_abundance_str, GUILayout.Width(150));
                         GUILayout.EndHorizontal();

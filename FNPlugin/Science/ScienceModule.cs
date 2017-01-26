@@ -459,7 +459,7 @@ namespace FNPlugin
                 
                 electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult);
                 global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
-                reprocessor.UpdateFrame(global_rate_multipliers, true);
+                reprocessor.UpdateFrame(global_rate_multipliers, true, TimeWarp.fixedDeltaTime);
                 
                 if (reprocessor.getActinidesRemovedPerHour() > 0)
                     reprocessing_rate_f = (float)(reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour());

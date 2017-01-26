@@ -113,7 +113,7 @@ namespace FNPlugin.Refinery
         protected double _neonMassByFraction = 0.06012;
 
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
@@ -148,12 +148,12 @@ namespace FNPlugin.Refinery
             _spareRoomNeonMass = partsThatContainNeon.Sum(r => r.maxAmount - r.amount) * _neon_density;
 
             // this should determine how much resource this process can consume
-            var fixedMaxSolarWindConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * _solar_wind_density;
+            var fixedMaxSolarWindConsumptionRate = _current_rate * fixedDeltaTime * _solar_wind_density;
             var solarWindConsumptionRatio = fixedMaxSolarWindConsumptionRate > 0
                 ? Math.Min(fixedMaxSolarWindConsumptionRate, _availableSolarWindMass) / fixedMaxSolarWindConsumptionRate
                 : 0;
 
-            _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * solarWindConsumptionRatio;
+            _fixedConsumptionRate = _current_rate * fixedDeltaTime * solarWindConsumptionRatio;
 
             // begin the solar wind processing
             if (_fixedConsumptionRate > 0 && ((((_spareRoomHydrogenMass > 0 || _spareRoomHelium3Mass > 0) || _spareRoomHelium4Mass > 0) || _spareRoomMonoxideMass > 0) || _spareRoomNitrogenMass > 0)) // check if there is anything to consume and spare room for at least one of the products
@@ -177,7 +177,7 @@ namespace FNPlugin.Refinery
                 _consumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate, fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate), fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate), fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate), fixedMaxPossibleNitrogenRate / fixedMaxNitrogenRate), fixedMaxPossibleNeonRate / fixedMaxNeonRate);
                                
                 // this consumes the resource
-                _solar_wind_consumption_rate = _part.RequestResource(_solar_wind_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _solar_wind_density) / TimeWarp.fixedDeltaTime * _solar_wind_density;
+                _solar_wind_consumption_rate = _part.RequestResource(_solar_wind_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _solar_wind_density) / fixedDeltaTime * _solar_wind_density;
 
                 // this produces the products
                 var hydrogen_rate_temp = _solar_wind_consumption_rate * _hydrogenMassByFraction;
@@ -187,12 +187,12 @@ namespace FNPlugin.Refinery
                 var nitrogen_rate_temp = _solar_wind_consumption_rate * _nitrogenMassByFraction;
                 var neon_rate_temp = _solar_wind_consumption_rate * _neonMassByFraction;
 
-                _hydrogen_production_rate = -_part.RequestResource(_hydrogen_resource_name, -hydrogen_rate_temp * TimeWarp.fixedDeltaTime / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
-                _liquid_helium3_production_rate = -_part.RequestResource(_liquid_helium3_resource_name, -helium3_rate_temp * TimeWarp.fixedDeltaTime / _liquid_helium3_density) / TimeWarp.fixedDeltaTime * _liquid_helium3_density;
-                _liquid_helium4_production_rate = -_part.RequestResource(_liquid_helium4_resource_name, -helium4_rate_temp * TimeWarp.fixedDeltaTime / _liquid_helium4_density) / TimeWarp.fixedDeltaTime * _liquid_helium4_density;
-                _monoxide_production_rate = -_part.RequestResource(_monoxide_resource_name, -monoxide_rate_temp * TimeWarp.fixedDeltaTime / _monoxide_density) / TimeWarp.fixedDeltaTime * _monoxide_density;
-                _nitrogen_production_rate = -_part.RequestResource(_nitrogen_resource_name, -nitrogen_rate_temp * TimeWarp.fixedDeltaTime / _nitrogen_density) / TimeWarp.fixedDeltaTime * _nitrogen_density;
-                _neon_production_rate = -_part.RequestResource(_neon_resource_name, -neon_rate_temp * TimeWarp.fixedDeltaTime / _neon_density) / TimeWarp.fixedDeltaTime * _neon_density;
+                _hydrogen_production_rate = -_part.RequestResource(_hydrogen_resource_name, -hydrogen_rate_temp * fixedDeltaTime / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
+                _liquid_helium3_production_rate = -_part.RequestResource(_liquid_helium3_resource_name, -helium3_rate_temp * fixedDeltaTime / _liquid_helium3_density) / fixedDeltaTime * _liquid_helium3_density;
+                _liquid_helium4_production_rate = -_part.RequestResource(_liquid_helium4_resource_name, -helium4_rate_temp * fixedDeltaTime / _liquid_helium4_density) / fixedDeltaTime * _liquid_helium4_density;
+                _monoxide_production_rate = -_part.RequestResource(_monoxide_resource_name, -monoxide_rate_temp * fixedDeltaTime / _monoxide_density) / fixedDeltaTime * _monoxide_density;
+                _nitrogen_production_rate = -_part.RequestResource(_nitrogen_resource_name, -nitrogen_rate_temp * fixedDeltaTime / _nitrogen_density) / fixedDeltaTime * _nitrogen_density;
+                _neon_production_rate = -_part.RequestResource(_neon_resource_name, -neon_rate_temp * fixedDeltaTime / _neon_density) / fixedDeltaTime * _neon_density;
             }
             else
             {
@@ -222,7 +222,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Solar Wind Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_solar_wind_consumption_rate /*/ TimeWarp.fixedDeltaTime*/ * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((_solar_wind_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();

@@ -17,7 +17,7 @@ namespace FNPlugin.Refinery
 
         String Status { get; }
 
-        void UpdateFrame(double rateMultiplier, bool allowOverfow);
+        void UpdateFrame(double rateMultiplier, bool allowOverfow, double fixedDeltaTime);
 
         void UpdateGUI();
     }

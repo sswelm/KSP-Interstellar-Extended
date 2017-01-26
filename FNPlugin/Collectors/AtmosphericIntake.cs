@@ -9,7 +9,9 @@ namespace FNPlugin
         //protected Vector3 _intake_direction;
         protected PartResourceDefinition _resourceAtmosphere;
 
-        // persistents
+
+
+
         //[KSPField(isPersistant = true)]
         //public double lastActiveTime;
 
@@ -41,22 +43,41 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiName = "Intake Exposure", guiActiveEditor = false, guiActive = false)]
         public double intakeExposure = 0;
         [KSPField(isPersistant = false, guiName = "Trace atmo. density", guiFormat ="P0", guiActiveEditor = false, guiActive = true)]
-        private double upperAtmoDensity;
-
-        private float jetTechBonusPercentage;
-        private double maxAtmoAltitude;
+        public double upperAtmoDensity;
+        [KSPField(guiName = "Air Density", isPersistant = false, guiActive = false, guiFormat = "F3")]
+        public double airDensity;
+        [KSPField(guiName = "Tech Bonus", isPersistant = false, guiActive = false, guiFormat = "F3")]
+        public float jetTechBonusPercentage;
+        [KSPField(guiName = "Max Atmo Altitude", isPersistant = false, guiActive = false, guiFormat = "F3")]
+        public double maxAtmoAltitude;
+        [KSPField(guiName = "Upper Atmo Fraction", isPersistant = false, guiActive = false, guiFormat = "F3")]
         public double upperAtmoFraction;
-        private double airDensity;
-        public double finalAir { get; set; } // this property will be accessed by the atmospheric extractor
+
+        // persistents
+        [KSPField(isPersistant = true, guiName = "Final Air", guiActiveEditor = false, guiActive = true)]
+        public double finalAir;
+
+        public double startupCount;
+
+        private ModuleResourceIntake _moduleResourceIntake;
+
+        // this property will be accessed by the atmospheric extractor
+        public double FinalAir
+        {
+            get { return finalAir; }
+        }
 
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return; // don't do any of this stuff in editor
-            Transform intakeTransform = part.FindModelTransform(intakeTransformName);
-            if (intakeTransform == null)
-                Debug.Log("[KSPI] AtmosphericIntake unable to get intake transform for " + part.name);
 
+            _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
+
+            //Transform intakeTransform = part.FindModelTransform(intakeTransformName);
+            //if (intakeTransform == null)
+            //    Debug.Log("[KSPI] AtmosphericIntake unable to get intake transform for " + part.name);
             //_intake_direction = intakeTransform != null ? intakeTransform.forward.normalized : Vector3.forward;
+
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
 
             // ToDo: connect with atmospheric intake to readout updated area
@@ -88,12 +109,12 @@ namespace FNPlugin
             //lastActiveTime = Planetarium.GetUniversalTime(); // store the current time in case the vessel is unloaded
             
             IntakeThatAir(TimeWarp.fixedDeltaTime, false); // collect intake atmosphere for the timeframe
-            
-
         }
 
         public void IntakeThatAir(double deltaTimeInSecs, bool offlineCollecting)
         {
+            
+
             airSpeed = vessel.speed + _intake_speed;
             intakeExposure = (airSpeed * unitScalar) + _intake_speed;
             intakeExposure *= area * unitScalar * jetTechBonusPercentage;
@@ -116,7 +137,21 @@ namespace FNPlugin
                 ScreenMessages.PostScreenMessage("The air intakes collected " + airThisUpdate.ToString("") + " units of " + (InterstellarResourcesConfiguration.Instance.IntakeAtmosphere), 3.0f, ScreenMessageStyle.LOWER_CENTER);
             }
 
-            finalAir = airThisUpdate; // take the final airThisUpdate value and assign it to the finalAir property (this will in turn get used by atmo extractor)
+            // do not return anything when intakes are closed
+            if (_moduleResourceIntake != null && !_moduleResourceIntake.intakeEnabled)
+            {
+                airThisUpdate = 0;
+                finalAir = 0;
+                return;
+            }
+
+            if (startupCount > 10)
+            {
+                // take the final airThisUpdate value and assign it to the finalAir property (this will in turn get used by atmo extractor)
+                finalAir = airThisUpdate;
+            }
+            else
+                startupCount++;
 
             if (!storesResource)
             {

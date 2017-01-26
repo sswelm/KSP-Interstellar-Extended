@@ -180,9 +180,9 @@ namespace FNPlugin.Refinery
         List<AtmosphericIntake> intakesList; // create a new list for keeping track of atmo intakes
         double tempAir;
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
-            ExtractAir(rateMultiplier, allowOverflow, TimeWarp.fixedDeltaTime, false);
+            ExtractAir(rateMultiplier, allowOverflow, fixedDeltaTime, false);
 
             updateStatusMessage();
         }
@@ -191,18 +191,18 @@ namespace FNPlugin.Refinery
          * tempAir is just a variable used to temporarily hold the total while cycling through parts, then gets reset at every engine update.
          */
         public double GetTotalAirScooped()
-        {   
+        {
             intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>(); // add any atmo intake part on the vessel to our list
             tempAir = 0; // reset tempAir before we go into the list
             foreach (AtmosphericIntake intake in intakesList) // go through the list
             {
                 // add the current intake's finalAir to our tempAir. When done with the foreach cycle, we will have the total amount of air these intakes collect per cycle
-                tempAir += intake.finalAir;
+                tempAir += intake.FinalAir;
             }
             return tempAir;
         }
 
-        public void ExtractAir(double rateMultiplier, bool allowOverflow, double deltaTimeInSecs, bool offlineCollecting)
+        public void ExtractAir(double rateMultiplier, bool allowOverflow, double fixedDeltaTime, bool offlineCollecting)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
@@ -221,7 +221,6 @@ namespace FNPlugin.Refinery
             var partsThatContainOxygen = _part.GetConnectedResources(_oxygen_resource_name);
             var partsThatContainWater = _part.GetConnectedResources(_water_resource_name);
 
-
             // determine the maximum amount of a resource the vessel can hold (ie. tank capacities combined)
             _maxCapacityAtmosphereMass = partsThatContainAtmosphere.Sum(p => p.maxAmount) * _atmosphere_density;
             _maxCapacityArgonMass = partsThatContainArgon.Sum(p => p.maxAmount) * _argon_density;
@@ -237,7 +236,9 @@ namespace FNPlugin.Refinery
             _maxCapacityWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _water_density;
 
             // determine the amount of resources needed for processing (i.e. intake atmosphere) that the vessel actually holds
-            _availableAtmosphereMass = partsThatContainAtmosphere.Sum(r => r.amount) * _atmosphere_density;
+            _availableAtmosphereMass = offlineCollecting 
+                ? partsThatContainAtmosphere.Sum(r => r.maxAmount) * _atmosphere_density 
+                : partsThatContainAtmosphere.Sum(r => r.amount) * _atmosphere_density;
 
             // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
             _spareRoomArgonMass = partsThatContainArgon.Sum(r => r.maxAmount - r.amount) * _argon_density;
@@ -254,18 +255,24 @@ namespace FNPlugin.Refinery
 
 
             // this should determine how much resource this process can consume
-            var fixedMaxAtmosphereConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * _atmosphere_density;
+            var fixedMaxAtmosphereConsumptionRate = _current_rate * fixedDeltaTime * _atmosphere_density;
             var atmosphereConsumptionRatio = fixedMaxAtmosphereConsumptionRate > 0
                 ? Math.Min(fixedMaxAtmosphereConsumptionRate, _availableAtmosphereMass) / fixedMaxAtmosphereConsumptionRate
                 : 0;
 
-            _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * atmosphereConsumptionRatio;
+            _fixedConsumptionRate = _current_rate * fixedDeltaTime * atmosphereConsumptionRatio;
 
-
+            //if (fixedDeltaTime > 1)
+            //{
+            //    ScreenMessages.PostScreenMessage(" _current_rate = " + _current_rate + " fixedDeltaTime = " + fixedDeltaTime + " atmosphereConsumptionRatio = " + atmosphereConsumptionRatio + " fixedMaxAtmosphereConsumptionRate = " + fixedMaxAtmosphereConsumptionRate + " _atmosphere_density = " + _atmosphere_density + " _availableAtmosphereMass " + _availableAtmosphereMass, 60.0f, ScreenMessageStyle.UPPER_CENTER);
+            //}
 
             // begin the intake atmosphere processing
             // check if there is anything to consume and if there is spare room for at least one of the products
-            if (_fixedConsumptionRate > 0 && ((((((((((_spareRoomHydrogenMass > 0 || _spareRoomHelium3Mass > 0) || _spareRoomHelium4Mass > 0) || _spareRoomMonoxideMass > 0) || _spareRoomNitrogenMass > 0) || _spareRoomArgonMass > 0) || _spareRoomDioxideMass > 0) || _spareRoomMethaneMass > 0) || _spareRoomNeonMass > 0) || _spareRoomWaterMass > 0) || _spareRoomOxygenMass > 0)) // pardon the length
+            if (_fixedConsumptionRate > 0 && (
+                _spareRoomHydrogenMass > 0 || _spareRoomHelium3Mass > 0 || _spareRoomHelium4Mass > 0 || _spareRoomMonoxideMass > 0 || 
+                _spareRoomNitrogenMass > 0 || _spareRoomArgonMass > 0 || _spareRoomDioxideMass > 0 || _spareRoomMethaneMass > 0 || 
+                _spareRoomNeonMass > 0 || _spareRoomWaterMass > 0 || _spareRoomOxygenMass > 0)) 
             {
                 /* Now to get the actual percentages from ORSAtmosphericResourceHandler Freethinker extended.
                  * Calls getAtmosphericResourceContent which calls getAtmosphericCompositionForBody which (if there's no definition, i.e. we're using a custom solar system
@@ -339,11 +346,11 @@ namespace FNPlugin.Refinery
                 /* If the collecting is done offline
                  * 
                  */
-                if (offlineCollecting == true) // if we're collecting offline, we don't need to actually consume the resource, just provide the lines below with a number
+                if (offlineCollecting) // if we're collecting offline, we don't need to actually consume the resource, just provide the lines below with a number
                 {
                     totalAirValue = GetTotalAirScooped();
-                    _atmosphere_consumption_rate = _consumptionStorageRatio * totalAirValue * deltaTimeInSecs / _atmosphere_density;
-                    ScreenMessages.PostScreenMessage("The atmospheric extractor processed " + _atmosphere_consumption_rate.ToString("F2") + " units of " + _atmosphere_resource_name, 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                    _atmosphere_consumption_rate = _consumptionStorageRatio * totalAirValue * fixedDeltaTime / _atmosphere_density;
+                    ScreenMessages.PostScreenMessage("The atmospheric extractor processed " + _atmosphere_consumption_rate.ToString("F2") + " units of " + _atmosphere_resource_name, 60.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
                 else
                 {
@@ -365,17 +372,17 @@ namespace FNPlugin.Refinery
                 var water_rate_temp = _atmosphere_consumption_rate * _waterPercentage;
 
                 // produce the resources
-                _argon_production_rate = -_part.RequestResource(_argon_resource_name, -argon_rate_temp * TimeWarp.fixedDeltaTime / _argon_density) / TimeWarp.fixedDeltaTime * _argon_density;
-                _dioxide_production_rate = -_part.RequestResource(_dioxide_resource_name, -dioxide_rate_temp * TimeWarp.fixedDeltaTime / _dioxide_density) / TimeWarp.fixedDeltaTime * _dioxide_density;
-                _gas_helium3_production_rate = -_part.RequestResource(_gas_helium3_resource_name, -helium3_rate_temp * TimeWarp.fixedDeltaTime / _gas_helium3_density) / TimeWarp.fixedDeltaTime * _gas_helium3_density;
-                _gas_helium4_production_rate = -_part.RequestResource(_gas_helium4_resource_name, -helium4_rate_temp * TimeWarp.fixedDeltaTime / _gas_helium4_density) / TimeWarp.fixedDeltaTime * _gas_helium4_density;
-                _hydrogen_production_rate = -_part.RequestResource(_hydrogen_resource_name, -hydrogen_rate_temp * TimeWarp.fixedDeltaTime / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
-                _methane_production_rate = -_part.RequestResource(_methane_resource_name, -methane_rate_temp * TimeWarp.fixedDeltaTime / _methane_density) / TimeWarp.fixedDeltaTime * _methane_density;
-                _monoxide_production_rate = -_part.RequestResource(_monoxide_resource_name, -monoxide_rate_temp * TimeWarp.fixedDeltaTime / _monoxide_density) / TimeWarp.fixedDeltaTime * _monoxide_density;
-                _neon_production_rate = -_part.RequestResource(_neon_resource_name, -neon_rate_temp * TimeWarp.fixedDeltaTime / _neon_density) / TimeWarp.fixedDeltaTime * _neon_density;
-                _nitrogen_production_rate = -_part.RequestResource(_nitrogen_resource_name, -nitrogen_rate_temp * TimeWarp.fixedDeltaTime / _nitrogen_density) / TimeWarp.fixedDeltaTime * _nitrogen_density;
-                _oxygen_production_rate = -_part.RequestResource(_oxygen_resource_name, -oxygen_rate_temp * TimeWarp.fixedDeltaTime / _oxygen_density) / TimeWarp.fixedDeltaTime * _oxygen_density;
-                _water_production_rate = -_part.RequestResource(_water_resource_name, -water_rate_temp * TimeWarp.fixedDeltaTime / _water_density) / TimeWarp.fixedDeltaTime * _water_density;
+                _argon_production_rate = -_part.RequestResource(_argon_resource_name, -argon_rate_temp * fixedDeltaTime / _argon_density) / fixedDeltaTime * _argon_density;
+                _dioxide_production_rate = -_part.RequestResource(_dioxide_resource_name, -dioxide_rate_temp * fixedDeltaTime / _dioxide_density) / fixedDeltaTime * _dioxide_density;
+                _gas_helium3_production_rate = -_part.RequestResource(_gas_helium3_resource_name, -helium3_rate_temp * fixedDeltaTime / _gas_helium3_density) / fixedDeltaTime * _gas_helium3_density;
+                _gas_helium4_production_rate = -_part.RequestResource(_gas_helium4_resource_name, -helium4_rate_temp * fixedDeltaTime / _gas_helium4_density) / fixedDeltaTime * _gas_helium4_density;
+                _hydrogen_production_rate = -_part.RequestResource(_hydrogen_resource_name, -hydrogen_rate_temp * fixedDeltaTime / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
+                _methane_production_rate = -_part.RequestResource(_methane_resource_name, -methane_rate_temp * fixedDeltaTime / _methane_density) / fixedDeltaTime * _methane_density;
+                _monoxide_production_rate = -_part.RequestResource(_monoxide_resource_name, -monoxide_rate_temp * fixedDeltaTime / _monoxide_density) / fixedDeltaTime * _monoxide_density;
+                _neon_production_rate = -_part.RequestResource(_neon_resource_name, -neon_rate_temp * fixedDeltaTime / _neon_density) / fixedDeltaTime * _neon_density;
+                _nitrogen_production_rate = -_part.RequestResource(_nitrogen_resource_name, -nitrogen_rate_temp * fixedDeltaTime / _nitrogen_density) / fixedDeltaTime * _nitrogen_density;
+                _oxygen_production_rate = -_part.RequestResource(_oxygen_resource_name, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density) / fixedDeltaTime * _oxygen_density;
+                _water_production_rate = -_part.RequestResource(_water_resource_name, -water_rate_temp * fixedDeltaTime / _water_density) / fixedDeltaTime * _water_density;
 
             }
             else

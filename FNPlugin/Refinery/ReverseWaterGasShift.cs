@@ -26,6 +26,7 @@ namespace FNPlugin.Refinery
         protected double _current_power;
         protected double _current_rate;
         protected double _fixedConsumptionRate;
+        protected double _consumptionRate;
         protected double _consumptionStorageRatio;
 
         protected double _dioxide_consumption_rate;
@@ -86,8 +87,8 @@ namespace FNPlugin.Refinery
             _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
-        
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             _allowOverflow = allowOverflow;
             
@@ -113,13 +114,14 @@ namespace FNPlugin.Refinery
             _spareRoomMonoxideMass = partsThatContainMonoxide.Sum(r => r.maxAmount - r.amount) * _monoxide_density;
 
             // determine how much we can consume
-            var fixedMaxDioxideConsumptionRate = _current_rate * dioxideMassByFraction * TimeWarp.fixedDeltaTime;
+            var fixedMaxDioxideConsumptionRate = _current_rate * dioxideMassByFraction * fixedDeltaTime;
             var dioxideConsumptionRatio = fixedMaxDioxideConsumptionRate > 0 ? Math.Min(fixedMaxDioxideConsumptionRate, _availableDioxideMass) / fixedMaxDioxideConsumptionRate : 0;
 
-            var fixedMaxHydrogenConsumptionRate =  _current_rate * hydrogenMassByFraction * TimeWarp.fixedDeltaTime;
+            var fixedMaxHydrogenConsumptionRate =  _current_rate * hydrogenMassByFraction * fixedDeltaTime;
             var hydrogenConsumptionRatio = fixedMaxHydrogenConsumptionRate > 0 ? Math.Min(fixedMaxHydrogenConsumptionRate, _availableHydrogenMass) / fixedMaxHydrogenConsumptionRate : 0;
 
-            _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * Math.Min(dioxideConsumptionRatio, hydrogenConsumptionRatio);
+            _fixedConsumptionRate = _current_rate * fixedDeltaTime * Math.Min(dioxideConsumptionRatio, hydrogenConsumptionRatio);
+            _consumptionRate = _fixedConsumptionRate / fixedDeltaTime;
 
             if (_fixedConsumptionRate > 0 && (_spareRoomMonoxideMass > 0 || _spareRoomWaterMass > 0))
             {
@@ -133,15 +135,15 @@ namespace FNPlugin.Refinery
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate, fixedMaxPossibleWaterRate / fixedMaxWaterRate);
 
                 // now we do the real consumption
-                _dioxide_consumption_rate = _part.RequestResource(_dioxideResourceName, dioxideMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _dioxide_density) / TimeWarp.fixedDeltaTime * _dioxide_density;
-                _hydrogen_consumption_rate = _part.RequestResource(_hydrogenResourceName, hydrogenMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
+                _dioxide_consumption_rate = _part.RequestResource(_dioxideResourceName, dioxideMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _dioxide_density) / fixedDeltaTime * _dioxide_density;
+                _hydrogen_consumption_rate = _part.RequestResource(_hydrogenResourceName, hydrogenMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
                 var combined_consumption_rate = _dioxide_consumption_rate + _hydrogen_consumption_rate;
 
                 var monoxide_rate_temp = combined_consumption_rate * monoxideMassByFraction;
                 var water_rate_temp = combined_consumption_rate * waterMassByFraction;
 
-                _monoxide_production_rate = -_part.RequestResource(_monoxideResourceName, -monoxide_rate_temp * TimeWarp.fixedDeltaTime / _monoxide_density) / TimeWarp.fixedDeltaTime * _monoxide_density;
-                _water_production_rate = -_part.RequestResource(_waterResourceName, -water_rate_temp * TimeWarp.fixedDeltaTime / _water_density) / TimeWarp.fixedDeltaTime * _water_density;
+                _monoxide_production_rate = -_part.RequestResource(_monoxideResourceName, -monoxide_rate_temp * fixedDeltaTime / _monoxide_density) / fixedDeltaTime * _monoxide_density;
+                _water_production_rate = -_part.RequestResource(_waterResourceName, -water_rate_temp * fixedDeltaTime / _water_density) / fixedDeltaTime * _water_density;
             }
             else
             {
@@ -169,7 +171,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Current Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_fixedConsumptionRate / TimeWarp.fixedDeltaTime * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((_consumptionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();

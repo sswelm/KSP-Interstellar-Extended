@@ -85,9 +85,10 @@ namespace FNPlugin.Refinery
         protected double _oxygenMassByFraction = 32.0 / 52.0;
         protected double _methaneMassByFraction = 20.0 / 52.0;
 
+        private double fixed_combined_consumption_rate;
         private double combined_consumption_rate;
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon; //* _vessel.atmDensity;
@@ -108,15 +109,15 @@ namespace FNPlugin.Refinery
             _spareRoomMethaneMass = partsThatContainMethane.Sum(r => r.maxAmount - r.amount) * _methane_density;
             _spareRoomOxygenMass = partsThatContainOxygen.Sum(r => r.maxAmount - r.amount) * _oxygen_density;
 
-            var fixedMaxCarbondioxideConsumptionRate = _current_rate * _carbonDioxideMassByFraction * TimeWarp.fixedDeltaTime;
+            var fixedMaxCarbondioxideConsumptionRate = _current_rate * _carbonDioxideMassByFraction * fixedDeltaTime;
             var carbondioxideConsumptionRatio = fixedMaxCarbondioxideConsumptionRate > 0 
                 ? Math.Min(fixedMaxCarbondioxideConsumptionRate, _availableCarbondioxideMass) / fixedMaxCarbondioxideConsumptionRate 
                 : 0;
 
-            var fixedMaxHydrogenConsumptionRate = _current_rate * _hydrogenMassByFraction * TimeWarp.fixedDeltaTime;
+            var fixedMaxHydrogenConsumptionRate = _current_rate * _hydrogenMassByFraction * fixedDeltaTime;
             var hydrogenConsumptionRatio = fixedMaxHydrogenConsumptionRate > 0 ? Math.Min(fixedMaxHydrogenConsumptionRate, _availableHydrogenMass) / fixedMaxHydrogenConsumptionRate : 0;
 
-            _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * Math.Min(carbondioxideConsumptionRatio, hydrogenConsumptionRatio);
+            _fixedConsumptionRate = _current_rate * fixedDeltaTime * Math.Min(carbondioxideConsumptionRatio, hydrogenConsumptionRatio);
 
             if (_fixedConsumptionRate > 0 && _spareRoomMethaneMass > 0)
             {
@@ -126,16 +127,17 @@ namespace FNPlugin.Refinery
                 var hydrogen_consumption_rate = fixedMaxPossibleProductionRate * _hydrogenMassByFraction;
 
                 // consume the resource
-                _hydrogen_consumption_rate = _part.RequestResource(_hydrogen_resource_name, hydrogen_consumption_rate / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
-                _carbondioxide_consumption_rate = _part.RequestResource(_carbondioxide_resource_name, carbonDioxide_consumption_rate / _carbondioxide_density) / TimeWarp.fixedDeltaTime * _carbondioxide_density;
+                _hydrogen_consumption_rate = _part.RequestResource(_hydrogen_resource_name, hydrogen_consumption_rate / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
+                _carbondioxide_consumption_rate = _part.RequestResource(_carbondioxide_resource_name, carbonDioxide_consumption_rate / _carbondioxide_density) / fixedDeltaTime * _carbondioxide_density;
 
-                combined_consumption_rate = _hydrogen_consumption_rate + _carbondioxide_consumption_rate;
+                fixed_combined_consumption_rate = _hydrogen_consumption_rate + _carbondioxide_consumption_rate;
+                combined_consumption_rate = fixed_combined_consumption_rate / fixedDeltaTime;
 
-                var fixedMethaneProduction = combined_consumption_rate * _methaneMassByFraction * TimeWarp.fixedDeltaTime / _methane_density;
-                var fixedOxygenProduction = combined_consumption_rate * _oxygenMassByFraction * TimeWarp.fixedDeltaTime / _oxygen_density;
+                var fixedMethaneProduction = fixed_combined_consumption_rate * _methaneMassByFraction * fixedDeltaTime / _methane_density;
+                var fixedOxygenProduction = fixed_combined_consumption_rate * _oxygenMassByFraction * fixedDeltaTime / _oxygen_density;
 
-                _methane_production_rate = -_part.RequestResource(_methane_resource_name, -fixedMethaneProduction) / TimeWarp.fixedDeltaTime * _methane_density;
-                _oxygen_production_rate = -_part.RequestResource(_oxygen_resource_name, -fixedOxygenProduction) / TimeWarp.fixedDeltaTime * _oxygen_density;
+                _methane_production_rate = -_part.RequestResource(_methane_resource_name, -fixedMethaneProduction) / fixedDeltaTime * _methane_density;
+                _oxygen_production_rate = -_part.RequestResource(_oxygen_resource_name, -fixedOxygenProduction) / fixedDeltaTime * _oxygen_density;
             }
             else
             {
@@ -161,7 +163,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Overal Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((combined_consumption_rate / TimeWarp.fixedDeltaTime * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((combined_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();

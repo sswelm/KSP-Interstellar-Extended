@@ -3,58 +3,57 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using OpenResourceSystem;
 
 namespace FNPlugin 
 {
     public class AtmosphericResourceHandler 
     {
-        protected static Dictionary<int, List<ORSAtmosphericResource>> body_atmospheric_resource_list = new Dictionary<int, List<ORSAtmosphericResource>>();
+        protected static Dictionary<int, List<AtmosphericResource>> body_atmospheric_resource_list = new Dictionary<int, List<AtmosphericResource>>();
 
         public static double getAtmosphericResourceContent(int refBody, string resourcename) 
         {
-            List<ORSAtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
-            ORSAtmosphericResource resource = bodyAtmosphericComposition.FirstOrDefault(oor => oor.getResourceName() == resourcename);
-            return resource != null ? resource.getResourceAbundance() : 0;
+            List<AtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
+            AtmosphericResource resource = bodyAtmosphericComposition.FirstOrDefault(oor => oor.ResourceName == resourcename);
+            return resource != null ? resource.ResourceAbundance : 0;
         }
 
         public static double getAtmosphericResourceContentByDisplayName(int refBody, string resourcename) 
         {
-            List<ORSAtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
-            ORSAtmosphericResource resource = bodyAtmosphericComposition.FirstOrDefault(oor => oor.getDisplayName() == resourcename);
-            return resource != null ? resource.getResourceAbundance() : 0;
+            List<AtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
+            AtmosphericResource resource = bodyAtmosphericComposition.FirstOrDefault(oor => oor.DisplayName == resourcename);
+            return resource != null ? resource.ResourceAbundance : 0;
         }
 
         public static double getAtmosphericResourceContent(int refBody, int resource) 
         {
-            List<ORSAtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
+            List<AtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
             if (bodyAtmosphericComposition.Count > resource) 
-                return bodyAtmosphericComposition[resource].getResourceAbundance();
+                return bodyAtmosphericComposition[resource].ResourceAbundance;
 
             return 0;
         }
 
         public static string getAtmosphericResourceName(int refBody, int resource) 
         {
-            List<ORSAtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
+            List<AtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
             if (bodyAtmosphericComposition.Count > resource) 
-                return bodyAtmosphericComposition[resource].getResourceName();
+                return bodyAtmosphericComposition[resource].ResourceName;
 
             return null;
         }
 
         public static string getAtmosphericResourceDisplayName(int refBody, int resource) 
         {
-            List<ORSAtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
+            List<AtmosphericResource> bodyAtmosphericComposition = getAtmosphericCompositionForBody(refBody);
             if (bodyAtmosphericComposition.Count > resource) 
-                return bodyAtmosphericComposition[resource].getDisplayName();
+                return bodyAtmosphericComposition[resource].DisplayName;
 
             return null;
         }
 
-        public static List<ORSAtmosphericResource> getAtmosphericCompositionForBody(int refBody) 
+        public static List<AtmosphericResource> getAtmosphericCompositionForBody(int refBody) 
         {
-            List<ORSAtmosphericResource> bodyAtmosphericComposition = new List<ORSAtmosphericResource>();
+            List<AtmosphericResource> bodyAtmosphericComposition = new List<AtmosphericResource>();
             try 
             {
                 if (body_atmospheric_resource_list.ContainsKey(refBody)) 
@@ -70,39 +69,49 @@ namespace FNPlugin
                         if (atmospheric_resource_list.Any())
                         {
                             // create atmospheric definition from file
-                            bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new ORSAtmosphericResource(orsc.HasValue("resourceName") 
+                            bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new AtmosphericResource(orsc.HasValue("resourceName") 
                                 ? orsc.GetValue("resourceName") 
                                 : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
 
                             if (bodyAtmosphericComposition.Any())
                             {
-                                bodyAtmosphericComposition = bodyAtmosphericComposition.OrderByDescending(bacd => bacd.getResourceAbundance()).ToList();
+                                bodyAtmosphericComposition = bodyAtmosphericComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
                                 body_atmospheric_resource_list.Add(refBody, bodyAtmosphericComposition);
                             }
                         }
                         else
                         {
-                            // add empty definition
-                            body_atmospheric_resource_list.Add(refBody, GenerateCompositionFromCelestialBody(refBody));
+                            var generatedCompostion = GenerateCompositionFromResourceAbundances(refBody);
+
+                            // check if generated composition is valid
+                            if (generatedCompostion.Sum(m => m.ResourceAbundance) > 0.5)
+                            {
+                                body_atmospheric_resource_list.Add(refBody, generatedCompostion);
+                            }
+                            else
+                            {
+                                // generated based on celestrialbody characteristics
+                                body_atmospheric_resource_list.Add(refBody, GenerateCompositionFromCelestialBody(refBody));
+                            }
                         }
                     }
                     else
                     {
-                        Debug.LogError("[ORS]Failed to load atmospheric data");
+                        Debug.LogError("[KSPI] - Failed to load atmospheric data");
                     }
                 }
             } 
             catch (Exception ex) 
             {
-                Debug.Log("[ORS] - Exception while loading atmospheric resources : " + ex.ToString());
+                Debug.Log("[KSPI] - Exception while loading atmospheric resources : " + ex.ToString());
             }
             return bodyAtmosphericComposition;
         }
 
 
-        public static List<ORSAtmosphericResource> GenerateCompositionFromCelestialBody(int refBody)
+        public static List<AtmosphericResource> GenerateCompositionFromCelestialBody(int refBody)
         {
-            List<ORSAtmosphericResource> bodyAtmosphericComposition = new List<ORSAtmosphericResource>();
+            List<AtmosphericResource> bodyAtmosphericComposition = new List<AtmosphericResource>();
 
 
             try
@@ -162,35 +171,47 @@ namespace FNPlugin
             }
             catch (Exception ex)
             {
-                Debug.LogError("[ORS] - Exception while generating atmosphere composition from celestrial atmosphere properties : " + ex.ToString());
+                Debug.LogError("[KSPI] - Exception while generating atmosphere composition from celestrial atmosphere properties : " + ex.ToString());
             }
 
             return bodyAtmosphericComposition;
         }
 
-        public static List<ORSAtmosphericResource> GenerateCompositionFromResourceAbundances(int refBody)
+        public static List<AtmosphericResource> GenerateCompositionFromResourceAbundances(CelestialBody celestialBody)
         {
-            List<ORSAtmosphericResource> bodyAtmosphericComposition = new List<ORSAtmosphericResource>();
+            return GenerateCompositionFromResourceAbundances(celestialBody.flightGlobalsIndex);
+        }
+
+        public static List<AtmosphericResource> GenerateCompositionFromResourceAbundances(int refBody)
+        {
+            List<AtmosphericResource> bodyAtmosphericComposition = new List<AtmosphericResource>();
 
             try
             {
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Water, ResourceMap.Instance.GetAbundance(CreateRequest("Water", refBody)), "Water"));
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Nitrogen, ResourceMap.Instance.GetAbundance(CreateRequest("Nitrogen", refBody)), "Nitrogen"));
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Oxygen, ResourceMap.Instance.GetAbundance(CreateRequest("Oxygen", refBody)), "Oxygen"));
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.CarbonDioxide, ResourceMap.Instance.GetAbundance(CreateRequest("CarbonDioxide", refBody)), "CarbonDioxide"));
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, ResourceMap.Instance.GetAbundance(CreateRequest("CarbonMoxoxide", refBody)), "CarbonMoxoxide"));
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Methane, ResourceMap.Instance.GetAbundance(CreateRequest("Methane", refBody)), "Methane"));
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Argon, ResourceMap.Instance.GetAbundance(CreateRequest("ArgonGas", refBody)), "Argon"));
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Hydrogen, ResourceMap.Instance.GetAbundance(CreateRequest("LqdHydrogen", refBody)), "Hydrogen"));
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Helium4Gas, ResourceMap.Instance.GetAbundance(CreateRequest("Helium", refBody)), "Helium-4"));
-                bodyAtmosphericComposition.Add(new ORSAtmosphericResource(InterstellarResourcesConfiguration.Instance.Helium3Gas, ResourceMap.Instance.GetAbundance(CreateRequest("LqdHe3", refBody)), "Helium-3"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.Water, Math.Max(GetAbundance("LqdWater", refBody), GetAbundance("Water", refBody)), "Water"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.Nitrogen, Math.Max(GetAbundance("LqdNitrogen", refBody), GetAbundance("Nitrogen", refBody)), "Nitrogen"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.Oxygen, Math.Max(GetAbundance("LqdOxygen", refBody), GetAbundance("Oxygen", refBody)), "Oxygen"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.CarbonDioxide, Math.Max(GetAbundance("LqdCO2", refBody), GetAbundance("CarbonDioxide", refBody)), "CarbonDioxide"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, Math.Max(GetAbundance("LqdCO", refBody), GetAbundance("CarbonMoxoxide", refBody)), "CarbonMoxoxide"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.Methane, Math.Max(GetAbundance("LqdMethane", refBody), GetAbundance("Methane", refBody)), "Methane"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.Argon, Math.Max(GetAbundance("LqdArgon", refBody), GetAbundance("ArgonGas", refBody)), "Argon"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.Hydrogen, Math.Max(GetAbundance("LqdHydrogen", refBody), GetAbundance("Hydrogen", refBody)), "Hydrogen"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.LqdHelium4, Math.Max(GetAbundance("LqdHelium", refBody), GetAbundance("Helium", refBody)), "Helium-4"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, Math.Max(GetAbundance("LqdHe3", refBody), GetAbundance("Helium3", refBody)), "Helium-3"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.NeonGas, Math.Max(GetAbundance("LqdNeon", refBody), GetAbundance("NeonGas", refBody)), "Neon"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.XenonGas, Math.Max(GetAbundance("LqdXenon", refBody), GetAbundance("XenonGas", refBody)), "Xenon"));
             }
             catch (Exception ex)
             {
-                Debug.LogError("[ORS] - Exception while generating atmosphere composition from defined abundances : " + ex.ToString());
+                Debug.LogError("[KSPI] - Exception while generating atmosphere composition from defined abundances : " + ex.ToString());
             }
 
             return bodyAtmosphericComposition;
+        }
+
+        private static float GetAbundance(string resourceName, int refBody)
+        {
+            return ResourceMap.Instance.GetAbundance(CreateRequest(resourceName, refBody));
         }
 
         public static AbundanceRequest CreateRequest(string resourceName, int refBody)

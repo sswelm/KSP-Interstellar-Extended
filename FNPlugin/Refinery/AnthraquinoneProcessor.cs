@@ -17,6 +17,7 @@ namespace FNPlugin.Refinery
         protected String _status = "";
         protected double _current_rate;
         protected double _fixedConsumptionRate;
+        protected double _consumptionRate;
 
 		protected double _hydrogen_density;
 		protected double _oxygen_density;
@@ -75,7 +76,7 @@ namespace FNPlugin.Refinery
             _hydrogen_peroxide_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
 	    {
             // determine how much resource we have
 		    _current_power = PowerRequirements * rateMultiplier;
@@ -94,13 +95,14 @@ namespace FNPlugin.Refinery
             _spareRoomHydrogenPeroxideMass = partsThatContainPeroxide.Sum(r => r.maxAmount - r.amount) * _hydrogen_peroxide_density;
 
             // determine how much we can consume
-            var fixedMaxOxygenConsumptionRate = _current_rate * _oxygenMassByFraction * TimeWarp.fixedDeltaTime;
+            var fixedMaxOxygenConsumptionRate = _current_rate * _oxygenMassByFraction * fixedDeltaTime;
             var oxygenConsumptionRatio = fixedMaxOxygenConsumptionRate > 0 ? Math.Min(fixedMaxOxygenConsumptionRate, _availableOxygenMass) / fixedMaxOxygenConsumptionRate : 0;
 
-            var fixedMaxHydrogenConsumptionRate = _current_rate * _hydrogenMassByFraction * TimeWarp.fixedDeltaTime;
+            var fixedMaxHydrogenConsumptionRate = _current_rate * _hydrogenMassByFraction * fixedDeltaTime;
             var hydrogenConsumptionRatio = fixedMaxHydrogenConsumptionRate > 0 ? Math.Min(fixedMaxHydrogenConsumptionRate, _availableHydrogenMass) / fixedMaxHydrogenConsumptionRate : 0;
 
-            _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * Math.Min(oxygenConsumptionRatio, hydrogenConsumptionRatio);
+            _fixedConsumptionRate = _current_rate * fixedDeltaTime * Math.Min(oxygenConsumptionRatio, hydrogenConsumptionRatio);
+            _consumptionRate = _fixedConsumptionRate / fixedDeltaTime;
 
             if (_fixedConsumptionRate > 0 && _spareRoomHydrogenPeroxideMass > 0)
             {
@@ -110,12 +112,12 @@ namespace FNPlugin.Refinery
                 var oxygen_consumption_rate = fixedMaxPossibleHydrogenPeroxidenRate * _oxygenMassByFraction;
 
                 // consume the resource
-                _hydrogen_consumption_rate = _part.RequestResource(_hydrogenResourceName, hydrogen_consumption_rate / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
-                _oxygen_consumption_rate = _part.RequestResource(_oxygenResourceName, oxygen_consumption_rate / _oxygen_density) / TimeWarp.fixedDeltaTime * _oxygen_density;
+                _hydrogen_consumption_rate = _part.RequestResource(_hydrogenResourceName, hydrogen_consumption_rate / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
+                _oxygen_consumption_rate = _part.RequestResource(_oxygenResourceName, oxygen_consumption_rate / _oxygen_density) / fixedDeltaTime * _oxygen_density;
 
-                var combined_consumption_rate = (_hydrogen_consumption_rate + _oxygen_consumption_rate) * TimeWarp.fixedDeltaTime / _hydrogen_peroxide_density;
+                var combined_consumption_rate = (_hydrogen_consumption_rate + _oxygen_consumption_rate) * fixedDeltaTime / _hydrogen_peroxide_density;
 
-                _hydrogen_peroxide_production_rate = -_part.RequestResource(_hydrogenPeroxideResourceName, -combined_consumption_rate) / TimeWarp.fixedDeltaTime * _hydrogen_peroxide_density;
+                _hydrogen_peroxide_production_rate = -_part.RequestResource(_hydrogenPeroxideResourceName, -combined_consumption_rate) / fixedDeltaTime * _hydrogen_peroxide_density;
             }
             else
             {
@@ -140,7 +142,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Overal Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_fixedConsumptionRate / TimeWarp.fixedDeltaTime * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((_consumptionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();

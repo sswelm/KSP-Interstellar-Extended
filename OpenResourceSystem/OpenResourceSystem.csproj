@@ -75,7 +75,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ORSPropellantControl.cs" />
-    <Compile Include="ORSAtmosphericResource.cs" />
     <Compile Include="ORSModuleResourceExtraction.cs" />
     <Compile Include="ORSOceanicResource.cs" />
     <Compile Include="ORSPlanetaryResourceInfo.cs" />

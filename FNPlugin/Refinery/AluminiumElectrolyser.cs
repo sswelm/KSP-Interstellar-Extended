@@ -47,13 +47,13 @@ namespace FNPlugin.Refinery
             _oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
-            _alumina_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Alumina, _current_rate * TimeWarp.fixedDeltaTime / _alumina_density) / TimeWarp.fixedDeltaTime * _alumina_density;
-            _aluminium_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -_alumina_consumption_rate * TimeWarp.fixedDeltaTime / _aluminium_density) * _aluminium_density / TimeWarp.fixedDeltaTime;
-            _oxygen_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -GameConstants.aluminiumElectrolysisMassRatio * _alumina_consumption_rate * TimeWarp.fixedDeltaTime / _oxygen_density) * _oxygen_density / TimeWarp.fixedDeltaTime;
+            _alumina_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Alumina, _current_rate * fixedDeltaTime / _alumina_density) / fixedDeltaTime * _alumina_density;
+            _aluminium_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -_alumina_consumption_rate * fixedDeltaTime / _aluminium_density) * _aluminium_density / fixedDeltaTime;
+            _oxygen_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -GameConstants.aluminiumElectrolysisMassRatio * _alumina_consumption_rate * fixedDeltaTime / _oxygen_density) * _oxygen_density / fixedDeltaTime;
             updateStatusMessage();
         }
 

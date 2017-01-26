@@ -63,7 +63,7 @@ namespace FNPlugin.Refinery
             _deuterium_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;
@@ -82,7 +82,7 @@ namespace FNPlugin.Refinery
             _spareRoomDeuteriumMass = partsThatContainDeuteurium.Sum(r => r.maxAmount - r.amount) * _deuterium_density;
 
             // determine how much water we can consume
-            _fixedMaxConsumptionWaterRate = Math.Min(_current_rate * TimeWarp.fixedDeltaTime, _availableHeavyWaterMass);
+            _fixedMaxConsumptionWaterRate = Math.Min(_current_rate * fixedDeltaTime, _availableHeavyWaterMass);
 
             if (_fixedMaxConsumptionWaterRate > 0 && (_spareRoomOxygenMass > 0 || _spareRoomDeuteriumMass > 0))
             {
@@ -98,13 +98,13 @@ namespace FNPlugin.Refinery
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleHydrogenRatio, fixedMaxPossibleOxygenRatio);
 
                 // now we do the real elextrolysis
-                _heavy_water_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.HeavyWater, _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _heavy_water_density) / TimeWarp.fixedDeltaTime * _heavy_water_density;
+                _heavy_water_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.HeavyWater, _consumptionStorageRatio * _fixedMaxConsumptionWaterRate / _heavy_water_density) / fixedDeltaTime * _heavy_water_density;
 
                 var deuterium_rate_temp = _heavy_water_consumption_rate * deuteuriuumMassByFraction;
                 var oxygen_rate_temp = _heavy_water_consumption_rate * oxygenMassByFraction;
 
-                _deuterium_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deuterium_rate_temp * TimeWarp.fixedDeltaTime / _deuterium_density) / TimeWarp.fixedDeltaTime * _deuterium_density;
-                _oxygen_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate_temp * TimeWarp.fixedDeltaTime / _oxygen_density) / TimeWarp.fixedDeltaTime * _oxygen_density;
+                _deuterium_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deuterium_rate_temp * fixedDeltaTime / _deuterium_density) / fixedDeltaTime * _deuterium_density;
+                _oxygen_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density) / fixedDeltaTime * _oxygen_density;
             }
             else
             {
