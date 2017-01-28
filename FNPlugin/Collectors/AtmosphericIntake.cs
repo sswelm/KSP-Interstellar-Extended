@@ -6,22 +6,13 @@ namespace FNPlugin
 {
     class AtmosphericIntake : PartModule
     {
-        //protected Vector3 _intake_direction;
-        protected PartResourceDefinition _resourceAtmosphere;
-
-
-
-
-        //[KSPField(isPersistant = true)]
-        //public double lastActiveTime;
-
         [KSPField(guiName = "Intake Speed", isPersistant = false, guiActive = true, guiFormat = "F3")]
         protected float _intake_speed;
         [KSPField(guiName = "Atmosphere Flow", guiUnits = "U", guiFormat = "F3", isPersistant = false, guiActive = false)]
         public double airFlow;
         [KSPField(guiName = "Atmosphere Speed", guiUnits = "M/s", guiFormat = "F3", isPersistant = false, guiActive = false)]
         public double airSpeed;
-        [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = true, guiFormat ="F6")]
+        [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = false, guiFormat ="F6")]
         public double airThisUpdate;
         [KSPField(guiName = "intake Angle", isPersistant = false, guiActive = false)]
         public float intakeAngle = 0;
@@ -36,8 +27,6 @@ namespace FNPlugin
         public float maxIntakeSpeed = 100;
         [KSPField(isPersistant = false, guiName = "unitScalar", guiActive = false, guiActiveEditor = false)]
         public double unitScalar = 0.2f;
-		//[KSPField(isPersistant = false, guiName = "useIntakeCompensation", guiActiveEditor = false)]
-		//public bool useIntakeCompensation = true;
         [KSPField(isPersistant = false, guiName = "storesResource", guiActiveEditor = true)]
         public bool storesResource = false;
         [KSPField(isPersistant = false, guiName = "Intake Exposure", guiActiveEditor = false, guiActive = false)]
@@ -54,11 +43,17 @@ namespace FNPlugin
         public double upperAtmoFraction;
 
         // persistents
-        [KSPField(isPersistant = true, guiName = "Final Air", guiActiveEditor = false, guiActive = true)]
+        [KSPField(isPersistant = true, guiName = "Air / sec", guiActiveEditor = false, guiActive = true, guiFormat = "F3" )]
         public double finalAir;
 
         public double startupCount;
+        private float previousDeltaTime;
+        private double atmosphereBuffer;
 
+        PartResource intake_air_resource;
+        PartResource intake_atmosphere_resource;
+
+        private PartResourceDefinition _resourceAtmosphere;
         private ModuleResourceIntake _moduleResourceIntake;
 
         // this property will be accessed by the atmospheric extractor
@@ -72,6 +67,21 @@ namespace FNPlugin
             if (state == StartState.Editor) return; // don't do any of this stuff in editor
 
             _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
+
+            // add atmosphere buffer if needed
+            intake_air_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAir];
+
+            atmosphereBuffer = intake_air_resource.maxAmount * 50;
+
+            if (intake_air_resource != null && !part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
+            {
+                ConfigNode node = new ConfigNode("RESOURCE");
+                node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
+                node.AddValue("maxAmount", intake_air_resource.maxAmount);
+                //node.AddValue("amount", intake_air_resource.maxAmount);
+                part.AddResource(node);
+            }
+            intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
 
             //Transform intakeTransform = part.FindModelTransform(intakeTransformName);
             //if (intakeTransform == null)
@@ -108,8 +118,29 @@ namespace FNPlugin
 
             //lastActiveTime = Planetarium.GetUniversalTime(); // store the current time in case the vessel is unloaded
             
+            UpdateAtmosphereBuffer();
+
             IntakeThatAir(TimeWarp.fixedDeltaTime, false); // collect intake atmosphere for the timeframe
         }
+
+        private void UpdateAtmosphereBuffer()
+        {
+            if (intake_atmosphere_resource != null && atmosphereBuffer > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
+            {
+                double requiredAtmosphereCapacity = atmosphereBuffer * TimeWarp.fixedDeltaTime;
+                double previousAtmosphereCapacity = atmosphereBuffer * previousDeltaTime;
+                double atmosphereRatio = (intake_atmosphere_resource.amount / intake_atmosphere_resource.maxAmount);
+
+                intake_atmosphere_resource.maxAmount = requiredAtmosphereCapacity;
+
+                intake_atmosphere_resource.amount = TimeWarp.fixedDeltaTime > previousDeltaTime
+                    ? Math.Max(0, Math.Min(requiredAtmosphereCapacity, intake_atmosphere_resource.amount + requiredAtmosphereCapacity - previousAtmosphereCapacity))
+                    : Math.Max(0, Math.Min(requiredAtmosphereCapacity, atmosphereRatio * requiredAtmosphereCapacity));
+            }
+
+            previousDeltaTime = TimeWarp.fixedDeltaTime;
+        }
+
 
         public void IntakeThatAir(double deltaTimeInSecs, bool offlineCollecting)
         {

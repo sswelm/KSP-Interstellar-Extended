@@ -50,6 +50,7 @@ namespace FNPlugin
         private String _neon_gas = "NeonGas";
         private String _regolith = "Regolith";
         private String _xenongas = "XenonGas";
+        private String _krytongas = "KryptonGas";
 
         public String Actinides { get { return _ACTINIDES; } }
         public String Alumina { get { return _ALUMINA; } }
@@ -88,8 +89,9 @@ namespace FNPlugin
         public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
         public String Water { get { return _water; } }
         public String HeavyWater { get { return _heavyWater; } }
-
         public String XenonGas { get { return _xenongas; } }
+        public String KryptonGas { get { return _xenongas; } }
+
         public InterstellarResourcesConfiguration(ConfigNode plugin_settings)
         {
             if (plugin_settings != null)

@@ -886,7 +886,7 @@ namespace FNPlugin
                 ConfigNode node = new ConfigNode("RESOURCE");
                 node.AddValue("name", FNResourceManager.FNRESOURCE_THERMALPOWER);
                 node.AddValue("maxAmount", PowerOutput);
-                node.AddValue("possibleAmount", 0);
+                node.AddValue("amount", 0);
                 part.AddResource(node);
                 //part.Resources.UpdateList();
                 //part.vessel.UpdateVesselResourceSet();

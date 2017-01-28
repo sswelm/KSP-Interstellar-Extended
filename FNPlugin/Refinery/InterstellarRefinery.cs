@@ -13,8 +13,8 @@ namespace FNPlugin.Refinery
 
         [KSPField(isPersistant = true)]
         bool refinery_is_enabled;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Offline scooping")]
-        private bool offlineProcessing;
+        //[KSPField(isPersistant = true, guiActive = true, guiName = "Offline scooping")]
+        //private bool offlineProcessing;
         [KSPField(isPersistant = true)]
         private bool lastOverflowSettings;
         [KSPField(isPersistant = true)]
@@ -59,7 +59,7 @@ namespace FNPlugin.Refinery
         [KSPEvent(guiActive = true, guiName = "Sample Atmosphere", active = true)]
         public void ActivateCollector()
         {
-            List<AtmosphericResource> resources = AtmosphericResourceHandler.GenerateCompositionFromResourceAbundances(part.vessel.mainBody);
+            List<AtmosphericResource> resources = AtmosphericResourceHandler.GetAtmosphericCompositionForBody(part.vessel.mainBody);
 
             foreach (var resource in resources)
             {
@@ -268,26 +268,26 @@ namespace FNPlugin.Refinery
                 }
                 GUILayout.EndHorizontal();
 
-                /* This bit adds a special button to the details window for offline processing. Currently only implemented for Atmospheric Extraction,
-                 * but is easily expandable (though perhaps then we should add a new bool to IRefineryActivity interface that will be set in every process
-                 * so that filtering the activities here is easier - like bAllowsOfflineProcessing, set to true in those ISRU processes that do, default false.
-                 * Or some other fancy setup, I'm no wizard.)
-                */
-                if (_current_activity.ActivityName == "Atmospheric Extraction")
-                {
-                    GUILayout.BeginHorizontal();
-                    if (offlineProcessing)
-                    {
-                        if (GUILayout.Button("Disable Offline Process", GUILayout.ExpandWidth(true)))
-                            offlineProcessing = false;
-                    }
-                    else
-                    {
-                        if (GUILayout.Button("Enable Offline Process", GUILayout.ExpandWidth(true)))
-                            offlineProcessing = true;
-                    }
-                    GUILayout.EndHorizontal();
-                }
+                ///* This bit adds a special button to the details window for offline processing. Currently only implemented for Atmospheric Extraction,
+                // * but is easily expandable (though perhaps then we should add a new bool to IRefineryActivity interface that will be set in every process
+                // * so that filtering the activities here is easier - like bAllowsOfflineProcessing, set to true in those ISRU processes that do, default false.
+                // * Or some other fancy setup, I'm no wizard.)
+                //*/
+                //if (_current_activity.ActivityName == "Atmospheric Extraction")
+                //{
+                //    GUILayout.BeginHorizontal();
+                //    if (offlineProcessing)
+                //    {
+                //        if (GUILayout.Button("Disable Offline Process", GUILayout.ExpandWidth(true)))
+                //            offlineProcessing = false;
+                //    }
+                //    else
+                //    {
+                //        if (GUILayout.Button("Enable Offline Process", GUILayout.ExpandWidth(true)))
+                //            offlineProcessing = true;
+                //    }
+                //    GUILayout.EndHorizontal();
+                //}
 
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Current Activity", _bold_label, GUILayout.Width(labelWidth));

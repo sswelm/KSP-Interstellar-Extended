@@ -607,7 +607,7 @@ namespace FNPlugin
                 ConfigNode node = new ConfigNode("RESOURCE");
                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.VacuumPlasma);
                 node.AddValue("maxAmount", MaxPower / 100);
-                node.AddValue("possibleAmount", MaxPower / 100);
+                node.AddValue("amount", MaxPower / 100);
                 this.part.AddResource(node);
             }
         }

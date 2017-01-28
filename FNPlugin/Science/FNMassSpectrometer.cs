@@ -66,7 +66,7 @@ namespace FNPlugin
                     GUILayout.Label("Abundance", bold_label, GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                     GUILayout.Space(5);
-                    foreach (AtmosphericResource atmospheric_resource in AtmosphericResourceHandler.getAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex)) 
+                    foreach (AtmosphericResource atmospheric_resource in AtmosphericResourceHandler.GetAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex)) 
                     {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(atmospheric_resource.DisplayName, GUILayout.Width(150));

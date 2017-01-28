@@ -72,7 +72,7 @@ namespace FNPlugin
                 ToggleResource();
             }
             
-            if (currentresource >= AtmosphericResourceHandler.getAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex).Count) 
+            if (currentresource >= AtmosphericResourceHandler.GetAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex).Count) 
                 currentresource = 0;
 
             resflow = String.Empty;
