@@ -30,10 +30,6 @@ namespace FNPlugin
         public bool receiverIsEnabled;
         [KSPField(isPersistant = true)]
         public double storedTemp;
-        //[KSPField(isPersistant = true, guiActive = true)]
-        //public double emissiveConstant;
-        //[KSPField(isPersistant = true)]
-        //public bool isSolarReflector;
 
         [KSPField(isPersistant = true)]
         public bool animatonDeployed = false;
@@ -208,6 +204,8 @@ namespace FNPlugin
 
         protected ModuleDeployableSolarPanel deployableSolarPanel;
         protected ModuleDeployableRadiator deployableRadiator;
+        protected ModuleDeployableAntenna deployableAntenna;
+
         protected ModuleActiveRadiator activeRadiator;
         protected FNRadiator fnRadiator;
 
@@ -459,6 +457,11 @@ namespace FNPlugin
         {
             Debug.Log("MicrowaveReceiver ShowDeployAnimation is called ");
 
+            if (deployableAntenna != null)
+            {
+                deployableAntenna.Extend();
+            }
+
             if (deployableSolarPanel != null)
             {
                 deployableSolarPanel.Extend();
@@ -505,6 +508,11 @@ namespace FNPlugin
 
         private void ShowUndeployAnimation(bool forced)
         {
+            if (deployableAntenna != null)
+            {
+                deployableAntenna.Retract();
+            }
+
             if (deployableSolarPanel != null)
             {
                 deployableSolarPanel.Retract();
@@ -654,6 +662,19 @@ namespace FNPlugin
                 }
             }
 
+            deployableAntenna = part.FindModuleImplementing<ModuleDeployableAntenna>();
+            if (deployableAntenna != null)
+            {
+                try
+                {
+                    deployableAntenna.Events["Extend"].guiActive = false;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[KSPI] - Error while disabling antenna deploy button " + e.Message + " at " + e.StackTrace);
+                }
+            }
+
             deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (deployableSolarPanel != null)
             {
@@ -663,7 +684,7 @@ namespace FNPlugin
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("[KSPI] - Error while disabling solar button " + e.Message + " at " + e.StackTrace);
+                    Debug.LogError("[KSPI] - Error while disabling solar deploy button " + e.Message + " at " + e.StackTrace);
                 }
             }
 
@@ -671,11 +692,12 @@ namespace FNPlugin
             isInSolarModeField.guiActive = deployableSolarPanel != null;
             isInSolarModeField.guiActiveEditor = deployableSolarPanel != null;
 
+            if (deployableSolarPanel == null)
+                solarPowerMode = false;
+
             if (state == StartState.Editor) { return; }
 
             // compensate for stock solar initialisation heating bug
-
-
             initializationCountdown = 10;
 
             if (forceActivateAtStartup)
@@ -765,7 +787,7 @@ namespace FNPlugin
 
             localStar = GetCurrentStar();
 
-            if (deployableSolarPanel == null && deployableRadiator == null && !String.IsNullOrEmpty(animName))
+            if (deployableAntenna == null && deployableSolarPanel == null && deployableRadiator == null && !String.IsNullOrEmpty(animName))
             {
                 anim = part.FindModelAnimators(animName).FirstOrDefault();
             }
@@ -950,19 +972,34 @@ namespace FNPlugin
                 if (!HighLogic.LoadedSceneIsFlight)
                     return true;
 
-                if (anim == null)
-                    return true;
-
-                var pressure = FlightGlobals.getStaticPressure(vessel.transform.position) / 100;
-                var dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325;
-
-                if (dynamic_pressure <= 0) return true;
-
-                var pressureLoad = dynamic_pressure / 1.4854428818159e-3 * 100;
-                if (pressureLoad > 100 * atmosphereToleranceModifier)
-                    return false;
+                if (deployableAntenna != null && deployableAntenna.isBreakable)
+                {
+                    return !deployableAntenna.ShouldBreakFromPressure();
+                }
+                else if (deployableRadiator != null && deployableRadiator.isBreakable)
+                {
+                    return !deployableRadiator.ShouldBreakFromPressure();
+                }
+                else if (deployableSolarPanel != null && deployableSolarPanel.isBreakable)
+                {
+                    return !deployableSolarPanel.ShouldBreakFromPressure();
+                }
                 else
-                    return true;
+                {
+                    if (anim == null)
+                        return true;
+
+                    var pressure = FlightGlobals.getStaticPressure(vessel.transform.position) / 100;
+                    var dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325;
+
+                    if (dynamic_pressure <= 0) return true;
+
+                    var pressureLoad = dynamic_pressure / 1.4854428818159e-3 * 100;
+                    if (pressureLoad > 100 * atmosphereToleranceModifier)
+                        return false;
+                    else
+                        return true;
+                }
             }
         }
 
@@ -1631,15 +1668,18 @@ namespace FNPlugin
                 bool hasLineOfSight = PluginHelper.HasLineOfSightWith(this.vessel, transmitter.Vessel);
 
                 if (!hasLineOfSight)
-                    Debug.Log("[KSPI] - transmitter out of sight!");
+                {
+                    //Debug.Log("[KSPI] - transmitter out of sight!");
+                }
 
                 if (hasLineOfSight)
                 {
+                    //Debug.Log("[KSPI] - has line of sight with vessel " + transmitter.Vessel.name);
                     var possibleWavelengths = new List<MicrowaveRoute>();
                     double distanceInMeter = ComputeDistance(this.vessel, transmitter.Vessel);
                     double facingFactor = ComputeFacingFactor(transmitter.Vessel);
 
-                    //Debug.Log("[KSP Interstellar]: GetConnected Transmitters vessel " + transmitter.Vessel.id + " Facing factor " + facingFactor);
+                    //Debug.Log("[KSP Interstellar]: Has line of sight with Transmitters vessel " + transmitter.Vessel.id + " Facing factor " + facingFactor + " at distance " + distanceInMeter);
 
                     effectivefacingFactor = facingFactor;
 

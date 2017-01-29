@@ -888,8 +888,6 @@ namespace FNPlugin
                 node.AddValue("maxAmount", PowerOutput);
                 node.AddValue("amount", 0);
                 part.AddResource(node);
-                //part.Resources.UpdateList();
-                //part.vessel.UpdateVesselResourceSet();
             }
 
             // while in edit mode, listen to on attach event
@@ -967,12 +965,6 @@ namespace FNPlugin
 
             Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
         }
-
-        //public override void OnStartFinished(PartModule.StartState state)
-        //{
-        //    // calculate WasteHeat Capacity
-        //    partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
-        //}
 
         private void UpdateReactorCharacteristics()
         {
@@ -1166,14 +1158,8 @@ namespace FNPlugin
             if (IsEnabled && alternatorPowerKW != 0)
             {
                 part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -alternatorPowerKW * TimeWarp.fixedDeltaTime);
-                //part.temperature = part.temperature + (TimeWarp.fixedDeltaTime * alternatorPowerKW / 1000.0 / part.mass);
             }
         }
-
-        //protected virtual void PowerMaintenance(double powerRatio)
-        //{
-        //    // override by children
-        //}
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
@@ -1409,7 +1395,6 @@ namespace FNPlugin
 
                 if (chargedPowerResource != null)
                 {
-                    //var stableChargedPower = RawPowerOutput * ChargedPowerRatio;
                     chargedPowerResource.maxAmount = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumChargedPower);
                     chargedPowerResource.amount = Math.Min(chargedPowerResource.amount, chargedPowerResource.maxAmount);
                 }
