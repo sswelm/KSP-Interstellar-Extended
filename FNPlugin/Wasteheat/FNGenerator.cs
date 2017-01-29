@@ -364,7 +364,7 @@ namespace FNPlugin
                 return;
 
             // otherwise look for other non selfcontained thermal sources
-            var searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, p => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 3, 3, 3, true);
+            var searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, p => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 3, 3, true);
             if (searchResult == null) return;
 
             // verify cost is not higher than 1
@@ -454,13 +454,13 @@ namespace FNPlugin
                 double outputPowerReport = -outputPower;
                 if (update_count - last_draw_update > 10)
                 {
-                    OutputPower = getPowerFormatString(outputPowerReport) + "_e";
+                    OutputPower = PluginHelper.getFormattedPowerString(outputPowerReport, "0.0", "0.000");
                     OverallEfficiency = percentOutputPower.ToString("0.00") + "%";
 
                     MaxPowerStr = (_totalEff >= 0)
                         ? !chargedParticleMode
-                            ? getPowerFormatString(maxThermalPower * _totalEff * powerCustomSettingFraction) + "_e"
-                            : getPowerFormatString(maxChargedPower * _totalEff * powerCustomSettingFraction) + "_e"
+                            ? PluginHelper.getFormattedPowerString(maxThermalPower * _totalEff * powerCustomSettingFraction, "0.0", "0.000")
+                            : PluginHelper.getFormattedPowerString(maxChargedPower * _totalEff * powerCustomSettingFraction, "0.0", "0.000")
                         : (0).ToString() + "MW";
 
                     last_draw_update = update_count;
@@ -807,29 +807,6 @@ namespace FNPlugin
         public override string GetInfo()
         {
             return String.Format("Percent of Carnot Efficiency: {0}%\n-Upgrade Information-\n Upgraded Percent of Carnot Efficiency: {1}%", pCarnotEff * 100, upgradedpCarnotEff * 100);
-        }
-
-        public static string getPowerFormatString(double power)
-        {
-            if (power > 1000)
-            {
-                if (power > 20000)
-                    return (power / 1000).ToString("0.0") + " GW";
-                else
-                    return (power / 1000).ToString("0.00") + " GW";
-            }
-            else
-            {
-                if (power > 20)
-                    return power.ToString("0.0") + " MW";
-                else
-                {
-                    if (power > 1)
-                        return power.ToString("0.00") + " MW";
-                    else
-                        return (power * 1000).ToString("0.0") + " KW";
-                }
-            }
         }
 
     }

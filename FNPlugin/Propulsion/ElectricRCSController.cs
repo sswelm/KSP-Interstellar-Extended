@@ -85,7 +85,9 @@ namespace FNPlugin
         private bool rcsIsOn;
         private bool rcsPartActive;
 
-        private float power_ratio = 1;
+        private PartResourceDefinition definitionMegajoule;
+
+        private double power_ratio = 1;
         private double power_requested_f = 0;
         private double power_requested_raw = 0;
         private double power_recieved_f = 1;
@@ -102,11 +104,6 @@ namespace FNPlugin
         private bool oldPowerEnabled;
         private int insufficientPowerTimout = 2;
         private bool delayedVerificationPropellant;
-
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Maximum Buffer", guiFormat = "F3", guiUnits = " MW")]
-        private double maximumPowerBuffer;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Current Buffer", guiFormat = "F3", guiUnits = " MW")]
-        private double currentPowerBuffer;
 
         public ElectricEnginePropellant Current_propellant { get; set; }
 
@@ -291,6 +288,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
+            definitionMegajoule = PartResourceLibrary.Instance.GetDefinition(FNResourceManager.FNRESOURCE_MEGAJOULES);
+
             try
             {
                 attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
@@ -336,7 +335,6 @@ namespace FNPlugin
                 String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
                 this.resources_to_supply = resources_to_supply;
 
-                maximumPowerBuffer = maxThrust * maxIsp * 0.01;
                 oldThrustLimiter = thrustLimiter;
                 oldPowerEnabled = powerEnabled;
                 efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
@@ -483,21 +481,15 @@ namespace FNPlugin
                 power_requested_f = currentThrust * maxIsp * efficencyModifier / currentThrustMultiplier;
 
                 var power_required_raw = (power_requested_f * TimeWarp.fixedDeltaTime);
-                power_requested_raw = power_required_raw + (maximumPowerBuffer - currentPowerBuffer) * TimeWarp.fixedDeltaTime;
 
                 power_recieved_raw = CheatOptions.InfiniteElectricity 
-                    ? power_requested_raw 
-                    : consumeFNResource(power_requested_raw, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    ? power_requested_raw
+                    : consumeFNResource(power_required_raw, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                currentPowerBuffer = Math.Min(currentPowerBuffer + power_recieved_raw, maximumPowerBuffer);
+                var powerShortage = power_required_raw - power_recieved_raw;
 
-                if (power_required_raw < currentPowerBuffer)
-                {
-                    power_recieved_raw = power_required_raw;
-                    currentPowerBuffer -= power_required_raw;
-                }
+                power_recieved_raw += part.RequestResource(definitionMegajoule.id, powerShortage);
 
-                //power_remainer_raw = 0;
                 power_recieved_f = power_recieved_raw / TimeWarp.fixedDeltaTime;
 
                 double heat_to_produce = power_recieved_f * (1 - efficency);
@@ -506,7 +498,7 @@ namespace FNPlugin
                     ? heat_to_produce 
                     : supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
-                power_ratio = power_requested_f > 0 ? (float)Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
+                power_ratio = power_requested_f > 0 ? Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
             }
             else
             {

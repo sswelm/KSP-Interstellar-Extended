@@ -9,11 +9,15 @@ namespace FNPlugin
         //protected Vector3 _intake_direction;
         protected PartResourceDefinition _resourceAtmosphere;
 
+        // persistents
+        //[KSPField(isPersistant = true)]
+        //public double lastActiveTime;
+
         [KSPField(guiName = "Intake Speed", isPersistant = false, guiActive = true, guiFormat = "F3")]
         protected float _intake_speed;
         [KSPField(guiName = "Atmosphere Flow", guiUnits = "U", guiFormat = "F3", isPersistant = false, guiActive = false)]
         public double airFlow;
-        [KSPField(guiName = "Atmossphere Speed", guiUnits = "M/s", guiFormat = "F3", isPersistant = false, guiActive = false)]
+        [KSPField(guiName = "Atmosphere Speed", guiUnits = "M/s", guiFormat = "F3", isPersistant = false, guiActive = false)]
         public double airSpeed;
         [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = true, guiFormat ="F6")]
         public double airThisUpdate;
@@ -36,11 +40,18 @@ namespace FNPlugin
         public bool storesResource = false;
         [KSPField(isPersistant = false, guiName = "Intake Exposure", guiActiveEditor = false, guiActive = false)]
         public double intakeExposure = 0;
+        [KSPField(isPersistant = false, guiName = "Trace atmo. density", guiFormat ="P0", guiActiveEditor = false, guiActive = true)]
+        private double upperAtmoDensity;
 
         private float jetTechBonusPercentage;
+        private double maxAtmoAltitude;
+        public double upperAtmoFraction;
+        private double airDensity;
+        public double finalAir { get; set; } // this property will be accessed by the atmospheric extractor
 
         public override void OnStart(PartModule.StartState state)
         {
+            if (state == StartState.Editor) return; // don't do any of this stuff in editor
             Transform intakeTransform = part.FindModelTransform(intakeTransformName);
             if (intakeTransform == null)
                 Debug.Log("[KSPI] AtmosphericIntake unable to get intake transform for " + part.name);
@@ -60,18 +71,52 @@ namespace FNPlugin
 
             var jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3);
             jetTechBonusPercentage = 1 + (jetTechBonus / 10.736f);
+
+            // These are for offline collection capability. It's not really useful in the case of intakes, because they hold only very limited amount of the resource. As such, these are commented out (along with the persistent double lastActiveTime)
+            //double timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime) * 55; // why magical number 55? I don't know. It was in the old ISRUScoop class. It's a mystery.
+            //IntakeThatAir(timeDifference, true); // collect intake atmosphere for the time we were away from this vessel
         }
 
         public void FixedUpdate()
         {
-            if (vessel == null)
+            if (vessel == null) // No vessel? No collecting
                 return;
 
+            if (!vessel.mainBody.atmosphere) // No atmosphere? No collecting
+                return;
+
+            //lastActiveTime = Planetarium.GetUniversalTime(); // store the current time in case the vessel is unloaded
+            
+            IntakeThatAir(TimeWarp.fixedDeltaTime, false); // collect intake atmosphere for the timeframe
+            
+
+        }
+
+        public void IntakeThatAir(double deltaTimeInSecs, bool offlineCollecting)
+        {
             airSpeed = vessel.speed + _intake_speed;
             intakeExposure = (airSpeed * unitScalar) + _intake_speed;
             intakeExposure *= area * unitScalar * jetTechBonusPercentage;
-            airFlow = vessel.atmDensity * intakeExposure / _resourceAtmosphere.density ;
+            airFlow = vessel.atmDensity * intakeExposure / _resourceAtmosphere.density;
             airThisUpdate = airFlow * TimeWarp.fixedDeltaTime;
+
+            if (vessel.altitude > (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // if this vessel is above atmosphere, it can still collect trace amounts of it
+            {
+                maxAtmoAltitude = PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody); // get the max atmospheric altitude for the current altitude
+                upperAtmoFraction = Math.Max(0, (vessel.altitude - maxAtmoAltitude) / Math.Max(0.000001, maxAtmoAltitude * PluginHelper.MaxAtmosphericAltitudeMult - maxAtmoAltitude)); // calculate the fraction of the atmosphere
+                upperAtmoDensity = 1 - upperAtmoFraction; // flip it around so that it gets lower as we rise up, away from the planet
+                airDensity = part.vessel.atmDensity + (PluginHelper.MinAtmosphericAirDensity * upperAtmoDensity); // calculate the atmospheric density
+                airFlow = airDensity * intakeExposure / _resourceAtmosphere.density; // how much of that air is our intake catching
+                airThisUpdate = airFlow * TimeWarp.fixedDeltaTime; // how much air do we get per update
+            }
+
+            if (offlineCollecting == true) // if collecting offline, take the elapsed time into account, otherwise carry on
+            {
+                airThisUpdate *= deltaTimeInSecs;
+                ScreenMessages.PostScreenMessage("The air intakes collected " + airThisUpdate.ToString("") + " units of " + (InterstellarResourcesConfiguration.Instance.IntakeAtmosphere), 3.0f, ScreenMessageStyle.LOWER_CENTER);
+            }
+
+            finalAir = airThisUpdate; // take the final airThisUpdate value and assign it to the finalAir property (this will in turn get used by atmo extractor)
 
             if (!storesResource)
             {
@@ -91,11 +136,8 @@ namespace FNPlugin
             }
             else
             {
-                //part.ImprovedRequestResource(_resourceAtmosphere.name, -airThisUpdate);
-                part.RequestResource(_resourceAtmosphere.name, -airThisUpdate);
-            }
-
+                part.RequestResource(_resourceAtmosphere.name, -airThisUpdate); // create the resource, finally
+            }   
         }
-
     }
 }

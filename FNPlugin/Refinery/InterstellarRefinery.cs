@@ -12,6 +12,16 @@ namespace FNPlugin.Refinery
 
         [KSPField(isPersistant=true)]
         bool refinery_is_enabled;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Offline scooping")]
+        private bool offlineProcessing;
+        [KSPField(isPersistant = true)]
+        private bool lastOverflowSettings;
+        [KSPField(isPersistant = true)]
+        private double lastActiveTime;
+        [KSPField(isPersistant = true)]
+        private double lastPowerRatio;
+        [KSPField(isPersistant = true)]
+        private string lastActivityName;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
@@ -44,6 +54,8 @@ namespace FNPlugin.Refinery
         private GUIStyle _bold_label;
         private GUIStyle _enabled_button;
         private GUIStyle _disabled_button;
+
+        private double timeDifference;
 
         [KSPEvent(guiActive = true, guiName = "Toggle Refinery Window", active = true)]
         public void ToggleWindow()
@@ -78,6 +90,7 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new MethanePyrolyser(this.part));
                 unsortedList.Add(new SolarWindProcessor(this.part));
                 unsortedList.Add(new RegolithProcessor(this.part));
+                unsortedList.Add(new AtmosphericExtractor(this.part));
 
             }
             catch (Exception e)
@@ -89,6 +102,13 @@ namespace FNPlugin.Refinery
             _refinery_activities = unsortedList.OrderBy(a => a.ActivityName).ToList();
 
             //RenderingManager.AddToPostDrawQueue(0, OnGUI);
+
+            if (offlineProcessing == true && lastActivityName == "Atmospheric Extraction") 
+            {
+                AtmosphericExtractor activity = new AtmosphericExtractor(this.part); // creates a new extractor object (but it will be marked for disposal once out of scope, which is pretty soon)
+                timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime) * 55;
+                activity.ExtractAir(lastPowerRatio * productionMult, lastOverflowSettings, timeDifference, true);
+            }
         }
 
         public override void OnUpdate()
@@ -127,7 +147,14 @@ namespace FNPlugin.Refinery
 
             utilisationPercentage = power_ratio * 100;
 
+            
             _current_activity.UpdateFrame(power_ratio * productionMult, overflowAllowed);
+
+
+            lastPowerRatio = power_ratio; // save the current power ratio in case the vessel is unloaded
+            lastOverflowSettings = overflowAllowed; // save the current overflow settings in case the vessel is unloaded
+            lastActivityName = _current_activity.ActivityName; // take the string with the name of the current activity, store it in persistent string
+            lastActiveTime = Planetarium.GetUniversalTime();
         }
 
         public override string getResourceManagerDisplayName()
@@ -178,19 +205,19 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginVertical();
 
-            if (_current_activity == null || !refinery_is_enabled)
+            if (_current_activity == null || !refinery_is_enabled) // if there is no processing going on or the refinery is not enabled
             {
-                _refinery_activities.ForEach(act =>
+                _refinery_activities.ForEach(act => // per each activity (notice the end brackets are there, 13 lines below)
                 {
 
                     GUILayout.BeginHorizontal();
-                    bool hasRequirement = act.HasActivityRequirements;
-                    GUIStyle guistyle = hasRequirement ? _enabled_button : _disabled_button;
+                    bool hasRequirement = act.HasActivityRequirements; // if the requirements for the activity are fulfilled
+                    GUIStyle guistyle = hasRequirement ? _enabled_button : _disabled_button; // either draw the enabled, bold button, or the disabled one
 
-                    if (GUILayout.Button(act.ActivityName, guistyle, GUILayout.ExpandWidth(true)) && hasRequirement)
+                    if (GUILayout.Button(act.ActivityName, guistyle, GUILayout.ExpandWidth(true)) && hasRequirement) // if user clicks the button and has requirements for the activity
                     {
-                        _current_activity = act;
-                        refinery_is_enabled = true;
+                        _current_activity = act; // the activity will be treated as the current activity
+                        refinery_is_enabled = true; // refinery is now on
                     }
                     GUILayout.EndHorizontal();
                 });
@@ -211,7 +238,27 @@ namespace FNPlugin.Refinery
                 }
                 GUILayout.EndHorizontal();
 
-
+                /* This bit adds a special button to the details window for offline processing. Currently only implemented for Atmospheric Extraction,
+                 * but is easily expandable (though perhaps then we should add a new bool to IRefineryActivity interface that will be set in every process
+                 * so that filtering the activities here is easier - like bAllowsOfflineProcessing, set to true in those ISRU processes that do, default false.
+                 * Or some other fancy setup, I'm no wizard.)
+                */
+                if (_current_activity.ActivityName == "Atmospheric Extraction")
+                {
+                    GUILayout.BeginHorizontal();
+                    if (offlineProcessing)
+                    {
+                        if (GUILayout.Button("Disable Offline Process", GUILayout.ExpandWidth(true)))
+                            offlineProcessing = false;
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("Enable Offline Process", GUILayout.ExpandWidth(true)))
+                            offlineProcessing = true;
+                    }
+                    GUILayout.EndHorizontal();
+                }
+                
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Current Activity", _bold_label, GUILayout.Width(labelWidth));
                 GUILayout.Label(_current_activity.ActivityName, GUILayout.Width(valueWidth));

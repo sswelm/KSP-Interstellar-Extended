@@ -28,6 +28,8 @@ namespace FNPlugin
         public double animationStarted = 0;
 
         [KSPField(isPersistant = false)]
+        public float partMass = 1;
+        [KSPField(isPersistant = false)]
         public bool initialized = false;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
@@ -522,7 +524,7 @@ namespace FNPlugin
         {
             UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
 
-            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 10, 10, 10);
+            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 10, 10);
 
             if (source == null || source.Source == null)
             {

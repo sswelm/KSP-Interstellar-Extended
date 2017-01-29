@@ -46,7 +46,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiName = "Function"), UI_Toggle(disabledText = "Beamed Power", enabledText = "Radiator")]
         public bool radiatorMode = false;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Mode"), UI_Toggle(disabledText = "Beamed Power", enabledText = "Solar Only")]
-        public bool solarPowerMode = false;
+        public bool solarPowerMode = true;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Receive Efficiency", guiUnits = "%", guiFormat = "F0")]
         public double efficiencyPercentage = GameConstants.microwave_dish_efficiency;
@@ -63,8 +63,6 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "instance ID")]
         public int instanceId;
-        [KSPField(isPersistant = false)]
-        public float powerMult = 1;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public float facingThreshold = 0;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
@@ -90,15 +88,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string animGenericName;
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Receiver Diameter", guiUnits = " m")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Receiver Diameter", guiUnits = " m")]
         public float diameter = 1;
         [KSPField(isPersistant = false)]
         public bool isThermalReceiver = false;
         [KSPField(isPersistant = false)]
         public bool isEnergyReceiver = true;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Is Slave")]
         public bool isThermalReceiverSlave = false;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Thermal Power", guiFormat = "F3", guiUnits = " MJ")]
         public double ThermalPower;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Radius", guiUnits = " m")]
         public float radius = 2.5f;
@@ -114,8 +112,6 @@ namespace FNPlugin
         public float heatTransportationEfficiency = 0.7f;
         [KSPField(isPersistant = false)]
         public float powerHeatExponent = 0.7f;
-        [KSPField(isPersistant = false)]
-        public float powerHeatMultiplier = 20f;
         [KSPField(isPersistant = false)]
         public float powerHeatBase = 3200f;
         [KSPField(isPersistant = false)]
@@ -174,6 +170,8 @@ namespace FNPlugin
         public string networkDepthString;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Recieve Efficiency")]
         public string toteff;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Connected Slaves")]
+        public int slavesAmount;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
         public float maximumPower = 0;
@@ -194,6 +192,11 @@ namespace FNPlugin
         public double solarFacingFactor;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F2")]
         public double solarFlux;
+
+        [KSPField(isPersistant = false)]
+        public float powerMult = 1;
+        [KSPField(isPersistant = false)]
+        public float powerHeatMultiplier = 1;
 
         protected BaseField _radiusField;
         protected BaseField _coreTempereratureField;
@@ -219,7 +222,6 @@ namespace FNPlugin
 
         protected Dictionary<Vessel, double> received_power = new Dictionary<Vessel, double>();
         protected List<MicrowavePowerReceiver> thermalReceiverSlaves = new List<MicrowavePowerReceiver>();
-        protected MicrowavePowerReceiver mother;
 
         // reference types
         protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
@@ -417,7 +419,7 @@ namespace FNPlugin
 
         public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
-        [KSPEvent(guiActive = true, guiName = "Link Receiver", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Link Receiver for Relay", active = true)]
         public void LinkReceiver()
         {
             linkedForRelay = true;
@@ -425,7 +427,7 @@ namespace FNPlugin
             ShowDeployAnimation(true);
         }
 
-        [KSPEvent(guiActive = true, guiName = "Unlink Receiver", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Unlink Receiver for Relay", active = true)]
         public void UnlinkReceiver()
         {
             linkedForRelay = false;
@@ -622,7 +624,7 @@ namespace FNPlugin
             coreTempererature = CoreTemperature.ToString("0.0") + " K";
             _coreTempereratureField = Fields["coreTempererature"];
 
-            if (IsThermalSource)
+            if (IsThermalSource && !isThermalReceiverSlave)
             {
                 _radiusField.guiActive = true;
                 _radiusField.guiActiveEditor = true;
@@ -679,17 +681,22 @@ namespace FNPlugin
             if (forceActivateAtStartup)
                 part.force_activate();
 
-            if (isThermalReceiverSlave && part.parent != null)
+            if (isThermalReceiverSlave)
             {
-                mother = part.parent.FindModuleImplementing<MicrowavePowerReceiver>();
-                if (mother != null)
-                    mother.RegisterAsSlave(this);
-                else if (part.parent.parent != null)
-                {
-                    mother = part.parent.parent.FindModuleImplementing<MicrowavePowerReceiver>();
-                    if (mother != null)
-                        mother.RegisterAsSlave(this);
-                }
+                var result = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => (MicrowavePowerReceiver)s != this && s is MicrowavePowerReceiver, 2, 2, 2, true);
+
+                if (result.Source != null)
+                    ((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
+
+                //mother = part.parent.FindModuleImplementing<MicrowavePowerReceiver>();
+                //if (mother != null)
+                //    mother.RegisterAsSlave(this);
+                //else if (part.parent.parent != null)
+                //{
+                //    mother = part.parent.parent.FindModuleImplementing<MicrowavePowerReceiver>();
+                //    if (mother != null)
+                //        mother.RegisterAsSlave(this);
+                //}
             }
 
             fnRadiator = part.FindModuleImplementing<FNRadiator>();
@@ -821,11 +828,11 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSP Interstellar] Setup Receiver BrandWidth Configurations for " + part.partInfo.title);
+                Debug.Log("[KSP Interstellar] - Setup Receiver BrandWidth Configurations for " + part.partInfo.title);
 
                 var bandWidthNameField = Fields["bandWidthName"];
                 bandWidthNameField.guiActiveEditor = !canSwitchBandwidthInEditor;
-                bandWidthNameField.guiActive = !canSwitchBandwidthInFlight;
+                bandWidthNameField.guiActive = !canSwitchBandwidthInFlight && canSwitchBandwidthInEditor;
 
                 var chooseField = Fields["selectedBandwidthConfiguration"];
                 chooseField.guiActiveEditor = canSwitchBandwidthInEditor;
@@ -846,7 +853,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] Error in MicrowaveReceiver InitializeBrandwitdhSelector " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI] - Error in MicrowaveReceiver InitializeBrandwitdhSelector " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -858,7 +865,7 @@ namespace FNPlugin
 
                 var currentWavelength = targetWavelength != 0 ? targetWavelength : 1;
 
-                Debug.Log("[KSPI] LoadInitialConfiguration initialize initial beam configuration with wavelength target " + currentWavelength);
+                Debug.Log("[KSPI] - LoadInitialConfiguration initialize initial beam configuration with wavelength target " + currentWavelength);
 
                 // find wavelength closes to target wavelength
                 activeBandwidthConfiguration = BandwidthConverters.FirstOrDefault();
@@ -985,6 +992,10 @@ namespace FNPlugin
             _activateReceiverBaseEvent.active = !linkedForRelay && !receiverIsEnabled && !transmitter_on && canBeActive;
             _disableReceiverBaseEvent.active = receiverIsEnabled;
 
+            Fields["linkedForRelay"].guiActive = !has_transmitter;
+            Fields["beamedpower"].guiActive = !linkedForRelay;
+            Fields["slavesAmount"].guiActive = thermalMode;
+            Fields["ThermalPower"].guiActive = isThermalReceiverSlave || thermalMode;
             Fields["efficiencyPercentage"].guiActive = receiverIsEnabled;
             Fields["effectiveSpotSize"].guiActive = receiverIsEnabled;
             Fields["effectivefacingFactor"].guiActive = receiverIsEnabled;
@@ -1027,7 +1038,7 @@ namespace FNPlugin
             // display communication
             if (_monitorDataStore.Any())
             {
-                effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.spotsize.ToString("0.0000")).ToArray());
+                effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.spotsize.ToString("0.0000") + "m").ToArray());
                 //effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.partId.ToString()).ToArray());
                 //effectiveSpotSize = _monitorDataStore.Values.Count().ToString();
                 _monitorDataStore.Clear();
@@ -1336,6 +1347,8 @@ namespace FNPlugin
 
                     var cur_thermal_power = (fixedSolarInputMegajoules + fixed_beamed_thermal_power) / TimeWarp.fixedDeltaTime;
 
+                    slavesAmount = thermalReceiverSlaves.Count;
+
                     var total_thermal_power = isThermalReceiver 
                         ? cur_thermal_power + thermalReceiverSlaves.Sum(m => m.ThermalPower) 
                         : cur_thermal_power;
@@ -1445,9 +1458,11 @@ namespace FNPlugin
         #region RelayRouting
         protected double ComputeVisibilityAndDistance(VesselRelayPersistence relay, Vessel targetVessel)
         {
-            return PluginHelper.HasLineOfSightWith(relay.Vessel, targetVessel, 0)
+            var result = PluginHelper.HasLineOfSightWith(relay.Vessel, targetVessel, 0)
                 ? Vector3d.Distance(PluginHelper.getVesselPos(relay.Vessel), PluginHelper.getVesselPos(targetVessel))
                 : -1;
+
+            return result;
         }
 
         protected double ComputeDistance(Vessel v1, Vessel v2)
@@ -1483,21 +1498,27 @@ namespace FNPlugin
         {
             //Debug.Log("[KSP Interstellar]: ComputeDistanceFacingEfficiency spotSize: " + spotSize + " facingFactor: " + facingFactor + " recieverDiameter: " + recieverDiameter);
 
-            if (spotSizeDiameter <= 0)
+            if (spotSizeDiameter == 0)
+                return 0;
+
+            if (spotSizeDiameter < 0)
             {
-                Debug.LogError("ComputeDistanceFacingEfficiency spotSizeDiameter <= 0");
+                Debug.LogWarning("[KSPI] - ComputeDistanceFacingEfficiency spotSizeDiameter < 0");
                 return 0;
             }
 
-            if (facingFactor <= 0)
+            if (facingFactor == 0)
+                return 0;
+
+            if (facingFactor < 0)
             {
-                //Debug.LogError("ComputeDistanceFacingEfficiency facingFactor <= 0");
+                Debug.LogWarning("[KSPI] - ComputeDistanceFacingEfficiency facingFactor <= 0");
                 return 0;
             }
 
             if (recieverDiameter <= 0)
             {
-                Debug.LogError("ComputeDistanceFacingEfficiency recieverDiameter <= 0");
+                Debug.LogWarning("[KSPI] - ComputeDistanceFacingEfficiency recieverDiameter <= 0");
                 return 0;
             }
 
@@ -1520,7 +1541,12 @@ namespace FNPlugin
             double facingFactor;
             Vector3d directionVector = (transmitPosition - receiverPosition).normalized;
 
-            if( receiverType == 5)
+
+            if (receiverType == 6) 
+            {
+                facingFactor = Math.Min(1, Math.Abs(Vector3d.Dot(part.transform.forward, directionVector)));
+            }
+            else if( receiverType == 5)
             {
                 //Scale energy reception based on angle of reciever to transmitter from bottom
                 facingFactor = Math.Max(0, -Vector3d.Dot(part.transform.up, directionVector));
@@ -1586,17 +1612,28 @@ namespace FNPlugin
 
             double recieverAtmosphericPresure = FlightGlobals.getStaticPressure(this.vessel.transform.position) / 100;
 
-            //Debug.Log("[KSP Interstellar]: MicrowaveSources.instance.globalTransmitters.Values.Count " + MicrowaveSources.instance.globalTransmitters.Values.Count + " for vessel " + this.vessel.id + " " + this.vessel.name);
-
             foreach (VesselMicrowavePersistence transmitter in MicrowaveSources.instance.globalTransmitters.Values)
             {
                 //first check for direct connection from current vessel to transmitters, will always be optimal
-                if (transmitter.getAvailablePower() <= 0) continue;
+                if (transmitter.getAvailablePower() <= 0)
+                {
+                    Debug.Log("[KSPI] - Transmitter vessel has no power available");
+                    continue;
+                }
 
                 //ignore if no power or transmitter is on the same vessel
-                if (transmitter.Vessel == vessel) continue;
+                if (transmitter.Vessel == vessel)
+                {
+                    Debug.Log("[KSPI] - Transmitter vessel is equal to receiver vessel");
+                    continue;
+                }
 
-                if (PluginHelper.HasLineOfSightWith(this.vessel, transmitter.Vessel))
+                bool hasLineOfSight = PluginHelper.HasLineOfSightWith(this.vessel, transmitter.Vessel);
+
+                if (!hasLineOfSight)
+                    Debug.Log("[KSPI] - transmitter out of sight!");
+
+                if (hasLineOfSight)
                 {
                     var possibleWavelengths = new List<MicrowaveRoute>();
                     double distanceInMeter = ComputeDistance(this.vessel, transmitter.Vessel);

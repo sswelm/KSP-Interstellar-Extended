@@ -131,6 +131,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Energy Transfer", guiFormat = "F1")]
         private double _maxEnergyTransfer;
 
+        [KSPField(isPersistant = false)]
+        public float atmosphereToleranceModifier = 1;
+
         const float rad_const_h = 1000;
         const String kspShader = "KSP/Emissive/Bumped Specular";
 
@@ -583,8 +586,8 @@ namespace FNPlugin
                 //if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED) || _moduleDeployableRadiator == null)
                 if (radiatorIsEnabled && canRadiateHeat)
                 {
-                    thermalPowerDissipStr = radiatedThermalPower.ToString("0.000") + "MW";
-                    thermalPowerConvStr = convectedThermalPower.ToString("0.000") + "MW";
+                    thermalPowerDissipStr = PluginHelper.getFormattedPowerString(radiatedThermalPower, "0.0", "0.000");
+                    thermalPowerConvStr = PluginHelper.getFormattedPowerString(convectedThermalPower, "0.0", "0.000");
                 }
                 else
                 {
@@ -717,16 +720,20 @@ namespace FNPlugin
 
         private void DeployMentControl(double dynamic_pressure)
         {
-            if (dynamic_pressure > 0 && dynamic_pressure / 1.4854428818159e-3 * 100 > 100)
+            if (dynamic_pressure > 0 && (atmosphereToleranceModifier * dynamic_pressure / 1.4854428818159e-3 * 100) > 100)
             {
-                if (radiatorIsEnabled && isDeployable)
+                if (isDeployable && radiatorIsEnabled)
                 {
                     if (isAutomated)
+                    {
+                        UnityEngine.Debug.Log("[KSPI] - DeployMentControl Auto Retracted");
                         Retract();
+                    }
                     else
                     {
                         if (!CheatOptions.UnbreakableJoints)
                         {
+                            UnityEngine.Debug.Log("[KSPI] - DeployMentControl Decoupled!");
                             part.deactivate();
                             part.decouple(1);
                         }
@@ -735,7 +742,7 @@ namespace FNPlugin
             }
             else if (!radiatorIsEnabled && isAutomated && canRadiateHeat && !part.ShieldedFromAirstream)
             {
-                UnityEngine.Debug.Log("[KSPI] - DeployMentControl ");
+                UnityEngine.Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
                 Deploy();
             }
         }
@@ -744,14 +751,6 @@ namespace FNPlugin
         {
             return MaxRadiatorTemperature;
         }
-
-        //public List<IThermalSource> GetActiveThermalSources()
-        //{
-        //    if (list_of_thermal_sources == null)
-        //        Debug.LogError("list_of_thermal_sources == null");
-
-        //    return list_of_thermal_sources.Where(ts => ts.IsActive).ToList();
-        //}
 
         private double consumeWasteHeat(double wasteheatToConsume)
         {

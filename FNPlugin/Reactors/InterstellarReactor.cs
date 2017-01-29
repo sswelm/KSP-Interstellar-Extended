@@ -1137,7 +1137,7 @@ namespace FNPlugin
 
                 last_draw_update = update_count;
             }
-            //if (!vessel.isActiveVessel || part == null) RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
+
             update_count++;
             partMass = part.mass;
         }
@@ -1292,10 +1292,6 @@ namespace FNPlugin
                     }
                 }
 
-                // Waste Heat
-                //if (!CheatOptions.IgnoreMaxTemperature)
-                //    supplyFNResource(total_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
-
                 BreedTritium(ongoing_neutron_power_generated, TimeWarp.fixedDeltaTime);
 
                 if (Planetarium.GetUniversalTime() != 0)
@@ -1316,9 +1312,6 @@ namespace FNPlugin
                 BreedTritium(ongoing_neutron_power_generated, TimeWarp.fixedDeltaTime);
 
                 ongoing_consumption_rate = MaximumPower > 0 ? raw_thermal_power_received / MaximumPower / TimeWarp.fixedDeltaTime : 0;
-
-                //if (!CheatOptions.IgnoreMaxTemperature)
-                //    supplyFNResource(raw_thermal_power_received, FNResourceManager.FNRESOURCE_WASTEHEAT); // generate heat that must be dissipated
 
                 powerPcnt = 100 * ongoing_consumption_rate;
                 decay_ongoing = true;

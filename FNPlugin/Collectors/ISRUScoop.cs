@@ -65,14 +65,14 @@ namespace FNPlugin
         {
             currentresource++;
 
-            if (ORSAtmosphericResourceHandler.getAtmosphericResourceName(vessel.mainBody.flightGlobalsIndex, currentresource) == null
-                && ORSAtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource) > 0
+            if (AtmosphericResourceHandler.getAtmosphericResourceName(vessel.mainBody.flightGlobalsIndex, currentresource) == null
+                && AtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource) > 0
                 && currentresource != 0)
             {
                 ToggleResource();
             }
             
-            if (currentresource >= ORSAtmosphericResourceHandler.getAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex).Count) 
+            if (currentresource >= AtmosphericResourceHandler.getAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex).Count) 
                 currentresource = 0;
 
             resflow = String.Empty;
@@ -175,8 +175,8 @@ namespace FNPlugin
             Fields["currentresourceStr"].guiActive = scoopIsEnabled;
             Fields["resourceStoragename"].guiActive = scoopIsEnabled;
 
-            double resourcePercentage = ORSAtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource)*100;
-            string resourceDisplayName = ORSAtmosphericResourceHandler.getAtmosphericResourceDisplayName(vessel.mainBody.flightGlobalsIndex, currentresource);
+            double resourcePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource)*100;
+            string resourceDisplayName = AtmosphericResourceHandler.getAtmosphericResourceDisplayName(vessel.mainBody.flightGlobalsIndex, currentresource);
             if (resourceDisplayName != null) 
                 currentresourceStr = resourceDisplayName + "(" + resourcePercentage + "%)";
             
@@ -198,8 +198,8 @@ namespace FNPlugin
 
         private void ScoopAthmosphere(double deltaTimeInSeconds, bool offlineCollecting)
         {
-            string ors_atmospheric_resource_name = ORSAtmosphericResourceHandler.getAtmosphericResourceName(vessel.mainBody.flightGlobalsIndex, currentresource);
-            string resourceDisplayName = ORSAtmosphericResourceHandler.getAtmosphericResourceDisplayName(vessel.mainBody.flightGlobalsIndex, currentresource);
+            string ors_atmospheric_resource_name = AtmosphericResourceHandler.getAtmosphericResourceName(vessel.mainBody.flightGlobalsIndex, currentresource);
+            string resourceDisplayName = AtmosphericResourceHandler.getAtmosphericResourceDisplayName(vessel.mainBody.flightGlobalsIndex, currentresource);
 
             if (ors_atmospheric_resource_name == null)
             {
@@ -230,7 +230,7 @@ namespace FNPlugin
             var hydrogenTax = 0.4 * Math.Sin(upperAtmospherFraction * Math.PI * 0.5);
             var heliumTax = 0.2 * Math.Sin(upperAtmospherFraction * Math.PI);
 
-            double rescourceFraction = (1.0 - hydrogenTax - heliumTax) * ORSAtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource);
+            double rescourceFraction = (1.0 - hydrogenTax - heliumTax) * AtmosphericResourceHandler.getAtmosphericResourceContent(vessel.mainBody.flightGlobalsIndex, currentresource);
 
             // increase density hydrogen
             if (resourceDisplayName == "Hydrogen")
