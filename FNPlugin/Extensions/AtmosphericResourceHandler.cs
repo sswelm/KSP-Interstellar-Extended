@@ -195,7 +195,7 @@ namespace FNPlugin
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdNitrogen", "Nitrogen", "Nitrogen");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Oxygen, "LqdOxygen", "Oxygen", "Oxygen");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CarbonMoxoxide", "CarbonMoxoxide");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CarbonMonoxide", "CarbonMonoxide");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "Methane", "Methane");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Hydrogen, "LqdHydrogen", "Hydrogen", "Hydrogen");
