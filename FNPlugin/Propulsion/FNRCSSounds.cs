@@ -11,7 +11,7 @@ namespace FNPlugin
         [KSPField]
         public string rcsShutoffSoundFile = "WarpPlugin/Sounds/RcsHeavyShutoff";
         [KSPField]
-        public string rcsColdGasSoundFile = "WarpPlugin/Sounds/RcsColdGas";
+        public string rcsColdGasSoundFile = "Squad/Sounds/sound_rocket_mini";
         [KSPField]
         public float rcsVolume = 0.5f;
         [KSPField]
@@ -36,8 +36,7 @@ namespace FNPlugin
             get
             {
                 if (this._rcsModule == null)
-                    //this._rcsModule = (ModuleRCS)this.part.Modules["ModuleRCS"];
-                    this._rcsModule = this.part.FindModuleImplementing<ModuleRCS>();
+                this._rcsModule = this.part.FindModuleImplementing<ModuleRCS>();
                 return this._rcsModule;
             }
         }
@@ -49,8 +48,7 @@ namespace FNPlugin
             {
                 if (!GameDatabase.Instance.ExistsAudioClip(filename))
                 {
-                    //printToLog("[DPSoundFX]ERROR - file " + filename + ".* not found!", 3);
-                    Debug.LogError("[DPSoundFX]ERROR - file " + filename + ".* not found!");
+                    Debug.LogError("[KSPI] - ERROR - file " + filename + ".* not found!");
                     return false;
                 }
                 group.audio = gameObject.AddComponent<AudioSource>();
@@ -77,13 +75,13 @@ namespace FNPlugin
 
                 // Works with squad sounds, not with rcsSoundFile.
                 if (!GameDatabase.Instance.ExistsAudioClip(rcsSoundFile))
-                    Debug.LogError("RcsSounds: Audio file not found: " + rcsSoundFile);
+                    Debug.LogError("[KSPI] -RcsSounds: Audio file not found: " + rcsSoundFile);
 
                 if (RcsSound == null)
-                    Debug.LogError("RcsSounds: Sound FXGroup not found.");
+                    Debug.LogError("[KSPI] -RcsSounds: Sound FXGroup not found.");
 
                 if (RcsShutoffSound == null)
-                    Debug.LogError("RcsSounds: Sound shuttof FXGroup not found.");
+                    Debug.LogError("[KSPI] - RcsSounds: Sound shuttof FXGroup not found.");
 
                 CreateGroup(RcsSound, rcsSoundFile, false);
                 CreateGroup(RcsShutoffSound, rcsShutoffSoundFile, false);
@@ -143,12 +141,6 @@ namespace FNPlugin
                             m = ResourceFlowMode.ALL_VESSEL;
                         }
 
-                        double amount = 0;
-                        double totalAmount = 0;
-                        part.GetConnectedResourceTotals(PartResourceLibrary.Instance.GetDefinition(rcsModule.resourceName).id, out amount, out totalAmount);
-
-                        if (totalAmount >= 0.01) // 0.01 is the smallest amount shown in the resource menu.
-                        {
                             for (int i = 0; i < rcsModule.thrusterFX.Count; i++)
                             {
                                 rcsHighestPower = Mathf.Max(rcsHighestPower, rcsModule.thrusterFX[i].Power);
@@ -156,7 +148,6 @@ namespace FNPlugin
                             if (rcsHighestPower > 0.1f)
                                 // Don't respond to SAS idling.
                                 rcsActive = true;
-                        }
                     }
 
                     if (rcsActive)
@@ -168,7 +159,7 @@ namespace FNPlugin
                         {
                             RcsSound.audio.Stop();
 
-                            RcsColdGasSound.audio.pitch = soundPitch / 2;
+                            RcsColdGasSound.audio.pitch = soundPitch; // / 2;
                             RcsColdGasSound.audio.volume = soundVolume;
                             if (!RcsColdGasSound.audio.isPlaying)
                                 RcsColdGasSound.audio.Play();

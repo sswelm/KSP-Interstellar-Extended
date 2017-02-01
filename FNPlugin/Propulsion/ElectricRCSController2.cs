@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FNPlugin 
 {
-    class ElectricRCSController : FNResourceSuppliableModule 
+    class ElectricRCSController2 : FNResourceSuppliableModule 
     {
         [KSPField(isPersistant = true)]
         bool isInitialised = false;
@@ -29,6 +29,7 @@ namespace FNPlugin
         public float minIsp = 250;
         [KSPField(isPersistant = false)]
         public string displayName = "";
+
         [KSPField(isPersistant = false)]
         public bool showConsumption = true;
 
@@ -71,6 +72,8 @@ namespace FNPlugin
         // GUI
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
         public bool hasSufficientPower = true;
+        //[KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
+        //public bool isPowered = true;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Consumption")]
         public string electricalPowerConsumptionStr = "";
@@ -89,11 +92,12 @@ namespace FNPlugin
         private double power_requested_raw = 0;
         private double power_recieved_f = 1;
         private double power_recieved_raw = 0;
+        //private double power_remainer_raw;
 
         private double heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
-        private FNModuleRCSFX attachedModuleRCSFX;
+        private ModuleRCSFX attachedModuleRCSFX;
         private double efficencyModifier;
         private float currentMaxThrust;
         private float oldThrustLimiter;
@@ -155,53 +159,75 @@ namespace FNPlugin
 
         private void SetupPropellants(bool moveNext = true, int maxSwitching = 0)
         {
-            Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
-            fuel_mode_name = Current_propellant.PropellantName;
-
-            if ((Current_propellant.SupportedEngines & type) != type)
+            try
             {
-                SwitchPropellant(moveNext, --maxSwitching);
-                return;
+                Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.FirstOrDefault();
+                fuel_mode_name = Current_propellant.PropellantName;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - SetupPropellant set Current_propellant " + e.Message + " at " + e.StackTrace);
             }
 
-            Propellant new_propellant = Current_propellant.Propellant;
-            if (HighLogic.LoadedSceneIsFlight)
+            try
             {
-                // you can have any fuel you want in the editor but not in flight
-                List<PartResource> totalpartresources = part.GetConnectedResources(new_propellant.name).ToList();
-
-                if (!totalpartresources.Any() && maxSwitching > 0)
+                if ((Current_propellant.SupportedEngines & type) != type)
                 {
                     SwitchPropellant(moveNext, --maxSwitching);
                     return;
                 }
             }
-
-            if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
+            catch (Exception e)
             {
-                currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
-
-                var moduleConfig = new ConfigNode("MODULE");
-                moduleConfig.AddValue("name", "FNModuleRCSFX");
-                moduleConfig.AddValue("thrusterPower", ((thrustLimiter / 100) * currentThrustMultiplier * baseThrust / Current_propellant.IspMultiplier).ToString("0.000"));
-                moduleConfig.AddValue("resourceName", new_propellant.name);
-                moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
-
-                maxPropellantIsp = (hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier;
-
-                var atmosphereCurve = new ConfigNode("atmosphereCurve");
-                atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
-                atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp * 0.5).ToString("0.000"));
-                atmosphereCurve.AddValue("key", "4 " + (maxPropellantIsp * 0.00001).ToString("0.000"));
-                moduleConfig.AddNode(atmosphereCurve);
-
-                attachedRCS.Load(moduleConfig);
+                Debug.LogError("[KSPI] - SetupPropellantsr SwitchPropellant " + e.Message + " at " + e.StackTrace);
             }
-            else if (maxSwitching > 0)
+
+            try
             {
-                Debug.Log("ElectricRCSController SetupPropellants switching mode because no definition found for " + new_propellant.name);
-                SwitchPropellant(moveNext, --maxSwitching);
-                return;
+                Propellant new_propellant = Current_propellant.Propellant;
+                if (HighLogic.LoadedSceneIsFlight)
+                {
+                    // you can have any fuel you want in the editor but not in flight
+                    List<PartResource> totalpartresources = part.GetConnectedResources(new_propellant.name).ToList();
+
+                    if (!totalpartresources.Any() && maxSwitching > 0)
+                    {
+                        SwitchPropellant(moveNext, --maxSwitching);
+                        return;
+                    }
+                }
+
+                if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
+                {
+                    currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
+
+                    var moduleConfig = new ConfigNode("MODULE");
+                    moduleConfig.AddValue("name", "ModuleRCSFX");
+                    moduleConfig.AddValue("thrusterPower", ((thrustLimiter / 100) * currentThrustMultiplier * baseThrust / Current_propellant.IspMultiplier).ToString("0.000"));
+                    moduleConfig.AddValue("resourceName", new_propellant.name);
+                    moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
+
+                    maxPropellantIsp = (hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier;
+
+                    var atmosphereCurve = new ConfigNode("atmosphereCurve");
+                    atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
+                    atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp * 0.5).ToString("0.000"));
+                    atmosphereCurve.AddValue("key", "4 " + (maxPropellantIsp * 0.00001).ToString("0.000"));
+                    moduleConfig.AddNode(atmosphereCurve);
+
+                    attachedRCS.Load(moduleConfig);
+                }
+                else if (maxSwitching > 0)
+                {
+                    Debug.Log("ElectricRCSController SetupPropellants switching mode because no definition found for " + new_propellant.name);
+                    SwitchPropellant(moveNext, --maxSwitching);
+                    return;
+                }
+
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - SetupPropellantsr Load Config " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -276,7 +302,7 @@ namespace FNPlugin
         {
             powerEnabled = !powerEnabled;
 
-            power_recieved_f = powerEnabled ? CheatOptions.InfiniteElectricity ? 1 : consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES) : 0;
+            power_recieved_f = powerEnabled ? CheatOptions.InfiniteElectricity ? 1 : (float)consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES) : 0;
             hasSufficientPower = power_recieved_f > 0.01;
             SetupPropellants();
             currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
@@ -289,7 +315,7 @@ namespace FNPlugin
             try
             {
                 attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
-                attachedModuleRCSFX = attachedRCS as FNModuleRCSFX;
+                attachedModuleRCSFX = attachedRCS as ModuleRCSFX;
 
                 if (!isInitialised)
                 {
@@ -333,7 +359,7 @@ namespace FNPlugin
 
                 oldThrustLimiter = thrustLimiter;
                 oldPowerEnabled = powerEnabled;
-                efficencyModifier = g0 * 0.5 / 1000 / efficency;
+                efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
                 efficencyStr = (efficency * 100).ToString() + "%";
 
                 if (!String.IsNullOrEmpty(AnimationName))
@@ -457,9 +483,9 @@ namespace FNPlugin
 
             thrustForcesStr = String.Empty;
 
-            if (attachedModuleRCSFX != null)
-                currentThrust = attachedModuleRCSFX.curThrust;
-            else
+            //if (attachedModuleRCSFX != null)
+            //    currentThrust = attachedModuleRCSFX.thr  .curThrust;
+            //else
                 currentThrust = attachedRCS.thrustForces.Sum(frc => frc);
 
             foreach (var force in attachedRCS.thrustForces)
@@ -473,7 +499,8 @@ namespace FNPlugin
 
             if (powerEnabled)
             {
-                power_requested_f = currentThrust * maxIsp * Current_propellant.IspMultiplier * efficencyModifier / currentThrustMultiplier;
+                //float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
+                power_requested_f = currentThrust * maxIsp * efficencyModifier / currentThrustMultiplier;
 
                 var power_required_raw = (power_requested_f * TimeWarp.fixedDeltaTime);
 
@@ -506,6 +533,7 @@ namespace FNPlugin
             {
                 if (insufficientPowerTimout < 1)
                 {
+                    //isPowered = false;
                     hasSufficientPower = false;
                     SetupPropellants();
                 }
@@ -514,14 +542,17 @@ namespace FNPlugin
             }
             else if (!hasSufficientPower && power_ratio > 0.9 && power_recieved_f > 0.01)
             {
+                //isPowered = true;
                 insufficientPowerTimout = 2;
                 hasSufficientPower = true;
                 SetupPropellants();
             }
 
+            // process remainder
             if (hasSufficientPower)
                 power_recieved_raw -= power_requested_raw;
 
+            //power_remainer_raw += power_recieved_raw;
             power_recieved_raw = 0;
         }
 
