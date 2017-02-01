@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using OpenResourceSystem;
 
 namespace FNPlugin.Refinery
 {
@@ -10,10 +11,10 @@ namespace FNPlugin.Refinery
     class InterstellarRefinery : FNResourceSuppliableModule
     {
 
-        [KSPField(isPersistant=true)]
+        [KSPField(isPersistant = true)]
         bool refinery_is_enabled;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Offline scooping")]
-        private bool offlineProcessing;
+        //[KSPField(isPersistant = true, guiActive = true, guiName = "Offline scooping")]
+        //private bool offlineProcessing;
         [KSPField(isPersistant = true)]
         private bool lastOverflowSettings;
         [KSPField(isPersistant = true)]
@@ -21,15 +22,14 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true)]
         private double lastPowerRatio;
         [KSPField(isPersistant = true)]
-        private string lastActivityName;
+        private string lastActivityName = "";
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
-        public string status_str = "";
+        public string status_str = string.Empty;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true,  guiName = "Production Multiplier", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Production Multiplier", guiFormat = "F3")]
         public float productionMult = 1f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Req Multiplier", guiFormat = "F3")]
         public float powerReqMult = 1f;
@@ -40,7 +40,6 @@ namespace FNPlugin.Refinery
         public double utilisationPercentage;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Consumed Power", guiFormat = "F3", guiUnits = " MW")]
         public double consumedPowerMW;
-
 
         const int labelWidth = 200;
         const int valueWidth = 200;
@@ -57,6 +56,17 @@ namespace FNPlugin.Refinery
 
         private double timeDifference;
 
+        [KSPEvent(guiActive = true, guiName = "Sample Atmosphere", active = true)]
+        public void ActivateCollector()
+        {
+            List<AtmosphericResource> resources = AtmosphericResourceHandler.GetAtmosphericCompositionForBody(part.vessel.mainBody);
+
+            foreach (var resource in resources)
+            {
+                ScreenMessages.PostScreenMessage(resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
+            }
+        }
+
         [KSPEvent(guiActive = true, guiName = "Toggle Refinery Window", active = true)]
         public void ToggleWindow()
         {
@@ -70,7 +80,7 @@ namespace FNPlugin.Refinery
             System.Random rnd = new System.Random();
             _window_ID = rnd.Next(int.MaxValue);
 
-            var unsortedList =  new List<IRefineryActivity>();
+            var unsortedList = new List<IRefineryActivity>();
 
             try
             {
@@ -101,19 +111,39 @@ namespace FNPlugin.Refinery
 
             _refinery_activities = unsortedList.OrderBy(a => a.ActivityName).ToList();
 
-            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
-
-            if (offlineProcessing == true && lastActivityName == "Atmospheric Extraction") 
+            // load same 
+            if (refinery_is_enabled && !string.IsNullOrEmpty(lastActivityName))
             {
-                AtmosphericExtractor activity = new AtmosphericExtractor(this.part); // creates a new extractor object (but it will be marked for disposal once out of scope, which is pretty soon)
-                timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime) * 55;
-                activity.ExtractAir(lastPowerRatio * productionMult, lastOverflowSettings, timeDifference, true);
+                _current_activity = _refinery_activities.FirstOrDefault(a => a.ActivityName == lastActivityName);
             }
+
+            if (_current_activity != null)
+            {
+                var productionRate = lastPowerRatio * productionMult;
+
+                timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime);
+                //string message = "[KSPI] - IRSU performed " + lastActivityName + " for " + timeDifference.ToString("0.0") + " seconds with production rate " + productionRate.ToString("0.0");
+                //Debug.Log(message);
+                //ScreenMessages.PostScreenMessage(message, 60.0f, ScreenMessageStyle.LOWER_CENTER);
+
+                if (lastActivityName == "Atmospheric Extraction")
+                    ((AtmosphericExtractor)_current_activity).ExtractAir(productionRate, lastOverflowSettings, timeDifference, true);
+                else
+                    _current_activity.UpdateFrame(productionRate, lastOverflowSettings, timeDifference);
+            }
+
+            //if (lastActivityName == "Atmospheric Extraction")
+            //{
+            //    AtmosphericExtractor activity = new AtmosphericExtractor(this.part); // creates a new extractor object (but it will be marked for disposal once out of scope, which is pretty soon)
+            //   timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime) * 60;
+            //    activity.ExtractAir(lastPowerRatio * productionMult, lastOverflowSettings, timeDifference, true); 
+            //}
         }
 
         public override void OnUpdate()
         {
             status_str = "Offline";
+
             if (_current_activity == null) return;
 
             status_str = _current_activity.Status;
@@ -123,7 +153,11 @@ namespace FNPlugin.Refinery
         {
             currentPowerReq = 0;
 
-            if (!HighLogic.LoadedSceneIsFlight || !refinery_is_enabled || _current_activity == null) return;
+            if (!HighLogic.LoadedSceneIsFlight || !refinery_is_enabled || _current_activity == null)
+            {
+                lastActivityName = string.Empty;
+                return;
+            }
 
             currentPowerReq = powerReqMult * _current_activity.PowerRequirements;
 
@@ -137,7 +171,7 @@ namespace FNPlugin.Refinery
 
             consumedPowerMW = fixedConsumedPowerMW / TimeWarp.fixedDeltaTime;
 
-            var shortage = Math.Max(  totalPowerRequiredThisFrame - fixedConsumedPowerMW , 0);
+            var shortage = Math.Max(totalPowerRequiredThisFrame - fixedConsumedPowerMW, 0);
 
             var recievedElectricCharge = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, shortage * 1000);
 
@@ -147,9 +181,7 @@ namespace FNPlugin.Refinery
 
             utilisationPercentage = power_ratio * 100;
 
-            
-            _current_activity.UpdateFrame(power_ratio * productionMult, overflowAllowed);
-
+            _current_activity.UpdateFrame(power_ratio * productionMult, overflowAllowed, TimeWarp.fixedDeltaTime);
 
             lastPowerRatio = power_ratio; // save the current power ratio in case the vessel is unloaded
             lastOverflowSettings = overflowAllowed; // save the current overflow settings in case the vessel is unloaded
@@ -198,8 +230,6 @@ namespace FNPlugin.Refinery
                 _disabled_button.fontStyle = FontStyle.Normal;
             }
 
-            
-
             if (GUI.Button(new Rect(_window_position.width - 20, 2, 18, 18), "x"))
                 _render_window = false;
 
@@ -238,27 +268,27 @@ namespace FNPlugin.Refinery
                 }
                 GUILayout.EndHorizontal();
 
-                /* This bit adds a special button to the details window for offline processing. Currently only implemented for Atmospheric Extraction,
-                 * but is easily expandable (though perhaps then we should add a new bool to IRefineryActivity interface that will be set in every process
-                 * so that filtering the activities here is easier - like bAllowsOfflineProcessing, set to true in those ISRU processes that do, default false.
-                 * Or some other fancy setup, I'm no wizard.)
-                */
-                if (_current_activity.ActivityName == "Atmospheric Extraction")
-                {
-                    GUILayout.BeginHorizontal();
-                    if (offlineProcessing)
-                    {
-                        if (GUILayout.Button("Disable Offline Process", GUILayout.ExpandWidth(true)))
-                            offlineProcessing = false;
-                    }
-                    else
-                    {
-                        if (GUILayout.Button("Enable Offline Process", GUILayout.ExpandWidth(true)))
-                            offlineProcessing = true;
-                    }
-                    GUILayout.EndHorizontal();
-                }
-                
+                ///* This bit adds a special button to the details window for offline processing. Currently only implemented for Atmospheric Extraction,
+                // * but is easily expandable (though perhaps then we should add a new bool to IRefineryActivity interface that will be set in every process
+                // * so that filtering the activities here is easier - like bAllowsOfflineProcessing, set to true in those ISRU processes that do, default false.
+                // * Or some other fancy setup, I'm no wizard.)
+                //*/
+                //if (_current_activity.ActivityName == "Atmospheric Extraction")
+                //{
+                //    GUILayout.BeginHorizontal();
+                //    if (offlineProcessing)
+                //    {
+                //        if (GUILayout.Button("Disable Offline Process", GUILayout.ExpandWidth(true)))
+                //            offlineProcessing = false;
+                //    }
+                //    else
+                //    {
+                //        if (GUILayout.Button("Enable Offline Process", GUILayout.ExpandWidth(true)))
+                //            offlineProcessing = true;
+                //    }
+                //    GUILayout.EndHorizontal();
+                //}
+
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Current Activity", _bold_label, GUILayout.Width(labelWidth));
                 GUILayout.Label(_current_activity.ActivityName, GUILayout.Width(valueWidth));

@@ -47,7 +47,7 @@ namespace FNPlugin.Refinery
             _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_mass_rate = (CurrentPower / PluginHelper.ElectrolysisEnergyPerTon) * 14.45;
@@ -55,8 +55,8 @@ namespace FNPlugin.Refinery
             var spare_capacity_nitrogen = _part.GetResourceSpareCapacity(InterstellarResourcesConfiguration.Instance.Nitrogen);
             var spare_capacity_hydrogen = _part.GetResourceSpareCapacity(InterstellarResourcesConfiguration.Instance.Hydrogen);
 
-            double max_nitrogen_mass_rate = (_current_mass_rate * (1 - GameConstants.ammoniaHydrogenFractionByMass)) * TimeWarp.fixedDeltaTime / _nitrogen_density;
-            double max_hydrogen_mass_rate = (_current_mass_rate * GameConstants.ammoniaHydrogenFractionByMass) * TimeWarp.fixedDeltaTime / _hydrogen_density;
+            double max_nitrogen_mass_rate = (_current_mass_rate * (1 - GameConstants.ammoniaHydrogenFractionByMass)) * fixedDeltaTime / _nitrogen_density;
+            double max_hydrogen_mass_rate = (_current_mass_rate * GameConstants.ammoniaHydrogenFractionByMass) * fixedDeltaTime / _hydrogen_density;
 
             // prevent overflow
             if (spare_capacity_nitrogen <= max_nitrogen_mass_rate || spare_capacity_hydrogen <= max_hydrogen_mass_rate)
@@ -67,12 +67,12 @@ namespace FNPlugin.Refinery
             }
             else
             {
-                _ammonia_consumption_mass_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, _current_mass_rate * TimeWarp.fixedDeltaTime / _ammonia_density) / TimeWarp.fixedDeltaTime * _ammonia_density;
+                _ammonia_consumption_mass_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, _current_mass_rate * fixedDeltaTime / _ammonia_density) / fixedDeltaTime * _ammonia_density;
                 double hydrogen_mass_rate = _ammonia_consumption_mass_rate * GameConstants.ammoniaHydrogenFractionByMass;
                 double nitrogen_mass_rate = _ammonia_consumption_mass_rate * (1 - GameConstants.ammoniaHydrogenFractionByMass);
 
-                _hydrogen_production_mass_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogen_mass_rate * TimeWarp.fixedDeltaTime / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
-                _nitrogen_production_mass_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Nitrogen, -nitrogen_mass_rate * TimeWarp.fixedDeltaTime / _nitrogen_density) / TimeWarp.fixedDeltaTime * _nitrogen_density;
+                _hydrogen_production_mass_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogen_mass_rate * fixedDeltaTime / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
+                _nitrogen_production_mass_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Nitrogen, -nitrogen_mass_rate * fixedDeltaTime / _nitrogen_density) / fixedDeltaTime * _nitrogen_density;
             }
 
             updateStatusMessage();

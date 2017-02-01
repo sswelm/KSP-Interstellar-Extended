@@ -11,6 +11,7 @@ namespace FNPlugin.Refinery
     {
         protected Part _part;
         protected Vessel _vessel;
+        protected double _fixed_current_rate = 0;
         protected double _current_rate = 0;
         protected double _remaining_to_reprocess = 0;
         protected double _remaining_seconds = 0;
@@ -41,11 +42,11 @@ namespace FNPlugin.Refinery
             _vessel = part.vessel;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow) 
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime) 
         {
             _current_power = PowerRequirements * rateMultiplier;
             List<INuclearFuelReprocessable> nuclear_reactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();
-            double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * TimeWarp.fixedDeltaTime / PluginHelper.SecondsInDay * rateMultiplier;
+            double remaining_capacity_to_reprocess = GameConstants.baseReprocessingRate * fixedDeltaTime / PluginHelper.SecondsInDay * rateMultiplier;
             double enum_actinides_change = 0;
             foreach (INuclearFuelReprocessable nuclear_reactor in nuclear_reactors)
             {
@@ -54,9 +55,10 @@ namespace FNPlugin.Refinery
                 remaining_capacity_to_reprocess = Math.Max(0, remaining_capacity_to_reprocess-actinides_change);
             }
             _remaining_to_reprocess = nuclear_reactors.Sum(nfr => nfr.WasteToReprocess);
-            _current_rate = enum_actinides_change;
-            _remaining_seconds = _remaining_to_reprocess / _current_rate/ TimeWarp.fixedDeltaTime;
-            _status = _current_rate > 0 ? "Online" : _remaining_to_reprocess > 0 ? "Power Deprived" : "No Fuel To Reprocess";
+            _fixed_current_rate = enum_actinides_change;
+            _current_rate = _fixed_current_rate / fixedDeltaTime;
+            _remaining_seconds = _remaining_to_reprocess / _fixed_current_rate/ fixedDeltaTime;
+            _status = _fixed_current_rate > 0 ? "Online" : _remaining_to_reprocess > 0 ? "Power Deprived" : "No Fuel To Reprocess";
         }
 
         public void UpdateGUI()
@@ -82,7 +84,7 @@ namespace FNPlugin.Refinery
 
         public double getActinidesRemovedPerHour() 
         {
-            return _current_rate / TimeWarp.fixedDeltaTime * 3600.0;
+            return _current_rate * 3600.0;
         }
 
         public double getRemainingAmountToReprocess() 

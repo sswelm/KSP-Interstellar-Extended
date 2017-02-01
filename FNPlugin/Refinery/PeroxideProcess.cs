@@ -18,6 +18,7 @@ namespace FNPlugin.Refinery
         protected double _current_power;
         protected double _current_rate;
         protected double _fixedConsumptionRate;
+        protected double _consumptionRate;
         protected double _consumptionStorageRatio;
 
         protected string _ammonia_resource_name;
@@ -85,7 +86,7 @@ namespace FNPlugin.Refinery
             _hydrazine_density = PartResourceLibrary.Instance.GetDefinition(_hydrazine_resource_name).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.PechineyUgineKuhlmannEnergyPerTon;
@@ -108,13 +109,14 @@ namespace FNPlugin.Refinery
             _spareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * _water_density;
 
             // determine how much we can consume
-            var fixedMaxAmmoniaConsumptionRate = _current_rate * ammona_mass_consumption_ratio * TimeWarp.fixedDeltaTime;
+            var fixedMaxAmmoniaConsumptionRate = _current_rate * ammona_mass_consumption_ratio * fixedDeltaTime;
             var ammoniaConsumptionRatio = fixedMaxAmmoniaConsumptionRate > 0 ? Math.Min(fixedMaxAmmoniaConsumptionRate, _availableAmmoniaMass) / fixedMaxAmmoniaConsumptionRate : 0;
 
-            var fixedMaxHydrogenPeroxideConsumptionRate = _current_rate * hydrogen_peroxide_mass_consumption_ratio * TimeWarp.fixedDeltaTime;
+            var fixedMaxHydrogenPeroxideConsumptionRate = _current_rate * hydrogen_peroxide_mass_consumption_ratio * fixedDeltaTime;
             var hydrogenPeroxideConsumptionRatio = fixedMaxHydrogenPeroxideConsumptionRate > 0 ? Math.Min(fixedMaxHydrogenPeroxideConsumptionRate, _availableHydrogenPeroxideMass) / fixedMaxHydrogenPeroxideConsumptionRate : 0;
 
-            _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * Math.Min(ammoniaConsumptionRatio, hydrogenPeroxideConsumptionRatio);
+            _fixedConsumptionRate = _current_rate * fixedDeltaTime * Math.Min(ammoniaConsumptionRatio, hydrogenPeroxideConsumptionRatio);
+            _consumptionRate = _fixedConsumptionRate / fixedDeltaTime;
 
             if (_fixedConsumptionRate > 0 && (_spareRoomHydrazineMass > 0 || _spareRoomWaterMass > 0))
             {
@@ -129,18 +131,18 @@ namespace FNPlugin.Refinery
 
                 // now we do the real consumption
                 var ammonia_request = _fixedConsumptionRate * ammona_mass_consumption_ratio * _consumptionStorageRatio / _ammonia_density;
-                _ammonia_consumption_rate = _part.RequestResource(_ammonia_resource_name, ammonia_request) * _ammonia_density / TimeWarp.fixedDeltaTime;
+                _ammonia_consumption_rate = _part.RequestResource(_ammonia_resource_name, ammonia_request) * _ammonia_density / fixedDeltaTime;
 
                 var hydrogen_peroxide_request = _fixedConsumptionRate * hydrogen_peroxide_mass_consumption_ratio * _consumptionStorageRatio / _hydrogen_peroxide_density;
-                _hydrogen_peroxide_consumption_rate = _part.RequestResource(_hydrogen_peroxide_name, hydrogen_peroxide_request) * _hydrogen_peroxide_density / TimeWarp.fixedDeltaTime;
+                _hydrogen_peroxide_consumption_rate = _part.RequestResource(_hydrogen_peroxide_name, hydrogen_peroxide_request) * _hydrogen_peroxide_density / fixedDeltaTime;
 
                 var combined_consumption_rate = _ammonia_consumption_rate + _hydrogen_peroxide_consumption_rate;
 
-                var fixed_hydrazine_production = combined_consumption_rate * hydrazine_mass_production_ratio * TimeWarp.fixedDeltaTime / _hydrazine_density;
-                    _hydrazine_production_rate = -_part.RequestResource(_hydrazine_resource_name, -fixed_hydrazine_production) * _hydrazine_density / TimeWarp.fixedDeltaTime;
+                var fixed_hydrazine_production = combined_consumption_rate * hydrazine_mass_production_ratio * fixedDeltaTime / _hydrazine_density;
+                    _hydrazine_production_rate = -_part.RequestResource(_hydrazine_resource_name, -fixed_hydrazine_production) * _hydrazine_density / fixedDeltaTime;
 
-                var fixed_water_production = combined_consumption_rate * water_mass_production_ratio * TimeWarp.fixedDeltaTime / _water_density;
-                    _water_production_rate = -_part.RequestResource(_water_resource_name, -fixed_water_production) * _water_density / TimeWarp.fixedDeltaTime;
+                var fixed_water_production = combined_consumption_rate * water_mass_production_ratio * fixedDeltaTime / _water_density;
+                    _water_production_rate = -_part.RequestResource(_water_resource_name, -fixed_water_production) * _water_density / fixedDeltaTime;
             }
             else
             {
@@ -167,7 +169,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Current Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_fixedConsumptionRate / TimeWarp.fixedDeltaTime * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((_consumptionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();

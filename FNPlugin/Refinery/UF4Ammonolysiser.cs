@@ -54,17 +54,17 @@ namespace FNPlugin.Refinery
             _uranium_nitride_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / GameConstants.baseUraniumAmmonolysisRate;
             double uf4persec = _current_rate * 1.24597 / _uranium_tetraflouride_density;
             double ammoniapersec = _current_rate * 0.901 / _ammonia_density;
-            _uranium_tetraflouride_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, uf4persec * TimeWarp.fixedDeltaTime)/_uranium_tetraflouride_density/TimeWarp.fixedDeltaTime;
-            _ammonia_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, ammoniapersec * TimeWarp.fixedDeltaTime) / _ammonia_density / TimeWarp.fixedDeltaTime;
+            _uranium_tetraflouride_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, uf4persec * fixedDeltaTime)/_uranium_tetraflouride_density/fixedDeltaTime;
+            _ammonia_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, ammoniapersec * fixedDeltaTime) / _ammonia_density / fixedDeltaTime;
 
             if(_ammonia_consumption_rate > 0 && _uranium_tetraflouride_consumption_rate > 0) 
-                _uranium_nitride_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.UraniumNitride, -_uranium_tetraflouride_consumption_rate / 1.24597 / _uranium_nitride_density*TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime * _uranium_nitride_density;
+                _uranium_nitride_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.UraniumNitride, -_uranium_tetraflouride_consumption_rate / 1.24597 / _uranium_nitride_density * fixedDeltaTime) / fixedDeltaTime * _uranium_nitride_density;
 
             updateStatusMessage();
         }

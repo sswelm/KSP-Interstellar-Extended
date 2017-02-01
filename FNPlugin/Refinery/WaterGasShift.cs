@@ -88,8 +88,8 @@ namespace FNPlugin.Refinery
         }
 
 
-        
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             _allowOverflow = allowOverflow;
             
@@ -113,13 +113,13 @@ namespace FNPlugin.Refinery
             _spareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * _hydrogen_density;
 
             // determine how much carbondioxide we can consume
-            var fixedMaxWaterConsumptionRate = _current_rate * waterMassByFraction * TimeWarp.fixedDeltaTime;
+            var fixedMaxWaterConsumptionRate = _current_rate * waterMassByFraction * fixedDeltaTime;
             var waterConsumptionRatio = fixedMaxWaterConsumptionRate > 0 ? Math.Min(fixedMaxWaterConsumptionRate, _availableWaterMass) / fixedMaxWaterConsumptionRate : 0;
 
-            var fixedMaxMonoxideConsumptionRate =  _current_rate * monoxideMassByFraction * TimeWarp.fixedDeltaTime;
+            var fixedMaxMonoxideConsumptionRate =  _current_rate * monoxideMassByFraction * fixedDeltaTime;
             var monoxideConsumptionRatio = fixedMaxMonoxideConsumptionRate > 0 ? Math.Min(fixedMaxMonoxideConsumptionRate, _availableMonoxideMass) / fixedMaxMonoxideConsumptionRate : 0;
 
-            _fixedConsumptionRate = _current_rate * TimeWarp.fixedDeltaTime * Math.Min(waterConsumptionRatio, monoxideConsumptionRatio);
+            _fixedConsumptionRate = _current_rate * fixedDeltaTime * Math.Min(waterConsumptionRatio, monoxideConsumptionRatio);
 
             if (_fixedConsumptionRate > 0 && (_spareRoomHydrogenMass > 0 || _spareRoomDioxideMass > 0))
             {
@@ -133,15 +133,15 @@ namespace FNPlugin.Refinery
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate, fixedMaxPossibleDioxideRate / fixedMaxDioxideRate);
 
                 // now we do the real elextrolysis
-                _water_consumption_rate = _part.RequestResource(_waterResourceName, waterMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _water_density) / TimeWarp.fixedDeltaTime * _water_density;
-                _monoxide_consumption_rate = _part.RequestResource(_monoxideResourceName, monoxideMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _monoxide_density) / TimeWarp.fixedDeltaTime * _monoxide_density;
+                _water_consumption_rate = _part.RequestResource(_waterResourceName, waterMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _water_density) / fixedDeltaTime * _water_density;
+                _monoxide_consumption_rate = _part.RequestResource(_monoxideResourceName, monoxideMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _monoxide_density) / fixedDeltaTime * _monoxide_density;
                 var combined_consumption_rate = _water_consumption_rate + _monoxide_consumption_rate;
 
                 var hydrogen_rate_temp = combined_consumption_rate * hydrogenMassByFraction;
                 var dioxide_rate_temp = combined_consumption_rate * dioxideMassByFraction;
 
-                _hydrogen_production_rate = -_part.RequestResource(_hydrogenResourceName, -hydrogen_rate_temp * TimeWarp.fixedDeltaTime / _hydrogen_density) / TimeWarp.fixedDeltaTime * _hydrogen_density;
-                _dioxide_production_rate = -_part.RequestResource(_dioxideResourceName, -dioxide_rate_temp * TimeWarp.fixedDeltaTime / _dioxide_density) / TimeWarp.fixedDeltaTime * _dioxide_density;
+                _hydrogen_production_rate = -_part.RequestResource(_hydrogenResourceName, -hydrogen_rate_temp * fixedDeltaTime / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
+                _dioxide_production_rate = -_part.RequestResource(_dioxideResourceName, -dioxide_rate_temp * fixedDeltaTime / _dioxide_density) / fixedDeltaTime * _dioxide_density;
             }
             else
             {

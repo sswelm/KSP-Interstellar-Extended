@@ -29,7 +29,8 @@ namespace FNPlugin.Refinery
         protected double dNitrogenDensity;
         protected double dWaterDensity;
 
-        protected double dRegolithConsumptionRate;
+        protected double fixed_regolithConsumptionRate;
+        protected double regolithConsumptionRate;
 
         protected double dHydrogenProductionRate;
         protected double dLiquidHelium3ProductionRate;
@@ -129,7 +130,7 @@ namespace FNPlugin.Refinery
         protected double dWaterMassByFraction = 0.18130871930;
 
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             _currentPower = PowerRequirements * rateMultiplier;
             dCurrentRate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
@@ -170,12 +171,12 @@ namespace FNPlugin.Refinery
             dSpareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * dWaterDensity;
 
             // this should determine how much resource this process can consume
-            double dFixedMaxRegolithConsumptionRate = dCurrentRate * TimeWarp.fixedDeltaTime * dRegolithDensity;
+            double dFixedMaxRegolithConsumptionRate = dCurrentRate * fixedDeltaTime * dRegolithDensity;
             double dRegolithConsumptionRatio = dFixedMaxRegolithConsumptionRate > 0
                 ? Math.Min(dFixedMaxRegolithConsumptionRate, dAvailableRegolithMass) / dFixedMaxRegolithConsumptionRate
                 : 0;
 
-            dFixedConsumptionRate = dCurrentRate * TimeWarp.fixedDeltaTime * dRegolithConsumptionRatio;
+            dFixedConsumptionRate = dCurrentRate * fixedDeltaTime * dRegolithConsumptionRatio;
 
             // begin the regolith processing
             if (dFixedConsumptionRate > 0 && ((((dSpareRoomHydrogenMass > 0 || dSpareRoomHelium3Mass > 0) || dSpareRoomHelium4Mass > 0) || dSpareRoomMonoxideMass > 0) || dSpareRoomNitrogenMass > 0)) // check if there is anything to consume and spare room for at least one of the products
@@ -203,30 +204,31 @@ namespace FNPlugin.Refinery
                 dConsumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(dFixedMaxPossibleHydrogenRate / dFixedMaxHydrogenRate, dFixedMaxPossibleHelium3Rate / dFixedMaxHelium3Rate), dFixedMaxPossibleHelium4Rate / dFixedMaxHelium4Rate), dFixedMaxPossibleMonoxideRate / dFixedMaxMonoxideRate), dFixedMaxPossibleNitrogenRate / dFixedMaxNitrogenRate), dFixedMaxPossibleWaterRate / dFixedMaxWaterRate), dFixedMaxPossibleDioxideRate / dFixedMaxDioxideRate), dFixedMaxPossibleMethaneRate / dFixedMaxMethaneRate);
 
                 // this consumes the resource
-                dRegolithConsumptionRate = _part.RequestResource(strRegolithResourceName, dConsumptionStorageRatio * dFixedConsumptionRate / dRegolithDensity) / TimeWarp.fixedDeltaTime * dRegolithDensity;
+                fixed_regolithConsumptionRate = _part.RequestResource(strRegolithResourceName, dConsumptionStorageRatio * dFixedConsumptionRate / dRegolithDensity) / fixedDeltaTime * dRegolithDensity;
+                regolithConsumptionRate = fixed_regolithConsumptionRate / fixedDeltaTime;
 
                 // this produces the products
-                double dHydrogenRateTemp = dRegolithConsumptionRate * dHydrogenMassByFraction;
-                double dHelium3RateTemp = dRegolithConsumptionRate * dHelium3MassByFraction;
-                double dHelium4RateTemp = dRegolithConsumptionRate * dHelium4MassByFraction;
-                double dMonoxideRateTemp = dRegolithConsumptionRate * dMonoxideMassByFraction;
-                double dDioxideRateTemp = dRegolithConsumptionRate * dDioxideMassByFraction;
-                double dMethaneRateTemp = dRegolithConsumptionRate * dMethaneMassByFraction;
-                double dNitrogenRateTemp = dRegolithConsumptionRate * dNitrogenMassByFraction;
-                double dWaterRateTemp = dRegolithConsumptionRate * dWaterMassByFraction;
+                double dHydrogenRateTemp = fixed_regolithConsumptionRate * dHydrogenMassByFraction;
+                double dHelium3RateTemp = fixed_regolithConsumptionRate * dHelium3MassByFraction;
+                double dHelium4RateTemp = fixed_regolithConsumptionRate * dHelium4MassByFraction;
+                double dMonoxideRateTemp = fixed_regolithConsumptionRate * dMonoxideMassByFraction;
+                double dDioxideRateTemp = fixed_regolithConsumptionRate * dDioxideMassByFraction;
+                double dMethaneRateTemp = fixed_regolithConsumptionRate * dMethaneMassByFraction;
+                double dNitrogenRateTemp = fixed_regolithConsumptionRate * dNitrogenMassByFraction;
+                double dWaterRateTemp = fixed_regolithConsumptionRate * dWaterMassByFraction;
 
-                dHydrogenProductionRate = -_part.RequestResource(strHydrogenResourceName, -dHydrogenRateTemp * TimeWarp.fixedDeltaTime / dHydrogenDensity) / TimeWarp.fixedDeltaTime * dHydrogenDensity;
-                dLiquidHelium3ProductionRate = -_part.RequestResource(strLiquidHelium3ResourceName, -dHelium3RateTemp * TimeWarp.fixedDeltaTime / dLiquidHelium3Density) / TimeWarp.fixedDeltaTime * dLiquidHelium3Density;
-                dLiquidHelium4ProductionRate = -_part.RequestResource(strLiquidHelium4ResourceName, -dHelium4RateTemp * TimeWarp.fixedDeltaTime / dLiquidHelium4Density) / TimeWarp.fixedDeltaTime * dLiquidHelium4Density;
-                dMonoxideProductionRate = -_part.RequestResource(strMonoxideResourceName, -dMonoxideRateTemp * TimeWarp.fixedDeltaTime / dMonoxideDensity) / TimeWarp.fixedDeltaTime * dMonoxideDensity;
-                dDioxideProductionRate = -_part.RequestResource(strDioxideResourceName, -dDioxideRateTemp * TimeWarp.fixedDeltaTime / dDioxideDensity) / TimeWarp.fixedDeltaTime * dDioxideDensity;
-                dMethaneProductionRate = -_part.RequestResource(strMethaneResourceName, -dMethaneRateTemp * TimeWarp.fixedDeltaTime / dMethaneDensity) / TimeWarp.fixedDeltaTime * dMethaneDensity;
-                dNitrogenProductionRate = -_part.RequestResource(strNitrogenResourceName, -dNitrogenRateTemp * TimeWarp.fixedDeltaTime / dNitrogenDensity) / TimeWarp.fixedDeltaTime * dNitrogenDensity;
-                dWaterProductionRate = -_part.RequestResource(strWaterResourceName, -dWaterRateTemp * TimeWarp.fixedDeltaTime / dWaterDensity) / TimeWarp.fixedDeltaTime * dWaterDensity;
+                dHydrogenProductionRate = -_part.RequestResource(strHydrogenResourceName, -dHydrogenRateTemp * fixedDeltaTime / dHydrogenDensity) / fixedDeltaTime * dHydrogenDensity;
+                dLiquidHelium3ProductionRate = -_part.RequestResource(strLiquidHelium3ResourceName, -dHelium3RateTemp * fixedDeltaTime / dLiquidHelium3Density) / fixedDeltaTime * dLiquidHelium3Density;
+                dLiquidHelium4ProductionRate = -_part.RequestResource(strLiquidHelium4ResourceName, -dHelium4RateTemp * fixedDeltaTime / dLiquidHelium4Density) / fixedDeltaTime * dLiquidHelium4Density;
+                dMonoxideProductionRate = -_part.RequestResource(strMonoxideResourceName, -dMonoxideRateTemp * fixedDeltaTime / dMonoxideDensity) / fixedDeltaTime * dMonoxideDensity;
+                dDioxideProductionRate = -_part.RequestResource(strDioxideResourceName, -dDioxideRateTemp * fixedDeltaTime / dDioxideDensity) / fixedDeltaTime * dDioxideDensity;
+                dMethaneProductionRate = -_part.RequestResource(strMethaneResourceName, -dMethaneRateTemp * fixedDeltaTime / dMethaneDensity) / fixedDeltaTime * dMethaneDensity;
+                dNitrogenProductionRate = -_part.RequestResource(strNitrogenResourceName, -dNitrogenRateTemp * fixedDeltaTime / dNitrogenDensity) / fixedDeltaTime * dNitrogenDensity;
+                dWaterProductionRate = -_part.RequestResource(strWaterResourceName, -dWaterRateTemp * fixedDeltaTime / dWaterDensity) / fixedDeltaTime * dWaterDensity;
             }
             else
             {
-                dRegolithConsumptionRate = 0;
+                fixed_regolithConsumptionRate = 0;
                 dHydrogenProductionRate = 0;
                 dLiquidHelium3ProductionRate = 0;
                 dLiquidHelium4ProductionRate = 0;
@@ -254,7 +256,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Regolith Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((dRegolithConsumptionRate / TimeWarp.fixedDeltaTime * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((regolithConsumptionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -345,7 +347,7 @@ namespace FNPlugin.Refinery
 
         private void updateStatusMessage()
         {
-            if (dRegolithConsumptionRate > 0)
+            if (fixed_regolithConsumptionRate > 0)
                 _status = "Processing of Regolith Ongoing";
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = "Insufficient Power";

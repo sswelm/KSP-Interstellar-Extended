@@ -70,7 +70,7 @@ namespace FNPlugin.Refinery
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow)
+        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
         {
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;
@@ -89,7 +89,7 @@ namespace FNPlugin.Refinery
             _spareRoomMonoxideMass = partsThatContainMonoxide.Sum(r => r.maxAmount - r.amount) * _monoxide_density;
 
             // determine how much carbondioxide we can consume
-            _fixedMaxConsumptionDioxideRate = Math.Min(_current_rate * TimeWarp.fixedDeltaTime, _availableDioxideMass);
+            _fixedMaxConsumptionDioxideRate = Math.Min(_current_rate * fixedDeltaTime, _availableDioxideMass);
 
             if (_fixedMaxConsumptionDioxideRate > 0 && (_spareRoomOxygenMass > 0 || _spareRoomMonoxideMass > 0))
             {
@@ -105,13 +105,13 @@ namespace FNPlugin.Refinery
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleMonoxideRatio, fixedMaxPossibleOxygenRatio);
 
                 // now we do the real elextrolysis
-                _dioxide_consumption_rate = _part.RequestResource(_dioxideResourceName, _consumptionStorageRatio * _fixedMaxConsumptionDioxideRate / _dioxide_density) / TimeWarp.fixedDeltaTime * _dioxide_density;
+                _dioxide_consumption_rate = _part.RequestResource(_dioxideResourceName, _consumptionStorageRatio * _fixedMaxConsumptionDioxideRate / _dioxide_density) / fixedDeltaTime * _dioxide_density;
 
                 var monoxide_rate_temp = _dioxide_consumption_rate * carbonMonoxideMassByFraction;
                 var oxygen_rate_temp = _dioxide_consumption_rate * oxygenMassByFraction;
 
-                _monoxide_production_rate = -_part.ImprovedRequestResource(_monoxideResourceName, -monoxide_rate_temp * TimeWarp.fixedDeltaTime / _monoxide_density) / TimeWarp.fixedDeltaTime * _monoxide_density;
-                _oxygen_production_rate = -_part.ImprovedRequestResource(_oxygenResourceName, -oxygen_rate_temp * TimeWarp.fixedDeltaTime / _oxygen_density) / TimeWarp.fixedDeltaTime * _oxygen_density;
+                _monoxide_production_rate = -_part.ImprovedRequestResource(_monoxideResourceName, -monoxide_rate_temp * fixedDeltaTime / _monoxide_density) / fixedDeltaTime * _monoxide_density;
+                _oxygen_production_rate = -_part.ImprovedRequestResource(_oxygenResourceName, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density) / fixedDeltaTime * _oxygen_density;
             }
             else
             {

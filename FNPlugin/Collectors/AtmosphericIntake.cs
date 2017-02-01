@@ -6,20 +6,13 @@ namespace FNPlugin
 {
     class AtmosphericIntake : PartModule
     {
-        //protected Vector3 _intake_direction;
-        protected PartResourceDefinition _resourceAtmosphere;
-
-        // persistents
-        //[KSPField(isPersistant = true)]
-        //public double lastActiveTime;
-
         [KSPField(guiName = "Intake Speed", isPersistant = false, guiActive = true, guiFormat = "F3")]
         protected float _intake_speed;
         [KSPField(guiName = "Atmosphere Flow", guiUnits = "U", guiFormat = "F3", isPersistant = false, guiActive = false)]
         public double airFlow;
         [KSPField(guiName = "Atmosphere Speed", guiUnits = "M/s", guiFormat = "F3", isPersistant = false, guiActive = false)]
         public double airSpeed;
-        [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = true, guiFormat ="F6")]
+        [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = false, guiFormat ="F6")]
         public double airThisUpdate;
         [KSPField(guiName = "intake Angle", isPersistant = false, guiActive = false)]
         public float intakeAngle = 0;
@@ -34,29 +27,67 @@ namespace FNPlugin
         public float maxIntakeSpeed = 100;
         [KSPField(isPersistant = false, guiName = "unitScalar", guiActive = false, guiActiveEditor = false)]
         public double unitScalar = 0.2f;
-		//[KSPField(isPersistant = false, guiName = "useIntakeCompensation", guiActiveEditor = false)]
-		//public bool useIntakeCompensation = true;
         [KSPField(isPersistant = false, guiName = "storesResource", guiActiveEditor = true)]
         public bool storesResource = false;
         [KSPField(isPersistant = false, guiName = "Intake Exposure", guiActiveEditor = false, guiActive = false)]
         public double intakeExposure = 0;
         [KSPField(isPersistant = false, guiName = "Trace atmo. density", guiFormat ="P0", guiActiveEditor = false, guiActive = true)]
-        private double upperAtmoDensity;
-
-        private float jetTechBonusPercentage;
-        private double maxAtmoAltitude;
+        public double upperAtmoDensity;
+        [KSPField(guiName = "Air Density", isPersistant = false, guiActive = false, guiFormat = "F3")]
+        public double airDensity;
+        [KSPField(guiName = "Tech Bonus", isPersistant = false, guiActive = false, guiFormat = "F3")]
+        public float jetTechBonusPercentage;
+        [KSPField(guiName = "Max Atmo Altitude", isPersistant = false, guiActive = false, guiFormat = "F3")]
+        public double maxAtmoAltitude;
+        [KSPField(guiName = "Upper Atmo Fraction", isPersistant = false, guiActive = false, guiFormat = "F3")]
         public double upperAtmoFraction;
-        private double airDensity;
-        public double finalAir { get; set; } // this property will be accessed by the atmospheric extractor
+
+        // persistents
+        [KSPField(isPersistant = true, guiName = "Air / sec", guiActiveEditor = false, guiActive = true, guiFormat = "F3" )]
+        public double finalAir;
+
+        public double startupCount;
+        private float previousDeltaTime;
+        private double atmosphereBuffer;
+
+        PartResource intake_air_resource;
+        PartResource intake_atmosphere_resource;
+
+        private PartResourceDefinition _resourceAtmosphere;
+        private ModuleResourceIntake _moduleResourceIntake;
+
+        // this property will be accessed by the atmospheric extractor
+        public double FinalAir
+        {
+            get { return finalAir; }
+        }
 
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return; // don't do any of this stuff in editor
-            Transform intakeTransform = part.FindModelTransform(intakeTransformName);
-            if (intakeTransform == null)
-                Debug.Log("[KSPI] AtmosphericIntake unable to get intake transform for " + part.name);
 
+            _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
+
+            // add atmosphere buffer if needed
+            intake_air_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAir];
+
+            atmosphereBuffer = intake_air_resource.maxAmount * 50;
+
+            if (intake_air_resource != null && !part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
+            {
+                ConfigNode node = new ConfigNode("RESOURCE");
+                node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
+                node.AddValue("maxAmount", intake_air_resource.maxAmount);
+                //node.AddValue("amount", intake_air_resource.maxAmount);
+                part.AddResource(node);
+            }
+            intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
+
+            //Transform intakeTransform = part.FindModelTransform(intakeTransformName);
+            //if (intakeTransform == null)
+            //    Debug.Log("[KSPI] AtmosphericIntake unable to get intake transform for " + part.name);
             //_intake_direction = intakeTransform != null ? intakeTransform.forward.normalized : Vector3.forward;
+
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
 
             // ToDo: connect with atmospheric intake to readout updated area
@@ -87,10 +118,29 @@ namespace FNPlugin
 
             //lastActiveTime = Planetarium.GetUniversalTime(); // store the current time in case the vessel is unloaded
             
-            IntakeThatAir(TimeWarp.fixedDeltaTime, false); // collect intake atmosphere for the timeframe
-            
+            UpdateAtmosphereBuffer();
 
+            IntakeThatAir(TimeWarp.fixedDeltaTime, false); // collect intake atmosphere for the timeframe
         }
+
+        private void UpdateAtmosphereBuffer()
+        {
+            if (intake_atmosphere_resource != null && atmosphereBuffer > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
+            {
+                double requiredAtmosphereCapacity = atmosphereBuffer * TimeWarp.fixedDeltaTime;
+                double previousAtmosphereCapacity = atmosphereBuffer * previousDeltaTime;
+                double atmosphereRatio = (intake_atmosphere_resource.amount / intake_atmosphere_resource.maxAmount);
+
+                intake_atmosphere_resource.maxAmount = requiredAtmosphereCapacity;
+
+                intake_atmosphere_resource.amount = TimeWarp.fixedDeltaTime > previousDeltaTime
+                    ? Math.Max(0, Math.Min(requiredAtmosphereCapacity, intake_atmosphere_resource.amount + requiredAtmosphereCapacity - previousAtmosphereCapacity))
+                    : Math.Max(0, Math.Min(requiredAtmosphereCapacity, atmosphereRatio * requiredAtmosphereCapacity));
+            }
+
+            previousDeltaTime = TimeWarp.fixedDeltaTime;
+        }
+
 
         public void IntakeThatAir(double deltaTimeInSecs, bool offlineCollecting)
         {
@@ -116,7 +166,21 @@ namespace FNPlugin
                 ScreenMessages.PostScreenMessage("The air intakes collected " + airThisUpdate.ToString("") + " units of " + (InterstellarResourcesConfiguration.Instance.IntakeAtmosphere), 3.0f, ScreenMessageStyle.LOWER_CENTER);
             }
 
-            finalAir = airThisUpdate; // take the final airThisUpdate value and assign it to the finalAir property (this will in turn get used by atmo extractor)
+            // do not return anything when intakes are closed
+            if (_moduleResourceIntake != null && !_moduleResourceIntake.intakeEnabled)
+            {
+                airThisUpdate = 0;
+                finalAir = 0;
+                return;
+            }
+
+            if (startupCount > 10)
+            {
+                // take the final airThisUpdate value and assign it to the finalAir property (this will in turn get used by atmo extractor)
+                finalAir = airThisUpdate / TimeWarp.fixedDeltaTime;
+            }
+            else
+                startupCount++;
 
             if (!storesResource)
             {

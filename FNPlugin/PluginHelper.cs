@@ -683,6 +683,7 @@ namespace FNPlugin
 
             this.enabled = true;
             AvailablePart intakePart = PartLoader.getPartInfoByName("CircularIntake");
+
             if (intakePart != null)
             {
                 if (intakePart.partPrefab.FindModulesImplementing<AtmosphericIntake>().Count <= 0 && PartLoader.Instance.IsReady())
@@ -970,16 +971,16 @@ namespace FNPlugin
                         //pm.useIntakeCompensation = intake.useIntakeCompensation;
                         //pm.storesResource = intake.storesResource;
 
-                        PartResource intake_air_resource = prefab_available_part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAir];
+                        //PartResource intake_air_resource = prefab_available_part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAir];
 
-                        if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
-                        {
-                            ConfigNode node = new ConfigNode("RESOURCE");
-                            node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
-                            node.AddValue("maxAmount", intake_air_resource.maxAmount);
-                            node.AddValue("possibleAmount", intake_air_resource.amount);
-                            prefab_available_part.AddResource(node);
-                        }
+                        //if (intake_air_resource != null && !prefab_available_part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
+                        //{
+                        //    ConfigNode node = new ConfigNode("RESOURCE");
+                        //    node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
+                        //    node.AddValue("maxAmount", intake_air_resource.maxAmount);
+                        //    node.AddValue("possibleAmount", intake_air_resource.amount);
+                        //    prefab_available_part.AddResource(node);
+                        //}
 
                     }
 

@@ -21,7 +21,7 @@ namespace FNPlugin
 
         protected ModuleDeployableSolarPanel solarPanel;
         private bool active = false;
-        private float previousTimeWarp;
+        private float previousDeltaTime;
 
         resourceType outputType = 0;
 
@@ -35,7 +35,7 @@ namespace FNPlugin
         {
 
 			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_MEGAJOULES};
-            previousTimeWarp = TimeWarp.fixedDeltaTime;
+            previousDeltaTime = TimeWarp.fixedDeltaTime;
 			this.resources_to_supply = resources_to_supply;
 			base.OnStart (state);
 
@@ -90,31 +90,31 @@ namespace FNPlugin
 
             if (outputType == resourceType.other) return;
 
-            if (megajoulePartResource != null && fixedMegajouleBufferSize > 0 && TimeWarp.fixedDeltaTime != previousTimeWarp)
+            if (megajoulePartResource != null && fixedMegajouleBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
             {
                 double requiredMegawattCapacity = fixedMegajouleBufferSize * TimeWarp.fixedDeltaTime;
-                double previousMegawattCapacity = fixedMegajouleBufferSize * previousTimeWarp;
+                double previousMegawattCapacity = fixedMegajouleBufferSize * previousDeltaTime;
+                double ratio = megajoulePartResource.amount / megajoulePartResource.maxAmount;
 
                 megajoulePartResource.maxAmount = requiredMegawattCapacity;
-
-                megajoulePartResource.amount = TimeWarp.fixedDeltaTime > previousTimeWarp
+                megajoulePartResource.amount = TimeWarp.fixedDeltaTime > previousDeltaTime
                     ? Math.Max(0, Math.Min(requiredMegawattCapacity, megajoulePartResource.amount + requiredMegawattCapacity - previousMegawattCapacity))
-                    : Math.Max(0, Math.Min(requiredMegawattCapacity, (megajoulePartResource.amount / megajoulePartResource.maxAmount) * requiredMegawattCapacity));
+                    : Math.Max(0, Math.Min(requiredMegawattCapacity, ratio * requiredMegawattCapacity));
             }
 
-            if (electricChargePartResource != null && fixedElectricChargeBufferSize > 0 && TimeWarp.fixedDeltaTime != previousTimeWarp)
+            if (electricChargePartResource != null && fixedElectricChargeBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
             {
                 double requiredElectricChargeCapacity = fixedElectricChargeBufferSize * TimeWarp.fixedDeltaTime;
-                double previousPreviousElectricCapacity = fixedElectricChargeBufferSize * previousTimeWarp;
+                double previousPreviousElectricCapacity = fixedElectricChargeBufferSize * previousDeltaTime;
+                double ratio = electricChargePartResource.amount / electricChargePartResource.maxAmount;
 
                 electricChargePartResource.maxAmount = requiredElectricChargeCapacity;
-
-                electricChargePartResource.amount = TimeWarp.fixedDeltaTime > previousTimeWarp
+                electricChargePartResource.amount = TimeWarp.fixedDeltaTime > previousDeltaTime
                     ? Math.Max(0, Math.Min(requiredElectricChargeCapacity, electricChargePartResource.amount + requiredElectricChargeCapacity - previousPreviousElectricCapacity))
-                    : Math.Max(0, Math.Min(requiredElectricChargeCapacity, (electricChargePartResource.amount / electricChargePartResource.maxAmount) * requiredElectricChargeCapacity));
+                    : Math.Max(0, Math.Min(requiredElectricChargeCapacity, ratio * requiredElectricChargeCapacity));
             }
 
-            previousTimeWarp = TimeWarp.fixedDeltaTime;
+            previousDeltaTime = TimeWarp.fixedDeltaTime;
 
             double solar_rate = solarPanel.flowRate * TimeWarp.fixedDeltaTime;
             double maxSupply = solarPanel.chargeRate * solarPanel._distMult * solarPanel._efficMult * TimeWarp.fixedDeltaTime;
