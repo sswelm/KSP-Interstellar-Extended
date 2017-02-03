@@ -276,7 +276,7 @@ namespace FNPlugin.Collectors
         }
 
         // this snippet returns true if the part is extended
-        private bool IsDrillExtended(Vector3d centralPartPosition, Vector3d drillBitPosition)
+        private bool IsDrillExtended()
         {
             ModuleAnimationGroup thisPartsAnimGroup = this.part.FindModuleImplementing<ModuleAnimationGroup>();
             return thisPartsAnimGroup.isDeployed;
@@ -284,8 +284,6 @@ namespace FNPlugin.Collectors
 
         private bool TryRaycastToHitTerrain()
         {
-            Transform drillHeadTransform = this.part.FindModelTransform("ImpactTransform"); // find the impact transform of the drill
-            Vector3d drillHeadPosition = drillHeadTransform.position;
             Vector3d partPosition = this.part.transform.position; // find the position of the transform in 3d space
             double scaleFactor = this.part.rescaleFactor; // what is the rescale factor of the drill?
             float drillDistance = (float)(5.0 * scaleFactor); // adjust the distance for the ray with the rescale factor, needs to be a float for raycast. The 5 is just about the reach of the drill.
@@ -303,7 +301,7 @@ namespace FNPlugin.Collectors
             Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
             if (hit.collider != null)
             {
-                if (IsDrillExtended(partPosition, drillHeadPosition) == true)
+                if (IsDrillExtended() == true)
                 {
                     return true;
                 }
