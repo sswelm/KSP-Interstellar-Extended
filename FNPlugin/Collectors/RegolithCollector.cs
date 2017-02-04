@@ -54,10 +54,10 @@ namespace FNPlugin.Collectors
         {
             if (IsCollectLegal() == true) // will only be activated if the collecting of resource is legal
             {
-                bTouchDown = this.part.GroundContact; // Is the drill touching the ground?
+                bTouchDown = TryRaycastToHitTerrain(); // check if there's ground within reach and if the drill is deployed
                 if (bTouchDown == false) // if not, no collecting
                 {
-                    ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Deploy drill fully first.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
+                    ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Make sure drill is deployed and can reach the terrain.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
                     DisableCollector();
                     return;
                 }
@@ -119,8 +119,6 @@ namespace FNPlugin.Collectors
             Altitude = 0, // this will need to be updated before 'sending the request'
             CheckForLock = false
         };
-
-
         protected CelestialBody localStar;
 
         public override void OnStart(PartModule.StartState state)
@@ -182,8 +180,7 @@ namespace FNPlugin.Collectors
                 strRegolithConc = IsCollectLegal() ? dConcentrationRegolith.ToString("P0") : "0"; // F1 string format means fixed point number with one decimal place (i.e. number 1234.567 would be formatted as 1234.5). I might change this eventually to P1 or P0 (num multiplied by hundred and percentage sign with 1 or 0 dec. places).
                 // Also update the current altitude in GUI
                 strAltitude = (vessel.altitude < 15000) ? (vessel.altitude).ToString("F0") : "Too damn high";
-            }
-            
+            }          
         }
 
         public override void OnFixedUpdate()
@@ -216,15 +213,13 @@ namespace FNPlugin.Collectors
                 //dLastRegolithConcentration = CalculateRegolithConcentration(FlightGlobals.currentMainBody.position, localStar.transform.position, vessel.altitude);
                 dLastRegolithConcentration = GetFinalConcentration();
 
-
-                /* This bit will check if the regolith drill has not been retracted by the player while still running. The counter will 
-                 * delay the check so that it runs only once per hundred cycles. This should be enough and should make it more performance friendly and
+                /* This bit will check if the regolith drill has not lost contact with ground. Raycasts are apparently not all that expensive, but still, 
+                 * the counter will delay the check so that it runs only once per hundred cycles. This should be enough and should make it more performance friendly and
                  * also less prone to kraken glitches. It also makes sure that this doesn't run before the vessel is fully loaded and shown to the player.
-                 * Like wtf, Squad/Unity? Why is FixedUpdate running while the player is still looking at the loading screen, waiting for the vessel to load?
                  */
                 if (++anotherCounter % 100 == 0)
                 {
-                    bTouchDown = this.part.GroundContact; // Is the drill touching the ground?
+                    bTouchDown = TryRaycastToHitTerrain();
                     if (bTouchDown == false) // if not, disable collecting
                     {
                         ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Disabling drill.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
@@ -232,7 +227,6 @@ namespace FNPlugin.Collectors
                         return;
                     }
                 }
-
             }
         }
 
@@ -279,6 +273,40 @@ namespace FNPlugin.Collectors
                 bCanCollect = true;
                 return bCanCollect; // all checks green, ok to collect
             }
+        }
+
+        // this snippet returns true if the part is extended
+        private bool IsDrillExtended()
+        {
+            ModuleAnimationGroup thisPartsAnimGroup = this.part.FindModuleImplementing<ModuleAnimationGroup>();
+            return thisPartsAnimGroup.isDeployed;
+        }
+
+        private bool TryRaycastToHitTerrain()
+        {
+            Vector3d partPosition = this.part.transform.position; // find the position of the transform in 3d space
+            double scaleFactor = this.part.rescaleFactor; // what is the rescale factor of the drill?
+            float drillDistance = (float)(5.0 * scaleFactor); // adjust the distance for the ray with the rescale factor, needs to be a float for raycast. The 5 is just about the reach of the drill.
+
+            RaycastHit hit = new RaycastHit(); // create a variable that stores info about hit colliders etc.
+            LayerMask terrainMask = 32768; // layermask in unity, number 1 bitshifted to the left 15 times (1 << 15), (terrain = 15, the bitshift is there so that the mask bits are raised; this is a good reading about that: http://answers.unity3d.com/questions/8715/how-do-i-use-layermasks.html)
+            Ray drillPartRay = new Ray(partPosition, -part.transform.up); // this ray will start at the part's center and go down in local space coordinates (Vector3d.down is in world space)
+
+            /* This little bit will fire a ray from the part, straight down, in the distance that the part should be able to reach.
+             * It returns true if there is solid terrain in the reach AND the drill is extended. Otherwise false.
+             * This is actually needed because stock KSP terrain detection is not really dependable. This module was formerly using just part.GroundContact 
+             * to check for contact, but that seems to be bugged somehow, at least when paired with this drill - it works enough times to pass tests, but when testing 
+             * this module in a difficult terrain, it just doesn't work properly. 
+            */
+            Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
+            if (hit.collider != null)
+            {
+                if (IsDrillExtended() == true)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private double GetFinalConcentration()
