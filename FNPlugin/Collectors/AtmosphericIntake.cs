@@ -14,7 +14,7 @@ namespace FNPlugin
         public double airSpeed;
         [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = false, guiFormat ="F6")]
         public double airThisUpdate;
-        [KSPField(guiName = "Intake Angle", isPersistant = false, guiActive = false, guiFormat = "F3")]
+        [KSPField(guiName = "Intake Ratio", isPersistant = false, guiActive = true, guiFormat = "F3")]
         public float intakeAngle = 0;
         [KSPField(guiName = "aoaThreshold", isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float aoaThreshold = 0.1f;
@@ -47,8 +47,6 @@ namespace FNPlugin
         private float previousDeltaTime;
         private double atmosphereBuffer;
 
-        Vector3 _intake_direction;
-
         PartResource intake_air_resource;
         PartResource intake_atmosphere_resource;
 
@@ -78,7 +76,6 @@ namespace FNPlugin
             // add atmosphere buffer if needed
             intake_air_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAir];
 
-            //atmosphereBuffer = intake_air_resource.maxAmount * 50;
             atmosphereBuffer = area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed * 300 ;
 
             if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
@@ -91,7 +88,6 @@ namespace FNPlugin
             intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
             _intake_speed = maxIntakeSpeed;
-            _intake_direction = part.transform.up.normalized;
         }
 
         public void FixedUpdate()
@@ -139,7 +135,12 @@ namespace FNPlugin
                 return;
             }
 
-            airSpeed = vessel.speed + _intake_speed;
+            var vesselFlyingVector = vessel.altitude < part.vessel.mainBody.atmosphereDepth * 0.5 
+                ? vessel.GetSrfVelocity() 
+                : vessel.GetObtVelocity();
+
+            intakeAngle = Mathf.Clamp(Vector3.Dot(vesselFlyingVector.normalized, part.transform.up.normalized), 0, 1);
+            airSpeed = intakeAngle * vessel.speed + _intake_speed;
             intakeExposure = (airSpeed * unitScalar) + _intake_speed;
             intakeExposure *= area * unitScalar * jetTechBonusPercentage;
             airFlow = vessel.atmDensity * intakeExposure / _resourceAtmosphere.density;
@@ -151,7 +152,6 @@ namespace FNPlugin
                 var spaceAirDensity = PluginHelper.MinAtmosphericAirDensity * (1 - upperAtmoFraction);             // calculate the space atmospheric density
                 airDensity = Math.Max(part.vessel.atmDensity, spaceAirDensity);                             // display amount of density
                 upperAtmoDensity = Math.Max(0, spaceAirDensity - part.vessel.atmDensity);                   // calculate effective addition upper atmosphere density
-                intakeAngle = Mathf.Clamp(Vector3.Dot(vessel.orbit.GetRelativeVel().normalized, part.transform.up.normalized), 0, 1);   // get intake angle
                 var space_airFlow = intakeAngle * upperAtmoDensity * intakeExposure / _resourceAtmosphere.density; // how much of that air is our intake catching
                 airThisUpdate = airThisUpdate + (space_airFlow * TimeWarp.fixedDeltaTime);                  // increase how much  air do we get per update 
             }
