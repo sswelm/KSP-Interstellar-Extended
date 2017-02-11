@@ -118,10 +118,9 @@ namespace FNPlugin.Microwave
             Debug.Log("[KSP Interstellar] Setup Transmit Beams Configurations for " + part.partInfo.title);
 
             var chooseField = Fields["selectedBeamConfiguration"];
+            chooseField.guiActive = canSwitchWavelengthInFlight && BeamConfigurations.Count > 1;
             var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
             var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
-
-            chooseField.guiActive = canSwitchWavelengthInFlight;
 
             var names = BeamConfigurations.Select(m => m.beamWaveName).ToArray();
 

@@ -29,7 +29,6 @@ namespace FNPlugin
         public float minIsp = 250;
         [KSPField(isPersistant = false)]
         public string displayName = "";
-
         [KSPField(isPersistant = false)]
         public bool showConsumption = true;
 
@@ -72,8 +71,6 @@ namespace FNPlugin
         // GUI
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
         public bool hasSufficientPower = true;
-        //[KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
-        //public bool isPowered = true;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Consumption")]
         public string electricalPowerConsumptionStr = "";
@@ -92,7 +89,6 @@ namespace FNPlugin
         private double power_requested_raw = 0;
         private double power_recieved_f = 1;
         private double power_recieved_raw = 0;
-        //private double power_remainer_raw;
 
         private double heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
@@ -280,7 +276,7 @@ namespace FNPlugin
         {
             powerEnabled = !powerEnabled;
 
-            power_recieved_f = powerEnabled ? CheatOptions.InfiniteElectricity ? 1 : (float)consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES) : 0;
+            power_recieved_f = powerEnabled ? CheatOptions.InfiniteElectricity ? 1 : consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES) : 0;
             hasSufficientPower = power_recieved_f > 0.01;
             SetupPropellants();
             currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
@@ -337,7 +333,7 @@ namespace FNPlugin
 
                 oldThrustLimiter = thrustLimiter;
                 oldPowerEnabled = powerEnabled;
-                efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
+                efficencyModifier = g0 * 0.5 / 1000 / efficency;
                 efficencyStr = (efficency * 100).ToString() + "%";
 
                 if (!String.IsNullOrEmpty(AnimationName))
@@ -477,8 +473,7 @@ namespace FNPlugin
 
             if (powerEnabled)
             {
-                //float curve_eval_point = (float)Math.Min(FlightGlobals.getStaticPressure(vessel.transform.position) / 100, 1.0);
-                power_requested_f = currentThrust * maxIsp * efficencyModifier / currentThrustMultiplier;
+                power_requested_f = currentThrust * maxIsp * Current_propellant.IspMultiplier * efficencyModifier / currentThrustMultiplier;
 
                 var power_required_raw = (power_requested_f * TimeWarp.fixedDeltaTime);
 
@@ -511,7 +506,6 @@ namespace FNPlugin
             {
                 if (insufficientPowerTimout < 1)
                 {
-                    //isPowered = false;
                     hasSufficientPower = false;
                     SetupPropellants();
                 }
@@ -520,17 +514,14 @@ namespace FNPlugin
             }
             else if (!hasSufficientPower && power_ratio > 0.9 && power_recieved_f > 0.01)
             {
-                //isPowered = true;
                 insufficientPowerTimout = 2;
                 hasSufficientPower = true;
                 SetupPropellants();
             }
 
-            // process remainder
             if (hasSufficientPower)
                 power_recieved_raw -= power_requested_raw;
 
-            //power_remainer_raw += power_recieved_raw;
             power_recieved_raw = 0;
         }
 

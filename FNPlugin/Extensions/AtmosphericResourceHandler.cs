@@ -195,10 +195,10 @@ namespace FNPlugin
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdNitrogen", "Nitrogen", "Nitrogen");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Oxygen, "LqdOxygen", "Oxygen", "Oxygen");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CarbonMoxoxide", "CarbonMoxoxide");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdCO", "LqdMethane", "Methane");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "Methane", "Methane");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Hydrogen, "LqdArgon", "Hydrogen", "Hydrogen");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Hydrogen, "LqdHydrogen", "Hydrogen", "Hydrogen");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "Deuterium", "Deuterium");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon");
@@ -254,8 +254,10 @@ namespace FNPlugin
                 Debug.Log("[KSPI] - added helum-3 to atmosphere eith abundance " + helium3Abundance);
                 bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3Abundance, "Helium-3"));
             }
+            else if (bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3))
+                Debug.Log("[KSPI] -  helium-3 is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3).ResourceAbundance);
             else
-                Debug.Log("[KSPI] -  helum-3 is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3).ResourceAbundance);
+                Debug.Log("[KSPI] -  No helium is present in atmosphere specification, helium-4 will not be added");
 
             // if deteurium is undefined, but hydrogen is, derive it
             if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Hydrogen))
@@ -266,8 +268,10 @@ namespace FNPlugin
                 Debug.Log("[KSPI] - added deuterium to atmosphere with abundance " + deuteriumAbundance);
                 bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deuteriumAbundance, "Deuterium"));
             }
-            else
+            else if (bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium)) 
                 Debug.Log("[KSPI] - deuterium is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ResourceAbundance);
+            else 
+                Debug.Log("[KSPI] - No hydrogen is present in atmosphere specification, deuterium will not be added");
         }
 
         private static float GetAbundance(string resourceName, int refBody)
