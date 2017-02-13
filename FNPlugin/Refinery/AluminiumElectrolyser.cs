@@ -28,6 +28,8 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
+        public int RefineryType { get { return 2; } }
+
         public String ActivityName { get { return "Aluminium Electrolysis"; } }
 
         public double CurrentPower { get { return _current_power; } }
@@ -35,6 +37,8 @@ namespace FNPlugin.Refinery
         public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Alumina).Any(rs => rs.amount > 0); } }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
+
+        private double _effectivePowerRequirements;
 
         public String Status { get { return String.Copy(_status); } }
 
@@ -47,9 +51,11 @@ namespace FNPlugin.Refinery
             _oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double powerModifier, bool allowOverflow, double fixedDeltaTime)
         {
-            _current_power = PowerRequirements * rateMultiplier;
+            _effectivePowerRequirements = powerModifier * PowerRequirements;
+            _current_power = powerFraction * _effectivePowerRequirements;
+
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
             _alumina_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Alumina, _current_rate * fixedDeltaTime / _alumina_density) / fixedDeltaTime * _alumina_density;
             _aluminium_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -_alumina_consumption_rate * fixedDeltaTime / _aluminium_density) * _aluminium_density / fixedDeltaTime;

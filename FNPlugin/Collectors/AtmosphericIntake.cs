@@ -14,7 +14,7 @@ namespace FNPlugin
         public double airSpeed;
         [KSPField(guiName = "Air This Update", isPersistant = false, guiActive = false, guiFormat ="F6")]
         public double airThisUpdate;
-        [KSPField(guiName = "Intake Ratio", isPersistant = false, guiActive = true, guiFormat = "F3")]
+        [KSPField(guiName = "Intake Ratio", isPersistant = false, guiActive = false, guiFormat = "F3")]
         public float intakeAngle = 0;
         [KSPField(guiName = "aoaThreshold", isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float aoaThreshold = 0.1f;

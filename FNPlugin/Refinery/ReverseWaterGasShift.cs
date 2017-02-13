@@ -56,6 +56,8 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
+        public int RefineryType { get { return 4; } }
+
         public String ActivityName { get { return "Reverse Water Gas Shift"; } }
 
         public double CurrentPower { get { return _current_power; } }
@@ -88,7 +90,7 @@ namespace FNPlugin.Refinery
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
             _allowOverflow = allowOverflow;
             

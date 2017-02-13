@@ -28,6 +28,8 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
+        public int RefineryType { get { return 4; } }
+
         public String ActivityName { get { return "Uranium Tetraflouride Ammonolysis"; } }
 
         public double CurrentPower { get { return _current_power; } }
@@ -54,7 +56,7 @@ namespace FNPlugin.Refinery
             _uranium_nitride_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / GameConstants.baseUraniumAmmonolysisRate;

@@ -30,13 +30,14 @@ namespace FNPlugin
         private String _uranium_TerraFloride = "UF4";
         private String _aluminium = "Aluminium";
         private String _ammonia = "LqdAmmonia";
-        private String _argon = "ArgonGas";
+        private String _argon = "LqdArgon";
         private String _carbonDioxide = "LqdCO2";
         private String _carbonMoxoxide = "LqdCO";
         private String _helium4_gas = "Helium4";
         private String _liquid_helium4 = "LqdHelium";
         private String _helium3_gas = "Helium3";
         private String _liquid_helium3 = "LqdHe3";
+        private String _sodium = "Sodium";
         private String _hydrogen = "LqdHydrogen";
         private String _hydrogen_peroxide = "HTP";
         private String _hydrazine = "Hydrazine";
@@ -67,6 +68,7 @@ namespace FNPlugin
         public String LqdHelium4 { get { return _liquid_helium4; } }
         public String Helium4Gas { get { return _helium4_gas; } }
         public String LqdHelium3 { get { return _liquid_helium3; } }
+        public String Sodium { get { return _sodium; } }
         public String Helium3Gas { get { return _helium3_gas; } }
         public String Hydrogen { get { return _hydrogen; } }
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }

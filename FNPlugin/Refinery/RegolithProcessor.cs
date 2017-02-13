@@ -45,6 +45,8 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
+        public int RefineryType { get { return 1; } }
+
         public String ActivityName { get { return "Regolith Process"; } }
 
         public double CurrentPower { get { return _currentPower; } }
@@ -130,7 +132,7 @@ namespace FNPlugin.Refinery
         protected double dWaterMassByFraction = 0.18130871930;
 
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
             _currentPower = PowerRequirements * rateMultiplier;
             dCurrentRate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;

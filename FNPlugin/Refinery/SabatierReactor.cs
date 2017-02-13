@@ -33,6 +33,8 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
+        public int RefineryType { get { return 4; } }
+
         public String ActivityName { get { return "Sabatier Process"; } }
 
         public double CurrentPower { get { return _current_power; } }
@@ -88,7 +90,7 @@ namespace FNPlugin.Refinery
         private double fixed_combined_consumption_rate;
         private double combined_consumption_rate;
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon; //* _vessel.atmDensity;

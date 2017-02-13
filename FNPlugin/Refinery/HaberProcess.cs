@@ -31,6 +31,8 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
+        public int RefineryType { get { return 4; } }
+
         public String ActivityName { get { return "Haber Process ISRU"; } }
 
         public double CurrentPower { get { return _current_power; } }
@@ -53,6 +55,8 @@ namespace FNPlugin.Refinery
 
         public double PowerRequirements { get { return PluginHelper.BaseHaberProcessPowerConsumption; } }
 
+        private double _effectiveMaxPowerRequirements;
+
         public String Status { get { return String.Copy(_status); } }
 
         public HaberProcess(Part part)
@@ -65,9 +69,10 @@ namespace FNPlugin.Refinery
             _nitrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Nitrogen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double powerModifier, bool allowOverflow, double fixedDeltaTime)
         {
-            _current_power = PowerRequirements * rateMultiplier;
+            _effectiveMaxPowerRequirements = PowerRequirements * powerModifier;
+            _current_power = powerFraction * _effectiveMaxPowerRequirements;
 
             _current_rate = CurrentPower / PluginHelper.HaberProcessEnergyPerTon;
 
@@ -76,16 +81,11 @@ namespace FNPlugin.Refinery
             double hydrogen_rate = _current_rate * GameConstants.ammoniaHydrogenFractionByMass;
             double nitrogen_rate = _current_rate * ammoniaNitrogenFractionByMass;
 
-            _hydrogen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, hydrogen_rate * fixedDeltaTime / _hydrogen_density) * _hydrogen_density / fixedDeltaTime;
-
-            _atmospheric_nitrogen_rate = (FlightGlobals.getStaticPressure(_vessel.transform.position) /100) * AtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Nitrogen") * _current_rate * 10;
-            if (_atmospheric_nitrogen_rate > nitrogen_rate)
-                _nitrogen_consumption_rate = nitrogen_rate;
-            else
-                _nitrogen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Nitrogen, nitrogen_rate * fixedDeltaTime / _nitrogen_density) * _nitrogen_density / fixedDeltaTime;
+            _hydrogen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, hydrogen_rate * fixedDeltaTime / _hydrogen_density, ResourceFlowMode.ALL_VESSEL) * _hydrogen_density / fixedDeltaTime;
+            _nitrogen_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Nitrogen, nitrogen_rate * fixedDeltaTime / _nitrogen_density, ResourceFlowMode.ALL_VESSEL) * _nitrogen_density / fixedDeltaTime;
 
             if (_hydrogen_consumption_rate > 0 && _nitrogen_consumption_rate > 0)
-                _ammonia_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, -_nitrogen_consumption_rate / ammoniaNitrogenFractionByMass * fixedDeltaTime / _ammonia_density) * _ammonia_density / fixedDeltaTime;
+                _ammonia_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, -_nitrogen_consumption_rate / ammoniaNitrogenFractionByMass * fixedDeltaTime / _ammonia_density, ResourceFlowMode.ALL_VESSEL) * _ammonia_density / fixedDeltaTime;
             
             updateStatusMessage();
         }
@@ -99,7 +99,7 @@ namespace FNPlugin.Refinery
             }
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPowerRequirements), GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -107,10 +107,10 @@ namespace FNPlugin.Refinery
             GUILayout.Label(_current_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Avaialble Atmospheric Nitrogen ", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_atmospheric_nitrogen_rate.ToString(), GUILayout.Width(valueWidth));
-            GUILayout.EndHorizontal();
+            //GUILayout.BeginHorizontal();
+            //GUILayout.Label("Avaialble Nitrogen ", _bold_label, GUILayout.Width(labelWidth));
+            //GUILayout.Label(_atmospheric_nitrogen_rate.ToString(), GUILayout.Width(valueWidth));
+            //GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Nitrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));

@@ -7,7 +7,9 @@ using System.Text;
 
 namespace FNPlugin
 {
-    [KSPModule("Cyrostat Tank")]
+    class ModuleStorageCryostat: FNModuleCryostat {}
+
+    [KSPModule("Cyrostat")]
     class FNModuleCryostat : FNResourceSuppliableModule
     {
         // Persistant
