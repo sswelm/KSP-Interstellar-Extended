@@ -68,9 +68,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public int compatibleBeamTypes = 1;
 
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = true, guiActiveEditor = true)]
         public double nativeWaveLength = 0.003189281;
-        [KSPField(isPersistant = false, guiActiveEditor = false)]
+        [KSPField(isPersistant = true, guiActiveEditor = false)]
         public double nativeAtmosphericAbsorptionPercentage = 10;
 
         //GUI 
