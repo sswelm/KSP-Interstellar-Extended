@@ -186,22 +186,23 @@ namespace FNPlugin
         {
             try
             {
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Oxygen, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Ammonia, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon", "Argon");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Hydrogen, "LqdHydrogen", "HydrogenGas", "Hydrogen", "Hydrogen");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.LqdHelium4, "LqdHelium", "HeliumGas", "Helium","Helium-4");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
                 AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.LqdHelium3, "LqdHe3", "Helium3Gas", "Helium3", "Helium-3");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium"); 
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.LqdHelium4, "LqdHelium", "HeliumGas", "Helium", "Helium-4");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Hydrogen, "LqdHydrogen", "HydrogenGas", "Hydrogen", "Hydrogen");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Nitrogen, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Oxygen, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
+                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
             }
             catch (Exception ex)
             {
@@ -215,7 +216,12 @@ namespace FNPlugin
         {
             var abundances =  new []{ GetAbundance(inputResource1, refBody), GetAbundance(inputResource2, refBody), GetAbundance(inputResource2, refBody)};
 
+            var maxAbundance = abundances.Max();
+
             var atmosphericResource = new AtmosphericResource(outputResourname, abundances.Max(), displayname);
+
+            Debug.Log("[KSPI] - current max stock Abundance for " + atmosphericResource.ResourceName + " is " + atmosphericResource.ResourceAbundance);
+
             if (atmosphericResource.ResourceAbundance > 0)
             {
                 var existingResource = bodyAtmosphericComposition.FirstOrDefault(a => a.ResourceName == outputResourname);

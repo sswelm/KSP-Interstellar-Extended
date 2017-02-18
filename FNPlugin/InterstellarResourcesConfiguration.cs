@@ -92,7 +92,7 @@ namespace FNPlugin
         public String Water { get { return _water; } }
         public String HeavyWater { get { return _heavyWater; } }
         public String XenonGas { get { return _xenongas; } }
-        public String KryptonGas { get { return _xenongas; } }
+        public String KryptonGas { get { return _krytongas; } }
 
         public InterstellarResourcesConfiguration(ConfigNode plugin_settings)
         {

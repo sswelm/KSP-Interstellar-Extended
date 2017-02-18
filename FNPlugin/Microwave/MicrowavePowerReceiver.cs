@@ -1191,9 +1191,7 @@ namespace FNPlugin
 
             storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
 
-            wasteheatRatio = CheatOptions.IgnoreMaxTemperature 
-                ? 0 
-                : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
+            wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
 
             if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0)
             {

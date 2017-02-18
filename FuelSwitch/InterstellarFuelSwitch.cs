@@ -80,6 +80,8 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string tankSwitchNames = "";
         [KSPField]
+        public string bannedResourceNames = "";
+        [KSPField]
         public string nextTankSetupText = "Next tank setup";
         [KSPField]
         public string previousTankSetupText = "Previous tank setup";
@@ -598,10 +600,27 @@ namespace InterstellarFuelSwitch
             try
             {
                 // find selected tank
-                var selectedTank = calledByPlayer || String.IsNullOrEmpty(selectedTankSetupTxt)
-                    ? selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]
-                    : _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt) 
-                        ?? (selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]);
+                IFSmodularTank selectedTank = null;
+
+                if (!calledByPlayer && !String.IsNullOrEmpty(selectedTankSetupTxt))
+                {
+                    // first find based on gui name
+                    selectedTank = _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt);
+
+                    // otherwise find based on switch name
+                    if (selectedTank == null)
+                        selectedTank = _modularTankList.FirstOrDefault(t => t.SwitchName == selectedTankSetupTxt);
+ 
+                    // otherwise find basided on similarity with switch name
+                    if (selectedTank == null)
+                        selectedTank = _modularTankList.FirstOrDefault(t => selectedTankSetupTxt.Contains(t.SwitchName));
+                }
+
+                // if still no tank selected, do it based on index or pick the first one if invalid
+                if (selectedTank == null)
+                    selectedTank = selectedTankSetup < _modularTankList.Count
+                        ? _modularTankList[selectedTankSetup]
+                        : _modularTankList[0];
 
                 // update txt and index for future
                 selectedTankSetupTxt = selectedTank.GuiName;
@@ -1224,6 +1243,13 @@ namespace InterstellarFuelSwitch
                             newResource.latendHeatVaporation = latendHeatVaporationList[currentResourceCounter][nameCounter];
 
                         modularTank.Resources.Add(newResource);
+                    }
+
+                    var extraActiveResourceList = bannedResourceNames.Split(';');
+                    foreach( string resourceName in extraActiveResourceList)
+                    {
+                        if (!activeResourceList.Contains(resourceName))
+                            activeResourceList.Add(resourceName);
                     }
 
                     // ensure there is always a gui name

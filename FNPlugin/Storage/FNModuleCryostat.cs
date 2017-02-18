@@ -52,6 +52,8 @@ namespace FNPlugin
         public bool showBoiloff = true;
         [KSPField(isPersistant = false)]
         public bool showTemp = true;
+        [KSPField(isPersistant = false)]
+        public bool warningShown = false;
 
         //GUI
         [KSPField(isPersistant = false)]
@@ -211,11 +213,17 @@ namespace FNPlugin
                 cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
                 boiloffStr = boiloff.ToString("0.000000") + " L/s " + cryostat_resource.resourceName;
 
-                if (hasExtraBoiloff && part.vessel.isActiveVessel)
-                    ScreenMessages.PostScreenMessage("Warning: " + boiloffStr + " Boiloff", 0.02f, ScreenMessageStyle.UPPER_CENTER);
+                if (hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
+                {
+                    warningShown = true;
+                    ScreenMessages.PostScreenMessage("Warning: " + boiloffStr + " Boiloff", 5, ScreenMessageStyle.UPPER_CENTER);
+                }
             }
             else
+            {
+                warningShown = false;
                 boiloffStr = "0.000000 L/s " + cryostat_resource.resourceName;
+            }
         }
 
         public override string getResourceManagerDisplayName()
