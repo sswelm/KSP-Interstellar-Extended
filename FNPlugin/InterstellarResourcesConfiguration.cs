@@ -26,6 +26,7 @@ namespace FNPlugin
         private const String _ALUMINA = "Alumina";
         private const String _LIQUID_DEUTERIUM = "LqdDeuterium";
         private const String _DEUTERIUM_GAS = "Deuterium";
+        private const String _INTAKE_LIQUID = "IntakeLqd";
 
         private String _uranium_TerraFloride = "UF4";
         private String _aluminium = "Aluminium";
@@ -74,6 +75,7 @@ namespace FNPlugin
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }
         public String Hydrazine { get { return _hydrazine; } }
         public String IntakeAtmosphere { get { return _INTAKE_ATMOSPHERE; } }
+        public String IntakeLiquid { get { return _INTAKE_LIQUID; } }
         public String Lithium6 { get { return _LITHIUM6; } }
         public String IntakeAir { get { return _INTAKE_AIR; } }
         public String Lithium7 { get { return _LITHIUM7; } }
