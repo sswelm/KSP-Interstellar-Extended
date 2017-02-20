@@ -120,49 +120,47 @@ namespace FNPlugin.Extensions
                 // Lookup homeworld
                 CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
 
-                double presureAtSurface = celestialBody.GetPressure(0);
+                double pressureAtSurface = celestialBody.GetPressure(0);
 
-                if (celestialBody.Mass > homeworld.Mass * 10 && presureAtSurface > 1000)
+                if (celestialBody.Mass < homeworld.Mass * 10 && pressureAtSurface < 1000)
                 {
-                    float minimumTemperature;
-                    float maximumTemperature;
-
-                    celestialBody.atmosphereTemperatureCurve.FindMinMaxValue(out minimumTemperature, out maximumTemperature);
-
-                    if (celestialBody.Density < 1)
+                    if (celestialBody.Mass < (homeworld.Mass / 1000) && pressureAtSurface > 0 && pressureAtSurface < 10) // is it tiny and has only trace atmosphere?
                     {
-                        // it is a Saturn-like, use Saturn as template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Saturn").flightGlobalsIndex);
+                        // it is similar to Enceladus, use that as a template
+                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Enceladus").flightGlobalsIndex);
                     }
-                    else if (minimumTemperature < 80)
+                    else if (celestialBody.Mass < (homeworld.Mass / 100) && pressureAtSurface > 0 && pressureAtSurface < 100) // is it still tiny, but a bit larger and has thin atmosphere?
                     {
-                        // it is a Uranus-like planet, use Uranus as template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Uranus").flightGlobalsIndex);
+                        // it is Europa-like, use Europa as a template
+                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Europa").flightGlobalsIndex);
                     }
-                    else
+                    else if (celestialBody.Mass < (homeworld.Mass / 40) && pressureAtSurface > 0 && pressureAtSurface < 10 && celestialBody.atmosphereContainsOxygen) // if it is significantly smaller than the homeworld and has trace atmosphere with oxygen
                     {
-                        // it is Jupiter-Like, use Jupiter as template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Jupiter").flightGlobalsIndex);
+                        // it is Ganymede-like, use Ganymede as a template
+                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Ganymede").flightGlobalsIndex);
                     }
-                }
-                else
-                {
-                    if (celestialBody.atmosphereContainsOxygen)
+                    else if (celestialBody.Mass < homeworld.Mass && pressureAtSurface > 140) // if it is smaller than the homeworld and has pressure at least 140kPA
                     {
-                        // it is Earth-like, use Earth as template
+                        // it is Titan-like, use Titan as a template
+                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Titan").flightGlobalsIndex);
+                    }
+                    else if (pressureAtSurface > 200)
+                    {
+                        // it is Venus-like/Eve-like, use Eve as a template
+                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Eve").flightGlobalsIndex);
+                    }
+                    else if (celestialBody.Mass > (homeworld.Mass / 2) && celestialBody.Mass < homeworld.Mass && pressureAtSurface < 100) // it's at least half as big as the homeworld and has significant atmosphere
+                    {
+                        // it is Laythe-like, use Laythe as a template
+                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Laythe").flightGlobalsIndex);
+                    }
+                    else if (celestialBody.atmosphereContainsOxygen)
+                    {
+                        // it is Earth-like, use Earth as a template
                         bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Earth").flightGlobalsIndex);
                     }
-                    else if (presureAtSurface > 200)
-                    {
-                        // it is Venus-like, use Venus as template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Venus").flightGlobalsIndex);
-                    }
-                    else
-                    {
-                        // it is Mars-like, use Mars as template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Mars").flightGlobalsIndex);
-                    }
                 }
+               
             }
             catch (Exception ex)
             {
