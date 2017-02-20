@@ -18,14 +18,19 @@ namespace InterstellarFuelSwitch
         public double conversionRatio = 1;
     }
 
+    class InterstellarEquilibrium : InterstellarResourceConverter  { }
 
-    class InterstellarEquilibrium : PartModule
+    class InterstellarResourceConverter : PartModule
     {
         // persistant
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Convert", guiUnits = "%"), UI_FloatRange()]
         public float convertPercentage = 0;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false,  guiName = "Control"), UI_Toggle(disabledText = "Primary", enabledText = "Secondary")]
+        public bool positiveSliderControlsPrimary = false;
 
         // configs
+        [KSPField]
+        public bool showControlToggle = false;
         [KSPField]
         public string sliderText = string.Empty;
         [KSPField]
@@ -45,6 +50,12 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public double maxTransferAmountSecondary = 0;
 
+        [KSPField]
+        public bool requiresPrimaryLocalInEditor = true;
+        [KSPField]
+        public bool requiresPrimaryLocalInFlight = true;
+
+        BaseField positiveSliderControlsField;
         BaseField convertPercentageField;
         List<ResourceStats> primaryResources;
         List<ResourceStats> secondaryResources;
@@ -59,6 +70,10 @@ namespace InterstellarFuelSwitch
 
         public override void OnStart(PartModule.StartState state)
         {
+            positiveSliderControlsField = Fields["positiveSliderControlsPrimary"];
+            positiveSliderControlsField.guiActive = showControlToggle;
+            positiveSliderControlsField.guiActiveEditor = showControlToggle;
+
             convertPercentageField = Fields["convertPercentage"];
 
             maxTransferAmountPrimaryIsMissing = maxTransferAmountPrimary <= 0;
@@ -123,13 +138,29 @@ namespace InterstellarFuelSwitch
             convertPecentageEditorFloatRange.affectSymCounterparts = percentageSymetry ? UI_Scene.All : UI_Scene.None;
         }
 
-        public override void OnUpdate()
+        public void Update()
         {
+            // exit if definition was not found
             if (hasNullDefinitions)
                 return;
 
+            // in edit mode only show when primary resources are present
+            if (requiresPrimaryLocalInEditor && HighLogic.LoadedSceneIsEditor)
+            {
+                convertPercentageField.guiActiveEditor = primaryResources.All(m => part.Resources.Contains( m.definition.id));
+                return;
+            }
+
             retreivePrimary = false;
             retrieveSecondary = false;
+
+            // in flight mode, hide control if primary resources are not present 
+            if (requiresPrimaryLocalInFlight && HighLogic.LoadedSceneIsFlight && !primaryResources.All(m => part.Resources.Contains(m.definition.id)))
+            {
+                 // hide interface and exit
+                 convertPercentageField.guiActive = false;
+                 return;
+            }
 
             foreach (var resource in primaryResources)
             {
@@ -176,9 +207,17 @@ namespace InterstellarFuelSwitch
             if (convertPercentage > 0 && primaryResources.Any(m => convertPercentageRatio < m.amountRatio))
             {
                 retreivePrimary = true;
-                
-                var availableSpaceInTarget = secondaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
-                primaryResources.ForEach(m => m.retrieve = Math.Min((Math.Min(m.amountRatio - convertPercentageRatio, 1 - convertPercentageRatio)) * m.maxAmount, availableSpaceInTarget));
+
+                if (positiveSliderControlsPrimary)
+                {
+                    var availableSpaceInTarget = secondaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
+                    primaryResources.ForEach(m => m.retrieve = Math.Min((Math.Max(m.amountRatio - convertPercentageRatio, 0)) * m.maxAmount, availableSpaceInTarget));
+                }
+                else
+                {
+                    var neededAmount = secondaryResources.Min(m => Math.Max((1 - convertPercentageRatio) - m.amountRatio, 0) * m.maxAmount / m.conversionRatio);
+                    primaryResources.ForEach(m => m.retrieve = neededAmount);
+                }
 
                 primaryResources.ForEach(m => m.transferRate = maxTransferAmountPrimary);
             }
@@ -187,8 +226,7 @@ namespace InterstellarFuelSwitch
                 retrieveSecondary = true;
 
                 var availableSpaceInTarget = primaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
-                secondaryResources.ForEach(m => m.retrieve = Math.Min((Math.Min(m.amountRatio - convertPercentageRatio, 1 - convertPercentageRatio)) * m.maxAmount, availableSpaceInTarget));
-
+                secondaryResources.ForEach(m => m.retrieve = Math.Max((Math.Min(m.amountRatio - convertPercentageRatio, 0)) * m.maxAmount, availableSpaceInTarget));
                 secondaryResources.ForEach(m => m.transferRate = maxTransferAmountPrimary);
             }
         }
