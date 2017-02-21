@@ -26,17 +26,19 @@ namespace FNPlugin
         private const String _ALUMINA = "Alumina";
         private const String _LIQUID_DEUTERIUM = "LqdDeuterium";
         private const String _DEUTERIUM_GAS = "Deuterium";
+        private const String _INTAKE_LIQUID = "IntakeLqd";
 
         private String _uranium_TerraFloride = "UF4";
         private String _aluminium = "Aluminium";
         private String _ammonia = "LqdAmmonia";
-        private String _argon = "ArgonGas";
+        private String _argon = "LqdArgon";
         private String _carbonDioxide = "LqdCO2";
         private String _carbonMoxoxide = "LqdCO";
         private String _helium4_gas = "Helium4";
         private String _liquid_helium4 = "LqdHelium";
         private String _helium3_gas = "Helium3";
         private String _liquid_helium3 = "LqdHe3";
+        private String _sodium = "Sodium";
         private String _hydrogen = "LqdHydrogen";
         private String _hydrogen_peroxide = "HTP";
         private String _hydrazine = "Hydrazine";
@@ -67,11 +69,13 @@ namespace FNPlugin
         public String LqdHelium4 { get { return _liquid_helium4; } }
         public String Helium4Gas { get { return _helium4_gas; } }
         public String LqdHelium3 { get { return _liquid_helium3; } }
+        public String Sodium { get { return _sodium; } }
         public String Helium3Gas { get { return _helium3_gas; } }
         public String Hydrogen { get { return _hydrogen; } }
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }
         public String Hydrazine { get { return _hydrazine; } }
         public String IntakeAtmosphere { get { return _INTAKE_ATMOSPHERE; } }
+        public String IntakeLiquid { get { return _INTAKE_LIQUID; } }
         public String Lithium6 { get { return _LITHIUM6; } }
         public String IntakeAir { get { return _INTAKE_AIR; } }
         public String Lithium7 { get { return _LITHIUM7; } }
@@ -90,7 +94,7 @@ namespace FNPlugin
         public String Water { get { return _water; } }
         public String HeavyWater { get { return _heavyWater; } }
         public String XenonGas { get { return _xenongas; } }
-        public String KryptonGas { get { return _xenongas; } }
+        public String KryptonGas { get { return _krytongas; } }
 
         public InterstellarResourcesConfiguration(ConfigNode plugin_settings)
         {

@@ -74,11 +74,13 @@ namespace InterstellarFuelSwitch
 
         // Config properties
         [KSPField]
-        public string tankId = "";
+        public string tankId = string.Empty;
         [KSPField]
-        public string resourceGui = "";
+        public string resourceGui = string.Empty;
         [KSPField]
-        public string tankSwitchNames = "";
+        public string tankSwitchNames = string.Empty;
+        [KSPField]
+        public string bannedResourceNames = string.Empty;
         [KSPField]
         public string nextTankSetupText = "Next tank setup";
         [KSPField]
@@ -88,13 +90,15 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string resourceNames = "ElectricCharge;LiquidFuel,Oxidizer;MonoPropellant";
         [KSPField]
-        public string resourceAmounts = "";
+        public string resourceAmounts = string.Empty;
         [KSPField]
-        public string resourceRatios = "";
+        public string resourceRatios = string.Empty;
         [KSPField]
-        public string initialResourceAmounts = "";
+        public string initialResourceAmounts = string.Empty;
         [KSPField]
         public bool ignoreInitialCost = false;
+
+
 
         [KSPField(guiActiveEditor = false)]
         public bool adaptiveTankSelection = false;
@@ -164,20 +168,19 @@ namespace InterstellarFuelSwitch
         public float massMultiplier;
 
         // Gui
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Specific Heat")]
-        public string specificHeatStr = String.Empty;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Absorbed")]
-        public string boiloffEnergy = String.Empty;
-
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
-        public string tankGuiName = String.Empty;
-
+        public string tankGuiName = "";
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Dry/Wet Mass")]
+        public string maxWetDryMass = "";
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Specific Heat")]
+        public string specificHeatStr = "";
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Absorbed")]
+        public string boiloffEnergy = "";
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Mass Ratio")]
         public string massRatioStr = "";
 
-
         // Debug
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Dry mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Dry mass", guiUnits = " t", guiFormat = "F4")]
         public double dryMass = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Part mass", guiUnits = " t", guiFormat = "F4")]
         public double currentPartMass;
@@ -195,7 +198,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public float storedMassMultiplier = 1;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Max Wet mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Wet mass", guiUnits = " t", guiFormat = "F4")]
         public double wetMass;
         [KSPField(guiActiveEditor = false, guiActive = false)]
         public string resourceAmountStr0 = "";
@@ -213,7 +216,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public bool traceBoiloff;
 
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Max Wet cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Wet cost", guiFormat = "F3", guiUnits = " Ѵ")]
         public double maxResourceCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
         public double dryCost = 0;
@@ -222,35 +225,34 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Total Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
         public double totalCost = 0;
 
-        private InterstellarTextureSwitch2 textureSwitch;
+        InterstellarTextureSwitch2 textureSwitch;
+        List<string> currentResources;
+        List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
+        UIPartActionWindow tweakableUI;
+        HashSet<string> activeResourceList = new HashSet<string>();
 
-        private List<string> currentResources;
-        private List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
-        private UIPartActionWindow tweakableUI;
-        private HashSet<string> activeResourceList = new HashSet<string>();
+        bool initialized = false;
+        double initializePartTemperature = -1;
 
-        private bool initialized = false;
-        private double initializePartTemperature = -1;
+        PartResource _partResource0;
+        PartResource _partResource1;
+        PartResource _partResource2;
 
-        private PartResource _partResource0;
-        private PartResource _partResource1;
-        private PartResource _partResource2;
+        PartResourceDefinition _partRresourceDefinition0;
+        PartResourceDefinition _partRresourceDefinition1;
+        PartResourceDefinition _partRresourceDefinition2;
 
-        private PartResourceDefinition _partRresourceDefinition0;
-        private PartResourceDefinition _partRresourceDefinition1;
-        private PartResourceDefinition _partRresourceDefinition2;
+        BaseField _field0;
+        BaseField _field1;
+        BaseField _field2;
 
-        private BaseField _field0;
-        private BaseField _field1;
-        private BaseField _field2;
+        BaseField _tankGuiNameField;
+        BaseField _chooseField;
 
-        private BaseField _tankGuiNameField;
-        private BaseField _chooseField;
+        BaseEvent _nextTankSetupEvent;
+        BaseEvent _previousTankSetupEvent;
 
-        private BaseEvent _nextTankSetupEvent;
-        private BaseEvent _previousTankSetupEvent;
-
-        private static HashSet<string> researchedTechs;
+        static HashSet<string> researchedTechs;
 
         public virtual void OnRescale(TweakScale.ScalingFactor factor)
         {
@@ -598,10 +600,27 @@ namespace InterstellarFuelSwitch
             try
             {
                 // find selected tank
-                var selectedTank = calledByPlayer || String.IsNullOrEmpty(selectedTankSetupTxt)
-                    ? selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]
-                    : _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt) 
-                        ?? (selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : _modularTankList[0]);
+                IFSmodularTank selectedTank = null;
+
+                if (!calledByPlayer && !String.IsNullOrEmpty(selectedTankSetupTxt))
+                {
+                    // first find based on gui name
+                    selectedTank = _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt);
+
+                    // otherwise find based on switch name
+                    if (selectedTank == null)
+                        selectedTank = _modularTankList.FirstOrDefault(t => t.SwitchName == selectedTankSetupTxt);
+ 
+                    // otherwise find basided on similarity with switch name
+                    if (selectedTank == null)
+                        selectedTank = _modularTankList.FirstOrDefault(t => selectedTankSetupTxt.Contains(t.SwitchName));
+                }
+
+                // if still no tank selected, do it based on index or pick the first one if invalid
+                if (selectedTank == null)
+                    selectedTank = selectedTankSetup < _modularTankList.Count
+                        ? _modularTankList[selectedTankSetup]
+                        : _modularTankList[0];
 
                 // update txt and index for future
                 selectedTankSetupTxt = selectedTank.GuiName;
@@ -949,6 +968,8 @@ namespace InterstellarFuelSwitch
 
             if (wetMass > 0 && dryMass > 0)
                 massRatioStr = ToRoundedString(1 / (dryMass / wetMass));
+
+            maxWetDryMass = string.Format("{0} t / {1} t", dryMass.ToString(resourcesFormat), wetMass.ToString(resourcesFormat));
         }
 
         private string ToRoundedString(double value)
@@ -1224,6 +1245,13 @@ namespace InterstellarFuelSwitch
                             newResource.latendHeatVaporation = latendHeatVaporationList[currentResourceCounter][nameCounter];
 
                         modularTank.Resources.Add(newResource);
+                    }
+
+                    var extraActiveResourceList = bannedResourceNames.Split(';');
+                    foreach( string resourceName in extraActiveResourceList)
+                    {
+                        if (!activeResourceList.Contains(resourceName))
+                            activeResourceList.Add(resourceName);
                     }
 
                     // ensure there is always a gui name

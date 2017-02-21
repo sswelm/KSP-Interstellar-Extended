@@ -7,6 +7,12 @@ namespace FNPlugin.Refinery
 {
     interface IRefineryActivity
     {
+        // 1 seperation
+        // 2 desconstrution
+        // 3 construction
+
+        int RefineryType { get; }
+
         String ActivityName { get; }
 
         double CurrentPower { get; }
@@ -17,7 +23,7 @@ namespace FNPlugin.Refinery
 
         String Status { get; }
 
-        void UpdateFrame(double rateMultiplier, bool allowOverfow, double fixedDeltaTime);
+        void UpdateFrame(double rateMultiplier, double powerFraction,  double powerModidier, bool allowOverfow, double fixedDeltaTime);
 
         void UpdateGUI();
     }

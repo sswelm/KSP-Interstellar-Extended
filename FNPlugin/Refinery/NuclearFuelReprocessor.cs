@@ -20,6 +20,8 @@ namespace FNPlugin.Refinery
         protected double _current_power;
         private GUIStyle _bold_label;
 
+        public int RefineryType { get { return 1; } }
+
         public String ActivityName { get { return "Nuclear Fuel Reprocessing"; } }
 
         public double CurrentPower { get { return _current_power; } }
@@ -42,7 +44,7 @@ namespace FNPlugin.Refinery
             _vessel = part.vessel;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime) 
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime) 
         {
             _current_power = PowerRequirements * rateMultiplier;
             List<INuclearFuelReprocessable> nuclear_reactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();

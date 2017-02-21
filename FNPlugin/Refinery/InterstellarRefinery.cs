@@ -24,11 +24,16 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true)]
         private string lastActivityName = "";
 
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Refinery Type")]
+        public int refineryType = 255;
+
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string status_str = string.Empty;
 
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Base Production", guiFormat = "F3")]
+        public float baseProduction = 1f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Production Multiplier", guiFormat = "F3")]
         public float productionMult = 1f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Req Multiplier", guiFormat = "F3")]
@@ -77,8 +82,7 @@ namespace FNPlugin.Refinery
         {
             if (state == StartState.Editor) return;
 
-            System.Random rnd = new System.Random();
-            _window_ID = rnd.Next(int.MaxValue);
+            _window_ID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
             var unsortedList = new List<IRefineryActivity>();
 
@@ -101,6 +105,8 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new SolarWindProcessor(this.part));
                 unsortedList.Add(new RegolithProcessor(this.part));
                 unsortedList.Add(new AtmosphericExtractor(this.part));
+                unsortedList.Add(new SeawaterExtractor(this.part));
+
 
             }
             catch (Exception e)
@@ -109,7 +115,7 @@ namespace FNPlugin.Refinery
                 Debug.LogWarning("[KSPI] - ISRU Refinery Exception " + e.Message);
             }
 
-            _refinery_activities = unsortedList.OrderBy(a => a.ActivityName).ToList();
+            _refinery_activities = unsortedList.Where(m => (m.RefineryType & this.refineryType) == m.RefineryType).OrderBy(a => a.ActivityName).ToList();
 
             // load same 
             if (refinery_is_enabled && !string.IsNullOrEmpty(lastActivityName))
@@ -119,7 +125,7 @@ namespace FNPlugin.Refinery
 
             if (_current_activity != null)
             {
-                var productionRate = lastPowerRatio * productionMult;
+                var productionRate = lastPowerRatio * productionMult * baseProduction;
 
                 timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime);
                 //string message = "[KSPI] - IRSU performed " + lastActivityName + " for " + timeDifference.ToString("0.0") + " seconds with production rate " + productionRate.ToString("0.0");
@@ -127,17 +133,13 @@ namespace FNPlugin.Refinery
                 //ScreenMessages.PostScreenMessage(message, 60.0f, ScreenMessageStyle.LOWER_CENTER);
 
                 if (lastActivityName == "Atmospheric Extraction")
-                    ((AtmosphericExtractor)_current_activity).ExtractAir(productionRate, lastOverflowSettings, timeDifference, true);
+                    ((AtmosphericExtractor)_current_activity).ExtractAir(productionRate, lastPowerRatio, productionMult * baseProduction, lastOverflowSettings, timeDifference, true);
+                else if (lastActivityName == "Seawater Extraction")
+                    ((SeawaterExtractor)_current_activity).ExtractSeawater(productionRate, lastPowerRatio, productionMult * baseProduction, lastOverflowSettings, timeDifference, true);
                 else
-                    _current_activity.UpdateFrame(productionRate, lastOverflowSettings, timeDifference);
+                    _current_activity.UpdateFrame(productionRate, lastPowerRatio, productionMult * baseProduction, lastOverflowSettings, timeDifference);
             }
 
-            //if (lastActivityName == "Atmospheric Extraction")
-            //{
-            //    AtmosphericExtractor activity = new AtmosphericExtractor(this.part); // creates a new extractor object (but it will be marked for disposal once out of scope, which is pretty soon)
-            //   timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime) * 60;
-            //    activity.ExtractAir(lastPowerRatio * productionMult, lastOverflowSettings, timeDifference, true); 
-            //}
         }
 
         public override void OnUpdate()
@@ -159,7 +161,7 @@ namespace FNPlugin.Refinery
                 return;
             }
 
-            currentPowerReq = powerReqMult * _current_activity.PowerRequirements;
+            currentPowerReq = powerReqMult * _current_activity.PowerRequirements * baseProduction;
 
             var totalPowerRequiredThisFrame = currentPowerReq * TimeWarp.fixedDeltaTime;
 
@@ -181,7 +183,9 @@ namespace FNPlugin.Refinery
 
             utilisationPercentage = power_ratio * 100;
 
-            _current_activity.UpdateFrame(power_ratio * productionMult, overflowAllowed, TimeWarp.fixedDeltaTime);
+            var productionModifier = productionMult * baseProduction;
+
+            _current_activity.UpdateFrame(power_ratio * productionModifier, power_ratio, productionModifier, overflowAllowed, TimeWarp.fixedDeltaTime);
 
             lastPowerRatio = power_ratio; // save the current power ratio in case the vessel is unloaded
             lastOverflowSettings = overflowAllowed; // save the current overflow settings in case the vessel is unloaded

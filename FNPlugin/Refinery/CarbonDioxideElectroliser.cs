@@ -46,6 +46,8 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
+        public int RefineryType { get { return 2; } }
+
         public String ActivityName { get { return "CarbonDioxide Electrolysis"; } }
 
         public double CurrentPower { get { return _current_power; } }
@@ -70,7 +72,7 @@ namespace FNPlugin.Refinery
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;

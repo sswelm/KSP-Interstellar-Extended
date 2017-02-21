@@ -35,8 +35,7 @@ namespace FNPlugin
         double current_antimatter = 0;
         int explode_counter = 0;
         GameObject lightGameObject;
-        protected PartResource antimatter;
-
+        PartResource antimatter;
 
         [KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
         public void StartCharge()

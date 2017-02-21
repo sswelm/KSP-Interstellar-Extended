@@ -18,7 +18,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public float last_active_time;
         [KSPField(isPersistant = true)]
-        public float electrical_power_ratio;
+        public double electrical_power_ratio;
         [KSPField(isPersistant = true)]
         public double science_to_add;
 
@@ -59,12 +59,12 @@ namespace FNPlugin
 
         protected float megajoules_supplied = 0;
         protected String[] modes = { "Scanning", "Reprocessing", "Producing Antimatter", "Electrolysing", "Centrifuging" };
-        protected float science_rate_f;
-        protected float reprocessing_rate_f = 0;
+        protected double science_rate_f;
+        protected double reprocessing_rate_f = 0;
         protected float crew_capacity_ratio;
-        protected float antimatter_rate_f = 0;
+        protected double antimatter_rate_f = 0;
         protected float electrolysis_rate_f = 0;
-        protected float deut_rate_f = 0;
+        protected double deut_rate_f = 0;
         protected bool play_down = true;
         protected Animation anim;
         protected Animation anim2;
@@ -248,7 +248,7 @@ namespace FNPlugin
             if (IsEnabled && last_active_time != 0) 
             {
                 double global_rate_multipliers = 1;
-                crew_capacity_ratio = (part.protoModuleCrew.Count) / (part.CrewCapacity);
+                crew_capacity_ratio = ((float)(part.protoModuleCrew.Count)) / ((float)part.CrewCapacity);
                 global_rate_multipliers = global_rate_multipliers * crew_capacity_ratio;
 
                 if (active_mode == 0) // Science persistence
@@ -360,7 +360,7 @@ namespace FNPlugin
                     currentpowertmp = electrical_power_ratio * PluginHelper.BaseCentriPowerConsumption * powerReqMult;
                     Fields["centrifugeRate"].guiActive = true;
                     powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseCentriPowerConsumption).ToString("0.00") + "MW";
-                    float deut_per_hour = deut_rate_f * 3600;
+                    double deut_per_hour = deut_rate_f * 3600;
                     centrifugeRate = deut_per_hour.ToString("0.00") + " Kg Deuterium/Hour";
                 }
                 else
@@ -419,7 +419,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            float global_rate_multipliers = 1;
+            double global_rate_multipliers = 1;
             crew_capacity_ratio = ((float)part.protoModuleCrew.Count) / ((float)part.CrewCapacity);
             global_rate_multipliers = global_rate_multipliers * crew_capacity_ratio;
 
@@ -433,15 +433,15 @@ namespace FNPlugin
                     ? powerRequest
                     : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult);
+                electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult;
                 global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
 
-                float kerbalScienceSkillFactor = part.protoModuleCrew.Sum(proto_crew_member => GetKerbalScienceFactor(proto_crew_member) / 2f);
-                float altitude_multiplier = Math.Max((float)(vessel.altitude / (vessel.mainBody.Radius)), 1);
+                double kerbalScienceSkillFactor = part.protoModuleCrew.Sum(proto_crew_member => GetKerbalScienceFactor(proto_crew_member) / 2f);
+                double altitude_multiplier = Math.Max(vessel.altitude / (vessel.mainBody.Radius), 1);
 
-                science_rate_f = (float)(kerbalScienceSkillFactor * GameConstants.baseScienceRate * PluginHelper.getScienceMultiplier(vessel) //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed)
+                science_rate_f = (kerbalScienceSkillFactor * GameConstants.baseScienceRate * PluginHelper.getScienceMultiplier(vessel) 
                     / PluginHelper.SecondsInDay * global_rate_multipliers
-                    / (Mathf.Sqrt(altitude_multiplier)));
+                    / (Math.Sqrt(altitude_multiplier)));
 
                 if (ResearchAndDevelopment.Instance != null && !double.IsNaN(science_rate_f) && !double.IsInfinity(science_rate_f))
                 {
@@ -457,12 +457,14 @@ namespace FNPlugin
                     ? powerRequest
                     : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 
-                electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult);
+                electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult;
+
+                var productionModifier = global_rate_multipliers;
                 global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
-                reprocessor.UpdateFrame(global_rate_multipliers, true, TimeWarp.fixedDeltaTime);
+                reprocessor.UpdateFrame(global_rate_multipliers, electrical_power_ratio, productionModifier, true, TimeWarp.fixedDeltaTime);
                 
                 if (reprocessor.getActinidesRemovedPerHour() > 0)
-                    reprocessing_rate_f = (float)(reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour());
+                    reprocessing_rate_f = reprocessor.getRemainingAmountToReprocess() / reprocessor.getActinidesRemovedPerHour();
                 else
                     IsEnabled = false;
             }
@@ -474,10 +476,10 @@ namespace FNPlugin
                     ? powerRequest 
                     : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseAMFPowerConsumption / powerReqMult);
+                electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseAMFPowerConsumption / powerReqMult;
                 global_rate_multipliers = crew_capacity_ratio * electrical_power_ratio;
                 anti_factory.produceAntimatterFrame(global_rate_multipliers);
-                antimatter_rate_f = (float)anti_factory.getAntimatterProductionRate();
+                antimatter_rate_f = anti_factory.getAntimatterProductionRate();
             }
             else if (active_mode == 3)
             {
@@ -493,9 +495,9 @@ namespace FNPlugin
                         ? powerRequest 
                         : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
                     
-                    electrical_power_ratio = (float)(electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult);
+                    electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult;
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
-                    float deut_produced = (float)(global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f);
+                    double deut_produced = global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f;
                     deut_rate_f = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
                 }
                 else
