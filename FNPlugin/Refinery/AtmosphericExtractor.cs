@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-
 namespace FNPlugin.Refinery
 {
     class AtmosphericExtractor : IRefineryActivity
@@ -19,6 +18,8 @@ namespace FNPlugin.Refinery
          * the functions (see way below) would be wasteful. I'm placing them up here to make them easier to spot.
          */
 
+        [KSPField(isPersistant = true)]
+        protected double _ammoniaPercentage = 0; 
         [KSPField(isPersistant = true)]
         protected double _argonPercentage = 0; // percentage of argon in the local atmosphere
         [KSPField(isPersistant = true)]
@@ -67,6 +68,7 @@ namespace FNPlugin.Refinery
         protected double _atmosphere_density;
 
         // all the gases that it should be possible to collect from atmospheres
+        protected double _ammonia_density;
         protected double _argon_density;
         protected double _dioxide_density;
         protected double _helium3_density;
@@ -86,6 +88,7 @@ namespace FNPlugin.Refinery
              
         protected double _atmosphere_consumption_rate;
 
+        protected double _ammonia_production_rate;
         protected double _argon_production_rate;
         protected double _dioxide_production_rate;
         protected double _helium3_production_rate;
@@ -104,6 +107,7 @@ namespace FNPlugin.Refinery
         protected double _sodium_production_rate;
 
         protected string _atmosphere_resource_name;
+        protected string _ammonia_resource_name;
         protected string _argon_resource_name;
         protected string _dioxide_resource_name;
         protected string _helium3_resource_name;
@@ -154,6 +158,7 @@ namespace FNPlugin.Refinery
 
             // get the name of all relevant resources
             _atmosphere_resource_name = InterstellarResourcesConfiguration.Instance.IntakeAtmosphere;
+            _ammonia_resource_name = InterstellarResourcesConfiguration.Instance.Ammonia;
             _argon_resource_name = InterstellarResourcesConfiguration.Instance.Argon;
             _dioxide_resource_name = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
             _helium3_resource_name = InterstellarResourcesConfiguration.Instance.LqdHelium3;
@@ -173,6 +178,7 @@ namespace FNPlugin.Refinery
             
             // get the densities of all relevant resources
             _atmosphere_density = PartResourceLibrary.Instance.GetDefinition(_atmosphere_resource_name).density;
+            _ammonia_density = PartResourceLibrary.Instance.GetDefinition(_ammonia_resource_name).density;
             _argon_density = PartResourceLibrary.Instance.GetDefinition(_argon_resource_name).density;
             _dioxide_density = PartResourceLibrary.Instance.GetDefinition(_dioxide_resource_name).density;
             _helium3_density = PartResourceLibrary.Instance.GetDefinition(_helium3_resource_name).density;
@@ -192,6 +198,7 @@ namespace FNPlugin.Refinery
         }
 
         protected double _maxCapacityAtmosphereMass;
+        protected double _maxCapacityAmmoniaMass;
         protected double _maxCapacityArgonMass;
         protected double _maxCapacityDioxideMass;
         protected double _maxCapacityHelium3Mass;
@@ -210,6 +217,7 @@ namespace FNPlugin.Refinery
         protected double _maxCapacitySodiumMass;
         
         protected double _availableAtmosphereMass;
+        protected double _spareRoomAmmoniaMass;
         protected double _spareRoomArgonMass;
         protected double _spareRoomDioxideMass;
         protected double _spareRoomHelium3Mass;
@@ -262,6 +270,7 @@ namespace FNPlugin.Refinery
 
             // determine how much resource we have
             var partsThatContainAtmosphere = _part.GetConnectedResources(_atmosphere_resource_name);
+            var partsThatContainAmmonia = _part.GetConnectedResources(_ammonia_resource_name);
             var partsThatContainArgon = _part.GetConnectedResources(_argon_resource_name);
             var partsThatContainDioxide = _part.GetConnectedResources(_dioxide_resource_name);
             var partsThatContainGasHelium3 = _part.GetConnectedResources(_helium3_resource_name);
@@ -281,6 +290,7 @@ namespace FNPlugin.Refinery
 
             // determine the maximum amount of a resource the vessel can hold (ie. tank capacities combined)
             _maxCapacityAtmosphereMass = partsThatContainAtmosphere.Sum(p => p.maxAmount) * _atmosphere_density;
+            _maxCapacityAmmoniaMass = partsThatContainArgon.Sum(p => p.maxAmount) * _ammonia_density;
             _maxCapacityArgonMass = partsThatContainArgon.Sum(p => p.maxAmount) * _argon_density;
             _maxCapacityDioxideMass = partsThatContainDioxide.Sum(p => p.maxAmount) * _dioxide_density;
             _maxCapacityHelium3Mass = partsThatContainGasHelium3.Sum(p => p.maxAmount) * _helium3_density;
@@ -302,6 +312,7 @@ namespace FNPlugin.Refinery
             _availableAtmosphereMass = partsThatContainAtmosphere.Sum(r => r.amount) * _atmosphere_density;
 
             // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
+            _spareRoomAmmoniaMass = partsThatContainAmmonia.Sum(r => r.maxAmount - r.amount) * _ammonia_density;
             _spareRoomArgonMass = partsThatContainArgon.Sum(r => r.maxAmount - r.amount) * _argon_density;
             _spareRoomDioxideMass = partsThatContainDioxide.Sum(r => r.maxAmount - r.amount) * _dioxide_density;
             _spareRoomHelium3Mass = partsThatContainGasHelium3.Sum(r => r.maxAmount - r.amount) * _helium3_density;
@@ -334,7 +345,7 @@ namespace FNPlugin.Refinery
                 _spareRoomHydrogenMass > 0 || _spareRoomHelium3Mass > 0 || _spareRoomHelium4Mass > 0 || _spareRoomMonoxideMass > 0 || 
                 _spareRoomNitrogenMass > 0 || _spareRoomArgonMass > 0 || _spareRoomDioxideMass > 0 || _spareRoomMethaneMass > 0 ||
                 _spareRoomNeonMass > 0 || _spareRoomWaterMass > 0 || _spareRoomHeavyWaterMass > 0 || _spareRoomOxygenMass > 0 || 
-                _spareRoomXenonMass > 0 || _spareRoomDeuteriumMass > 0 || _spareRoomKryptonMass > 0 || _spareRoomSodiumMass > 0)) 
+                _spareRoomXenonMass > 0 || _spareRoomDeuteriumMass > 0 || _spareRoomKryptonMass > 0 || _spareRoomSodiumMass > 0 ||  _spareRoomAmmoniaMass > 0)) 
             {
                 /* Now to get the actual percentages from ORSAtmosphericResourceHandler Freethinker extended.
                  * Calls getAtmosphericResourceContent which calls getAtmosphericCompositionForBody which (if there's no definition, i.e. we're using a custom solar system
@@ -345,6 +356,7 @@ namespace FNPlugin.Refinery
                 if (FlightGlobals.currentMainBody.flightGlobalsIndex != lastBodyID) // did we change a SOI since last time? If yes, get new percentages. Should work the first time as well, since lastBodyID starts as -1, while bodies in the list start at 0
                 {
                     // remember, all these are persistent. Once we get them, we won't need to calculate them again until we change SOI
+                    _ammoniaPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _ammonia_resource_name);
                     _argonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _argon_resource_name);
                     _monoxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _monoxide_resource_name);
                     _dioxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _dioxide_resource_name);
@@ -375,6 +387,7 @@ namespace FNPlugin.Refinery
                 else
                 {
                     // how much of the consumed atmosphere is going to end up as these?
+                    var fixedMaxAmmoniaRate = _fixedConsumptionRate * _ammoniaPercentage;
                     var fixedMaxArgonRate = _fixedConsumptionRate * _argonPercentage;
                     var fixedMaxDioxideRate = _fixedConsumptionRate * _dioxidePercentage;
                     var fixedMaxHelium3Rate = _fixedConsumptionRate * _helium3Percentage;
@@ -393,6 +406,7 @@ namespace FNPlugin.Refinery
                     var fixedMaxSodiumRate = _fixedConsumptionRate * _sodiumPercentage;
 
                     // how much can we add to the tanks per cycle? If allowOverflow is on, just push it all in, regardless of if the tank can hold the amount. Otherwise adjust accordingly
+                    var fixedMaxPossibleAmmoniaRate = allowOverflow ? fixedMaxArgonRate : Math.Min(_spareRoomAmmoniaMass, fixedMaxAmmoniaRate);
                     var fixedMaxPossibleArgonRate = allowOverflow ? fixedMaxArgonRate : Math.Min(_spareRoomArgonMass, fixedMaxArgonRate);
                     var fixedMaxPossibleDioxideRate = allowOverflow ? fixedMaxDioxideRate : Math.Min(_spareRoomDioxideMass, fixedMaxDioxideRate);
                     var fixedMaxPossibleHelium3Rate = allowOverflow ? fixedMaxHelium3Rate : Math.Min(_spareRoomHelium3Mass, fixedMaxHelium3Rate);
@@ -411,6 +425,7 @@ namespace FNPlugin.Refinery
                     var fixedMaxPossibleSodiumRate = allowOverflow ? fixedMaxSodiumRate : Math.Min(_spareRoomSodiumMass, fixedMaxSodiumRate);
 
                     // Check if the denominator for each is zero (in that case, assign zero outright, so that we don't end up with an infinite mess on our hands)
+                    double ammRatio = (fixedMaxAmmoniaRate == 0) ? 0 : fixedMaxPossibleAmmoniaRate / fixedMaxAmmoniaRate;
                     double arRatio = (fixedMaxArgonRate == 0) ? 0 : fixedMaxPossibleArgonRate / fixedMaxArgonRate;
                     double dioxRatio = (fixedMaxDioxideRate == 0) ? 0 : fixedMaxPossibleDioxideRate / fixedMaxDioxideRate;
                     double he3Ratio = (fixedMaxHelium3Rate == 0) ? 0 : fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate;
@@ -431,13 +446,14 @@ namespace FNPlugin.Refinery
                     /* finds a non-zero minimum of all the ratios (calculated above, as fixedMaxPossibleZZRate / fixedMaxZZRate). It needs to be non-zero 
                     * so that the collecting works even when some of consitutents are absent from the local atmosphere (ie. when their definition is zero).
                     * Otherwise the consumptionStorageRatio would be zero and thus no atmosphere would be consumed. */
-                    _consumptionStorageRatio = new double[] { arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, oxyRatio, waterRatio, heavywaterRatio, xenonRatio, deuteriumRatio, kryptonRatio, sodiumRatio }.Where(x => x > 0).Min();
+                    _consumptionStorageRatio = new double[] { ammRatio, arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, oxyRatio, waterRatio, heavywaterRatio, xenonRatio, deuteriumRatio, kryptonRatio, sodiumRatio }.Where(x => x > 0).Min();
 
                     // this consumes the resource, finally
                     _atmosphere_consumption_rate = _part.RequestResource(_atmosphere_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _atmosphere_density) / fixedDeltaTime * _atmosphere_density;
                 }
                 
                 // calculate the rates of production for the individual constituents
+                var ammonia_rate_temp = _atmosphere_consumption_rate * _ammoniaPercentage;
                 var argon_rate_temp = _atmosphere_consumption_rate * _argonPercentage;
                 var dioxide_rate_temp = _atmosphere_consumption_rate * _dioxidePercentage;
                 var helium3_rate_temp = _atmosphere_consumption_rate * _helium3Percentage;
@@ -456,6 +472,7 @@ namespace FNPlugin.Refinery
                 var sodium_rate_temp = _atmosphere_consumption_rate * _sodiumPercentage;
 
                 // produce the resources
+                _ammonia_production_rate = -_part.RequestResource(_ammonia_resource_name, -ammonia_rate_temp * fixedDeltaTime / _ammonia_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammonia_density;
                 _argon_production_rate = -_part.RequestResource(_argon_resource_name, -argon_rate_temp * fixedDeltaTime / _argon_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _argon_density;
                 _dioxide_production_rate = -_part.RequestResource(_dioxide_resource_name, -dioxide_rate_temp * fixedDeltaTime / _dioxide_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _dioxide_density;
                 _helium3_production_rate = -_part.RequestResource(_helium3_resource_name, -helium3_rate_temp * fixedDeltaTime / _helium3_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium3_density;
@@ -476,6 +493,7 @@ namespace FNPlugin.Refinery
             else
             {
                 _atmosphere_consumption_rate = 0;
+                _ammonia_production_rate = 0;
                 _argon_production_rate = 0;
                 _dioxide_production_rate = 0;
                 _helium3_production_rate = 0;
@@ -634,6 +652,19 @@ namespace FNPlugin.Refinery
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Krypton Production Rate", _bold_label, GUILayout.Width(labelWidth));
                 GUILayout.Label((float)(_kryptonPercentage * 100) + "% " + (_krypton_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", GUILayout.Width(valueWidth));
+                GUILayout.EndHorizontal();
+            }
+
+            if (_ammoniaPercentage > 0)
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Ammonia Storage", _bold_label, GUILayout.Width(labelWidth));
+                GUILayout.Label(_spareRoomAmmoniaMass.ToString("0.0000") + " mT / " + _maxCapacityAmmoniaMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Ammonia Production Rate", _bold_label, GUILayout.Width(labelWidth));
+                GUILayout.Label((float)(_ammoniaPercentage * 100) + "% " + (_ammonia_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", GUILayout.Width(valueWidth));
                 GUILayout.EndHorizontal();
             }
 

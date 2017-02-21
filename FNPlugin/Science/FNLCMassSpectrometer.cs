@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin 
 {
@@ -75,19 +76,19 @@ namespace FNPlugin
                     GUILayout.EndHorizontal();
                     GUILayout.Space(5);
 
-                    foreach (ORSOceanicResource oceanic_resource in ORSOceanicResourceHandler.getOceanicCompositionForBody(vessel.mainBody.flightGlobalsIndex)) 
+                    foreach (OceanicResource oceanic_resource in OceanicResourceHandler.GetOceanicCompositionForBody(vessel.mainBody.flightGlobalsIndex)) 
                     {
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label(oceanic_resource.getDisplayName(), GUILayout.Width(150));
+                        GUILayout.Label(oceanic_resource.DisplayName, GUILayout.Width(150));
                         string resource_abundance_str;
-                        if (oceanic_resource.getResourceAbundance() > 0.001) 
-                            resource_abundance_str = (oceanic_resource.getResourceAbundance() * 100.0).ToString() + "%";
+                        if (oceanic_resource.ResourceAbundance > 0.001)
+                            resource_abundance_str = (oceanic_resource.ResourceAbundance * 100.0).ToString() + "%";
                         else 
                         {
-                            if (oceanic_resource.getResourceAbundance() > 0.000001) 
-                                resource_abundance_str = (oceanic_resource.getResourceAbundance() * 1e6).ToString() + " ppm";
-                            else 
-                                resource_abundance_str = (oceanic_resource.getResourceAbundance() * 1e9).ToString() + " ppb";
+                            if (oceanic_resource.ResourceAbundance > 0.000001)
+                                resource_abundance_str = (oceanic_resource.ResourceAbundance * 1e6).ToString() + " ppm";
+                            else
+                                resource_abundance_str = (oceanic_resource.ResourceAbundance * 1e9).ToString() + " ppb";
                         }
                         GUILayout.Label(resource_abundance_str, GUILayout.Width(150));
                         GUILayout.EndHorizontal();
