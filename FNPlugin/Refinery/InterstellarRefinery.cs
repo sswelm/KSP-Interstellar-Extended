@@ -105,6 +105,8 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new SolarWindProcessor(this.part));
                 unsortedList.Add(new RegolithProcessor(this.part));
                 unsortedList.Add(new AtmosphericExtractor(this.part));
+                unsortedList.Add(new SeawaterExtractor(this.part));
+
 
             }
             catch (Exception e)
@@ -132,16 +134,12 @@ namespace FNPlugin.Refinery
 
                 if (lastActivityName == "Atmospheric Extraction")
                     ((AtmosphericExtractor)_current_activity).ExtractAir(productionRate, lastPowerRatio, productionMult * baseProduction, lastOverflowSettings, timeDifference, true);
+                else if (lastActivityName == "Seawater Extraction")
+                    ((SeawaterExtractor)_current_activity).ExtractSeawater(productionRate, lastPowerRatio, productionMult * baseProduction, lastOverflowSettings, timeDifference, true);
                 else
                     _current_activity.UpdateFrame(productionRate, lastPowerRatio, productionMult * baseProduction, lastOverflowSettings, timeDifference);
             }
 
-            //if (lastActivityName == "Atmospheric Extraction")
-            //{
-            //    AtmosphericExtractor activity = new AtmosphericExtractor(this.part); // creates a new extractor object (but it will be marked for disposal once out of scope, which is pretty soon)
-            //   timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime) * 60;
-            //    activity.ExtractAir(lastPowerRatio * productionMult, lastOverflowSettings, timeDifference, true); 
-            //}
         }
 
         public override void OnUpdate()

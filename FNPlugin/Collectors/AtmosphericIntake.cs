@@ -59,6 +59,12 @@ namespace FNPlugin
             get { return finalAir; }
         }
 
+        // property getter for the sake of seawater extractor
+        public bool IntakeEnabled
+        {
+          get { return this.part.FindModuleImplementing<ModuleResourceIntake>().intakeEnabled; }
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return; // don't do any of this stuff in editor
