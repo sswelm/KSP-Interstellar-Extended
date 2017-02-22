@@ -498,8 +498,8 @@ namespace FNPlugin
 
                 var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = maxFuelFlow;
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
-                curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
+             //   curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
+             //   curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
             }
             Debug.Log(curEngineT.maxThrust);
             coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
