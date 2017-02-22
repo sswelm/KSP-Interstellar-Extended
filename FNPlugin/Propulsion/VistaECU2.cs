@@ -1,0 +1,61 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UnityEngine;
+
+namespace FNPlugin
+{
+
+    class VistaECU2 : FusionECU2, IUpgradeableModule
+    {
+        const float maxMin = defaultMinIsp / defaultMaxIsp;
+        const float defaultMaxIsp = 27200f;
+        const float defaultMinIsp = 15500f;
+        const float defaultMaxSteps = 100.00f;
+        const float defaultSteps = (defaultMaxIsp - defaultMinIsp) / defaultMaxSteps;
+        const float stepNumb = 0;
+
+        // Persistant setting
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Selected Isp"), UI_FloatRange(stepIncrement = defaultSteps, maxValue = defaultMaxIsp, minValue = defaultMinIsp)]
+        public float localIsp = defaultMinIsp + (stepNumb * defaultSteps);
+       
+        // settings
+        [KSPField(isPersistant = false)]
+        public float neutronAbsorptionFractionAtMinIsp = 0.5f;
+        [KSPField(isPersistant = false)]
+        public float maxThrustEfficiencyByIspPower = 2f;
+        public float minIsp = defaultMinIsp;
+        private FloatCurve atmophereCurve;
+
+        protected override FloatCurve OrigFloatCurve
+        {
+            get
+            {
+                
+                return atmophereCurve ?? curEngineT.atmosphereCurve;
+            }
+            set
+            {
+                bool test = atmophereCurve != null ? atmophereCurve.Evaluate(0) == 0 : true;
+
+                if (test)
+                {
+
+                    atmophereCurve = value;
+                }
+            }
+        }
+        
+        protected override float SelectedIsp { get { return localIsp; } set { if (value > 0) { localIsp = value; } } }
+        protected override float MinIsp { get { return minIsp; } set { if (value <= 10) { minIsp = value + .01f; } else { minIsp = value; } } }
+        protected override float MaxIsp { get { return minIsp / maxMin; } }
+        protected override float MaxMin { get { return maxMin; } }
+        protected override float MaxSteps { get { return defaultMaxSteps; } }
+        protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
+        protected override float NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
+
+    }
+
+
+}
