@@ -969,7 +969,7 @@ namespace InterstellarFuelSwitch
             if (wetMass > 0 && dryMass > 0)
                 massRatioStr = ToRoundedString(1 / (dryMass / wetMass));
 
-            maxWetDryMass = string.Format("{0} t / {1} t", dryMass.ToString(resourcesFormat), wetMass.ToString(resourcesFormat));
+            maxWetDryMass = string.Format("{0} t / {1} t", ToStringWithFixedDigits(dryMass), ToStringWithFixedDigits(wetMass));
         }
 
         private string ToRoundedString(double value)
@@ -985,6 +985,24 @@ namespace InterstellarFuelSwitch
                 return "1 : " + value.ToString("0.000");
             else
                 return "1 : " + value.ToString("0");
+        }
+
+        private string ToStringWithFixedDigits(double value)
+        {
+            if (value >= 1000000)
+                return value.ToString("0");
+            else if (value >= 100000)
+                return value.ToString("0.0");
+            else if (value >= 10000)
+                return value.ToString("0.00");
+            else if (value >= 1000)
+                return value.ToString("0.000");
+            else if (value >= 100)
+                return value.ToString("0.0000");
+            else if (value >= 10)
+                return value.ToString("0.00000");
+            else
+                return value.ToString("0.000000");
         }
 
         public override void OnUpdate()

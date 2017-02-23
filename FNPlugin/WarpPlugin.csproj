@@ -89,6 +89,8 @@
     <Compile Include="Collectors\RegolithCollector.cs" />
     <Compile Include="Collectors\SolarWindCollector.cs" />
     <Compile Include="Extensions\Numbers.cs" />
+    <Compile Include="Extensions\OceanicResource.cs" />
+    <Compile Include="Extensions\OceanicResourceHandler.cs" />
     <Compile Include="Extensions\OrbitExtensions.cs" />
     <Compile Include="Extensions\AtmosphericResourceHandler.cs" />
     <Compile Include="Extensions\AtmosphericResource.cs" />
@@ -116,6 +118,7 @@
     <Compile Include="Collectors\AntimatterCollector.cs" />
     <Compile Include="Refinery\AtmosphericExtractor.cs" />
     <Compile Include="Refinery\RegolithProcessor.cs" />
+    <Compile Include="Refinery\SeawaterExtractor.cs" />
     <Compile Include="Refinery\SolarWindProcessor.cs" />
     <Compile Include="Refinery\AntimatterFactory.cs" />
     <Compile Include="Collectors\AtmosphericIntake.cs" />

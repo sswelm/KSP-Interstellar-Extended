@@ -104,7 +104,10 @@ namespace InterstellarFuelSwitch
                             debug.debugMessage("InterstellarMeshSwitch: added object to list: " + objectNames[objectCount]);
                         }
                         else
+                        {
+                            newObjects.Add(null);
                             debug.debugMessage("InterstellarMeshSwitch: could not find object " + objectNames[objectCount]);
+                        }
                     }
                     if (newObjects.Count > 0) 
                         objectTransforms.Add(newObjects);
@@ -143,13 +146,18 @@ namespace InterstellarFuelSwitch
                 for (int j = 0; j < objectTransforms[i].Count; j++)
                 {
                     debug.debugMessage("InterstellarMeshSwitch: Setting object enabled");
-                    objectTransforms[i][j].gameObject.SetActive(false);
-                    if (affectColliders)
+
+                    Transform transform = objectTransforms[i][j];
+                    if (transform != null)
                     {
-                        debug.debugMessage("InterstellarMeshSwitch: setting collider states");
-                        var collider = objectTransforms[i][j].gameObject.GetComponent<Collider>();
-                        if (collider != null)
-                            collider.enabled = false;
+                        transform.gameObject.SetActive(false);
+                        if (affectColliders)
+                        {
+                            debug.debugMessage("InterstellarMeshSwitch: setting collider states");
+                            var collider = objectTransforms[i][j].gameObject.GetComponent<Collider>();
+                            if (collider != null)
+                                collider.enabled = false;
+                        }
                     }
                 }
             }
@@ -159,19 +167,22 @@ namespace InterstellarFuelSwitch
                 // enable the selected one last because there might be several entries with the same object, and we don't want to disable it after it's been enabled.
                 for (int i = 0; i < objectTransforms[objectNumber].Count; i++)
                 {
-                    objectTransforms[objectNumber][i].gameObject.SetActive(true);
-                    if (affectColliders)
+                    Transform transform = objectTransforms[objectNumber][i];
+                    if (transform != null)
                     {
-                        var colloder = objectTransforms[objectNumber][i].gameObject.GetComponent<Collider>();
-                        if (colloder != null)
+                        transform.gameObject.SetActive(true);
+                        if (affectColliders)
                         {
-                            debug.debugMessage("InterstellarMeshSwitch: Setting collider true on new active object");
-                            colloder.enabled = true;
+                            var colloder = transform.gameObject.GetComponent<Collider>();
+                            if (colloder != null)
+                            {
+                                debug.debugMessage("InterstellarMeshSwitch: Setting collider true on new active object");
+                                colloder.enabled = true;
+                            }
                         }
                     }
                 }
             }
-
 
             if (useFuelSwitchModule)
             {
@@ -183,7 +194,6 @@ namespace InterstellarFuelSwitch
             }
 
             setCurrentObjectName();
-
         }
 
         private void setCurrentObjectName()
