@@ -28,25 +28,18 @@ namespace FNPlugin
         public float minThrottleRatioMk3 = 0.05f;
 
         // None Persistant 
-        /*FuelConfigurations.Count <= 1 ? maxThrust :
-
-            FuelConfigurations.Count <= 1 ? maxThrustUpgraded :
-            FuelConfigurations.Count <= 1 ? maxThrustUpgraded2 :
-
-
-         */
 
         [KSPField(isPersistant = false)]
         public float maxThrust = 75;
-        public float MaxThrust { get { return  maxThrust * ActiveConfiguration.thrustMult; } }
+        public float MaxThrust { get { return maxThrust * ActiveConfiguration.thrustMult; } }
 
         [KSPField(isPersistant = false)]
         public float maxThrustUpgraded = 300;
-        public float MaxThrustUpgraded { get { return  maxThrustUpgraded * ActiveConfiguration.thrustMult; } }
+        public float MaxThrustUpgraded { get { return maxThrustUpgraded * ActiveConfiguration.thrustMult; } }
 
         [KSPField(isPersistant = false)]
         public float maxThrustUpgraded2 = 1200;
-        public float MaxThrustUpgraded2 { get { return  maxThrustUpgraded2 * ActiveConfiguration.thrustMult; } }
+        public float MaxThrustUpgraded2 { get { return maxThrustUpgraded2 * ActiveConfiguration.thrustMult; } }
 
   
 
@@ -96,7 +89,7 @@ namespace FNPlugin
             {
                 if (fuelConfigurations == null)
                 {
-                    fuelConfigurations = part.FindModulesImplementing<FuelConfiguration>().OrderByDescending(f => f.maxIsp).ToList();
+                    fuelConfigurations = part.FindModulesImplementing<FuelConfiguration>().OrderByDescending(f => f.maxThrust).ToList();
                         
                 }
                 return fuelConfigurations;
@@ -120,8 +113,8 @@ namespace FNPlugin
           //  UpdateFromGUI(chooseField, selectedFuel);
 
             // connect on change event
-            chooseOptionEditor.onFieldChanged = UpdateEditorGUI;
-            chooseOptionFlight.onFieldChanged = UpdateFlightGUI;
+            chooseOptionEditor.onFieldChanged += UpdateEditorGUI;
+            chooseOptionFlight.onFieldChanged += UpdateFlightGUI;
         }
 
         private void UpdateEditorGUI(BaseField field, object oldFieldValueObj)
@@ -129,17 +122,20 @@ namespace FNPlugin
             
             UpdateFromGUI(field, oldFieldValueObj);
             UpdateFuel();
+
         }
          private void UpdateFlightGUI(BaseField field, object oldFieldValueObj)
         {
             
             UpdateFromGUI(field, oldFieldValueObj);
             UpdateFuel();
+
         }
 
         private void UpdateFuel()
         {
-
+            Debug.Log("Update Fuel");
+            
             ConfigNode akPropellants = new ConfigNode();
 
             int I = 0;
@@ -149,8 +145,9 @@ namespace FNPlugin
                 akPropellants.AddNode(LoadPropellant(ActiveConfiguration.Fuels[I], ActiveConfiguration.Ratios[I]));
                 I++;
             }
-            curEngineT.Load(akPropellants);
+            
             curEngineT.atmosphereCurve = activeConfiguration.atmosphereCurve;
+            curEngineT.Load(akPropellants);
 
             vessel.ClearStaging();
             vessel.ResumeStaging();
@@ -168,8 +165,8 @@ namespace FNPlugin
 
         private ConfigNode LoadPropellant(string akName, float akRatio)
         {
-            Debug.Log("Name: "+ akName);
-            Debug.Log("Ratio: "+ akRatio);
+        //    Debug.Log("Name: "+ akName);
+        //    Debug.Log("Ratio: "+ akRatio);
             Propellant akPropellant = new Propellant();
             ConfigNode PropellantNode = new ConfigNode().AddNode("PROPELLANT");
             PropellantNode.AddValue("name", akName);
@@ -183,11 +180,11 @@ namespace FNPlugin
 
         private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
         {
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI is called with " + selectedFuel);
+            Debug.Log("[KSP Interstellar] UpdateFromGUI is called with " + selectedFuel);
 
             if (!FuelConfigurations.Any())
             {
-                //Debug.Log("[KSP Interstellar] UpdateFromGUI no FuelConfigurations found");
+                Debug.Log("[KSP Interstellar] UpdateFromGUI no FuelConfigurations found");
                 return;
             }
 
@@ -197,12 +194,12 @@ namespace FNPlugin
             {
                 if (selectedFuel < FuelConfigurations.Count)
                 {
-                    //Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " < orderedFuelGenerators.Count");
+                    Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " < orderedFuelGenerators.Count");
                     activeConfiguration = FuelConfigurations[selectedFuel];
                 }
                 else
                 {
-                    //Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " >= orderedFuelGenerators.Count");
+                    Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " >= orderedFuelGenerators.Count");
                     selectedFuel = FuelConfigurations.Count - 1;
                     activeConfiguration = FuelConfigurations.Last();
                 }
@@ -243,7 +240,7 @@ namespace FNPlugin
         {
          //   Debug.Log("Engine OnStart");
             InitializeFuelSelector();
-            UpdateFuel();
+        //    UpdateFuel();
             base.OnStart(state);
         }
         public override void OnLoad(ConfigNode node)
@@ -270,11 +267,13 @@ namespace FNPlugin
         public float maxIsp = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "ThrustMult")]
         public float thrustMult = 1;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thrust")]
+        public float maxThrust = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmopheric Curve")]
         public FloatCurve atmosphereCurve = new FloatCurve();
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmopheric Curve")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Ignore ISP")]
         public string ignoreForIsp ="";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmopheric Curve")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Ignore Thrust")]
         public string ignoreForThrustCurve="";
 
         private string[] akFuels = new string[0];

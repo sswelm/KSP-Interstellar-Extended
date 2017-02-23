@@ -28,7 +28,7 @@ namespace FNPlugin
         public float minIsp = defaultMinIsp;
         private FloatCurve atmophereCurve;
 
-        protected override FloatCurve OrigFloatCurve
+        protected override FloatCurve BaseFloatCurve
         {
             get
             {
@@ -37,13 +37,9 @@ namespace FNPlugin
             }
             set
             {
-                bool test = atmophereCurve != null ? atmophereCurve.Evaluate(0) == 0 : true;
-
-                if (test)
-                {
 
                     atmophereCurve = value;
-                }
+                
             }
         }
         

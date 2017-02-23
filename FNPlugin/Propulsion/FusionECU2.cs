@@ -90,7 +90,7 @@ namespace FNPlugin
         protected abstract float MaxSteps { get; }
         protected abstract float MaxThrustEfficiencyByIspPower { get; }
         protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
-        protected abstract FloatCurve OrigFloatCurve { get; set; }
+        protected abstract FloatCurve BaseFloatCurve { get; set; }
 
 
         // protected
@@ -254,7 +254,7 @@ namespace FNPlugin
                         if (StepNumb < 0) StepNumb = 0;
                         else if (StepNumb > MaxSteps) StepNumb = MaxSteps;
                         
-                        akMinIsp = (float)Math.Round(OrigFloatCurve.Evaluate((float)Altitude));
+                        akMinIsp = (float)Math.Round(BaseFloatCurve.Evaluate((float)Altitude));
                         if (akMinIsp < 1) { akMinIsp = 1; }
                         akMaxIsp = (float)Math.Round(akMinIsp / MaxMin);
                         StepIncrement = (akMaxIsp - akMinIsp) / 100;
@@ -280,7 +280,32 @@ namespace FNPlugin
         {
             
         }
+        private void LinkFuelGui()
+        {
+            var chooseField = Fields["selectedFuel"];
+            var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
+            var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
 
+            chooseField.guiActive = FuelConfigurations.Count > 1;
+
+            var names = FuelConfigurations.Select(m => m.fuelConfigurationName).ToArray();
+
+            chooseOptionEditor.options = names;
+            chooseOptionFlight.options = names;
+
+            //  UpdateFromGUI(chooseField, selectedFuel);
+
+            // connect on change event
+            chooseOptionEditor.onFieldChanged += UpdateFuelGUI;
+            chooseOptionFlight.onFieldChanged += UpdateFuelGUI;
+        }
+        private void UpdateFuelGUI(BaseField field, object oldFieldValueObj)
+        {
+            Debug.Log("Fusion Gui Updated");
+            BaseFloatCurve = ActiveConfiguration.atmosphereCurve;
+            CurveMaxISP = GetMaxKey(BaseFloatCurve);
+            Debug.Log("Curve Max ISP:" + CurveMaxISP);
+        }
         public override void OnStart(PartModule.StartState state)
         {
             
@@ -298,13 +323,14 @@ namespace FNPlugin
                     Debug.LogError("FusionEngine OnStart Engine not found");
                     return;
                 }
-                OrigFloatCurve = curEngineT.atmosphereCurve;
+                BaseFloatCurve = curEngineT.atmosphereCurve;
 
 
-                CurveMaxISP = GetMaxKey(OrigFloatCurve);
+                CurveMaxISP = GetMaxKey(BaseFloatCurve);
+                LinkFuelGui();
 
-    //            standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio;
-      //          standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
+                //    standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio;
+                //     standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
 
                 DetermineTechLevel();
 
@@ -318,6 +344,7 @@ namespace FNPlugin
             }
             base.OnStart(state);
         }
+
 
 
         public override void OnUpdate()
@@ -401,7 +428,7 @@ namespace FNPlugin
             {
                 FloatCurve newIsp = new FloatCurve();
                 Altitude = vessel.atmDensity;
-                float OrigISP = OrigFloatCurve.Evaluate((float)Altitude);
+                float OrigISP = BaseFloatCurve.Evaluate((float)Altitude);
 
                 FCsetup();
                 newIsp.Add((float)Altitude, SelectedIsp);
@@ -415,7 +442,7 @@ namespace FNPlugin
         {
           //  base.OnFixedUpdate();
             temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
-         //   MinIsp = OrigFloatCurve.Evaluate((float)Altitude);
+            MinIsp = BaseFloatCurve.Evaluate((float)Altitude);
 
             // part.ona
 
@@ -467,8 +494,8 @@ namespace FNPlugin
                 supplyFNResource(absorbedWasteheat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
-        //        curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;
-         //       curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)standard_tritium_rate / rateMultplier;
+              //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;
+            //    curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)standard_tritium_rate / rateMultplier;
 
                 // Update ISP
                 var currentIsp = SelectedIsp;
@@ -478,6 +505,7 @@ namespace FNPlugin
                 var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = maxFuelFlow;
                 curEngineT.maxThrust = MaximumThrust;
+       //         curEngineT.finalThrust = curEngineT.currentThrottle > 0 ? curEngineT.maxThrust/curEngineT.currentThrottle : 0;
 
                 maximumThrust = MaximumThrust;
 
@@ -498,15 +526,15 @@ namespace FNPlugin
 
                 var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = maxFuelFlow;
-             //   curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
+              //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
              //   curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
             }
-            Debug.Log(curEngineT.maxThrust);
+
             coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
             maxTempatureRadiators = (float)FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
             radiatorPerformance = Mathf.Max(1 - (coldBathTemp / maxTempatureRadiators), 0.000001f);
             partEmissiveConstant = (float)part.emissiveConstant;
-            
+            base.OnFixedUpdate();
         }
 
         private void KillKerbalsWithRadiation(float throttle)
