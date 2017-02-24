@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    enum GenerationType { Mk1, Mk2, Mk3, Mk4, Mk5 }
     abstract class EngineECU2 : FNResourceSuppliableModule
     {
         [KSPField(isPersistant = true, guiActive = true,guiActiveEditor = true, guiName = "Fuel Config")]

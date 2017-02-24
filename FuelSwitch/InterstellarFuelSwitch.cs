@@ -924,7 +924,7 @@ namespace InterstellarFuelSwitch
 
             // prevent 0 mass
             if (mass == 0)
-                mass = initialMass;
+               mass = part.prefabMass;
 
             return mass * storedMassMultiplier;
         }

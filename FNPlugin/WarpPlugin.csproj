@@ -104,13 +104,16 @@
     <Compile Include="Propulsion\AlcubierreDrive.cs" />
     <Compile Include="Propulsion\Contract\IEngineNoozle.cs" />
     <Compile Include="Propulsion\ElectricRCSController2.cs" />
+    <Compile Include="Propulsion\EngineECU2.cs" />
     <Compile Include="Propulsion\ExtendedPropellant.cs" />
+    <Compile Include="Propulsion\FusionECU2.cs" />
     <Compile Include="Propulsion\ModuleEnginesWarp.cs" />
     <Compile Include="Propulsion\FNModuleRCSFX.cs" />
     <Compile Include="Propulsion\FNRCSSounds.cs" />
     <Compile Include="Propulsion\PropellantControl.cs" />
     <Compile Include="Propulsion\ThermalEnginePropellant.cs" />
     <Compile Include="Propulsion\ThermalPowerTransport.cs" />
+    <Compile Include="Propulsion\VistaECU2.cs" />
     <Compile Include="Propulsion\VistaEngineControllerAdvanced.cs" />
     <Compile Include="Propulsion\DeadalusEngineController.cs" />
     <Compile Include="Propulsion\VistaEngineControllerAdvanced2.cs" />
