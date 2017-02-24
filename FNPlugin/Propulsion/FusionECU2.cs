@@ -148,8 +148,8 @@ namespace FNPlugin
         {
             get
             {
-                if (selectableIsp) return FullTrustMaximum * Mathf.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / CurveMaxISP;
-                else return FullTrustMaximum;// * curEngineT.realIsp/CurveMaxISP;
+                return FullTrustMaximum * Mathf.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / CurveMaxISP;
+               
             }
         }
 
@@ -205,11 +205,11 @@ namespace FNPlugin
             get
             {
                 if (EngineGenerationType == GenerationType.Mk1)
-                    return powerRequirement;
+                    return powerRequirement * ActiveConfiguration.powerMult;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return powerRequirementUpgraded;
+                    return powerRequirementUpgraded * ActiveConfiguration.powerMult;
                 else
-                    return powerRequirementUpgraded2;
+                    return powerRequirementUpgraded2 * ActiveConfiguration.powerMult;
             }
         }
 
@@ -225,19 +225,22 @@ namespace FNPlugin
                     return minThrottleRatioMk3;
             }
         }
-        public void FCsetup()
+        public void FCUpdate()
+        {
+            if (vessel.loaded && Altitude != lastAltitude)
+            {
+                FCSetup();
+                lastAltitude = Altitude;
+            }
+        }
+        public void FCSetup()
         {
             try
             {
                 Altitude = vessel.atmDensity;
-                if (vessel.loaded && Altitude != lastAltitude)
-                {
 
                     BaseField IspField = Fields["localIsp"];
-                    //     UIPartActionFloatRange IspFloatRange = new UIPartActionFloatRange();
-                    //        IspFloatRange.Setup(IspField.uiControlFlight.partActionItem.Window,part,IspField.uiControlFlight.partActionItem.PartModule,IspField.uiControlFlight.scene,IspField.uiControlFlight,IspField);
-
-
+                 
                     UI_FloatRange[] IspController = { IspField.uiControlFlight as UI_FloatRange, IspField.uiControlEditor as UI_FloatRange };
 
                     IspField.OnValueModified += IspField_OnValueModified;
@@ -264,15 +267,14 @@ namespace FNPlugin
                         IspController[I].stepIncrement = StepIncrement;
 
                         SelectedIsp = akMinIsp + StepIncrement * StepNumb;
-                     //   IspController[I].partActionItem.UpdateItem();
                         I++;
                     }
                     lastAltitude = Altitude;
-                }
+                
             }
             catch (Exception e)
             {
-                Debug.LogError("FusionEngine FCsetup exception: " + e.Message);
+                Debug.LogError("FusionEngine FCUpdate exception: " + e.Message);
             }
         }
 
@@ -280,38 +282,24 @@ namespace FNPlugin
         {
             
         }
-        private void LinkFuelGui()
+
+        public override void UpdateFuel()
         {
-            var chooseField = Fields["selectedFuel"];
-            var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
-            var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
-
-            chooseField.guiActive = FuelConfigurations.Count > 1;
-
-            var names = FuelConfigurations.Select(m => m.fuelConfigurationName).ToArray();
-
-            chooseOptionEditor.options = names;
-            chooseOptionFlight.options = names;
-
-            //  UpdateFromGUI(chooseField, selectedFuel);
-
-            // connect on change event
-            chooseOptionEditor.onFieldChanged += UpdateFuelGUI;
-            chooseOptionFlight.onFieldChanged += UpdateFuelGUI;
-        }
-        private void UpdateFuelGUI(BaseField field, object oldFieldValueObj)
-        {
+            base.UpdateFuel();
             Debug.Log("Fusion Gui Updated");
             BaseFloatCurve = ActiveConfiguration.atmosphereCurve;
             CurveMaxISP = GetMaxKey(BaseFloatCurve);
+            FCSetup();
             Debug.Log("Curve Max ISP:" + CurveMaxISP);
+            
         }
+        
         public override void OnStart(PartModule.StartState state)
         {
             
             try
             {
-
+                Fields["selectedFuel"].guiName = "Fusion Type";
                
                 part.maxTemp = maxTemp;
                 part.thermalMass = 1;
@@ -327,10 +315,10 @@ namespace FNPlugin
 
 
                 CurveMaxISP = GetMaxKey(BaseFloatCurve);
-                LinkFuelGui();
+                if (hasMultipleConfigurations) FCSetup();
 
                 //    standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio;
-                //     standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
+                   standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
 
                 DetermineTechLevel();
 
@@ -387,8 +375,13 @@ namespace FNPlugin
                 radhazard = false;
                 radhazardstr = "None.";
             }
-            if (selectableIsp) FCsetup();
-            else Fields["localIsp"].guiActive = selectableIsp;
+            if (selectableIsp) FCUpdate();
+            else
+            {
+                Fields["localIsp"].guiActive = selectableIsp;
+                Fields["localIsp"].guiActiveEditor = selectableIsp;
+                SelectedIsp = MinIsp;
+            }
          //   Fields["selectedFuelConfiguration"].guiName = FuelConfigName;
             base.OnUpdate();
         }
@@ -424,17 +417,16 @@ namespace FNPlugin
         }
         public void UpdateISP()
         {
-            if (selectableIsp)
-            {
+          
                 FloatCurve newIsp = new FloatCurve();
                 Altitude = vessel.atmDensity;
                 float OrigISP = BaseFloatCurve.Evaluate((float)Altitude);
 
-                FCsetup();
+                FCUpdate();
                 newIsp.Add((float)Altitude, SelectedIsp);
                 curEngineT.atmosphereCurve = newIsp;
                 MinIsp = OrigISP;
-            }
+            
         }
 
 
