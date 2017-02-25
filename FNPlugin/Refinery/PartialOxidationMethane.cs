@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    class MethanePyrolyser : IRefineryActivity
+    class PartialOxidationMethane : IRefineryActivity
     {
         const int labelWidth = 200;
         const int valueWidth = 200;
@@ -34,9 +33,9 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 1; } }
+        public RefineryType RefineryType { get { return RefineryType.heating; } }
 
-        public String ActivityName { get { return "Methane Pyrolysis"; } }
+        public String ActivityName { get { return "Partial Oxidation of Methane"; } } // formaly Methane Pyrolysis
 
         public double CurrentPower { get { return _current_power; } }
 
@@ -57,7 +56,7 @@ namespace FNPlugin.Refinery
         protected string _hydrogen_resource_name;
         protected string _oxygen_resource_name;
 
-        public MethanePyrolyser(Part part) 
+        public PartialOxidationMethane(Part part) 
         {
             _part = part;
             _vessel = part.vessel;
@@ -139,8 +138,8 @@ namespace FNPlugin.Refinery
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleMonoxideRate / fixedMaxMonoxideRate, fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate);
                                
                 // this consumes the resources
-                _oxygen_consumption_rate = _part.RequestResource(_oxygen_resource_name, _oxygenMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _oxygen_density) / fixedDeltaTime * _oxygen_density;
-                _methane_consumption_rate = _part.RequestResource(_methane_resource_name, _methaneMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _methane_density) / fixedDeltaTime * _methane_density;
+                _oxygen_consumption_rate = _part.RequestResource(_oxygen_resource_name, _oxygenMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _oxygen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen_density;
+                _methane_consumption_rate = _part.RequestResource(_methane_resource_name, _methaneMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _methane_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _methane_density;
                 combined_consumption_rate = _oxygen_consumption_rate + _methane_consumption_rate;
 
                 // this produces the products

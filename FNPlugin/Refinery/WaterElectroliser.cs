@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,7 +42,7 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 2; } }
+        public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 
         public String ActivityName { get { return "Water Electrolysis"; } }
 
@@ -109,8 +108,8 @@ namespace FNPlugin.Refinery
                 var hydrogen_rate_temp = _water_consumption_rate * hydrogenMassByFraction;
                 var oxygen_rate_temp = _water_consumption_rate * oxygenMassByFraction;
 
-                _hydrogen_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogen_rate_temp * fixedDeltaTime / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
-                _oxygen_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density) / fixedDeltaTime * _oxygen_density;
+                _hydrogen_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogen_rate_temp * fixedDeltaTime / _hydrogen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogen_density;
+                _oxygen_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen_density;
             }
             else
             {

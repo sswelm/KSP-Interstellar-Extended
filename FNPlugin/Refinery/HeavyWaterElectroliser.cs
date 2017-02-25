@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -43,7 +42,7 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 2; } }
+        public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 
         public String ActivityName { get { return "Heavy Water Electrolysis"; } }
 
@@ -105,8 +104,8 @@ namespace FNPlugin.Refinery
                 var deuterium_rate_temp = _heavy_water_consumption_rate * deuteuriuumMassByFraction;
                 var oxygen_rate_temp = _heavy_water_consumption_rate * oxygenMassByFraction;
 
-                _deuterium_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deuterium_rate_temp * fixedDeltaTime / _deuterium_density) / fixedDeltaTime * _deuterium_density;
-                _oxygen_production_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density) / fixedDeltaTime * _oxygen_density;
+                _deuterium_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deuterium_rate_temp * fixedDeltaTime / _deuterium_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuterium_density;
+                _oxygen_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen_density;
             }
             else
             {

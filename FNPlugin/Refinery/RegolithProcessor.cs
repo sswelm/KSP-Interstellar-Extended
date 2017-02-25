@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OpenResourceSystem;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
@@ -45,7 +44,7 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 1; } }
+        public RefineryType RefineryType { get { return RefineryType.heating; } }
 
         public String ActivityName { get { return "Regolith Process"; } }
 

@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,11 +15,11 @@ namespace FNPlugin.Refinery
         protected double _remaining_to_reprocess = 0;
         protected double _remaining_seconds = 0;
         
-        protected String _status = "";
+        protected string _status = "";
         protected double _current_power;
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 1; } }
+        public RefineryType RefineryType { get { return RefineryType.heating; } }
 
         public String ActivityName { get { return "Nuclear Fuel Reprocessing"; } }
 

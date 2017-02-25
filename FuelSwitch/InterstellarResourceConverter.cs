@@ -154,6 +154,13 @@ namespace InterstellarFuelSwitch
             if (hasNullDefinitions)
                 return;
 
+            // quit if any definition is missing
+            if (!primaryResources.All(m => m.definition != null))
+            {
+                convertPercentageField.guiActive = false;
+                return;
+            }
+
             // in edit mode only show when primary resources are present
             if (requiresPrimaryLocalInEditor && HighLogic.LoadedSceneIsEditor)
             {
@@ -172,10 +179,14 @@ namespace InterstellarFuelSwitch
                  return;
             }
 
+            if (HighLogic.LoadedSceneIsEditor)
+                return;
+
             foreach (var resource in primaryResources)
             {
                 double currentAmount;
                 double maxAmount;
+
                 part.GetConnectedResourceTotals(resource.definition.id, out currentAmount, out maxAmount);
 
                 if (maxAmount == 0)
@@ -253,6 +264,9 @@ namespace InterstellarFuelSwitch
 
         public void FixedUpdate()
         {
+            if (HighLogic.LoadedSceneIsEditor)
+                return;
+
             if (retreivePrimary && primaryResources.Any(r => r.retrieve > 0))
             {
                 foreach (var resource in primaryResources)
