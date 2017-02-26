@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,7 +54,7 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 4; } }
+        public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
         public String ActivityName { get { return "Water Gas Shift"; } }
 
@@ -135,8 +134,8 @@ namespace FNPlugin.Refinery
                 _consumptionStorageRatio = Math.Min(fixedMaxPossibleHydrogenRate / fixedMaxHydrogenRate, fixedMaxPossibleDioxideRate / fixedMaxDioxideRate);
 
                 // now we do the real elextrolysis
-                _water_consumption_rate = _part.RequestResource(_waterResourceName, waterMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _water_density) / fixedDeltaTime * _water_density;
-                _monoxide_consumption_rate = _part.RequestResource(_monoxideResourceName, monoxideMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _monoxide_density) / fixedDeltaTime * _monoxide_density;
+                _water_consumption_rate = _part.RequestResource(_waterResourceName, waterMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _water_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _water_density;
+                _monoxide_consumption_rate = _part.RequestResource(_monoxideResourceName, monoxideMassByFraction * _consumptionStorageRatio * _fixedConsumptionRate / _monoxide_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxide_density;
                 var combined_consumption_rate = _water_consumption_rate + _monoxide_consumption_rate;
 
                 var hydrogen_rate_temp = combined_consumption_rate * hydrogenMassByFraction;

@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -53,7 +52,7 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 4; } }
+        public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
         public String ActivityName { get { return "Peroxide Process"; } }
 

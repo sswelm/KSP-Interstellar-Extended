@@ -3,26 +3,93 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using OpenResourceSystem;
 
 namespace FNPlugin.Refinery
 {
-    [KSPModule("ISRU Refinery")]
-    class InterstellarRefinery : FNResourceSuppliableModule
+    [KSPModule("ISRU Refinery Controller")]
+    class InterstellarPowerSupply : FNResourceSuppliableModule
     {
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Display Name")]
+        public string displayName = "";
 
+        public override void OnStart(PartModule.StartState state)
+        {
+            displayName = part.partInfo.title;
+        }
+
+        public double ConsumeFNResource(double powerRequest, string resourceName)
+        {
+            return consumeFNResource(powerRequest, resourceName);
+        }
+
+        public override string getResourceManagerDisplayName()
+        {
+            return displayName; 
+        }
+
+        public override string GetInfo()
+        {
+            return displayName;
+        }
+    }
+
+
+    [KSPModule("ISRU Refinery")]
+    class InterstellarRefineryController : InterstellarRefinery 
+    {
+        protected InterstellarPowerSupply powerSupply;
+
+        public override void OnStart(PartModule.StartState state)
+        {
+            powerSupply = part.FindModuleImplementing<InterstellarPowerSupply>();
+            powerSupply.displayName = "started";
+
+            base.OnStart(state);
+        }
+
+        public void Update()
+        {
+            try
+            {
+                if (HighLogic.LoadedSceneIsEditor)
+                    return;
+
+                if (_current_activity == null)
+                {
+                    powerSupply.displayName = part.partInfo.title;
+                    return;
+                }
+
+                powerSupply.displayName = part.partInfo.title + " (" + _current_activity.ActivityName + ")";
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - InterstellarRefineryController Exception " + e.Message);
+            }
+        }
+
+        protected override double ConsumeMegaJoules(double powerRequest)
+        {
+            return powerSupply.ConsumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+        }
+    }
+
+
+    [KSPModule("Generic ISRU Refinery")]
+    class InterstellarRefinery : PartModule
+    {
         [KSPField(isPersistant = true)]
-        bool refinery_is_enabled;
+        protected bool refinery_is_enabled;
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Offline scooping")]
         //private bool offlineProcessing;
         [KSPField(isPersistant = true)]
-        private bool lastOverflowSettings;
+        protected bool lastOverflowSettings;
         [KSPField(isPersistant = true)]
-        private double lastActiveTime;
+        protected double lastActiveTime;
         [KSPField(isPersistant = true)]
-        private double lastPowerRatio;
+        protected double lastPowerRatio;
         [KSPField(isPersistant = true)]
-        private string lastActivityName = "";
+        protected string lastActivityName = "";
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Refinery Type")]
         public int refineryType = 255;
@@ -32,7 +99,7 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string status_str = string.Empty;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Base Production", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Base Production", guiFormat = "F3")]
         public float baseProduction = 1f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Production Multiplier", guiFormat = "F3")]
         public float productionMult = 1f;
@@ -46,20 +113,22 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Consumed Power", guiFormat = "F3", guiUnits = " MW")]
         public double consumedPowerMW;
 
-        const int labelWidth = 200;
-        const int valueWidth = 200;
+        protected IRefineryActivity _current_activity = null;
+        
 
         private List<IRefineryActivity> _refinery_activities;
-        private IRefineryActivity _current_activity = null;
         private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth, 150);
         private int _window_ID;
         private bool _render_window;
+
+        private const int labelWidth = 200;
+        private const int valueWidth = 200;
 
         private GUIStyle _bold_label;
         private GUIStyle _enabled_button;
         private GUIStyle _disabled_button;
 
-        private double timeDifference;
+        //protected InterstellarPowerSupply powerSupply;
 
         [KSPEvent(guiActive = true, guiName = "Sample Atmosphere", active = true)]
         public void ActivateCollector()
@@ -101,13 +170,11 @@ namespace FNPlugin.Refinery
                 unsortedList.Add(new CarbonDioxideElectroliser(this.part));
                 unsortedList.Add(new WaterGasShift(this.part));
                 unsortedList.Add(new ReverseWaterGasShift(this.part));
-                unsortedList.Add(new MethanePyrolyser(this.part));
+                unsortedList.Add(new PartialOxidationMethane(this.part));
                 unsortedList.Add(new SolarWindProcessor(this.part));
                 unsortedList.Add(new RegolithProcessor(this.part));
                 unsortedList.Add(new AtmosphericExtractor(this.part));
                 unsortedList.Add(new SeawaterExtractor(this.part));
-
-
             }
             catch (Exception e)
             {
@@ -115,7 +182,7 @@ namespace FNPlugin.Refinery
                 Debug.LogWarning("[KSPI] - ISRU Refinery Exception " + e.Message);
             }
 
-            _refinery_activities = unsortedList.Where(m => (m.RefineryType & this.refineryType) == m.RefineryType).OrderBy(a => a.ActivityName).ToList();
+            _refinery_activities = unsortedList.Where(m => ((int)m.RefineryType & this.refineryType) == (int)m.RefineryType).OrderBy(a => a.ActivityName).ToList();
 
             // load same 
             if (refinery_is_enabled && !string.IsNullOrEmpty(lastActivityName))
@@ -127,7 +194,7 @@ namespace FNPlugin.Refinery
             {
                 var productionRate = lastPowerRatio * productionMult * baseProduction;
 
-                timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime);
+                var timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime);
                 //string message = "[KSPI] - IRSU performed " + lastActivityName + " for " + timeDifference.ToString("0.0") + " seconds with production rate " + productionRate.ToString("0.0");
                 //Debug.Log(message);
                 //ScreenMessages.PostScreenMessage(message, 60.0f, ScreenMessageStyle.LOWER_CENTER);
@@ -151,6 +218,11 @@ namespace FNPlugin.Refinery
             status_str = _current_activity.Status;
         }
 
+        protected virtual double ConsumeMegaJoules(double powerRequest)
+        {
+            return part.RequestResource("Megajoules", powerRequest);
+        }
+
         public void FixedUpdate()
         {
             currentPowerReq = 0;
@@ -169,13 +241,13 @@ namespace FNPlugin.Refinery
 
             var fixedConsumedPowerMW = CheatOptions.InfiniteElectricity
                 ? powerRequest
-                : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                : ConsumeMegaJoules(powerRequest);
 
             consumedPowerMW = fixedConsumedPowerMW / TimeWarp.fixedDeltaTime;
 
             var shortage = Math.Max(totalPowerRequiredThisFrame - fixedConsumedPowerMW, 0);
 
-            var recievedElectricCharge = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, shortage * 1000);
+            var recievedElectricCharge = part.RequestResource("ElectricCharge", shortage * 1000);
 
             fixedConsumedPowerMW += recievedElectricCharge / 1000;
 
@@ -193,12 +265,7 @@ namespace FNPlugin.Refinery
             lastActiveTime = Planetarium.GetUniversalTime();
         }
 
-        public override string getResourceManagerDisplayName()
-        {
-            if (refinery_is_enabled && _current_activity != null) return "ISRU Refinery (" + _current_activity.ActivityName + ")";
 
-            return "ISRU Refinery";
-        }
 
         public override string GetInfo()
         {
@@ -243,7 +310,6 @@ namespace FNPlugin.Refinery
             {
                 _refinery_activities.ForEach(act => // per each activity (notice the end brackets are there, 13 lines below)
                 {
-
                     GUILayout.BeginHorizontal();
                     bool hasRequirement = act.HasActivityRequirements; // if the requirements for the activity are fulfilled
                     GUIStyle guistyle = hasRequirement ? _enabled_button : _disabled_button; // either draw the enabled, bold button, or the disabled one

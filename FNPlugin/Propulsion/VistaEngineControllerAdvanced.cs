@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    enum GenerationType { Mk1, Mk2, Mk3, Mk4, Mk5 }
+    //enum GenerationType { Mk1, Mk2, Mk3, Mk4, Mk5 }
 
     class VistaEngineControllerAdvanced : FusionEngineControllerBase
     {

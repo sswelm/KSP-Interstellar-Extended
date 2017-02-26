@@ -9,6 +9,26 @@ namespace FNPlugin
 {
     public static class PartExtensions
     {
+        public static IEnumerable<PartResource> GetConnectedResources(this Part part, String resourcename)
+        {
+            return part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == resourcename));
+        }
+
+        public static double GetResourceSpareCapacity(this Part part, String resourcename)
+        {
+            var resourcDdefinition = PartResourceLibrary.Instance.GetDefinition(resourcename);
+
+            if (resourcDdefinition == null)
+                return 0;
+
+            double currentAmount;
+            double maxAmount;
+
+            part.GetConnectedResourceTotals(resourcDdefinition.id, out currentAmount, out maxAmount);
+
+            return maxAmount - currentAmount;
+        }
+
         private static FieldInfo windowListField;
 
         /// <summary>

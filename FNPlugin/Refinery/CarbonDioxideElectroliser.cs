@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -46,7 +45,7 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 2; } }
+        public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 
         public String ActivityName { get { return "CarbonDioxide Electrolysis"; } }
 
@@ -112,8 +111,8 @@ namespace FNPlugin.Refinery
                 var monoxide_rate_temp = _dioxide_consumption_rate * carbonMonoxideMassByFraction;
                 var oxygen_rate_temp = _dioxide_consumption_rate * oxygenMassByFraction;
 
-                _monoxide_production_rate = -_part.ImprovedRequestResource(_monoxideResourceName, -monoxide_rate_temp * fixedDeltaTime / _monoxide_density) / fixedDeltaTime * _monoxide_density;
-                _oxygen_production_rate = -_part.ImprovedRequestResource(_oxygenResourceName, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density) / fixedDeltaTime * _oxygen_density;
+                _monoxide_production_rate = -_part.RequestResource(_monoxideResourceName, -monoxide_rate_temp * fixedDeltaTime / _monoxide_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxide_density;
+                _oxygen_production_rate = -_part.RequestResource(_oxygenResourceName, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen_density;
             }
             else
             {

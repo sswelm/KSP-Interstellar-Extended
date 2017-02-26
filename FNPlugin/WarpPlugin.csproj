@@ -120,6 +120,7 @@
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />
     <Compile Include="Collectors\AntimatterCollector.cs" />
     <Compile Include="Refinery\AtmosphericExtractor.cs" />
+    <Compile Include="Refinery\PartialOxidationMethane.cs" />
     <Compile Include="Refinery\RegolithProcessor.cs" />
     <Compile Include="Refinery\SeawaterExtractor.cs" />
     <Compile Include="Refinery\SolarWindProcessor.cs" />
@@ -129,7 +130,7 @@
     <Compile Include="Refinery\AmmoniaElectrolyzer.cs" />
     <Compile Include="Propulsion\ThermalNozzleController.cs" />
     <Compile Include="Propulsion\InterstellarMagneticNozzleControllerFX.cs" />
-    <Compile Include="Refinery\MethanePyrolyser.cs" />
+    <Compile Include="Refinery\MethanePyrolysis.cs" />
     <Compile Include="Refinery\ReverseWaterGasShift.cs" />
     <Compile Include="Refinery\HeavyWaterElectroliser.cs" />
     <Compile Include="Refinery\WaterGasShift.cs" />

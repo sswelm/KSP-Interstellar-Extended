@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,7 +27,7 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 2; } }
+        public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 
         public String ActivityName { get { return "Aluminium Electrolysis"; } }
 
@@ -57,9 +56,9 @@ namespace FNPlugin.Refinery
             _current_power = powerFraction * _effectivePowerRequirements;
 
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
-            _alumina_consumption_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Alumina, _current_rate * fixedDeltaTime / _alumina_density) / fixedDeltaTime * _alumina_density;
-            _aluminium_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -_alumina_consumption_rate * fixedDeltaTime / _aluminium_density) * _aluminium_density / fixedDeltaTime;
-            _oxygen_production_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -GameConstants.aluminiumElectrolysisMassRatio * _alumina_consumption_rate * fixedDeltaTime / _oxygen_density) * _oxygen_density / fixedDeltaTime;
+            _alumina_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Alumina, _current_rate * fixedDeltaTime / _alumina_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _alumina_density;
+            _aluminium_production_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -_alumina_consumption_rate * fixedDeltaTime / _aluminium_density, ResourceFlowMode.ALL_VESSEL) * _aluminium_density / fixedDeltaTime;
+            _oxygen_production_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -GameConstants.aluminiumElectrolysisMassRatio * _alumina_consumption_rate * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) * _oxygen_density / fixedDeltaTime;
             updateStatusMessage();
         }
 

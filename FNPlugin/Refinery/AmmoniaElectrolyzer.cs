@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,7 +27,7 @@ namespace FNPlugin.Refinery
 
         private GUIStyle _bold_label;
 
-        public int RefineryType { get { return 2; } }
+        public RefineryType RefineryType { get { return RefineryType.electrolysis; ; } }
 
         public String ActivityName { get { return "Ammonia Electrolysis"; } }
 
@@ -69,12 +68,12 @@ namespace FNPlugin.Refinery
             }
             else
             {
-                _ammonia_consumption_mass_rate = _part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, _current_mass_rate * fixedDeltaTime / _ammonia_density) / fixedDeltaTime * _ammonia_density;
+                _ammonia_consumption_mass_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, _current_mass_rate * fixedDeltaTime / _ammonia_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammonia_density;
                 double hydrogen_mass_rate = _ammonia_consumption_mass_rate * GameConstants.ammoniaHydrogenFractionByMass;
                 double nitrogen_mass_rate = _ammonia_consumption_mass_rate * (1 - GameConstants.ammoniaHydrogenFractionByMass);
 
-                _hydrogen_production_mass_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogen_mass_rate * fixedDeltaTime / _hydrogen_density) / fixedDeltaTime * _hydrogen_density;
-                _nitrogen_production_mass_rate = -_part.ImprovedRequestResource(InterstellarResourcesConfiguration.Instance.Nitrogen, -nitrogen_mass_rate * fixedDeltaTime / _nitrogen_density) / fixedDeltaTime * _nitrogen_density;
+                _hydrogen_production_mass_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Hydrogen, -hydrogen_mass_rate * fixedDeltaTime / _hydrogen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogen_density;
+                _nitrogen_production_mass_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Nitrogen, -nitrogen_mass_rate * fixedDeltaTime / _nitrogen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen_density;
             }
 
             updateStatusMessage();

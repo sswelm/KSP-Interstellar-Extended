@@ -4,14 +4,16 @@ using System.Linq;
 using System.Text;
 
 namespace FNPlugin.Refinery
-{
+{    
+    enum RefineryType { heating = 1, cryogenics = 2, electrolysis = 4, synthesize = 8,  } 
+
     interface IRefineryActivity
     {
         // 1 seperation
         // 2 desconstrution
         // 3 construction
 
-        int RefineryType { get; }
+        RefineryType RefineryType { get; }
 
         String ActivityName { get; }
 
