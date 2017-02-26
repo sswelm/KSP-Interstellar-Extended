@@ -56,6 +56,7 @@ namespace FNPlugin
 
 
 
+
         // Use for SETI Mode
 
         [KSPField(isPersistant = false)]
@@ -136,8 +137,9 @@ namespace FNPlugin
         private void UpdateFlightGUI(BaseField field, object oldFieldValueObj)
         {
 
+           
+           
             UpdateFromGUI(field, oldFieldValueObj);
-
             UpdateFuel();
 
         }
@@ -147,7 +149,7 @@ namespace FNPlugin
             Debug.Log("Update Fuel");
 
             ConfigNode akPropellants = new ConfigNode();
-
+           
             int I = 0;
 
             while (I < ActiveConfiguration.Fuels.Length)
@@ -156,9 +158,12 @@ namespace FNPlugin
                 I++;
             }
 
-            curEngineT.atmosphereCurve = activeConfiguration.atmosphereCurve;
-            curEngineT.Load(akPropellants);
+            akPropellants.AddValue("maxThrust", 0);
 
+            akPropellants.AddValue("maxFuelFlow", 0);
+
+            curEngineT.Load(akPropellants);
+            curEngineT.atmosphereCurve = ActiveConfiguration.atmosphereCurve;
             vessel.ClearStaging();
             vessel.ResumeStaging();
 

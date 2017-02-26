@@ -285,13 +285,15 @@ namespace FNPlugin
 
         public override void UpdateFuel()
         {
+            
+            
             base.UpdateFuel();
             Debug.Log("Fusion Gui Updated");
             BaseFloatCurve = ActiveConfiguration.atmosphereCurve;
             CurveMaxISP = GetMaxKey(BaseFloatCurve);
             FCSetup();
             Debug.Log("Curve Max ISP:" + CurveMaxISP);
-            
+
         }
         
         public override void OnStart(PartModule.StartState state)
@@ -318,7 +320,7 @@ namespace FNPlugin
                 if (hasMultipleConfigurations) FCSetup();
 
                 //    standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio;
-                   standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
+               //    standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
 
                 DetermineTechLevel();
 
@@ -438,7 +440,7 @@ namespace FNPlugin
 
             // part.ona
 
-            if (curEngineT == null) return;
+            if (curEngineT == null || !curEngineT.isEnabled) return;
 
             throttle = curEngineT.currentThrottle > MinThrottleRatio ? curEngineT.currentThrottle : 0;
 
@@ -459,7 +461,7 @@ namespace FNPlugin
 
 
 
-            if (throttle > 0)
+            if (throttle > 0 )
             {
                 // Calculate Fusion Ratio
                 enginePowerRequirement = CurrentPowerRequirement;
@@ -486,18 +488,21 @@ namespace FNPlugin
                 supplyFNResource(absorbedWasteheat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
-              //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;
-            //    curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)standard_tritium_rate / rateMultplier;
+                //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;
+                //    curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)standard_tritium_rate / rateMultplier;
 
                 // Update ISP
                 var currentIsp = SelectedIsp;
                 UpdateISP();
 
+
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
+
+
                 curEngineT.maxFuelFlow = maxFuelFlow;
-                curEngineT.maxThrust = MaximumThrust;
-       //         curEngineT.finalThrust = curEngineT.currentThrottle > 0 ? curEngineT.maxThrust/curEngineT.currentThrottle : 0;
+                curEngineT.maxThrust =  MaximumThrust;
+
 
                 maximumThrust = MaximumThrust;
 
@@ -518,8 +523,8 @@ namespace FNPlugin
 
                 var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = maxFuelFlow;
-              //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
-             //   curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
+                //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
+                //   curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
             }
 
             coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
