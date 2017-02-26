@@ -157,7 +157,7 @@ namespace FNPlugin.Refinery
                 localResources = OceanicResourceHandler.GetOceanicCompositionForBody(FlightGlobals.currentMainBody);
             }
 
-            // somewhere here determine the consumption rate of the intake liquid (but do it generically as well?)
+            // determine the amount of liquid processed every frame
             _availableIntakeLiquidMass = GetTotalLiquidScoopedPerSecond() * _intakeLqdDensity;
 
             // this should determine how much resource this process can consume
