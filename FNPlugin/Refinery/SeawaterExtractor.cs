@@ -16,7 +16,7 @@ namespace FNPlugin.Refinery
         protected double lastTotalLiquidScooped = 0; // we need to hold this for offline collecting
 
         [KSPField(isPersistant = true)]
-        IDictionary<string, double> resourcePercentages = new Dictionary<string, double>(); // create a new persistent list for keeping track of tempRates
+        IDictionary<string, double> resourcePercentages = new Dictionary<string, double>(); // create a new persistent list for keeping track of percentages
 
         const int labelWidth = 200;
         const int valueWidth = 200;
@@ -27,9 +27,6 @@ namespace FNPlugin.Refinery
 
         protected double _current_power;
         protected double _fixedConsumptionRate;
-        protected double _consumptionStorageRatio;
-        protected List<double> storageRatios;
-
 
         // IRefinery fields
         protected double _current_rate;
