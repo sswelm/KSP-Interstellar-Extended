@@ -152,10 +152,8 @@ namespace FNPlugin.Refinery
             _current_power = _effectiveMaxPower * powerFraction;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
             
-            if (FlightGlobals.currentMainBody.flightGlobalsIndex != lastBodyID) // this will only fire the first time (because lastBodyID is set to start at -1 and flightGlobalsIndexes start at 0) and then when the Sphere of Influence is changed (vessel orbits another body)
-            {
-                localResources = OceanicResourceHandler.GetOceanicCompositionForBody(FlightGlobals.currentMainBody);
-            }
+            // get the resource for the current body
+            localResources = OceanicResourceHandler.GetOceanicCompositionForBody(FlightGlobals.currentMainBody);
 
             // determine the amount of liquid processed every frame
             _availableIntakeLiquidMass = GetTotalLiquidScoopedPerSecond() * _intakeLqdDensity;
