@@ -128,10 +128,9 @@ namespace FNPlugin
 
         private void UpdateEditorGUI(BaseField field, object oldFieldValueObj)
         {
-
+            Debug.Log("Editor Gui Updated");
             UpdateFromGUI(field, oldFieldValueObj);
-          //  UpdateResources();
-            UpdateFuel();
+         //   UpdateResources();
 
         }
         private void UpdateFlightGUI(BaseField field, object oldFieldValueObj)
@@ -154,13 +153,13 @@ namespace FNPlugin
 
             while (I < ActiveConfiguration.Fuels.Length)
             {
-                akPropellants.AddNode(LoadPropellant(ActiveConfiguration.Fuels[I], ActiveConfiguration.Ratios[I]));
+               if (ActiveConfiguration.Ratios[I] > 0) akPropellants.AddNode(LoadPropellant(ActiveConfiguration.Fuels[I], ActiveConfiguration.Ratios[I]));
                 I++;
             }
 
-            akPropellants.AddValue("maxThrust", 0);
+            akPropellants.AddValue("maxThrust", 1);
 
-            akPropellants.AddValue("maxFuelFlow", 0);
+            akPropellants.AddValue("maxFuelFlow", 1);
 
             curEngineT.Load(akPropellants);
             curEngineT.atmosphereCurve = ActiveConfiguration.atmosphereCurve;
@@ -171,29 +170,53 @@ namespace FNPlugin
         }
         private void UpdateResources()
         {
-            part.Resources.Clear();
-            FuelConfiguration akConfig = ActiveConfiguration;
+            Debug.Log("Update Resources");
+
+            ConfigNode akResources = new ConfigNode();
+
             int I = 0;
 
-            while (I < ActiveConfiguration.Fuels.Length)
+
+            while (I < part.Resources.Count)
             {
-                part.Resources.Add(akConfig.Fuels[I], akConfig.Amount[I], akConfig.MaxAmount[I], true, true, true, true, PartResource.FlowMode.Both);
+                part.RemoveResource(part.Resources[I]);
                 I++;
             }
+            I = 0;
+            part.SetupResources();
+            while (I < ActiveConfiguration.Fuels.Length)
+            {
+
+                part.AddResource(LoadResource(ActiveConfiguration.Fuels[I], ActiveConfiguration.Amount[I], ActiveConfiguration.MaxAmount[I]));
+
+                I++;
+            }
+
+
         }
+    
 
         private ConfigNode LoadPropellant(string akName, float akRatio)
         {
             Debug.Log("Name: " + akName);
             //    Debug.Log("Ratio: "+ akRatio);
-            Propellant akPropellant = new Propellant();
+
             ConfigNode PropellantNode = new ConfigNode().AddNode("PROPELLANT");
             PropellantNode.AddValue("name", akName);
             PropellantNode.AddValue("ratio", akRatio);
             PropellantNode.AddValue("DrawGauge", true);
-            akPropellant.Load(PropellantNode);
+
 
             return PropellantNode;
+        }
+        private ConfigNode LoadResource(string akName, float akAmount, float akMax)
+        {
+
+            ConfigNode ResourceNode = new ConfigNode().AddNode("RESOURCE");
+            ResourceNode.AddValue("name", akName);
+            ResourceNode.AddValue("amount", akAmount);
+            ResourceNode.AddValue("maxAmount", akMax);
+            return ResourceNode;
         }
 
 
