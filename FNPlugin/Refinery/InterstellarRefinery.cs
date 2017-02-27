@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin.Refinery
 {
@@ -131,9 +132,20 @@ namespace FNPlugin.Refinery
         //protected InterstellarPowerSupply powerSupply;
 
         [KSPEvent(guiActive = true, guiName = "Sample Atmosphere", active = true)]
-        public void ActivateCollector()
+        public void SampleAtmosphere()
         {
             List<AtmosphericResource> resources = AtmosphericResourceHandler.GetAtmosphericCompositionForBody(part.vessel.mainBody);
+
+            foreach (var resource in resources)
+            {
+                ScreenMessages.PostScreenMessage(resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
+            }
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Sample Ocean", active = true)]
+        public void SampleOcean()
+        {
+            List<OceanicResource> resources = OceanicResourceHandler.GetOceanicCompositionForBody(part.vessel.mainBody);
 
             foreach (var resource in resources)
             {
@@ -264,8 +276,6 @@ namespace FNPlugin.Refinery
             lastActivityName = _current_activity.ActivityName; // take the string with the name of the current activity, store it in persistent string
             lastActiveTime = Planetarium.GetUniversalTime();
         }
-
-
 
         public override string GetInfo()
         {

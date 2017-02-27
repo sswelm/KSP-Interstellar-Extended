@@ -54,44 +54,31 @@ namespace FNPlugin.Extensions
             List<OceanicResource> bodyOceanicComposition = new List<OceanicResource>(); // create an object list for holding all the resources
             try
             {
-                if (body_oceanic_resource_list.ContainsKey(refBody)) // if there's a composition for this body
+                // check if there's a composition for this body
+                if (body_oceanic_resource_list.ContainsKey(refBody)) 
                 {
-                    return body_oceanic_resource_list[refBody]; // skip all the other stuff and return the composition we already have
+                    // skip all the other stuff and return the composition we already have
+                    return body_oceanic_resource_list[refBody]; 
                 }
                 else
                 {
                     CelestialBody celestialBody = FlightGlobals.Bodies[refBody]; // create a celestialBody object referencing the current body (makes it easier on us in the next lines)
 
-                    ConfigNode oceanic_resource_pack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
-                    //ConfigNode oceanic_resource_pack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION").FirstOrDefault(c => c.name == "KSPI_OceanicPack");
-
-                    Debug.Log("[ORS] Loading oceanic data from pack: " + (oceanic_resource_pack.HasValue("name") ? oceanic_resource_pack.GetValue("name") : "unknown pack"));
-                    if (oceanic_resource_pack != null)
-                    {
-                        Debug.Log("[KSPI] - searching for ocean definition for " + celestialBody.name);
-                        List<ConfigNode> oceanic_resource_list = oceanic_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
-                        if (oceanic_resource_list.Any())
-                        {
-                            bodyOceanicComposition = oceanic_resource_list.Select(orsc => new OceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
-                            if (bodyOceanicComposition.Any())
-                            {
-                                bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
-                                body_oceanic_resource_list.Add(refBody, bodyOceanicComposition);
-                            }
-                        }
-                    }
+                    // create composition from kspi oceanic definition file
+                    bodyOceanicComposition = CreateFromKspiOceanDefinitionFile(refBody, celestialBody);
 
                     // add from stock resource definitions if missing
-                    Debug.Log("[KSPI] - adding stock resources");
                     GenerateCompositionFromResourceAbundances(refBody, bodyOceanicComposition); // calls the generating function below
 
-                    Debug.Log("[KSPI] - sum of resource abundances = " + bodyOceanicComposition.Sum(m => m.ResourceAbundance));
                     // if no ocean definition is created, create one based on celestialBody characteristics
                     if (bodyOceanicComposition.Sum(m => m.ResourceAbundance) < 0.5)
                         bodyOceanicComposition = GenerateCompositionFromCelestialBody(celestialBody);
 
                     // Add rare and isotopic resources
                     AddRaresAndIsotopesToOceanComposition(bodyOceanicComposition, celestialBody);
+
+                    // add missing stock resources
+                    AddMissingStockResources(refBody, bodyOceanicComposition);
 
                     // sort on resource abundance
                     bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
@@ -103,6 +90,30 @@ namespace FNPlugin.Extensions
             catch (Exception ex)
             {
                 Debug.Log("[ORS] - Exception while loading oceanic resources : " + ex.ToString());
+            }
+            return bodyOceanicComposition;
+        }
+
+        private static List<OceanicResource> CreateFromKspiOceanDefinitionFile(int refBody, CelestialBody celestialBody)
+        {
+            var bodyOceanicComposition = new List<OceanicResource>();
+
+            ConfigNode oceanic_resource_pack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
+
+            Debug.Log("[ORS] Loading oceanic data from pack: " + (oceanic_resource_pack.HasValue("name") ? oceanic_resource_pack.GetValue("name") : "unknown pack"));
+            if (oceanic_resource_pack != null)
+            {
+                Debug.Log("[KSPI] - searching for ocean definition for " + celestialBody.name);
+                List<ConfigNode> oceanic_resource_list = oceanic_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
+                if (oceanic_resource_list.Any())
+                {
+                    bodyOceanicComposition = oceanic_resource_list.Select(orsc => new OceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                    if (bodyOceanicComposition.Any())
+                    {
+                        bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
+                        body_oceanic_resource_list.Add(refBody, bodyOceanicComposition);
+                    }
+                }
             }
             return bodyOceanicComposition;
         }
@@ -182,14 +193,15 @@ namespace FNPlugin.Extensions
                 AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
                 AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
                 AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon", "Argon");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Hydrogen, "LqdHydrogen", "HydrogenGas", "Hydrogen", "Hydrogen");
                 AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
                 AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
                 AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
                 AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.LqdHelium4, "LqdHelium", "HeliumGas", "Helium", "Helium-4");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.LqdHelium3, "LqdHe3", "Helium3Gas", "Helium3", "Helium-3");
                 AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
+
+                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium4, "Helium-4", refBody, bodyOceanicComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
+                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, "Helium-3", refBody, bodyOceanicComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
+                AddResource(InterstellarResourcesConfiguration.Instance.Hydrogen,   "Hydrogen", refBody, bodyOceanicComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "H2", "Protium"});
             }
             catch (Exception ex)
             {
@@ -199,11 +211,63 @@ namespace FNPlugin.Extensions
             return bodyOceanicComposition;
         }
 
+        private static void AddMissingStockResources(int refBody, List<OceanicResource> bodyOceanicComposition)
+        {
+            // fetch all oceanic resources
+            var allOceanicResources = ResourceMap.Instance.FetchAllResourceNames(HarvestTypes.Oceanic);
+
+            foreach (var resoureName in allOceanicResources)
+            {
+                // add resource if missing
+                AddResource(resoureName, refBody, bodyOceanicComposition);
+            }
+        }
+
+        private static void AddResource(string resourname, int refBody, List<OceanicResource> bodyOceanicComposition)
+        {
+            // verify it is a defined resource
+            PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resourname);
+            if (definition == null)
+                return;
+
+            // skip it already registred or used as a Synonym
+            if (bodyOceanicComposition.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.title || m.Synonyms.Contains(definition.name)))
+                return;
+
+            // retreive abundance
+            var abundance = GetAbundance(definition.name, refBody);
+            if (abundance <= 0)
+                return;
+
+            // create oceanicresource from definition and abundance
+            var OceanicResource = new OceanicResource(definition, abundance);
+
+            // add to oceanic composition
+            bodyOceanicComposition.Add(OceanicResource);
+        }
+
+        private static void AddResource(string outputResourname, string displayname, int refBody, List<OceanicResource> bodyOceanicComposition, string[] variants)
+        {
+            var abundances = new[] { GetAbundance(outputResourname, refBody)}.Concat(variants.Select(m => GetAbundance(m, refBody)));
+
+            var OceanicResource = new OceanicResource(outputResourname, abundances.Max(), displayname, variants);
+            if (OceanicResource.ResourceAbundance > 0)
+            {
+                var existingResource = bodyOceanicComposition.FirstOrDefault(a => a.ResourceName == outputResourname);
+                if (existingResource != null)
+                {
+                    Debug.Log("[KSPI] - replaced resource " + outputResourname + " with stock defined abundance " + OceanicResource.ResourceAbundance);
+                    bodyOceanicComposition.Remove(existingResource);
+                }
+                bodyOceanicComposition.Add(OceanicResource);
+            }
+        }
+
         private static void AddResource(int refBody, List<OceanicResource> bodyOceanicComposition, string outputResourname, string inputResource1, string inputResource2, string inputResource3, string displayname)
         {
             var abundances = new[] { GetAbundance(inputResource1, refBody), GetAbundance(inputResource2, refBody), GetAbundance(inputResource2, refBody) };
 
-            var OceanicResource = new OceanicResource(outputResourname, abundances.Max(), displayname);
+            var OceanicResource = new OceanicResource(outputResourname, abundances.Max(), displayname, new[] { inputResource1, inputResource2, inputResource3 });
             if (OceanicResource.ResourceAbundance > 0)
             {
                 var existingResource = bodyOceanicComposition.FirstOrDefault(a => a.ResourceName == outputResourname);
@@ -223,50 +287,8 @@ namespace FNPlugin.Extensions
             {
                 var water = bodyOceanicComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water);
                 var heavywaterAbundance = water.ResourceAbundance / 6420;
-                bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.HeavyWater, heavywaterAbundance, "HeavyWater"));
+                bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.HeavyWater, heavywaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater"}));
             }
-
-            // add helium4 comparable to earth
-            if (!bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium4))
-            {
-                var helium4Abundance = 5.2e-6;
-                Debug.Log("[KSPI] - added helium-4 to ocean with abundance " + helium4Abundance);
-                bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.LqdHelium4, helium4Abundance, "Helium-4"));
-            }
-            else
-                Debug.Log("[KSPI] -  helum-4 is already present in ocean, specification at " + bodyOceanicComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium4).ResourceAbundance);
-
-            // if helium3 is undefined, but helium is, derive it
-            if (!bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3) && bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium4))
-            {
-
-                var helium = bodyOceanicComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium4);
-
-                var helium3Abundance = celestialBody.GetPressure(0) > 1000
-                    ? helium.ResourceAbundance * 0.001
-                    : helium.ResourceAbundance * 1.38e-6;
-
-                Debug.Log("[KSPI] - added helium-3 to ocean with abundance " + helium3Abundance);
-                bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3Abundance, "Helium-3"));
-            }
-            else if (bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3))
-                Debug.Log("[KSPI] -  helium-3 is already present in ocean, specification at " + bodyOceanicComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3).ResourceAbundance);
-            else
-                Debug.Log("[KSPI] -  No helium is present in ocean specification, helium-4 will not be added");
-
-            // if deteurium is undefined, but hydrogen is, derive it
-            if (!bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium) && bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Hydrogen))
-            {
-                var hydrogen = bodyOceanicComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Hydrogen);
-
-                var deuteriumAbundance = hydrogen.ResourceAbundance / 6420;
-                Debug.Log("[KSPI] - added deuterium to ocean with abundance " + deuteriumAbundance);
-                bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deuteriumAbundance, "Deuterium"));
-            }
-            else if (bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium))
-                Debug.Log("[KSPI] - deuterium is already present in ocean specification at " + bodyOceanicComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ResourceAbundance);
-            else
-                Debug.Log("[KSPI] - No hydrogen is present in ocean specification, deuterium will not be added");
         }
 
         private static float GetAbundance(string resourceName, int refBody)
