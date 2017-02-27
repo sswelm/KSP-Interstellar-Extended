@@ -65,6 +65,7 @@
     <Compile Include="InterstellarTextureSwitch.cs" />
     <Compile Include="ParseTools.cs" />
     <Compile Include="PartExtensions.cs" />
+    <Compile Include="PartResourceLibraryExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

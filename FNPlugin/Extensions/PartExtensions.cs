@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -16,8 +17,7 @@ namespace FNPlugin
 
         public static double GetResourceSpareCapacity(this Part part, String resourcename)
         {
-            var resourcDdefinition = PartResourceLibrary.Instance.GetDefinition(resourcename);
-
+            var resourcDdefinition = PartResourceLibrary.Instance.GetDefinitionSafe(resourcename);
             if (resourcDdefinition == null)
                 return 0;
 

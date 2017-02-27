@@ -145,11 +145,14 @@ namespace FNPlugin.Refinery
         [KSPEvent(guiActive = true, guiName = "Sample Ocean", active = true)]
         public void SampleOcean()
         {
-            List<OceanicResource> resources = OceanicResourceHandler.GetOceanicCompositionForBody(part.vessel.mainBody);
+            List<OceanicResource> resources = OceanicResourceHandler.GetOceanicCompositionForBody(part.vessel.mainBody).ToList();
 
             foreach (var resource in resources)
             {
-                ScreenMessages.PostScreenMessage(resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
+                PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinitionSafe(resource.ResourceName);
+
+                string found = definition != null ? "D" : "U";
+                ScreenMessages.PostScreenMessage(found + " " + resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance , 6.0f, ScreenMessageStyle.LOWER_CENTER);
             }
         }
 
