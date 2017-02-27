@@ -13,10 +13,10 @@ namespace FNPlugin
 
         public double HeatingPowerRequirements 
 		{ 
-			get { 
-				return current_fuel_mode == null
+			get {
+                return CurrentFuelMode == null
                     ? PowerRequirement
-                    : PowerRequirement * current_fuel_mode.NormalisedPowerRequirements; 
+                    : PowerRequirement * CurrentFuelMode.NormalisedPowerRequirements; 
 			} 
 		}
 

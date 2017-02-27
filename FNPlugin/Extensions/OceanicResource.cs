@@ -7,30 +7,34 @@ namespace FNPlugin.Extensions
 {
     class OceanicResource
     {
-        protected string resourcename;
-        protected double abundance;
-        protected string displayname;
-
         public OceanicResource(string resourcename, double abundance, string displayname)
         {
-            this.resourcename = resourcename;
-            this.abundance = abundance;
-            this.displayname = displayname;
+            this.ResourceName = resourcename;
+            this.ResourceAbundance = abundance;
+            this.DisplayName = displayname;
+            this.Synonyms = new [] {resourcename}.ToList();
         }
 
-        public string DisplayName
+        public OceanicResource(PartResourceDefinition definition, double abundance )
         {
-            get { return displayname; }
+            this.ResourceName = definition.name;
+            this.ResourceAbundance = abundance;
+            this.DisplayName = string.IsNullOrEmpty(definition.title) ? definition.name : definition.title;
+            this.Synonyms = new[] { ResourceName, DisplayName }.Distinct().ToList();
         }
 
-        public string ResourceName
+        public OceanicResource(string resourcename, double abundance, string displayname, string[] synonyms)
         {
-            get { return resourcename; }
+            this.ResourceName = resourcename;
+            this.ResourceAbundance = abundance;
+            this.DisplayName = displayname;
+            this.Synonyms = synonyms.ToList();
         }
 
-        public double ResourceAbundance
-        {
-            get { return abundance; }
-        }
+        public string DisplayName { get; private set; }
+        public string ResourceName { get; private set; }
+        public double ResourceAbundance { get; private set; }
+
+        public List<string> Synonyms { get; private set; }
     }
 }

@@ -29,6 +29,30 @@ namespace FNPlugin
             return maxAmount - currentAmount;
         }
 
+        public static double GetResourceSpareCapacity(this Part part, PartResourceDefinition definition)
+        {
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            return maxAmount - currentAmount;
+        }
+
+        public static double GetResourceAvailable(this Part part, PartResourceDefinition definition)
+        {
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            return currentAmount;
+        }
+
+        public static double GetResourceMaxAvailable(this Part part, PartResourceDefinition definition)
+        {
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            return maxAmount;
+        }
+
         private static FieldInfo windowListField;
 
         /// <summary>

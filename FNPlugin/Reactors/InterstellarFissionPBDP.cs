@@ -48,9 +48,9 @@ namespace FNPlugin
 
         public float MinimumChargdIspMult { get { return minimumChargdIspMult; } }
 
-        public double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
+        public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 
-        public override bool IsFuelNeutronRich { get { return current_fuel_mode != null && !current_fuel_mode.Aneutronic; } }
+        public override bool IsFuelNeutronRich { get { return CurrentFuelMode != null && !CurrentFuelMode.Aneutronic; } }
 
         public override double MaximumThermalPower { get { return base.MaximumThermalPower * (float)ThermalRatioEfficiency; } }
 
