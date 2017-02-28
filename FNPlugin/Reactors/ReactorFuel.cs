@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using FNPlugin.Extensions;
+
 namespace FNPlugin 
 {
     class ReactorFuel 
@@ -23,7 +25,7 @@ namespace FNPlugin
             _resource_name = node.HasValue("resource") ? node.GetValue("resource") : _fuel_name;
             _unit = node.GetValue("Unit");
             _tons_fuel_usage_per_mw = Convert.ToDouble(node.GetValue("UsagePerMW"));
-            _definition = PartResourceLibrary.Instance.GetDefinition(_resource_name);
+            _definition = PartResourceLibrary.Instance.GetDefinitionSafe(_resource_name);
             _density =  _definition != null ? _definition.density : 0.0005;
             _densityInKg = _density * 1000;
             _amountFuelUsePerMJ = _tons_fuel_usage_per_mw / _density;
@@ -100,7 +102,7 @@ namespace FNPlugin
             _fuel_name = node.GetValue("name");
             _unit = node.GetValue("Unit");
 
-            _definition = PartResourceLibrary.Instance.GetDefinition(_fuel_name);
+            _definition = PartResourceLibrary.Instance.GetDefinitionSafe(_fuel_name);
             _density = _definition != null ?_definition.density : 0.0005;
             _densityInKg = _density * 1000;
             _tons_product_usage_per_mw = Convert.ToDouble(node.GetValue("ProductionPerMW"));

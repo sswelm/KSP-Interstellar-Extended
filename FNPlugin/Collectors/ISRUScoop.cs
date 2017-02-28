@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using FNPlugin.Extensions;
+
 namespace FNPlugin 
 {
     class ISRUScoop : FNResourceSuppliableModule 
@@ -217,7 +219,12 @@ namespace FNPlugin
                 resourceStoragename = ors_atmospheric_resource_name;
 
             //double resourcedensity = PartResourceLibrary.Instance.GetDefinition(PluginHelper.atomspheric_resources_tocollect[currentresource]).density;
-            double resourcedensity = PartResourceLibrary.Instance.GetDefinition(resourceStoragename).density;
+            var definition = PartResourceLibrary.Instance.GetDefinitionSafe(resourceStoragename);
+
+            if (definition == null)
+                return;
+
+            double resourcedensity = definition.density;
 
             double maxAltitudeAtmosphere = PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody);
             

@@ -783,9 +783,9 @@ namespace InterstellarFuelSwitch
 
         public void ConfigureResourceMassGui(List<string> newResources)
         {
-            _partRresourceDefinition0 = newResources.Count > 0 ? PartResourceLibrary.Instance.GetDefinition(newResources[0]) : null; // improve performance by doing this once after switching
-            _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinition(newResources[1]) : null; // improve performance by doing this once after switching
-            _partRresourceDefinition2 = newResources.Count > 2 ? PartResourceLibrary.Instance.GetDefinition(newResources[2]) : null; // improve performance by doing this once after switching
+            _partRresourceDefinition0 = newResources.Count > 0 ? PartResourceLibrary.Instance.GetDefinitionSafe(newResources[0]) : null; // improve performance by doing this once after switching
+            _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinitionSafe(newResources[1]) : null; // improve performance by doing this once after switching
+            _partRresourceDefinition2 = newResources.Count > 2 ? PartResourceLibrary.Instance.GetDefinitionSafe(newResources[2]) : null; // improve performance by doing this once after switching
 
             _field0.guiName = _partRresourceDefinition0 != null ? _partRresourceDefinition0.name : ":";
             _field1.guiName = _partRresourceDefinition1 != null ? _partRresourceDefinition1.name : ":";
@@ -1034,7 +1034,7 @@ namespace InterstellarFuelSwitch
                     var deltaTemperatureDifferenceInKelvin = currentTemperature - resource.boiloffTemp;
 
                     PartResource partResource = part.Resources.FirstOrDefault(r => r.resourceName == resource.name);
-                    PartResourceDefinition resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource.name);
+                    PartResourceDefinition resourceDefinition = PartResourceLibrary.Instance.GetDefinitionSafe(resource.name);
 
                     if (resourceDefinition == null || partResource == null) continue;
 

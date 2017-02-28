@@ -89,7 +89,7 @@ namespace FNPlugin.Extensions
             }
             catch (Exception ex)
             {
-                Debug.Log("[ORS] - Exception while loading oceanic resources : " + ex.ToString());
+                Debug.Log("[KSPI] - Exception while loading oceanic resources : " + ex.ToString());
             }
             return bodyOceanicComposition;
         }
@@ -100,7 +100,7 @@ namespace FNPlugin.Extensions
 
             ConfigNode oceanic_resource_pack = GameDatabase.Instance.GetConfigNodes("OCEANIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
 
-            Debug.Log("[ORS] Loading oceanic data from pack: " + (oceanic_resource_pack.HasValue("name") ? oceanic_resource_pack.GetValue("name") : "unknown pack"));
+            Debug.Log("[KSPI] Loading oceanic data from pack: " + (oceanic_resource_pack.HasValue("name") ? oceanic_resource_pack.GetValue("name") : "unknown pack"));
             if (oceanic_resource_pack != null)
             {
                 Debug.Log("[KSPI] - searching for ocean definition for " + celestialBody.name);
@@ -108,11 +108,11 @@ namespace FNPlugin.Extensions
                 if (oceanic_resource_list.Any())
                 {
                     bodyOceanicComposition = oceanic_resource_list.Select(orsc => new OceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
-                    if (bodyOceanicComposition.Any())
-                    {
-                        bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
-                        body_oceanic_resource_list.Add(refBody, bodyOceanicComposition);
-                    }
+                    //if (bodyOceanicComposition.Any())
+                    //{
+                    //    bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
+                    //    body_oceanic_resource_list.Add(refBody, bodyOceanicComposition);
+                    //}
                 }
             }
             return bodyOceanicComposition;
@@ -216,33 +216,45 @@ namespace FNPlugin.Extensions
             // fetch all oceanic resources
             var allOceanicResources = ResourceMap.Instance.FetchAllResourceNames(HarvestTypes.Oceanic);
 
+            Debug.Log("[KSPI] - AddMissingStockResources : found " + allOceanicResources.Count + " resources");
+
             foreach (var resoureName in allOceanicResources)
             {
                 // add resource if missing
-                AddResource(resoureName, refBody, bodyOceanicComposition);
+                AddMissingResource(resoureName, refBody, bodyOceanicComposition);
             }
         }
 
-        private static void AddResource(string resourname, int refBody, List<OceanicResource> bodyOceanicComposition)
+        private static void AddMissingResource(string resourname, int refBody, List<OceanicResource> bodyOceanicComposition)
         {
             // verify it is a defined resource
-            PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resourname);
+            PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinitionSafe(resourname);
             if (definition == null)
+            {
+                Debug.LogWarning("[KSPI] - AddMissingResource : Failed to find resource definition for '" + resourname + "'");
                 return;
+            }
 
             // skip it already registred or used as a Synonym
             if (bodyOceanicComposition.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.title || m.Synonyms.Contains(definition.name)))
+            {
+                Debug.Log("[KSPI] - AddMissingResource : Already found existing composition for '" + resourname + "'");
                 return;
+            }
 
             // retreive abundance
             var abundance = GetAbundance(definition.name, refBody);
             if (abundance <= 0)
+            {
+                Debug.LogWarning("[KSPI] - AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
                 return;
+            }
 
             // create oceanicresource from definition and abundance
             var OceanicResource = new OceanicResource(definition, abundance);
 
             // add to oceanic composition
+            Debug.Log("[KSPI] - AddMissingResource : add resource '" + resourname + "'");
             bodyOceanicComposition.Add(OceanicResource);
         }
 
@@ -300,7 +312,7 @@ namespace FNPlugin.Extensions
         {
             return new AbundanceRequest
             {
-                ResourceType = HarvestTypes.Atmospheric,
+                ResourceType = HarvestTypes.Oceanic,
                 ResourceName = resourceName,
                 BodyId = refBody,
                 CheckForLock = false
