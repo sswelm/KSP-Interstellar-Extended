@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,13 +25,15 @@ namespace FNPlugin
             _unit = node.GetValue("Unit");
             _consumeGlobal = node.HasValue("consumeGlobal") ? Boolean.Parse(node.GetValue("consumeGlobal")) : true;
 
-            Definition = PartResourceLibrary.Instance.GetDefinition(_fuel_name);
+            Definition = PartResourceLibrary.Instance.GetDefinition(_resource_name);
             if (Definition == null)
-                Debug.LogError("[KSPI] - No definition found for ReactorFuel '" + _fuel_name + "'");
-
-            _density = Definition.density;
-            _densityInKg = _density * 1000;
-            _amountFuelUsePerMJ = _tons_fuel_usage_per_mw / _density;
+                Debug.LogError("[KSPI] - No definition found for resource '" + _resource_name + "' for ReactorFuel " + _fuel_name);
+            else
+            {
+                _density = Definition.density;
+                _densityInKg = _density * 1000;
+                _amountFuelUsePerMJ = _tons_fuel_usage_per_mw / _density;
+            }
         }
 
         public PartResourceDefinition Definition { get; private set; }
@@ -47,13 +48,13 @@ namespace FNPlugin
 
         public double TonsFuelUsePerMJ { get { return _tons_fuel_usage_per_mw; } }
 
-        public double EnergyDensity { get { return 0.001 / _tons_fuel_usage_per_mw; } }
+        public double EnergyDensity { get { return _tons_fuel_usage_per_mw > 0 ?  0.001 / _tons_fuel_usage_per_mw : 0; } }
 
         public string FuelName { get { return _fuel_name; } }
 
-        public string ResourceName { get { return _fuel_name; } }
+        public string ResourceName { get { return _resource_name; } }
 
-        public string Unit { get { return _resource_name; } }
+        public string Unit { get { return _unit; } }
 
         public double GetFuelRatio(Part part, double fuelEfficency, double megajoules, double fuelUsePerMJMult)
         {
@@ -110,11 +111,13 @@ namespace FNPlugin
 
             Definition = PartResourceLibrary.Instance.GetDefinition(_fuel_name);
             if (Definition == null)
-                Debug.LogError("[KSPI] - No definition found for ReactorProduct '" + _fuel_name + "'");
-
-            _density = Definition.density;
-            _densityInKg = _density * 1000;
-            _amountProductUsePerMJ = _tons_product_usage_per_mw / _density;
+                Debug.LogError("[KSPI] - No definition found for ReactorProduct '" + _resource_name + "'");
+            else
+            {
+                _density = Definition.density;
+                _densityInKg = _density * 1000;
+                _amountProductUsePerMJ = _tons_product_usage_per_mw / _density;
+            }
         }
 
         public PartResourceDefinition Definition { get; private set; }

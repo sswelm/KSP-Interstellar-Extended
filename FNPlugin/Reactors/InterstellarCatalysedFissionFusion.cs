@@ -8,9 +8,9 @@ namespace FNPlugin
     [KSPModule("Antimatter Initiated Reactor")]
     class InterstellarCatalysedFissionFusion : InterstellarReactor, IChargedParticleSource
     {
-        public double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
+        public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 
-        public override bool IsFuelNeutronRich { get { return current_fuel_mode != null ? !current_fuel_mode.Aneutronic : false; } }
+        public override bool IsFuelNeutronRich { get { return CurrentFuelMode != null ? !CurrentFuelMode.Aneutronic : false; } }
 
         public float MaximumChargedIspMult { get { return 1f; } }
 

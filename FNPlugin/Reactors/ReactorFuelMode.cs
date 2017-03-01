@@ -13,13 +13,13 @@ namespace FNPlugin
     public class ResourceGroup
     {
         public string name;
-        public List<PartResourceDefinition> resources;
+        public List<PartResourceDefinition> variantDefinitions;
     }
 
 
-    class ReactorFuelModeGroup
+    class ReactorFuelType
     {
-        public ReactorFuelModeGroup(IEnumerable<ReactorFuelMode> reactorFuelModes)
+        public ReactorFuelType(IEnumerable<ReactorFuelMode> reactorFuelModes)
         {
             Variants = reactorFuelModes.ToList();
 
@@ -29,7 +29,7 @@ namespace FNPlugin
                 ResourceGroups.Add(new ResourceGroup()
                 {
                     name = group.Key,
-                    resources = group.Select(m => m.Definition).Distinct().ToList()
+                    variantDefinitions = group.Select(m => m.Definition).Distinct().ToList()
                 });
             }
 

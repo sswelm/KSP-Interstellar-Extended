@@ -17,7 +17,7 @@ namespace FNPlugin
 
         public static double GetResourceSpareCapacity(this Part part, String resourcename)
         {
-            var resourcDdefinition = PartResourceLibrary.Instance.GetDefinitionSafe(resourcename);
+            var resourcDdefinition = PartResourceLibrary.Instance.GetDefinition(resourcename);
             if (resourcDdefinition == null)
                 return 0;
 
@@ -53,7 +53,7 @@ namespace FNPlugin
 
         public static double GetResourceAvailable(this Part part, string name)
         {
-            var definition = PartResourceLibrary.Instance.GetDefinitionSafe(name);
+            var definition = PartResourceLibrary.Instance.GetDefinition(name);
 
             if (definition == null)
             {
@@ -69,7 +69,7 @@ namespace FNPlugin
 
         public static double GetResourceMaxAvailable(this Part part, string name)
         {
-            var definition = PartResourceLibrary.Instance.GetDefinitionSafe(name);
+            var definition = PartResourceLibrary.Instance.GetDefinition(name);
 
             double currentAmount;
             double maxAmount;

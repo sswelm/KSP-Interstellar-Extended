@@ -12,13 +12,11 @@ namespace FNPlugin
         public int fuel_mode = 0;
         [KSPField(isPersistant = true)]
         public string fuel_mode_name = string.Empty;
-
         [KSPField(isPersistant = true, guiActive = false)]
         public bool allowJumpStart = true;
 
         [KSPField(isPersistant = false)]
         public bool powerIsAffectedByLithium = true;
-
         [KSPField(isPersistant = false)]
         public float fusionEnergyGainFactorMk1 = 10;
         [KSPField(isPersistant = false)]
@@ -82,13 +80,13 @@ namespace FNPlugin
             get { return base.MaximumChargedPower * PlasmaModifier; }
         }
 
-        public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
+        public virtual double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 
-        public override bool IsFuelNeutronRich { get { return !current_fuel_mode.Aneutronic; } }
+        public override bool IsFuelNeutronRich { get { return !CurrentFuelMode.Aneutronic; } }
 
         public double PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
 
-        public double NormalizedPowerRequirment { get { return PowerRequirement * current_fuel_mode.NormalisedPowerRequirements; } }
+        public double NormalizedPowerRequirment { get { return PowerRequirement * CurrentFuelMode.NormalisedPowerRequirements; } }
 
 
         public float FusionEnergyGainFactor
@@ -149,8 +147,8 @@ namespace FNPlugin
             if (fuel_mode >= fuel_modes.Count)
                 fuel_mode = 0;
 
-            current_fuel_mode = fuel_modes[fuel_mode];
-            fuel_mode_name = current_fuel_mode.ModeGUIName;
+            CurrentFuelMode = fuel_modes[fuel_mode];
+            fuel_mode_name = CurrentFuelMode.ModeGUIName;
 
             UpdateFuelMode();
 
@@ -162,7 +160,7 @@ namespace FNPlugin
 
         private bool FullFuelRequirments()
         {
-            return HasAllFuels() && FuelRequiresLab(current_fuel_mode.RequiresLab);
+            return HasAllFuels() && FuelRequiresLab(CurrentFuelMode.RequiresLab);
         }
 
         private bool HasAllFuels()
@@ -172,7 +170,7 @@ namespace FNPlugin
 
             bool hasAllFuels = true;
 
-            foreach (var fuel in current_fuel_mode.ReactorFuels)
+            foreach (var fuel in current_fuel_variants_sorted.First().ReactorFuels)
             {
                 if (GetFuelRatio(fuel, FuelEfficiency, NormalisedMaximumPower) < 1)
                 {
@@ -192,8 +190,8 @@ namespace FNPlugin
             if (fuel_mode < 0)
                 fuel_mode = fuel_modes.Count - 1;
 
-            current_fuel_mode = fuel_modes[fuel_mode];
-            fuel_mode_name = current_fuel_mode.ModeGUIName;
+            CurrentFuelMode = fuel_modes[fuel_mode];
+            fuel_mode_name = CurrentFuelMode.ModeGUIName;
 
             UpdateFuelMode();
 
@@ -224,15 +222,17 @@ namespace FNPlugin
 
         protected override void setDefaultFuelMode()
         {
-            if (String.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
-            {
-                current_fuel_mode = fuel_modes.First(m => m.ModeGUIName == fuel_mode_name);
-                fuel_mode = fuel_modes.IndexOf(current_fuel_mode);
-                return;
-            }
+            if (string.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
+                CurrentFuelMode = fuel_modes.First(m => m.ModeGUIName == fuel_mode_name);
+            else if (fuelmode_index >= 0 && fuel_modes.Any(m => m.Index == fuelmode_index))
+                CurrentFuelMode = fuel_modes.First(m => m.Index == fuelmode_index);
+            else if (fuel_modes.Any(m => m.Index == fuel_mode))
+                CurrentFuelMode = fuel_modes.First(m => m.Index == fuel_mode);
+            else
+                CurrentFuelMode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
 
-            current_fuel_mode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
-            fuel_mode_name = current_fuel_mode.ModeGUIName;
+            fuel_mode = fuel_modes.IndexOf(CurrentFuelMode);
+            fuel_mode_name = CurrentFuelMode.ModeGUIName;
         }
     }
 }
