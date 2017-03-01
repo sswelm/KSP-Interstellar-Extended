@@ -5,9 +5,9 @@ using System.Text;
 using UnityEngine;
 using FNPlugin.Propulsion;
 
-namespace FNPlugin  
+namespace FNPlugin
 {
-	class FNThermalHeatExchanger : FNResourceSuppliableModule, IThermalSource 
+    class FNThermalHeatExchanger : FNResourceSuppliableModule, IThermalSource
     {
         //Persistent True
         [KSPField(isPersistant = true)]
@@ -22,11 +22,11 @@ namespace FNPlugin
         public float maximumPowerRecieved = 6;
 
         //GUI
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]
-		public string thermalpower;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]
+        public string thermalpower;
 
         // internal
-		protected float _thermalpower;
+        protected float _thermalpower;
 
 
         // reference types
@@ -55,13 +55,13 @@ namespace FNPlugin
 
         public double EfficencyConnectedChargedEnergyGenerator { get { return 0; } }
 
-        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType){ currentIsThermalEnergyGeneratorActive = efficency;  }
+        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType) { currentIsThermalEnergyGeneratorActive = efficency; }
 
         public void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType) { }
 
         public bool IsThermalSource { get { return true; } }
 
-        public bool ShouldApplyBalance (ElectricGeneratorType generatorType) {  return false;  }
+        public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
         public double ChargedPowerRatio { get { return 0; } }
 
@@ -163,121 +163,132 @@ namespace FNPlugin
         public bool IsNuclear { get { return false; } }
 
 
-		[KSPEvent(guiActive = true, guiName = "Activate Heat Exchanger", active = false)]
-		public void ActivateHeatExchanger() {
-			IsEnabled = true;
-		}
-
-		[KSPEvent(guiActive = true, guiName = "Deactivate Heat Exchanger", active = true)]
-		public void DeactivateHeatExchanger() {
-			IsEnabled = false;
-		}
-
-		[KSPAction("Activate Heat Exchanger")]
-		public void ActivateHeatExchangerAction(KSPActionParam param) {
-			ActivateHeatExchanger();
-		}
-
-		[KSPAction("Deactivate Heat Exchanger")]
-		public void DeactivateHeatExchangerAction(KSPActionParam param) {
-			DeactivateHeatExchanger();
-		}
-
-		[KSPAction("Toggle Heat Exchanger")]
-		public void ToggleHeatExchangerAction(KSPActionParam param) {
-			IsEnabled = !IsEnabled;
-		}
-
-		int activeExchangers = 0;
-
-		public void setupThermalPower(){
-			activeExchangers = FNThermalHeatExchanger.getActiveExchangersForVessel(vessel);
-            _thermalpower = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
-		}
-
-		public override void OnStart(PartModule.StartState state) 
-        {
-			Actions["ActivateHeatExchangerAction"].guiName = Events["ActivateHeatExchanger"].guiName = String.Format("Activate Heat Exchanger");
-			Actions["DeactivateHeatExchangerAction"].guiName = Events["DeactivateHeatExchanger"].guiName = String.Format("Deactivate Heat Exchanger");
-			Actions["ToggleHeatExchangerAction"].guiName = String.Format("Toggle Heat Exchanger");
-
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_THERMALPOWER};
-			this.resources_to_supply = resources_to_supply;
-
-			base.OnStart (state);
-
-			if (state == StartState.Editor) { return; }
-			this.part.force_activate();
-
-			setupThermalPower ();
-		}
-
-		public override void OnUpdate() {
-			Events["ActivateHeatExchanger"].active = !IsEnabled;
-			Events["DeactivateHeatExchanger"].active = IsEnabled;
-
-            thermalpower = _thermalpower.ToString() + "MW";
-		}
-
-		public override void OnFixedUpdate() 
-        {
-            storedIsThermalEnergyGeneratorActive = currentIsThermalEnergyGeneratorActive;
-            currentIsThermalEnergyGeneratorActive = 0;
-            
-            base.OnFixedUpdate ();
-			setupThermalPower ();
-		}
-
-        public double GetCoreTempAtRadiatorTemp(double rad_temp)
-        {  
-            return 1500; 
-        }
-
-        public double GetThermalPowerAtTemp(double temp) 
-        {
-            return _thermalpower;
-        }
-
-		public float GetRadius() 
-        {
-			return radius;
-		}
-
-        public bool isActive() 
-        {
-            return IsEnabled;
-        }
-
-        public void EnableIfPossible() 
+        [KSPEvent(guiActive = true, guiName = "Activate Heat Exchanger", active = false)]
+        public void ActivateHeatExchanger()
         {
             IsEnabled = true;
         }
 
-        public bool shouldScaleDownJetISP() 
+        [KSPEvent(guiActive = true, guiName = "Deactivate Heat Exchanger", active = true)]
+        public void DeactivateHeatExchanger()
+        {
+            IsEnabled = false;
+        }
+
+        [KSPAction("Activate Heat Exchanger")]
+        public void ActivateHeatExchangerAction(KSPActionParam param)
+        {
+            ActivateHeatExchanger();
+        }
+
+        [KSPAction("Deactivate Heat Exchanger")]
+        public void DeactivateHeatExchangerAction(KSPActionParam param)
+        {
+            DeactivateHeatExchanger();
+        }
+
+        [KSPAction("Toggle Heat Exchanger")]
+        public void ToggleHeatExchangerAction(KSPActionParam param)
+        {
+            IsEnabled = !IsEnabled;
+        }
+
+        int activeExchangers = 0;
+
+        public void setupThermalPower()
+        {
+            activeExchangers = FNThermalHeatExchanger.getActiveExchangersForVessel(vessel);
+            _thermalpower = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
+        }
+
+        public override void OnStart(PartModule.StartState state)
+        {
+            Actions["ActivateHeatExchangerAction"].guiName = Events["ActivateHeatExchanger"].guiName = String.Format("Activate Heat Exchanger");
+            Actions["DeactivateHeatExchangerAction"].guiName = Events["DeactivateHeatExchanger"].guiName = String.Format("Deactivate Heat Exchanger");
+            Actions["ToggleHeatExchangerAction"].guiName = String.Format("Toggle Heat Exchanger");
+
+            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_THERMALPOWER };
+            this.resources_to_supply = resources_to_supply;
+
+            base.OnStart(state);
+
+            if (state == StartState.Editor) { return; }
+            this.part.force_activate();
+
+            setupThermalPower();
+        }
+
+        public override void OnUpdate()
+        {
+            Events["ActivateHeatExchanger"].active = !IsEnabled;
+            Events["DeactivateHeatExchanger"].active = IsEnabled;
+
+            thermalpower = _thermalpower.ToString() + "MW";
+        }
+
+        public override void OnFixedUpdate()
+        {
+            storedIsThermalEnergyGeneratorActive = currentIsThermalEnergyGeneratorActive;
+            currentIsThermalEnergyGeneratorActive = 0;
+
+            base.OnFixedUpdate();
+            setupThermalPower();
+        }
+
+        public double GetCoreTempAtRadiatorTemp(double rad_temp)
+        {
+            return 1500;
+        }
+
+        public double GetThermalPowerAtTemp(double temp)
+        {
+            return _thermalpower;
+        }
+
+        public float GetRadius()
+        {
+            return radius;
+        }
+
+        public bool isActive()
+        {
+            return IsEnabled;
+        }
+
+        public void EnableIfPossible()
+        {
+            IsEnabled = true;
+        }
+
+        public bool shouldScaleDownJetISP()
         {
             return false;
         }
 
-        public bool isVolatileSource() {
+        public bool isVolatileSource()
+        {
             return false;
         }
 
-        public float getMinimumThermalPower() 
+        public float getMinimumThermalPower()
         {
             return 0;
         }
 
-        public static int getActiveExchangersForVessel(Vessel vess) {
+        public static int getActiveExchangersForVessel(Vessel vess)
+        {
             int activeExchangers = 0;
             List<FNThermalHeatExchanger> mthes = vess.FindPartModulesImplementing<FNThermalHeatExchanger>();
-            foreach (FNThermalHeatExchanger mthe in mthes) {
-                if (mthe.isActive()) {
+            foreach (FNThermalHeatExchanger mthe in mthes)
+            {
+                if (mthe.isActive())
+                {
                     activeExchangers++;
                 }
             }
             return activeExchangers;
         }
 
-	}
+    }
 }
 

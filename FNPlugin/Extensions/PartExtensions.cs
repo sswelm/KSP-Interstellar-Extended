@@ -39,10 +39,42 @@ namespace FNPlugin
 
         public static double GetResourceAvailable(this Part part, PartResourceDefinition definition)
         {
+            if (definition == null)
+            {
+                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                return 0;
+            }
+
             double currentAmount;
             double maxAmount;
             part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
             return currentAmount;
+        }
+
+        public static double GetResourceAvailable(this Part part, string name)
+        {
+            var definition = PartResourceLibrary.Instance.GetDefinitionSafe(name);
+
+            if (definition == null)
+            {
+                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                return 0;
+            }
+
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            return currentAmount;
+        }
+
+        public static double GetResourceMaxAvailable(this Part part, string name)
+        {
+            var definition = PartResourceLibrary.Instance.GetDefinitionSafe(name);
+
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            return maxAmount;
         }
 
         public static double GetResourceMaxAvailable(this Part part, PartResourceDefinition definition)

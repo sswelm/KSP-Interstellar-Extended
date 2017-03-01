@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin 
+namespace FNPlugin
 {
     [KSPModule("Omega Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor
@@ -67,7 +67,7 @@ namespace FNPlugin
 
             isChargingField.guiActiveEditor = false;
 
-			base.OnStart(state);
+            base.OnStart(state);
 
             if (state != StartState.Editor && allowJumpStart)
             {
@@ -85,44 +85,44 @@ namespace FNPlugin
 
                 UnityEngine.Debug.LogWarning("[KSPI] - InterstellarInertialConfinementReactor.OnStart allowJumpStart");
             }
-            
+
         }
 
-        public override double MinimumThrottle 
+        public override double MinimumThrottle
         {
-            get 
+            get
             {
                 var currentMinimumThrottle = (powerPercentage > 0 && base.MinimumThrottle > 0)
-                    ? Math.Min(base.MinimumThrottle / PowerRatio, 1) 
+                    ? Math.Min(base.MinimumThrottle / PowerRatio, 1)
                     : base.MinimumThrottle;
 
                 minimumThrottlePercentage = currentMinimumThrottle * 100;
 
                 return currentMinimumThrottle;
-            } 
+            }
         }
 
 
 
-	    public double LaserPowerRequirements
-	    {
-		    get 
-            { 
+        public double LaserPowerRequirements
+        {
+            get
+            {
                 currentLaserPowerRequirements =
-                    CurrentFuelMode == null 
+                    current_fuel_mode == null
                     ? PowerRequirement
-                    : powerControlAffectsMaintenance 
+                    : powerControlAffectsMaintenance
                         ? PowerRatio * NormalizedPowerRequirment
                         : NormalizedPowerRequirment;
                 return currentLaserPowerRequirements;
             }
-	    }
+        }
 
         public double StartupPower
         {
-            get 
+            get
             {
-                var startupPower = startupPowerMultiplier * LaserPowerRequirements; 
+                var startupPower = startupPowerMultiplier * LaserPowerRequirements;
                 if (startupCostGravityMultiplier > 0)
                 {
                     var gravityFactor = startupCostGravityMultiplier * FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
@@ -133,18 +133,18 @@ namespace FNPlugin
                 return startupPower;
             }
         }
-        
-        public override bool shouldScaleDownJetISP() 
+
+        public override bool shouldScaleDownJetISP()
         {
             return isupgraded ? false : true;
         }
 
-		public override double MaximumChargedPower 
-        { 
-            get 
+        public override double MaximumChargedPower
+        {
+            get
             {
-                return PowerRatio * base.MaximumChargedPower; 
-            } 
+                return PowerRatio * base.MaximumChargedPower;
+            }
         }
 
         public override double MaximumThermalPower
@@ -159,18 +159,18 @@ namespace FNPlugin
         {
             base.Update();
 
-            isChargingField.guiActive = !IsEnabled &&  HighLogic.LoadedSceneIsFlight && canChargeJumpstart && part.vessel.geeForce < startupMaximumGeforce ;
+            isChargingField.guiActive = !IsEnabled && HighLogic.LoadedSceneIsFlight && canChargeJumpstart && part.vessel.geeForce < startupMaximumGeforce;
             isChargingField.guiActiveEditor = false;
         }
 
-        public override void OnUpdate() 
+        public override void OnUpdate()
         {
-            if (!CheatOptions.InfiniteElectricity && !isChargingForJumpstart && !isSwappingFuelMode && getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert) 
+            if (!CheatOptions.InfiniteElectricity && !isChargingForJumpstart && !isSwappingFuelMode && getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert)
             {
                 ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 10.0f, ScreenMessageStyle.UPPER_CENTER);
                 fusion_alert = true;
-            } 
-            else 
+            }
+            else
                 fusion_alert = false;
 
             if (isChargingField.guiActive)
@@ -221,7 +221,7 @@ namespace FNPlugin
             base.OnUpdate();
         }
 
-        public override void OnFixedUpdate() 
+        public override void OnFixedUpdate()
         {
             base.OnFixedUpdate();
 
@@ -243,12 +243,12 @@ namespace FNPlugin
             var powerRequested = LaserPowerRequirements * TimeWarp.fixedDeltaTime * Math.Max(reactor_power_ratio, 0.00001);
 
             // consume reactor power requirements
-            var powerReceived = CheatOptions.InfiniteElectricity 
-                ? powerRequested 
+            var powerReceived = CheatOptions.InfiniteElectricity
+                ? powerRequested
                 : consumeFNResource(powerRequested, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
             // retreive any shortage from buffer
-            if (!CheatOptions.InfiniteElectricity &&  IsEnabled && powerReceived < powerRequested)
+            if (!CheatOptions.InfiniteElectricity && IsEnabled && powerReceived < powerRequested)
             {
                 // retreive megawath ratio
                 var megaWattStorageRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
@@ -361,8 +361,8 @@ namespace FNPlugin
                 if (neededPower > 0)
                 {
                     // verify we amount of power collected exceeds treshhold
-                    var returnedMegaJoulePower = CheatOptions.InfiniteElectricity 
-                        ? neededPower 
+                    var returnedMegaJoulePower = CheatOptions.InfiniteElectricity
+                        ? neededPower
                         : consumeFNResource(neededPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                     if (startupMinimumChargePercentage == 0 || returnedMegaJoulePower / TimeWarp.fixedDeltaTime > (startupMinimumChargePercentage * StartupPower))
@@ -380,12 +380,12 @@ namespace FNPlugin
 
         private int framesPlasmaRatioIsGood;
 
-        public override string getResourceManagerDisplayName() 
+        public override string getResourceManagerDisplayName()
         {
             return TypeName;
         }
 
-        public override int getPowerPriority() 
+        public override int getPowerPriority()
         {
             return 1;
         }
