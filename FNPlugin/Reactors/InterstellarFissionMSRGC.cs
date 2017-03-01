@@ -46,7 +46,7 @@ namespace FNPlugin
 
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
             {
-                part.Resources[fuel.FuelName].amount = 0;
+                part.Resources[fuel.ResourceName].amount = 0;
             }
 
             var startFirstFuelType = current_fuel_mode.ReactorFuels.First();
@@ -61,11 +61,11 @@ namespace FNPlugin
                 current_fuel_mode = fuel_modes[fuel_mode];
                 currentFirstFuelType = current_fuel_mode.ReactorFuels.First();
             }
-            while (currentFirstFuelType.FuelName == startFirstFuelType.FuelName);
+            while (currentFirstFuelType.ResourceName == startFirstFuelType.ResourceName);
 
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
             {
-                part.Resources[fuel.FuelName].amount = part.Resources[fuel.FuelName].maxAmount;
+                part.Resources[fuel.ResourceName].amount = part.Resources[fuel.ResourceName].maxAmount;
             }
 
             fuelModeStr = current_fuel_mode.ModeGUIName;
@@ -87,7 +87,7 @@ namespace FNPlugin
                 current_fuel_mode = fuel_modes[fuel_mode];
                 currentFirstFuelType = current_fuel_mode.ReactorFuels.First();
             }
-            while (currentFirstFuelType.FuelName != startFirstFuelType.FuelName);
+            while (currentFirstFuelType.ResourceName != startFirstFuelType.ResourceName);
 
             fuelModeStr = current_fuel_mode.ModeGUIName;
         }
@@ -109,10 +109,10 @@ namespace FNPlugin
         {
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
             {
-                if (!part.Resources.Contains(fuel.FuelName) || !part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides)) return; // avoid exceptions, just in case
-                PartResource fuel_reactor = part.Resources[fuel.FuelName];
+                if (!part.Resources.Contains(fuel.ResourceName) || !part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides)) return; // avoid exceptions, just in case
+                PartResource fuel_reactor = part.Resources[fuel.ResourceName];
                 PartResource actinides_reactor = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-                List<PartResource> fuel_resources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.FuelName)).ToList();
+                List<PartResource> fuel_resources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName)).ToList();
 
                 double spare_capacity_for_fuel = fuel_reactor.maxAmount - actinides_reactor.amount;
                 fuel_resources.ForEach(res =>
@@ -248,7 +248,7 @@ namespace FNPlugin
 
                 foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
                 {
-                    PartResource fuel_resource = part.Resources[fuel.FuelName];
+                    PartResource fuel_resource = part.Resources[fuel.ResourceName];
                     double fraction = sum_useage_per_mw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sum_useage_per_mw : 1;
                     double new_fuel_amount = Math.Min(fuel_resource.amount + depleted_fuels_change * 4.0 * fraction, fuel_resource.maxAmount);
                     fuel_resource.amount = new_fuel_amount;
@@ -269,8 +269,8 @@ namespace FNPlugin
         {
             foreach (ReactorFuel fuel in current_fuel_mode.ReactorFuels)
             {
-                PartResource fuel_reactor = part.Resources[fuel.FuelName];
-                List<PartResource> swap_resource_list = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.FuelName)).ToList();
+                PartResource fuel_reactor = part.Resources[fuel.ResourceName];
+                List<PartResource> swap_resource_list = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName)).ToList();
 
                 swap_resource_list.ForEach(res =>
                 {

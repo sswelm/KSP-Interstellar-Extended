@@ -424,7 +424,7 @@ namespace FNPlugin
                 var fuelAmount = product.fuelmode.DensityInTon > 0 ? (effectiveMass / product.fuelmode.DensityInTon) : 0;
                 if (fuelAmount == 0) continue;
 
-                part.RequestResource(product.fuelmode.FuelName, fuelAmount);
+                part.RequestResource(product.fuelmode.ResourceName, fuelAmount);
             }
 
             var hydrogenAmount = Math.Min(hydrogenMassSum / hydrogenDefinition.density, consumedAmount);
@@ -1118,7 +1118,7 @@ namespace FNPlugin
                     }
                     else if (current_fuel_mode != null)
                     {
-                        statusStr = current_fuel_mode.ReactorFuels.FirstOrDefault(fuel => GetFuelAvailability(fuel) <= 0).FuelName + " Deprived";
+                        statusStr = current_fuel_mode.ReactorFuels.FirstOrDefault(fuel => GetFuelAvailability(fuel) <= 0).ResourceName + " Deprived";
                     }
                 }
                 else
@@ -1523,7 +1523,7 @@ namespace FNPlugin
                 sb.AppendLine("Total Energy Density: " + fm.ReactorFuels.Sum(fuel => fuel.EnergyDensity).ToString("0.00") + " MJ/kg");
                 foreach (ReactorFuel fuel in fm.ReactorFuels)
                 {
-                    sb.AppendLine(fuel.FuelName + " " + fuel.AmountFuelUsePerMJ * fuelUsePerMJMult * PowerOutput * fm.NormalisedReactionRate * PluginHelper.SecondsInDay / fuelEfficiency + fuel.Unit + "/day");
+                    sb.AppendLine(fuel.ResourceName + " " + fuel.AmountFuelUsePerMJ * fuelUsePerMJMult * PowerOutput * fm.NormalisedReactionRate * PluginHelper.SecondsInDay / fuelEfficiency + fuel.Unit + "/day");
                 }
                 sb.AppendLine("---");
             });
@@ -1604,16 +1604,16 @@ namespace FNPlugin
 
             if (!fuel.ConsumeGlobal)
             {
-                if (part.Resources.Contains(fuel.FuelName))
+                if (part.Resources.Contains(fuel.ResourceName))
                 {
-                    double amount = Math.Min(consume_amount_in_unit_of_storage, part.Resources[fuel.FuelName].amount);
-                    part.Resources[fuel.FuelName].amount -= amount;
+                    double amount = Math.Min(consume_amount_in_unit_of_storage, part.Resources[fuel.ResourceName].amount);
+                    part.Resources[fuel.ResourceName].amount -= amount;
                     return amount;
                 }
                 else
                     return 0;
             }
-            return part.RequestResource(fuel.FuelName, consume_amount_in_unit_of_storage);
+            return part.RequestResource(fuel.ResourceName, consume_amount_in_unit_of_storage);
         }
 
         protected virtual double ProduceReactorProduct(ReactorProduct product, double MJpower)
@@ -1623,18 +1623,18 @@ namespace FNPlugin
             //var effectiveAmount = produce_amount / FuelEfficiency;
             if (!product.ProduceGlobal)
             {
-                if (part.Resources.Contains(product.FuelName))
+                if (part.Resources.Contains(product.ResourceName))
                 {
-                    double availableStorage = part.Resources[product.FuelName].maxAmount - part.Resources[product.FuelName].amount;
+                    double availableStorage = part.Resources[product.ResourceName].maxAmount - part.Resources[product.ResourceName].amount;
                     double possibleAmount = Math.Min(product_supply, availableStorage);
-                    part.Resources[product.FuelName].amount += possibleAmount;
+                    part.Resources[product.ResourceName].amount += possibleAmount;
                     return product_supply * product.DensityInTon;
                 }
                 else
                     return 0;
             }
 
-            part.RequestResource(product.FuelName, -product_supply);
+            part.RequestResource(product.ResourceName, -product_supply);
             return product_supply * product.DensityInTon;
         }
 
@@ -1645,8 +1645,8 @@ namespace FNPlugin
 
             if (!fuel.ConsumeGlobal)
             {
-                if (part.Resources.Contains(fuel.FuelName))
-                    return part.Resources[fuel.FuelName].amount;
+                if (part.Resources.Contains(fuel.ResourceName))
+                    return part.Resources[fuel.ResourceName].amount;
                 else
                     return 0;
             }
@@ -1656,12 +1656,12 @@ namespace FNPlugin
                 //return part.GetConnectedResources(fuel.FuelName).Sum(rs => rs.amount);
                 double amount;
                 double maxAmount;
-                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.FuelName);
+                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(fuel.ResourceName);
                 part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
                 return amount;
             }
             else
-                return part.FindAmountOfAvailableFuel(fuel.FuelName, 4);
+                return part.FindAmountOfAvailableFuel(fuel.ResourceName, 4);
         }
 
         protected double GetFuelAvailability(ReactorProduct product)
@@ -1671,8 +1671,8 @@ namespace FNPlugin
 
             if (!product.ProduceGlobal)
             {
-                if (part.Resources.Contains(product.FuelName))
-                    return part.Resources[product.FuelName].amount;
+                if (part.Resources.Contains(product.ResourceName))
+                    return part.Resources[product.ResourceName].amount;
                 else
                     return 0;
             }
@@ -1682,12 +1682,12 @@ namespace FNPlugin
                 //return part.GetConnectedResources(product.FuelName).Sum(rs => rs.amount);
                 double amount;
                 double maxAmount;
-                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(product.FuelName);
+                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(product.ResourceName);
                 part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
                 return amount;
             }
             else
-                return part.FindAmountOfAvailableFuel(product.FuelName, 4);
+                return part.FindAmountOfAvailableFuel(product.ResourceName, 4);
         }
 
         protected double GetMaxFuelAvailability(ReactorProduct product)
@@ -1697,8 +1697,8 @@ namespace FNPlugin
 
             if (!product.ProduceGlobal)
             {
-                if (part.Resources.Contains(product.FuelName))
-                    return part.Resources[product.FuelName].maxAmount;
+                if (part.Resources.Contains(product.ResourceName))
+                    return part.Resources[product.ResourceName].maxAmount;
                 else
                     return 0;
             }
@@ -1708,12 +1708,12 @@ namespace FNPlugin
                 //return part.GetConnectedResources(product.FuelName).Sum(rs => rs.maxAmount);
                 double amount;
                 double maxAmount;
-                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(product.FuelName);
+                var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(product.ResourceName);
                 part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
                 return maxAmount;
             }
             else
-                return part.FindMaxAmountOfAvailableFuel(product.FuelName, 4);
+                return part.FindMaxAmountOfAvailableFuel(product.ResourceName, 4);
         }
 
         public void OnGUI()
@@ -1824,7 +1824,7 @@ namespace FNPlugin
                     {
                         double availabilityInKg = GetFuelAvailability(fuel) * fuel.DensityInKg;
 
-                        PrintToGUILayout(fuel.FuelName + " Reserves", availabilityInKg.ToString("0.000000") + " kg", bold_style, text_style);
+                        PrintToGUILayout(fuel.ResourceName + " Reserves", availabilityInKg.ToString("0.000000") + " kg", bold_style, text_style);
                         double kg_fuel_use_per_day = 1000 * total_power_per_frame * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * PluginHelper.SecondsInDay;
 
                         double fuel_lifetime_d = kg_fuel_use_per_day > 0 ? availabilityInKg / kg_fuel_use_per_day : 0;
@@ -1832,12 +1832,12 @@ namespace FNPlugin
                         int lifetime_years = (int)Math.Floor(fuel_lifetime_d / GameConstants.KERBIN_YEAR_IN_DAYS);
                         double lifetime_years_day_remainder = fuel_lifetime_d % GameConstants.KERBIN_YEAR_IN_DAYS;
 
-                        PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.getFormatedMassString(kg_fuel_use_per_day, "0.000000") + "/day", bold_style, text_style);
+                        PrintToGUILayout(fuel.ResourceName + " Consumption ", PluginHelper.getFormatedMassString(kg_fuel_use_per_day, "0.000000") + "/day", bold_style, text_style);
 
                         if (lifetime_years > 0)
-                            PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetime_years) ? "-" : lifetime_years + " years " + (lifetime_years_day_remainder).ToString("0.00")) + " days", bold_style, text_style);
+                            PrintToGUILayout(fuel.ResourceName + " Lifetime", (double.IsNaN(lifetime_years) ? "-" : lifetime_years + " years " + (lifetime_years_day_remainder).ToString("0.00")) + " days", bold_style, text_style);
                         else
-                            PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", bold_style, text_style);
+                            PrintToGUILayout(fuel.ResourceName + " Lifetime", (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", bold_style, text_style);
                     }
 
                     GUILayout.BeginHorizontal();
@@ -1850,13 +1850,13 @@ namespace FNPlugin
                         double maxAvailabilityInKg = GetMaxFuelAvailability(product) * product.DensityInKg;
 
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label(product.FuelName + " Storage", bold_style, GUILayout.Width(150));
+                        GUILayout.Label(product.ResourceName + " Storage", bold_style, GUILayout.Width(150));
                         GUILayout.Label((availabilityInKg).ToString("0.0000") + " kg / " + (maxAvailabilityInKg).ToString("0.0000") + " kg", text_style, GUILayout.Width(150));
                         GUILayout.EndHorizontal();
 
                         double dayly_production_in_Kg = 1000 * total_power_per_frame * product.TonsProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * current_fuel_mode.NormalisedReactionRate * PluginHelper.SecondsInDay;
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label(product.FuelName + " Production", bold_style, GUILayout.Width(150));
+                        GUILayout.Label(product.ResourceName + " Production", bold_style, GUILayout.Width(150));
                         GUILayout.Label(dayly_production_in_Kg.ToString("0.000000") + " kg/day", text_style, GUILayout.Width(150));
                         GUILayout.EndHorizontal();
                     }
