@@ -109,7 +109,7 @@ namespace FNPlugin
             get
             {
                 currentLaserPowerRequirements =
-                    current_fuel_mode == null
+                    CurrentFuelMode == null
                     ? PowerRequirement
                     : powerControlAffectsMaintenance
                         ? PowerRatio * NormalizedPowerRequirment

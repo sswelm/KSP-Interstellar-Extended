@@ -219,7 +219,7 @@ namespace FNPlugin
                 resourceStoragename = ors_atmospheric_resource_name;
 
             //double resourcedensity = PartResourceLibrary.Instance.GetDefinition(PluginHelper.atomspheric_resources_tocollect[currentresource]).density;
-            var definition = PartResourceLibrary.Instance.GetDefinitionSafe(resourceStoragename);
+            var definition = PartResourceLibrary.Instance.GetDefinition(resourceStoragename);
 
             if (definition == null)
                 return;

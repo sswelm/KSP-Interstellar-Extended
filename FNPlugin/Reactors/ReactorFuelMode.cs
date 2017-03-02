@@ -10,9 +10,83 @@ namespace FNPlugin
         public double mass;
     }
 
+    public class ResourceGroup
+    {
+        public string name;
+        public List<PartResourceDefinition> variantDefinitions;
+    }
+
+
+    class ReactorFuelType
+    {
+        public ReactorFuelType(IEnumerable<ReactorFuelMode> reactorFuelModes)
+        {
+            Variants = reactorFuelModes.ToList();
+
+            ResourceGroups = new List<ResourceGroup>();
+            foreach (var group in Variants.SelectMany(m => m.ReactorFuels).GroupBy(m => m.FuelName))
+            {
+                ResourceGroups.Add(new ResourceGroup()
+                {
+                    name = group.Key,
+                    variantDefinitions = group.Select(m => m.Definition).Distinct().ToList()
+                });
+            }
+
+            var first = Variants.First();
+
+            Index = first.Index;
+            ModeGUIName = first.ModeGUIName;
+            TechLevel = first.TechLevel;
+            TechRequirement = first.TechRequirement;
+            SupportedReactorTypes = first.SupportedReactorTypes;
+            Aneutronic = first.Aneutronic;
+            RequiresLab = first.RequiresLab;
+            RequiresUpgrade = first.RequiresUpgrade;
+            ChargedPowerRatio = first.ChargedPowerRatio;
+            MeVPerChargedProduct = first.MeVPerChargedProduct;
+            NormalisedReactionRate = first.NormalisedReactionRate;
+            NormalisedPowerRequirements = first.NormalisedPowerRequirements;
+            NeutronsRatio = first.NeutronsRatio;
+            TritiumBreedModifier = first.TritiumBreedModifier;
+            FuelEfficencyMultiplier = first.FuelEfficencyMultiplier;
+        }
+
+        public int SupportedReactorTypes { get; private set; }
+        public int Index { get; private set; }
+        public string ModeGUIName { get; private set; }
+        public string TechRequirement { get; private set; }
+        public bool Aneutronic { get; private set; }
+        public bool RequiresLab { get; private set; }
+        public bool RequiresUpgrade { get; private set; }
+        public float ChargedPowerRatio { get; private set; }
+        public double MeVPerChargedProduct { get; private set; }
+        public float NormalisedReactionRate { get; private set; }
+        public float NormalisedPowerRequirements { get; private set; }
+        public int TechLevel { get; private set; }
+        public float NeutronsRatio { get; private set; }
+        public float TritiumBreedModifier { get; private set; }
+        public double FuelEfficencyMultiplier { get; private set; }
+
+        public List<ReactorFuelMode> Variants { get; private set; }
+        public List<ResourceGroup> ResourceGroups { get; private set; }
+
+        // Methods
+        public List<ReactorFuelMode> GetVariantsOrderedByFuelRatio(Part part, double FuelEfficiency, double powerToSupply, double fuelUsePerMJMult)
+        {
+            foreach (var fuelMode in Variants)
+            {
+                fuelMode.FuelRatio = fuelMode.ReactorFuels.Min(fuel => fuel.GetFuelRatio(part, FuelEfficiency, powerToSupply, fuelUsePerMJMult));
+            }
+
+            return Variants.OrderByDescending(m => m.FuelRatio).ThenBy(m => m.Position).ToList();
+        }
+    }
+
     class ReactorFuelMode
     {
         protected int _reactor_type;
+        protected int _index;
         protected string _mode_gui_name;
         protected string _techRequirement;
         protected List<ReactorFuel> _fuels;
@@ -31,8 +105,9 @@ namespace FNPlugin
 
         public ReactorFuelMode(ConfigNode node)
         {
-            _reactor_type = Convert.ToInt32(node.GetValue("ReactorType"));
             _mode_gui_name = node.GetValue("GUIName");
+            _reactor_type = Convert.ToInt32(node.GetValue("ReactorType"));
+            _index = node.HasValue("Index") ? int.Parse(node.GetValue("Index")) : 0;
 
             _techRequirement = node.HasValue("TechRequirement") ? node.GetValue("TechRequirement") : String.Empty;
 
@@ -58,6 +133,8 @@ namespace FNPlugin
         }
 
         public int SupportedReactorTypes { get { return _reactor_type; } }
+
+        public int Index { get { return _index; } }
 
         public string ModeGUIName { get { return _mode_gui_name; } }
 
@@ -88,5 +165,9 @@ namespace FNPlugin
         public float TritiumBreedModifier { get { return _neutrons_ratio; } }
 
         public double FuelEfficencyMultiplier { get { return _fuel_efficency_multiplier; } }
+
+        public int Position { get; set; }
+
+        public double FuelRatio { get; set; }
     }
 }

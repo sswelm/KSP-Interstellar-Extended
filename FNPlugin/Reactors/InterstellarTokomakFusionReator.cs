@@ -15,9 +15,9 @@ namespace FNPlugin
         {
             get
             {
-                return current_fuel_mode == null
+                return CurrentFuelMode == null
                     ? PowerRequirement
-                    : PowerRequirement * current_fuel_mode.NormalisedPowerRequirements;
+                    : PowerRequirement * CurrentFuelMode.NormalisedPowerRequirements;
             }
         }
 

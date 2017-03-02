@@ -89,8 +89,8 @@ namespace InterstellarFuelSwitch
             //maxTransferAmountPrimaryIsMissing = maxTransferAmountPrimary <= 0;
             //maxTransferAmountSecondaryIsMissing = maxTransferAmountSecondary <= 0;
 
-            primaryResources = primaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinitionSafe(m.Trim()) } ).ToList();
-            secondaryResources = secondaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinitionSafe(m.Trim()) }).ToList();
+            primaryResources = primaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) } ).ToList();
+            secondaryResources = secondaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) }).ToList();
 
             hasNullDefinitions = primaryResources.Any(m => m.definition == null) || secondaryResources.Any(m => m.definition == null);
             if (hasNullDefinitions)

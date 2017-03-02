@@ -228,7 +228,7 @@ namespace FNPlugin.Extensions
         private static void AddMissingResource(string resourname, int refBody, List<OceanicResource> bodyOceanicComposition)
         {
             // verify it is a defined resource
-            PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinitionSafe(resourname);
+            PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resourname);
             if (definition == null)
             {
                 Debug.LogWarning("[KSPI] - AddMissingResource : Failed to find resource definition for '" + resourname + "'");
