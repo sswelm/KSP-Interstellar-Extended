@@ -117,10 +117,11 @@ namespace FNPlugin
             var chooseField = Fields["selectedFuel"];
             var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
             var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
-
-            chooseField.guiActive = FuelConfigurations.Count > 1;
-            chooseField.guiActiveEditor = FuelConfigurations.Count > 1;
-
+            if (FuelConfigurations.Count <= 1)
+            {
+                chooseField.guiActive = false;
+                chooseField.guiActiveEditor = false;
+            }
             var names = FuelConfigurations.Select(m => m.fuelConfigurationName).ToArray();
 
             chooseOptionEditor.options = names;
@@ -129,12 +130,13 @@ namespace FNPlugin
             //  UpdateFromGUI(chooseField, selectedFuel);
 
             // connect on change event
-            if (chooseField.guiActive)
-            {
-                chooseOptionEditor.onFieldChanged = UpdateEditorGUI;
-                chooseOptionFlight.onFieldChanged = UpdateFlightGUI;
-            }
+            if (chooseField.guiActive)  chooseOptionFlight.onFieldChanged = UpdateFlightGUI;
+            if (chooseField.guiActiveEditor) chooseOptionEditor.onFieldChanged = UpdateEditorGUI;
+
+            
+            
         }
+
 
         private void UpdateEditorGUI(BaseField field, object oldFieldValueObj)
         {
