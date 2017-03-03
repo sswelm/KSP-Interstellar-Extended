@@ -14,9 +14,6 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         bool rad_safety_features = true;
 
-    /*    [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Reaction Type")]
-        [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
-        public int selectedFuelConfiguration = 0;*/
 
         // None Persistant
         [KSPField(isPersistant = false, guiActive = true, guiName = "Radiation Hazard To")]
@@ -205,11 +202,11 @@ namespace FNPlugin
             get
             {
                 if (EngineGenerationType == GenerationType.Mk1)
-                    return powerRequirement * ActiveConfiguration.powerMult;
+                    return powerRequirement * powerMult();
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return powerRequirementUpgraded * ActiveConfiguration.powerMult;
+                    return powerRequirementUpgraded * powerMult();
                 else
-                    return powerRequirementUpgraded2 * ActiveConfiguration.powerMult;
+                    return powerRequirementUpgraded2 * powerMult(); 
             }
         }
 
@@ -224,6 +221,11 @@ namespace FNPlugin
                 else
                     return minThrottleRatioMk3;
             }
+        }
+        private float powerMult ()
+        {
+            return (FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1) *
+                        (float)(scale == 0 ? 1 : Math.Pow(scale, 2));
         }
         public void FCUpdate()
         {

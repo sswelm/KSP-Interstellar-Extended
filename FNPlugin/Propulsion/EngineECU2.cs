@@ -4,42 +4,48 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using TweakScale;
 
 namespace FNPlugin
 {
     enum GenerationType { Mk1, Mk2, Mk3, Mk4, Mk5 }
-    abstract class EngineECU2 : FNResourceSuppliableModule
+    abstract class EngineECU2 : FNResourceSuppliableModule, IRescalable<EngineECU2>
     {
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "Fuel Config")]
-        [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Fuel Config")]
+        [UI_ChooseOption(affectSymCounterparts = UI_Scene.All, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedFuel = 0;
 
         public bool hasMultipleConfigurations = false;
-
+        private UIPartActionWindow tweakableUI;
+      
+       
 
         // Persistant
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
+        [KSPField(isPersistant = true)]
+        bool Launched = false;
         [KSPField(isPersistant = false)]
         public float minThrottleRatioMk1 = 0.2f;
         [KSPField(isPersistant = false)]
         public float minThrottleRatioMk2 = 0.1f;
         [KSPField(isPersistant = false)]
         public float minThrottleRatioMk3 = 0.05f;
+        [KSPField(isPersistant = true)]
+        public float scale = 1;
 
         // None Persistant 
 
         [KSPField(isPersistant = false)]
         public float maxThrust = 75;
-        public float MaxThrust { get { return maxThrust * ActiveConfiguration.thrustMult; } }
-
+        public float MaxThrust { get { return maxThrust * thrustMult(); } }
         [KSPField(isPersistant = false)]
         public float maxThrustUpgraded = 300;
-        public float MaxThrustUpgraded { get { return maxThrustUpgraded * ActiveConfiguration.thrustMult; } }
+        public float MaxThrustUpgraded { get { return maxThrustUpgraded * thrustMult(); } }
 
         [KSPField(isPersistant = false)]
         public float maxThrustUpgraded2 = 1200;
-        public float MaxThrustUpgraded2 { get { return maxThrustUpgraded2 * ActiveConfiguration.thrustMult; } }
+        public float MaxThrustUpgraded2 { get { return maxThrustUpgraded2 * thrustMult(); } }
 
 
 
@@ -81,6 +87,7 @@ namespace FNPlugin
             {
                 if (activeConfiguration == null) activeConfiguration = FuelConfigurations[selectedFuel];
                 return activeConfiguration;
+                
             }
         }
 
@@ -98,6 +105,11 @@ namespace FNPlugin
                 return fuelConfigurations;
             }
         }
+        private float thrustMult()
+        {
+            return (FuelConfigurations.Count > 0 ? ActiveConfiguration.thrustMult : 1) *
+                        (float)(scale == 0 ? 1 : Math.Pow(scale, 2));
+        }
         private void InitializeFuelSelector()
         {
             Debug.Log("[KSP Interstellar] Setup Transmit Fuels Configurations for " + part.partInfo.title);
@@ -107,7 +119,7 @@ namespace FNPlugin
             var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
 
             chooseField.guiActive = FuelConfigurations.Count > 1;
-          //  chooseField.guiActiveEditor = FuelConfigurations.Count > 1;
+            chooseField.guiActiveEditor = FuelConfigurations.Count > 1;
 
             var names = FuelConfigurations.Select(m => m.fuelConfigurationName).ToArray();
 
@@ -121,8 +133,6 @@ namespace FNPlugin
             {
                 chooseOptionEditor.onFieldChanged = UpdateEditorGUI;
                 chooseOptionFlight.onFieldChanged = UpdateFlightGUI;
-                LoadInitialConfiguration();
-                UpdateFuel();
             }
         }
 
@@ -130,7 +140,7 @@ namespace FNPlugin
         {
             Debug.Log("Editor Gui Updated");
             UpdateFromGUI(field, oldFieldValueObj);
-         //   UpdateResources();
+            UpdateResources();
 
         }
         private void UpdateFlightGUI(BaseField field, object oldFieldValueObj)
@@ -141,6 +151,7 @@ namespace FNPlugin
             UpdateFromGUI(field, oldFieldValueObj);
             UpdateFuel();
 
+
         }
 
         public virtual void UpdateFuel()
@@ -150,13 +161,16 @@ namespace FNPlugin
             ConfigNode akPropellants = new ConfigNode();
            
             int I = 0;
+            int N = 0;
 
             while (I < ActiveConfiguration.Fuels.Length)
             {
-               if (ActiveConfiguration.Ratios[I] > 0) akPropellants.AddNode(LoadPropellant(ActiveConfiguration.Fuels[I], ActiveConfiguration.Ratios[I]));
+                if (ActiveConfiguration.Ratios[I] > 0) akPropellants.AddNode(LoadPropellant(ActiveConfiguration.Fuels[I], ActiveConfiguration.Ratios[I]));
+                else N++;
                 I++;
             }
-
+            if (N + 1 >= ActiveConfiguration.Fuels.Length) Fields["selectedFuel"].guiActive = false;
+     
             akPropellants.AddValue("maxThrust", 1);
 
             akPropellants.AddValue("maxFuelFlow", 1);
@@ -173,25 +187,40 @@ namespace FNPlugin
             Debug.Log("Update Resources");
 
             ConfigNode akResources = new ConfigNode();
+            
 
             int I = 0;
-
+            int N = 0;
 
             while (I < part.Resources.Count)
             {
-                part.RemoveResource(part.Resources[I]);
+                part.Resources.Remove(part.Resources[I]);
+                
                 I++;
             }
+            part.Resources.Clear();
             I = 0;
-            part.SetupResources();
+
+            // part.SetupResources();
+            Debug.Log("Old Fuels: " + part.Resources.Count);
             while (I < ActiveConfiguration.Fuels.Length)
             {
 
-                part.AddResource(LoadResource(ActiveConfiguration.Fuels[I], ActiveConfiguration.Amount[I], ActiveConfiguration.MaxAmount[I]));
-
+                if (ActiveConfiguration.MaxAmount[I] > 0) part.AddResource(LoadResource(ActiveConfiguration.Fuels[I], ActiveConfiguration.Amount[I], ActiveConfiguration.MaxAmount[I]));
+                else N++;
                 I++;
             }
+            if (N + 1 >= ActiveConfiguration.Fuels.Length) Fields["selectedFuel"].guiActive = false;
 
+            Debug.Log("New Fuels: " + ActiveConfiguration.Fuels.Length);
+            if (tweakableUI == null)
+                tweakableUI = part.FindActionWindow();
+            if (tweakableUI != null)
+                tweakableUI.displayDirty = true;
+
+
+            //     curEngineT.Save(akResources);
+            Debug.Log("Resources Updated");
 
         }
     
@@ -230,22 +259,21 @@ namespace FNPlugin
                 return;
             }
 
-            if (isLoaded == false)
-                LoadInitialConfiguration();
+
+            if (selectedFuel < FuelConfigurations.Count)
+            {
+                Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " < orderedFuelGenerators.Count");
+              //  FuelConfigurations[selectedFuel].Factor = ActiveConfiguration.Factor;
+                activeConfiguration = FuelConfigurations[selectedFuel];
+            }
             else
             {
-                if (selectedFuel < FuelConfigurations.Count)
-                {
-                    Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " < orderedFuelGenerators.Count");
-                    activeConfiguration = FuelConfigurations[selectedFuel];
-                }
-                else
-                {
-                    Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " >= orderedFuelGenerators.Count");
-                    selectedFuel = FuelConfigurations.Count - 1;
-                    activeConfiguration = FuelConfigurations.Last();
-                }
+                Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " >= orderedFuelGenerators.Count");
+                selectedFuel = FuelConfigurations.Count - 1;
+              //  FuelConfigurations[selectedFuel].Factor = ActiveConfiguration.Factor;
+                activeConfiguration = FuelConfigurations.Last();
             }
+
 
             if (activeConfiguration == null)
             {
@@ -254,6 +282,7 @@ namespace FNPlugin
             }
 
         }
+
         private void LoadInitialConfiguration()
         {
             isLoaded = true;
@@ -280,24 +309,47 @@ namespace FNPlugin
         }
         public override void OnStart(StartState state)
         {
-            //   Debug.Log("Engine OnStart");
+            Debug.Log("Start State: " + state.ToString());
+            Debug.Log("Already Launched: " + Launched);
             InitializeFuelSelector();
-            //    UpdateFuel();
+            if (state.ToString().Contains(StartState.Editor.ToString()))
+            {
+                Debug.Log("Editor");
+                UpdateResources();
+               
+            }
+            else
+            {
+                UpdateFuel();
+            }
+            state.GetType();
+            if (state.ToString().Contains(StartState.PreLaunch.ToString()))
+            {
+                Debug.Log("PreLaunch");
+
+                    UpdateResources();
+                
+            }
+
+            
+
             base.OnStart(state);
         }
-        public override void OnLoad(ConfigNode node)
-        {
 
-            //  UpdateFuel();
-            base.OnLoad(node);
+    
+        public virtual void OnRescale(TweakScale.ScalingFactor akFactor)
+        {
+            scale = akFactor.absolute.linear;
         }
+
+
         public override void OnInitialize()
         {
             //  InitializeFuelSelector();
             base.OnInitialize();
         }
     }
-    class FuelConfiguration : PartModule
+    class FuelConfiguration : PartModule, IRescalable<FuelConfiguration>
     {
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fuel Configuration")]
         public string fuelConfigurationName = "";
@@ -305,18 +357,18 @@ namespace FNPlugin
         public string fuels = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Ratios")]
         public string ratios = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Amount")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Amount")]
         public string amount = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Amount")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Max Amount")]
         public string maxAmount = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max ISP")]
         public float maxIsp = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thrust")]
         public float maxThrust = 1;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "ThrustMult")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "ThrustMult")]
         public float thrustMult = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Power Requirement")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Max Power Requirement")]
         public float powerMult = 1;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmopheric Curve")]
@@ -326,31 +378,60 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Ignore Thrust")]
         public string ignoreForThrustCurve = "";
 
+        [KSPField(isPersistant = true)]
+        public float Scale = 1;
+
+
+
 
         private string[] akFuels = new string[0];
         private bool[] akIgnoreIsp = new bool[0];
         private bool[] akIgnoreThrust = new bool[0];
         private float[] akRatio = new float[0];
+      
         private float[] akAmount = new float[0];
+       
         private float[] akMaxAmount = new float[0];
+
+        
 
         public string[] Fuels
         {
+
             get
             {
+
                 if (akFuels.Length == 0) akFuels = Regex.Replace(fuels, " ", "").Split(',');
-                //    Debug.Log("Fuels: "+ akString[0]);
+
+
                 return akFuels;
             }
         }
+
+        public float T_thrustMult
+        {
+            get
+            {
+               
+                return thrustMult * (float)(Math.Pow(Scale, 2) == 0 ? 1 : Math.Pow(Scale, 2));
+            }
+        }
+        public float T_powerMult
+        {
+            get
+            {
+
+                return powerMult * (float)(Math.Pow(Scale, 2) == 0 ? 1 : Math.Pow(Scale, 2));
+            }   
+        }
+
 
         public float[] Ratios
         {
             get
             {
                 if (akRatio.Length == 0) akRatio = StringToFloatArray(ratios);
-                //  Debug.Log("Ratios: " + ratios);
-                //  Debug.Log("First Ratio Float: "+akRatio[0]);
+
                 return akRatio;
             }
         }
@@ -359,16 +440,19 @@ namespace FNPlugin
             get
             {
                 if (akAmount.Length == 0) akAmount = StringToFloatArray(amount);
-                return akAmount;
+                return VolumeTweaked(akAmount);
             }
+
         }
         public float[] MaxAmount
         {
             get
             {
                 if (akMaxAmount.Length == 0) akMaxAmount = StringToFloatArray(maxAmount);
-                return akMaxAmount;
+                return VolumeTweaked(akMaxAmount);
+
             }
+
         }
         public bool[] IgnoreForIsp
         {
@@ -390,6 +474,27 @@ namespace FNPlugin
             }
 
         }
+        private float[]VolumeTweaked(float[] akFloat)
+        {
+            Debug.Log("akFloat.length: " + akFloat.Length);
+            float[] akTweaked = new float[akFloat.Length];
+           
+            if (Scale != 1 && Scale > 0 )
+            {
+                int I = 0;
+                while (I < akFloat.Length)
+                {
+                    
+                    akTweaked[I] = (float)(akFloat[I] * Math.Pow(Scale, 3));
+                    I++;
+                }
+                akFloat = akTweaked.ToArray();
+            }
+           
+            return akFloat;
+        }
+
+
         private bool[] falseBoolArray()
         {
             List<bool> akBoolList = new List<bool>();
@@ -414,6 +519,19 @@ namespace FNPlugin
             }
             return akFloat.ToArray();
         }
+        private string FloatArrayToString(float[] akFloat)
+        {
+            string akstring = "";
+            int I = 1;
+            akstring += akFloat[I];
+            while (I < akFloat.Length)
+            {
+                akstring = akstring + ", " + akFloat;
+                I++;
+            }
+            maxAmount = akstring;
+            return akstring;
+        }
         private bool[] StringToBoolArray(string akString)
         {
             List<bool> akBool = new List<bool>();
@@ -426,6 +544,13 @@ namespace FNPlugin
             }
             return akBool.ToArray();
         }
+        public virtual void OnRescale(ScalingFactor factor)
+        {
+            Debug.Log(fuelConfigurationName + " Rescaled");
+            Scale = factor.absolute.linear;
+
+        }
+
 
     }
 }

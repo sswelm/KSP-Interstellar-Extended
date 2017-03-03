@@ -37,7 +37,6 @@ namespace FNPlugin
             }
             set
             {
-                Debug.Log("ISP in space: " + value.Evaluate(0));
                     atmophereCurve = value;
                 
             }
