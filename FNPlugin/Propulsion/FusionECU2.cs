@@ -59,22 +59,22 @@ namespace FNPlugin
         public string upgradeTechReq2 = "exoticReactions";
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Fusion Ratio", guiFormat = "F2")]
-        public float fusionRatio;
+        public double fusionRatio;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Requirement", guiFormat = "F2", guiUnits = " MW")]
         public float enginePowerRequirement;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Laser Wasteheat", guiFormat = "F2", guiUnits = " MW")]
         public double laserWasteheat;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Absorbed Wasteheat", guiFormat = "F2", guiUnits = " MW")]
-        public float absorbedWasteheat;
+        public double absorbedWasteheat;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Radiator Temp")]
-        public float coldBathTemp;
+        public double coldBathTemp;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Radiator Temp")]
         public float maxTempatureRadiators;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Performance Radiators")]
-        public float radiatorPerformance;
+        public double radiatorPerformance;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Emisiveness")]
-        public float partEmissiveConstant;
+        public double partEmissiveConstant;
 
 
 
@@ -474,7 +474,8 @@ namespace FNPlugin
                     : consumeFNResource(requestedPowerFixed, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPowerFixed / requestedPowerFixed;
-                fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;
+                //fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;
+                fusionRatio = plasma_ratio;
 
                 var laserWasteheatFixed = recievedPowerFixed * (1 - LaserEfficiency);
                 laserWasteheat = laserWasteheatFixed / TimeWarp.fixedDeltaTime;
@@ -502,7 +503,7 @@ namespace FNPlugin
                 var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
 
 
-                curEngineT.maxFuelFlow = maxFuelFlow;
+                curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.maxThrust =  MaximumThrust;
 
 
@@ -529,10 +530,10 @@ namespace FNPlugin
                 //   curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
             }
 
-            coldBathTemp = (float)FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
-            maxTempatureRadiators = (float)FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
-            radiatorPerformance = Mathf.Max(1 - (coldBathTemp / maxTempatureRadiators), 0.000001f);
-            partEmissiveConstant = (float)part.emissiveConstant;
+            coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
+            maxTempatureRadiators = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
+            radiatorPerformance = Math.Max(1 - (coldBathTemp / maxTempatureRadiators), 0.000001);
+            partEmissiveConstant = part.emissiveConstant;
             base.OnFixedUpdate();
         }
 

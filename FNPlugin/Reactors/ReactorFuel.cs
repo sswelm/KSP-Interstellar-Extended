@@ -14,12 +14,14 @@ namespace FNPlugin
         string _resource_name;
         double _density;
         double _densityInKg;
+        double _ratio;
         string _unit;
         bool _consumeGlobal;
 
         public ReactorFuel(ConfigNode node)
         {
             _fuel_name = node.GetValue("name");
+            _ratio = node.HasValue("ratio") ? Convert.ToDouble(node.GetValue("ratio")) : 1;
             _resource_name = node.HasValue("resource") ? node.GetValue("resource") : _fuel_name;
             _tons_fuel_usage_per_mw = Convert.ToDouble(node.GetValue("UsagePerMW"));
             _unit = node.GetValue("Unit");
@@ -37,6 +39,8 @@ namespace FNPlugin
         }
 
         public PartResourceDefinition Definition { get; private set; }
+
+        public double Ratio { get { return _ratio; } }
 
         public bool ConsumeGlobal { get { return _consumeGlobal; } }
 

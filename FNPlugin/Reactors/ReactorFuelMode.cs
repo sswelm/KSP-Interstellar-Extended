@@ -10,10 +10,23 @@ namespace FNPlugin
         public double mass;
     }
 
-    public class ResourceGroup
+     
+    class FuelResourceMetaData
+    {
+        public FuelResourceMetaData(PartResourceDefinition resourceDefinition, double ratio)
+        {
+            this.resourceDefinition = resourceDefinition;
+            this.ratio = ratio;
+        }
+
+        public PartResourceDefinition resourceDefinition;
+        public double ratio = 1;
+    }
+
+    class ResourceGroupMetaData
     {
         public string name;
-        public List<PartResourceDefinition> variantDefinitions;
+        public List<FuelResourceMetaData> resourceVariantsMetaData;
     }
 
 
@@ -23,13 +36,13 @@ namespace FNPlugin
         {
             Variants = reactorFuelModes.ToList();
 
-            ResourceGroups = new List<ResourceGroup>();
+            ResourceGroups = new List<ResourceGroupMetaData>();
             foreach (var group in Variants.SelectMany(m => m.ReactorFuels).GroupBy(m => m.FuelName))
             {
-                ResourceGroups.Add(new ResourceGroup()
+                ResourceGroups.Add(new ResourceGroupMetaData()
                 {
                     name = group.Key,
-                    variantDefinitions = group.Select(m => m.Definition).Distinct().ToList()
+                    resourceVariantsMetaData = group.Select(m => new FuelResourceMetaData(m.Definition, m.Ratio)).Distinct().ToList()
                 });
             }
 
@@ -69,7 +82,7 @@ namespace FNPlugin
         public double FuelEfficencyMultiplier { get; private set; }
 
         public List<ReactorFuelMode> Variants { get; private set; }
-        public List<ResourceGroup> ResourceGroups { get; private set; }
+        public List<ResourceGroupMetaData> ResourceGroups { get; private set; }
 
         // Methods
         public List<ReactorFuelMode> GetVariantsOrderedByFuelRatio(Part part, double FuelEfficiency, double powerToSupply, double fuelUsePerMJMult)
@@ -130,6 +143,9 @@ namespace FNPlugin
 
             ConfigNode[] products_nodes = node.GetNodes("PRODUCT");
             _products = products_nodes.Select(nd => new ReactorProduct(nd)).ToList();
+
+            AllFuelResourcesDefinitionsAvailable = _fuels.All(m => m.Definition != null);
+            AllProductResourcesDefinitionsAvailable = _products.All(m => m.Definition != null);
         }
 
         public int SupportedReactorTypes { get { return _reactor_type; } }
@@ -169,5 +185,9 @@ namespace FNPlugin
         public int Position { get; set; }
 
         public double FuelRatio { get; set; }
+
+        public bool AllFuelResourcesDefinitionsAvailable { get; private set; }
+        public bool AllProductResourcesDefinitionsAvailable { get; private set; }
+
     }
 }
