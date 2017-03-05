@@ -62,8 +62,8 @@ namespace FNPlugin
             get
             {
                 lithium_modifier = CheatOptions.InfinitePropellant ? 1
-                    : powerIsAffectedByLithium && lithiumPartResource != null && lithiumPartResource.maxAmount > 0
-                        ? Math.Sqrt(lithiumPartResource.amount / lithiumPartResource.maxAmount)
+                    : powerIsAffectedByLithium && totalAmountLithium > 0
+                        ? Math.Sqrt(totalAmountLithium / totalMaxAmountLithium)
                         : 1;
 
                 return lithium_modifier;
