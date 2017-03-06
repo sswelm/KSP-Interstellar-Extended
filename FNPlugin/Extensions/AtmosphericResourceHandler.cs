@@ -259,7 +259,6 @@ namespace FNPlugin
             {
                 
                 var helium = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium4);
-
                 var helium3Abundance = celestialBody.GetPressure(0) > 1000
                     ? helium.ResourceAbundance * 0.001
                     : helium.ResourceAbundance * 1.38e-6;
@@ -276,7 +275,6 @@ namespace FNPlugin
             if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Hydrogen))
             {
                 var hydrogen = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Hydrogen);
-
                 var deuteriumAbundance = hydrogen.ResourceAbundance / 6420;
                 Debug.Log("[KSPI] - added deuterium to atmosphere with abundance " + deuteriumAbundance);
                 bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deuteriumAbundance, "Deuterium"));
@@ -285,6 +283,19 @@ namespace FNPlugin
                 Debug.Log("[KSPI] - deuterium is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ResourceAbundance);
             else 
                 Debug.Log("[KSPI] - No hydrogen is present in atmosphere specification, deuterium will not be added");
+
+            // if nitrogen-15 is undefined, but nitrogen is, derive it
+            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen15) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen))
+            {
+                var nitrogen = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen);
+                var nitrogen15Abundance = nitrogen.ResourceAbundance * 0.00364;
+                Debug.Log("[KSPI] - added nitrogen-15 to atmosphere with abundance " + nitrogen15Abundance);
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.Nitrogen15, nitrogen15Abundance, "Nitrogen-15"));
+            }
+            else if (bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen15))
+                Debug.Log("[KSPI] - nitrogen-15 is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen15).ResourceAbundance);
+            else
+                Debug.Log("[KSPI] - No nitrogen is present in atmosphere specification, nitrogen-15 will not be added");
         }
 
         private static float GetAbundance(string resourceName, int refBody)

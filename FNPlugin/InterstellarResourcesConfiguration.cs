@@ -44,6 +44,7 @@ namespace FNPlugin
         private String _hydrazine = "Hydrazine";
         private String _methane = "LqdMethane";
         private String _nitrogen = "LqdNitrogen";
+        private String _nitrogen15 = "LqdNitrogen15";
         private String _oxygen = "LqdOxygen";
         private String _water = "Water";
         private String _heavyWater = "HeavyWater";
@@ -82,6 +83,7 @@ namespace FNPlugin
         public String Methane { get { return _methane; } }
         public String NeonGas { get { return _neon_gas; } }
         public String Nitrogen { get { return _nitrogen; } }
+        public String Nitrogen15 { get { return _nitrogen15; } }
         public String Oxygen { get { return _oxygen; } }
         public String Plutonium238 { get { return _PLUTONIUM_238; } }
         public String Regolith { get { return _regolith; } }

@@ -99,7 +99,7 @@ namespace FNPlugin
             {
                 if (fuelConfigurations == null)
                 {
-                    fuelConfigurations = part.FindModulesImplementing<FuelConfiguration>().OrderByDescending(f => f.maxThrust).ToList();
+                    fuelConfigurations = part.FindModulesImplementing<FuelConfiguration>().ToList();
 
                 }
                 return fuelConfigurations;

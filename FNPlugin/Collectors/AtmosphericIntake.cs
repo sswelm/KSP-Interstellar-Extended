@@ -43,11 +43,13 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiName = "Air / sec", guiActiveEditor = false, guiActive = true, guiFormat = "F5" )]
         public double finalAir;
 
+        [KSPField(isPersistant = false, guiActive = false)]
+        public bool intakeOpen;
+
         public double startupCount;
         private float previousDeltaTime;
         private double atmosphereBuffer;
 
-        PartResource intake_air_resource;
         PartResource intake_atmosphere_resource;
 
         private PartResourceDefinition _resourceAtmosphere;
@@ -79,9 +81,6 @@ namespace FNPlugin
 
             _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
 
-            // add atmosphere buffer if needed
-            intake_air_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAir];
-
             atmosphereBuffer = area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed * 300 ;
 
             if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
@@ -89,6 +88,7 @@ namespace FNPlugin
                 ConfigNode node = new ConfigNode("RESOURCE");
                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
                 node.AddValue("maxAmount", atmosphereBuffer);
+                node.AddValue("amount", 0);
                 part.AddResource(node);
             }
             intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
@@ -104,22 +104,22 @@ namespace FNPlugin
             if (!vessel.mainBody.atmosphere) // No atmosphere? No collecting
                 return;
 
-            UpdateAtmosphereBuffer();
-
             IntakeThatAir(TimeWarp.fixedDeltaTime); // collect intake atmosphere for the timeframe
         }
 
-        private void UpdateAtmosphereBuffer()
+        private void UpdateAtmosphereBuffer(bool intakesOpen)
         {
-            if (intake_atmosphere_resource != null && atmosphereBuffer > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
+            var currentDeltaTime = intakesOpen ? TimeWarp.fixedDeltaTime : 0.02;
+
+            if (intake_atmosphere_resource != null && atmosphereBuffer > 0 && currentDeltaTime != previousDeltaTime)
             {
-                double requiredAtmosphereCapacity = atmosphereBuffer * TimeWarp.fixedDeltaTime;
+                double requiredAtmosphereCapacity = atmosphereBuffer * currentDeltaTime;
                 double previousAtmosphereCapacity = atmosphereBuffer * previousDeltaTime;
                 double atmosphereRatio = (intake_atmosphere_resource.amount / intake_atmosphere_resource.maxAmount);
 
                 intake_atmosphere_resource.maxAmount = requiredAtmosphereCapacity;
 
-                intake_atmosphere_resource.amount = TimeWarp.fixedDeltaTime > previousDeltaTime
+                intake_atmosphere_resource.amount = currentDeltaTime > previousDeltaTime
                     ? Math.Max(0, Math.Min(requiredAtmosphereCapacity, intake_atmosphere_resource.amount + requiredAtmosphereCapacity - previousAtmosphereCapacity))
                     : Math.Max(0, Math.Min(requiredAtmosphereCapacity, atmosphereRatio * requiredAtmosphereCapacity));
             }
@@ -138,8 +138,13 @@ namespace FNPlugin
                 finalAir = 0;
                 intakeExposure = 0;
                 airFlow = 0;
+                intakeOpen = false;
+                UpdateAtmosphereBuffer(false);
                 return;
             }
+
+            intakeOpen = true;
+            UpdateAtmosphereBuffer(true);
 
             var vesselFlyingVector = vessel.altitude < part.vessel.mainBody.atmosphereDepth * 0.5 
                 ? vessel.GetSrfVelocity() 
@@ -188,7 +193,7 @@ namespace FNPlugin
             }
             else
             {
-                part.RequestResource(_resourceAtmosphere.name, -airThisUpdate); // create the resource, finally
+                part.RequestResource(_resourceAtmosphere.id, -airThisUpdate); // create the resource, finally
             }
 
 

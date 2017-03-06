@@ -9,12 +9,13 @@ namespace InterstellarFuelSwitch
     class ResourceStats
     {
         public PartResourceDefinition definition;
-        public double maxAmount = 0;
-        public double currentAmount = 0;
-        public double amountRatio = 0;
-        public double retrieve = 0;
+        //public double volume;
+        public double maxAmount;
+        public double currentAmount;
+        public double amountRatio;
+        public double retrieveAmount;
         public double transferRate = 1;
-        public double normalizedDensity = 1;
+        public double normalizedDensity;
         public double conversionRatio = 1;
     }
 
@@ -45,20 +46,16 @@ namespace InterstellarFuelSwitch
         public string secondaryResourceNames = string.Empty;
         [KSPField]
         public string primaryMolarMasses = string.Empty;
-        //[KSPField]
-        //public double molarHeatOfVaporization = 1;
-        //[KSPField]
-        //public double molarMass = 1;
         [KSPField]
         public double primaryConversionEnergyCost = 500;
         [KSPField]
         public double secondaryConversionEnergyCost = 1000;
 
-        //[KSPField]
-        //public double maxTransferAmountPrimary = 1;
-        //[KSPField]
-        //public double maxTransferAmountSecondary = 1;
-        //[KSPField]
+        [KSPField]
+        bool retreivePrimary;
+        [KSPField]
+        bool retrieveSecondary;
+        [KSPField]
         public double maxPowerPrimary = 10;
         [KSPField]
         public double maxPowerSecondary = 10;
@@ -66,6 +63,23 @@ namespace InterstellarFuelSwitch
         public bool requiresPrimaryLocalInEditor = true;
         [KSPField]
         public bool requiresPrimaryLocalInFlight = true;
+
+        [KSPField]
+        public bool primaryConversionCostPower = true;
+        [KSPField]
+        public bool secondaryConversionCostPower = true;
+
+        //[KSPField(guiActive = true)]
+        //public double receivedSourceAmount;
+        //[KSPField(guiActive = true)]
+        //public double requestedTargetAmount;
+        //[KSPField(guiActive = true)]
+        //public double receivedTargetAmount;
+
+        //[KSPField(guiActive = true)]
+        //public float primaryConversionRatio;
+        //[KSPField(guiActive = true)]
+        //public float secondaryConversionRatio;
 
         PartResourceDefinition definitionElectricCharge;
         BaseField convertPercentageField;
@@ -75,19 +89,13 @@ namespace InterstellarFuelSwitch
         UI_FloatRange convertPecentageFlightFloatRange;
 
         bool hasNullDefinitions = false;
-        bool retreivePrimary;
-        bool retrieveSecondary;
-        //bool maxTransferAmountPrimaryIsMissing = false;
-        //bool maxTransferAmountSecondaryIsMissing = false;
 
         public override void OnStart(PartModule.StartState state)
         {
             definitionElectricCharge = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
 
             convertPercentageField = Fields["convertPercentage"];
-
-            //maxTransferAmountPrimaryIsMissing = maxTransferAmountPrimary <= 0;
-            //maxTransferAmountSecondaryIsMissing = maxTransferAmountSecondary <= 0;
+            var floatrange = convertPercentageField.uiControlFlight as UI_FloatRange;
 
             primaryResources = primaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) } ).ToList();
             secondaryResources = secondaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) }).ToList();
@@ -102,12 +110,16 @@ namespace InterstellarFuelSwitch
 
             foreach (var resource in primaryResources)
             {
+                //resource.volume = resource.definition.volume;
+
                 if (resource.definition.density > 0 && resource.definition.volume > 0)
                     resource.normalizedDensity = resource.definition.density / resource.definition.volume;
             }
 
             foreach (var resource in secondaryResources)
             {
+                //resource.volume = resource.definition.volume;
+
                 if (resource.definition.density > 0 && resource.definition.volume > 0)
                     resource.normalizedDensity = resource.definition.density / resource.definition.volume;
             }
@@ -117,16 +129,45 @@ namespace InterstellarFuelSwitch
                 var primary = primaryResources.First();
                 var secondary = secondaryResources.First();
 
+                if (primary.normalizedDensity == 0 && secondary.normalizedDensity > 0)
+                {
+                    primary.normalizedDensity = secondary.normalizedDensity;
+                }
+                else if (secondary.normalizedDensity == 0 && primary.normalizedDensity > 0)
+                {
+                    secondary.normalizedDensity = primary.normalizedDensity;
+                }
+
+                //if (primary.volume == 0 && secondary.volume > 0)
+                //    primary.volume = secondary.volume;
+                //if (secondary.volume == 0 && primary.volume > 0)
+                //    secondary.volume = primary.volume;
+
+                //if (primary.volume == 0)
+                //    primary.volume = 1;
+                //if (secondary.volume == 0)
+                //    secondary.volume = 1;
+
                 if (primary.normalizedDensity > 0 && secondary.normalizedDensity > 0)
                 {
-                    secondary.conversionRatio = (primary.normalizedDensity * primary.definition.volume) / (secondary.normalizedDensity * secondary.definition.volume);
-                    primary.conversionRatio = (secondary.normalizedDensity * secondary.definition.volume) / (primary.normalizedDensity * primary.definition.volume);
+                    secondary.conversionRatio = primary.normalizedDensity / secondary.normalizedDensity;
+                    primary.conversionRatio = secondary.normalizedDensity / primary.normalizedDensity;
                 }
                 else if (primary.definition.unitCost > 0 && secondary.definition.unitCost > 0)
                 {
                     secondary.conversionRatio = primary.definition.unitCost / secondary.definition.unitCost;
                     primary.conversionRatio = secondary.definition.unitCost / primary.definition.unitCost;
                 }
+
+                if (primary.conversionRatio == 0)
+                    primary.conversionRatio = 1;
+                if (secondary.conversionRatio == 0)
+                    secondary.conversionRatio = 1;
+
+                if (primary.normalizedDensity == 0)
+                    primary.normalizedDensity = 0.001;
+                if (secondary.normalizedDensity == 0)
+                    secondary.normalizedDensity = 0.001;
             }
             
             // if slider text is missing, generate it
@@ -220,8 +261,8 @@ namespace InterstellarFuelSwitch
             if (convertPercentage == 0)
                 return;
 
-            primaryResources.ForEach(m => m.transferRate = maxPowerPrimary / primaryConversionEnergyCost / 1000 / m.definition.density);
-            secondaryResources.ForEach(m => m.transferRate = maxPowerSecondary / secondaryConversionEnergyCost / 1000 / m.definition.density);
+            primaryResources.ForEach(m => m.transferRate = maxPowerPrimary / primaryConversionEnergyCost / 1000 / m.normalizedDensity);
+            secondaryResources.ForEach(m => m.transferRate = maxPowerSecondary / secondaryConversionEnergyCost / 1000 / m.normalizedDensity);
 
             primaryResources.ForEach(m => m.amountRatio = m.currentAmount / m.maxAmount);
             secondaryResources.ForEach(m => m.amountRatio = m.currentAmount / m.maxAmount);
@@ -235,13 +276,13 @@ namespace InterstellarFuelSwitch
                 {
                     retreivePrimary = true;
                     var neededAmount = secondaryResources.Min(m => Math.Max(percentageRatio - m.amountRatio, 0) * m.maxAmount / m.conversionRatio);
-                    primaryResources.ForEach(m => m.retrieve = neededAmount);
+                    primaryResources.ForEach(m => m.retrieveAmount = neededAmount);
                 }
                 else if (percentageMinValue < 0)
                 {
                     retrieveSecondary = true;
                     var availableSpaceInTarget = primaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
-                    secondaryResources.ForEach(m => m.retrieve = Math.Min((Math.Max(m.amountRatio - percentageRatio, 0)) * m.maxAmount, availableSpaceInTarget));
+                    secondaryResources.ForEach(m => m.retrieveAmount = Math.Min((Math.Max(m.amountRatio - percentageRatio, 0)) * m.maxAmount, availableSpaceInTarget));
                 }
             }
             else if (convertPercentage < 0)
@@ -249,15 +290,14 @@ namespace InterstellarFuelSwitch
                 if (primaryResources.Any(m => percentageRatioRemaining < m.amountRatio))
                 {
                     retrieveSecondary = true;
-
-                    var availableSpaceInTarget = primaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
-                    secondaryResources.ForEach(m => m.retrieve = Math.Min((Math.Max(m.amountRatio - percentageRatioRemaining, 0)) * m.maxAmount, availableSpaceInTarget));
+                    var neededAmount = primaryResources.Min(m => Math.Max(percentageRatio - m.amountRatio, 0) * m.maxAmount / m.conversionRatio);
+                    secondaryResources.ForEach(m => m.retrieveAmount = neededAmount);
                 }
                 else if (percentageMaxValue > 0)
                 {
                     retreivePrimary = true;
                     var availableSpaceInTarget = secondaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
-                    primaryResources.ForEach(m => m.retrieve = Math.Min((Math.Max(m.amountRatio - percentageRatioRemaining, 0)) * m.maxAmount, availableSpaceInTarget));
+                    primaryResources.ForEach(m => m.retrieveAmount = Math.Min((Math.Max(m.amountRatio - percentageRatioRemaining, 0)) * m.maxAmount, availableSpaceInTarget));
                 }
             }
         }
@@ -267,60 +307,67 @@ namespace InterstellarFuelSwitch
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
-            if (retreivePrimary && primaryResources.Any(r => r.retrieve > 0))
+            //primaryConversionRatio = (float)primaryResources.First().conversionRatio;
+            //secondaryConversionRatio = (float)secondaryResources.First().conversionRatio;
+
+            if (retreivePrimary && primaryResources.Any(r => r.retrieveAmount > 0))
             {
                 foreach (var resource in primaryResources)
                 {
                     var fixedTransferRate = resource.transferRate * TimeWarp.fixedDeltaTime;
-                    var transferRatio = resource.retrieve >= fixedTransferRate ? 1 : resource.retrieve / fixedTransferRate;
+                    var transferRatio = resource.retrieveAmount >= fixedTransferRate ? 1 : resource.retrieveAmount / fixedTransferRate;
 
                     double powerRatio = 1;
-                    if (maxPowerPrimary != 0)
+                    if (primaryConversionCostPower)
                     {
                         var requestedPower = transferRatio * maxPowerPrimary * TimeWarp.fixedDeltaTime;
                         var receivedPower = part.RequestResource(definitionElectricCharge.id, requestedPower);
                         powerRatio = receivedPower / requestedPower;
                     }
 
-                    var fixedRequest = Math.Min(transferRatio, resource.retrieve);
-                    var receivedAmount = part.RequestResource(resource.definition.id, fixedRequest * powerRatio);
+                    var fixedRequest = Math.Min(fixedTransferRate, resource.retrieveAmount);
+                    var receivedSourceAmount = part.RequestResource(resource.definition.id, fixedRequest * powerRatio);
 
                     double createdAmount = 0;
                     foreach(var secondary in secondaryResources)
                     {
-                        createdAmount += part.RequestResource(secondary.definition.id, -receivedAmount * secondary.conversionRatio) / secondary.conversionRatio;
+                        var requestedTargetAmount = -receivedSourceAmount * secondary.conversionRatio;
+                        var receivedTargetAmount = part.RequestResource(secondary.definition.id, requestedTargetAmount) / secondary.conversionRatio;
+                        createdAmount += receivedTargetAmount;
                     }
 
-                    var resturned = part.RequestResource(resource.definition.id, createdAmount + receivedAmount);
-                    resource.retrieve = resource.retrieve - receivedAmount - resturned;
+                    var returned = part.RequestResource(resource.definition.id, createdAmount + receivedSourceAmount);
+                    resource.retrieveAmount = resource.retrieveAmount - receivedSourceAmount - returned;
                 }
             }
-            else if (retrieveSecondary && secondaryResources.Any(r => r.retrieve > 0))
+            else if (retrieveSecondary && secondaryResources.Any(r => r.retrieveAmount > 0))
             {
                 foreach (var resource in secondaryResources)
                 {
                     var fixedTransferRate = resource.transferRate * TimeWarp.fixedDeltaTime;
-                    var transferRatio = resource.retrieve >= fixedTransferRate ? 1 : resource.retrieve / fixedTransferRate;
+                    var transferRatio = resource.retrieveAmount >= fixedTransferRate ? 1 : resource.retrieveAmount / fixedTransferRate;
 
                     double powerRatio = 1;
-                    if (maxPowerPrimary != 0)
+                    if (secondaryConversionCostPower)
                     {
                         var requestedPower = transferRatio * maxPowerSecondary * TimeWarp.fixedDeltaTime;
                         var receivedPower = part.RequestResource(definitionElectricCharge.id, requestedPower);
                         powerRatio = receivedPower / requestedPower;
                     }
 
-                    var fixedRequest = Math.Min(fixedTransferRate, resource.retrieve);
-                    var receivedAmount = part.RequestResource(resource.definition.id, fixedRequest * powerRatio);
+                    var fixedRequest = Math.Min(fixedTransferRate, resource.retrieveAmount);
+                    var receivedSourceAmount = part.RequestResource(resource.definition.id, fixedRequest * powerRatio);
 
                     double createdAmount = 0;
                     foreach (var primary in primaryResources)
                     {
-                        createdAmount += part.RequestResource(primary.definition.id, -receivedAmount * primary.conversionRatio) / primary.conversionRatio;
+                        var requestedTargetAmount = -receivedSourceAmount * primary.conversionRatio;
+                        var receivedTargetAmount = part.RequestResource(primary.definition.id, requestedTargetAmount) / primary.conversionRatio;
+                        createdAmount += receivedTargetAmount;
                     }
 
-                    var resturned = part.RequestResource(resource.definition.id, createdAmount + receivedAmount);
-                    resource.retrieve = resource.retrieve - receivedAmount - resturned;
+                    var returned = part.RequestResource(resource.definition.id, createdAmount + receivedSourceAmount);
+                    resource.retrieveAmount = resource.retrieveAmount - receivedSourceAmount - returned;
                 }
             }
         }

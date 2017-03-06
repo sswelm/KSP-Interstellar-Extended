@@ -16,10 +16,11 @@ namespace FNPlugin
         public double spotsize { get; set; }
     }
 
+    class SolarBeamedPowerReceiver : MicrowavePowerReceiver {} // receives less of a power cpacity nerve in NF mode
 
-    class MicrowavePowerReceiverDish: MicrowavePowerReceiver  {}
+    class MicrowavePowerReceiverDish: MicrowavePowerReceiver  {} // tweakscales with exponent 2.25
 
-    class MicrowavePowerReceiver : FNResourceSuppliableModule, IThermalSource, IElectricPowerSource
+    class MicrowavePowerReceiver : FNResourceSuppliableModule, IThermalSource, IElectricPowerSource // tweakscales with exponent 2.5
     {
         //Persistent True
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Bandwidth")]
