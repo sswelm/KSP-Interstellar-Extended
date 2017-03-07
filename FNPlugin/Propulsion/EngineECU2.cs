@@ -47,8 +47,6 @@ namespace FNPlugin
         public float maxThrustUpgraded2 = 1200;
         public float MaxThrustUpgraded2 { get { return maxThrustUpgraded2 * thrustMult(); } }
 
-
-
         [KSPField(isPersistant = false)]
         public float efficiency = 0.19f;
         [KSPField(isPersistant = false)]
@@ -58,10 +56,6 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false)]
         public bool isLoaded = false;
-
-
-
-
 
         // Use for SETI Mode
 
@@ -80,14 +74,12 @@ namespace FNPlugin
 
         private FuelConfiguration activeConfiguration;
 
-
         public FuelConfiguration ActiveConfiguration
         {
             get
             {
                 if (activeConfiguration == null) activeConfiguration = FuelConfigurations[selectedFuel];
                 return activeConfiguration;
-                
             }
         }
 
@@ -100,7 +92,6 @@ namespace FNPlugin
                 if (fuelConfigurations == null)
                 {
                     fuelConfigurations = part.FindModulesImplementing<FuelConfiguration>().ToList();
-
                 }
                 return fuelConfigurations;
             }
@@ -118,8 +109,11 @@ namespace FNPlugin
             var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
             var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
 
-            chooseField.guiActive = FuelConfigurations.Count > 1;
-            chooseField.guiActiveEditor = FuelConfigurations.Count > 1;
+            if (FuelConfigurations.Count <= 1)
+            {
+                chooseField.guiActive = false;
+                chooseField.guiActiveEditor = false;
+            }
 
             var names = FuelConfigurations.Select(m => m.fuelConfigurationName).ToArray();
 
@@ -129,11 +123,8 @@ namespace FNPlugin
             //  UpdateFromGUI(chooseField, selectedFuel);
 
             // connect on change event
-            if (chooseField.guiActive)
-            {
-                chooseOptionEditor.onFieldChanged = UpdateEditorGUI;
-                chooseOptionFlight.onFieldChanged = UpdateFlightGUI;
-            }
+            if (chooseField.guiActive)  chooseOptionFlight.onFieldChanged = UpdateFlightGUI;
+            if (chooseField.guiActiveEditor) chooseOptionEditor.onFieldChanged = UpdateEditorGUI;
         }
 
         private void UpdateEditorGUI(BaseField field, object oldFieldValueObj)
@@ -141,17 +132,11 @@ namespace FNPlugin
             Debug.Log("Editor Gui Updated");
             UpdateFromGUI(field, oldFieldValueObj);
             UpdateResources();
-
         }
         private void UpdateFlightGUI(BaseField field, object oldFieldValueObj)
         {
-
-           
-           
             UpdateFromGUI(field, oldFieldValueObj);
             UpdateFuel();
-
-
         }
 
         public virtual void UpdateFuel()
@@ -179,15 +164,12 @@ namespace FNPlugin
             curEngineT.atmosphereCurve = ActiveConfiguration.atmosphereCurve;
             vessel.ClearStaging();
             vessel.ResumeStaging();
-
-
         }
         private void UpdateResources()
         {
             Debug.Log("Update Resources");
 
             ConfigNode akResources = new ConfigNode();
-            
 
             int I = 0;
             int N = 0;
@@ -205,7 +187,6 @@ namespace FNPlugin
             Debug.Log("Old Fuels: " + part.Resources.Count);
             while (I < ActiveConfiguration.Fuels.Length)
             {
-
                 if (ActiveConfiguration.MaxAmount[I] > 0) part.AddResource(LoadResource(ActiveConfiguration.Fuels[I], ActiveConfiguration.Amount[I], ActiveConfiguration.MaxAmount[I]));
                 else N++;
                 I++;
@@ -218,10 +199,8 @@ namespace FNPlugin
             if (tweakableUI != null)
                 tweakableUI.displayDirty = true;
 
-
             //     curEngineT.Save(akResources);
             Debug.Log("Resources Updated");
-
         }
     
 
@@ -234,7 +213,6 @@ namespace FNPlugin
             PropellantNode.AddValue("name", akName);
             PropellantNode.AddValue("ratio", akRatio);
             PropellantNode.AddValue("DrawGauge", true);
-
 
             return PropellantNode;
         }
@@ -259,7 +237,6 @@ namespace FNPlugin
                 return;
             }
 
-
             if (selectedFuel < FuelConfigurations.Count)
             {
                 Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " < orderedFuelGenerators.Count");
@@ -280,7 +257,6 @@ namespace FNPlugin
                 Debug.Log("[KSP Interstellar] UpdateFromGUI no activeConfiguration found");
                 return;
             }
-
         }
 
         private void LoadInitialConfiguration()
@@ -316,7 +292,6 @@ namespace FNPlugin
             {
                 Debug.Log("Editor");
                 UpdateResources();
-               
             }
             else
             {
@@ -326,13 +301,8 @@ namespace FNPlugin
             if (state.ToString().Contains(StartState.PreLaunch.ToString()))
             {
                 Debug.Log("PreLaunch");
-
-                    UpdateResources();
-                
+                UpdateResources();
             }
-
-            
-
             base.OnStart(state);
         }
 
@@ -381,29 +351,18 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public float Scale = 1;
 
-
-
-
         private string[] akFuels = new string[0];
         private bool[] akIgnoreIsp = new bool[0];
         private bool[] akIgnoreThrust = new bool[0];
         private float[] akRatio = new float[0];
-      
         private float[] akAmount = new float[0];
-       
         private float[] akMaxAmount = new float[0];
-
-        
 
         public string[] Fuels
         {
-
             get
             {
-
                 if (akFuels.Length == 0) akFuels = Regex.Replace(fuels, " ", "").Split(',');
-
-
                 return akFuels;
             }
         }
@@ -412,7 +371,6 @@ namespace FNPlugin
         {
             get
             {
-               
                 return thrustMult * (float)(Math.Pow(Scale, 2) == 0 ? 1 : Math.Pow(Scale, 2));
             }
         }
@@ -420,7 +378,6 @@ namespace FNPlugin
         {
             get
             {
-
                 return powerMult * (float)(Math.Pow(Scale, 2) == 0 ? 1 : Math.Pow(Scale, 2));
             }   
         }
@@ -442,7 +399,6 @@ namespace FNPlugin
                 if (akAmount.Length == 0) akAmount = StringToFloatArray(amount);
                 return VolumeTweaked(akAmount);
             }
-
         }
         public float[] MaxAmount
         {
@@ -450,7 +406,6 @@ namespace FNPlugin
             {
                 if (akMaxAmount.Length == 0) akMaxAmount = StringToFloatArray(maxAmount);
                 return VolumeTweaked(akMaxAmount);
-
             }
 
         }
@@ -472,7 +427,6 @@ namespace FNPlugin
                 else if (akIgnoreThrust.Length == 0) akIgnoreIsp = StringToBoolArray(ignoreForIsp);
                 return akIgnoreThrust;
             }
-
         }
         private float[]VolumeTweaked(float[] akFloat)
         {
@@ -490,7 +444,6 @@ namespace FNPlugin
                 }
                 akFloat = akTweaked.ToArray();
             }
-           
             return akFloat;
         }
 
@@ -501,7 +454,6 @@ namespace FNPlugin
             int I = 0;
             while (I < akFuels.Length)
             {
-
                 akBoolList.Add(false);
                 I++;
             }
@@ -550,7 +502,5 @@ namespace FNPlugin
             Scale = factor.absolute.linear;
 
         }
-
-
     }
 }
