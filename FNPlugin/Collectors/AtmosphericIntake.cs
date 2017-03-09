@@ -46,14 +46,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false)]
         public bool intakeOpen;
 
-        public double startupCount;
-        private float previousDeltaTime;
-        private double atmosphereBuffer;
+        double startupCount;
+        float previousDeltaTime;
+        double atmosphereBuffer;
 
-        PartResource intake_atmosphere_resource;
-
-        private PartResourceDefinition _resourceAtmosphere;
-        private ModuleResourceIntake _moduleResourceIntake;
+        PartResource _intake_atmosphere_resource;
+        PartResourceDefinition _resourceAtmosphere;
+        ModuleResourceIntake _moduleResourceIntake;
 
         // this property will be accessed by the atmospheric extractor
         public double FinalAir
@@ -91,7 +90,7 @@ namespace FNPlugin
                 node.AddValue("amount", 0);
                 part.AddResource(node);
             }
-            intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
+            _intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
             _intake_speed = maxIntakeSpeed;
         }
@@ -111,16 +110,16 @@ namespace FNPlugin
         {
             var currentDeltaTime = intakesOpen ? TimeWarp.fixedDeltaTime : 0.02;
 
-            if (intake_atmosphere_resource != null && atmosphereBuffer > 0 && currentDeltaTime != previousDeltaTime)
+            if (_intake_atmosphere_resource != null && atmosphereBuffer > 0 && currentDeltaTime != previousDeltaTime)
             {
                 double requiredAtmosphereCapacity = atmosphereBuffer * currentDeltaTime;
                 double previousAtmosphereCapacity = atmosphereBuffer * previousDeltaTime;
-                double atmosphereRatio = (intake_atmosphere_resource.amount / intake_atmosphere_resource.maxAmount);
+                double atmosphereRatio = (_intake_atmosphere_resource.amount / _intake_atmosphere_resource.maxAmount);
 
-                intake_atmosphere_resource.maxAmount = requiredAtmosphereCapacity;
+                _intake_atmosphere_resource.maxAmount = requiredAtmosphereCapacity;
 
-                intake_atmosphere_resource.amount = currentDeltaTime > previousDeltaTime
-                    ? Math.Max(0, Math.Min(requiredAtmosphereCapacity, intake_atmosphere_resource.amount + requiredAtmosphereCapacity - previousAtmosphereCapacity))
+                _intake_atmosphere_resource.amount = currentDeltaTime > previousDeltaTime
+                    ? Math.Max(0, Math.Min(requiredAtmosphereCapacity, _intake_atmosphere_resource.amount + requiredAtmosphereCapacity - previousAtmosphereCapacity))
                     : Math.Max(0, Math.Min(requiredAtmosphereCapacity, atmosphereRatio * requiredAtmosphereCapacity));
             }
 

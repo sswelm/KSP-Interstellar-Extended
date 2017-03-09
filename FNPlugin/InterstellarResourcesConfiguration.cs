@@ -27,6 +27,7 @@ namespace FNPlugin
         private const String _LIQUID_DEUTERIUM = "LqdDeuterium";
         private const String _DEUTERIUM_GAS = "Deuterium";
         private const String _INTAKE_LIQUID = "IntakeLqd";
+        private const String _ELECTRIC_CHARGE = "ElectricCharge";
 
         private String _uranium_TerraFloride = "UF4";
         private String _aluminium = "Aluminium";
@@ -67,6 +68,7 @@ namespace FNPlugin
         public String LqdDeuterium { get { return _LIQUID_DEUTERIUM; } }
         public String DeuteriumGas { get { return _DEUTERIUM_GAS; } }
         public String ExoticMatter { get { return _EXOTIC_MATTER; } }
+        public String ElectricCharge { get { return _ELECTRIC_CHARGE; } }
         public String LqdHelium4 { get { return _liquid_helium4; } }
         public String Helium4Gas { get { return _helium4_gas; } }
         public String LqdHelium3 { get { return _liquid_helium3; } }

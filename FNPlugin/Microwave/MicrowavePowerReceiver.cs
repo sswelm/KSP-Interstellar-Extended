@@ -58,6 +58,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public int supportedPropellantTypes = 127;
 
+        [KSPField(isPersistant = false)]
+        public float electricWasteheatExponent = 0;
+        [KSPField(isPersistant = false)]
+        public float electricMaxEfficiency = 1;
+
         [KSPField(isPersistant = false, guiActive = false, guiName = "instance ID")]
         public int instanceId;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
@@ -241,7 +246,7 @@ namespace FNPlugin
             get { return _requestedThermalHeat; }
             set { _requestedThermalHeat = value; }
         }
-        public double ThermalEfficiency
+        public double PowerCapacityEfficiency
         {
             get 
             { 
@@ -250,6 +255,25 @@ namespace FNPlugin
                         ? 1 
                         : (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) 
                     : 1; 
+            }
+        }
+
+        public double ElectricConversionEfficiency
+        {
+            get 
+            {
+                if (HighLogic.LoadedSceneIsFlight) return 1;
+
+                if (CheatOptions.IgnoreMaxTemperature) return 1;
+
+                var wasteheatRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+                if (electricWasteheatExponent == 0)
+                    return 1;
+                else if (electricWasteheatExponent == 1)
+                    return 1 - wasteheatRatio;
+                else
+                    return 1 -  Math.Pow(wasteheatRatio, electricWasteheatExponent);
             }
         }
 
@@ -1292,8 +1316,8 @@ namespace FNPlugin
                             // take into account maximum route capacity
                             double satPowerCap = relays != null && relays.Count() > 0 ? Math.Min(remainingPowerFromSource, relays.Min(m => m.PowerCapacity)) : remainingPowerFromSource;
 
-                            // determin power allowed power
-                            var maxAllowedRecievalPower = MaximumRecievePower * Math.Min(ThermalEfficiency, (receiptPower / 100.0f));
+                            // determin allowed power
+                            var maxAllowedRecievalPower = MaximumRecievePower * Math.Min(PowerCapacityEfficiency, (receiptPower / 100.0f));
 
                             // select active or compatible brandWith Converter
                             var selectedBrandWith = canSwitchBandwidthInEditor
@@ -1403,10 +1427,8 @@ namespace FNPlugin
                 }
                 else 
                 {
-                    supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    supplyFNResource(powerInputMegajoules * TimeWarp.fixedDeltaTime * ElectricConversionEfficiency * electricMaxEfficiency, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 }
-
-                
             }
             else
             {
