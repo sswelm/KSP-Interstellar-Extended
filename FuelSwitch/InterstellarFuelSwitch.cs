@@ -1168,7 +1168,7 @@ namespace InterstellarFuelSwitch
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogWarning("[IFS] - error parsing resourceTankAmountArray amount " + tankCounter + "/" + amountCounter +
+                            Debug.LogWarning("[IFS] - " + part.name + " error parsing resourceTankAmountArray amount " + tankCounter + "/" + amountCounter +
                                       ": '" + resourceTankAbsoluteAmountArray[tankCounter] + "': '" + resourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
 
@@ -1179,7 +1179,7 @@ namespace InterstellarFuelSwitch
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogWarning("[IFS] - error parsing initialResourceList amount " + tankCounter + "/" + amountCounter +
+                            Debug.LogWarning("[IFS] - " + part.name +  " error parsing initialResourceList amount " + tankCounter + "/" + amountCounter +
                                       ": '" + initialResourceList[tankCounter] + "': '" + initialResourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
 
@@ -1190,19 +1190,8 @@ namespace InterstellarFuelSwitch
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogWarning("[IFS] - error parsing boilOffTempList amount " + tankCounter + "/" + amountCounter +
+                            Debug.LogWarning("[IFS] - " + part.name + " error parsing boilOffTempList amount " + tankCounter + "/" + amountCounter +
                                       ": '" + boilOffTempList[tankCounter] + "': '" + boilOffTempAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
-                        }
-
-                        try
-                        {
-                            if (tankCounter < latendHeatVaporationList.Count && amountCounter < latendHeatVaporationAmountArray.Length)
-                                latendHeatVaporationList[tankCounter].Add(ParseTools.ParseDouble(latendHeatVaporationAmountArray[amountCounter].Trim()));
-                        }
-                        catch (Exception exception)
-                        {
-                            Debug.LogWarning("[IFS] - error parsing latendHeatVaporation amount " + tankCounter + "/" + amountCounter +
-                                      ": '" + latendHeatVaporationList[tankCounter] + "': '" + latendHeatVaporationAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
                     }
                 }

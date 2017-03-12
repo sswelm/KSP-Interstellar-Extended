@@ -1,5 +1,4 @@
 ﻿using FNPlugin.Extensions;
-using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,14 +18,17 @@ namespace FNPlugin
         public bool vacplasmaadded = false;
 
         //Persistent False
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Warp Thrust", guiFormat = "F6", guiUnits = "kN")]
+        public double throtle_max_thrust;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Warp Isp", guiFormat = "F1", guiUnits = "s")]
+        public double engineIsp;
+
         [KSPField(isPersistant = false)]
         public string upgradeTechReq;
         [KSPField(isPersistant = false)]
         public string gearsTechReq;
-
         [KSPField(isPersistant = false)]
         public float powerReqMult = 1; 
-
         [KSPField(isPersistant = false)]
         public int type;
         [KSPField(isPersistant = false)]
@@ -81,10 +83,8 @@ namespace FNPlugin
         public double maxEffectivePower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Throttle Power", guiFormat = "F3", guiUnits = " MW")]
         public double maxThrottlePower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Warp Isp", guiFormat = "F1", guiUnits = "s")]
-        public double engineIsp;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Warp Thrust", guiFormat = "F6", guiUnits = "kN")]
-        public double throtle_max_thrust;
+
+
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -480,8 +480,6 @@ namespace FNPlugin
             _electrical_consumption_f = power_received;
             _heat_production_f = heat_production;
 
-
-
             var max_thrust_in_space = currentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseISP * ThrottleModifiedIsp() * _g0 * ModifiedThrotte);
 
             _maxISP = _modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
@@ -492,13 +490,12 @@ namespace FNPlugin
                 ? max_thrust_with_current_throttle
                 : Math.Max(max_thrust_with_current_throttle - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0);
 
-
             float throttle = _attached_engine.currentThrottle > 0 ? Mathf.Max(_attached_engine.currentThrottle, 0.01f) : 0;
 
             //if (ModifiedThrotte > 0)
             if (throttle > 0 && !this.vessel.packed)
             {
-                if (throtle_max_thrust > 0 && !double.IsNaN(throtle_max_thrust) && max_thrust_with_current_throttle > 0 && !double.IsNaN(max_thrust_with_current_throttle))
+                if (IsValidPositiveNumber(throtle_max_thrust) && IsValidPositiveNumber(max_thrust_with_current_throttle))
                 {
                     updateISP(throtle_max_thrust / max_thrust_with_current_throttle);
                     _attached_engine.maxFuelFlow = (float)Math.Max(_max_fuel_flow_rate * (ModifiedThrotte / _attached_engine.currentThrottle), 0.0000000001);
@@ -523,7 +520,7 @@ namespace FNPlugin
                 throtle_max_thrust = 0;
                 var projected_max_thrust = Math.Max(max_thrust_in_space - (exitArea * FlightGlobals.getStaticPressure(vessel.transform.position)), 0);
 
-                if (!double.IsNaN(projected_max_thrust) && !double.IsInfinity(projected_max_thrust) && projected_max_thrust > 0 && max_thrust_in_space > 0)
+                if (IsValidPositiveNumber(projected_max_thrust) && IsValidPositiveNumber(max_thrust_in_space))
                 {
                     updateISP(projected_max_thrust / max_thrust_in_space);
                     _attached_engine.maxFuelFlow = (float)Math.Max(_max_fuel_flow_rate, 0.0000000001);
@@ -542,6 +539,20 @@ namespace FNPlugin
             {
                 this.part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
             }
+        }
+
+        private bool IsValidPositiveNumber(double value)
+        {
+            if (double.IsNaN(value))
+                return false;
+
+            if (double.IsInfinity(value))
+                return false;
+
+            if (value <= 0)
+                return false;
+
+            return true;
         }
 
         public static Vector3d CalculateDeltaVV(float totalMass, double deltaTime, double thrust, double isp, double averageDensity, Vector3d thrustDirection, out double demandMass)
@@ -577,7 +588,7 @@ namespace FNPlugin
                 CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, propellantAverageDensity, thrustDirection, out demandMass);
 
                 var requestedAmount = demandMass / propellantAverageDensity;
-                if (requestedAmount > 0)
+                if (IsValidPositiveNumber(requestedAmount))
                 {
                     var receivedAmount = part.RequestResource(Current_propellant.Propellant.name, requestedAmount);
                     fuelRatio = receivedAmount / requestedAmount;

@@ -113,7 +113,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float areaMultiplier = 4;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float radiativeAreaFraction = 1;
+        public float areaMultiplierAtmosphere = 4;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        //public float radiativeAreaFraction = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiatorArea;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
@@ -189,7 +191,15 @@ namespace FNPlugin
         {
             get 
             {
-                effectiveRadiativeArea = radiatorArea * areaMultiplier;
+                effectiveRadiativeArea = !HighLogic.LoadedSceneIsFlight 
+                    ? areaMultiplier
+                    : vessel.atmDensity == 0 
+                        ? areaMultiplier 
+                        : vessel.atmDensity > 1 
+                            ? areaMultiplierAtmosphere
+                            : ((1 - vessel.atmDensity) * areaMultiplier) + (vessel.atmDensity * areaMultiplierAtmosphere); ;
+
+                effectiveRadiativeArea *= radiatorArea;
 
                 return hasSurfaceAreaUpgradeTechReq 
                     ? effectiveRadiativeArea * surfaceAreaUpgradeMult 
@@ -485,7 +495,7 @@ namespace FNPlugin
                     Retract();
             }
 
-            _maxEnergyTransfer = radiatorArea * 1000 * (1 + ((int)CurrentGenerationType * 2));
+            _maxEnergyTransfer = effectiveRadiatorArea * 250 * (1 + ((int)CurrentGenerationType * 2));
 
             if (state == StartState.Editor) return;
 
@@ -616,7 +626,7 @@ namespace FNPlugin
 
                 effectiveRadiatorArea = EffectiveRadiatorArea;
 
-                _maxEnergyTransfer = radiatorArea * 1000 * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
+                _maxEnergyTransfer = effectiveRadiatorArea * 250 * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
 
                 if (_moduleActiveRadiator != null)
                     _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;

@@ -7,35 +7,33 @@ namespace FNPlugin
 {
     public class AtmosphericResource 
     {
-        protected string resourcename;
-        protected double abundance;
-        protected string displayname;
+        public AtmosphericResource(PartResourceDefinition definition, double abundance)
+        {
+            this.ResourceName = definition.name;
+            this.ResourceAbundance = abundance;
+            this.DisplayName = string.IsNullOrEmpty(definition.title) ? definition.name : definition.title;
+            this.Synonyms = new[] { ResourceName, DisplayName }.Distinct().ToList();
+        }
 
         public AtmosphericResource(string resourcename, double abundance, string displayname) 
         {
-            this.resourcename = resourcename;
-            this.abundance = abundance;
-            this.displayname = displayname;
+            this.ResourceName = resourcename;
+            this.ResourceAbundance = abundance;
+            this.DisplayName = displayname;
+            this.Synonyms = new[] { resourcename }.ToList();
         }
 
-        public string DisplayName
+        public AtmosphericResource(string resourcename, double abundance, string displayname, string[] synonyms)
         {
-            get { return displayname; }
+            this.ResourceName = resourcename;
+            this.ResourceAbundance = abundance;
+            this.DisplayName = displayname;
+            this.Synonyms = synonyms.ToList();
         }
 
-        public string ResourceName
-        {
-            get { return resourcename; }
-        }
-
-        public double ResourceAbundance
-        {
-            get { return abundance; }
-        }
-
-        //public double getResourceAbundance() 
-        //{
-        //    return abundance;
-        //}
+        public string DisplayName { get; private set; }
+        public string ResourceName {get; private set;}
+        public double ResourceAbundance { get; private set; }
+        public List<string> Synonyms { get; private set; }
     }
 }

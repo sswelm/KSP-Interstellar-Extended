@@ -90,7 +90,7 @@ namespace FNPlugin
                     }
 
                     // add from stock resource definitions if missing
-                    Debug.Log("[KSPI] - adding stock resources" );
+                    Debug.Log("[KSPI] - adding stock resources");
                     GenerateCompositionFromResourceAbundances(refBody, bodyAtmosphericComposition);
 
                     Debug.Log("[KSPI] - som of resource abundance = " + bodyAtmosphericComposition.Sum(m => m.ResourceAbundance));
@@ -100,6 +100,9 @@ namespace FNPlugin
 
                     // Add rare and isotopes resources
                     AddRaresAndIsotopesToAdmosphereComposition(bodyAtmosphericComposition, celestialBody);
+
+                    // add missing stock resources
+                    AddMissingStockResources(refBody, bodyAtmosphericComposition);
 
                     // sort on resource abundance
                     bodyAtmosphericComposition = bodyAtmosphericComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
@@ -182,56 +185,82 @@ namespace FNPlugin
             return bodyAtmosphericComposition;
         }
 
-        public static List<AtmosphericResource> GenerateCompositionFromResourceAbundances(int refBody, List<AtmosphericResource> bodyAtmosphericComposition)
+        public static List<AtmosphericResource> GenerateCompositionFromResourceAbundances(int refBody, List<AtmosphericResource> bodyComposition)
         {
             try
             {
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Ammonia, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon", "Argon");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.LqdHelium3, "LqdHe3", "Helium3Gas", "Helium3", "Helium-3");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.LqdHelium4, "LqdHelium", "HeliumGas", "Helium", "Helium-4");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Hydrogen, "LqdHydrogen", "HydrogenGas", "Hydrogen", "Hydrogen");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Nitrogen, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Oxygen, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
-                AddResource(refBody, bodyAtmosphericComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Ammonia, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon", "Argon");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Nitrogen, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Oxygen, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
+
+                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium4, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
+                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, "Helium-3", refBody, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
+                AddResource(InterstellarResourcesConfiguration.Instance.Hydrogen, "Hydrogen", refBody, bodyComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "H2", "Protium", "LqdProtium" });
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - Exception while generating atmosphere composition from defined abundances : " + ex.ToString());
+                Debug.LogError("[KSPI] - Exception while generating atmospheric composition from defined abundances : " + ex.ToString());
             }
 
-            return bodyAtmosphericComposition;
+            return bodyComposition;
         }
 
-        private static void AddResource(int refBody, List<AtmosphericResource> bodyAtmosphericComposition, string outputResourname, string inputResource1, string inputResource2, string inputResource3, string displayname)
+        private static void AddMissingStockResources(int refBody, List<AtmosphericResource> bodyComposition)
         {
-            var abundances =  new []{ GetAbundance(inputResource1, refBody), GetAbundance(inputResource2, refBody), GetAbundance(inputResource2, refBody)};
+            // fetch all atmospheric resources
+            var allResources = ResourceMap.Instance.FetchAllResourceNames(HarvestTypes.Atmospheric);
 
-            var maxAbundance = abundances.Max();
+            Debug.Log("[KSPI] - AddMissingStockResources : found " + allResources.Count + " resources");
 
-            var atmosphericResource = new AtmosphericResource(outputResourname, abundances.Max(), displayname);
-
-            Debug.Log("[KSPI] - current max stock Abundance for " + atmosphericResource.ResourceName + " is " + atmosphericResource.ResourceAbundance);
-
-            if (atmosphericResource.ResourceAbundance > 0)
+            foreach (var resoureName in allResources)
             {
-                var existingResource = bodyAtmosphericComposition.FirstOrDefault(a => a.ResourceName == outputResourname);
-                if (existingResource != null )
-                {
-                    Debug.Log("[KSPI] - replaced resource " + outputResourname + " with stock defined abundance " + atmosphericResource.ResourceAbundance);
-                    bodyAtmosphericComposition.Remove(existingResource);
-                }
-                bodyAtmosphericComposition.Add(atmosphericResource);
+                // add resource if missing
+                AddMissingResource(resoureName, refBody, bodyComposition);
             }
+        }
+
+        private static void AddMissingResource(string resourname, int refBody, List<AtmosphericResource> bodyComposition)
+        {
+            // verify it is a defined resource
+            PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resourname);
+            if (definition == null)
+            {
+                Debug.LogWarning("[KSPI] - AddMissingResource : Failed to find resource definition for '" + resourname + "'");
+                return;
+            }
+
+            // skip it already registred or used as a Synonym
+            if (bodyComposition.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.title || m.Synonyms.Contains(definition.name)))
+            {
+                Debug.Log("[KSPI] - AddMissingResource : Already found existing composition for '" + resourname + "'");
+                return;
+            }
+
+            // retreive abundance
+            var abundance = GetAbundance(definition.name, refBody);
+            if (abundance <= 0)
+            {
+                Debug.LogWarning("[KSPI] - AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
+                return;
+            }
+
+            // create resource from definition and abundance
+            var Resource = new AtmosphericResource(definition, abundance);
+
+            // add to composition
+            Debug.Log("[KSPI] - AddMissingResource : add resource '" + resourname + "'");
+            bodyComposition.Add(Resource);
         }
 
         private static void AddRaresAndIsotopesToAdmosphereComposition(List<AtmosphericResource> bodyAtmosphericComposition, CelestialBody celestialBody)
@@ -296,6 +325,42 @@ namespace FNPlugin
                 Debug.Log("[KSPI] - nitrogen-15 is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen15).ResourceAbundance);
             else
                 Debug.Log("[KSPI] - No nitrogen is present in atmosphere specification, nitrogen-15 will not be added");
+        }
+
+
+
+        private static void AddResource(string outputResourname, string displayname, int refBody, List<AtmosphericResource> bodyComposition, string[] variants)
+        {
+            var abundances = new[] { GetAbundance(outputResourname, refBody) }.Concat(variants.Select(m => GetAbundance(m, refBody)));
+
+            var Resource = new AtmosphericResource(outputResourname, abundances.Max(), displayname, variants);
+            if (Resource.ResourceAbundance > 0)
+            {
+                var existingResource = bodyComposition.FirstOrDefault(a => a.ResourceName == outputResourname);
+                if (existingResource != null)
+                {
+                    Debug.Log("[KSPI] - replaced resource " + outputResourname + " with stock defined abundance " + Resource.ResourceAbundance);
+                    bodyComposition.Remove(existingResource);
+                }
+                bodyComposition.Add(Resource);
+            }
+        }
+
+        private static void AddResource(int refBody, List<AtmosphericResource> bodyComposition, string outputResourname, string inputResource1, string inputResource2, string inputResource3, string displayname)
+        {
+            var abundances = new[] { GetAbundance(inputResource1, refBody), GetAbundance(inputResource2, refBody), GetAbundance(inputResource2, refBody) };
+
+            var Resource = new AtmosphericResource(outputResourname, abundances.Max(), displayname, new[] { inputResource1, inputResource2, inputResource3 });
+            if (Resource.ResourceAbundance > 0)
+            {
+                var existingResource = bodyComposition.FirstOrDefault(a => a.ResourceName == outputResourname);
+                if (existingResource != null)
+                {
+                    Debug.Log("[KSPI] - replaced resource " + outputResourname + " with stock defined abundance " + Resource.ResourceAbundance);
+                    bodyComposition.Remove(existingResource);
+                }
+                bodyComposition.Add(Resource);
+            }
         }
 
         private static float GetAbundance(string resourceName, int refBody)

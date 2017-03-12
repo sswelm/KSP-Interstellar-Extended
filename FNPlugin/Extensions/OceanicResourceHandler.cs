@@ -106,14 +106,7 @@ namespace FNPlugin.Extensions
                 Debug.Log("[KSPI] - searching for ocean definition for " + celestialBody.name);
                 List<ConfigNode> oceanic_resource_list = oceanic_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
                 if (oceanic_resource_list.Any())
-                {
                     bodyOceanicComposition = oceanic_resource_list.Select(orsc => new OceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
-                    //if (bodyOceanicComposition.Any())
-                    //{
-                    //    bodyOceanicComposition = bodyOceanicComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
-                    //    body_oceanic_resource_list.Add(refBody, bodyOceanicComposition);
-                    //}
-                }
             }
             return bodyOceanicComposition;
         }
@@ -122,56 +115,56 @@ namespace FNPlugin.Extensions
         {
             List<OceanicResource> bodyOceanicComposition = new List<OceanicResource>(); // instantiate a new list that this function will be returning
 
+            // return empty if there's no ocean
+            if (!celestialBody.ocean)
+                return bodyOceanicComposition;
+
             try
             {
-                // return empty if there's no ocean
-                if (!celestialBody.ocean)
-                    return bodyOceanicComposition;
-
                 // Lookup homeworld
                 CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
 
                 double pressureAtSurface = celestialBody.GetPressure(0);
 
-                if (celestialBody.Mass < homeworld.Mass * 10 && pressureAtSurface < 1000)
+                if (celestialBody.Mass < (homeworld.Mass / 1000) && pressureAtSurface > 0 && pressureAtSurface < 10) // is it tiny and has only trace atmosphere?
                 {
-                    if (celestialBody.Mass < (homeworld.Mass / 1000) && pressureAtSurface > 0 && pressureAtSurface < 10) // is it tiny and has only trace atmosphere?
-                    {
-                        // it is similar to Enceladus, use that as a template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Enceladus").flightGlobalsIndex);
-                    }
-                    else if (celestialBody.Mass < (homeworld.Mass / 100) && pressureAtSurface > 0 && pressureAtSurface < 100) // is it still tiny, but a bit larger and has thin atmosphere?
-                    {
-                        // it is Europa-like, use Europa as a template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Europa").flightGlobalsIndex);
-                    }
-                    else if (celestialBody.Mass < (homeworld.Mass / 40) && pressureAtSurface > 0 && pressureAtSurface < 10 && celestialBody.atmosphereContainsOxygen) // if it is significantly smaller than the homeworld and has trace atmosphere with oxygen
-                    {
-                        // it is Ganymede-like, use Ganymede as a template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Ganymede").flightGlobalsIndex);
-                    }
-                    else if (celestialBody.Mass < homeworld.Mass && pressureAtSurface > 140) // if it is smaller than the homeworld and has pressure at least 140kPA
-                    {
-                        // it is Titan-like, use Titan as a template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Titan").flightGlobalsIndex);
-                    }
-                    else if (pressureAtSurface > 200)
-                    {
-                        // it is Venus-like/Eve-like, use Eve as a template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Eve").flightGlobalsIndex);
-                    }
-                    else if (celestialBody.Mass > (homeworld.Mass / 2) && celestialBody.Mass < homeworld.Mass && pressureAtSurface < 100) // it's at least half as big as the homeworld and has significant atmosphere
-                    {
-                        // it is Laythe-like, use Laythe as a template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Laythe").flightGlobalsIndex);
-                    }
-                    else if (celestialBody.atmosphereContainsOxygen)
-                    {
-                        // it is Earth-like, use Earth as a template
-                        bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Earth").flightGlobalsIndex);
-                    }
+                    // it is similar to Enceladus, use that as a template
+                    bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Enceladus").flightGlobalsIndex);
                 }
-               
+                else if (celestialBody.Mass < (homeworld.Mass / 100) && pressureAtSurface > 0 && pressureAtSurface < 100) // is it still tiny, but a bit larger and has thin atmosphere?
+                {
+                    // it is Europa-like, use Europa as a template
+                    bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Europa").flightGlobalsIndex);
+                }
+                else if (celestialBody.Mass < (homeworld.Mass / 40) && pressureAtSurface > 0 && pressureAtSurface < 10 && celestialBody.atmosphereContainsOxygen) // if it is significantly smaller than the homeworld and has trace atmosphere with oxygen
+                {
+                    // it is Ganymede-like, use Ganymede as a template
+                    bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Ganymede").flightGlobalsIndex);
+                }
+                else if (celestialBody.Mass < homeworld.Mass && pressureAtSurface > 140) // if it is smaller than the homeworld and has pressure at least 140kPA
+                {
+                    // it is Titan-like, use Titan as a template
+                    bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Titan").flightGlobalsIndex);
+                }
+                else if (pressureAtSurface > 200)
+                {
+                    // it is Venus-like/Eve-like, use Eve as a template
+                    bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Eve").flightGlobalsIndex);
+                }
+                else if (celestialBody.Mass > (homeworld.Mass / 2) && celestialBody.Mass < homeworld.Mass && pressureAtSurface < 100) // it's at least half as big as the homeworld and has significant atmosphere
+                {
+                    // it is Laythe-like, use Laythe as a template
+                    bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Laythe").flightGlobalsIndex);
+                }
+                else if (celestialBody.atmosphereContainsOxygen)
+                {
+                    // it is Earth-like, use Earth as a template
+                    bodyOceanicComposition = GetOceanicCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Earth").flightGlobalsIndex);
+                }
+                else
+                {
+                    // nothing yet
+                }
             }
             catch (Exception ex)
             {
@@ -181,37 +174,38 @@ namespace FNPlugin.Extensions
             return bodyOceanicComposition;
         }
 
-        public static List<OceanicResource> GenerateCompositionFromResourceAbundances(int refBody, List<OceanicResource> bodyOceanicComposition)
+        public static List<OceanicResource> GenerateCompositionFromResourceAbundances(int refBody, List<OceanicResource> bodyComposition)
         {
             try
             {
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Oxygen, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon", "Argon");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
-                AddResource(refBody, bodyOceanicComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Ammonia, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon", "Argon");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Nitrogen, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Oxygen, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
 
-                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium4, "Helium-4", refBody, bodyOceanicComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
-                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, "Helium-3", refBody, bodyOceanicComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
-                AddResource(InterstellarResourcesConfiguration.Instance.Hydrogen,   "Hydrogen", refBody, bodyOceanicComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "H2", "Protium"});
+                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium4, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
+                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, "Helium-3", refBody, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
+                AddResource(InterstellarResourcesConfiguration.Instance.Hydrogen, "Hydrogen", refBody, bodyComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "H2", "Protium", "LqdProtium"});
             }
             catch (Exception ex)
             {
                 Debug.LogError("[KSPI] - Exception while generating oceanic composition from defined abundances : " + ex.ToString());
             }
 
-            return bodyOceanicComposition;
+            return bodyComposition;
         }
 
-        private static void AddMissingStockResources(int refBody, List<OceanicResource> bodyOceanicComposition)
+        private static void AddMissingStockResources(int refBody, List<OceanicResource> bodyComposition)
         {
             // fetch all oceanic resources
             var allOceanicResources = ResourceMap.Instance.FetchAllResourceNames(HarvestTypes.Oceanic);
@@ -221,11 +215,11 @@ namespace FNPlugin.Extensions
             foreach (var resoureName in allOceanicResources)
             {
                 // add resource if missing
-                AddMissingResource(resoureName, refBody, bodyOceanicComposition);
+                AddMissingResource(resoureName, refBody, bodyComposition);
             }
         }
 
-        private static void AddMissingResource(string resourname, int refBody, List<OceanicResource> bodyOceanicComposition)
+        private static void AddMissingResource(string resourname, int refBody, List<OceanicResource> bodyComposition)
         {
             // verify it is a defined resource
             PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resourname);
@@ -236,7 +230,7 @@ namespace FNPlugin.Extensions
             }
 
             // skip it already registred or used as a Synonym
-            if (bodyOceanicComposition.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.title || m.Synonyms.Contains(definition.name)))
+            if (bodyComposition.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.title || m.Synonyms.Contains(definition.name)))
             {
                 Debug.Log("[KSPI] - AddMissingResource : Already found existing composition for '" + resourname + "'");
                 return;
@@ -255,7 +249,7 @@ namespace FNPlugin.Extensions
 
             // add to oceanic composition
             Debug.Log("[KSPI] - AddMissingResource : add resource '" + resourname + "'");
-            bodyOceanicComposition.Add(OceanicResource);
+            bodyComposition.Add(OceanicResource);
         }
 
         private static void AddResource(string outputResourname, string displayname, int refBody, List<OceanicResource> bodyOceanicComposition, string[] variants)
