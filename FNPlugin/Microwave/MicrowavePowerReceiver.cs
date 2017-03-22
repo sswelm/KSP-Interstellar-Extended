@@ -379,6 +379,7 @@ namespace FNPlugin
 
         protected PartResource wasteheatResource;
         protected PartResource megajouleResource;
+        protected PartResource thermalResource;
 
         protected Animation anim;
         protected Animation animT;
@@ -757,6 +758,7 @@ namespace FNPlugin
 
             wasteheatResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
             megajouleResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
+            thermalResource = part.Resources[FNResourceManager.FNRESOURCE_THERMALPOWER];
 
             // calculate WasteHeat Capacity
             partBaseWasteheat = part.mass * 1.0e+4 * wasteHeatMultiplier + (StableMaximumReactorPower * 0.05);
@@ -766,15 +768,26 @@ namespace FNPlugin
                 wasteheatResource.amount = wasteheatResource.maxAmount * wasteheatRatio;
             }
 
-            // calculate Power Capacity
+            // calculate Power Capacity buffer
             partBaseMegajoules = StableMaximumReactorPower * 0.05;
+
+            // update megajoule storage capacity
             if (megajouleResource != null)
             {
-                var ratio = Math.Max(1, megajouleResource.amount / megajouleResource.maxAmount);
+                var ratio = Math.Min(1, megajouleResource.amount / megajouleResource.maxAmount);
                 megajouleResource.maxAmount = partBaseMegajoules;
                 megajouleResource.amount = partBaseMegajoules * ratio;
             }
 
+            // update thermalhear storage capacity
+            if (thermalResource != null)
+            {
+                var ratio = Math.Min(1, thermalResource.amount / thermalResource.maxAmount);
+                thermalResource.maxAmount = partBaseMegajoules;
+                thermalResource.amount = partBaseMegajoules * ratio;
+            }
+
+            // look for any transmitter partmodule
             if (part.FindModulesImplementing<MicrowavePowerTransmitter>().Count == 1)
             {
                 part_transmitter = part.FindModulesImplementing<MicrowavePowerTransmitter>().First();

@@ -173,7 +173,7 @@ namespace FNPlugin.Refinery
             _neon_resource_name = InterstellarResourcesConfiguration.Instance.NeonGas;
             _nitrogen_resource_name = InterstellarResourcesConfiguration.Instance.Nitrogen;
             _nitrogen15_resource_name = InterstellarResourcesConfiguration.Instance.Nitrogen15;
-            _oxygen_resource_name = InterstellarResourcesConfiguration.Instance.Oxygen;
+            _oxygen_resource_name = InterstellarResourcesConfiguration.Instance.LqdOxygen;
             _water_resource_name = InterstellarResourcesConfiguration.Instance.Water;
             _heavywater_resource_name = InterstellarResourcesConfiguration.Instance.HeavyWater;
             _xenon_resource_name = InterstellarResourcesConfiguration.Instance.XenonGas;

@@ -56,7 +56,7 @@ namespace FNPlugin.Refinery
             get 
             {
                 return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0) &&
-                    _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Oxygen).Any(rs => rs.amount > 0); 
+                    _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0); 
             } 
         }
 
@@ -69,12 +69,12 @@ namespace FNPlugin.Refinery
             _part = part;
             _vessel = part.vessel;
 
-            _oxygenResourceName = InterstellarResourcesConfiguration.Instance.Oxygen;
+            _oxygenResourceName = InterstellarResourcesConfiguration.Instance.LqdOxygen;
             _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
             _hydrogenPeroxideResourceName = InterstellarResourcesConfiguration.Instance.HydrogenPeroxide;
 
 			_hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
-			_oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
+			_oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
             _hydrogen_peroxide_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
         }
 

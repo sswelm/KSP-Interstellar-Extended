@@ -103,6 +103,9 @@ namespace FNPlugin
             part.temperature = storedTemp;
             initializationCountdown = 50;
 
+            if (state == StartState.Editor)
+                return;
+
             // if electricCharge buffer is missing, add it.
             if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.ElectricCharge))
             {

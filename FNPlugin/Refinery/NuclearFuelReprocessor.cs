@@ -19,7 +19,7 @@ namespace FNPlugin.Refinery
         protected double _current_power;
         private GUIStyle _bold_label;
 
-        public RefineryType RefineryType { get { return RefineryType.heating; } }
+        public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
         public String ActivityName { get { return "Nuclear Fuel Reprocessing"; } }
 
@@ -53,7 +53,7 @@ namespace FNPlugin.Refinery
             {
                 double actinides_change = nuclear_reactor.ReprocessFuel(remaining_capacity_to_reprocess);
                 enum_actinides_change += actinides_change;
-                remaining_capacity_to_reprocess = Math.Max(0, remaining_capacity_to_reprocess-actinides_change);
+                remaining_capacity_to_reprocess = Math.Max(0, remaining_capacity_to_reprocess - actinides_change);
             }
             _remaining_to_reprocess = nuclear_reactors.Sum(nfr => nfr.WasteToReprocess);
             _fixed_current_rate = enum_actinides_change;

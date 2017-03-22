@@ -63,7 +63,7 @@ namespace FNPlugin.Refinery
             _vessel = part.vessel;
 
             _dioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
-            _oxygenResourceName = InterstellarResourcesConfiguration.Instance.Oxygen;
+            _oxygenResourceName = InterstellarResourcesConfiguration.Instance.LqdOxygen;
             _monoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
             
             _dioxide_density = PartResourceLibrary.Instance.GetDefinition(_dioxideResourceName).density;
