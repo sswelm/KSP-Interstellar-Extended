@@ -735,16 +735,6 @@ namespace FNPlugin
 
                 if (result.Source != null)
                     ((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
-
-                //mother = part.parent.FindModuleImplementing<MicrowavePowerReceiver>();
-                //if (mother != null)
-                //    mother.RegisterAsSlave(this);
-                //else if (part.parent.parent != null)
-                //{
-                //    mother = part.parent.parent.FindModuleImplementing<MicrowavePowerReceiver>();
-                //    if (mother != null)
-                //        mother.RegisterAsSlave(this);
-                //}
             }
 
             fnRadiator = part.FindModuleImplementing<FNRadiator>();
@@ -834,22 +824,12 @@ namespace FNPlugin
             if (!String.IsNullOrEmpty(animGenericName))
                 genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == animGenericName);
 
-            //if (!part.FindModulesImplementing<ModuleEngines>().Any())
-            //{
-            //    this.part.force_activate();
-            //}
-
             if (part_transmitter == null)
             {
                 if (receiverIsEnabled)
                 {
                     ScreenMessages.PostScreenMessage("Microwave Receiver Activates", 10.0f, ScreenMessageStyle.UPPER_CENTER);
                     ActivateRecieverState(true);
-                }
-                else
-                {
-                    //ScreenMessages.PostScreenMessage("Microwave Receiver Deactivates", 10.0f, ScreenMessageStyle.UPPER_CENTER);
-                    //DeactivateRecieverState(true);
                 }
             }
             else
@@ -863,11 +843,8 @@ namespace FNPlugin
 
         public override void OnLoad(ConfigNode node)
         {
-            //if (isSolarReflector)
-            //{
-                part.temperature = storedTemp;
-                part.skinTemperature = storedTemp;
-            //}
+            part.temperature = storedTemp;
+            part.skinTemperature = storedTemp;
         }
 
         private void InitializeThermalModeSwitcher()
@@ -1071,6 +1048,7 @@ namespace FNPlugin
             Fields["beamedpower"].guiActive = !linkedForRelay;
             Fields["slavesAmount"].guiActive = thermalMode;
             Fields["ThermalPower"].guiActive = isThermalReceiverSlave || thermalMode;
+
             Fields["efficiencyPercentage"].guiActive = receiverIsEnabled;
             Fields["effectiveSpotSize"].guiActive = receiverIsEnabled;
             Fields["effectivefacingFactor"].guiActive = receiverIsEnabled;
@@ -1081,11 +1059,11 @@ namespace FNPlugin
             Fields["maxAvailablePowerFromSource"].guiActive = receiverIsEnabled;
             Fields["routeEfficiency"].guiActive = receiverIsEnabled;
             Fields["currentPowerUsageByOtherRecievers"].guiActive = receiverIsEnabled;
-            Fields["remainingPowerFromSource"].guiActive = receiverIsEnabled;
-
-            Fields["selectedBandwidthConfiguration"].guiActive = canSwitchBandwidthInEditor && receiverIsEnabled;
+            Fields["remainingPowerFromSource"].guiActive = receiverIsEnabled;          
             Fields["minimumWavelength"].guiActive = receiverIsEnabled;
             Fields["maximumWavelength"].guiActive = receiverIsEnabled;
+
+            Fields["selectedBandwidthConfiguration"].guiActive = canSwitchBandwidthInEditor && receiverIsEnabled;
 
             Fields["solarFacingFactor"].guiActive = solarReceptionSurfaceArea > 0;
             Fields["solarFlux"].guiActive = solarReceptionSurfaceArea > 0;

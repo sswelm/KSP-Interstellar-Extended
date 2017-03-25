@@ -108,7 +108,7 @@ namespace FNPlugin
         public string partTempStr;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double radiatorArea = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Eff Multiplier", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Surface Multiplier", guiFormat = "F2")]
         public double effectiveMultiplier;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiativeArea = 1;
@@ -118,7 +118,7 @@ namespace FNPlugin
         public float areaMultiplierAtmosphere = 4;
         //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         //public float radiativeAreaFraction = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiatorArea;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
 		public string thermalPowerDissipStr;
@@ -189,19 +189,27 @@ namespace FNPlugin
             }
         }
 
+
+        public double EffectiveMultiplier
+        {
+            get
+            {
+                effectiveMultiplier = !HighLogic.LoadedSceneIsFlight
+                    ? areaMultiplier
+                    : vessel.atmDensity == 0
+                        ? areaMultiplier
+                        : vessel.atmDensity > 1
+                            ? areaMultiplierAtmosphere
+                            : ((1 - vessel.atmDensity) * areaMultiplier) + (vessel.atmDensity * areaMultiplierAtmosphere);
+                return effectiveMultiplier;
+            }
+        }
+
         public double EffectiveRadiatorArea
         {
             get 
             {
-                effectiveMultiplier = !HighLogic.LoadedSceneIsFlight 
-                    ? areaMultiplier
-                    : vessel.atmDensity == 0 
-                        ? areaMultiplier 
-                        : vessel.atmDensity > 1 
-                            ? areaMultiplierAtmosphere
-                            : ((1 - vessel.atmDensity) * areaMultiplier) + (vessel.atmDensity * areaMultiplierAtmosphere);
-
-                effectiveRadiativeArea = effectiveMultiplier * radiatorArea;
+                effectiveRadiativeArea = EffectiveMultiplier * radiatorArea;
 
                 return hasSurfaceAreaUpgradeTechReq 
                     ? effectiveRadiativeArea * surfaceAreaUpgradeMult 
@@ -497,7 +505,7 @@ namespace FNPlugin
                     Retract();
             }
 
-            _maxEnergyTransfer = effectiveRadiatorArea * 250 * (1 + ((int)CurrentGenerationType * 2));
+            _maxEnergyTransfer = radiatorArea * 250 * effectiveMultiplier * (1 + ((int)CurrentGenerationType * 2));
 
             if (state == StartState.Editor) return;
 
@@ -628,7 +636,7 @@ namespace FNPlugin
 
                 effectiveRadiatorArea = EffectiveRadiatorArea;
 
-                _maxEnergyTransfer = effectiveRadiatorArea * 250 * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
+                _maxEnergyTransfer = radiatorArea * 250 * effectiveMultiplier * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
 
                 if (_moduleActiveRadiator != null)
                     _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
@@ -641,7 +649,7 @@ namespace FNPlugin
                     double low_temp = FlightGlobals.getExternalTemperature(vessel.transform.position);
 
                     double delta_temp = Math.Max(0, CurrentRadiatorTemperature - low_temp);
-                    double conv_power_dissip = pressure * delta_temp * EffectiveRadiatorArea * rad_const_h / 1e6 * TimeWarp.fixedDeltaTime * convectiveBonus;
+                    double conv_power_dissip = pressure * delta_temp * effectiveRadiatorArea * rad_const_h / 1e6 * TimeWarp.fixedDeltaTime * convectiveBonus;
 
                     if (!radiatorIsEnabled)
                         conv_power_dissip = conv_power_dissip / 2.0;
@@ -669,8 +677,6 @@ namespace FNPlugin
 
                 radiator_temperature_temp_val = MaxRadiatorTemperature * Math.Pow(wasteheatRatio, 0.25);
 
-                //var activeThermalSources = GetActiveThermalSources();
-                //if (activeThermalSources.Any())
                 radiator_temperature_temp_val = Math.Min(MaxRadiatorTemperature / 1.01, radiator_temperature_temp_val);
 
                 if (radiatorIsEnabled)

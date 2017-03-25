@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -49,18 +48,18 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Mass", guiUnits = "t")]
         public float partMass;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Total Warp Power", guiFormat = "F3", guiUnits = "t")]
-        protected float sumOfAlcubierreDrives;
+        protected double sumOfAlcubierreDrives;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Vessel Total Mass", guiFormat = "F3", guiUnits = "t")]
         public float vesselTotalMass;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Warp to Mass Ratio", guiFormat = "F3")]
-        public float warpToMassRatio;
+        public double warpToMassRatio;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
         public double magnitudeDiff;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Change")]
         public double magnitudeChange;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Req Exotic Matter", guiUnits = " MW", guiFormat = "F2")]
-        protected float exotic_power_required = 1000;
+        protected double exotic_power_required = 1000;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Abs Min Power Warp", guiFormat = "F2", guiUnits = "MW")]
         public double minPowerRequirementForLightSpeed;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Cur Power for Warp ", guiFormat = "F2", guiUnits = "MW")]
@@ -288,12 +287,15 @@ namespace FNPlugin
 
             initiateWarpTimeout = 0; // stop initiating to warp
             vesselWasInOuterspace = (this.vessel.altitude > this.vessel.mainBody.atmosphereDepth * 10);
-
+ 
             // consume all exotic matter to create warp field
             part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
 
             warp_sound.Play();
             warp_sound.loop = true;
+
+            // prevent g-force effects
+            part.vessel.IgnoreGForces(50);
 
             active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
 
@@ -331,6 +333,9 @@ namespace FNPlugin
             //    ScreenMessages.PostScreenMessage("Cannot deactivate warp drive within the atmosphere!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
             //    return;
             //}
+
+            // prevent g-force effects
+            part.vessel.IgnoreGForces(50);
 
             IsEnabled = false;
             warp_sound.Stop();
@@ -946,6 +951,9 @@ namespace FNPlugin
                 heading_act = new_part_heading * GameConstants.warpspeed * new_warp_factor;
                 active_part_heading = new_part_heading;
                 serialisedwarpvector = ConfigNode.WriteVector(heading_act);
+
+                // prevent g-force effects
+                part.vessel.IgnoreGForces(50);
 
                 Debug.Log("[KSPI] - GoOnRails");
                 vessel.GoOnRails();

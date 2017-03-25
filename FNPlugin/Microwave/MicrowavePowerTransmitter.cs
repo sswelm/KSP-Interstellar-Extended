@@ -76,15 +76,12 @@ namespace FNPlugin
         //GUI 
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Aperture Diameter", guiFormat = "F2", guiUnits = " m")]
         public double apertureDiameter = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Transmit Status")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string statusStr;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Transmission Efficiency", guiUnits = "%")]
         public double transmissionEfficiencyPercentage;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reactor Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
-        //[KSPField(isPersistant = true, guiActive = true, guiName = "Solar Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
-        //public float solarPowertransmission = 100;
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
         public string beamedpower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Solar Power", guiFormat = "F2")]
@@ -395,13 +392,15 @@ namespace FNPlugin
             Fields["apertureDiameter"].guiActive = isTransmitting; 
             Fields["beamedpower"].guiActive = isTransmitting && canBeActive;
             Fields["transmitPower"].guiActive = isTransmitting;
-            //Fields["solarPowertransmission"].guiActive = isTransmitting;
             Fields["displayed_solar_power"].guiActive = isTransmitting && displayed_solar_power > 0;
 
             bool isLinkedForRelay = part_receiver != null && part_receiver.linkedForRelay;
 
-            Fields["moistureModifier"].guiActive = !isLinkedForRelay;
-            Fields["totalAbsorptionPercentage"].guiActive = !isLinkedForRelay;
+            bool receiverNotInUse = !isLinkedForRelay && !receiver_on && !IsRelay;
+
+            Fields["moistureModifier"].guiActive = receiverNotInUse;
+            Fields["totalAbsorptionPercentage"].guiActive = receiverNotInUse;
+            Fields["wavelength"].guiActive = receiverNotInUse;
 
             if (IsEnabled)
             {
@@ -414,6 +413,12 @@ namespace FNPlugin
             {
                 if (isLinkedForRelay)
                     statusStr = "Is Linked For Relay";
+                else if (receiver_on)
+                    statusStr = "Receiver active";
+                else if (transmitterCanRelay)
+                    statusStr = "Is ready for relay";
+                else if (beamGenerators.Count == 0)
+                    statusStr = "No beam generator found";
                 else
                     statusStr = "Inactive.";
             }
