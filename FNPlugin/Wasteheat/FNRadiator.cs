@@ -118,7 +118,7 @@ namespace FNPlugin
         public float areaMultiplierAtmosphere = 4;
         //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         //public float radiativeAreaFraction = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiatorArea;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
 		public string thermalPowerDissipStr;
@@ -505,7 +505,10 @@ namespace FNPlugin
                     Retract();
             }
 
-            _maxEnergyTransfer = radiatorArea * 250 * effectiveMultiplier * (1 + ((int)CurrentGenerationType * 2));
+            _maxEnergyTransfer = radiatorArea * 500 * effectiveMultiplier * (1 + ((int)CurrentGenerationType * 2));
+
+            if (_moduleActiveRadiator != null)
+                _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
 
             if (state == StartState.Editor) return;
 
@@ -636,7 +639,7 @@ namespace FNPlugin
 
                 effectiveRadiatorArea = EffectiveRadiatorArea;
 
-                _maxEnergyTransfer = radiatorArea * 250 * effectiveMultiplier * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
+                _maxEnergyTransfer = radiatorArea * 500 * effectiveMultiplier * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
 
                 if (_moduleActiveRadiator != null)
                     _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;

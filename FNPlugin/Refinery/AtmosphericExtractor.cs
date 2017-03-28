@@ -145,7 +145,7 @@ namespace FNPlugin.Refinery
         {
             get
             {
-                return _part.GetConnectedResources(_atmosphere_resource_name).Any(rs => rs.amount > 0);
+                return _vessel.atmDensity > 0 ||  _part.GetConnectedResources(_atmosphere_resource_name).Any(rs => rs.amount > 0);
             }
         }
 
@@ -319,7 +319,7 @@ namespace FNPlugin.Refinery
             _maxCapacitySodiumMass = partsThatContainSodium.Sum(p => p.maxAmount) * _sodium_density;
 
             // determine the amount of resources needed for processing (i.e. intake atmosphere) that the vessel actually holds
-            _availableAtmosphereMass = partsThatContainAtmosphere.Sum(r => r.amount) * _atmosphere_density;
+            _availableAtmosphereMass =  partsThatContainAtmosphere.Sum(r => r.amount) * _atmosphere_density;
 
             // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
             _spareRoomAmmoniaMass = partsThatContainAmmonia.Sum(r => r.maxAmount - r.amount) * _ammonia_density;
@@ -343,9 +343,11 @@ namespace FNPlugin.Refinery
 
             // this should determine how much resource this process can consume
             var fixedMaxAtmosphereConsumptionRate = _current_rate * fixedDeltaTime * _atmosphere_density;
+            var buildineAirIntake = fixedMaxAtmosphereConsumptionRate * _vessel.atmDensity;
+
             var atmosphereConsumptionRatio = offlineCollecting ? 1 
                     : fixedMaxAtmosphereConsumptionRate > 0
-                        ? Math.Min(fixedMaxAtmosphereConsumptionRate, _availableAtmosphereMass) / fixedMaxAtmosphereConsumptionRate
+                        ? Math.Min(fixedMaxAtmosphereConsumptionRate, buildineAirIntake + _availableAtmosphereMass) / fixedMaxAtmosphereConsumptionRate
                         : 0;
 
             _fixedConsumptionRate = _current_rate * fixedDeltaTime * atmosphereConsumptionRatio;
@@ -391,7 +393,11 @@ namespace FNPlugin.Refinery
 
                 if (offlineCollecting) // if we're collecting offline, we don't need to actually consume the resource, just provide the lines below with a number
                 {
-                    var totalProcessed = Math.Min(_fixedConsumptionRate, GetTotalAirScoopedPerSecond() * fixedDeltaTime);
+                    // calculate consumption
+                    var internal_consumption = _fixedConsumptionRate * _vessel.atmDensity;
+                    var external_consumption = GetTotalAirScoopedPerSecond() * fixedDeltaTime;
+
+                    var totalProcessed = Math.Min(_fixedConsumptionRate, internal_consumption + external_consumption);
                     ScreenMessages.PostScreenMessage("The atmospheric extractor processed " + _atmosphere_resource_name + " for " + fixedDeltaTime.ToString("F0") + " seconds", 60.0f, ScreenMessageStyle.UPPER_CENTER);
 
                     _atmosphere_consumption_rate = totalProcessed / fixedDeltaTime;
@@ -463,8 +469,19 @@ namespace FNPlugin.Refinery
                     * Otherwise the consumptionStorageRatio would be zero and thus no atmosphere would be consumed. */
                     _consumptionStorageRatio = new double[] { ammRatio, arRatio, dioxRatio, he3Ratio, he4Ratio, hydroRatio, methRatio, monoxRatio, neonRatio, nitroRatio, nitro15Ratio, oxyRatio, waterRatio, heavywaterRatio, xenonRatio, deuteriumRatio, kryptonRatio, sodiumRatio }.Where(x => x > 0).Min();
 
-                    // this consumes the resource, finally
-                    _atmosphere_consumption_rate = _part.RequestResource(_atmosphere_resource_name, _consumptionStorageRatio * _fixedConsumptionRate / _atmosphere_density) / fixedDeltaTime * _atmosphere_density;
+                    var max_atmospheric_consumption_rate = _consumptionStorageRatio * _fixedConsumptionRate;
+
+                    // first consume atmosphere with build in air intakes
+                    var internal_consumpion = _fixedConsumptionRate * _vessel.atmDensity;
+
+                    // calculate amospereic consumption per second
+                    _atmosphere_consumption_rate = internal_consumpion / fixedDeltaTime;
+
+                    // calculate missing atmsophere which can be extracted from air intakes
+                    var remainingConsumptionNeeded = Math.Max(0, internal_consumpion - max_atmospheric_consumption_rate);
+
+                    // add the consumed atmosphere total atmopheric consumption rate
+                    _atmosphere_consumption_rate += _part.RequestResource(_atmosphere_resource_name, remainingConsumptionNeeded / _atmosphere_density) / fixedDeltaTime * _atmosphere_density;
                 }
                 
                 // calculate the rates of production for the individual constituents

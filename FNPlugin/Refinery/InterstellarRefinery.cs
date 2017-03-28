@@ -166,6 +166,9 @@ namespace FNPlugin.Refinery
         {
             if (state == StartState.Editor) return;
 
+            // load stored overflow setting
+            overflowAllowed = lastOverflowSettings;
+
             _window_ID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
             var unsortedList = new List<IRefineryActivity>();
