@@ -505,7 +505,7 @@ namespace FNPlugin
                     Retract();
             }
 
-            _maxEnergyTransfer = radiatorArea * 500 * effectiveMultiplier * (1 + ((int)CurrentGenerationType * 2));
+            _maxEnergyTransfer = radiatorArea * 1000 * effectiveMultiplier * (1 + ((int)CurrentGenerationType * 2));
 
             if (_moduleActiveRadiator != null)
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
@@ -639,7 +639,7 @@ namespace FNPlugin
 
                 effectiveRadiatorArea = EffectiveRadiatorArea;
 
-                _maxEnergyTransfer = radiatorArea * 500 * effectiveMultiplier * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
+                _maxEnergyTransfer = radiatorArea * 1000 * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
 
                 if (_moduleActiveRadiator != null)
                     _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
