@@ -233,13 +233,11 @@ namespace FNPlugin
 				if (HighLogic.LoadedSceneIsEditor)
 					return;
 
-				double fussionPelletsAmount;
 				double fussionPelletsMaxAmount;
-				part.GetConnectedResourceTotals(fussionPelletsResourceDefinition.id, out fussionPelletsAmount, out fussionPelletsMaxAmount);
+                part.GetConnectedResourceTotals(fussionPelletsResourceDefinition.id, out percentageFuelRemaining, out fussionPelletsMaxAmount);
 
-				var percentageFussionPelletsRemaining = fussionPelletsAmount/fussionPelletsMaxAmount * 100;
+                var percentageFussionPelletsRemaining = percentageFuelRemaining / fussionPelletsMaxAmount * 100;
 				fussionPelletsAmounts = percentageFussionPelletsRemaining.ToString("0.0000") + "% " + fussionPelletsMaxAmount.ToString("0") + " L";
-
 			}
 			catch (Exception e)
 			{
@@ -494,17 +492,16 @@ namespace FNPlugin
 			curEngineT.atmosphereCurve = newAtmosphereCurve;
 		}
 
-		private void PersistantThrust(float modifiedFxedDeltaTime, double modifiedUniversalTime, Vector3d thrustUV, float vesselMass)
+		private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustUV, float vesselMass)
 		{
 			var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust;
 			var timeDialationEngineIsp = timeDilation * engineIsp;
 
 			double demandMass;
-			CalculateDeltaVV(vesselMass, modifiedFxedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, fussionPelletsResourceDefinition.density, thrustUV, out demandMass);
+			CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, fussionPelletsResourceDefinition.density, thrustUV, out demandMass);
 
-			var fusionPelletsrequestAmount = demandMass / fussionPelletsResourceDefinition.density;
-			fusionPelletsUsageDay = fusionPelletsrequestAmount / modifiedFxedDeltaTime * PluginHelper.SecondsInDay;
-
+			var fusionPelletsrequestAmount = demandMass * fussionPelletsResourceDefinition.density;
+			fusionPelletsUsageDay = fusionPelletsrequestAmount / modifiedFixedDeltaTime * PluginHelper.SecondsInDay;
 
 			if (CheatOptions.InfinitePropellant)
 				recievedRatio = 1;
@@ -516,7 +513,7 @@ namespace FNPlugin
 
 			effectiveThrust = timeDilationMaximumThrust * recievedRatio;
 
-			var deltaVV = CalculateDeltaVV(vesselMass, modifiedFxedDeltaTime, effectiveThrust, timeDialationEngineIsp, fussionPelletsResourceDefinition.density, thrustUV, out demandMass);
+			var deltaVV = CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveThrust, timeDialationEngineIsp, fussionPelletsResourceDefinition.density, thrustUV, out demandMass);
 
 			if (recievedRatio > 0.01)
 				vessel.orbit.Perturb(deltaVV, modifiedUniversalTime);
