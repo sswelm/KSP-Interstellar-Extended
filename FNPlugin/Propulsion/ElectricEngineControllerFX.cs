@@ -555,7 +555,7 @@ namespace FNPlugin
             return true;
         }
 
-        public static Vector3d CalculateDeltaVV(float totalMass, double deltaTime, double thrust, double isp, double averageDensity, Vector3d thrustDirection, out double demandMass)
+        public static Vector3d CalculateDeltaVV(float totalMass, double deltaTime, double thrust, double isp, Vector3d thrustDirection, out double demandMass)
         {
             // Mass flow rate
             var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
@@ -585,7 +585,7 @@ namespace FNPlugin
             // determine fuel availability
             if (!CheatOptions.InfinitePropellant && propellantAverageDensity > 0)
             {
-                CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, propellantAverageDensity, thrustDirection, out demandMass);
+                CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, thrustDirection, out demandMass);
 
                 var requestedAmount = demandMass / propellantAverageDensity;
                 if (IsValidPositiveNumber(requestedAmount))
@@ -599,7 +599,7 @@ namespace FNPlugin
 
             var effectiveThrust = throtle_max_thrust * fuelRatio;
 
-            var deltaVV = CalculateDeltaVV(vesselMass, fixedDeltaTime, effectiveThrust, engineIsp, propellantAverageDensity, thrustDirection, out demandMass);
+            var deltaVV = CalculateDeltaVV(vesselMass, fixedDeltaTime, effectiveThrust, engineIsp, thrustDirection, out demandMass);
 
             if (fuelRatio > 0.01)
                 vessel.orbit.Perturb(deltaVV, universalTime);

@@ -499,9 +499,9 @@ namespace FNPlugin
 			var timeDialationEngineIsp = timeDilation * engineIsp;
 
 			double demandMass;
-			CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, fussionPelletsResourceDefinition.density, thrustUV, out demandMass);
+			CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, thrustUV, out demandMass);
 
-			var fusionPelletsrequestAmount = demandMass * fussionPelletsResourceDefinition.density;
+			var fusionPelletsrequestAmount = demandMass / fussionPelletsResourceDefinition.density;
 			fusionPelletsUsageDay = fusionPelletsrequestAmount / modifiedFixedDeltaTime * PluginHelper.SecondsInDay;
 
 			if (CheatOptions.InfinitePropellant)
@@ -514,7 +514,7 @@ namespace FNPlugin
 
 			effectiveThrust = timeDilationMaximumThrust * recievedRatio;
 
-			var deltaVV = CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveThrust, timeDialationEngineIsp, fussionPelletsResourceDefinition.density, thrustUV, out demandMass);
+			var deltaVV = CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveThrust, timeDialationEngineIsp, thrustUV, out demandMass);
 
 			if (recievedRatio > 0.01)
 				vessel.orbit.Perturb(deltaVV, modifiedUniversalTime);
@@ -549,14 +549,14 @@ namespace FNPlugin
 		}
 
 		// Calculate DeltaV vector and update resource demand from mass (demandMass)
-		public static Vector3d CalculateDeltaVV(float totalMass, float deltaTime, double thrust, double isp, double averageDensity, Vector3d thrustUV, out double demandMass)
+		public static Vector3d CalculateDeltaVV(float totalMass, float deltaTime, double thrust, double isp, Vector3d thrustUV, out double demandMass)
 		{
 			// Mass flow rate
 			var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
 			// Change in mass over time interval dT
 			var dm = massFlowRate * deltaTime;
 			// Resource demand from propellants with mass
-			demandMass = averageDensity > 0 ? dm / averageDensity : 0;
+			demandMass = dm;
 			// Mass at end of time interval dT
 			var finalMass = totalMass - dm;
 			// deltaV amount
