@@ -233,11 +233,12 @@ namespace FNPlugin
 				if (HighLogic.LoadedSceneIsEditor)
 					return;
 
+				double fussionPelletsCurrentAmount;
 				double fussionPelletsMaxAmount;
-                part.GetConnectedResourceTotals(fussionPelletsResourceDefinition.id, out percentageFuelRemaining, out fussionPelletsMaxAmount);
+				part.GetConnectedResourceTotals(fussionPelletsResourceDefinition.id, out fussionPelletsCurrentAmount, out fussionPelletsMaxAmount);
 
-                var percentageFussionPelletsRemaining = percentageFuelRemaining / fussionPelletsMaxAmount * 100;
-				fussionPelletsAmounts = percentageFussionPelletsRemaining.ToString("0.0000") + "% " + fussionPelletsMaxAmount.ToString("0") + " L";
+				percentageFuelRemaining = fussionPelletsCurrentAmount / fussionPelletsMaxAmount * 100;
+				fussionPelletsAmounts = percentageFuelRemaining.ToString("0.0000") + "% " + fussionPelletsMaxAmount.ToString("0") + " L";
 			}
 			catch (Exception e)
 			{
