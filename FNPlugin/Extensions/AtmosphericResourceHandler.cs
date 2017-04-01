@@ -189,24 +189,26 @@ namespace FNPlugin
         {
             try
             {
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Ammonia, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Argon, "LqdArgon", "ArgonGas", "Argon", "Argon");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonDioxide, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.CarbonMoxoxide, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.LqdDeuterium, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.HeavyWater, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.KryptonGas, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Methane, "LqdMethane", "MethaneGas", "Methane", "Methane");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Nitrogen, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.NeonGas, "LqdNeon", "NeonGas", "Neon", "Neon");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.LqdOxygen, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Water, "LqdWater", "H2O", "Water", "Water");
-                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.XenonGas, "LqdXenon", "XenonGas", "Xenon", "Xenon");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_AMMONIA, "LqdAmmonia", "NH3", "Ammonia", "Ammonia");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_ARGON, "LqdArgon", "ArgonGas", "Argon", "Argon");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_CO2, "LqdCO2", "CO2", "CarbonDioxide", "CarbonDioxide");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_CO, "LqdCO", "CO", "CarbonMonoxide", "CarbonMonoxide");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_DEUTERIUM, "LqdDeuterium", "DeuteriumGas", "Deuterium", "Deuterium");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_TRITIUM, "LqdTritium", "TritiumGas", "Tritium", "Tritium");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_HEAVYWATER, "DeuteriumWater", "D2O", "HeavyWater", "HeavyWater");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_KRYPTON, "LqdKrypton", "KryptonGas", "Krypton", "Krypton");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_METHANE, "LqdMethane", "MethaneGas", "Methane", "Methane");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_NITROGEN, "LqdNitrogen", "NitrogenGas", "Nitrogen", "Nitrogen");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_NEON, "LqdNeon", "NeonGas", "Neon", "Neon");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_OXYGEN, "LqdOxygen", "OxygenGas", "Oxygen", "Oxygen");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_WATER, "LqdWater", "H2O", "Water", "Water");
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration._LIQUID_XENON, "LqdXenon", "XenonGas", "Xenon", "Xenon");
 
-                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium4, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
-                AddResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, "Helium-3", refBody, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
-                AddResource(InterstellarResourcesConfiguration.Instance.Hydrogen, "Hydrogen", refBody, bodyComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "H2", "Protium", "LqdProtium" });
+                AddResource(refBody, bodyComposition, InterstellarResourcesConfiguration.Instance.Sodium, "LqdSodium", "SodiumGas", "Sodium", "Sodium");
+
+                AddResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" });
+                AddResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_3, "Helium-3", refBody, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3" });
+                AddResource(InterstellarResourcesConfiguration._LIQUID_HYDROGEN, "Hydrogen", refBody, bodyComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "LiquidHydrogen", "H2", "Protium", "LqdProtium" });
             }
             catch (Exception ex)
             {
@@ -266,65 +268,65 @@ namespace FNPlugin
         private static void AddRaresAndIsotopesToAdmosphereComposition(List<AtmosphericResource> bodyAtmosphericComposition, CelestialBody celestialBody)
         {
             // add heavywater based on water abundance in atmosphere
-            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.HeavyWater) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water))
+            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HEAVYWATER) && bodyAtmosphericComposition.Any(m => m.ResourceName == "Water"))
             {
-                var water = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water);
+                var water = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_WATER);
                 var heavywaterAbundance = water.ResourceAbundance / 6420;
-                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.HeavyWater, heavywaterAbundance, "HeavyWater"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_HEAVYWATER, heavywaterAbundance, InterstellarResourcesConfiguration._LIQUID_HEAVYWATER));
             }
 
             // add helium4 comparable to earth
-            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium4))
+            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HELIUM_4))
             {
                 var helium4Abundance = 5.2e-6;
                 Debug.Log("[KSPI] - added helum-4 to atmosphere with abundance " + helium4Abundance);
-                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.LqdHelium4, helium4Abundance, "Helium-4"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, helium4Abundance, "Helium-4"));
             }
             else
-                Debug.Log("[KSPI] -  helum-4 is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium4).ResourceAbundance);
+                Debug.Log("[KSPI] - Helium is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HELIUM_4).ResourceAbundance);
 
             // if helium3 is undefined, but helium is, derive it
-            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium4))
+            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HELIUM_3) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HELIUM_4))
             {
-                
-                var helium = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium4);
+
+                var helium = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HELIUM_4);
                 var helium3Abundance = celestialBody.GetPressure(0) > 1000
                     ? helium.ResourceAbundance * 0.001
                     : helium.ResourceAbundance * 1.38e-6;
 
                 Debug.Log("[KSPI] - added helum-3 to atmosphere eith abundance " + helium3Abundance);
-                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.LqdHelium3, helium3Abundance, "Helium-3"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_3, helium3Abundance, "Helium-3"));
             }
-            else if (bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3))
-                Debug.Log("[KSPI] -  helium-3 is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdHelium3).ResourceAbundance);
+            else if (bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HELIUM_3))
+                Debug.Log("[KSPI] - helium-3 is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HELIUM_3).ResourceAbundance);
             else
-                Debug.Log("[KSPI] -  No helium is present in atmosphere specification, helium-4 will not be added");
+                Debug.Log("[KSPI] - No Helium is present in atmosphere specification, helium-4 will not be added");
 
             // if deteurium is undefined, but hydrogen is, derive it
-            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Hydrogen))
+            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_DEUTERIUM) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HYDROGEN))
             {
-                var hydrogen = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Hydrogen);
+                var hydrogen = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HYDROGEN);
                 var deuteriumAbundance = hydrogen.ResourceAbundance / 6420;
                 Debug.Log("[KSPI] - added deuterium to atmosphere with abundance " + deuteriumAbundance);
-                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, deuteriumAbundance, "Deuterium"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM, deuteriumAbundance, "Deuterium"));
             }
-            else if (bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium)) 
-                Debug.Log("[KSPI] - deuterium is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ResourceAbundance);
+            else if (bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_DEUTERIUM))
+                Debug.Log("[KSPI] - deuterium is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_DEUTERIUM).ResourceAbundance);
             else 
-                Debug.Log("[KSPI] - No hydrogen is present in atmosphere specification, deuterium will not be added");
+                Debug.Log("[KSPI] - No Hydrogen is present in atmosphere specification, deuterium will not be added");
 
             // if nitrogen-15 is undefined, but nitrogen is, derive it
-            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen15) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen))
+            if (!bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_NITROGEN_15) && bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_NITROGEN))
             {
-                var nitrogen = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen);
+                var nitrogen = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_NITROGEN);
                 var nitrogen15Abundance = nitrogen.ResourceAbundance * 0.00364;
                 Debug.Log("[KSPI] - added nitrogen-15 to atmosphere with abundance " + nitrogen15Abundance);
-                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration.Instance.Nitrogen15, nitrogen15Abundance, "Nitrogen-15"));
+                bodyAtmosphericComposition.Add(new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_NITROGEN_15, nitrogen15Abundance, "Nitrogen-15"));
             }
-            else if (bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen15))
-                Debug.Log("[KSPI] - nitrogen-15 is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Nitrogen15).ResourceAbundance);
+            else if (bodyAtmosphericComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_NITROGEN_15))
+                Debug.Log("[KSPI] - nitrogen-15 is already present in atmosphere specification at " + bodyAtmosphericComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_NITROGEN_15).ResourceAbundance);
             else
-                Debug.Log("[KSPI] - No nitrogen is present in atmosphere specification, nitrogen-15 will not be added");
+                Debug.Log("[KSPI] - No Nitrogen is present in atmosphere specification, nitrogen-15 will not be added");
         }
 
 

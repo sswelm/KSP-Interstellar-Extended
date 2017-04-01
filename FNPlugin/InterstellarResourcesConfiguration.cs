@@ -10,54 +10,80 @@ namespace FNPlugin
     {
         private static InterstellarResourcesConfiguration _instance = null;
 
-        private const String _ALIMINIUM = "Aluminium";
-        private const String _ANTIMATTER = "Antimatter";
-        private const String _INTAKE_ATMOSPHERE = "IntakeAtm";
-        private const String _THORIUM_TETRAFLOURIDE = "ThF4";
-        private const String _URANIUM_NITRIDE = "UraniumNitride";
-        private const String _ENRICHED_URANIUM = "EnrichedUranium";
-        private const String _ACTINIDES = "Actinides";
-        private const String _DEPLETED_FUEL = "DepletedFuel";
-        private const String _VACUUM_PLASMA = "VacuumPlasma";
-        private const String _EXOTIC_MATTER = "ExoticMatter";
-        private const String _INTAKE_AIR = "IntakeAir";
-        private const String _LITHIUM7 = "Lithium";
-        private const String _LITHIUM6 = "Lithium6";
-        private const String _PLUTONIUM_238 = "Plutonium-238";
-        private const String _ALUMINA = "Alumina";
-        private const String _LIQUID_DEUTERIUM = "LqdDeuterium";
-        private const String _DEUTERIUM_GAS = "Deuterium";
-        private const String _INTAKE_LIQUID = "IntakeLqd";
-        private const String _ELECTRIC_CHARGE = "ElectricCharge";
+        public const String _ALIMINIUM = "Aluminium";
+        public const String _ANTIMATTER = "Antimatter";
+        public const String _INTAKEATMOSPHERE = "IntakeAtm";
+        public const String _THORIUM_TETRAFLOURIDE = "ThF4";
+        public const String _URANIUM_NITRIDE = "UraniumNitride";
+        public const String _ENRICHED_URANIUM = "EnrichedUranium";
+        public const String _ACTINIDES = "Actinides";
+        public const String _DEPLETED_FUEL = "DepletedFuel";
+        public const String _VACUUM_PLASMA = "VacuumPlasma";
+        public const String _EXOTIC_MATTER = "ExoticMatter";
+        public const String _INTAKE_AIR = "IntakeAir";
+        public const String _LITHIUM7 = "Lithium";
+        public const String _LITHIUM6 = "Lithium6";
+        public const String _PLUTONIUM_238 = "Plutonium-238";
+        public const String _ALUMINA = "Alumina";
+        public const String _LIQUID_DEUTERIUM = "LqdDeuterium";
+        public const String _DEUTERIUM_GAS = "Deuterium";
+        public const String _INTAKE_LIQUID = "IntakeLqd";
+        public const String _ELECTRIC_CHARGE = "ElectricCharge";
+        public const String _LIQUID_AMMONIA = "LqdAmmonia";
+        public const String _LIQUID_ARGON = "LqdArgon";
+        public const String _LIQUID_CO2 = "LqdCO2";
+        public const String _LIQUID_CO = "LqdCO";
+        public const String _LIQUID_HELIUM_4 = "LqdHelium";
+        public const String _HELIUM_4_GAS = "Helium";
+        public const String _LIQUID_HELIUM_3 = "LqdHe3";
+        public const String _HELIUM3_GAS = "Helium3";
+        public const String _LIQUID_HYDROGEN = "LqdHydrogen";
+        public const String _LIQUID_METHANE = "LqdMethane";
+        public const String _LIQUID_NEON = "LqdNeon";
+        public const String _LIQUID_NITROGEN = "LqdNitrogen";
+        public const String _LIQUID_NITROGEN_15 = "LqdNitrogen15";
+        public const String _LIQUID_OXYGEN = "LqdOxygen";
+        public const String _OXYGEN_GAS = "Oxygen";
+        public const String _LIQUID_WATER = "Water";
+        public const String _LIQUID_HEAVYWATER = "HeavyWater";
+        public const String _LIQUID_XENON = "LqdXenon";
+        public const String _XENON_GAS = "LqdXenon";
+        public const String _LIQUID_KRYPTON = "LqdKrypton";
+        public const String _KRYPTON_GAS = "KryptonGas";
+        public const String _LIQUID_TRITIUM = "LqdTritium";
+        public const String _TRITIUM_GAS = "Tritium";
 
         private String _uranium_TerraFloride = "UF4";
         private String _aluminium = "Aluminium";
-        private String _ammonia = "LqdAmmonia";
-        private String _argon = "LqdArgon";
-        private String _carbonDioxide = "LqdCO2";
-        private String _carbonMoxoxide = "LqdCO";
+        private String _ammonia = _LIQUID_AMMONIA;
+        private String _argon = _LIQUID_ARGON;
+        private String _carbonDioxide = _LIQUID_CO2;
+        private String _carbonMoxoxide = _LIQUID_CO;
         private String _fluorineGas = "Fluorine";
-        private String _helium4_gas = "Helium";
-        private String _liquid_helium4 = "LqdHelium";
-        private String _helium3_gas = "Helium3";
-        private String _liquid_helium3 = "LqdHe3";
+        private String _helium4_gas = _HELIUM_4_GAS;
+        private String _liquid_helium4 = _LIQUID_HELIUM_4;
+        private String _helium3_gas = _HELIUM3_GAS;
+        private String _liquid_helium3 = _LIQUID_HELIUM_3;
         private String _sodium = "Sodium";
-        private String _hydrogen = "LqdHydrogen";
+        private String _hydrogen = _LIQUID_HYDROGEN;
         private String _hydrogen_peroxide = "HTP";
         private String _hydrazine = "Hydrazine";
-        private String _methane = "LqdMethane";
-        private String _nitrogen = "LqdNitrogen";
-        private String _nitrogen15 = "LqdNitrogen15";
-        private String _lqdOxygen = "LqdOxygen";
-        private String _oxygen = "Oxygen";
-        private String _water = "Water";
-        private String _heavyWater = "HeavyWater";
-        private String _tritium = "LqdTritium";
+        private String _methane = _LIQUID_METHANE;
+        private String _nitrogen = _LIQUID_NITROGEN;
+        private String _nitrogen15 = _LIQUID_NITROGEN_15;
+        private String _lqdOxygen = _LIQUID_OXYGEN;
+        private String _oxygen_gas = _OXYGEN_GAS;
+        private String _water = _LIQUID_WATER;
+        private String _heavyWater = _LIQUID_HEAVYWATER;
+        private String _tritium = _LIQUID_TRITIUM;
+        private String _tritium_gas = _TRITIUM_GAS;
         private String _solarWind = "SolarWind";
-        private String _neon_gas = "NeonGas";
+        private String _neon_gas = _LIQUID_NEON;
         private String _regolith = "Regolith";
-        private String _xenongas = "XenonGas";
-        private String _krytongas = "KryptonGas";
+        private String _xenongas = _XENON_GAS;
+        private String _xenon = _LIQUID_XENON;
+        private String _kryton = _LIQUID_KRYPTON;
+        private String _krytongas = _KRYPTON_GAS;
 
         public String Actinides { get { return _ACTINIDES; } }
         public String Alumina { get { return _ALUMINA; } }
@@ -82,7 +108,7 @@ namespace FNPlugin
         public String Hydrogen { get { return _hydrogen; } }
         public String HydrogenPeroxide { get { return _hydrogen_peroxide; } }
         public String Hydrazine { get { return _hydrazine; } }
-        public String IntakeAtmosphere { get { return _INTAKE_ATMOSPHERE; } }
+        public String IntakeAtmosphere { get { return _INTAKEATMOSPHERE; } }
         public String IntakeLiquid { get { return _INTAKE_LIQUID; } }
         public String Lithium6 { get { return _LITHIUM6; } }
         public String IntakeAir { get { return _INTAKE_AIR; } }
@@ -92,20 +118,23 @@ namespace FNPlugin
         public String Nitrogen { get { return _nitrogen; } }
         public String Nitrogen15 { get { return _nitrogen15; } }
         public String LqdOxygen { get { return _lqdOxygen; } }
-        public String OxygenGas { get { return _oxygen; } }
+        public String OxygenGas { get { return _oxygen_gas; } }
         public String Plutonium238 { get { return _PLUTONIUM_238; } }
         public String Regolith { get { return _regolith; } }
         public String SolarWind { get { return _solarWind; } }
         public String ThoriumTetraflouride { get { return _THORIUM_TETRAFLOURIDE; } }
         public String LqdTritium { get { return _tritium; } }
+        public String TritiumGas { get { return _tritium_gas; } }
         public String UraniumTetraflouride { get { return _uranium_TerraFloride; } }
         public String UraniumNitride { get { return _URANIUM_NITRIDE; } }
         public String EnrichedUrarium { get { return _ENRICHED_URANIUM; } }
         public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
         public String Water { get { return _water; } }
         public String HeavyWater { get { return _heavyWater; } }
+        public String Xenon { get { return _xenon; } }
         public String XenonGas { get { return _xenongas; } }
         public String KryptonGas { get { return _krytongas; } }
+        public String Krypton { get { return _kryton; } }
 
         public InterstellarResourcesConfiguration(ConfigNode plugin_settings)
         {

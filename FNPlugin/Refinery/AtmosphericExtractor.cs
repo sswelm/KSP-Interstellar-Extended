@@ -161,24 +161,26 @@ namespace FNPlugin.Refinery
             _vessel = part.vessel;
 
             // get the name of all relevant resources
-            _atmosphere_resource_name = InterstellarResourcesConfiguration.Instance.IntakeAtmosphere;
-            _ammonia_resource_name = InterstellarResourcesConfiguration.Instance.Ammonia;
-            _argon_resource_name = InterstellarResourcesConfiguration.Instance.Argon;
-            _dioxide_resource_name = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
-            _helium3_resource_name = InterstellarResourcesConfiguration.Instance.LqdHelium3;
-            _helium4_resource_name = InterstellarResourcesConfiguration.Instance.LqdHelium4;
-            _hydrogen_resource_name = InterstellarResourcesConfiguration.Instance.Hydrogen;
-            _methane_resource_name = InterstellarResourcesConfiguration.Instance.Methane;
-            _monoxide_resource_name = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
-            _neon_resource_name = InterstellarResourcesConfiguration.Instance.NeonGas;
-            _nitrogen_resource_name = InterstellarResourcesConfiguration.Instance.Nitrogen;
-            _nitrogen15_resource_name = InterstellarResourcesConfiguration.Instance.Nitrogen15;
-            _oxygen_resource_name = InterstellarResourcesConfiguration.Instance.LqdOxygen;
-            _water_resource_name = InterstellarResourcesConfiguration.Instance.Water;
-            _heavywater_resource_name = InterstellarResourcesConfiguration.Instance.HeavyWater;
-            _xenon_resource_name = InterstellarResourcesConfiguration.Instance.XenonGas;
-            _deuterium_resource_name = InterstellarResourcesConfiguration.Instance.LqdDeuterium;
-            _krypton_resource_name = InterstellarResourcesConfiguration.Instance.KryptonGas;
+            _atmosphere_resource_name = InterstellarResourcesConfiguration._INTAKEATMOSPHERE;
+
+            _ammonia_resource_name = InterstellarResourcesConfiguration._LIQUID_AMMONIA;
+            _argon_resource_name = InterstellarResourcesConfiguration._LIQUID_ARGON;
+            _dioxide_resource_name = InterstellarResourcesConfiguration._LIQUID_CO2;
+            _monoxide_resource_name = InterstellarResourcesConfiguration._LIQUID_CO;
+            _helium3_resource_name = InterstellarResourcesConfiguration._LIQUID_HELIUM_3;
+            _helium4_resource_name = InterstellarResourcesConfiguration._LIQUID_HELIUM_4;
+            _hydrogen_resource_name = InterstellarResourcesConfiguration._LIQUID_HYDROGEN;
+            _methane_resource_name = InterstellarResourcesConfiguration._LIQUID_METHANE;
+            _neon_resource_name = InterstellarResourcesConfiguration._LIQUID_NEON;
+            _nitrogen_resource_name = InterstellarResourcesConfiguration._LIQUID_NITROGEN;
+            _nitrogen15_resource_name = InterstellarResourcesConfiguration._LIQUID_NITROGEN_15;
+            _oxygen_resource_name = InterstellarResourcesConfiguration._LIQUID_OXYGEN;
+            _water_resource_name = InterstellarResourcesConfiguration._LIQUID_WATER;
+            _heavywater_resource_name = InterstellarResourcesConfiguration._LIQUID_HEAVYWATER;
+            _xenon_resource_name = InterstellarResourcesConfiguration._LIQUID_XENON;
+            _deuterium_resource_name = InterstellarResourcesConfiguration._LIQUID_DEUTERIUM;
+            _krypton_resource_name = InterstellarResourcesConfiguration._LIQUID_KRYPTON;
+
             _sodium_resource_name = InterstellarResourcesConfiguration.Instance.Sodium;
             
             // get the densities of all relevant resources
