@@ -192,8 +192,10 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Sun Facing Factor", guiFormat = "F4")]
         public double solarFacingFactor;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
         public double solarFlux;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Buffer Power", guiFormat = "F4", guiUnits = " MW")]
+        public double partBaseMegajoules;
 
         [KSPField(isPersistant = false)]
         public float powerMult = 1;
@@ -396,7 +398,7 @@ namespace FNPlugin
         protected double solarInputMegajoules = 0;
         protected double powerInputMegajoules = 0;
         protected double partBaseWasteheat;
-        protected double partBaseMegajoules;
+        
 
         protected double fixedSolarInputMegajoules = 0;
 
@@ -642,11 +644,19 @@ namespace FNPlugin
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
+            UnityEngine.Debug.Log("[KSPI] - step 1");
+
             InitializeThermalModeSwitcher();
+
+            UnityEngine.Debug.Log("[KSPI] - step 2");
 
             InitializeBrandwitdhSelector();
 
+            UnityEngine.Debug.Log("[KSPI] - step 3");
+
             instanceId = GetInstanceID();
+
+            UnityEngine.Debug.Log("[KSPI] - step 4");
 
             _linkReceiverBaseEvent = Events["LinkReceiver"];
             _unlinkReceiverBaseEvent = Events["UnlinkReceiver"];
@@ -657,6 +667,8 @@ namespace FNPlugin
 
             coreTempererature = CoreTemperature.ToString("0.0") + " K";
             _coreTempereratureField = Fields["coreTempererature"];
+
+            UnityEngine.Debug.Log("[KSPI] - step 4");
 
             if (IsThermalSource && !isThermalReceiverSlave)
             {
@@ -673,6 +685,8 @@ namespace FNPlugin
                 _coreTempereratureField.guiActiveEditor = false;
             }
 
+            UnityEngine.Debug.Log("[KSPI] - step 5");
+
             // Determine currently maximum and minimum wavelength
             if (BandwidthConverters.Any())
             {
@@ -688,6 +702,8 @@ namespace FNPlugin
                 }
             }
 
+            UnityEngine.Debug.Log("[KSPI] - step 6");
+
             deployableAntenna = part.FindModuleImplementing<ModuleDeployableAntenna>();
             if (deployableAntenna != null)
             {
@@ -700,6 +716,8 @@ namespace FNPlugin
                     Debug.LogError("[KSPI] - Error while disabling antenna deploy button " + e.Message + " at " + e.StackTrace);
                 }
             }
+
+            UnityEngine.Debug.Log("[KSPI] - step 7");
 
             deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (deployableSolarPanel != null)
@@ -714,6 +732,8 @@ namespace FNPlugin
                 }
             }
 
+            UnityEngine.Debug.Log("[KSPI] - step 8");
+
             var isInSolarModeField = Fields["solarPowerMode"];
             isInSolarModeField.guiActive = deployableSolarPanel != null;
             isInSolarModeField.guiActiveEditor = deployableSolarPanel != null;
@@ -721,21 +741,31 @@ namespace FNPlugin
             if (deployableSolarPanel == null)
                 solarPowerMode = false;
 
+            UnityEngine.Debug.Log("[KSPI] - step 9");
+
             if (state == StartState.Editor) { return; }
 
             // compensate for stock solar initialisation heating bug
             initializationCountdown = 10;
 
+            
+
             if (forceActivateAtStartup)
                 part.force_activate();
+
+            UnityEngine.Debug.Log("[KSPI] - step 10");
 
             if (isThermalReceiverSlave)
             {
                 var result = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => (MicrowavePowerReceiver)s != this && s is MicrowavePowerReceiver, 2, 2, 2, true);
 
-                if (result.Source != null)
+                if (result == null || result.Source == null)
+                    UnityEngine.Debug.LogWarning("[KSPI] - MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
+                else
                     ((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
             }
+
+            UnityEngine.Debug.Log("[KSPI] - step 11");
 
             fnRadiator = part.FindModuleImplementing<FNRadiator>();
             if (fnRadiator != null)
@@ -745,6 +775,8 @@ namespace FNPlugin
             var isInRatiatorMode = Fields["radiatorMode"];
             isInRatiatorMode.guiActive = fnRadiator != null;
             isInRatiatorMode.guiActiveEditor = fnRadiator != null;
+
+            UnityEngine.Debug.Log("[KSPI] - step 12");
 
             wasteheatResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
             megajouleResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
@@ -769,7 +801,7 @@ namespace FNPlugin
                 megajouleResource.amount = partBaseMegajoules * ratio;
             }
 
-            // update thermalhear storage capacity
+            // update thermalheart storage capacity
             if (thermalResource != null)
             {
                 var ratio = Math.Min(1, thermalResource.amount / thermalResource.maxAmount);

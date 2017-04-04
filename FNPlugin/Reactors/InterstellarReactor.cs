@@ -674,8 +674,7 @@ namespace FNPlugin
                 else
                     baseCoreTemperature = coreTemperatureMk1;
 
-                var modifiedBaseCoreTemperature = baseCoreTemperature *
-                    (CheatOptions.UnbreakableJoints ? 1 : Math.Max(maxEmbrittlementFraction, Math.Pow(ReactorEmbrittlemenConditionRatio, 2)));
+                var modifiedBaseCoreTemperature = baseCoreTemperature * EffectiveEmbrittlemenEffectRatio;
 
                 return modifiedBaseCoreTemperature;
             }
@@ -694,22 +693,19 @@ namespace FNPlugin
 
         public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
+        public double EffectiveEmbrittlemenEffectRatio
+        {
+            get { return CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlemenConditionRatio * Math.PI * 0.5); }
+        }
+
         public virtual double ReactorEmbrittlemenConditionRatio
         {
-            get
-            {
-                return Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1);
-            }
+            get { return Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1); }      
         }
 
         public virtual double NormalisedMaximumPower
         {
-            get
-            {
-                double normalised_fuel_factor = CurrentFuelMode == null ? 1.0f : CurrentFuelMode.NormalisedReactionRate;
-                var result = RawPowerOutput * normalised_fuel_factor * (CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlemenConditionRatio) * Math.PI * 0.5);
-                return result;
-            }
+            get { return RawPowerOutput * EffectiveEmbrittlemenEffectRatio * (CurrentFuelMode == null ? 1 : CurrentFuelMode.NormalisedReactionRate); }        
         }
 
         public virtual double MinimumPower { get { return MaximumPower * MinimumThrottle; } }
@@ -1672,9 +1668,9 @@ namespace FNPlugin
             CurrentFuelMode = fuel_modes.FirstOrDefault();
 
             if (CurrentFuelMode == null)
-                print("[KSP Interstellar] Warning : CurrentFuelMode is null");
+                print("[KSPI] - Warning : CurrentFuelMode is null");
             else
-                print("[KSP Interstellar] CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
+                print("[KSPI] - CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
         }
 
         protected double ConsumeReactorFuel(ReactorFuel fuel, double MJpower)
@@ -1839,7 +1835,7 @@ namespace FNPlugin
                 GUILayout.Label(TypeName, bold_style, GUILayout.ExpandWidth(true));
                 GUILayout.EndHorizontal();
 
-                PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000") + "%", bold_style, text_style);
+                PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000000") + "%", bold_style, text_style);
                 PrintToGUILayout("Radius", radius.ToString() + "m", bold_style, text_style);
                 PrintToGUILayout("Core Temperature", coretempStr, bold_style, text_style);
                 PrintToGUILayout("Status", statusStr, bold_style, text_style);

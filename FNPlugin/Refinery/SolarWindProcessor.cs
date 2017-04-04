@@ -73,13 +73,13 @@ namespace FNPlugin.Refinery
             _vessel = part.vessel;
 
             _solar_wind_resource_name = InterstellarResourcesConfiguration.Instance.SolarWind;
-            _hydrogen_resource_name = InterstellarResourcesConfiguration.Instance.Hydrogen;
-            _deuterium_resource_name = InterstellarResourcesConfiguration.Instance.LqdDeuterium;
-            _liquid_helium3_resource_name = InterstellarResourcesConfiguration.Instance.LqdHelium3;
-            _liquid_helium4_resource_name = InterstellarResourcesConfiguration.Instance.LqdHelium4;
-            _monoxide_resource_name = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
-            _nitrogen_resource_name = InterstellarResourcesConfiguration.Instance.Nitrogen;
-            _neon_resource_name = InterstellarResourcesConfiguration.Instance.NeonGas;
+            _hydrogen_resource_name = InterstellarResourcesConfiguration._LIQUID_HYDROGEN;
+            _deuterium_resource_name = InterstellarResourcesConfiguration._LIQUID_DEUTERIUM;
+            _liquid_helium3_resource_name = InterstellarResourcesConfiguration._LIQUID_HELIUM_3;
+            _liquid_helium4_resource_name = InterstellarResourcesConfiguration._LIQUID_HELIUM_4;
+            _monoxide_resource_name = InterstellarResourcesConfiguration._LIQUID_CO;
+            _nitrogen_resource_name = InterstellarResourcesConfiguration._LIQUID_NITROGEN;
+            _neon_resource_name = InterstellarResourcesConfiguration._LIQUID_NEON;
 
             _solar_wind_density = PartResourceLibrary.Instance.GetDefinition(_solar_wind_resource_name).density;
             _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(_hydrogen_resource_name).density;
