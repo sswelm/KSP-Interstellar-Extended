@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class MicrowavePowerTransmitter : FNResourceSuppliableModule
+    class MicrowavePowerTransmitter : FNResourceSuppliableModule, IScalarModule
     {
         //Persistent 
         [KSPField(isPersistant = true)]
@@ -97,6 +97,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float powerHeatMultiplier = 1;
 
+        protected string scalarModuleID = Guid.NewGuid().ToString();
+        protected EventData<float, float> onMoving;
+        protected EventData<float> onStop;
+
+
         //Internal
         protected Animation anim;
         protected List<ModuleDeployableSolarPanel> panels;
@@ -105,7 +110,57 @@ namespace FNPlugin
         protected BeamGenerator activeBeamGenerator;
         protected List<BeamGenerator> beamGenerators;
 
-        private int counter;
+        protected ModuleAnimateGeneric genericAnimation;
+
+       
+
+        public bool CanMove { get { return true; } }
+
+        public float GetScalar 
+        { 
+            get { 
+                return 1; 
+            } 
+        }
+
+        public EventData<float, float> OnMoving { get { return onMoving; } }
+
+        public EventData<float> OnStop { get { return onStop; } }
+
+        public string ScalarModuleID { get { return scalarModuleID; } }
+
+        public bool IsMoving()
+        {
+            return anim != null ? anim.isPlaying : false;
+        }
+
+        public void SetScalar(float t)
+        {
+            if (anim != null)
+            {
+                if (t > 0.5)
+                {
+                    anim[animName].speed = 1f;
+                    anim[animName].normalizedTime = 0f;
+                    anim.Blend(animName, part.mass);
+                }
+                else
+                {
+                    anim[animName].speed = -1f;
+                    anim[animName].normalizedTime = 1f;
+                    anim.Blend(animName, part.mass);
+                }
+            }
+        }
+
+        public void SetUIRead(bool state)
+        {
+            // ignore
+        }
+        public void SetUIWrite(bool state)
+        {
+            // ignore
+        }
 
         [KSPEvent(guiActive = true, guiName = "Activate Transmitter", active = false)]
         public void ActivateTransmitter()
@@ -239,6 +294,9 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            onMoving = new EventData<float, float>("transmitterMoving");
+            onStop = new EventData<float>("transmitterStop");
+
             power_capacity = maximumPower * powerMult;
 
             if (String.IsNullOrEmpty(partId))
@@ -254,6 +312,8 @@ namespace FNPlugin
                 part.OnEditorAttach += OnEditorAttach;
                 return;
             }
+
+            genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
 
             panels = vessel.FindPartModulesImplementing<ModuleDeployableSolarPanel>();
 

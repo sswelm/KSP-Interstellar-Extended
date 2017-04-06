@@ -31,46 +31,46 @@ namespace FNPlugin
         private double fixedMegajouleBufferSize;
         private double fixedElectricChargeBufferSize;
 
-		public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state)
         {
+            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES };
+            this.resources_to_supply = resources_to_supply;
+            base.OnStart(state);
 
-			String[] resources_to_supply = {FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_MEGAJOULES};
-            previousDeltaTime = TimeWarp.fixedDeltaTime;
-			this.resources_to_supply = resources_to_supply;
-			base.OnStart (state);
-
-			if (state == StartState.Editor) 
-            { 
-                return; 
+            if (state == StartState.Editor)
+            {
+                return;
             }
+
+            previousDeltaTime = TimeWarp.fixedDeltaTime;
+
             solarPanel = (ModuleDeployableSolarPanel)this.part.FindModuleImplementing<ModuleDeployableSolarPanel>();
 
-            if (solarPanel != null)
+            if (solarPanel == null) return;
+
+            if (solarPanel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES)
             {
-                if (solarPanel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES)
-                {
-                    outputType = resourceType.megajoule;
+                outputType = resourceType.megajoule;
 
-                    megajoulePartResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
-                    if (megajoulePartResource != null)
-                    {
-                        fixedMegajouleBufferSize = megajoulePartResource.maxAmount * 50;
-                    }
-                }
-                else if (solarPanel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+                megajoulePartResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
+                if (megajoulePartResource != null)
                 {
-                    outputType = resourceType.electricCharge;
-
-                    electricChargePartResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
-                    if (electricChargePartResource != null)
-                    {
-                        fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
-                    }
+                    fixedMegajouleBufferSize = megajoulePartResource.maxAmount * 50;
                 }
-                else
-                    outputType = resourceType.other;
             }
-		}
+            else if (solarPanel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+            {
+                outputType = resourceType.electricCharge;
+
+                electricChargePartResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
+                if (electricChargePartResource != null)
+                {
+                    fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
+                }
+            }
+            else
+                outputType = resourceType.other;
+        }
 
         public override void OnFixedUpdate() 
         {

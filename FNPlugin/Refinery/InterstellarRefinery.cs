@@ -169,29 +169,50 @@ namespace FNPlugin.Refinery
             // load stored overflow setting
             overflowAllowed = lastOverflowSettings;
 
+            Debug.Log("[KSPI] - Refinery OnStart 1");
+
             _window_ID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
             var unsortedList = new List<IRefineryActivity>();
 
+            Debug.Log("[KSPI] - Refinery OnStart 2");
+
             try
             {
                 unsortedList.Add(new AnthraquinoneProcessor(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2a");
                 unsortedList.Add(new NuclearFuelReprocessor(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2b");
                 unsortedList.Add(new AluminiumElectrolyser(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2c");
                 unsortedList.Add(new SabatierReactor(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2d");
                 unsortedList.Add(new WaterElectroliser(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2e");
                 unsortedList.Add(new HeavyWaterElectroliser(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2f");
                 unsortedList.Add(new PeroxideProcess(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2g");
                 unsortedList.Add(new UF4Ammonolysiser(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2h");
                 unsortedList.Add(new HaberProcess(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2i");
                 unsortedList.Add(new AmmoniaElectrolyzer(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2j");
                 unsortedList.Add(new CarbonDioxideElectroliser(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2k");
                 unsortedList.Add(new WaterGasShift(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2l");
                 unsortedList.Add(new ReverseWaterGasShift(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2m");
                 unsortedList.Add(new PartialOxidationMethane(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2n");
                 unsortedList.Add(new SolarWindProcessor(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2o");
                 unsortedList.Add(new RegolithProcessor(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2p");
                 unsortedList.Add(new AtmosphericExtractor(this.part));
+                Debug.Log("[KSPI] - Refinery OnStart 2q");
                 unsortedList.Add(new SeawaterExtractor(this.part));
             }
             catch (Exception e)
@@ -200,13 +221,19 @@ namespace FNPlugin.Refinery
                 Debug.LogWarning("[KSPI] - ISRU Refinery Exception " + e.Message);
             }
 
+            Debug.Log("[KSPI] - Refinery OnStart 3");
+
             _refinery_activities = unsortedList.Where(m => ((int)m.RefineryType & this.refineryType) == (int)m.RefineryType).OrderBy(a => a.ActivityName).ToList();
+
+            Debug.Log("[KSPI] - Refinery OnStart 4");
 
             // load same 
             if (refinery_is_enabled && !string.IsNullOrEmpty(lastActivityName))
             {
                 _current_activity = _refinery_activities.FirstOrDefault(a => a.ActivityName == lastActivityName);
             }
+
+            Debug.Log("[KSPI] - Refinery OnStart 5");
 
             if (_current_activity != null)
             {

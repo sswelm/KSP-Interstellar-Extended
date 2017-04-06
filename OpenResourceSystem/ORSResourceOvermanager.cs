@@ -40,7 +40,12 @@ namespace OpenResourceSystem
 
         public ORSResourceManager getManagerForVessel(Vessel vess) 
         {
-            return managers[vess];
+            //return managers[vess];
+            ORSResourceManager manager;
+
+            managers.TryGetValue(vess, out manager);
+
+            return manager;
         }
 
         public void deleteManagerForVessel(Vessel vess) 

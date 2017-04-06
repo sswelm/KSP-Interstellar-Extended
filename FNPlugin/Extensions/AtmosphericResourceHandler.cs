@@ -71,7 +71,7 @@ namespace FNPlugin
 
                     ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
 
-                    Debug.Log("[ORS] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
+                    Debug.Log("[KSPI] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
                     if (atmospheric_resource_pack != null)
                     {
                         Debug.Log("[KSPI] - searching for atmosphere definition for " + celestialBody.name);

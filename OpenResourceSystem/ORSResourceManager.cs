@@ -6,6 +6,12 @@ using UnityEngine;
 
 namespace OpenResourceSystem 
 {
+    public class PowerConsumption
+    {
+        public double Power_draw { get; set; }
+        public double Power_consume { get; set; }
+    }
+
     public class ORSResourceManager 
     {
         public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
@@ -26,8 +32,8 @@ namespace OpenResourceSystem
         protected PartResourceDefinition thermalpowerResourceDefinition;
         protected PartResourceDefinition chargedpowerResourceDefinition;
 
-        protected Dictionary<ORSResourceSuppliable, double> power_draws;    // requested power by power consumers 
-        protected Dictionary<ORSResourceSuppliable, double> power_consumed; // consomed power by power consumers 
+        protected Dictionary<ORSResourceSuppliable, PowerConsumption> power_consumption;
+
         protected Dictionary<ORSResourceSupplier, double> power_max_supplies;   // maximum supplied power by power producers 
         protected Dictionary<ORSResourceSupplier, double> power_min_supplies;   // minimum supplied power by power producers 
 
@@ -50,9 +56,9 @@ namespace OpenResourceSystem
         protected double total_power_distributed = 0;
 
 		protected int flow_type = 0;
-        protected List<KeyValuePair<ORSResourceSuppliable, double>> power_draw_list_archive;
+        protected List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_list_archive;
         protected bool render_window = false;
-        protected Rect windowPosition = new Rect(200, 200, 300, 100);
+        protected Rect windowPosition = new Rect(50, 50, 300, 100);
         protected int windowID = 36549835;
 		protected double resource_bar_ratio = 0;
 
@@ -61,8 +67,22 @@ namespace OpenResourceSystem
         protected GUIStyle red_label;
         protected GUIStyle right_align;
 
+        protected int updateCounter;
+
         protected double internl_power_extract = 0;
         //protected double internl_power_extract_remainder = 0;
+
+        public Rect WindowPosition 
+        { 
+            get { return windowPosition; }
+            set { windowPosition = value; }
+        }
+
+        public int WindowID
+        {
+            get { return windowID; }
+            set { windowID = value; }
+        }
 
         public ORSResourceManager(PartModule pm,String resource_name) 
         {
@@ -70,8 +90,10 @@ namespace OpenResourceSystem
             my_part = pm.part;
             my_partmodule = pm;
 
-            power_draws = new Dictionary<ORSResourceSuppliable,double>();
-            power_consumed = new Dictionary<ORSResourceSuppliable, double>();
+            windowID = new System.Random(resource_name.GetHashCode()).Next(int.MinValue, int.MaxValue);
+
+            power_consumption = new Dictionary<ORSResourceSuppliable, PowerConsumption>();
+
             power_max_supplies = new Dictionary<ORSResourceSupplier, double>();
             power_min_supplies = new Dictionary<ORSResourceSupplier, double>();
 
@@ -90,26 +112,23 @@ namespace OpenResourceSystem
 
         public void powerDraw(ORSResourceSuppliable pm, double power_draw, double power_cosumtion) 
         {
-            if (power_draws.ContainsKey(pm)) 
-            {
-                power_draw = power_draw / TimeWarp.fixedDeltaTime + power_draws[pm];
-                power_draws[pm] = power_draw;
-            }
-            else 
-            {
-                power_draws.Add(pm, power_draw / TimeWarp.fixedDeltaTime);
-            }
-
-            if (power_consumed.ContainsKey(pm)) 
-            {
-                power_cosumtion = power_cosumtion / TimeWarp.fixedDeltaTime + power_consumed[pm];
-                power_consumed[pm] = power_cosumtion;
-            }
-            else 
-            {
-                power_consumed.Add(pm, power_cosumtion / TimeWarp.fixedDeltaTime);
-            }
+            var power_draw_per_second = power_draw / TimeWarp.fixedDeltaTime;
+            var power_cosumtion_per_second = power_cosumtion / TimeWarp.fixedDeltaTime;
             
+            PowerConsumption powerConsumption;
+            if (power_consumption.TryGetValue(pm, out powerConsumption))
+            {
+                powerConsumption.Power_draw += power_draw_per_second;
+                powerConsumption.Power_consume += power_cosumtion_per_second;
+            }
+            else
+            {
+                power_consumption.Add(pm, new PowerConsumption() 
+                { 
+                    Power_draw = power_draw_per_second, 
+                    Power_consume = power_cosumtion_per_second
+                });
+            }           
         }
 
         public double powerSupply(ORSResourceSupplier pm, double power) 
@@ -286,6 +305,8 @@ namespace OpenResourceSystem
 
         public void update() 
         {
+            updateCounter++;
+
             IsUpdatedAtLeastOnce = true;
 
             stored_supply = currentPowerSupply;
@@ -350,27 +371,27 @@ namespace OpenResourceSystem
 
 			//sort by power draw
 			//var power_draw_items = from pair in power_draws orderby pair.Value ascending select pair;
-			List<KeyValuePair<ORSResourceSuppliable, double>> power_draw_items = power_draws.ToList();
+            List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_draw).ToList();
 
-            power_draw_items.Sort
-            (
-                delegate(KeyValuePair<ORSResourceSuppliable, double> firstPair, KeyValuePair<ORSResourceSuppliable, double> nextPair) 
-                { 
-                    return firstPair.Value.CompareTo(nextPair.Value); 
-                }
-            );
+            //power_draw_items.Sort
+            //(
+            //    delegate(KeyValuePair<ORSResourceSuppliable, double> firstPair, KeyValuePair<ORSResourceSuppliable, double> nextPair)
+            //    {
+            //        return firstPair.Value.CompareTo(nextPair.Value);
+            //    }
+            //);
 
             power_draw_list_archive = power_draw_items.ToList();
             power_draw_list_archive.Reverse();
             
             // check priority 1 parts like reactors
-            foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_items) 
+            foreach (KeyValuePair<ORSResourceSuppliable, PowerConsumption> power_kvp in power_draw_items) 
             {
                 ORSResourceSuppliable resourceSuppliable = power_kvp.Key;
 
                 if (resourceSuppliable.getPowerPriority() == 1) 
                 {
-                    double power = power_kvp.Value;
+                    double power = power_kvp.Value.Power_draw;
 					current_resource_demand += power;
 					high_priority_resource_demand += power;
 
@@ -388,13 +409,13 @@ namespace OpenResourceSystem
             }
 
             // check priority 2 parts like engines
-            foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_items) 
+            foreach (KeyValuePair<ORSResourceSuppliable, PowerConsumption> power_kvp in power_draw_items) 
             {
                 ORSResourceSuppliable resourceSuppliable = power_kvp.Key;
                 
                 if (resourceSuppliable.getPowerPriority() == 2) 
                 {
-                    double power = power_kvp.Value;
+                    double power = power_kvp.Value.Power_draw;
 					current_resource_demand += power;
 
 					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
@@ -411,13 +432,13 @@ namespace OpenResourceSystem
             }
 
             // check priority 3 parts
-            foreach (KeyValuePair<ORSResourceSuppliable, double> power_kvp in power_draw_items) 
+            foreach (KeyValuePair<ORSResourceSuppliable, PowerConsumption> power_kvp in power_draw_items) 
             {
 				ORSResourceSuppliable resourceSuppliable = power_kvp.Key;
 
 				if (resourceSuppliable.getPowerPriority() == 3) 
                 {
-					double power = power_kvp.Value;
+					double power = power_kvp.Value.Power_draw;
 					current_resource_demand += power;
 
 					if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
@@ -450,7 +471,7 @@ namespace OpenResourceSystem
             var actual_stored_power = my_part.RequestResource(this.resource_name, internl_power_extract);
 
             //calculate total input and output
-            var total_power_consumed = power_consumed.Sum(m => m.Value);
+            var total_power_consumed = power_consumption.Sum(m => m.Value.Power_consume);
             var total_power_max_supplied = power_max_supplies.Sum(m => m.Value);
             var total_power_min_supplied = power_min_supplies.Sum(m => m.Value);
 
@@ -464,7 +485,17 @@ namespace OpenResourceSystem
                 var wasteheatProduction = Math.Max(min_supplied_per_second, max_supplied_pers_second);
 
                 // generate Wasteheat
-                my_part.RequestResource(ORSResourceManager.FNRESOURCE_WASTEHEAT, -wasteheatProduction);
+                //my_part.RequestResource(ORSResourceManager.FNRESOURCE_WASTEHEAT, -wasteheatProduction);
+                var effective_wasteheat_ratio = wasteheatProduction / total_power_max_supplied;
+
+                var overmanager = ORSResourceOvermanager.getResourceOvermanagerForResource(ORSResourceManager.FNRESOURCE_WASTEHEAT);
+                ORSResourceManager manager = overmanager.getManagerForVessel(my_vessel);
+
+                foreach (var supplier_key_value in power_max_supplies)
+                {
+                    manager.powerSupply(supplier_key_value.Key, supplier_key_value.Value * effective_wasteheat_ratio);
+                }
+                
             }
 
             //internl_power_extract_remainder = internl_power_extract - actual_stored_power;
@@ -474,8 +505,9 @@ namespace OpenResourceSystem
 
             power_max_supplies.Clear();
             power_min_supplies.Clear();
-            power_draws.Clear();
-            power_consumed.Clear();
+            //power_draws.Clear();
+            //power_consumed.Clear();
+            power_consumption.Clear();
         }
 
         protected virtual void pluginSpecificImpl() 
@@ -497,11 +529,12 @@ namespace OpenResourceSystem
         {
             if (my_vessel == FlightGlobals.ActiveVessel && render_window) 
             {
-                string title = resource_name + " Power Management Display";
+                string title = resource_name + " Management Display";
                 windowPosition = GUILayout.Window(windowID, windowPosition, doWindow, title);
             }
         }
 
+        // overriden by FNResourceManager
         protected virtual void doWindow(int windowID) 
         {
            

@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
+    // startup once durring flight
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class FlightUIStarter : MonoBehaviour
     {
@@ -27,22 +28,63 @@ namespace FNPlugin
 
         protected void OnGUI()
         {
-            string resourcename = FNResourceManager.FNRESOURCE_MEGAJOULES;
             Vessel vessel = FlightGlobals.ActiveVessel;
-            ORSResourceManager mega_manager = null;
 
             if (vessel == null) return;
 
-
-            if (FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).hasManagerForVessel(vessel) && !hide_button)
+            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel) && !hide_button)
             {
-                mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+                ORSResourceManager mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
                 if (mega_manager.getPartModule() != null)
                 {
-                    mega_manager.OnGUI();
-
+                    // activate rendering
                     if (show_window)
                         mega_manager.showWindow();
+
+                    // show window
+                    mega_manager.OnGUI();
+                }
+            }
+
+            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).hasManagerForVessel(vessel) && !hide_button)
+            {
+                ORSResourceManager thermal_manager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).getManagerForVessel(vessel);
+                if (thermal_manager.getPartModule() != null)
+                {
+                    // activate rendering
+                    if (show_window)
+                        thermal_manager.showWindow();
+
+                    // show window
+                    thermal_manager.OnGUI();
+                }
+            }
+
+            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES).hasManagerForVessel(vessel) && !hide_button)
+            {
+                ORSResourceManager charged_manager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES).getManagerForVessel(vessel);
+                if (charged_manager.getPartModule() != null)
+                {
+                    // activate rendering
+                    if (show_window)
+                        charged_manager.showWindow();
+
+                    // show window
+                    charged_manager.OnGUI();
+                }
+            }
+
+            if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_WASTEHEAT).hasManagerForVessel(vessel) && !hide_button)
+            {
+                ORSResourceManager waste_manager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_WASTEHEAT).getManagerForVessel(vessel);
+                if (waste_manager.getPartModule() != null)
+                {
+                    // activate rendering
+                    if (show_window)
+                        waste_manager.showWindow();
+
+                    // show window
+                    waste_manager.OnGUI();
                 }
             }
 

@@ -73,8 +73,14 @@ namespace OpenResourceSystem
             supply = Math.Max(supply, 0);
             ratio_min = Math.Max(ratio_min, 0);
 
+            //if (resourcename == ORSResourceManager.FNRESOURCE_THERMALPOWER)
+            //    UnityEngine.Debug.Log("added Thermal power supply " + supply + " with min " + ratio_min);
+
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+            {
+                UnityEngine.Debug.LogWarning("did not find manager for vessel");
                 return 0;
+            }
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.managedPowerSupplyWithMinimumRatio(this, supply, ratio_min);
@@ -247,21 +253,13 @@ namespace OpenResourceSystem
 
             foreach (String resourcename in resources_to_supply)
             {
-                ORSResourceManager manager;
+                ORSResourceOvermanager overmanager = getOvermanagerForResource(resourcename);
+                ORSResourceManager manager = overmanager.getManagerForVessel(vessel);
 
-                if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+                if (manager == null)
                 {
                     manager = createResourceManagerForResource(resourcename);
                     print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
-                }
-                else
-                {
-                    manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-                    if (manager == null)
-                    {
-                        manager = createResourceManagerForResource(resourcename);
-                        print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
-                    }
                 }
 
                 var partmodule = manager.getPartModule();

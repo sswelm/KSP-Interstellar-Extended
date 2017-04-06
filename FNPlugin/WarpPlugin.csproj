@@ -228,4 +228,5 @@
       <Aliases>global</Aliases>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
 </Project>
