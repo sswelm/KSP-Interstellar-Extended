@@ -18,6 +18,16 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Actinides Modifier")]
         public double actinidesModifer;
 
+        PartResourceDefinition fluorineGasDefinition;
+        PartResourceDefinition depletedFuelDefinition;
+        PartResourceDefinition enrichedUraniumDefinition;
+        PartResourceDefinition oxygenGasDefinition;
+
+        double fluorineDepletedFuelVolumeMultiplier;
+        double enrichedUraniumVolumeMultiplier;
+        double depletedToEnrichVolumeMultplier;
+        double oxygenDepletedUraniumVolumeMultipler;
+             
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
 
         [KSPEvent(guiName = "Swap Fuel", externalToEVAOnly = true, guiActiveUnfocused = true, guiActive = false, unfocusedRange = 3.5f)]
@@ -208,6 +218,16 @@ namespace FNPlugin
             }
             fuelModeStr = CurrentFuelMode.ModeGUIName;
 
+            oxygenGasDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.OxygenGas);
+            fluorineGasDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.FluorineGas);
+            depletedFuelDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.DepletedFuel);
+            enrichedUraniumDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.EnrichedUrarium);
+
+            depletedToEnrichVolumeMultplier = enrichedUraniumDefinition.density / depletedFuelDefinition.density;
+            fluorineDepletedFuelVolumeMultiplier = ((19 * 4) / 232d) * (depletedFuelDefinition.density / fluorineGasDefinition.density);
+            enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * (depletedFuelDefinition.density / enrichedUraniumDefinition.density);
+            oxygenDepletedUraniumVolumeMultipler = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
+
             Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = fuel_modes.Count > 1;
             Events["SwapFuelMode"].guiActive = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1;
             Events["EditorSwapFuel"].guiActiveEditor = Events["EditorSwapFuel"].guiActiveUnfocused = fuel_modes.Count > 1;
@@ -241,16 +261,31 @@ namespace FNPlugin
                 double actinides_change = actinides.amount - new_actinides_amount;
                 actinides.amount = new_actinides_amount;
 
-                double depleted_fuels_change = actinides_change * 0.2;
-                depleted_fuels_change = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.DepletedFuel, -depleted_fuels_change);
+                double depleted_fuels_request = actinides_change * 0.2;
 
-                double sum_useage_per_mw = CurrentFuelMode.Variants.First().ReactorFuels.Sum(fuel => fuel.AmountFuelUsePerMJ * fuelUsePerMJMult);
+                //depleted_fuels_change = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.DepletedFuel, -depleted_fuels_change);
+                double depleted_fuels_produced = -Part.RequestResource(depletedFuelDefinition.id, -depleted_fuels_request, ResourceFlowMode.STAGE_PRIORITY_FLOW);
 
-                foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
+                // first try to replace depletedfuel with enriched uranium
+                double enrichedUraniumRequest = depleted_fuels_produced * enrichedUraniumVolumeMultiplier;
+                double enrichedUraniumRetrieved = Part.RequestResource(enrichedUraniumDefinition.id, enrichedUraniumRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                double receivedEnrichedUraniumFraction = enrichedUraniumRequest > 0 ? enrichedUraniumRetrieved / enrichedUraniumRequest : 0;
+
+                // if missing fluorine is dumped
+                double oxygenChange = -Part.RequestResource(oxygenGasDefinition.id, -depleted_fuels_produced * oxygenDepletedUraniumVolumeMultipler * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                double fluorineChange = -Part.RequestResource(fluorineGasDefinition.id, -depleted_fuels_produced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
+
+                var reactorFuels = CurrentFuelMode.Variants.First().ReactorFuels;
+
+                double sum_useage_per_mw = reactorFuels.Sum(fuel => fuel.AmountFuelUsePerMJ * fuelUsePerMJMult);
+
+                foreach (ReactorFuel fuel in reactorFuels)
                 {
                     PartResource fuel_resource = part.Resources[fuel.ResourceName];
-                    double fraction = sum_useage_per_mw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sum_useage_per_mw : 1;
-                    double new_fuel_amount = Math.Min(fuel_resource.amount + depleted_fuels_change * 4.0 * fraction, fuel_resource.maxAmount);
+
+                    double powerFraction = sum_useage_per_mw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sum_useage_per_mw : 1;
+
+                    double new_fuel_amount = Math.Min(fuel_resource.amount + ((depleted_fuels_produced * 4) + (depleted_fuels_produced * receivedEnrichedUraniumFraction)) * powerFraction * depletedToEnrichVolumeMultplier, fuel_resource.maxAmount);
                     fuel_resource.amount = new_fuel_amount;
                 }
 

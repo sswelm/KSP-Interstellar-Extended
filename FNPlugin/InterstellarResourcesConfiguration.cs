@@ -15,6 +15,7 @@ namespace FNPlugin
         private const String _INTAKE_ATMOSPHERE = "IntakeAtm";
         private const String _THORIUM_TETRAFLOURIDE = "ThF4";
         private const String _URANIUM_NITRIDE = "UraniumNitride";
+        private const String _ENRICHED_URANIUM = "EnrichedUranium";
         private const String _ACTINIDES = "Actinides";
         private const String _DEPLETED_FUEL = "DepletedFuel";
         private const String _VACUUM_PLASMA = "VacuumPlasma";
@@ -35,7 +36,8 @@ namespace FNPlugin
         private String _argon = "LqdArgon";
         private String _carbonDioxide = "LqdCO2";
         private String _carbonMoxoxide = "LqdCO";
-        private String _helium4_gas = "Helium4";
+        private String _fluorineGas = "Fluorine";
+        private String _helium4_gas = "Helium";
         private String _liquid_helium4 = "LqdHelium";
         private String _helium3_gas = "Helium3";
         private String _liquid_helium3 = "LqdHe3";
@@ -46,7 +48,8 @@ namespace FNPlugin
         private String _methane = "LqdMethane";
         private String _nitrogen = "LqdNitrogen";
         private String _nitrogen15 = "LqdNitrogen15";
-        private String _oxygen = "LqdOxygen";
+        private String _lqdOxygen = "LqdOxygen";
+        private String _oxygen = "Oxygen";
         private String _water = "Water";
         private String _heavyWater = "HeavyWater";
         private String _tritium = "LqdTritium";
@@ -69,6 +72,8 @@ namespace FNPlugin
         public String DeuteriumGas { get { return _DEUTERIUM_GAS; } }
         public String ExoticMatter { get { return _EXOTIC_MATTER; } }
         public String ElectricCharge { get { return _ELECTRIC_CHARGE; } }
+
+        public String FluorineGas { get { return _fluorineGas; } }
         public String LqdHelium4 { get { return _liquid_helium4; } }
         public String Helium4Gas { get { return _helium4_gas; } }
         public String LqdHelium3 { get { return _liquid_helium3; } }
@@ -86,7 +91,8 @@ namespace FNPlugin
         public String NeonGas { get { return _neon_gas; } }
         public String Nitrogen { get { return _nitrogen; } }
         public String Nitrogen15 { get { return _nitrogen15; } }
-        public String Oxygen { get { return _oxygen; } }
+        public String LqdOxygen { get { return _lqdOxygen; } }
+        public String OxygenGas { get { return _oxygen; } }
         public String Plutonium238 { get { return _PLUTONIUM_238; } }
         public String Regolith { get { return _regolith; } }
         public String SolarWind { get { return _solarWind; } }
@@ -94,6 +100,7 @@ namespace FNPlugin
         public String LqdTritium { get { return _tritium; } }
         public String UraniumTetraflouride { get { return _uranium_TerraFloride; } }
         public String UraniumNitride { get { return _URANIUM_NITRIDE; } }
+        public String EnrichedUrarium { get { return _ENRICHED_URANIUM; } }
         public String VacuumPlasma { get { return _VACUUM_PLASMA; } }
         public String Water { get { return _water; } }
         public String HeavyWater { get { return _heavyWater; } }
@@ -182,8 +189,8 @@ namespace FNPlugin
                 }
                 if (plugin_settings.HasValue("OxygenResourceName"))
                 {
-                    _oxygen = plugin_settings.GetValue("OxygenResourceName");
-                    Debug.Log("[KSP Interstellar] Oxygen resource name set to " + Oxygen);
+                    _lqdOxygen = plugin_settings.GetValue("OxygenResourceName");
+                    Debug.Log("[KSP Interstellar] Oxygen resource name set to " + LqdOxygen);
                 }
                 if (plugin_settings.HasValue("RegolithResourceName"))
                 {

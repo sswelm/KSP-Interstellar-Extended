@@ -60,7 +60,7 @@ namespace FNPlugin.Refinery
 
             _vessel = part.vessel;
             _heavy_water_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HeavyWater).density;
-            _oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Oxygen).density;
+            _oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
             _deuterium_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium).density;
         }
 
@@ -71,7 +71,7 @@ namespace FNPlugin.Refinery
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
 
             var partsThatContainWater = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HeavyWater);
-            var partsThatContainOxygen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Oxygen);
+            var partsThatContainOxygen = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen);
             var partsThatContainDeuteurium = _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
 
             _maxCapacityHeavyWaterMass = partsThatContainWater.Sum(p => p.maxAmount) * _heavy_water_density;
@@ -105,7 +105,7 @@ namespace FNPlugin.Refinery
                 var oxygen_rate_temp = _heavy_water_consumption_rate * oxygenMassByFraction;
 
                 _deuterium_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deuterium_rate_temp * fixedDeltaTime / _deuterium_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuterium_density;
-                _oxygen_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.Oxygen, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen_density;
+                _oxygen_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdOxygen, -oxygen_rate_temp * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen_density;
             }
             else
             {
@@ -173,7 +173,7 @@ namespace FNPlugin.Refinery
             else if (_fixedMaxConsumptionWaterRate <= 0.0000000001)
                 _status = "Out of water";
             else if (_deuterium_production_rate > 0)
-                _status = "Insufficient " + InterstellarResourcesConfiguration.Instance.Oxygen + " Storage";
+                _status = "Insufficient " + InterstellarResourcesConfiguration.Instance.LqdOxygen + " Storage";
             else if (_oxygen_production_rate > 0)
                 _status = "Insufficient " + InterstellarResourcesConfiguration.Instance.Hydrogen + " Storage";
             else if (CurrentPower <= 0.01 * PowerRequirements)

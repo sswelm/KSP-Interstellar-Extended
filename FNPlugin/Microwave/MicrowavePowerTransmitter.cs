@@ -82,8 +82,8 @@ namespace FNPlugin
         public double transmissionEfficiencyPercentage;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reactor Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Solar Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
-        public float solarPowertransmission = 100;
+        //[KSPField(isPersistant = true, guiActive = true, guiName = "Solar Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
+        //public float solarPowertransmission = 100;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
         public string beamedpower;
@@ -395,7 +395,7 @@ namespace FNPlugin
             Fields["apertureDiameter"].guiActive = isTransmitting; 
             Fields["beamedpower"].guiActive = isTransmitting && canBeActive;
             Fields["transmitPower"].guiActive = isTransmitting;
-            Fields["solarPowertransmission"].guiActive = isTransmitting;
+            //Fields["solarPowertransmission"].guiActive = isTransmitting;
             Fields["displayed_solar_power"].guiActive = isTransmitting && displayed_solar_power > 0;
 
             bool isLinkedForRelay = part_receiver != null && part_receiver.linkedForRelay;
@@ -474,11 +474,11 @@ namespace FNPlugin
 
             if (activeBeamGenerator != null && IsEnabled && !relay)
             {
-                float reactorPowerTransmissionRatio = transmitPower / 100;
-                float solarPowertransmissionRatio = solarPowertransmission / 100;
+                double reactorPowerTransmissionRatio = transmitPower / 100d;
+                //double solarPowertransmissionRatio = solarPowertransmission / 100d;
 
-                double transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100;
-                double transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100;
+                double transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100d;
+                double transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100d;
 
                 double requestedPower;
 

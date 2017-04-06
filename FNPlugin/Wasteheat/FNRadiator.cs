@@ -108,6 +108,8 @@ namespace FNPlugin
         public string partTempStr;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double radiatorArea = 1;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Eff Multiplier", guiFormat = "F2", guiUnits = " m2")]
+        public double effectiveMultiplier;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiativeArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
@@ -191,15 +193,15 @@ namespace FNPlugin
         {
             get 
             {
-                effectiveRadiativeArea = !HighLogic.LoadedSceneIsFlight 
+                effectiveMultiplier = !HighLogic.LoadedSceneIsFlight 
                     ? areaMultiplier
                     : vessel.atmDensity == 0 
                         ? areaMultiplier 
                         : vessel.atmDensity > 1 
                             ? areaMultiplierAtmosphere
-                            : ((1 - vessel.atmDensity) * areaMultiplier) + (vessel.atmDensity * areaMultiplierAtmosphere); ;
+                            : ((1 - vessel.atmDensity) * areaMultiplier) + (vessel.atmDensity * areaMultiplierAtmosphere);
 
-                effectiveRadiativeArea *= radiatorArea;
+                effectiveRadiativeArea = effectiveMultiplier * radiatorArea;
 
                 return hasSurfaceAreaUpgradeTechReq 
                     ? effectiveRadiativeArea * surfaceAreaUpgradeMult 

@@ -63,7 +63,7 @@ namespace FNPlugin.Refinery
             _carbondioxide_resource_name = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
             _hydrogen_resource_name = InterstellarResourcesConfiguration.Instance.Hydrogen;
             _methane_resource_name = InterstellarResourcesConfiguration.Instance.Methane;
-            _oxygen_resource_name = InterstellarResourcesConfiguration.Instance.Oxygen;
+            _oxygen_resource_name = InterstellarResourcesConfiguration.Instance.LqdOxygen;
 
             _carbondioxide_density = PartResourceLibrary.Instance.GetDefinition(_carbondioxide_resource_name).density;
             _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(_hydrogen_resource_name).density;
