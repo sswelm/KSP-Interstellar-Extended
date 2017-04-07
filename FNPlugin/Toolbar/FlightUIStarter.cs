@@ -88,6 +88,8 @@ namespace FNPlugin
                 }
             }
 
+            show_window = false;
+
         }
     }
 }

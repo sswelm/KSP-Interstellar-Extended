@@ -11,8 +11,8 @@ namespace FNPlugin
     {
         private const double passive_temp_p4 = 2947.295521;
 
-        private const int labelWidth = 240;
-        private const int valueWidth = 120;
+        private int labelWidth = 300;
+        private int valueWidth = 70;
 
         public FNResourceManager(PartModule pm, String resource_name) : base(pm, resource_name) 
         {
@@ -23,6 +23,8 @@ namespace FNPlugin
             {
                 xPos = 50;
                 yPos = 50;
+                labelWidth = 240;
+                valueWidth = 120;
             }
             else if (resource_name == ORSResourceManager.FNRESOURCE_THERMALPOWER)
             {
@@ -68,9 +70,9 @@ namespace FNPlugin
             bold_label = new GUIStyle(GUI.skin.label);
             bold_label.fontStyle = FontStyle.Bold;
             green_label = new GUIStyle(GUI.skin.label);
-            green_label.normal.textColor = Color.green;
+            green_label.normal.textColor = resource_name == ORSResourceManager.FNRESOURCE_WASTEHEAT ? Color.red : Color.green;
             red_label = new GUIStyle(GUI.skin.label);
-            red_label.normal.textColor = Color.red;
+            red_label.normal.textColor = resource_name == ORSResourceManager.FNRESOURCE_WASTEHEAT ? Color.green : Color.red;
             //right_align = new GUIStyle(GUI.skin.label);
             //right_align.alignment = TextAnchor.UpperRight;
             GUIStyle net_style;
@@ -85,13 +87,6 @@ namespace FNPlugin
             GUILayout.Space(2);
             GUILayout.BeginVertical();
 
-            //GUILayout.Toolbar(0, new string[] { "POWER", "THERMAL", "WASTEHEAT" });
-
-            ////GUILayout.BeginHorizontal();
-            ////GUILayout.Label("Update Counter", bold_label, GUILayout.ExpandWidth(true));
-            ////GUILayout.Label(updateCounter.ToString(), GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
-            ////GUILayout.EndHorizontal();
-
             GUILayout.BeginHorizontal();
             GUILayout.Label("Theoretical Supply",bold_label, GUILayout.ExpandWidth(true));
             GUILayout.Label(getPowerFormatString(stored_stable_supply), GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
@@ -102,18 +97,23 @@ namespace FNPlugin
             GUILayout.Label(getPowerFormatString(stored_supply), GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
             GUILayout.EndHorizontal();
 
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Current Distribution", bold_label, GUILayout.ExpandWidth(true));
-            GUILayout.Label(getPowerFormatString(stored_total_power_supplied), GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
-            GUILayout.EndHorizontal();
+            if (resource_name == ORSResourceManager.FNRESOURCE_MEGAJOULES)
+            {
+                var stored_supply_percentage = stored_supply != 0 ? stored_total_power_supplied / stored_supply * 100 : 0; 
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Current Distribution", bold_label, GUILayout.ExpandWidth(true));
+                GUILayout.Label(stored_supply_percentage.ToString("0.000") + "%", GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
+                GUILayout.EndHorizontal();
+            }
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power Demand", bold_label, GUILayout.ExpandWidth(true));
             GUILayout.Label(getPowerFormatString(stored_resource_demand), GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
             GUILayout.EndHorizontal();
 
-            double new_power_supply = getDemandSupply(); //stored_supply - stored_resource_demand;
-            double net_utilisation_supply = getDemandStableSupply(); //stored_resource_demand / stored_stable_supply;
+            double new_power_supply = getDemandSupply(); 
+            double net_utilisation_supply = getDemandStableSupply(); 
             
             if (new_power_supply < -0.001) 
                 net_style = red_label;
@@ -126,7 +126,8 @@ namespace FNPlugin
                 net_style2 = green_label;
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Net Power", bold_label, GUILayout.ExpandWidth(true));
+            var new_power_label = (resource_name == ORSResourceManager.FNRESOURCE_WASTEHEAT) ? "Net Change" : "Net Power";
+            GUILayout.Label(new_power_label, bold_label, GUILayout.ExpandWidth(true));
             GUILayout.Label(getPowerFormatString(new_power_supply), net_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
             GUILayout.EndHorizontal();
 
@@ -155,27 +156,22 @@ namespace FNPlugin
                     var sumOfPowerConsume = group.Sum(m => m.Value.Power_consume);
                     var sumOfConsumePercentage = sumOfPowerDraw > 0 ? sumOfPowerConsume / sumOfPowerDraw * 100 : 0;
 
-                    // parts less than 1 MW are summed up
-                    if (sumOfPowerDraw < 1)
-                    {
-                        GUILayout.BeginHorizontal();
-                        GUILayout.Label(group.Key + " (" + group.Count() + ")", GUILayout.ExpandWidth(true));
-                        GUILayout.Label(getPowerFormatString(sumOfPowerDraw) + " " + sumOfConsumePercentage.ToString("0.0") + "%", GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
-                        GUILayout.Label(group.First().Key.getPowerPriority().ToString(), GUILayout.ExpandWidth(false), GUILayout.MinWidth(50));
-                        GUILayout.EndHorizontal();
-                    }
-                    else
-                    {
-                        foreach (KeyValuePair<ORSResourceSuppliable, PowerConsumption> power_kvp in group)
-                        {
-                            GUILayout.BeginHorizontal();
-                            GUILayout.Label(group.Key, GUILayout.ExpandWidth(true));
-                            var consumePercentage = power_kvp.Value.Power_draw > 0 ? power_kvp.Value.Power_consume / power_kvp.Value.Power_draw * 100 : 0;
-                            GUILayout.Label(getPowerFormatString(power_kvp.Value.Power_draw) + " " + consumePercentage.ToString("0.0") + "%", GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
-                            GUILayout.Label(power_kvp.Key.getPowerPriority().ToString(), GUILayout.ExpandWidth(false), GUILayout.MinWidth(50));
-                            GUILayout.EndHorizontal();
-                        }
-                    }
+                    GUILayout.BeginHorizontal();
+
+                    string name = group.Key;
+                    var count = group.Count();
+                    if (count > 1)
+                        name = count + " " + name;
+
+                    GUILayout.Label(name, GUILayout.ExpandWidth(true));
+
+                    string amount = getPowerFormatString(sumOfPowerDraw);
+                    if (resource_name == ORSResourceManager.FNRESOURCE_MEGAJOULES)
+                        amount += " " + sumOfConsumePercentage.ToString("0.0") + "%";
+
+                    GUILayout.Label(amount, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
+                    GUILayout.Label(group.First().Key.getPowerPriority().ToString(), GUILayout.ExpandWidth(false), GUILayout.MinWidth(50));
+                    GUILayout.EndHorizontal();
                 }
             }
 

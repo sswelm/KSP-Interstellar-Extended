@@ -932,5 +932,10 @@ namespace FNPlugin
                 Debug.LogError("[KSPI] - FNReactor.ColorHeat tail" + e.Message);
             }
         }
+
+        public override string getResourceManagerDisplayName()
+        {
+            return part.partInfo.title;
+        }
 	}
 }

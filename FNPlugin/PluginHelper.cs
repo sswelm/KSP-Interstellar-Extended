@@ -608,8 +608,8 @@ namespace FNPlugin
             if (appIcon != null)
             {
                 appButton = ApplicationLauncher.Instance.AddModApplication(
-                    OnAppLauncherTrue,
-                    OnAppLauncherFalse,
+                    OnAppLauncheActivate,
+                    OnAppLauncherDeactivate,
                     null,
                     null,
                     null,
@@ -624,7 +624,7 @@ namespace FNPlugin
         }
 
 
-        void OnAppLauncherTrue()
+        void OnAppLauncheActivate()
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
@@ -640,7 +640,7 @@ namespace FNPlugin
             }
         }
 
-        void OnAppLauncherFalse()
+        void OnAppLauncherDeactivate()
         {
             FlightUIStarter.hide_button = true;
             FlightUIStarter.show_window = false;

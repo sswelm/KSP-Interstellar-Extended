@@ -68,9 +68,7 @@ namespace OpenResourceSystem
         protected GUIStyle right_align;
 
         protected int updateCounter;
-
         protected double internl_power_extract = 0;
-        //protected double internl_power_extract_remainder = 0;
 
         public Rect WindowPosition 
         { 
@@ -370,16 +368,7 @@ namespace OpenResourceSystem
 			}
 
 			//sort by power draw
-			//var power_draw_items = from pair in power_draws orderby pair.Value ascending select pair;
             List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_draw).ToList();
-
-            //power_draw_items.Sort
-            //(
-            //    delegate(KeyValuePair<ORSResourceSuppliable, double> firstPair, KeyValuePair<ORSResourceSuppliable, double> nextPair)
-            //    {
-            //        return firstPair.Value.CompareTo(nextPair.Value);
-            //    }
-            //);
 
             power_draw_list_archive = power_draw_items.ToList();
             power_draw_list_archive.Reverse();
@@ -456,8 +445,6 @@ namespace OpenResourceSystem
 
             // substract avaialble resource amount to get delta resource change
             currentPowerSupply -= Math.Max(availableResourceAmount, 0.0);
-
-            //internl_power_extract = -currentPowerSupply * TimeWarp.fixedDeltaTime + internl_power_extract_remainder;
             internl_power_extract = -currentPowerSupply * TimeWarp.fixedDeltaTime;
 
             pluginSpecificImpl();
@@ -467,7 +454,6 @@ namespace OpenResourceSystem
             else
                 internl_power_extract = Math.Max(internl_power_extract, -missingResourceAmount);
 
-            //ORSHelper.fixedRequestResource(my_part, this.resource_name, internl_power_extract);
             var actual_stored_power = my_part.RequestResource(this.resource_name, internl_power_extract);
 
             //calculate total input and output
@@ -485,7 +471,6 @@ namespace OpenResourceSystem
                 var wasteheatProduction = Math.Max(min_supplied_per_second, max_supplied_pers_second);
 
                 // generate Wasteheat
-                //my_part.RequestResource(ORSResourceManager.FNRESOURCE_WASTEHEAT, -wasteheatProduction);
                 var effective_wasteheat_ratio = wasteheatProduction / total_power_max_supplied;
 
                 var overmanager = ORSResourceOvermanager.getResourceOvermanagerForResource(ORSResourceManager.FNRESOURCE_WASTEHEAT);
@@ -498,15 +483,11 @@ namespace OpenResourceSystem
                 
             }
 
-            //internl_power_extract_remainder = internl_power_extract - actual_stored_power;
-
             currentPowerSupply = 0;
 			stable_supply = 0;
 
             power_max_supplies.Clear();
             power_min_supplies.Clear();
-            //power_draws.Clear();
-            //power_consumed.Clear();
             power_consumption.Clear();
         }
 

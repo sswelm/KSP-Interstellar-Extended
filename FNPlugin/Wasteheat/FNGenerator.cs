@@ -145,7 +145,6 @@ namespace FNPlugin
         protected Animation anim;
         protected Queue<double> averageRadiatorTemperatureQueue = new Queue<double>();
 
-
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         [KSPEvent(guiActive = true, guiName = "Activate Generator", active = true)]
@@ -808,7 +807,6 @@ namespace FNPlugin
         {
             return String.Format("Percent of Carnot Efficiency: {0}%\n-Upgrade Information-\n Upgraded Percent of Carnot Efficiency: {1}%", pCarnotEff * 100, upgradedpCarnotEff * 100);
         }
-
     }
 }
 

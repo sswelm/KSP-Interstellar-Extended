@@ -124,6 +124,11 @@ namespace FNPlugin
 
             megaJouleSolarPowerSupply = supplyFNResourceFixedMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
         }
+
+        public override string getResourceManagerDisplayName()
+        {
+            return part.partInfo.title;
+        }
 	}
 }
 
