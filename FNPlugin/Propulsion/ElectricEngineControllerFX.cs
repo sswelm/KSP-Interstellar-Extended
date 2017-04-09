@@ -670,7 +670,7 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName()
         {
-            return engineTypeStr + " Thruster" + (Current_propellant != null ? "(" + Current_propellant.PropellantGUIName + ")" : "");
+            return part.partInfo.title + (Current_propellant != null ? " (" + Current_propellant.PropellantGUIName + ")" : "");
         }
 
         protected void togglePropellant(bool next)

@@ -17,30 +17,28 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true,  guiName = "Solar Power", guiUnits = " MW", guiFormat="F5")]
         public double megaJouleSolarPowerSupply;
 
-		public string heatProductionStr = ":";
+        private MicrowavePowerReceiver microwavePowerReceiver;
+        private ModuleDeployableSolarPanel solarPanel;
+        private PartResourceDefinition outputDefinition;
+        private resourceType outputType = 0;
+        private PartResource megajoulePartResource;
+        private PartResource electricChargePartResource;
 
-        protected ModuleDeployableSolarPanel solarPanel;
         private bool active = false;
         private float previousDeltaTime;
-
-        resourceType outputType = 0;
-
-        PartResource megajoulePartResource;
-        PartResource electricChargePartResource;
-
         private double fixedMegajouleBufferSize;
         private double fixedElectricChargeBufferSize;
 
         public override void OnStart(PartModule.StartState state)
         {
+            if (state == StartState.Editor) return;
+
+            microwavePowerReceiver = part.FindModuleImplementing<MicrowavePowerReceiver>();
+            if (microwavePowerReceiver != null) return;
+
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
-
-            if (state == StartState.Editor)
-            {
-                return;
-            }
 
             previousDeltaTime = TimeWarp.fixedDeltaTime;
 
@@ -70,6 +68,8 @@ namespace FNPlugin
             }
             else
                 outputType = resourceType.other;
+
+            outputDefinition = PartResourceLibrary.Instance.GetDefinition(solarPanel.resourceName);
         }
 
         public override void OnFixedUpdate() 
@@ -82,6 +82,8 @@ namespace FNPlugin
         public void FixedUpdate()
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
+
+            if (microwavePowerReceiver != null) return;
 
             if (!active)
                 base.OnFixedUpdate();
@@ -119,6 +121,9 @@ namespace FNPlugin
             double solar_rate = solarPanel.flowRate * TimeWarp.fixedDeltaTime;
             double maxSupply = solarPanel.chargeRate * solarPanel._distMult * solarPanel._efficMult * TimeWarp.fixedDeltaTime;
 
+            // extract power oyherwise we end up with double power
+            part.RequestResource(outputDefinition.id, solar_rate);
+
             double solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate / 1000;
             double solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply / 1000;
 
@@ -127,6 +132,7 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName()
         {
+            // use identical names so it will be grouped together
             return part.partInfo.title;
         }
 	}

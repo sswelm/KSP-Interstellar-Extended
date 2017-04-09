@@ -141,7 +141,9 @@ namespace FNPlugin
         public float powerScaleExponent = 3;
 
         [KSPField(isPersistant = false)]
-        public float emergencyPowerShutdownFraction = 0.95f;
+        public float safetyPowerReductionFraction = 0.95f;
+        [KSPField(isPersistant = false)]
+        public float emergencyPowerShutdownFraction = 0.99f;
         [KSPField(isPersistant = false)]
         public float breedDivider = 100000.0f;
         [KSPField(isPersistant = false)]
@@ -1210,6 +1212,8 @@ namespace FNPlugin
                 geeForceModifier = CheatOptions.UnbreakableJoints || !hasBuoyancyEffects ? 1
                     : Math.Min(Math.Max(1 - ((part.vessel.geeForce - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1);
 
+                var safetyThrotleModifier = GetSafteOverheatPreventionRatio();
+
                 current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.First();
 
@@ -1233,7 +1237,8 @@ namespace FNPlugin
 
                 // Charged Power
                 fixed_maximum_charged_power = MaximumChargedPower * TimeWarp.fixedDeltaTime;
-                max_charged_to_supply_fixed = Math.Max(fixed_maximum_charged_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier;
+
+                max_charged_to_supply_fixed = Math.Max(fixed_maximum_charged_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
                 max_charged_to_supply_nominal = max_charged_to_supply_fixed / TimeWarp.fixedDeltaTime;
 
                 raw_charged_power_received = supplyManagedFNResourceWithMinimumRatio(max_charged_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
@@ -1241,7 +1246,7 @@ namespace FNPlugin
 
                 // Thermal Power
                 fixed_maximum_thermal_power = MaximumThermalPower * TimeWarp.fixedDeltaTime;
-                max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier;
+                max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
                 max_thermal_to_supply_nominal = max_thermal_to_supply_fixed / TimeWarp.fixedDeltaTime;
                 raw_thermal_power_received = supplyManagedFNResourceWithMinimumRatio(max_thermal_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
@@ -1626,6 +1631,18 @@ namespace FNPlugin
             return false;
         }
 
+        protected double GetSafteOverheatPreventionRatio()
+        {
+            if (CheatOptions.IgnoreMaxTemperature)
+                return 1;
+
+            var wasteheatRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+            if (wasteheatRatio < safetyPowerReductionFraction)
+                return 1;
+
+            return  1 - (wasteheatRatio - safetyPowerReductionFraction) / (emergencyPowerShutdownFraction - safetyPowerReductionFraction);
+        }
+
         protected List<ReactorFuelType> GetReactorFuelModes()
         {
             ConfigNode[] fuelmodes = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
@@ -2003,6 +2020,17 @@ namespace FNPlugin
                 Debug.LogError("[KSPI] - ElectricRCSController Window(" + windowID + "): " + e.Message);
                 throw;
             }
+        }
+
+        public override string getResourceManagerDisplayName()
+        {
+            var displayName = part.partInfo.title;
+            if (fuel_modes.Count > 1 )
+                displayName += " (" + fuelModeStr + ")";
+            if (similarParts != null && similarParts.Count > 1)
+                displayName += " " + partNrInList;
+
+            return displayName;
         }
     }
 }

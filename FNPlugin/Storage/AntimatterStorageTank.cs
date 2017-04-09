@@ -245,11 +245,6 @@ namespace FNPlugin
             return "Maximum Power Requirements: " + (chargeNeeded * 2).ToString("0") + " KW\nMinimum Power Requirements: " + chargeNeeded.ToString("0") + " KW";
         }
 
-        public override string getResourceManagerDisplayName()
-        {
-            return "Antimatter Storage Tank";
-        }
-
         public override int getPowerPriority()
         {
             return 1;

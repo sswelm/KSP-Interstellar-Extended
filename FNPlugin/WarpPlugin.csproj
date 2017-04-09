@@ -104,7 +104,6 @@
     <Compile Include="Microwave\BandwidthConverter.cs" />
     <Compile Include="Propulsion\AlcubierreDrive.cs" />
     <Compile Include="Propulsion\Contract\IEngineNoozle.cs" />
-    <Compile Include="Propulsion\ElectricRCSController2.cs" />
     <Compile Include="Propulsion\EngineECU2.cs" />
     <Compile Include="Propulsion\ExtendedPropellant.cs" />
     <Compile Include="Propulsion\FusionECU2.cs" />

@@ -700,11 +700,6 @@ namespace FNPlugin
             return IsEnabled;
         }
 
-        public override string getResourceManagerDisplayName()
-        {
-            return part.partInfo.title;
-        }
-
         public static VesselRelayPersistence getVesselRelayPersistenceForVessel(Vessel vessel)
         {
             // find all active tranmitters configured for relay

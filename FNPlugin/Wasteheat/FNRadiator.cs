@@ -935,6 +935,7 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName()
         {
+            // use identical names so it will be grouped together
             return part.partInfo.title;
         }
 	}

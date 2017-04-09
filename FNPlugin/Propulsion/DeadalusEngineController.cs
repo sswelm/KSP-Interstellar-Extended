@@ -615,11 +615,6 @@ namespace FNPlugin
 			}
 		}
 
-		public override string getResourceManagerDisplayName() 
-		{
-			return engineType;
-		}
-
 		public override int getPowerPriority() 
 		{
 			return 2;

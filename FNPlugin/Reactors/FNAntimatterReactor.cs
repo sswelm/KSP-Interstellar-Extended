@@ -10,8 +10,6 @@ namespace FNPlugin
     {
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Antimatter Reactor"; } }
 
-        public override string getResourceManagerDisplayName() { return TypeName; }
-
         public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 
         public float MaximumChargedIspMult { get { return 100f; } }

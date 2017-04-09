@@ -215,7 +215,7 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName()
         {
-            return "Magnetic Nozzle";
+            return part.partInfo.title;
         }
 	}
 }

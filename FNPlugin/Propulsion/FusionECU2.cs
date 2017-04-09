@@ -587,7 +587,7 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName()
         {
-            return part.name;
+            return part.partInfo.title;
         }
 
         public override int getPowerPriority()

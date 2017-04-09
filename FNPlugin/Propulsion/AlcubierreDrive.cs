@@ -969,11 +969,6 @@ namespace FNPlugin
 
         }
 
-        public override string getResourceManagerDisplayName()
-        {
-            return "Alcubierre Drive";
-        }
-
         public static AnimationState[] SetUpAnimation(string animationName, Part part)
         {
             var states = new List<AnimationState>();

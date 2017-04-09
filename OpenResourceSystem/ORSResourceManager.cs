@@ -12,6 +12,13 @@ namespace OpenResourceSystem
         public double Power_consume { get; set; }
     }
 
+    public class PowerGenerated
+    {
+        public double currentSupply { get; set; }
+        public double maximumSupply { get; set; }
+        public double minimumSupply { get; set; }
+    }
+
     public class ORSResourceManager 
     {
         public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
@@ -33,9 +40,10 @@ namespace OpenResourceSystem
         protected PartResourceDefinition chargedpowerResourceDefinition;
 
         protected Dictionary<ORSResourceSuppliable, PowerConsumption> power_consumption;
+        protected Dictionary<IORSResourceSupplier, PowerGenerated> power_produced;
 
-        protected Dictionary<ORSResourceSupplier, double> power_max_supplies;   // maximum supplied power by power producers 
-        protected Dictionary<ORSResourceSupplier, double> power_min_supplies;   // minimum supplied power by power producers 
+        protected Dictionary<IORSResourceSupplier, double> power_max_supplies;   // maximum supplied power by power producers 
+        protected Dictionary<IORSResourceSupplier, double> power_min_supplies;   // minimum supplied power by power producers 
 
         protected string resource_name;
         protected double currentPowerSupply = 0;
@@ -57,17 +65,13 @@ namespace OpenResourceSystem
 
 		protected int flow_type = 0;
         protected List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_list_archive;
+        protected List<KeyValuePair<IORSResourceSupplier, PowerGenerated>> power_supply_list_archive;
+
         protected bool render_window = false;
         protected Rect windowPosition = new Rect(50, 50, 300, 100);
         protected int windowID = 36549835;
 		protected double resource_bar_ratio = 0;
 
-        protected GUIStyle bold_label;
-        protected GUIStyle green_label;
-        protected GUIStyle red_label;
-        protected GUIStyle right_align;
-
-        protected int updateCounter;
         protected double internl_power_extract = 0;
 
         public Rect WindowPosition 
@@ -91,9 +95,10 @@ namespace OpenResourceSystem
             windowID = new System.Random(resource_name.GetHashCode()).Next(int.MinValue, int.MaxValue);
 
             power_consumption = new Dictionary<ORSResourceSuppliable, PowerConsumption>();
+            power_produced = new Dictionary<IORSResourceSupplier, PowerGenerated>();
 
-            power_max_supplies = new Dictionary<ORSResourceSupplier, double>();
-            power_min_supplies = new Dictionary<ORSResourceSupplier, double>();
+            power_max_supplies = new Dictionary<IORSResourceSupplier, double>();
+            power_min_supplies = new Dictionary<IORSResourceSupplier, double>();
 
             this.resource_name = resource_name;
 
@@ -129,32 +134,58 @@ namespace OpenResourceSystem
             }           
         }
 
-        public double powerSupply(ORSResourceSupplier pm, double power) 
+        public double powerSupply(IORSResourceSupplier pm, double power) 
         {
-            currentPowerSupply += (power / TimeWarp.fixedDeltaTime);
-			stable_supply += (power / TimeWarp.fixedDeltaTime);
+            var current_power_supply = power / TimeWarp.fixedDeltaTime;
 
-            if (power_max_supplies.ContainsKey(pm)) 
-                power_max_supplies[pm] += (power / TimeWarp.fixedDeltaTime);
+            currentPowerSupply += current_power_supply;
+            stable_supply += current_power_supply;
+
+            currentPowerSupply += current_power_supply;
+            stable_supply += current_power_supply;
+
+            PowerGenerated powerGenerated;
+            if (!power_produced.TryGetValue(pm, out powerGenerated))
+            {
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
+            }
+            powerGenerated.currentSupply += currentPowerSupply;
+            powerGenerated.maximumSupply += currentPowerSupply;
+
+            if (power_max_supplies.ContainsKey(pm))
+                power_max_supplies[pm] += current_power_supply;
             else 
-                power_max_supplies.Add(pm, (power / TimeWarp.fixedDeltaTime));
+                power_max_supplies.Add(pm, current_power_supply);
             
             return power;
         }
 
-        public double powerSupplyFixedMax(ORSResourceSupplier pm, double power, double maxpower) 
+        public double powerSupplyFixedMax(IORSResourceSupplier pm, double power, double maxpower) 
         {
-			currentPowerSupply += (power / TimeWarp.fixedDeltaTime);
-			stable_supply += (maxpower / TimeWarp.fixedDeltaTime);
+            var current_power_supply = power / TimeWarp.fixedDeltaTime;
+            var maximum_power_supply = maxpower / TimeWarp.fixedDeltaTime;
 
-            if (power_max_supplies.ContainsKey(pm)) 
-                power_max_supplies[pm] += (power / TimeWarp.fixedDeltaTime);
-            else 
-                power_max_supplies.Add(pm, (power / TimeWarp.fixedDeltaTime));
+            currentPowerSupply += current_power_supply;
+            stable_supply += maximum_power_supply;
+
+            PowerGenerated powerGenerated;
+            if (!power_produced.TryGetValue(pm, out powerGenerated))
+            {
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
+            }
+            powerGenerated.currentSupply += current_power_supply;
+            powerGenerated.maximumSupply += maximum_power_supply;
+
+            if (power_max_supplies.ContainsKey(pm))
+                power_max_supplies[pm] += current_power_supply;
+            else
+                power_max_supplies.Add(pm, current_power_supply);
 			return power;
 		}
 
-        public double managedPowerSupply(ORSResourceSupplier pm, double power) 
+        public double managedPowerSupply(IORSResourceSupplier pm, double power) 
         {
 			return managedPowerSupplyWithMinimumRatio (pm, power, 0);
 		}
@@ -192,15 +223,26 @@ namespace OpenResourceSystem
             return maxAmount;
 		}
 
-        public double managedPowerSupplyWithMinimumRatio(ORSResourceSupplier pm, double power, double rat_min) 
+        public double managedPowerSupplyWithMinimumRatio(IORSResourceSupplier pm, double power, double ratio_min) 
         {
 			var maximum_available_power_per_second = power / TimeWarp.fixedDeltaTime;
-            var minimum_power_per_second = maximum_available_power_per_second * rat_min;
+            var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
             var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
             var managed_supply_per_second = Math.Min(maximum_available_power_per_second, required_power_per_second);
 
 			currentPowerSupply += managed_supply_per_second;
 			stable_supply += maximum_available_power_per_second;
+
+            PowerGenerated powerGenerated;
+            if (!power_produced.TryGetValue(pm, out powerGenerated))
+            {
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
+            }
+
+            powerGenerated.currentSupply += managed_supply_per_second;
+            powerGenerated.maximumSupply += maximum_available_power_per_second;
+            powerGenerated.minimumSupply += minimum_power_per_second;
 
             if (power_max_supplies.ContainsKey(pm))
                 power_max_supplies[pm] += maximum_available_power_per_second;
@@ -215,15 +257,16 @@ namespace OpenResourceSystem
 			return managed_supply_per_second * TimeWarp.fixedDeltaTime;
 		}
 
-        public double getStableResourceSupply() 
-        {
-            return  stored_stable_supply;
-        }
-
-        public double getResourceSupply()
-        {
-            return stored_supply;
-        }
+        public double StableResourceSupply { get { return stored_stable_supply; } }
+        public double ResourceSupply { get { return stored_supply; } }
+        public double ResourceDemand { get {  return stored_resource_demand; } }
+		public double CurrentResourceDemand { get { return current_resource_demand; } }
+        public double CurrentHighPriorityResourceDemand { get { return stored_current_hp_demand; } }
+        public double PowerSupply { get { return currentPowerSupply; } }
+        public double CurrentRresourceDemand { get { return current_resource_demand; } }
+		public double ResourceBarRatio { get {  return resource_bar_ratio; } }
+        public Vessel Vessel { get { return my_vessel; } }
+        public PartModule PartModule { get { return my_partmodule; } }
 
         public double getDemandSupply()
         {
@@ -235,49 +278,14 @@ namespace OpenResourceSystem
             return stored_resource_demand / stored_stable_supply;
         }
 
-        public double getResourceDemand()
+        public double getCurrentUnfilledResourceDemand()
         {
-            return stored_resource_demand;
+            return current_resource_demand - currentPowerSupply;
         }
-
-		public double getCurrentResourceDemand() 
-        {
-			return current_resource_demand;
-		}
-
-        public double getCurrentHighPriorityResourceDemand() 
-        {
-            return stored_current_hp_demand;
-		}
-
-		public double getCurrentUnfilledResourceDemand() 
-        {
-			return current_resource_demand - currentPowerSupply;
-		}
 
         public double GetRequiredResourceDemand()
         {
             return getCurrentUnfilledResourceDemand() + getSpareResourceCapacity() / TimeWarp.fixedDeltaTime;
-        }
-
-        public double GetPowerSupply()
-        {
-            return currentPowerSupply;
-        }
-
-        public double GetCurrentRresourceDemand()
-        {
-            return current_resource_demand;
-        }
-
-		public double getResourceBarRatio() 
-        {
-			return resource_bar_ratio;
-		}
-
-        public Vessel getVessel() 
-        {
-            return my_vessel;
         }
 
 		public void updatePartModule(PartModule pm) 
@@ -294,17 +302,10 @@ namespace OpenResourceSystem
             }
 		}
 
-		public PartModule getPartModule() 
-        {
-			return my_partmodule;
-		}
-
         public bool IsUpdatedAtLeastOnce { get; set; }
 
         public void update() 
         {
-            updateCounter++;
-
             IsUpdatedAtLeastOnce = true;
 
             stored_supply = currentPowerSupply;
@@ -367,7 +368,8 @@ namespace OpenResourceSystem
                 }
 			}
 
-			//sort by power draw
+            power_supply_list_archive = power_produced.OrderByDescending(m => m.Value.maximumSupply).ToList();
+
             List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_draw).ToList();
 
             power_draw_list_archive = power_draw_items.ToList();
@@ -486,6 +488,7 @@ namespace OpenResourceSystem
             currentPowerSupply = 0;
 			stable_supply = 0;
 
+            power_produced.Clear();
             power_max_supplies.Clear();
             power_min_supplies.Clear();
             power_consumption.Clear();

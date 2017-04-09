@@ -55,7 +55,7 @@ namespace OpenResourceSystem
 
         public void deleteManager(ORSResourceManager manager) 
         {
-            managers.Remove(manager.getVessel());
+            managers.Remove(manager.Vessel);
         }
 
         public virtual ORSResourceManager createManagerForVessel(PartModule pm) 

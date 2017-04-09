@@ -35,7 +35,7 @@ namespace FNPlugin
             if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel) && !hide_button)
             {
                 ORSResourceManager mega_manager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
-                if (mega_manager.getPartModule() != null)
+                if (mega_manager.PartModule != null)
                 {
                     // activate rendering
                     if (show_window)
@@ -49,7 +49,7 @@ namespace FNPlugin
             if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).hasManagerForVessel(vessel) && !hide_button)
             {
                 ORSResourceManager thermal_manager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_THERMALPOWER).getManagerForVessel(vessel);
-                if (thermal_manager.getPartModule() != null)
+                if (thermal_manager.PartModule != null)
                 {
                     // activate rendering
                     if (show_window)
@@ -63,7 +63,7 @@ namespace FNPlugin
             if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES).hasManagerForVessel(vessel) && !hide_button)
             {
                 ORSResourceManager charged_manager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES).getManagerForVessel(vessel);
-                if (charged_manager.getPartModule() != null)
+                if (charged_manager.PartModule != null)
                 {
                     // activate rendering
                     if (show_window)
@@ -77,7 +77,7 @@ namespace FNPlugin
             if (FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_WASTEHEAT).hasManagerForVessel(vessel) && !hide_button)
             {
                 ORSResourceManager waste_manager = FNResourceOvermanager.getResourceOvermanagerForResource(FNResourceManager.FNRESOURCE_WASTEHEAT).getManagerForVessel(vessel);
-                if (waste_manager.getPartModule() != null)
+                if (waste_manager.PartModule != null)
                 {
                     // activate rendering
                     if (show_window)
