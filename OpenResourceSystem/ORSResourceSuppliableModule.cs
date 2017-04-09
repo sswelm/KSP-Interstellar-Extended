@@ -43,7 +43,7 @@ namespace OpenResourceSystem
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.powerSupply(this, supply);
+            return manager.powerSupplyFixed(this, supply);
         }
 
         public double supplyFNResourceFixedMax(double supply, double maxsupply, String resourcename)

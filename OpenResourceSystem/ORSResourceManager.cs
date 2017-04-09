@@ -134,12 +134,9 @@ namespace OpenResourceSystem
             }           
         }
 
-        public double powerSupply(IORSResourceSupplier pm, double power) 
+        public double powerSupplyFixed(IORSResourceSupplier pm, double power) 
         {
             var current_power_supply = power / TimeWarp.fixedDeltaTime;
-
-            currentPowerSupply += current_power_supply;
-            stable_supply += current_power_supply;
 
             currentPowerSupply += current_power_supply;
             stable_supply += current_power_supply;
@@ -459,28 +456,31 @@ namespace OpenResourceSystem
             var actual_stored_power = my_part.RequestResource(this.resource_name, internl_power_extract);
 
             //calculate total input and output
+
+            var total_current_produced = power_produced.Sum(m => m.Value.currentSupply);
             var total_power_consumed = power_consumption.Sum(m => m.Value.Power_consume);
-            var total_power_max_supplied = power_max_supplies.Sum(m => m.Value);
+            //var total_power_max_supplied = power_max_supplies.Sum(m => m.Value);
             var total_power_min_supplied = power_min_supplies.Sum(m => m.Value);
 
+            var current_supplied = power_produced.Sum(m => m.Value.currentSupply);
+
             //generate wasteheat from used thermal power + thermal store
-            if (!CheatOptions.IgnoreMaxTemperature && total_power_max_supplied > 0 && 
+            if (!CheatOptions.IgnoreMaxTemperature && current_supplied > 0 && 
                 (resourceDefinition.id == thermalpowerResourceDefinition.id || resourceDefinition.id == chargedpowerResourceDefinition.id))
             {
-                // calculate Wasteheat
                 var min_supplied_per_second = TimeWarp.fixedDeltaTime * total_power_min_supplied;
-                var max_supplied_pers_second = TimeWarp.fixedDeltaTime * Math.Min(total_power_consumed, total_power_max_supplied) + Math.Max(-actual_stored_power, 0);
+                var max_supplied_pers_second = TimeWarp.fixedDeltaTime * Math.Min(total_power_consumed, total_current_produced) + Math.Max(-actual_stored_power, 0);
                 var wasteheatProduction = Math.Max(min_supplied_per_second, max_supplied_pers_second);
 
-                // generate Wasteheat
-                var effective_wasteheat_ratio = wasteheatProduction / total_power_max_supplied;
+                var effective_wasteheat_ratio = Math.Max(wasteheatProduction / (total_current_produced * TimeWarp.fixedDeltaTime), 1);
 
                 var overmanager = ORSResourceOvermanager.getResourceOvermanagerForResource(ORSResourceManager.FNRESOURCE_WASTEHEAT);
                 ORSResourceManager manager = overmanager.getManagerForVessel(my_vessel);
 
-                foreach (var supplier_key_value in power_max_supplies)
+                foreach (var supplier_key_value in power_produced)
                 {
-                    manager.powerSupply(supplier_key_value.Key, supplier_key_value.Value * effective_wasteheat_ratio);
+                    if (supplier_key_value.Value.currentSupply > 0)
+                        manager.powerSupplyFixed(supplier_key_value.Key, supplier_key_value.Value.currentSupply * effective_wasteheat_ratio * TimeWarp.fixedDeltaTime);
                 }
                 
             }
