@@ -281,9 +281,9 @@ namespace FNPlugin
 				{
 					radhazard = true;
 					if (kerbal_hazard_count > 1)
-						radhazardstr = kerbal_hazard_count.ToString() + " Kerbals.";
+						radhazardstr = kerbal_hazard_count + " Kerbals.";
 					else
-						radhazardstr = kerbal_hazard_count.ToString() + " Kerbal.";
+						radhazardstr = kerbal_hazard_count + " Kerbal.";
 
 					radhazardstrField.guiActive = true;
 				}
