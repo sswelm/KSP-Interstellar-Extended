@@ -6,16 +6,8 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    class HaberProcess : IRefineryActivity
+    class HaberProcess : RefineryActivityBase, IRefineryActivity
     {
-        const int labelWidth = 200;
-        const int valueWidth = 200;
-
-        protected Part _part;
-        protected Vessel _vessel;
-        protected String _status = "";
-        protected double _current_power;
-
         protected double _hydrogen_density;
         protected double _nitrogen_density;
         protected double _ammonia_density;
@@ -23,12 +15,6 @@ namespace FNPlugin.Refinery
         protected double _hydrogen_consumption_rate;
         protected double _ammonia_production_rate;
         protected double _nitrogen_consumption_rate;
-
-        protected double _atmospheric_nitrogen_rate;
-
-        protected double _current_rate;
-
-        private GUIStyle _bold_label;
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
@@ -92,38 +78,33 @@ namespace FNPlugin.Refinery
         public void UpdateGUI()
         {
             if (_bold_label == null)
-            {
-                _bold_label = new GUIStyle(GUI.skin.label);
-                _bold_label.fontStyle = FontStyle.Bold;
-            }
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPowerRequirements), GUILayout.Width(valueWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPowerRequirements), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Current Rate ", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_current_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(_current_rate * GameConstants.HOUR_SECONDS + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
-
-            //GUILayout.BeginHorizontal();
-            //GUILayout.Label("Avaialble Nitrogen ", _bold_label, GUILayout.Width(labelWidth));
-            //GUILayout.Label(_atmospheric_nitrogen_rate.ToString(), GUILayout.Width(valueWidth));
-            //GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Nitrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_nitrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(_nitrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Ammonia Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_ammonia_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(_ammonia_production_rate * GameConstants.HOUR_SECONDS + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 

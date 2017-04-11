@@ -33,6 +33,8 @@ namespace FNPlugin
         public double mwRequirements = 1.0f; // MW requirements of the collector panel.
         [KSPField(isPersistant = false)]
         public string animName;
+        [KSPField(isPersistant = false)]
+        public double cheatMultipler = 1000; 
 
 
         // GUI
@@ -96,8 +98,9 @@ namespace FNPlugin
         }
 
         const double dKerbinDistance = 13599840256; // distance of Kerbin from Sun/Kerbol in meters (i.e. AU)
+
         protected double dDistanceFromStar = 0; // distance of the current vessel from the system's star
-        protected double dConcentrationSolarWind = 0;
+        protected double massConcentrationPerSquareMeterPerSecond = 0;
         protected double dSolarWindSpareCapacity;
         protected double dSolarWindDensity;
         protected Animation anim;
@@ -164,8 +167,8 @@ namespace FNPlugin
             Fields["strReceivedPower"].guiActive = bIsEnabled;
 
 
-            dConcentrationSolarWind = CalculateSolarWindConcentration(part.vessel.solarFlux);
-            strSolarWindConc = dConcentrationSolarWind.ToString("F2");
+            massConcentrationPerSquareMeterPerSecond = CalculateSolarWindConcentration(part.vessel.solarFlux);
+            strSolarWindConc = massConcentrationPerSquareMeterPerSecond.ToString("F2");
             dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
             strMagnetoStrength = UpdateMagnetoStrengthInGUI();
         }
@@ -294,7 +297,10 @@ namespace FNPlugin
             double dAvgKerbinSolarFlux = 1409.285; // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
             double dAvgSolarWindPerCubM = 6000.0; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
 
-            double dConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerCubM;
+            double solarWindSpeed = 500000; // Average Solar win speed 500 km/s
+            double avogadroConstant = 6.022140857e+23; // number of atmons 
+
+            double dConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed / avogadroConstant;
             return dConcentration;
         }
 
@@ -321,7 +327,7 @@ namespace FNPlugin
         // the main collecting function
         private void CollectSolarWind(double deltaTimeInSeconds, bool offlineCollecting)
         {
-            dConcentrationSolarWind = CalculateSolarWindConcentration(part.vessel.solarFlux);
+            massConcentrationPerSquareMeterPerSecond = CalculateSolarWindConcentration(part.vessel.solarFlux);
 
             string strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
@@ -333,11 +339,9 @@ namespace FNPlugin
             dSolarWindDensity = PartResourceLibrary.Instance.GetDefinition(strSolarWindResourceName).density;
 
             if (offlineCollecting)
-            {
-                dConcentrationSolarWind = dLastSolarConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the function at line 328
-            }
+                massConcentrationPerSquareMeterPerSecond = dLastSolarConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the function at line 328
 
-            if (dConcentrationSolarWind > 0 && (dSolarWindSpareCapacity > 0))
+            if (massConcentrationPerSquareMeterPerSecond > 0 && (dSolarWindSpareCapacity > 0))
             {
                 // calculate available power
                 double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
@@ -373,20 +377,16 @@ namespace FNPlugin
 
             // if online collecting, get the old values instead (simplification for the time being)
             if (offlineCollecting)
-            {
                 dMagnetoSphereStrengthRatio = dLastMagnetoStrength;
-            }
 
             if (dMagnetoSphereStrengthRatio == 0)
-            {
                 dShieldedEffectiveness = 1;
-            }
             else
                 dShieldedEffectiveness = (1 - dMagnetoSphereStrengthRatio);
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            double dResourceChange = (dConcentrationSolarWind * surfaceArea * dSolarWindDensity) * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * deltaTimeInSeconds;
+            double dResourceChange = (massConcentrationPerSquareMeterPerSecond * cheatMultipler * surfaceArea / dSolarWindDensity) * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * deltaTimeInSeconds;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)

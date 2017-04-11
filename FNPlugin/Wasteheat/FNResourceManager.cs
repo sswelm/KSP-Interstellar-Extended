@@ -16,7 +16,12 @@ namespace FNPlugin
         private int priorityWidth = 30;
         private int overviewWidth = 65;
 
-        Font mainfont;
+        GUIStyle left_bold_label;
+        GUIStyle right_bold_label;
+        GUIStyle green_label;
+        GUIStyle red_label;
+        GUIStyle left_aligned_label;
+        GUIStyle right_aligned_label;
 
         public FNResourceManager(PartModule pm, String resource_name) : base(pm, resource_name) 
         {
@@ -45,8 +50,6 @@ namespace FNPlugin
             }
 
             windowPosition = new Rect(xPos, yPos, labelWidth + valueWidth + priorityWidth, 50);
-
-            mainfont = Font.CreateDynamicFontFromOSFont("Arial", 11);
         }
 
         protected override void pluginSpecificImpl() 
@@ -71,33 +74,51 @@ namespace FNPlugin
                 
         protected override void doWindow(int windowID) 
         {
-            GUIStyle left_bold_label = new GUIStyle(GUI.skin.label);
-            left_bold_label.fontStyle = FontStyle.Bold;
-            left_bold_label.font = mainfont;
+            if (left_bold_label == null)
+            {
+                left_bold_label = new GUIStyle(GUI.skin.label);
+                left_bold_label.fontStyle = FontStyle.Bold;
+                left_bold_label.font = PluginHelper.MainFont;
+            }
 
-            GUIStyle right_bold_label = new GUIStyle(GUI.skin.label);
-            right_bold_label.fontStyle = FontStyle.Bold;
-            right_bold_label.font = mainfont;
-            right_bold_label.alignment = TextAnchor.MiddleRight;
+            if (right_bold_label == null)
+            {
+                right_bold_label = new GUIStyle(GUI.skin.label);
+                right_bold_label.fontStyle = FontStyle.Bold;
+                right_bold_label.font = PluginHelper.MainFont;
+                right_bold_label.alignment = TextAnchor.MiddleRight;
+            }
 
-            GUIStyle green_label = new GUIStyle(GUI.skin.label);
-            green_label.normal.textColor = resource_name == ORSResourceManager.FNRESOURCE_WASTEHEAT ? Color.red : Color.green;
-            green_label.font = mainfont;
-            green_label.alignment = TextAnchor.MiddleRight;
+            if (green_label == null)
+            {
+                green_label = new GUIStyle(GUI.skin.label);
+                green_label.normal.textColor = resource_name == ORSResourceManager.FNRESOURCE_WASTEHEAT ? Color.red : Color.green;
+                green_label.font = PluginHelper.MainFont;
+                green_label.alignment = TextAnchor.MiddleRight;
+            }
 
-            GUIStyle red_label = new GUIStyle(GUI.skin.label);
-            red_label.normal.textColor = resource_name == ORSResourceManager.FNRESOURCE_WASTEHEAT ? Color.green : Color.red;
-            red_label.font = mainfont;
-            red_label.alignment = TextAnchor.MiddleRight;
+            if (red_label == null)
+            {
+                red_label = new GUIStyle(GUI.skin.label);
+                red_label.normal.textColor = resource_name == ORSResourceManager.FNRESOURCE_WASTEHEAT ? Color.green : Color.red;
+                red_label.font = PluginHelper.MainFont;
+                red_label.alignment = TextAnchor.MiddleRight;
+            }
 
-            GUIStyle left_aligned_label = new GUIStyle(GUI.skin.label);
-            left_aligned_label.fontStyle = FontStyle.Normal;
-            left_aligned_label.font = mainfont;
+            if (left_aligned_label == null)
+            {
+                left_aligned_label = new GUIStyle(GUI.skin.label);
+                left_aligned_label.fontStyle = FontStyle.Normal;
+                left_aligned_label.font = PluginHelper.MainFont;
+            }
 
-            GUIStyle right_aligned_label = new GUIStyle(GUI.skin.label);
-            right_aligned_label.fontStyle = FontStyle.Normal;
-            right_aligned_label.font = mainfont;
-            right_aligned_label.alignment = TextAnchor.MiddleRight;
+            if (right_aligned_label == null)
+            {
+                right_aligned_label = new GUIStyle(GUI.skin.label);
+                right_aligned_label.fontStyle = FontStyle.Normal;
+                right_aligned_label.font = PluginHelper.MainFont;
+                right_aligned_label.alignment = TextAnchor.MiddleRight;
+            }
 
             if (render_window && GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
                 render_window = false;

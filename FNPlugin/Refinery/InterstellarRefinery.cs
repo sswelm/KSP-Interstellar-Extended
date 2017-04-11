@@ -10,7 +10,7 @@ namespace FNPlugin.Refinery
     [KSPModule("ISRU Refinery Controller")]
     class InterstellarPowerSupply : FNResourceSuppliableModule
     {
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Display Name")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Proces")]
         public string displayName = "";
 
         public override void OnStart(PartModule.StartState state)
@@ -113,17 +113,13 @@ namespace FNPlugin.Refinery
         public double consumedPowerMW;
 
         protected IRefineryActivity _current_activity = null;
-        
 
         private List<IRefineryActivity> _refinery_activities;
-        private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth, 150);
+        private Rect _window_position = new Rect(50, 50, RefineryActivityBase.labelWidth + RefineryActivityBase.valueWidth, 150);
         private int _window_ID;
         private bool _render_window;
-
-        private const int labelWidth = 200;
-        private const int valueWidth = 200;
-
         private GUIStyle _bold_label;
+        private GUIStyle _value_label;
         private GUIStyle _enabled_button;
         private GUIStyle _disabled_button;
 
@@ -299,18 +295,24 @@ namespace FNPlugin.Refinery
             {
                 _bold_label = new GUIStyle(GUI.skin.label);
                 _bold_label.fontStyle = FontStyle.Bold;
+                _bold_label.font = PluginHelper.MainFont;
             }
+
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
 
             if (_enabled_button == null)
             {
                 _enabled_button = new GUIStyle(GUI.skin.button);
                 _enabled_button.fontStyle = FontStyle.Bold;
+                _enabled_button.font = PluginHelper.MainFont;
             }
 
             if (_disabled_button == null)
             {
                 _disabled_button = new GUIStyle(GUI.skin.button);
                 _disabled_button.fontStyle = FontStyle.Normal;
+                _disabled_button.font = PluginHelper.MainFont;
             }
 
             if (GUI.Button(new Rect(_window_position.width - 20, 2, 18, 18), "x"))
@@ -349,35 +351,13 @@ namespace FNPlugin.Refinery
                         overflowAllowed = true;
                 }
                 GUILayout.EndHorizontal();
-
-                ///* This bit adds a special button to the details window for offline processing. Currently only implemented for Atmospheric Extraction,
-                // * but is easily expandable (though perhaps then we should add a new bool to IRefineryActivity interface that will be set in every process
-                // * so that filtering the activities here is easier - like bAllowsOfflineProcessing, set to true in those ISRU processes that do, default false.
-                // * Or some other fancy setup, I'm no wizard.)
-                //*/
-                //if (_current_activity.ActivityName == "Atmospheric Extraction")
-                //{
-                //    GUILayout.BeginHorizontal();
-                //    if (offlineProcessing)
-                //    {
-                //        if (GUILayout.Button("Disable Offline Process", GUILayout.ExpandWidth(true)))
-                //            offlineProcessing = false;
-                //    }
-                //    else
-                //    {
-                //        if (GUILayout.Button("Enable Offline Process", GUILayout.ExpandWidth(true)))
-                //            offlineProcessing = true;
-                //    }
-                //    GUILayout.EndHorizontal();
-                //}
-
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Current Activity", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_current_activity.ActivityName, GUILayout.Width(valueWidth));
+                GUILayout.Label("Current Activity", _bold_label, GUILayout.Width(RefineryActivityBase.labelWidth));
+                GUILayout.Label(_current_activity.ActivityName, _value_label, GUILayout.Width(RefineryActivityBase.valueWidth));
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Status", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_current_activity.Status, GUILayout.Width(valueWidth));
+                GUILayout.Label("Status", _bold_label, GUILayout.Width(RefineryActivityBase.labelWidth));
+                GUILayout.Label(_current_activity.Status, _value_label, GUILayout.Width(RefineryActivityBase.valueWidth));
                 GUILayout.EndHorizontal();
 
                 // allow current activity to show feedback

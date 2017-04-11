@@ -22,14 +22,16 @@ namespace FNPlugin
         protected double solar_power = 0;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power Capacity", guiUnits = " MW", guiFormat = "F2")]
         protected double power_capacity = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit Wavelength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit WaveLength", guiFormat = "F8", guiUnits = " m")]
         public double wavelength = 0;
         [KSPField(isPersistant = true)]
         public double atmosphericAbsorption = 0.1;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Min Relay Wavelength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Min Relay WaveLength", guiFormat = "F8", guiUnits = " m")]
         public double minimumRelayWavelenght;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Max Relay Wavelength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Max Relay WaveLength", guiFormat = "F8", guiUnits = " m")]
         public double maximumRelayWavelenght;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "WL Name")]
+        public string wavelengthName;
         [KSPField(isPersistant = true)]
         public double aperture = 1;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName= "Is Mirror")]
@@ -38,7 +40,6 @@ namespace FNPlugin
         public bool forceActivateAtStartup = false;
 
         //Non Persistent 
-
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Air Absorbtion Percentage")]
         public double atmosphericAbsorptionPercentage;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Water Absorbtion Percentage")]
@@ -179,7 +180,8 @@ namespace FNPlugin
             IsEnabled = true;
 
             // update wavelength
-            wavelength = Wavelength;
+            this.wavelength = Wavelength;
+            this.wavelengthName = WavelengthName;
             atmosphericAbsorption = CombinedAtmosphericAbsorption;
         }
 
@@ -238,17 +240,16 @@ namespace FNPlugin
 
         private void UpdateRelayWavelength()
         {
+            // update stored variables
+            this.wavelength = Wavelength;
+            this.wavelengthName = WavelengthName;
+            this.atmosphericAbsorption = CombinedAtmosphericAbsorption;
+
             if (isMirror)
             {
-                this.wavelength = Wavelength;
-                this.atmosphericAbsorption = CombinedAtmosphericAbsorption;
                 this.hasLinkedReceivers = true;
                 return;
             }
-
-            // update stored variables
-            this.wavelength = Wavelength;
-            this.atmosphericAbsorption = CombinedAtmosphericAbsorption;
 
             // collected all recievers relevant for relay
             var recieversConfiguredForRelay = vessel_recievers.Where(m => m.linkedForRelay).ToList();
@@ -461,6 +462,7 @@ namespace FNPlugin
             Fields["moistureModifier"].guiActive = receiverNotInUse;
             Fields["totalAbsorptionPercentage"].guiActive = receiverNotInUse;
             Fields["wavelength"].guiActive = receiverNotInUse;
+            Fields["wavelengthName"].guiActive = receiverNotInUse;
 
             if (IsEnabled)
             {
@@ -673,6 +675,11 @@ namespace FNPlugin
             get { return activeBeamGenerator != null ? activeBeamGenerator.wavelength : nativeWaveLength; }
         }
 
+        public string WavelengthName
+        {
+            get { return activeBeamGenerator != null ? activeBeamGenerator.beamWaveName : ""; }
+        }
+
         public double CombinedAtmosphericAbsorption
         {
             get { return activeBeamGenerator != null
@@ -749,7 +756,7 @@ namespace FNPlugin
             vesselTransmitters.SupportedTransmitWavelengths.AddRange(transmitters.Select(m => new WaveLengthData() 
             { 
                 partId = new Guid(m.partId), 
-                wavelength = m.Wavelength, 
+                wavelength = m.Wavelength,
                 isMirror = m.isMirror,
                 atmosphericAbsorption = m.CombinedAtmosphericAbsorption 
             }));

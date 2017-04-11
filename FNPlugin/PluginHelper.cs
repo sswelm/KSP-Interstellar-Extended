@@ -1093,7 +1093,17 @@ namespace FNPlugin
             }
         }
 
+        private static Font mainFont;
+        public static Font MainFont
+        {
+            get
+            {
+                if (mainFont == null)
+                    mainFont = Font.CreateDynamicFontFromOSFont("Arial", 11);
 
+                return mainFont;
+            }
+        }
 
     }
 }

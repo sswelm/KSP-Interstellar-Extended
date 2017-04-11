@@ -155,7 +155,6 @@
     <Compile Include="Science\FNMassSpectrometer.cs" />
     <Compile Include="Storage\FNModuleCryostat.cs" />
     <Compile Include="Wasteheat\FNModulePreecooler.cs" />
-    <Compile Include="Refinery\FNModuleResourceExtraction.cs" />
     <Compile Include="Science\DTMagnetometer.cs" />
     <Compile Include="Reactors\FNAntimatterReactor.cs" />
     <Compile Include="FNResourceOvermanager.cs" />
@@ -165,7 +164,7 @@
     <Compile Include="Refinery\InterstellarRefinery.cs" />
     <Compile Include="InterstellarResourcesConfiguration.cs" />
     <Compile Include="Science\InterstellarTelescope.cs" />
-    <Compile Include="Refinery\INuclearFuelReprocessable.cs" />
+    <Compile Include="Refinery\Interfaces\INuclearFuelReprocessable.cs" />
     <Compile Include="Refinery\Interfaces\IRefineryActivity.cs" />
     <Compile Include="Science\ITelescopeController.cs" />
     <Compile Include="IUpgradeableModule.cs" />

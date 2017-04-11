@@ -1290,7 +1290,11 @@ namespace FNPlugin
                     return;
                 }
 
-                if (solarPowerMode == false && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
+                if (solarPowerMode)
+                {
+                    powerInputMegajoules = 0;
+                } 
+                else if (!solarPowerMode && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
                 {
                     double total_power = 0;
                     int activeSatsIncr = 0;
@@ -1378,10 +1382,6 @@ namespace FNPlugin
 
                     powerInputMegajoules = total_power;
 
-                }
-                else
-                {
-                    powerInputMegajoules = 0;
                 }
 
                 if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0 && solarFlux > 0)

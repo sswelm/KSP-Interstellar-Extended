@@ -6,19 +6,12 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    class NuclearFuelReprocessor : IRefineryActivity
+    class NuclearFuelReprocessor : RefineryActivityBase, IRefineryActivity
     {
-        protected Part _part;
-        protected Vessel _vessel;
         protected double _fixed_current_rate = 0;
-        protected double _current_rate = 0;
         protected double _remaining_to_reprocess = 0;
         protected double _remaining_seconds = 0;
         
-        protected string _status = "";
-        protected double _current_power;
-        private GUIStyle _bold_label;
-
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
         public String ActivityName { get { return "Nuclear Fuel Reprocessing"; } }
@@ -65,20 +58,20 @@ namespace FNPlugin.Refinery
         public void UpdateGUI()
         {
             if (_bold_label == null)
-            {
-                _bold_label = new GUIStyle(GUI.skin.label);
-                _bold_label.fontStyle = FontStyle.Bold;
-            }
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(150));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(150));
+            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
             if (_remaining_seconds > 0 && !double.IsNaN(_remaining_seconds) && !double.IsInfinity(_remaining_seconds))
             {
                 int hrs = (int) (_remaining_seconds / 3600);
                 int mins = (int) ((_remaining_seconds - hrs*3600)/60);
                 int secs = (hrs * 60 + mins) % ((int)(_remaining_seconds / 60));
-                GUILayout.Label("Time Remaining", _bold_label, GUILayout.Width(150));
-                GUILayout.Label(hrs + " hours " + mins + " minutes " + secs + " seconds", GUILayout.Width(150));
+                GUILayout.Label("Time Remaining", _bold_label, GUILayout.Width(labelWidth));
+                GUILayout.Label(hrs + " hours " + mins + " minutes " + secs + " seconds", _value_label, GUILayout.Width(valueWidth));
             }
             GUILayout.EndHorizontal();
         }

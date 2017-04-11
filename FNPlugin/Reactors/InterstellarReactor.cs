@@ -1821,7 +1821,7 @@ namespace FNPlugin
                 windowPosition = GUILayout.Window(windowID, windowPosition, Window, "Reactor System Interface");
         }
 
-        protected void PrintToGUILayout(string label, string value, GUIStyle bold_style, GUIStyle text_style, int witdhLabel = 150, int witdhValue = 200)
+        protected void PrintToGUILayout(string label, string value, GUIStyle bold_style, GUIStyle text_style, int witdhLabel = 150, int witdhValue = 150)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(label, bold_style, GUILayout.Width(witdhLabel));
@@ -1838,11 +1838,19 @@ namespace FNPlugin
                 windowPositionX = windowPosition.x;
                 windowPositionY = windowPosition.y;
 
-                bold_style = new GUIStyle(GUI.skin.label);
-                bold_style.fontStyle = FontStyle.Bold;
+                if (bold_style == null)
+                {
+                    bold_style = new GUIStyle(GUI.skin.label);
+                    bold_style.fontStyle = FontStyle.Bold;
+                    bold_style.font = PluginHelper.MainFont;
+                }
 
-                text_style = new GUIStyle(GUI.skin.label);
-                text_style.fontStyle = FontStyle.Normal;
+                if (text_style == null)
+                {
+                    text_style = new GUIStyle(GUI.skin.label);
+                    text_style.fontStyle = FontStyle.Normal;
+                    text_style.font = PluginHelper.MainFont;
+                }
 
                 if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
                     render_window = false;
