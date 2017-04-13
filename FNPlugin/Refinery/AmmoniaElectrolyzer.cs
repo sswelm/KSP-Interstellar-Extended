@@ -6,26 +6,16 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    class AmmoniaElectrolyzer : IRefineryActivity
+    class AmmoniaElectrolyzer : RefineryActivityBase, IRefineryActivity
     {
-        const int labelWidth = 200;
-        const int valueWidth = 200;
-
-        protected Part _part;
-        protected Vessel _vessel;
-        protected String _status = "";
-
         protected double _current_mass_rate;
-        protected double _current_power;
-        protected double _ammonia_density;
+         protected double _ammonia_density;
         protected double _nitrogen_density;
         protected double _hydrogen_density;
 
         protected double _ammonia_consumption_mass_rate;
         protected double _hydrogen_production_mass_rate;
         protected double _nitrogen_production_mass_rate;
-
-        private GUIStyle _bold_label;
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; ; } }
 
@@ -82,32 +72,32 @@ namespace FNPlugin.Refinery
         public void UpdateGUI()
         {
             if (_bold_label == null)
-            {
-                _bold_label = new GUIStyle(GUI.skin.label);
-                _bold_label.fontStyle = FontStyle.Bold;
-            }
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("Ammonia Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_ammonia_consumption_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_ammonia_consumption_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hydrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_hydrogen_production_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_hydrogen_production_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("Nitrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_nitrogen_production_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_nitrogen_production_mass_rate * GameConstants.HOUR_SECONDS).ToString("0.000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             var spare_capacity_nitrogen = _part.GetResourceSpareCapacity(InterstellarResourcesConfiguration.Instance.Nitrogen);
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Spare Capacity Nitrogen", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(spare_capacity_nitrogen.ToString("0.000"), GUILayout.Width(valueWidth));
+            GUILayout.Label(spare_capacity_nitrogen.ToString("0.000"), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 

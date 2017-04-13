@@ -40,7 +40,12 @@ namespace OpenResourceSystem
 
         public ORSResourceManager getManagerForVessel(Vessel vess) 
         {
-            return managers[vess];
+            //return managers[vess];
+            ORSResourceManager manager;
+
+            managers.TryGetValue(vess, out manager);
+
+            return manager;
         }
 
         public void deleteManagerForVessel(Vessel vess) 
@@ -50,7 +55,7 @@ namespace OpenResourceSystem
 
         public void deleteManager(ORSResourceManager manager) 
         {
-            managers.Remove(manager.getVessel());
+            managers.Remove(manager.Vessel);
         }
 
         public virtual ORSResourceManager createManagerForVessel(PartModule pm) 

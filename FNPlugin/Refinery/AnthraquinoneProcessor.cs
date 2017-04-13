@@ -6,15 +6,8 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    class AnthraquinoneProcessor : IRefineryActivity
+    class AnthraquinoneProcessor : RefineryActivityBase, IRefineryActivity
     {
-        const int labelWidth = 200;
-        const int valueWidth = 200;
-
-        protected Part _part;
-        protected Vessel _vessel;
-        protected String _status = "";
-        protected double _current_rate;
         protected double _fixedConsumptionRate;
         protected double _consumptionRate;
 
@@ -38,10 +31,8 @@ namespace FNPlugin.Refinery
 		protected double _oxygen_consumption_rate;
         protected double _hydrogen_peroxide_production_rate;
 
-        protected double _current_power;
 		protected double _hydrogenMassByFraction = (1.0079 * 2)/ 34.01468;
         protected double _oxygenMassByFraction = 1 - ((1.0079 * 2) / 34.01468);
-        private GUIStyle _bold_label;
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
@@ -137,46 +128,48 @@ namespace FNPlugin.Refinery
         public void UpdateGUI()
         {
             if (_bold_label == null)
-                 _bold_label = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold};
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
             
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), GUILayout.Width(valueWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Overal Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_consumptionRate * GameConstants.HOUR_SECONDS).ToString("0.00000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((_consumptionRate * GameConstants.HOUR_SECONDS).ToString("0.00000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hydrogen Available", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_availableHydrogenMass.ToString("0.00000") + " mT / " + _maxCapacityHydrogenMass.ToString("0.00000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.Label(_availableHydrogenMass.ToString("0.00000") + " mT / " + _maxCapacityHydrogenMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_hydrogen_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Oxygen Available", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_availableOxygenMass.ToString("0.00000") + " mT / " + _maxCapacityOxygenMass.ToString("0.00000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.Label(_availableOxygenMass.ToString("0.00000") + " mT / " + _maxCapacityOxygenMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
 			GUILayout.BeginHorizontal();
             GUILayout.Label("Oxygen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_oxygen_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_oxygen_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
 			GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hydrogen Peroxide Storage", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_spareRoomHydrogenPeroxideMass.ToString("0.00000") + " mT / " + _maxCapacityPeroxideMass.ToString("0.00000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.Label(_spareRoomHydrogenPeroxideMass.ToString("0.00000") + " mT / " + _maxCapacityPeroxideMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hydrogen Peroxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_hydrogen_peroxide_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_hydrogen_peroxide_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 

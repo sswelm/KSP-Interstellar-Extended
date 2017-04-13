@@ -145,7 +145,6 @@ namespace FNPlugin
         protected Animation anim;
         protected Queue<double> averageRadiatorTemperatureQueue = new Queue<double>();
 
-
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         [KSPEvent(guiActive = true, guiName = "Activate Generator", active = true)]
@@ -244,7 +243,7 @@ namespace FNPlugin
         {
             //print("[KSP Interstellar]  Generator OnStart Begin " + startcount);
 
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT };
+            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
             this.resources_to_supply = resources_to_supply;
 
             if (state == PartModule.StartState.Docked)
@@ -808,7 +807,6 @@ namespace FNPlugin
         {
             return String.Format("Percent of Carnot Efficiency: {0}%\n-Upgrade Information-\n Upgraded Percent of Carnot Efficiency: {1}%", pCarnotEff * 100, upgradedpCarnotEff * 100);
         }
-
     }
 }
 

@@ -141,7 +141,9 @@ namespace FNPlugin
         public float powerScaleExponent = 3;
 
         [KSPField(isPersistant = false)]
-        public float emergencyPowerShutdownFraction = 0.95f;
+        public float safetyPowerReductionFraction = 0.95f;
+        [KSPField(isPersistant = false)]
+        public float emergencyPowerShutdownFraction = 0.99f;
         [KSPField(isPersistant = false)]
         public float breedDivider = 100000.0f;
         [KSPField(isPersistant = false)]
@@ -674,8 +676,7 @@ namespace FNPlugin
                 else
                     baseCoreTemperature = coreTemperatureMk1;
 
-                var modifiedBaseCoreTemperature = baseCoreTemperature *
-                    (CheatOptions.UnbreakableJoints ? 1 : Math.Max(maxEmbrittlementFraction, Math.Pow(ReactorEmbrittlemenConditionRatio, 2)));
+                var modifiedBaseCoreTemperature = baseCoreTemperature * EffectiveEmbrittlemenEffectRatio;
 
                 return modifiedBaseCoreTemperature;
             }
@@ -694,22 +695,19 @@ namespace FNPlugin
 
         public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
+        public double EffectiveEmbrittlemenEffectRatio
+        {
+            get { return CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlemenConditionRatio * Math.PI * 0.5); }
+        }
+
         public virtual double ReactorEmbrittlemenConditionRatio
         {
-            get
-            {
-                return Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1);
-            }
+            get { return Math.Min(Math.Max(1 - (neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), maxEmbrittlementFraction), 1); }      
         }
 
         public virtual double NormalisedMaximumPower
         {
-            get
-            {
-                double normalised_fuel_factor = CurrentFuelMode == null ? 1.0f : CurrentFuelMode.NormalisedReactionRate;
-                var result = RawPowerOutput * normalised_fuel_factor * (CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlemenConditionRatio) * Math.PI * 0.5);
-                return result;
-            }
+            get { return RawPowerOutput * EffectiveEmbrittlemenEffectRatio * (CurrentFuelMode == null ? 1 : CurrentFuelMode.NormalisedReactionRate); }        
         }
 
         public virtual double MinimumPower { get { return MaximumPower * MinimumThrottle; } }
@@ -961,8 +959,8 @@ namespace FNPlugin
                 reactorInit = true;
             }
 
-            tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdTritium);
-            helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium4);
+            tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.TritiumGas);
+            helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
             lithium7_def =  PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium7);
             lithium6_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
 
@@ -1214,6 +1212,8 @@ namespace FNPlugin
                 geeForceModifier = CheatOptions.UnbreakableJoints || !hasBuoyancyEffects ? 1
                     : Math.Min(Math.Max(1 - ((part.vessel.geeForce - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1);
 
+                var safetyThrotleModifier = GetSafteOverheatPreventionRatio();
+
                 current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.First();
 
@@ -1237,7 +1237,8 @@ namespace FNPlugin
 
                 // Charged Power
                 fixed_maximum_charged_power = MaximumChargedPower * TimeWarp.fixedDeltaTime;
-                max_charged_to_supply_fixed = Math.Max(fixed_maximum_charged_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier;
+
+                max_charged_to_supply_fixed = Math.Max(fixed_maximum_charged_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
                 max_charged_to_supply_nominal = max_charged_to_supply_fixed / TimeWarp.fixedDeltaTime;
 
                 raw_charged_power_received = supplyManagedFNResourceWithMinimumRatio(max_charged_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
@@ -1245,7 +1246,7 @@ namespace FNPlugin
 
                 // Thermal Power
                 fixed_maximum_thermal_power = MaximumThermalPower * TimeWarp.fixedDeltaTime;
-                max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier;
+                max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
                 max_thermal_to_supply_nominal = max_thermal_to_supply_fixed / TimeWarp.fixedDeltaTime;
                 raw_thermal_power_received = supplyManagedFNResourceWithMinimumRatio(max_thermal_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
@@ -1630,6 +1631,18 @@ namespace FNPlugin
             return false;
         }
 
+        protected double GetSafteOverheatPreventionRatio()
+        {
+            if (CheatOptions.IgnoreMaxTemperature)
+                return 1;
+
+            var wasteheatRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+            if (wasteheatRatio < safetyPowerReductionFraction)
+                return 1;
+
+            return  1 - (wasteheatRatio - safetyPowerReductionFraction) / (emergencyPowerShutdownFraction - safetyPowerReductionFraction);
+        }
+
         protected List<ReactorFuelType> GetReactorFuelModes()
         {
             ConfigNode[] fuelmodes = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
@@ -1672,9 +1685,9 @@ namespace FNPlugin
             CurrentFuelMode = fuel_modes.FirstOrDefault();
 
             if (CurrentFuelMode == null)
-                print("[KSP Interstellar] Warning : CurrentFuelMode is null");
+                print("[KSPI] - Warning : CurrentFuelMode is null");
             else
-                print("[KSP Interstellar] CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
+                print("[KSPI] - CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
         }
 
         protected double ConsumeReactorFuel(ReactorFuel fuel, double MJpower)
@@ -1808,7 +1821,7 @@ namespace FNPlugin
                 windowPosition = GUILayout.Window(windowID, windowPosition, Window, "Reactor System Interface");
         }
 
-        protected void PrintToGUILayout(string label, string value, GUIStyle bold_style, GUIStyle text_style, int witdhLabel = 150, int witdhValue = 200)
+        protected void PrintToGUILayout(string label, string value, GUIStyle bold_style, GUIStyle text_style, int witdhLabel = 150, int witdhValue = 150)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(label, bold_style, GUILayout.Width(witdhLabel));
@@ -1825,11 +1838,19 @@ namespace FNPlugin
                 windowPositionX = windowPosition.x;
                 windowPositionY = windowPosition.y;
 
-                bold_style = new GUIStyle(GUI.skin.label);
-                bold_style.fontStyle = FontStyle.Bold;
+                if (bold_style == null)
+                {
+                    bold_style = new GUIStyle(GUI.skin.label);
+                    bold_style.fontStyle = FontStyle.Bold;
+                    bold_style.font = PluginHelper.MainFont;
+                }
 
-                text_style = new GUIStyle(GUI.skin.label);
-                text_style.fontStyle = FontStyle.Normal;
+                if (text_style == null)
+                {
+                    text_style = new GUIStyle(GUI.skin.label);
+                    text_style.fontStyle = FontStyle.Normal;
+                    text_style.font = PluginHelper.MainFont;
+                }
 
                 if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
                     render_window = false;
@@ -1839,7 +1860,7 @@ namespace FNPlugin
                 GUILayout.Label(TypeName, bold_style, GUILayout.ExpandWidth(true));
                 GUILayout.EndHorizontal();
 
-                PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000") + "%", bold_style, text_style);
+                PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000000") + "%", bold_style, text_style);
                 PrintToGUILayout("Radius", radius.ToString() + "m", bold_style, text_style);
                 PrintToGUILayout("Core Temperature", coretempStr, bold_style, text_style);
                 PrintToGUILayout("Status", statusStr, bold_style, text_style);
@@ -2007,6 +2028,17 @@ namespace FNPlugin
                 Debug.LogError("[KSPI] - ElectricRCSController Window(" + windowID + "): " + e.Message);
                 throw;
             }
+        }
+
+        public override string getResourceManagerDisplayName()
+        {
+            var displayName = part.partInfo.title;
+            if (fuel_modes.Count > 1 )
+                displayName += " (" + fuelModeStr + ")";
+            if (similarParts != null && similarParts.Count > 1)
+                displayName += " " + partNrInList;
+
+            return displayName;
         }
     }
 }

@@ -354,9 +354,10 @@ namespace FNPlugin
             return states.ToArray();
         }
 
-        public override string getResourceManagerDisplayName() 
+        public override string getResourceManagerDisplayName()
         {
-            return displayName;
+            // use identical names so it will be grouped together
+            return part.partInfo.title;
         }
     }
 }

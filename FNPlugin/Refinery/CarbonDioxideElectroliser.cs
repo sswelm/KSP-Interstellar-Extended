@@ -6,21 +6,12 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    class CarbonDioxideElectroliser : IRefineryActivity
+    class CarbonDioxideElectroliser : RefineryActivityBase, IRefineryActivity
     {
-        const int labelWidth = 200;
-        const int valueWidth = 200;
-
         const double carbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);
         const double oxygenMassByFraction = 1 - carbonMonoxideMassByFraction;
 
-        protected Part _part;
-        protected Vessel _vessel;
-        protected String _status = "";
-        
-        protected double _current_power;
         protected double _fixedMaxConsumptionDioxideRate;
-        protected double _current_rate;
         protected double _consumptionStorageRatio;
 
         protected double _dioxide_consumption_rate;
@@ -42,8 +33,6 @@ namespace FNPlugin.Refinery
         protected double _maxCapacityDioxideMass;
         protected double _maxCapacityMonoxideMass;
         protected double _maxCapacityOxygenMass;
-
-        private GUIStyle _bold_label;
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 
@@ -127,49 +116,48 @@ namespace FNPlugin.Refinery
         public void UpdateGUI()
         {
             if (_bold_label == null)
-            {
-                _bold_label = new GUIStyle(GUI.skin.label);
-                _bold_label.fontStyle = FontStyle.Bold;
-            }
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Consumption Storage Ratio", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_consumptionStorageRatio * 100).ToString("0.0000") + "%"), GUILayout.Width(valueWidth));
+            GUILayout.Label(((_consumptionStorageRatio * 100).ToString("0.0000") + "%"), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("CarbonDioxide Available", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_availableDioxideMass.ToString("0.0000") + " mT / " + _maxCapacityDioxideMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.Label(_availableDioxideMass.ToString("0.0000") + " mT / " + _maxCapacityDioxideMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("CarbonDioxide Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_dioxide_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_dioxide_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("CarbonMonoxide Storage", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_spareRoomMonoxideMass.ToString("0.00000") + " mT / " + _maxCapacityMonoxideMass.ToString("0.00000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.Label(_spareRoomMonoxideMass.ToString("0.00000") + " mT / " + _maxCapacityMonoxideMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("CarbonMonoxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_monoxide_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_monoxide_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Oxygen Storage", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_spareRoomOxygenMass.ToString("0.0000") + " mT / " + _maxCapacityOxygenMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.Label(_spareRoomOxygenMass.ToString("0.0000") + " mT / " + _maxCapacityOxygenMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_oxygen_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_oxygen_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 

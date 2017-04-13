@@ -6,26 +6,17 @@ using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    class HeavyWaterElectroliser : IRefineryActivity
+    class HeavyWaterElectroliser : RefineryActivityBase, IRefineryActivity
     {
-        const int labelWidth = 200;
-        const int valueWidth = 200;
-
         const double deuteriumAtomicMass = 2.01410178;
         const double oxygenAtomicMass = 15.999;
         const double deuteuriuumMassByFraction = (2 * deuteriumAtomicMass) / (oxygenAtomicMass + (2 * deuteriumAtomicMass)); // 0.201136
         const double oxygenMassByFraction = 1 - deuteuriuumMassByFraction;
-
-        protected Part _part;
-        protected Vessel _vessel;
-        protected String _status = "";
         
         protected double _heavy_water_consumption_rate;
         protected double _deuterium_production_rate;
         protected double _oxygen_production_rate;
-        protected double _current_power;
-        protected double _fixedMaxConsumptionWaterRate;
-        protected double _current_rate;
+         protected double _fixedMaxConsumptionWaterRate;
         protected double _consumptionStorageRatio;
 
         protected double _heavy_water_density;
@@ -39,8 +30,6 @@ namespace FNPlugin.Refinery
         protected double _maxCapacityHeavyWaterMass;
         protected double _maxCapacityDeuteriumMass;
         protected double _maxCapacityOxygenMass;
-
-        private GUIStyle _bold_label;
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 
@@ -120,49 +109,48 @@ namespace FNPlugin.Refinery
         public void UpdateGUI()
         {
             if (_bold_label == null)
-            {
-                _bold_label = new GUIStyle(GUI.skin.label);
-                _bold_label.fontStyle = FontStyle.Bold;
-            }
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), GUILayout.Width(valueWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Heavy Water Available", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_availableHeavyWaterMass.ToString("0.0000") + " mT / " + _maxCapacityHeavyWaterMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.Label(_availableHeavyWaterMass.ToString("0.0000") + " mT / " + _maxCapacityHeavyWaterMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Consumption Storage Ratio", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_consumptionStorageRatio * 100).ToString("0.0000") + "%"), GUILayout.Width(valueWidth));
+            GUILayout.Label(((_consumptionStorageRatio * 100).ToString("0.0000") + "%"), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Heavy Water Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_heavy_water_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_heavy_water_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deuterium Storage", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_spareRoomDeuteriumMass.ToString("0.00000") + " mT / " + _maxCapacityDeuteriumMass.ToString("0.00000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.Label(_spareRoomDeuteriumMass.ToString("0.00000") + " mT / " + _maxCapacityDeuteriumMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deuterium Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_deuterium_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_deuterium_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Oxygen Storage", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_spareRoomOxygenMass.ToString("0.0000") + " mT / " + _maxCapacityOxygenMass.ToString("0.0000") + " mT", GUILayout.Width(valueWidth));
+            GUILayout.Label(_spareRoomOxygenMass.ToString("0.0000") + " mT / " + _maxCapacityOxygenMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((_oxygen_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label((_oxygen_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 

@@ -5,8 +5,10 @@ using System.Text;
 
 namespace OpenResourceSystem 
 {
-    public interface ORSResourceSupplier 
+    public interface IORSResourceSupplier 
     {
+        string getResourceManagerDisplayName();
+
         double supplyFNResource(double supply, String resourcename);
     }
 }

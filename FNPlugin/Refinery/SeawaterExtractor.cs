@@ -7,7 +7,7 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin.Refinery
 {
-    class SeawaterExtractor : IRefineryActivity
+    class SeawaterExtractor : RefineryActivityBase, IRefineryActivity
     {
         // persistant
         [KSPField(isPersistant = true)]
@@ -18,19 +18,7 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true)]
         IDictionary<string, double> resourcePercentages = new Dictionary<string, double>(); // create a new persistent list for keeping track of percentages
 
-        const int labelWidth = 200;
-        const int valueWidth = 200;
-
-        protected Part _part;
-        protected Vessel _vessel;
-        protected String _status = "";
-
         protected double _fixedConsumptionRate;
-
-        // IRefinery fields
-        protected double _current_rate;
-
-        private GUIStyle _bold_label;
 
         public RefineryType RefineryType { get { return RefineryType.heating; } }
 
@@ -219,24 +207,23 @@ namespace FNPlugin.Refinery
         public void UpdateGUI()
         {
             if (_bold_label == null)
-            {
-                _bold_label = new GUIStyle(GUI.skin.label);
-                _bold_label.fontStyle = FontStyle.Bold;
-            }
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), GUILayout.Width(valueWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Intake Lqd Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_intakeLqdConsumptionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((_intakeLqdConsumptionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((currentResourceProductionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", GUILayout.Width(valueWidth));
+            GUILayout.Label(((currentResourceProductionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             foreach (OceanicResource resource in localResources)
@@ -266,13 +253,13 @@ namespace FNPlugin.Refinery
                     // calculations done, print it out - first the Storage
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(resource.ResourceName + " Storage", _bold_label, GUILayout.Width(labelWidth));
-                    GUILayout.Label(spareRoomLabel + " mT / " + maxCapacityLabel + " mT", GUILayout.Width(valueWidth));
+                    GUILayout.Label(spareRoomLabel + " mT / " + maxCapacityLabel + " mT", _value_label, GUILayout.Width(valueWidth));
                     GUILayout.EndHorizontal();
 
                     // next print out the production rates
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(resource.ResourceName + "Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                    GUILayout.Label((resourcePercentageUI * 100) + "% " + productionRateLabel + " mT/hour", GUILayout.Width(valueWidth));
+                    GUILayout.Label((resourcePercentageUI * 100) + "% " + productionRateLabel + " mT/hour", _value_label, GUILayout.Width(valueWidth));
                     GUILayout.EndHorizontal();
                 }
             }

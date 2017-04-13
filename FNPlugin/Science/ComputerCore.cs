@@ -234,11 +234,6 @@ namespace FNPlugin
             return namelist;
         }
 
-        public override string getResourceManagerDisplayName()
-        {
-            return computercoreType;
-        }
-
         public override int getPowerPriority()
         {
             return 1;

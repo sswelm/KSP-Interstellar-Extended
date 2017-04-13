@@ -12,9 +12,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool telescopeIsEnabled;
         [KSPField(isPersistant = true)]
-        public float lastActiveTime;
+        public double lastActiveTime;
         [KSPField(isPersistant = true)]
-        public float lastMaintained;
+        public double lastMaintained;
         [KSPField(isPersistant = true)]
         public bool telescopeInit;
         [KSPField(isPersistant = true)]
@@ -22,7 +22,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public float helium_depleted_time;
         [KSPField(isPersistant = true)]
-        public float science_awaiting_addition;
+        public double science_awaiting_addition;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Performance")]
@@ -61,7 +61,7 @@ namespace FNPlugin
         [KSPEvent(guiName = "Perform Maintenance", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 2.5f)]
         public void maintainTelescope()
         {
-            lastMaintained = (float)Planetarium.GetUniversalTime();
+            lastMaintained = Planetarium.GetUniversalTime();
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -89,8 +89,8 @@ namespace FNPlugin
                     double time_diff = Math.Min(Planetarium.GetUniversalTime(), helium_depleted_time) - lastActiveTime;
                     double avg_science_rate = 0.5*base_science * ( Math.Exp(a * t1)  + Math.Exp(a * t0) );
                     double science_to_add = avg_science_rate / 28800 * time_diff;
-                    lastActiveTime = (float)Planetarium.GetUniversalTime();
-                    science_awaiting_addition += (float)science_to_add;
+                    lastActiveTime = Planetarium.GetUniversalTime();
+                    science_awaiting_addition += science_to_add;
                 }
             }
         }
@@ -105,6 +105,7 @@ namespace FNPlugin
 				ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.InSpaceHigh, vessel.mainBody, "");
 				if (subject == null)
 					return false;
+
 				subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
 				subject.scienceCap = 167 * subject.subjectValue;   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,false);
 				subject.dataScale = 1.25f;
@@ -195,9 +196,9 @@ namespace FNPlugin
                         double base_science = dpo ? GameConstants.telescopeGLensScience : GameConstants.telescopeBaseScience;
                         science_rate = base_science * perform_factor_d / 28800;
                         if (!double.IsNaN(science_rate) && !double.IsInfinity(science_rate))
-                            science_awaiting_addition += (float)(science_rate * TimeWarp.fixedDeltaTime);
+                            science_awaiting_addition += science_rate * TimeWarp.fixedDeltaTime;
 
-                        lastActiveTime = (float)Planetarium.GetUniversalTime();
+                        lastActiveTime = Planetarium.GetUniversalTime();
                     }
                 }
             }

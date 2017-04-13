@@ -484,11 +484,6 @@ namespace FNPlugin
             }
         }
 
-        public override string getResourceManagerDisplayName() 
-        {
-            return part.name;
-        }
-
         public override int getPowerPriority() 
         {
             return 2;

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace OpenResourceSystem
 {
-    public abstract class ORSResourceSuppliableModule : PartModule, ORSResourceSuppliable, ORSResourceSupplier
+    public abstract class ORSResourceSuppliableModule : PartModule, ORSResourceSuppliable, IORSResourceSupplier
     {
         protected Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
         protected Dictionary<String, ORSResourceManager> fnresource_managers = new Dictionary<String, ORSResourceManager>();
@@ -43,7 +43,7 @@ namespace OpenResourceSystem
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.powerSupply(this, supply);
+            return manager.powerSupplyFixed(this, supply);
         }
 
         public double supplyFNResourceFixedMax(double supply, double maxsupply, String resourcename)
@@ -74,7 +74,10 @@ namespace OpenResourceSystem
             ratio_min = Math.Max(ratio_min, 0);
 
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+            {
+                UnityEngine.Debug.LogWarning("did not find manager for vessel");
                 return 0;
+            }
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             return manager.managedPowerSupplyWithMinimumRatio(this, supply, ratio_min);
@@ -86,7 +89,7 @@ namespace OpenResourceSystem
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.getCurrentResourceDemand();
+            return manager.CurrentResourceDemand;
         }
 
         public double getStableResourceSupply(String resourcename)
@@ -95,7 +98,7 @@ namespace OpenResourceSystem
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.getStableResourceSupply();
+            return manager.StableResourceSupply;
         }
 
         public double getCurrentHighPriorityResourceDemand(String resourcename)
@@ -104,7 +107,7 @@ namespace OpenResourceSystem
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.getCurrentHighPriorityResourceDemand();
+            return manager.CurrentHighPriorityResourceDemand;
         }
 
         public double getResourceSupply(String resourcename)
@@ -113,7 +116,7 @@ namespace OpenResourceSystem
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.getResourceSupply();
+            return manager.ResourceSupply;
         }
 
         public double getDemandSupply(String resourcename)
@@ -140,7 +143,7 @@ namespace OpenResourceSystem
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.getResourceDemand();
+            return manager.ResourceDemand;
         }
 
         public double GetRequiredResourceDemand(String resourcename)
@@ -167,7 +170,7 @@ namespace OpenResourceSystem
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.GetPowerSupply();
+            return manager.PowerSupply;
         }
 
         public double GetCurrentResourceDemand(String resourcename)
@@ -176,7 +179,7 @@ namespace OpenResourceSystem
                 return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.GetCurrentRresourceDemand();
+            return manager.CurrentRresourceDemand;
         }
 
         public double getResourceBarRatio(String resourcename)
@@ -184,7 +187,7 @@ namespace OpenResourceSystem
             if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) return 0;
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.getResourceBarRatio();
+            return manager.ResourceBarRatio;
         }
 
         public double getSpareResourceCapacity(String resourcename)
@@ -247,32 +250,22 @@ namespace OpenResourceSystem
 
             foreach (String resourcename in resources_to_supply)
             {
-                ORSResourceManager manager;
+                ORSResourceOvermanager overmanager = getOvermanagerForResource(resourcename);
+                ORSResourceManager manager = overmanager.getManagerForVessel(vessel);
 
-                if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+                if (manager == null)
                 {
                     manager = createResourceManagerForResource(resourcename);
                     print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
                 }
-                else
-                {
-                    manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-                    if (manager == null)
-                    {
-                        manager = createResourceManagerForResource(resourcename);
-                        print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
-                    }
-                }
 
-                var partmodule = manager.getPartModule();
-
-                if (partmodule == null || partmodule.vessel != this.vessel ||  manager.IsUpdatedAtLeastOnce == false)
+                if (manager.PartModule == null || manager.PartModule.vessel != this.vessel || manager.IsUpdatedAtLeastOnce == false)
                 {
                     manager.updatePartModule(this);
                     print("[ORS] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
                 }
 
-                if (manager.getPartModule() == this)
+                if (manager.PartModule == this)
                     manager.update();
             }
         }

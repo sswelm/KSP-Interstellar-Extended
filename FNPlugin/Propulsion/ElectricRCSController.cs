@@ -542,7 +542,8 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName() 
         {
-            return displayName;
+            //return part.partInfo.title;
+            return part.partInfo.title + " (" + propNameStr + ")";
         }
     }
 }

@@ -380,11 +380,6 @@ namespace FNPlugin
 
         private int framesPlasmaRatioIsGood;
 
-        public override string getResourceManagerDisplayName()
-        {
-            return TypeName;
-        }
-
         public override int getPowerPriority()
         {
             return 1;

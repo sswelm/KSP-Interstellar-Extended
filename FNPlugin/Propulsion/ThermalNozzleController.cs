@@ -395,6 +395,11 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            // initialize resource manager
+            //String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER };
+            //this.resources_to_supply = resources_to_supply;
+            //base.OnStart(state);
+
             // make sure thermal values are fixed and not screwed up by Deadly Reentry
             part.maxTemp = maxTemp;
             part.emissiveConstant = emissiveConstant;
