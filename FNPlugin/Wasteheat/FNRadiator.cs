@@ -606,7 +606,6 @@ namespace FNPlugin
                         radiatorIsEnabled = false;
                 }
 
-                //if ((_moduleDeployableRadiator != null && _moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED) || _moduleDeployableRadiator == null)
                 if (radiatorIsEnabled && canRadiateHeat)
                 {
                     thermalPowerDissipStr = PluginHelper.getFormattedPowerString(radiatedThermalPower, "0.0", "0.000");

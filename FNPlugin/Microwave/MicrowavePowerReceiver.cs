@@ -16,6 +16,8 @@ namespace FNPlugin
         public double spotsize { get; set; }
     }
 
+    class SolarBeamedPowerReceiverDish : MicrowavePowerReceiver { } // receives less of a power cpacity nerve in NF mode
+
     class SolarBeamedPowerReceiver : MicrowavePowerReceiver {} // receives less of a power cpacity nerve in NF mode
 
     class MicrowavePowerReceiverDish: MicrowavePowerReceiver  {} // tweakscales with exponent 2.25
@@ -264,15 +266,11 @@ namespace FNPlugin
         {
             get 
             {
-                if (HighLogic.LoadedSceneIsFlight) return 1;
-
-                if (CheatOptions.IgnoreMaxTemperature) return 1;
-
+                if (HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || electricWasteheatExponent == 0) return 1;
+               
                 var wasteheatRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-                if (electricWasteheatExponent == 0)
-                    return 1;
-                else if (electricWasteheatExponent == 1)
+                if (electricWasteheatExponent == 1)
                     return 1 - wasteheatRatio;
                 else
                     return 1 -  Math.Pow(wasteheatRatio, electricWasteheatExponent);
@@ -644,19 +642,11 @@ namespace FNPlugin
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
-            UnityEngine.Debug.Log("[KSPI] - step 1");
-
             InitializeThermalModeSwitcher();
-
-            UnityEngine.Debug.Log("[KSPI] - step 2");
 
             InitializeBrandwitdhSelector();
 
-            UnityEngine.Debug.Log("[KSPI] - step 3");
-
             instanceId = GetInstanceID();
-
-            UnityEngine.Debug.Log("[KSPI] - step 4");
 
             _linkReceiverBaseEvent = Events["LinkReceiver"];
             _unlinkReceiverBaseEvent = Events["UnlinkReceiver"];
@@ -667,8 +657,6 @@ namespace FNPlugin
 
             coreTempererature = CoreTemperature.ToString("0.0") + " K";
             _coreTempereratureField = Fields["coreTempererature"];
-
-            UnityEngine.Debug.Log("[KSPI] - step 4");
 
             if (IsThermalSource && !isThermalReceiverSlave)
             {
@@ -685,8 +673,6 @@ namespace FNPlugin
                 _coreTempereratureField.guiActiveEditor = false;
             }
 
-            UnityEngine.Debug.Log("[KSPI] - step 5");
-
             // Determine currently maximum and minimum wavelength
             if (BandwidthConverters.Any())
             {
@@ -702,8 +688,6 @@ namespace FNPlugin
                 }
             }
 
-            UnityEngine.Debug.Log("[KSPI] - step 6");
-
             deployableAntenna = part.FindModuleImplementing<ModuleDeployableAntenna>();
             if (deployableAntenna != null)
             {
@@ -716,8 +700,6 @@ namespace FNPlugin
                     Debug.LogError("[KSPI] - Error while disabling antenna deploy button " + e.Message + " at " + e.StackTrace);
                 }
             }
-
-            UnityEngine.Debug.Log("[KSPI] - step 7");
 
             deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (deployableSolarPanel != null)
@@ -732,8 +714,6 @@ namespace FNPlugin
                 }
             }
 
-            UnityEngine.Debug.Log("[KSPI] - step 8");
-
             var isInSolarModeField = Fields["solarPowerMode"];
             isInSolarModeField.guiActive = deployableSolarPanel != null;
             isInSolarModeField.guiActiveEditor = deployableSolarPanel != null;
@@ -741,19 +721,13 @@ namespace FNPlugin
             if (deployableSolarPanel == null)
                 solarPowerMode = false;
 
-            UnityEngine.Debug.Log("[KSPI] - step 9");
-
             if (state == StartState.Editor) { return; }
 
             // compensate for stock solar initialisation heating bug
             initializationCountdown = 10;
 
-            
-
             if (forceActivateAtStartup)
                 part.force_activate();
-
-            UnityEngine.Debug.Log("[KSPI] - step 10");
 
             if (isThermalReceiverSlave)
             {
@@ -815,7 +789,6 @@ namespace FNPlugin
                 part_transmitter = part.FindModulesImplementing<MicrowavePowerTransmitter>().First();
                 has_transmitter = true;
             }
-
 
             activeRadiator = part.FindModuleImplementing<ModuleActiveRadiator>();
             deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
@@ -1173,9 +1146,6 @@ namespace FNPlugin
 
                 Vector3 starPosition = localStar.transform.position;
 
-                ////if (!PluginHelper.lineOfSightToSun(vesselPosition, starPosition))
-                ////   return 0;
-
                 Vector3d dolarDirectionVector = (starPosition - vesselPosition).normalized;
                 return Math.Max(0, Vector3d.Dot(part.transform.up, dolarDirectionVector));
 
@@ -1236,22 +1206,11 @@ namespace FNPlugin
         {
             total_waste_heat_production = 0;
             currentIsThermalEnergyGenratorActive = 0;
-
             storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
 
             wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
 
-            if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0)
-            {
-                solarFluxQueue.Enqueue(part.vessel.solarFlux);
-
-                if (solarFluxQueue.Count > 50)
-                    solarFluxQueue.Dequeue();
-
-                solarFlux = solarFluxQueue.Average();
-                solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
-                solarInputMegajoules = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarFacingFactor * solarReceptionEfficiency;
-            }
+            CalculateThermalSolarPower();
 
             base.OnFixedUpdate();
 
@@ -1461,6 +1420,21 @@ namespace FNPlugin
                     animT[animTName].normalizedTime = 0;
                     animT.Sample();
                 }
+            }
+        }
+
+        private void CalculateThermalSolarPower()
+        {
+            if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0)
+            {
+                solarFluxQueue.Enqueue(part.vessel.solarFlux);
+
+                if (solarFluxQueue.Count > 50)
+                    solarFluxQueue.Dequeue();
+
+                solarFlux = solarFluxQueue.Average();
+                solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
+                solarInputMegajoules = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarFacingFactor * solarReceptionEfficiency;
             }
         }
 
