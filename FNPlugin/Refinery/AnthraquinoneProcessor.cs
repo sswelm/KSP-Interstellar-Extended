@@ -38,7 +38,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Anthraquinone Process"; } }
 
-        public double CurrentPower { get { return _current_power; } }
 
         private double _effectiveMaxPower;
 

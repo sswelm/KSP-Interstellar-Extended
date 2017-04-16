@@ -334,22 +334,14 @@ namespace FNPlugin
         protected long last_draw_update;
         protected double staticBreedRate;
 
-        [KSPField(isPersistant = false, guiActive = false)]
         protected double raw_charged_power_received = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
         protected double raw_thermal_power_received = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
         public double rawTotalPowerProduced = 0;
 
-        [KSPField(isPersistant = false, guiActive = false)]
         public double totalAmountLithium = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
         public double totalMaxAmountLithium = 0;
-
-        [KSPField(isPersistant = false, guiActive = false)]
-        protected double balanced_thermal_power_received = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
-        protected double balanced_charged_power_received = 0;
+        protected double balanced_thermal_power_received_fixed = 0;
+        protected double balanced_charged_power_received_fixed = 0;
 
         protected GUIStyle bold_style;
         protected GUIStyle text_style;
@@ -1241,14 +1233,14 @@ namespace FNPlugin
                 max_charged_to_supply_fixed = Math.Max(fixed_maximum_charged_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
                 max_charged_to_supply_nominal = max_charged_to_supply_fixed / TimeWarp.fixedDeltaTime;
 
-                raw_charged_power_received = supplyManagedFNResourceWithMinimumRatio(max_charged_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                raw_charged_power_received = supplyManagedFNResourceFixedWithMinimumRatio(max_charged_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 double charged_power_ratio = max_charged_to_supply_fixed > 0 ? raw_charged_power_received / max_charged_to_supply_fixed : 0;
 
                 // Thermal Power
                 fixed_maximum_thermal_power = MaximumThermalPower * TimeWarp.fixedDeltaTime;
                 max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
                 max_thermal_to_supply_nominal = max_thermal_to_supply_fixed / TimeWarp.fixedDeltaTime;
-                raw_thermal_power_received = supplyManagedFNResourceWithMinimumRatio(max_thermal_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                raw_thermal_power_received = supplyManagedFNResourceFixedWithMinimumRatio(max_thermal_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
                 rawTotalPowerProduced = raw_thermal_power_received + raw_charged_power_received;
 
@@ -1261,25 +1253,26 @@ namespace FNPlugin
                 var chargedpower_shortagage_ratio = thermal_power_ratio > charged_power_ratio ? thermal_power_ratio - charged_power_ratio : 0;
 
                 // fix any inbalance in power draw
-
-                balanced_thermal_power_received = raw_thermal_power_received + (thermal_shortage_ratio * fixed_maximum_thermal_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
-                balanced_charged_power_received = raw_charged_power_received + (chargedpower_shortagage_ratio * fixed_maximum_charged_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
+                balanced_thermal_power_received_fixed = raw_thermal_power_received + (thermal_shortage_ratio * fixed_maximum_thermal_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
+                balanced_charged_power_received_fixed = raw_charged_power_received + (chargedpower_shortagage_ratio * fixed_maximum_charged_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
 
                 // update GUI
-                ongoing_neutron_power_generated = balanced_thermal_power_received / TimeWarp.fixedDeltaTime;
-                ongoing_charged_power_generated = balanced_charged_power_received / TimeWarp.fixedDeltaTime;
+                ongoing_neutron_power_generated = balanced_thermal_power_received_fixed / TimeWarp.fixedDeltaTime;
+                ongoing_charged_power_generated = balanced_charged_power_received_fixed / TimeWarp.fixedDeltaTime;
 
                 // Total
-                double total_power_received = balanced_thermal_power_received + balanced_charged_power_received;
+                double total_power_received_fixed = balanced_thermal_power_received_fixed + balanced_charged_power_received_fixed;
 
                 if (!CheatOptions.UnbreakableJoints)
-                    neutronEmbrittlementDamage += total_power_received * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
+                    neutronEmbrittlementDamage += total_power_received_fixed * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
 
-                ongoing_total_power_generated = total_power_received / TimeWarp.fixedDeltaTime;
+                ongoing_total_power_generated = total_power_received_fixed / TimeWarp.fixedDeltaTime;
 
-                total_power_per_frame = total_power_received;
-                ongoing_consumption_rate = total_power_received / MaximumPower / TimeWarp.fixedDeltaTime;
+                // initialy generate equal amount of power into wasteheat, which must be either used by generator or disapated
+                supplyFNResourcePerSecondWithMax(ongoing_total_power_generated, NormalisedMaximumPower, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
+                total_power_per_frame = total_power_received_fixed;
+                ongoing_consumption_rate = total_power_received_fixed / MaximumPower / TimeWarp.fixedDeltaTime;
 
                 PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, 4), pulseAnimation);
 
@@ -1290,7 +1283,7 @@ namespace FNPlugin
                 {
                     foreach (ReactorFuel fuel in current_fuel_variant.ReactorFuels)
                     {
-                        ConsumeReactorFuel(fuel, total_power_received / geeForceModifier);
+                        ConsumeReactorFuel(fuel, total_power_received_fixed / geeForceModifier);
                     }
 
                     // refresh production list
@@ -1299,7 +1292,7 @@ namespace FNPlugin
                     // produce reactor products
                     foreach (ReactorProduct product in current_fuel_variant.ReactorProducts)
                     {
-                        var massProduced = ProduceReactorProduct(product, total_power_received / geeForceModifier);
+                        var massProduced = ProduceReactorProduct(product, total_power_received_fixed / geeForceModifier);
 
                         reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
                     }
@@ -1316,7 +1309,7 @@ namespace FNPlugin
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 double power_fraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / PluginHelper.SecondsInDay / 24.0 * 9.0);
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
-                raw_thermal_power_received = supplyManagedFNResourceWithMinimumRatio(power_to_supply, 1, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                raw_thermal_power_received = supplyManagedFNResourceFixedWithMinimumRatio(power_to_supply, 1, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
                 rawTotalPowerProduced = raw_thermal_power_received;
 
@@ -1907,7 +1900,7 @@ namespace FNPlugin
                         var tritium_kg_day = tritium_produced_per_second * tritium_def.density * 1000 * PluginHelper.SecondsInDay;
 
                         PrintToGUILayout("Tritium Breed Rate", 100 * CurrentFuelMode.NeutronsRatio + "% " + tritium_kg_day.ToString("0.000000") + " kg/day ", bold_style, text_style);
-                        PrintToGUILayout("Lithium Reserves", totalLithiumAmount.ToString("0.00000") + " L / " + totalLithiumMaxAmount.ToString("0.00000") + " L", bold_style, text_style);
+                        PrintToGUILayout("Lithium Reserves", totalLithiumAmount.ToString("0.000") + " L / " + totalLithiumMaxAmount.ToString("0.000") + " L", bold_style, text_style);
 
                         var lithium_consumption_day = lithium_consumed_per_second * PluginHelper.SecondsInDay;
                         PrintToGUILayout("Lithium Consumption", lithium_consumption_day.ToString("0.00000") + " L/day", bold_style, text_style);

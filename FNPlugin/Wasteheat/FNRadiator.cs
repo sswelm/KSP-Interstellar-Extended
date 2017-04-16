@@ -33,6 +33,8 @@ namespace FNPlugin
         public bool showColorHeat = true;
         [KSPField(isPersistant = true)]
         public bool showRetractButton = false;
+        [KSPField(isPersistant = true)]
+        public bool showControls = true;
 
         [KSPField(isPersistant = false)]
         public float radiatorTemperatureMk1 = 1850;
@@ -72,6 +74,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Color Ratio")]
         public double colorRatio;
+
 
         // non persistant
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
@@ -377,8 +380,6 @@ namespace FNPlugin
 
         private void Retract()
         {
-            //if (!isDeployable) return;
-
             UnityEngine.Debug.Log("[KSPI] - Retract Called ");
 
             if (_moduleDeployableRadiator != null)
@@ -495,9 +496,19 @@ namespace FNPlugin
             }
 
             BaseField radiatorfield = Fields["radiatorIsEnabled"];
+            radiatorfield.guiActive = showControls;
+            radiatorfield.guiActiveEditor = showControls;
             radiatorfield.OnValueModified += radiatorIsEnabled_OnValueModified;
 
-            if (_moduleDeployableRadiator == null && _moduleActiveRadiator != null && state != StartState.Editor)
+            BaseField automatedfield = Fields["isAutomated"];
+            automatedfield.guiActive = showControls;
+            automatedfield.guiActiveEditor = showControls;
+
+            BaseField pivotfield = Fields["pivotEnabled"];
+            pivotfield.guiActive = showControls;
+            pivotfield.guiActiveEditor = showControls;
+
+            if (_moduleDeployableRadiator == null && _moduleActiveRadiator != null && state != StartState.Editor && showControls)
             {
                 if (radiatorIsEnabled)
                     Deploy();
@@ -538,11 +549,6 @@ namespace FNPlugin
             FNRadiator.list_of_all_radiators.Add(this);
 
             renderArray = part.FindModelComponents<Renderer>().ToArray();
-
-            //if (isDeployable)
-            //    UnityEngine.Debug.Log("[KSPI] - OnStart.Start isDeployable");
-            //else
-            //    radiatorIsEnabled = true;
 
             if (radiatorInit == false)
                 radiatorInit = true;
@@ -585,8 +591,8 @@ namespace FNPlugin
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING 
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTING;
 
-            deployRadiatorEvent.active = !radiatorIsEnabled && isDeployable && isUndefined;
-            retractRadiatorEvent.active = radiatorIsEnabled && isDeployable && isUndefined;
+            deployRadiatorEvent.active = showControls && !radiatorIsEnabled && isDeployable && isUndefined;
+            retractRadiatorEvent.active = showControls && radiatorIsEnabled && isDeployable && isUndefined;
         }
 
         public override void OnUpdate() // is called while in flight
@@ -598,7 +604,7 @@ namespace FNPlugin
                 Fields["thermalPowerConvStr"].guiActive = convectedThermalPower > 0;
 
                 // synchronize states
-                if (_moduleDeployableRadiator != null && pivotEnabled)
+                if (_moduleDeployableRadiator != null && pivotEnabled && showControls)
                 {
                     if (_moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED)
                         radiatorIsEnabled = true;
@@ -668,7 +674,7 @@ namespace FNPlugin
                 {
                     convectedThermalPower = 0;
                     //pressureLoad = 0;
-                    if (!radiatorIsEnabled && isAutomated && canRadiateHeat)
+                    if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls)
                     {
                         UnityEngine.Debug.Log("[KSPI] - FixedUpdate Automated Deplotment ");
                         Deploy();
@@ -760,7 +766,7 @@ namespace FNPlugin
                     }
                 }
             }
-            else if (!radiatorIsEnabled && isAutomated && canRadiateHeat && !part.ShieldedFromAirstream)
+            else if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls && !part.ShieldedFromAirstream)
             {
                 UnityEngine.Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
                 Deploy();

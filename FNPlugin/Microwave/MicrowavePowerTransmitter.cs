@@ -570,7 +570,7 @@ namespace FNPlugin
 
                 // generate wasteheat for converting electric power to beamed power
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResource(receivedPowerFixedDelta * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(receivedPowerFixedDelta * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {

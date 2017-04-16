@@ -22,6 +22,8 @@ namespace FNPlugin.Refinery
         protected bool _allowOverflow;
         protected double _current_power;
         protected double _current_rate;
+
+        public double CurrentPower { get { return _current_power; } }
     }
 
     interface IRefineryActivity

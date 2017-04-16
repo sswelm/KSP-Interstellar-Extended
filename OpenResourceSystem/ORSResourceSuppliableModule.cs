@@ -22,199 +22,299 @@ namespace OpenResourceSystem
         public double consumeFNResource(double power, String resourcename)
         {
             power = Math.Max(power, 0);
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
+            }
 
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
 
             double power_taken = Math.Max(Math.Min(power, fnresource_supplied[resourcename] * TimeWarp.fixedDeltaTime), 0);
             fnresource_supplied[resourcename] -= power_taken;
-            ORSResourceManager mega_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            
+            manager.powerDrawFixed(this, power, power_taken);
 
-            mega_manager.powerDraw(this, power, power_taken);
             return power_taken;
         }
 
-        public double supplyFNResource(double supply, String resourcename)
+        public double supplyFNResourceFixed(double supply, String resourcename)
         {
-            supply = Math.Max(supply, 0);
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.powerSupplyFixed(this, supply);
-        }
-
-        public double supplyFNResourceFixedMax(double supply, double maxsupply, String resourcename)
-        {
-            supply = Math.Max(supply, 0);
-            maxsupply = Math.Max(maxsupply, 0);
-
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
-            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.powerSupplyFixedMax(this, supply, maxsupply);
-        }
-
-        public double supplyManagedFNResource(double supply, String resourcename)
-        {
-            supply = Math.Max(supply, 0);
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
-            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.managedPowerSupply(this, supply);
-        }
-
-        public double supplyManagedFNResourceWithMinimumRatio(double supply, double ratio_min, String resourcename)
-        {
-            supply = Math.Max(supply, 0);
-            ratio_min = Math.Max(ratio_min, 0);
-
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
+            if (manager == null)
             {
-                UnityEngine.Debug.LogWarning("did not find manager for vessel");
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
             }
 
+            return manager.powerSupplyFixed(this, Math.Max(supply, 0));
+        }
+
+        public double supplyFNResourcePerSecond(double supply, String resourcename)
+        {
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-            return manager.managedPowerSupplyWithMinimumRatio(this, supply, ratio_min);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
+            return manager.powerSupplyPerSecond(this, Math.Max(supply, 0));
+        }
+
+        public double supplyFNResourceFixedWithMax(double supply, double maxsupply, String resourcename)
+        {
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
+            return manager.powerSupplyFixedWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
+        }
+
+        public double supplyFNResourcePerSecondWithMax(double supply, double maxsupply, String resourcename)
+        {
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
+            return manager.powerSupplyPerSecondWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
+        }
+
+        public double supplyManagedFNResourceFixed(double supply, String resourcename)
+        {
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
+            return manager.managedPowerSupplyFixed(this, Math.Max(supply, 0));
+        }
+
+        public double supplyManagedFNResourcePerSecond(double supply, String resourcename)
+        {
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
+            return manager.managedPowerSupplyPerSecond(this, Math.Max(supply, 0));
+        }
+
+        public double supplyManagedFNResourceFixedWithMinimumRatio(double supply, double ratio_min, String resourcename)
+        {
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
+            return manager.managedPowerSupplyFixedWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
+        }
+
+        public double supplyManagedFNResourcePerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename)
+        {
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+            
+            return manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
         public double getCurrentResourceDemand(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.CurrentResourceDemand;
         }
 
         public double getStableResourceSupply(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.StableResourceSupply;
         }
 
         public double getCurrentHighPriorityResourceDemand(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.CurrentHighPriorityResourceDemand;
         }
 
         public double getResourceSupply(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.ResourceSupply;
         }
 
         public double getDemandSupply(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.getDemandSupply();
         }
 
         public double getDemandStableSupply(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.getDemandStableSupply();
         }
 
         public double getResourceDemand(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.ResourceDemand;
         }
 
         public double GetRequiredResourceDemand(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.GetRequiredResourceDemand();
         }
 
         public double getCurrentUnfilledResourceDemand(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.getCurrentUnfilledResourceDemand();
         }
 
         public double GetPowerSupply(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.PowerSupply;
         }
 
         public double GetCurrentResourceDemand(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.CurrentRresourceDemand;
         }
 
         public double getResourceBarRatio(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel)) return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.ResourceBarRatio;
         }
 
         public double getSpareResourceCapacity(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.getSpareResourceCapacity();
         }
 
         public double getResourceAvailability(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.getResourceAvailability();
         }
 
 
         public double getTotalResourceCapacity(String resourcename)
         {
-            if (!getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                return 0;
-
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
             return manager.getTotalResourceCapacity();
         }
 

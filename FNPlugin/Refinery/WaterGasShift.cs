@@ -46,8 +46,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Water Gas Shift"; } }
 
-        public double CurrentPower { get { return _current_power; } }
-
         public bool HasActivityRequirements 
         {
             get 
@@ -75,8 +73,6 @@ namespace FNPlugin.Refinery
             _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(_hydrogenResourceName).density;
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
-
-
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {

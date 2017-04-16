@@ -440,7 +440,7 @@ namespace FNPlugin.Collectors
             if (!CheatOptions.IgnoreMaxTemperature) // is this player not using no-heat cheat mode?
             {
                 dTotalWasteHeatProduction = dPowerRequirementsMW * wasteHeatModifier; // calculate amount of heat to be produced
-                supplyFNResource(dTotalWasteHeatProduction * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT); // push the heat onto them
+                supplyFNResourceFixed(dTotalWasteHeatProduction * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT); // push the heat onto them
             }
             
         }

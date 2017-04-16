@@ -827,7 +827,7 @@ namespace FNPlugin
                 }
 
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResource(-power_returned * 0.999 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(-power_returned * 0.999 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             }
 
             if (!IsEnabled)
@@ -882,7 +882,7 @@ namespace FNPlugin
                 power_returned = consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResource(-power_returned * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(-power_returned * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             }
 
             // retreive vessel heading

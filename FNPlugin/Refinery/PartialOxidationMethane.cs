@@ -26,8 +26,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Partial Oxidation of Methane"; } } // formaly Methane Pyrolysis
 
-        public double CurrentPower { get { return _current_power; } }
-
         public bool HasActivityRequirements {
             get
             {
