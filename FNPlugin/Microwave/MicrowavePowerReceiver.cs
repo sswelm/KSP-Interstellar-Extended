@@ -1267,6 +1267,9 @@ namespace FNPlugin
                     total_beamed_power = 0;
                     total_beamed_power_max = 0;
                     total_beamed_wasteheat = 0;
+                    connectedsatsi = 0;
+                    connectedrelaysi = 0;
+                    networkDepth = 0;
 
                     //add solar power tot toal power
                     powerInputMegajoules = solarInputMegajoules;
@@ -1274,12 +1277,17 @@ namespace FNPlugin
                 } 
                 else if (!solarPowerMode && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
                 {
-
                     int activeSatsIncr = 0;
 
+                    // reset all output variables at stat of loop
+                    total_beamed_power = 0;
+                    total_beamed_power_max = 0;
+                    total_beamed_wasteheat = 0;
                     connectedsatsi = 0;
                     connectedrelaysi = 0;
                     networkDepth = 0;
+                    powerInputMegajoules = 0;
+                    powerInputMegajoulesMax = 0;
                     deactivate_timer = 0;
 
                     HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
@@ -1288,10 +1296,9 @@ namespace FNPlugin
                     foreach (var connectedTransmitterEntry in GetConnectedTransmitters())
                     {
                         VesselMicrowavePersistence transmitterPersistance = connectedTransmitterEntry.Key;
-                        Vessel transmitterVessel = transmitterPersistance.Vessel;
 
                         // first reset owm recieved power to get correct amount recieved by others
-                        received_power[transmitterVessel] = 0;
+                        received_power[transmitterPersistance.Vessel] = 0;
 
                         KeyValuePair<MicrowaveRoute, IEnumerable<VesselRelayPersistence>> keyvaluepair = connectedTransmitterEntry.Value;
                         var microwaveRoute = keyvaluepair.Key;
@@ -1340,7 +1347,7 @@ namespace FNPlugin
                         total_conversion_waste_heat_production += satPower * (1 - efficiency_fraction);
 
                         // register amount of raw power recieved
-                        received_power[transmitterVessel] = efficiency_fraction > 0 ? satPower / efficiency_fraction : satPower;
+                        received_power[transmitterPersistance.Vessel] = efficiency_fraction > 0 ? satPower / efficiency_fraction : satPower;
 
                         // convert raw power into effecive power
                         total_beamed_power += satPower;
@@ -1378,6 +1385,7 @@ namespace FNPlugin
                 // add alternator power
                 AddAlternatorPower();
 
+                // update wasteheat buffer
                 if (powerInputMegajoules > 0 && wasteheatResource != null)
                 {
                     var ratio = wasteheatResource.maxAmount > 0 ? wasteheatResource.amount / wasteheatResource.maxAmount : 0;
