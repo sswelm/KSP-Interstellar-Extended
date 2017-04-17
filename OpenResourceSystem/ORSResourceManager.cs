@@ -106,25 +106,19 @@ namespace OpenResourceSystem
 				flow_type = FNRESOURCE_FLOWTYPE_SMALLEST_FIRST;
         }
 
-        public void powerDraw(ORSResourceSuppliable pm, double power_draw, double power_cosumtion) 
+        public void powerDrawFixed(ORSResourceSuppliable pm, double power_draw, double power_cosumtion) 
         {
             var power_draw_per_second = power_draw / TimeWarp.fixedDeltaTime;
             var power_cosumtion_per_second = power_cosumtion / TimeWarp.fixedDeltaTime;
             
             PowerConsumption powerConsumption;
-            if (power_consumption.TryGetValue(pm, out powerConsumption))
+            if (!power_consumption.TryGetValue(pm, out powerConsumption))
             {
-                powerConsumption.Power_draw += power_draw_per_second;
-                powerConsumption.Power_consume += power_cosumtion_per_second;
+                powerConsumption = new PowerConsumption();
+                power_consumption.Add(pm, powerConsumption);
             }
-            else
-            {
-                power_consumption.Add(pm, new PowerConsumption() 
-                { 
-                    Power_draw = power_draw_per_second, 
-                    Power_consume = power_cosumtion_per_second
-                });
-            }           
+            powerConsumption.Power_draw += power_draw_per_second;
+            powerConsumption.Power_consume += power_cosumtion_per_second;         
         }
 
         public double powerSupplyFixed(IORSResourceSupplier pm, double power) 
@@ -146,7 +140,24 @@ namespace OpenResourceSystem
             return power;
         }
 
-        public double powerSupplyFixedMax(IORSResourceSupplier pm, double power, double maxpower) 
+        public double powerSupplyPerSecond(IORSResourceSupplier pm, double power)
+        {
+            currentPowerSupply += power;
+            stable_supply += power;
+
+            PowerGenerated powerGenerated;
+            if (!power_produced.TryGetValue(pm, out powerGenerated))
+            {
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
+            }
+            powerGenerated.currentSupply += power;
+            powerGenerated.maximumSupply += power;
+
+            return power;
+        }
+
+        public double powerSupplyFixedWithMax(IORSResourceSupplier pm, double power, double maxpower) 
         {
             var current_power_supply_per_second = power / TimeWarp.fixedDeltaTime;
             var maximum_power_supply_per_second = maxpower / TimeWarp.fixedDeltaTime;
@@ -166,10 +177,32 @@ namespace OpenResourceSystem
 			return power;
 		}
 
-        public double managedPowerSupply(IORSResourceSupplier pm, double power) 
+        public double powerSupplyPerSecondWithMax(IORSResourceSupplier pm, double power, double maxpower)
         {
-			return managedPowerSupplyWithMinimumRatio (pm, power, 0);
+            currentPowerSupply += power;
+            stable_supply += maxpower;
+
+            PowerGenerated powerGenerated;
+            if (!power_produced.TryGetValue(pm, out powerGenerated))
+            {
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
+            }
+            powerGenerated.currentSupply += power;
+            powerGenerated.maximumSupply += maxpower;
+
+            return power;
+        }
+
+        public double managedPowerSupplyFixed(IORSResourceSupplier pm, double power) 
+        {
+			return managedPowerSupplyFixedWithMinimumRatio (pm, power, 0);
 		}
+
+        public double managedPowerSupplyPerSecond(IORSResourceSupplier pm, double power)
+        {
+            return managedPowerSupplyPerSecondWithMinimumRatio(pm, power, 0);
+        }
 
         public double getResourceAvailability()
         {
@@ -204,7 +237,7 @@ namespace OpenResourceSystem
             return maxAmount;
 		}
 
-        public double managedPowerSupplyWithMinimumRatio(IORSResourceSupplier pm, double power, double ratio_min) 
+        public double managedPowerSupplyFixedWithMinimumRatio(IORSResourceSupplier pm, double power, double ratio_min) 
         {
 			var maximum_available_power_per_second = power / TimeWarp.fixedDeltaTime;
             var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
@@ -227,6 +260,29 @@ namespace OpenResourceSystem
 
 			return managed_supply_per_second * TimeWarp.fixedDeltaTime;
 		}
+
+        public double managedPowerSupplyPerSecondWithMinimumRatio(IORSResourceSupplier pm, double maximum_power, double ratio_min)
+        {
+            var minimum_power_per_second = maximum_power * ratio_min;
+            var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
+            var managed_supply_per_second = Math.Min(maximum_power, required_power_per_second);
+
+            currentPowerSupply += managed_supply_per_second;
+            stable_supply += maximum_power;
+
+            PowerGenerated powerGenerated;
+            if (!power_produced.TryGetValue(pm, out powerGenerated))
+            {
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
+            }
+
+            powerGenerated.currentSupply += managed_supply_per_second;
+            powerGenerated.maximumSupply += maximum_power;
+            powerGenerated.minimumSupply += minimum_power_per_second;
+
+            return managed_supply_per_second;
+        }
 
         public double StableResourceSupply { get { return stored_stable_supply; } }
         public double ResourceSupply { get { return stored_supply; } }
@@ -430,30 +486,30 @@ namespace OpenResourceSystem
             var actual_stored_power = my_part.RequestResource(this.resource_name, internl_power_extract);
 
             //calculate total input and output
+            //var total_current_produced = power_produced.Sum(m => m.Value.currentSupply);
+            //var total_power_consumed = power_consumption.Sum(m => m.Value.Power_consume);
+            //var total_power_min_supplied = power_produced.Sum(m => m.Value.minimumSupply);
 
-            var total_current_produced = power_produced.Sum(m => m.Value.currentSupply);
-            var total_power_consumed = power_consumption.Sum(m => m.Value.Power_consume);
-	        var total_power_min_supplied = power_produced.Sum(m => m.Value.minimumSupply);
+            ////generate wasteheat from used thermal power + thermal store
+            //if (!CheatOptions.IgnoreMaxTemperature && total_current_produced > 0 && 
+            //    (resourceDefinition.id == thermalpowerResourceDefinition.id || resourceDefinition.id == chargedpowerResourceDefinition.id))
+            //{
+            //    var min_supplied_fixed = TimeWarp.fixedDeltaTime * total_power_min_supplied;
+            //    var used_or_stored_power_fixed = TimeWarp.fixedDeltaTime * Math.Min(total_power_consumed, total_current_produced) + Math.Max(-actual_stored_power, 0);
+            //    var wasteheat_produced_fixed = Math.Max(min_supplied_fixed, used_or_stored_power_fixed);
 
-			//generate wasteheat from used thermal power + thermal store
-			if (!CheatOptions.IgnoreMaxTemperature && total_current_produced > 0 && 
-                (resourceDefinition.id == thermalpowerResourceDefinition.id || resourceDefinition.id == chargedpowerResourceDefinition.id))
-            {
-                var min_supplied_fixed = TimeWarp.fixedDeltaTime * total_power_min_supplied;
-                var used_or_stored_power_fixed = TimeWarp.fixedDeltaTime * Math.Min(total_power_consumed, total_current_produced) + Math.Max(-actual_stored_power, 0);
-                var wasteheat_produced_fixed = Math.Max(min_supplied_fixed, used_or_stored_power_fixed);
-                var effective_wasteheat_ratio = Math.Max(wasteheat_produced_fixed / (total_current_produced * TimeWarp.fixedDeltaTime), 1);
+            //    var effective_wasteheat_ratio = Math.Max(wasteheat_produced_fixed / (total_current_produced * TimeWarp.fixedDeltaTime), 1);
 
-                var overmanager = ORSResourceOvermanager.getResourceOvermanagerForResource(ORSResourceManager.FNRESOURCE_WASTEHEAT);
-                ORSResourceManager manager = overmanager.getManagerForVessel(my_vessel);
+            //    ORSResourceManager manager = ORSResourceOvermanager.getResourceOvermanagerForResource(ORSResourceManager.FNRESOURCE_WASTEHEAT).getManagerForVessel(my_vessel);
 
-                foreach (var supplier_key_value in power_produced)
-                {
-                    if (supplier_key_value.Value.currentSupply > 0)
-                        manager.powerSupplyFixed(supplier_key_value.Key, supplier_key_value.Value.currentSupply * effective_wasteheat_ratio * TimeWarp.fixedDeltaTime);
-                }
-                
-            }
+            //    foreach (var supplier_key_value in power_produced)
+            //    {
+            //        if (supplier_key_value.Value.currentSupply > 0)
+            //        {
+            //            manager.powerSupplyPerSecondWithMax(supplier_key_value.Key, supplier_key_value.Value.currentSupply * effective_wasteheat_ratio, supplier_key_value.Value.maximumSupply * effective_wasteheat_ratio);
+            //        }
+            //    }
+            //}
 
             currentPowerSupply = 0;
 			stable_supply = 0;

@@ -39,19 +39,17 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public double electrical_power_ratio;
         [KSPField(isPersistant = true)]
-        public float last_active_time;
+        public double last_active_time;
         [KSPField(isPersistant = true)]
-        public float science_to_add;
+        public double science_to_add;
         [KSPField(isPersistant = true)]
         public bool coreInit = false;
 
-        protected float science_rate_f;
+        protected double science_rate_f;
 
         private ConfigNode _experiment_node;
 
         protected ModuleCommand moduleCommand;
-
-        //public String UpgradeTechnology { get { return "none"; } }
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         public bool CanProvideTelescopeControl
@@ -90,15 +88,14 @@ namespace FNPlugin
 
                 double now = Planetarium.GetUniversalTime();
                 double time_diff = now - last_active_time;
-                float altitude_multiplier = (float)(vessel.altitude / (vessel.mainBody.Radius));
+                double altitude_multiplier = vessel.altitude / vessel.mainBody.Radius;
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
 
-                //var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed);
                 var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
 
-                double science_to_increment = baseScienceRate * time_diff / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * scienceMultiplier / ((float)Math.Sqrt(altitude_multiplier));
+                double science_to_increment = baseScienceRate * time_diff / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * scienceMultiplier / (Math.Sqrt(altitude_multiplier));
                 science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
-                science_to_add += (float)science_to_increment;
+                science_to_add += science_to_increment;
 
                 //var curReaction = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
                 //curReaction.PitchTorque = 5;
@@ -145,7 +142,7 @@ namespace FNPlugin
 
                 var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
 
-                science_rate_f = (float)(baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * power_returned / upgradedMegajouleRate / Math.Sqrt(altitude_multiplier));
+                science_rate_f = (baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * power_returned / upgradedMegajouleRate / Math.Sqrt(altitude_multiplier));
 
                 if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(science_rate_f) && !double.IsNaN(science_rate_f))
                     science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
@@ -161,7 +158,7 @@ namespace FNPlugin
             //    }
             //}
 
-            last_active_time = (float)Planetarium.GetUniversalTime();
+            last_active_time = Planetarium.GetUniversalTime();
         }
 
         protected override bool generateScienceData()
@@ -176,10 +173,10 @@ namespace FNPlugin
 				if (subject == null)
 					return false;
 				subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
-				subject.scienceCap = 167 * subject.subjectValue; ///PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, false);
+				subject.scienceCap = 167 * subject.subjectValue; 
 				subject.dataScale = 1.25f;
 
-				float remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
+				double remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
 				science_to_add = Math.Min(science_to_add, remaining_base_science);
 
 				// transmission of zero data breaks the experiment result dialog box
@@ -187,7 +184,6 @@ namespace FNPlugin
 				science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Science Lab Data");
 
 				result_title = experiment.experimentTitle;
-                //result_string = "Science experiments were conducted in the vicinity of " + vessel.mainBody.name + ".";
                 result_string = this.nameStr + " " + getRandomExperimentResult();
 
 				recovery_value = science_to_add;
@@ -215,13 +211,7 @@ namespace FNPlugin
                 ConfigNode myName = namelist[rands.Next(0, namelist.Length)];
                 nameStr = myName.GetValue("name");
             }
-            //if (part.Modules.Contains("ModuleReactionWheel"))
-            //{
-            //    ModuleReactionWheel reaction_wheel = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
-            //    reaction_wheel.PitchTorque = 5;
-            //    reaction_wheel.RollTorque = 5;
-            //    reaction_wheel.YawTorque = 5;
-            //}
+
             isupgraded = true;
             canDeploy = true;
 

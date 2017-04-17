@@ -127,7 +127,7 @@ namespace FNPlugin
             double solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate / 1000;
             double solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply / 1000;
 
-            megaJouleSolarPowerSupply = supplyFNResourceFixedMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            megaJouleSolarPowerSupply = supplyFNResourceFixedWithMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
         }
 
         public override string getResourceManagerDisplayName()

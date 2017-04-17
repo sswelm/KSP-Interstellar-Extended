@@ -9,7 +9,6 @@ namespace InterstellarFuelSwitch
     class ResourceStats
     {
         public PartResourceDefinition definition;
-        //public double volume;
         public double maxAmount;
         public double currentAmount;
         public double amountRatio;
@@ -69,18 +68,6 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool secondaryConversionCostPower = true;
 
-        //[KSPField(guiActive = true)]
-        //public double receivedSourceAmount;
-        //[KSPField(guiActive = true)]
-        //public double requestedTargetAmount;
-        //[KSPField(guiActive = true)]
-        //public double receivedTargetAmount;
-
-        //[KSPField(guiActive = true)]
-        //public float primaryConversionRatio;
-        //[KSPField(guiActive = true)]
-        //public float secondaryConversionRatio;
-
         PartResourceDefinition definitionElectricCharge;
         BaseField convertPercentageField;
         List<ResourceStats> primaryResources;
@@ -110,16 +97,12 @@ namespace InterstellarFuelSwitch
 
             foreach (var resource in primaryResources)
             {
-                //resource.volume = resource.definition.volume;
-
                 if (resource.definition.density > 0 && resource.definition.volume > 0)
                     resource.normalizedDensity = resource.definition.density / resource.definition.volume;
             }
 
             foreach (var resource in secondaryResources)
             {
-                //resource.volume = resource.definition.volume;
-
                 if (resource.definition.density > 0 && resource.definition.volume > 0)
                     resource.normalizedDensity = resource.definition.density / resource.definition.volume;
             }
@@ -137,16 +120,6 @@ namespace InterstellarFuelSwitch
                 {
                     secondary.normalizedDensity = primary.normalizedDensity;
                 }
-
-                //if (primary.volume == 0 && secondary.volume > 0)
-                //    primary.volume = secondary.volume;
-                //if (secondary.volume == 0 && primary.volume > 0)
-                //    secondary.volume = primary.volume;
-
-                //if (primary.volume == 0)
-                //    primary.volume = 1;
-                //if (secondary.volume == 0)
-                //    secondary.volume = 1;
 
                 if (primary.normalizedDensity > 0 && secondary.normalizedDensity > 0)
                 {
@@ -268,7 +241,6 @@ namespace InterstellarFuelSwitch
             secondaryResources.ForEach(m => m.amountRatio = m.currentAmount / m.maxAmount);
 
             var percentageRatio = Math.Abs(convertPercentage) / 100d;
-            var percentageRatioRemaining = 1 - percentageRatio;
 
             if (convertPercentage > 0 )
             {
@@ -287,7 +259,7 @@ namespace InterstellarFuelSwitch
             }
             else if (convertPercentage < 0)
             {
-                if (primaryResources.Any(m => percentageRatioRemaining < m.amountRatio))
+                if (primaryResources.Any(m => percentageRatio > m.amountRatio))
                 {
                     retrieveSecondary = true;
                     var neededAmount = primaryResources.Min(m => Math.Max(percentageRatio - m.amountRatio, 0) * m.maxAmount / m.conversionRatio);
@@ -297,7 +269,7 @@ namespace InterstellarFuelSwitch
                 {
                     retreivePrimary = true;
                     var availableSpaceInTarget = secondaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
-                    primaryResources.ForEach(m => m.retrieveAmount = Math.Min((Math.Max(m.amountRatio - percentageRatioRemaining, 0)) * m.maxAmount, availableSpaceInTarget));
+                    primaryResources.ForEach(m => m.retrieveAmount = Math.Min((Math.Max(m.amountRatio - percentageRatio, 0)) * m.maxAmount, availableSpaceInTarget));
                 }
             }
         }
@@ -306,9 +278,6 @@ namespace InterstellarFuelSwitch
         {
             if (HighLogic.LoadedSceneIsEditor)
                 return;
-
-            //primaryConversionRatio = (float)primaryResources.First().conversionRatio;
-            //secondaryConversionRatio = (float)secondaryResources.First().conversionRatio;
 
             if (retreivePrimary && primaryResources.Any(r => r.retrieveAmount > 0))
             {
@@ -374,8 +343,7 @@ namespace InterstellarFuelSwitch
 
         public override string GetInfo()
         {
-            return "Primary: " + primaryResourceNames + "\n"
-                 + "Secondary: " + secondaryResourceNames ;
+            return "Primary: " + primaryResourceNames + "\n" + "Secondary: " + secondaryResourceNames ;
         }
     }
 }

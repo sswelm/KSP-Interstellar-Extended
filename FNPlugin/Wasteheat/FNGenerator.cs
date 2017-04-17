@@ -632,13 +632,9 @@ namespace FNPlugin
 
                     double charged_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
-                    //var minimumPowerRequirement = maxChargedPower * _totalEff * attachedThermalSource.MinimumThrottle;
+                    requestedPower_f = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff), 0);
 
-                    var charged_power_requested = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff) * TimeWarp.fixedDeltaTime, 0);
-
-                    requestedPower_f = charged_power_requested / TimeWarp.fixedDeltaTime;
-
-                    double input_power = consumeFNResource(charged_power_requested, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    double input_power = consumeFNResource(requestedPower_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                     var effective_input_power = input_power * _totalEff;
 
@@ -648,7 +644,7 @@ namespace FNPlugin
                     electricdtps = Math.Max(effective_input_power / TimeWarp.fixedDeltaTime, 0.0);
                     max_electricdtps = maxChargedPower * _totalEff * powerCustomSettingFraction;
                 }
-                outputPower = -supplyFNResourceFixedMax(electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                outputPower = -supplyFNResourceFixedWithMax(electricdtps * TimeWarp.fixedDeltaTime, max_electricdtps * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
             }
             else
             {

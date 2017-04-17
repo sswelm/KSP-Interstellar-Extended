@@ -474,7 +474,7 @@ namespace FNPlugin
 
             var heat_production = CheatOptions.IgnoreMaxTemperature 
                 ? heat_to_produce 
-                : supplyFNResource(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+                : supplyFNResourceFixed(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
             // update GUI Values
             _electrical_consumption_f = power_received;

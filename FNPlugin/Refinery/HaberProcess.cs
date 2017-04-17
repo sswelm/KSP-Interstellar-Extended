@@ -20,8 +20,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Haber Process ISRU"; } }
 
-        public double CurrentPower { get { return _current_power; } }
-
         public bool HasActivityRequirements 
         { 
             get { return HasAccessToHydrogen() && HasAccessToNitrogen(); } 

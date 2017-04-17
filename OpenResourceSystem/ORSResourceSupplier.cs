@@ -9,6 +9,6 @@ namespace OpenResourceSystem
     {
         string getResourceManagerDisplayName();
 
-        double supplyFNResource(double supply, String resourcename);
+        double supplyFNResourceFixed(double supply, String resourcename);
     }
 }

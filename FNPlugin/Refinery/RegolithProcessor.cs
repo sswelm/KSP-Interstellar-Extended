@@ -39,8 +39,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Regolith Process"; } }
 
-        public double CurrentPower { get { return _currentPower; } }
-
         public bool HasActivityRequirements
         {
             get

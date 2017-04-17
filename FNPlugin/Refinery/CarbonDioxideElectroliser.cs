@@ -38,8 +38,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "CarbonDioxide Electrolysis"; } }
 
-        public double CurrentPower { get { return _current_power; } }
-
         public bool HasActivityRequirements { get { return _part.GetConnectedResources(_dioxideResourceName).Any(rs => rs.amount > 0); } }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }

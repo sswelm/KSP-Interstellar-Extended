@@ -721,46 +721,37 @@ namespace InterstellarFuelSwitch
                 }
 
                 var finalResourceNodes = new List<ConfigNode>();
-
-                // remove all resources except those we ignore
-                List<PartResource> resourcesDeleteList = new List<PartResource>();
-
-                foreach (PartResource resource in currentPart.Resources)
-                {
-                    if (activeResourceList.Contains(resource.resourceName))
-                    {
-                        if (newResourceNodes.Count > 0)
-                        {
-                            finalResourceNodes.AddRange(newResourceNodes);
-                            newResourceNodes.Clear();
-                        }
-
-                        resourcesDeleteList.Add(resource);
-                    }
-                    else
-                    {
-                        ConfigNode newResourceNode = new ConfigNode("RESOURCE");
-                        newResourceNode.AddValue("name", resource.resourceName);
-                        newResourceNode.AddValue("maxAmount", resource.maxAmount);
-                        newResourceNode.AddValue("amount", resource.amount);
-
-                        finalResourceNodes.Add(newResourceNode);
-                    }
-                }
-
-                foreach (var resource in resourcesDeleteList)
-                {
-                    currentPart.Resources.Remove(resource);
-                }
-
-                // add any remaining bew nodes
                 if (newResourceNodes.Count > 0)
                 {
                     finalResourceNodes.AddRange(newResourceNodes);
                     newResourceNodes.Clear();
                 }
 
-                // add new resources
+                foreach (PartResource resource in currentPart.Resources)
+                {
+                    if (!activeResourceList.Contains(resource.resourceName))
+                    {
+                        ConfigNode newResourceNode = new ConfigNode("RESOURCE");
+                        newResourceNode.AddValue("name", resource.resourceName);
+                        newResourceNode.AddValue("maxAmount", resource.maxAmount);
+                        newResourceNode.AddValue("amount", resource.amount);
+                        newResourceNode.AddValue("flowState", resource.flowState);
+
+                        finalResourceNodes.Add(newResourceNode);
+                    }
+                }
+
+                // add any remaining new nodes
+                if (newResourceNodes.Count > 0)
+                {
+                    finalResourceNodes.AddRange(newResourceNodes);
+                    newResourceNodes.Clear();
+                }
+
+                // remove all resources
+                currentPart.Resources.Clear();
+
+                // add new or exisitng resources
                 if (finalResourceNodes.Count > 0)
                 {
                     Debug.Log("InsterstellarFuelSwitch SetupTankInPart adding resources: " + ParseTools.Print(newResources));
@@ -1077,7 +1068,7 @@ namespace InterstellarFuelSwitch
                 UpdateGuiResourceMass();
 
                 //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
-                isEmpty = !part.Resources.Any(r => r.amount > r.maxAmount / 1000);
+                isEmpty = !part.Resources.Any(r => currentResources.Contains(r.resourceName) &&  r.amount > r.maxAmount / 1000);
                 var showSwitchButtons = availableInFlight && isEmpty;
 
                 _nextTankSetupEvent.guiActive = showSwitchButtons;

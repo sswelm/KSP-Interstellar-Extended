@@ -537,10 +537,10 @@ namespace FNPlugin
 			if (!CheatOptions.IgnoreMaxTemperature)
 			{
 				// Lasers produce Wasteheat
-				supplyFNResource(recievedPower * (1 - Efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
+				supplyFNResourceFixed(recievedPower * (1 - Efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
 
 				// The Aborbed wasteheat from Fusion
-				supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+				supplyFNResourceFixed(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
 			}
 
 			fusionPercentage = fusionRatio * 100d;

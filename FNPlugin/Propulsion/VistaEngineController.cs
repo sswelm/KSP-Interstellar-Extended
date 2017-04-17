@@ -248,10 +248,10 @@ namespace FNPlugin
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
                     // Lasers produce Wasteheat
-                    supplyFNResource(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                     // The Aborbed wasteheat from Fusion
-                    supplyFNResource(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // change ratio propellants Hydrogen/Fusion

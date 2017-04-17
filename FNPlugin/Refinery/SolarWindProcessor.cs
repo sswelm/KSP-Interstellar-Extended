@@ -33,8 +33,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Solar Wind Process"; } }
 
-        public double CurrentPower { get { return _current_power; } }
-
         public bool HasActivityRequirements {
             get
             {

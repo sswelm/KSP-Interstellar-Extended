@@ -123,7 +123,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Atmospheric Extraction"; } }
 
-        public double CurrentPower { get { return _current_power; } }
 
         private double _effectiveMaxPower;
 
@@ -254,9 +253,9 @@ namespace FNPlugin.Refinery
             return tempAir;
         }
 
-        public void ExtractAir(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool offlineCollecting)
+        public void ExtractAir(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool offlineCollecting)
         {
-            _effectiveMaxPower = productionModidier * PowerRequirements;
+            _effectiveMaxPower = productionModifier * PowerRequirements;
 
             //_current_power = PowerRequirements * rateMultiplier;
             _current_power = _effectiveMaxPower * powerFraction;

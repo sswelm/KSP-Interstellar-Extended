@@ -47,8 +47,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Reverse Water Gas Shift"; } }
 
-        public double CurrentPower { get { return _current_power; } }
-
         public bool HasActivityRequirements 
         {
             get 
