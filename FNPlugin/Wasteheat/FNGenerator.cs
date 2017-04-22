@@ -611,8 +611,9 @@ namespace FNPlugin
                     attachedThermalSource.RequestedThermalHeat = thermal_power_requested_fixed / TimeWarp.fixedDeltaTime;
                     double input_power = consumeFNResource(thermal_power_requested_fixed, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    if (!(attachedThermalSource.EfficencyConnectedChargedEnergyGenerator > 0) && input_power < thermal_power_requested_fixed)
-                        input_power += consumeFNResource(thermal_power_requested_fixed - input_power, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    // why consume charged particles in thermal mode?
+                    //if (!(attachedThermalSource.EfficencyConnectedChargedEnergyGenerator > 0) && input_power < thermal_power_requested_fixed)
+                    //    input_power += consumeFNResource(thermal_power_requested_fixed - input_power, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                     var effective_input_power = input_power * _totalEff;
 
