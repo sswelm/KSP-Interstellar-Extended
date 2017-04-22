@@ -112,8 +112,6 @@ namespace FNPlugin
         public double requiredMegawattCapacity;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Heat Exchange Divisor")]
         public float heat_exchanger_thrust_divisor;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Requested Power", guiUnits = " MW", guiFormat = "F2")]
-        public double requestedPower_f;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Cold Bath Temp", guiUnits = "K",  guiFormat = "F2")]
         public double coldBathTemp = 500;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Hot Bath Temp", guiUnits = "K", guiFormat = "F2")]
@@ -362,22 +360,49 @@ namespace FNPlugin
             if (attachedThermalSource != null)
                 return;
 
-            // otherwise look for other non selfcontained thermal sources
-            var searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, p => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 3, 3, true);
-            if (searchResult == null) return;
-
-            // verify cost is not higher than 1
-            partDistance = (int)Math.Max(Math.Ceiling(searchResult.Cost) - 1, 0);
-            if (partDistance > 0) return;
-
-            // update attached thermalsource
-            attachedThermalSource = searchResult.Source;
-
-            //connect with source
+            // otherwise look for other non selfcontained thermal sources with direct connection
             if (chargedParticleMode)
-                attachedThermalSource.ConnectedChargedParticleElectricGenerator = this;
-            else
-                attachedThermalSource.ConnectedThermalElectricGenerator = this;
+            {
+                // first try parent
+                attachedThermalSource = part.parent.FindModulesImplementing<IThermalSource>().FirstOrDefault();
+                if (attachedThermalSource != null && attachedThermalSource.ConnectedChargedParticleElectricGenerator == null)
+                    attachedThermalSource.ConnectedChargedParticleElectricGenerator = this;
+                else
+                {
+                    // then check all children
+                    attachedThermalSource = null;
+                    var childPart = part.children.Where(pt => pt.FindModulesImplementing<IThermalSource>().FirstOrDefault().ConnectedChargedParticleElectricGenerator == null).FirstOrDefault();
+                    if (childPart != null)
+                    {
+                        attachedThermalSource = childPart.FindModulesImplementing<IThermalSource>().FirstOrDefault();
+                        if (attachedThermalSource != null && attachedThermalSource.ConnectedChargedParticleElectricGenerator == null)
+                            attachedThermalSource.ConnectedChargedParticleElectricGenerator = this;
+                        else
+                            attachedThermalSource = null;
+                    }
+                }
+            }
+            else // thermal mode
+            {
+                // first try parent
+                attachedThermalSource = part.parent.FindModulesImplementing<IThermalSource>().FirstOrDefault();
+                if (attachedThermalSource != null && attachedThermalSource.ConnectedThermalElectricGenerator == null)
+                    attachedThermalSource.ConnectedThermalElectricGenerator = this;
+                else
+                {
+                    // then check all children
+                    attachedThermalSource = null;
+                    var childPart = part.children.Where(pt => pt.FindModulesImplementing<IThermalSource>().FirstOrDefault().ConnectedThermalElectricGenerator == null).FirstOrDefault();
+                    if (childPart != null)
+                    {
+                        attachedThermalSource = childPart.FindModulesImplementing<IThermalSource>().FirstOrDefault();
+                        if (attachedThermalSource != null && attachedThermalSource.ConnectedThermalElectricGenerator == null)
+                            attachedThermalSource.ConnectedThermalElectricGenerator = this;
+                        else
+                            attachedThermalSource = null;
+                    }
+                }
+            }
 
             UpdateTargetMass();
         }
@@ -385,7 +410,7 @@ namespace FNPlugin
         private void UpdateTargetMass()
         {
             // verify if mass calculation is active
-            if (!calculatedMass)
+            if (!calculatedMass || attachedThermalSource == null)
                 return;
 
             // update part mass
@@ -592,27 +617,15 @@ namespace FNPlugin
                     _totalEff = Math.Min(pCarnotEff, carnotEff * pCarnotEff * attachedThermalSource.ThermalEnergyEfficiency);
 
                     if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
-                    {
-                        requestedPower_f = 0;
-                        //electricdtps = 0;
-                        //max_electricdtps = 0;
-                        //attachedThermalSource.RequestedThermalHeat = 0;
                         return;
-                    }
 
                     attachedThermalSource.NotifyActiveThermalEnergyGenerator(_totalEff, ElectricGeneratorType.thermal);
-
                     double thermal_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
                     double thermal_power_requested_fixed = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed / _totalEff) * TimeWarp.fixedDeltaTime, 0);
 
-                    requestedPower_f = thermal_power_requested_fixed / TimeWarp.fixedDeltaTime;
-
                     attachedThermalSource.RequestedThermalHeat = thermal_power_requested_fixed / TimeWarp.fixedDeltaTime;
                     double input_power = consumeFNResource(thermal_power_requested_fixed, FNResourceManager.FNRESOURCE_THERMALPOWER);
-
-                    if (!(attachedThermalSource.EfficencyConnectedChargedEnergyGenerator > 0) && input_power < thermal_power_requested_fixed)
-                        input_power += consumeFNResource(thermal_power_requested_fixed - input_power, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                     var effective_input_power = input_power * _totalEff;
 
@@ -626,15 +639,14 @@ namespace FNPlugin
                 {
                     _totalEff = isupgraded ? upgradedDirectConversionEff : directConversionEff;
 
-                    attachedThermalSource.NotifyActiveChargedEnergyGenerator(_totalEff, ElectricGeneratorType.charged_particle);
-
                     if (_totalEff <= 0) return;
 
+                    attachedThermalSource.NotifyActiveChargedEnergyGenerator(_totalEff, ElectricGeneratorType.charged_particle);
                     double charged_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
-                    requestedPower_f = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff), 0);
+                    double charged_power_requested_fixed = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff) * TimeWarp.fixedDeltaTime, 0);
 
-                    double input_power = consumeFNResource(requestedPower_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    double input_power = consumeFNResource(charged_power_requested_fixed, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                     var effective_input_power = input_power * _totalEff;
 
