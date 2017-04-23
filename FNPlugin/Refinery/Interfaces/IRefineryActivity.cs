@@ -22,8 +22,17 @@ namespace FNPlugin.Refinery
         protected bool _allowOverflow;
         protected double _current_power;
         protected double _current_rate;
+        protected double _effectiveMaxPower;
 
         public double CurrentPower { get { return _current_power; } }
+
+        public virtual void UpdateGUI()
+        {
+            if (_bold_label == null)
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+        }
     }
 
     interface IRefineryActivity

@@ -7,14 +7,14 @@ namespace FNPlugin.Extensions
 {
     public class ThermalSourceSearchResult
     {
-        public ThermalSourceSearchResult(IThermalSource source, float cost)
+        public ThermalSourceSearchResult(IPowerSource source, float cost)
         {
             Cost = cost;
             Source = source;
         }
 
         public float Cost { get; private set; }
-        public IThermalSource Source { get; private set; }
+        public IPowerSource Source { get; private set; }
 
         public ThermalSourceSearchResult IncreaseCost(float cost)
         {
@@ -22,7 +22,7 @@ namespace FNPlugin.Extensions
             return this;
         }
 
-        public static ThermalSourceSearchResult BreadthFirstSearchForThermalSource(Part currentpart, Func<IThermalSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained = false)
+        public static ThermalSourceSearchResult BreadthFirstSearchForThermalSource(Part currentpart, Func<IPowerSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained = false)
         {
             // first search withouth parent search
             for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
@@ -36,11 +36,11 @@ namespace FNPlugin.Extensions
             return null;
         }
 
-        public static ThermalSourceSearchResult FindThermalSource(Part currentpart, Func<IThermalSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained)
+        public static ThermalSourceSearchResult FindThermalSource(Part currentpart, Func<IPowerSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained)
         {
             if (stackdepth <= 0)
             {
-                var thermalsources = currentpart.FindModulesImplementing<IThermalSource>().Where(condition);
+                var thermalsources = currentpart.FindModulesImplementing<IPowerSource>().Where(condition);
 
                 var source = skipSelfContained
                     ? thermalsources.FirstOrDefault(s => !s.IsSelfContained)

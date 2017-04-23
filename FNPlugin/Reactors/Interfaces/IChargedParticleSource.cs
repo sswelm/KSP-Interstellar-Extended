@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FNPlugin
 {
-    public interface IChargedParticleSource : IThermalSource
+    public interface IChargedParticleSource : IPowerSource
     {
         double CurrentMeVPerChargedProduct { get; }
 

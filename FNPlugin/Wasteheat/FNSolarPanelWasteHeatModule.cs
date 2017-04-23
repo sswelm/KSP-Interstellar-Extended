@@ -74,6 +74,10 @@ namespace FNPlugin
 
         public override void OnFixedUpdate() 
         {
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
+            if (microwavePowerReceiver != null) return;
+
             active = true;
             base.OnFixedUpdate();
         }
@@ -87,6 +91,22 @@ namespace FNPlugin
 
             if (!active)
                 base.OnFixedUpdate();
+        }
+
+        public override string getResourceManagerDisplayName()
+        {
+            // use identical names so it will be grouped together
+            return part.partInfo.title;
+        }
+
+        public override int getPowerPriority()
+        {
+            return 1;
+        }
+
+        public override void OnFixedUpdateResourceSuppliable(float fixedDeltaTime)
+        {
+            if (microwavePowerReceiver != null) return;
 
             if (solarPanel == null) return;
 
@@ -128,12 +148,6 @@ namespace FNPlugin
             double solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply / 1000;
 
             megaJouleSolarPowerSupply = supplyFNResourceFixedWithMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-        }
-
-        public override string getResourceManagerDisplayName()
-        {
-            // use identical names so it will be grouped together
-            return part.partInfo.title;
         }
 	}
 }

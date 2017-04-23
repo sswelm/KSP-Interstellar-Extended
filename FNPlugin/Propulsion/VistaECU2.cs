@@ -49,8 +49,5 @@ namespace FNPlugin
         protected override float MaxSteps { get { return defaultMaxSteps; } }
         protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
         protected override float NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
-
     }
-
-
 }

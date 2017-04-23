@@ -8,7 +8,6 @@ namespace FNPlugin.Refinery
 {
     class RegolithProcessor : RefineryActivityBase, IRefineryActivity
     {
-        protected double _currentPower;
         protected double dFixedConsumptionRate;
         protected double dConsumptionStorageRatio;
 
@@ -33,7 +32,6 @@ namespace FNPlugin.Refinery
         protected double dMethaneProductionRate;
         protected double dNitrogenProductionRate;
         protected double dWaterProductionRate;
-        protected double dCurrentRate;
 
         public RefineryType RefineryType { get { return RefineryType.heating; } }
 
@@ -119,11 +117,11 @@ namespace FNPlugin.Refinery
         protected double dNitrogenMassByFraction = 0.0274710180;
         protected double dWaterMassByFraction = 0.18130871930;
 
-
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
-            _currentPower = PowerRequirements * rateMultiplier;
-            dCurrentRate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
+            _effectiveMaxPower = PowerRequirements * productionModidier;
+            _current_power = _effectiveMaxPower * powerFraction;
+            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
 
             // determine how much resource we have
             var partsThatContainRegolith = _part.GetConnectedResources(strRegolithResourceName);
@@ -161,15 +159,15 @@ namespace FNPlugin.Refinery
             dSpareRoomWaterMass = partsThatContainWater.Sum(r => r.maxAmount - r.amount) * dWaterDensity;
 
             // this should determine how much resource this process can consume
-            double dFixedMaxRegolithConsumptionRate = dCurrentRate * fixedDeltaTime * dRegolithDensity;
-            double dRegolithConsumptionRatio = dFixedMaxRegolithConsumptionRate > 0
+            var dFixedMaxRegolithConsumptionRate = _current_rate * fixedDeltaTime * dRegolithDensity;
+            var dRegolithConsumptionRatio = dFixedMaxRegolithConsumptionRate > 0
                 ? Math.Min(dFixedMaxRegolithConsumptionRate, dAvailableRegolithMass) / dFixedMaxRegolithConsumptionRate
                 : 0;
 
-            dFixedConsumptionRate = dCurrentRate * fixedDeltaTime * dRegolithConsumptionRatio;
+            dFixedConsumptionRate = _current_rate * fixedDeltaTime * dRegolithConsumptionRatio;
 
             // begin the regolith processing
-            if (dFixedConsumptionRate > 0 && ((((dSpareRoomHydrogenMass > 0 || dSpareRoomHelium3Mass > 0) || dSpareRoomHelium4Mass > 0) || dSpareRoomMonoxideMass > 0) || dSpareRoomNitrogenMass > 0)) // check if there is anything to consume and spare room for at least one of the products
+            if (dFixedConsumptionRate > 0 && (dSpareRoomHydrogenMass > 0 || dSpareRoomHelium3Mass > 0 || dSpareRoomHelium4Mass > 0 || dSpareRoomMonoxideMass > 0 || dSpareRoomNitrogenMass > 0)) // check if there is anything to consume and spare room for at least one of the products
             {
 
                 double dFixedMaxHydrogenRate = dFixedConsumptionRate * dHydrogenMassByFraction;
@@ -194,7 +192,7 @@ namespace FNPlugin.Refinery
                 dConsumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(dFixedMaxPossibleHydrogenRate / dFixedMaxHydrogenRate, dFixedMaxPossibleHelium3Rate / dFixedMaxHelium3Rate), dFixedMaxPossibleHelium4Rate / dFixedMaxHelium4Rate), dFixedMaxPossibleMonoxideRate / dFixedMaxMonoxideRate), dFixedMaxPossibleNitrogenRate / dFixedMaxNitrogenRate), dFixedMaxPossibleWaterRate / dFixedMaxWaterRate), dFixedMaxPossibleDioxideRate / dFixedMaxDioxideRate), dFixedMaxPossibleMethaneRate / dFixedMaxMethaneRate);
 
                 // this consumes the resource
-                fixed_regolithConsumptionRate = _part.RequestResource(strRegolithResourceName, dConsumptionStorageRatio * dFixedConsumptionRate / dRegolithDensity) / fixedDeltaTime * dRegolithDensity;
+                fixed_regolithConsumptionRate = _part.RequestResource(strRegolithResourceName, dConsumptionStorageRatio * dFixedConsumptionRate / dRegolithDensity, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fixedDeltaTime * dRegolithDensity;
                 regolithConsumptionRate = fixed_regolithConsumptionRate / fixedDeltaTime;
 
                 // this produces the products
@@ -231,16 +229,13 @@ namespace FNPlugin.Refinery
             updateStatusMessage();
         }
 
-        public void UpdateGUI()
+        public override void UpdateGUI()
         {
-            if (_bold_label == null)
-                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
-            if (_value_label == null)
-                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+            base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();

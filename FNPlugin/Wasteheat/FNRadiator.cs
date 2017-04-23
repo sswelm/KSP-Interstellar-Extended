@@ -72,10 +72,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false)]
         public float surfaceAreaUpgradeMult = 1.6f;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Color Ratio")]
-        public double colorRatio;
-
-
         // non persistant
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float partMass;
@@ -169,11 +165,13 @@ namespace FNPlugin
         private ModuleActiveRadiator _moduleActiveRadiator;
 
         private bool hasSurfaceAreaUpgradeTechReq;
-        private List<IThermalSource> list_of_thermal_sources;
+        private List<IPowerSource> list_of_thermal_sources;
 
         private static List<FNRadiator> list_of_all_radiators = new List<FNRadiator>();
 
         public GenerationType CurrentGenerationType { get; private set; }
+
+        public ModuleActiveRadiator ModuleActiveRadiator { get { return _moduleActiveRadiator; } }
 
         public float MaxRadiatorTemperature
         {
@@ -534,7 +532,7 @@ namespace FNPlugin
                 star = FlightGlobals.Bodies[0];
 
             // find all thermal sources
-            list_of_thermal_sources = vessel.FindPartModulesImplementing<IThermalSource>().Where(tc => tc.IsThermalSource).ToList();
+            list_of_thermal_sources = vessel.FindPartModulesImplementing<IPowerSource>().Where(tc => tc.IsThermalSource).ToList();
 
             if (ResearchAndDevelopment.Instance != null)
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
@@ -683,6 +681,9 @@ namespace FNPlugin
 
                 wasteheatRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
 
+                if (Double.IsNaN(wasteheatRatio))
+                    Debug.LogWarning("FNRadiator: OnFixedUpdate Single.IsNaN detected in wasteheatRatio");
+
                 radiator_temperature_temp_val = MaxRadiatorTemperature * Math.Pow(wasteheatRatio, 0.25);
 
                 radiator_temperature_temp_val = Math.Min(MaxRadiatorTemperature / 1.01, radiator_temperature_temp_val);
@@ -773,7 +774,7 @@ namespace FNPlugin
             }
         }
 
-        public float GetAverageTemperatureofOfThermalSource(List<IThermalSource> active_thermal_sources)
+        public float GetAverageTemperatureofOfThermalSource(List<IPowerSource> active_thermal_sources)
         {
             return MaxRadiatorTemperature;
         }
@@ -876,11 +877,11 @@ namespace FNPlugin
 
                 double radiatorTempRatio = Math.Min(currentTemperature / MaxRadiatorTemperature, 1);
 
-                colorRatio = Math.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
+                var colorRatio = (float)Math.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
 
-                SetHeatAnimationRatio((float)colorRatio);
+                SetHeatAnimationRatio(colorRatio);
 
-                emissiveColor = new Color((float)colorRatio, 0.0f, 0.0f, 0.5f);
+                emissiveColor = new Color(colorRatio, 0.0f, 0.0f, 0.5f);
             }
             catch (Exception e)
             {

@@ -53,12 +53,9 @@ namespace FNPlugin.Refinery
             _status = _fixed_current_rate > 0 ? "Online" : _remaining_to_reprocess > 0 ? "Power Deprived" : "No Fuel To Reprocess";
         }
 
-        public void UpdateGUI()
+        public override void UpdateGUI()
         {
-            if (_bold_label == null)
-                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
-            if (_value_label == null)
-                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+            base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));

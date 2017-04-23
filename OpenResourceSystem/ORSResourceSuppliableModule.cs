@@ -8,7 +8,6 @@ namespace OpenResourceSystem
     public abstract class ORSResourceSuppliableModule : PartModule, ORSResourceSuppliable, IORSResourceSupplier
     {
         protected Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
-        protected Dictionary<String, ORSResourceManager> fnresource_managers = new Dictionary<String, ORSResourceManager>();
         protected String[] resources_to_supply;
 
         public void receiveFNResource(double power, String resourcename)
@@ -19,7 +18,29 @@ namespace OpenResourceSystem
                 fnresource_supplied.Add(resourcename, power);
         }
 
-        public double consumeFNResource(double power, String resourcename)
+        public double consumeFNResource(double power_fixed, String resourcename)
+        {
+            power_fixed = Math.Max(power_fixed, 0);
+
+            ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+            if (manager == null)
+            {
+                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
+                return 0;
+            }
+
+            if (!fnresource_supplied.ContainsKey(resourcename))
+                fnresource_supplied.Add(resourcename, 0);
+
+            double power_taken_fixed = Math.Max(Math.Min(power_fixed, fnresource_supplied[resourcename] * TimeWarp.fixedDeltaTime), 0);
+            fnresource_supplied[resourcename] -= power_taken_fixed;
+            
+            manager.powerDrawFixed(this, power_fixed, power_taken_fixed);
+
+            return power_taken_fixed;
+        }
+
+        public double consumeFNResourcePerSecond(double power, String resourcename)
         {
             power = Math.Max(power, 0);
 
@@ -33,12 +54,14 @@ namespace OpenResourceSystem
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
 
-            double power_taken = Math.Max(Math.Min(power, fnresource_supplied[resourcename] * TimeWarp.fixedDeltaTime), 0);
-            fnresource_supplied[resourcename] -= power_taken;
-            
-            manager.powerDrawFixed(this, power, power_taken);
+            double power_taken_fixed = Math.Max(Math.Min(power * TimeWarp.fixedDeltaTime, fnresource_supplied[resourcename] * TimeWarp.fixedDeltaTime), 0);
+            fnresource_supplied[resourcename] -= power_taken_fixed;
 
-            return power_taken;
+            var power_taken_per_second = power_taken_fixed / TimeWarp.fixedDeltaTime;
+
+            manager.powerDrawPerSecond(this, power, power_taken_per_second);
+
+            return power_taken_per_second;
         }
 
         public double supplyFNResourceFixed(double supply, String resourcename)
@@ -185,7 +208,7 @@ namespace OpenResourceSystem
             return manager.ResourceSupply;
         }
 
-        public double getDemandSupply(String resourcename)
+        public double GetOverproduction(String resourcename)
         {
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             if (manager == null)
@@ -194,7 +217,7 @@ namespace OpenResourceSystem
                 return 0;
             }
 
-            return manager.getDemandSupply();
+            return manager.getOverproduction();
         }
 
         public double getDemandStableSupply(String resourcename)
@@ -233,7 +256,7 @@ namespace OpenResourceSystem
             return manager.GetRequiredResourceDemand();
         }
 
-        public double getCurrentUnfilledResourceDemand(String resourcename)
+        public double GetCurrentUnfilledResourceDemand(String resourcename)
         {
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             if (manager == null)
@@ -242,7 +265,7 @@ namespace OpenResourceSystem
                 return 0;
             }
 
-            return manager.getCurrentUnfilledResourceDemand();
+            return manager.GetCurrentUnfilledResourceDemand();
         }
 
         public double GetPowerSupply(String resourcename)
@@ -324,24 +347,17 @@ namespace OpenResourceSystem
 
             foreach (String resourcename in resources_to_supply)
             {
-                ORSResourceManager manager;
+                ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
-                if (getOvermanagerForResource(resourcename).hasManagerForVessel(vessel))
-                {
-                    manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
-                    if (manager == null)
-                    {
-                        manager = createResourceManagerForResource(resourcename);
-                        print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
-                    }
-                }
-                else
+                if (manager == null)
                 {
                     manager = createResourceManagerForResource(resourcename);
 
                     print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
                 }
             }
+
+            getSupplyPriorityManager(this.vessel).Register(this);
         }
 
         public override void OnFixedUpdate()
@@ -350,24 +366,32 @@ namespace OpenResourceSystem
 
             foreach (String resourcename in resources_to_supply)
             {
-                ORSResourceOvermanager overmanager = getOvermanagerForResource(resourcename);
-                ORSResourceManager manager = overmanager.getManagerForVessel(vessel);
+                ORSResourceManager resource_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
-                if (manager == null)
+                if (resource_manager == null)
                 {
-                    manager = createResourceManagerForResource(resourcename);
+                    resource_manager = createResourceManagerForResource(resourcename);
                     print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
                 }
 
-                if (manager.PartModule == null || manager.PartModule.vessel != this.vessel || manager.IsUpdatedAtLeastOnce == false)
+                if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || resource_manager.IsUpdatedAtLeastOnce == false)
                 {
-                    manager.updatePartModule(this);
+                    resource_manager.updatePartModule(this);
                     print("[ORS] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
                 }
 
-                if (manager.PartModule == this)
-                    manager.update();
+                if (resource_manager.PartModule == this)
+                    resource_manager.update();
             }
+
+            var priority_manager = getSupplyPriorityManager(this.vessel);
+            if (priority_manager.pocessingPart == null || priority_manager.pocessingPart.vessel != this.vessel)
+            {
+                priority_manager.pocessingPart = this;
+            }
+
+            if (priority_manager.pocessingPart == this)
+                priority_manager.UpdateResourceSuppliables(TimeWarp.fixedDeltaTime);
         }
 
         public virtual string getResourceManagerDisplayName()
@@ -389,5 +413,12 @@ namespace OpenResourceSystem
         {
             return ORSResourceOvermanager.getResourceOvermanagerForResource(resourcename);
         }
+
+        protected virtual SupplyPriorityManager getSupplyPriorityManager(Vessel vessel)
+        {
+            return SupplyPriorityManager.GetSupplyPriorityManagerForVessel(vessel);
+        }
+
+        public abstract void OnFixedUpdateResourceSuppliable(float fixedDeltaTime);
     }
 }

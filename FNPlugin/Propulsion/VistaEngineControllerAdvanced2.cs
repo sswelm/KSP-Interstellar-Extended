@@ -614,7 +614,7 @@ namespace FNPlugin
 
         public override int getPowerPriority()
         {
-            return 2;
+            return 3;
         }
     }
 

@@ -23,19 +23,19 @@ namespace FNPlugin
 
         public static double GetTemperatureofColdestThermalSource(this Vessel vess)
         {
-            List<IThermalSource> active_reactors = vess.FindPartModulesImplementing<IThermalSource>().Where(ts => ts.IsActive && ts.IsThermalSource).ToList();
+            List<IPowerSource> active_reactors = vess.FindPartModulesImplementing<IPowerSource>().Where(ts => ts.IsActive && ts.IsThermalSource).ToList();
             return active_reactors.Any() ? active_reactors.Min(ts => ts.CoreTemperature) : double.MaxValue;
         }
 
         public static double GetAverageTemperatureofOfThermalSource(this Vessel vess)
         {
-            List<IThermalSource> active_reactors = vess.FindPartModulesImplementing<IThermalSource>().Where(ts => ts.IsActive && ts.IsThermalSource).ToList();
+            List<IPowerSource> active_reactors = vess.FindPartModulesImplementing<IPowerSource>().Where(ts => ts.IsActive && ts.IsThermalSource).ToList();
             return active_reactors.Any() ? active_reactors.Sum(r => r.HotBathTemperature) / active_reactors.Count : 0;
         }
 
         public static bool HasAnyActiveThermalSources(this Vessel vess) 
         {
-            return vess.FindPartModulesImplementing<IThermalSource>().Where(ts => ts.IsActive).Any();
+            return vess.FindPartModulesImplementing<IPowerSource>().Where(ts => ts.IsActive).Any();
         }
 
         public static RadiationDose GetRadiationDose(this Vessel vessel)

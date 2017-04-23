@@ -84,8 +84,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Throttle Power", guiFormat = "F3", guiUnits = " MW")]
         public double maxThrottlePower;
 
-
-
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         // internal
@@ -741,6 +739,11 @@ namespace FNPlugin
                 propellant_list = propellantlist.Select(prop => new ElectricEnginePropellant(prop)).ToList();
 
             return propellant_list;
+        }
+
+        public override int getPowerPriority()
+        {
+            return 3;
         }
     }
 }

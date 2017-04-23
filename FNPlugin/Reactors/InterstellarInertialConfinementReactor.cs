@@ -239,7 +239,7 @@ namespace FNPlugin
 
             ProcessCharging();
 
-            // determiine amount of power needed
+            // determine amount of power needed
             var powerRequested = LaserPowerRequirements * TimeWarp.fixedDeltaTime * Math.Max(reactor_power_ratio, 0.00001);
 
             // consume reactor power requirements
@@ -250,10 +250,10 @@ namespace FNPlugin
             // retreive any shortage from buffer
             if (!CheatOptions.InfiniteElectricity && IsEnabled && powerReceived < powerRequested)
             {
-                // retreive megawath ratio
+                // retreive megawatt ratio
                 var megaWattStorageRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                //only use buffer if we have sufficient in storage
+                // only use buffer if we have sufficient in storage
                 if (megaWattStorageRatio > 0.5)
                 {
                     var powerRequirmentMetRatio = powerReceived / powerRequested;
@@ -271,7 +271,7 @@ namespace FNPlugin
                 if (shortage <= accumulatedElectricChargeInMW)
                 {
                     //ScreenMessages.PostScreenMessage("Attempting to Jump start", 5.0f, ScreenMessageStyle.LOWER_CENTER);
-                    power_consumed += (float)accumulatedElectricChargeInMW;
+                    power_consumed += accumulatedElectricChargeInMW;
                     accumulatedElectricChargeInMW -= shortage;
                     jumpstartPowerTime = 50;
                 }
@@ -290,12 +290,12 @@ namespace FNPlugin
             }
             else if (framesPlasmaRatioIsGood > 0) // maintain reactor
             {
-                plasma_ratio = (float)Math.Round(LaserPowerRequirements != 0.0f ? power_consumed / LaserPowerRequirements : 1.0f, 4);
+                plasma_ratio = Math.Round(LaserPowerRequirements != 0.0 ? power_consumed / LaserPowerRequirements : 1.0, 4);
                 allowJumpStart = plasma_ratio >= 1;
             }
             else  // starting reactor
             {
-                plasma_ratio = (float)Math.Round(LaserPowerRequirements != 0.0f ? power_consumed / StartupPower : 1.0f, 4);
+                plasma_ratio = Math.Round(LaserPowerRequirements != 0.0 ? power_consumed / StartupPower : 1.0, 4);
                 allowJumpStart = plasma_ratio >= 1;
             }
 

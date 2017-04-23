@@ -31,11 +31,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
-        public float plasma_ratio = 1.0f;
+        public double plasma_ratio = 1.0;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Modifier", guiFormat = "F6")]
-        public float plasma_modifier = 1.0f;
+        public double plasma_modifier = 1.0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Lithium Modifier", guiFormat = "F6")]
-        public double lithium_modifier = 1.0f;
+        public double lithium_modifier = 1.0;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
 
@@ -64,7 +64,7 @@ namespace FNPlugin
                 lithium_modifier = CheatOptions.InfinitePropellant ? 1
                     : powerIsAffectedByLithium && totalAmountLithium > 0
                         ? Math.Sqrt(totalAmountLithium / totalMaxAmountLithium)
-                        : 1;
+                        : 0.001;
 
                 return lithium_modifier;
             }

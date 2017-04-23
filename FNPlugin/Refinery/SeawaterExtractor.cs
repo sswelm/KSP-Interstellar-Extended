@@ -24,9 +24,6 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Ocean Extraction"; } }
 
-
-        private double _effectiveMaxPower;
-
         public bool HasActivityRequirements { get {  return IsThereAnyLiquid();  } }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
@@ -197,12 +194,9 @@ namespace FNPlugin.Refinery
         }
 
 
-        public void UpdateGUI()
+        public override void UpdateGUI()
         {
-            if (_bold_label == null)
-                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
-            if (_value_label == null)
-                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+            base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
