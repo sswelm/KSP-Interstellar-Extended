@@ -35,6 +35,7 @@ namespace OpenResourceSystem
 
         protected PartResourceDefinition resourceDefinition;
         protected PartResourceDefinition electricResourceDefinition;
+        protected PartResourceDefinition megajouleResourceDefinition;
         protected PartResourceDefinition thermalpowerResourceDefinition;
         protected PartResourceDefinition chargedpowerResourceDefinition;
 
@@ -97,6 +98,7 @@ namespace OpenResourceSystem
 
             resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
             electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ORSResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
+            megajouleResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ORSResourceManager.FNRESOURCE_MEGAJOULES); 
             thermalpowerResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ORSResourceManager.FNRESOURCE_THERMALPOWER);
             chargedpowerResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ORSResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
@@ -119,6 +121,18 @@ namespace OpenResourceSystem
             }
             powerConsumption.Power_draw += power_draw_per_second;
             powerConsumption.Power_consume += power_cosumtion_per_second;         
+        }
+
+        public void powerDrawPerSecond(ORSResourceSuppliable pm, double power_draw, double power_cosumtion)
+        {
+            PowerConsumption powerConsumption;
+            if (!power_consumption.TryGetValue(pm, out powerConsumption))
+            {
+                powerConsumption = new PowerConsumption();
+                power_consumption.Add(pm, powerConsumption);
+            }
+            powerConsumption.Power_draw += power_draw;
+            powerConsumption.Power_consume += power_cosumtion;
         }
 
         public double powerSupplyFixed(IORSResourceSupplier pm, double power) 
@@ -206,8 +220,6 @@ namespace OpenResourceSystem
 
         public double getResourceAvailability()
         {
-            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
-
             double amount;
             double maxAmount;
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
@@ -217,8 +229,6 @@ namespace OpenResourceSystem
 
 		public double getSpareResourceCapacity() 
         {
-            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
-
             double amount;
             double maxAmount;
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
@@ -228,8 +238,6 @@ namespace OpenResourceSystem
 
         public double getTotalResourceCapacity()
         {
-            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
-
             double amount;
             double maxAmount;
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
@@ -295,24 +303,24 @@ namespace OpenResourceSystem
         public Vessel Vessel { get { return my_vessel; } }
         public PartModule PartModule { get { return my_partmodule; } }
 
-        public double getDemandSupply()
+        public double getOverproduction()
         {
             return stored_supply - stored_resource_demand;
         }
 
         public double getDemandStableSupply()
         {
-            return stored_resource_demand / stored_stable_supply;
+            return stored_stable_supply > 0 ? stored_resource_demand / stored_stable_supply : 1;
         }
 
-        public double getCurrentUnfilledResourceDemand()
+        public double GetCurrentUnfilledResourceDemand()
         {
             return current_resource_demand - currentPowerSupply;
         }
 
         public double GetRequiredResourceDemand()
         {
-            return getCurrentUnfilledResourceDemand() + getSpareResourceCapacity() / TimeWarp.fixedDeltaTime;
+            return GetCurrentUnfilledResourceDemand() + getSpareResourceCapacity() / TimeWarp.fixedDeltaTime;
         }
 
 		public void updatePartModule(PartModule pm) 
@@ -356,7 +364,7 @@ namespace OpenResourceSystem
 			if (maxResouceAmount > 0) 
 				resource_bar_ratio = availableResourceAmount / maxResouceAmount;
             else 
-				resource_bar_ratio = 0;
+				resource_bar_ratio = 0.0001;
 
 			double missingResourceAmount = maxResouceAmount - availableResourceAmount;
             currentPowerSupply += availableResourceAmount;
@@ -370,7 +378,7 @@ namespace OpenResourceSystem
                 : 1.0;        
 
 			//Prioritise supplying stock ElectricCharge resource
-			if (String.Equals(this.resource_name, ORSResourceManager.FNRESOURCE_MEGAJOULES) && stored_stable_supply > 0) 
+			if (resourceDefinition.id == megajouleResourceDefinition.id && stored_stable_supply > 0) 
             {
                 double amount;
                 double maxAmount;
@@ -378,8 +386,8 @@ namespace OpenResourceSystem
                 my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
                 double stock_electric_charge_needed = maxAmount - amount;
 
-				double power_supplied = Math.Min(currentPowerSupply * 1000 * TimeWarp.fixedDeltaTime, stock_electric_charge_needed);
-                if (stock_electric_charge_needed > 0) 
+                double power_supplied = Math.Min(currentPowerSupply * 1000 * TimeWarp.fixedDeltaTime, stock_electric_charge_needed);
+                if (stock_electric_charge_needed > 0)
                 {
                     var deltaResourceDemand = stock_electric_charge_needed / 1000.0 / TimeWarp.fixedDeltaTime;
                     current_resource_demand += deltaResourceDemand;
@@ -426,7 +434,7 @@ namespace OpenResourceSystem
                 }
             }
 
-            // check priority 2 parts like engines
+            // check priority 2 parts like reactors
             foreach (KeyValuePair<ORSResourceSuppliable, PowerConsumption> power_kvp in power_draw_items) 
             {
                 ORSResourceSuppliable resourceSuppliable = power_kvp.Key;
@@ -449,7 +457,7 @@ namespace OpenResourceSystem
                 }
             }
 
-            // check priority 3 parts
+            // check priority 3 parts like engines and nuclear reactors
             foreach (KeyValuePair<ORSResourceSuppliable, PowerConsumption> power_kvp in power_draw_items) 
             {
 				ORSResourceSuppliable resourceSuppliable = power_kvp.Key;
@@ -471,6 +479,29 @@ namespace OpenResourceSystem
                     resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
 				}
 			}
+
+            // check priority 4 parts like antimatter reactors, engines and transmitters
+            foreach (KeyValuePair<ORSResourceSuppliable, PowerConsumption> power_kvp in power_draw_items)
+            {
+                ORSResourceSuppliable resourceSuppliable = power_kvp.Key;
+
+                if (resourceSuppliable.getPowerPriority() >= 4)
+                {
+                    double power = power_kvp.Value.Power_draw;
+                    current_resource_demand += power;
+
+                    if (flow_type == FNRESOURCE_FLOWTYPE_EVEN)
+                        power = power * demand_supply_ratio;
+
+                    double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
+
+                    currentPowerSupply -= power_supplied;
+                    total_power_distributed += power_supplied;
+
+                    //notify of supply
+                    resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
+                }
+            }
 
             // substract avaialble resource amount to get delta resource change
             currentPowerSupply -= Math.Max(availableResourceAmount, 0.0);
