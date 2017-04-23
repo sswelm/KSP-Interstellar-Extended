@@ -143,8 +143,8 @@ namespace InterstellarFuelSwitch
         public bool availableInFlight = false;
         [KSPField]
         public bool availableInEditor = true;
-        [KSPField(guiActive = false)]
-        public bool isEmpty = false;
+        //[KSPField(guiActive = false)]
+        //public bool isEmpty = false;
         [KSPField]
         public bool returnDryMass = false;
 
@@ -233,6 +233,7 @@ namespace InterstellarFuelSwitch
 
         bool initialized = false;
         double initializePartTemperature = -1;
+        int numberOfAvailableTanks = 0;
 
         PartResource _partResource0;
         PartResource _partResource1;
@@ -261,9 +262,6 @@ namespace InterstellarFuelSwitch
                 storedFactorMultiplier = factor.absolute.linear;
                 storedVolumeMultiplier = Mathf.Pow(factor.absolute.linear, volumeExponent);
                 storedMassMultiplier = Mathf.Pow(factor.absolute.linear, massExponent);
-
-                //part.heatConvectiveConstant = this.heatConvectiveConstant * (float)Math.Pow(factor.absolute.linear, 1);
-                //part.heatConductivity = this.heatConductivity * (float)Math.Pow(factor.absolute.linear, 1);
 
                 initialMass = part.prefabMass * storedMassMultiplier;
             }
@@ -342,7 +340,7 @@ namespace InterstellarFuelSwitch
 
                 _chooseField = Fields["selectedTankSetup"];
                 _chooseField.guiName = switcherDescription;
-                _chooseField.guiActiveEditor = hasSwitchChooseOption;
+                _chooseField.guiActiveEditor = hasSwitchChooseOption && _modularTankList.Count > 1;
                 _chooseField.guiActive = false;
 
                 var chooseOptionEditor = _chooseField.uiControlEditor as UI_ChooseOption;
@@ -453,6 +451,7 @@ namespace InterstellarFuelSwitch
                     {
                         modularTank.hasTech = hasTech(modularTank.techReq);
                     }
+                    numberOfAvailableTanks = _modularTankList.Where(m => m.hasTech).Count();
                 }
 
                 _nextTankSetupEvent = Events["nextTankSetupEvent"];
@@ -772,11 +771,12 @@ namespace InterstellarFuelSwitch
             }
         }
 
+        // only called after tank switching
         public void ConfigureResourceMassGui(List<string> newResources)
         {
-            _partRresourceDefinition0 = newResources.Count > 0 ? PartResourceLibrary.Instance.GetDefinition(newResources[0]) : null; // improve performance by doing this once after switching
-            _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinition(newResources[1]) : null; // improve performance by doing this once after switching
-            _partRresourceDefinition2 = newResources.Count > 2 ? PartResourceLibrary.Instance.GetDefinition(newResources[2]) : null; // improve performance by doing this once after switching
+            _partRresourceDefinition0 = newResources.Count > 0 ? PartResourceLibrary.Instance.GetDefinition(newResources[0]) : null;
+            _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinition(newResources[1]) : null;
+            _partRresourceDefinition2 = newResources.Count > 2 ? PartResourceLibrary.Instance.GetDefinition(newResources[2]) : null; 
 
             _field0.guiName = _partRresourceDefinition0 != null ? _partRresourceDefinition0.name : ":";
             _field1.guiName = _partRresourceDefinition1 != null ? _partRresourceDefinition1.name : ":";
@@ -1006,70 +1006,17 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        public void ProcessBoiloff()
-        {
-            try
-            {
-                if (!boiloffActive) return;
-
-                if (!traceBoiloff) return;
-
-                if (_modularTankList == null) return;
-
-                var currentTemperature = part.temperature;
-                var selectedTank = _modularTankList[selectedTankSetup];
-                foreach (var resource in selectedTank.Resources)
-                {
-                    if (currentTemperature <= resource.boiloffTemp) continue;
-
-                    var deltaTemperatureDifferenceInKelvin = currentTemperature - resource.boiloffTemp;
-
-                    PartResource partResource = part.Resources.FirstOrDefault(r => r.resourceName == resource.name);
-                    PartResourceDefinition resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource.name);
-
-                    if (resourceDefinition == null || partResource == null) continue;
-
-                    specificHeatStr = resourceDefinition.specificHeatCapacity.ToString("0.0000");
-
-                    var specificHeat = resourceDefinition.specificHeatCapacity > 0 ? resourceDefinition.specificHeatCapacity : 1000;
-
-                    var ThermalMass = part.thermalMass;
-                    var heatAbsorbed = ThermalMass * deltaTemperatureDifferenceInKelvin;
-
-                    this.boiloffEnergy = (heatAbsorbed / TimeWarp.fixedDeltaTime).ToString("0.0000") + " kJ/s";
-
-                    var latendHeatVaporation = resource.latendHeatVaporation != 0 ? resource.latendHeatVaporation * 1000 : specificHeat * 34;
-
-                    var resourceBoilOff = heatAbsorbed / latendHeatVaporation;
-                    var boiloffAmount = resourceBoilOff / resourceDefinition.density;
-
-                    // reduce boiloff from part  
-                    partResource.amount = Math.Max(0, partResource.amount - boiloffAmount);
-                    part.temperature = resource.boiloffTemp;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[IFS] - ProcessBoiloff Error: " + e.Message);
-                throw;
-            }
-        }
-
         // Note: do note remove, it is called by KSP
         public void Update()
         {
             currentPartMass = part.mass;
-
-            if (currentResources != null)
-                ConfigureResourceMassGui(currentResources);
 
             if (HighLogic.LoadedSceneIsFlight)
             {
                 UpdateGuiResourceMass();
 
                 //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
-                isEmpty = !part.Resources.Any(r => currentResources.Contains(r.resourceName) &&  r.amount > r.maxAmount / 1000);
-                var showSwitchButtons = availableInFlight && isEmpty;
+                var showSwitchButtons = availableInFlight && numberOfAvailableTanks > 1 && !part.Resources.Any(r => currentResources.Contains(r.resourceName) && r.amount > r.maxAmount / 1000);
 
                 _nextTankSetupEvent.guiActive = showSwitchButtons;
                 _previousTankSetupEvent.guiActive = showSwitchButtons;
@@ -1078,7 +1025,7 @@ namespace InterstellarFuelSwitch
             }
             else
             {
-                var showSwitchButtons = availableInEditor && _modularTankList[selectedTankSetup].Resources.Count == 1;
+                var showSwitchButtons = availableInEditor && numberOfAvailableTanks > 1 && _modularTankList[selectedTankSetup].Resources.Count == 1;
 
                 _nextTankSetupEvent.guiActiveEditor = showSwitchButtons;
                 _previousTankSetupEvent.guiActiveEditor = showSwitchButtons;
