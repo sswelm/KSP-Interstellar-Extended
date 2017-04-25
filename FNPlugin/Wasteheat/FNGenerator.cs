@@ -355,8 +355,6 @@ namespace FNPlugin
         /// </summary>
         public void FindAndAttachToThermalSource()
         {
-            partDistance = 0;
-
             // disconnect
             if (attachedPowerSource != null)
             {
@@ -371,22 +369,49 @@ namespace FNPlugin
             if (attachedPowerSource != null)
                 return;
 
-            // otherwise look for other non selfcontained thermal sources
-            var searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, p => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 3, 3, true);
-            if (searchResult == null) return;
-
-            // verify cost is not higher than 1
-            partDistance = (int)Math.Max(Math.Ceiling(searchResult.Cost) - 1, 0);
-            if (partDistance > 0) return;
-
-            // update attached thermalsource
-            attachedPowerSource = searchResult.Source;
-
-            //connect with source
+            // otherwise look for other non selfcontained thermal sources with direct connection
             if (chargedParticleMode)
-                attachedPowerSource.ConnectedChargedParticleElectricGenerator = this;
-            else
-                attachedPowerSource.ConnectedThermalElectricGenerator = this;
+            {
+                // first try parent
+                attachedPowerSource = part.parent.FindModulesImplementing<IPowerSource>().FirstOrDefault();
+                if (attachedPowerSource != null && attachedPowerSource.ConnectedChargedParticleElectricGenerator == null)
+                    attachedPowerSource.ConnectedChargedParticleElectricGenerator = this;
+                else
+                {
+                    // then check all children
+                    attachedPowerSource = null;
+                    var childPart = part.children.Where(pt => pt.FindModulesImplementing<IPowerSource>().FirstOrDefault().ConnectedChargedParticleElectricGenerator == null).FirstOrDefault();
+                    if (childPart != null)
+                    {
+                        attachedPowerSource = childPart.FindModulesImplementing<IPowerSource>().FirstOrDefault();
+                        if (attachedPowerSource != null && attachedPowerSource.ConnectedChargedParticleElectricGenerator == null)
+                            attachedPowerSource.ConnectedChargedParticleElectricGenerator = this;
+                        else
+                            attachedPowerSource = null;
+                    }
+                }
+            }
+            else // thermal mode
+            {
+                // first try parent
+                attachedPowerSource = part.parent.FindModulesImplementing<IPowerSource>().FirstOrDefault();
+                if (attachedPowerSource != null && attachedPowerSource.ConnectedThermalElectricGenerator == null)
+                    attachedPowerSource.ConnectedThermalElectricGenerator = this;
+                else
+                {
+                    // then check all children
+                    attachedPowerSource = null;
+                    var childPart = part.children.Where(pt => pt.FindModulesImplementing<IPowerSource>().FirstOrDefault().ConnectedThermalElectricGenerator == null).FirstOrDefault();
+                    if (childPart != null)
+                    {
+                        attachedPowerSource = childPart.FindModulesImplementing<IPowerSource>().FirstOrDefault();
+                        if (attachedPowerSource != null && attachedPowerSource.ConnectedThermalElectricGenerator == null)
+                            attachedPowerSource.ConnectedThermalElectricGenerator = this;
+                        else
+                            attachedPowerSource = null;
+                    }
+                }
+            }
 
             UpdateTargetMass();
         }
@@ -394,7 +419,7 @@ namespace FNPlugin
         private void UpdateTargetMass()
         {
             // verify if mass calculation is active
-            if (!calculatedMass)
+            if (!calculatedMass || attachedPowerSource == null)
                 return;
 
             // update part mass
