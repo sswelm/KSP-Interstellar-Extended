@@ -304,8 +304,6 @@ namespace FNPlugin
                     upgradePartModule();
                 }
                 part.OnEditorAttach += OnEditorAttach;
-
-                FindAndAttachToThermalSource();
                 return;
             }
 
