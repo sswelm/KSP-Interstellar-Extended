@@ -609,21 +609,10 @@ namespace FNPlugin
                     double thermal_power_currently_needed_per_second = CalculateElectricalPowerCurrentlyNeeded();
 
                     double thermal_power_requested_per_second = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed_per_second), 0);
-                    double reactor_power_requested_per_second = Math.Max(Math.Min(maxReactorPower, thermal_power_currently_needed_per_second), 0);
 
                     attachedPowerSource.RequestedThermalHeat = thermal_power_requested_per_second;
 
                     double thermal_power_received_per_second = consumeFNResourcePerSecond(thermal_power_requested_per_second, FNResourceManager.FNRESOURCE_THERMALPOWER);
-
-                    if (thermal_power_received_per_second < reactor_power_requested_per_second && attachedPowerSource.ChargedPowerRatio > 0 && attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0)
-                    {
-                        var requested_charged_power_per_second = reactor_power_requested_per_second - thermal_power_received_per_second;
-
-                        if (requested_charged_power_per_second < 0.000025)
-                            thermal_power_received_per_second += requested_charged_power_per_second;
-                        else
-                            thermal_power_received_per_second += consumeFNResourcePerSecond(requested_charged_power_per_second, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-                    }
 
                     var effective_input_power_per_second = thermal_power_received_per_second * _totalEff;
 
@@ -632,9 +621,7 @@ namespace FNPlugin
 
                     electricdtps = Math.Max(effective_input_power_per_second, 0.0);
 
-                    var effectiveMaxThermalPower = attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0 ? maxReactorPower : maxThermalPower;
-
-                    max_electricdtps = effectiveMaxThermalPower * _totalEff;
+                    max_electricdtps = maxThermalPower * _totalEff;
                 }
                 else // charged particle mode
                 {
