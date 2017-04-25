@@ -601,26 +601,22 @@ namespace FNPlugin
 
                     _totalEff = Math.Min(pCarnotEff, carnotEff * pCarnotEff * attachedPowerSource.ThermalEnergyEfficiency);
 
-                    if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
-                        return;
+                    if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0) return;
 
                     attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, ElectricGeneratorType.thermal);
 
-                    double thermal_power_currently_needed_per_second = CalculateElectricalPowerCurrentlyNeeded();
+                    double thermal_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
+                    double thermal_power_requested_fixed = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed / _totalEff) * TimeWarp.fixedDeltaTime, 0);
 
-                    double thermal_power_requested_per_second = Math.Max(Math.Min(maxThermalPower, thermal_power_currently_needed_per_second), 0);
+                    attachedPowerSource.RequestedThermalHeat = thermal_power_requested_fixed / TimeWarp.fixedDeltaTime;
 
-                    attachedPowerSource.RequestedThermalHeat = thermal_power_requested_per_second;
-
-                    double thermal_power_received_per_second = consumeFNResourcePerSecond(thermal_power_requested_per_second, FNResourceManager.FNRESOURCE_THERMALPOWER);
-
-                    var effective_input_power_per_second = thermal_power_received_per_second * _totalEff;
+                    double input_power = consumeFNResource(thermal_power_requested_fixed, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                    var effective_input_power = input_power * _totalEff;
 
                     if (!CheatOptions.IgnoreMaxTemperature)
-                        consumeFNResourcePerSecond(effective_input_power_per_second, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        consumeFNResourcePerSecond(effective_input_power, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    electricdtps = Math.Max(effective_input_power_per_second, 0.0);
-
+                    electricdtps = Math.Max(effective_input_power / TimeWarp.fixedDeltaTime, 0.0);
                     max_electricdtps = maxThermalPower * _totalEff;
                 }
                 else // charged particle mode
@@ -630,12 +626,11 @@ namespace FNPlugin
                     if (_totalEff <= 0) return;
 
                     attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, ElectricGeneratorType.charged_particle);
-                    double charged_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
+                    double charged_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
                     double charged_power_requested_fixed = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff) * TimeWarp.fixedDeltaTime, 0);
 
                     double input_power = consumeFNResource(charged_power_requested_fixed, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-
                     var effective_input_power = input_power * _totalEff;
 
                     if (!CheatOptions.IgnoreMaxTemperature)
