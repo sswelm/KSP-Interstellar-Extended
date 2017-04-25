@@ -304,6 +304,7 @@ namespace FNPlugin
                     upgradePartModule();
                 }
                 part.OnEditorAttach += OnEditorAttach;
+                part.OnEditorDetach += OnEditorDetach;
                 return;
             }
 
@@ -348,20 +349,28 @@ namespace FNPlugin
             UpdateHeatExchangedThrustDivisor();
         }
 
-        /// <summary>
-        /// Finds the nearest avialable thermalsource and update effective part mass
-        /// </summary>
-        public void FindAndAttachToThermalSource()
+        private void OnEditorDetach()
         {
-            // disconnect
+            DetachFromThermalSource();
+        }
+
+        public void DetachFromThermalSource()
+        {
             if (attachedPowerSource != null)
             {
                 if (chargedParticleMode)
                     attachedPowerSource.ConnectedChargedParticleElectricGenerator = null;
                 else
                     attachedPowerSource.ConnectedThermalElectricGenerator = null;
+                attachedPowerSource = null;
             }
+        }
 
+        /// <summary>
+        /// Finds the nearest avialable thermalsource and update effective part mass
+        /// </summary>
+        public void FindAndAttachToThermalSource()
+        {
             // first look if part contains an thermal source
             attachedPowerSource = part.FindModulesImplementing<IPowerSource>().FirstOrDefault();
             if (attachedPowerSource != null)
