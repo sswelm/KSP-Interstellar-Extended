@@ -22,12 +22,12 @@ namespace FNPlugin
             base.OnStart(state);
         }
 
-        protected override ORSResourceManager createResourceManagerForResource(string resourcename) 
+        protected override ORSResourceManager createResourceManagerForResource(string resourcename)
         {
             return getOvermanagerForResource(resourcename).createManagerForVessel(this);
         }
 
-        protected override ORSResourceOvermanager getOvermanagerForResource(string resourcename) 
+        protected override ORSResourceOvermanager getOvermanagerForResource(string resourcename)
         {
             return FNResourceOvermanager.getResourceOvermanagerForResource(resourcename);
         }
@@ -39,6 +39,11 @@ namespace FNPlugin
                 displayName += " " + partNrInList;
 
             return displayName;
+        }   
+     
+        public override void OnFixedUpdateResourceSuppliable(float fixedDeltaTime)
+        {
+            // Noything yet but do not remove
         }
     }
 }

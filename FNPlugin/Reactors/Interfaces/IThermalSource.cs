@@ -17,10 +17,11 @@ namespace FNPlugin
     }
 
 
-    public interface IThermalSource : IThermalReciever
+    public interface IPowerSource : IThermalReciever
     {
         Part Part { get; }
 
+        int ProviderPowerPriority { get; }
 
         /// <summary>
         /// // The absolute maximum amount of power the thermalsource can possbly produce

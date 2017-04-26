@@ -47,8 +47,6 @@ namespace FNPlugin.Refinery
         public String ActivityName { get { return "Peroxide Process"; } }
 
 
-        private double _effectiveMaxPower;
-
         public bool HasActivityRequirements 
         { 
             get 
@@ -81,8 +79,8 @@ namespace FNPlugin.Refinery
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
             _effectiveMaxPower = PowerRequirements * productionModidier;
-
             _current_power = PowerRequirements * powerFraction;
+
             _current_rate = CurrentPower / PluginHelper.PechineyUgineKuhlmannEnergyPerTon;
 
             // determine how much resource we have
@@ -149,12 +147,9 @@ namespace FNPlugin.Refinery
             updateStatusMessage();
         }
 
-        public void UpdateGUI()
+        public override void UpdateGUI()
         {
-            if (_bold_label == null)
-                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
-            if (_value_label == null)
-                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+            base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));

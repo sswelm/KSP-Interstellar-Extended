@@ -42,14 +42,14 @@ namespace FNPlugin
                 render_window = !render_window;
 
             // thermal logic
-            List<IThermalSource> thermal_sources = new List<IThermalSource>();
+            List<IPowerSource> thermal_sources = new List<IPowerSource>();
             List<FNRadiator> radiators = new List<FNRadiator>();
             List<ModuleDeployableSolarPanel> panels = new List<ModuleDeployableSolarPanel>();
             List<FNGenerator> generators = new List<FNGenerator>();
 
             foreach (Part p in EditorLogic.fetch.ship.parts) 
             {
-                thermal_sources.AddRange(p.FindModulesImplementing<IThermalSource>());
+                thermal_sources.AddRange(p.FindModulesImplementing<IPowerSource>());
                 radiators.AddRange(p.FindModulesImplementing<FNRadiator>());
                 panels.AddRange(p.FindModulesImplementing<ModuleDeployableSolarPanel>());
                 generators.AddRange(p.FindModulesImplementing<FNGenerator>());
@@ -60,7 +60,7 @@ namespace FNPlugin
             source_temp_at_100pc = double.MaxValue;
             source_temp_at_30pc = double.MaxValue;
 
-            foreach (IThermalSource tsource in thermal_sources) 
+            foreach (IPowerSource tsource in thermal_sources) 
             {
                 double r_temp_100 = tsource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_100pcnt);
                 double r_temp_30 = tsource.GetCoreTempAtRadiatorTemp(resting_radiator_temp_at_30pcnt);

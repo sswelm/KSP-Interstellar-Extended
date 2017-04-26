@@ -151,7 +151,7 @@ namespace FNPlugin
             GUILayout.Label(getPowerFormatString(stored_resource_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
-            double new_power_supply = getDemandSupply(); 
+            double new_power_supply = getOverproduction(); 
             double net_utilisation_supply = getDemandStableSupply();
 
             GUIStyle net_poer_style = new_power_supply < -0.001 ? red_label : green_label;
@@ -184,10 +184,14 @@ namespace FNPlugin
 
                 foreach (var group in groupedPowerSupply)
                 {
-                    GUILayout.BeginHorizontal();
-
                     var sumOfCurrentSupply =  group.Sum(m => m.Value.currentSupply);
                     var sumOfMaximumSupply = group.Sum(m => m.Value.maximumSupply);
+
+                    // skip anything with less then 0.0 KW
+                    if (sumOfMaximumSupply < 0.000005)
+                        continue;
+
+                    GUILayout.BeginHorizontal();
 
                     string name = group.Key;
                     var count = group.Count();
@@ -214,11 +218,11 @@ namespace FNPlugin
 
                 foreach (var group in groupedPowerDraws)
                 {
-                    GUILayout.BeginHorizontal();
-
                     var sumOfPowerDraw = group.Sum(m => m.Value.Power_draw);
                     var sumOfPowerConsume = group.Sum(m => m.Value.Power_consume);
                     var sumOfConsumePercentage = sumOfPowerDraw > 0 ? sumOfPowerConsume / sumOfPowerDraw * 100 : 0;
+
+                    GUILayout.BeginHorizontal();
 
                     string name = group.Key;
                     var count = group.Count();

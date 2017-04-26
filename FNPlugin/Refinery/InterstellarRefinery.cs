@@ -32,6 +32,11 @@ namespace FNPlugin.Refinery
         {
             return displayName;
         }
+
+        public override int getPowerPriority()
+        {
+            return 4;
+        }
     }
 
 
@@ -377,5 +382,6 @@ namespace FNPlugin.Refinery
             GUI.DragWindow();
 
         }
+
     }
 }

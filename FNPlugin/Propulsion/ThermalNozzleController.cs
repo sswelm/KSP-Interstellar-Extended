@@ -272,8 +272,8 @@ namespace FNPlugin
         //public bool Static_updating2 { get { return static_updating2; } set { static_updating2 = value; } }
         public int Fuel_mode { get { return fuel_mode; } }
 
-        private IThermalSource _myAttachedReactor;
-        public IThermalSource AttachedReactor
+        private IPowerSource _myAttachedReactor;
+        public IPowerSource AttachedReactor
         {
             get { return _myAttachedReactor; }
             private set
@@ -1530,7 +1530,5 @@ namespace FNPlugin
 
             return propellantlist;
         }
-
-
     }
 }

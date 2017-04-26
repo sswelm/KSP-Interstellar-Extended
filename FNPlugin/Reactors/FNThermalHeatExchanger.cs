@@ -7,7 +7,7 @@ using FNPlugin.Propulsion;
 
 namespace FNPlugin
 {
-    class FNThermalHeatExchanger : FNResourceSuppliableModule, IThermalSource
+    class FNThermalHeatExchanger : FNResourceSuppliableModule, IPowerSource
     {
         //Persistent True
         [KSPField(isPersistant = true)]
@@ -38,6 +38,8 @@ namespace FNPlugin
         protected double currentIsThermalEnergyGeneratorActive;
 
         public Part Part { get { return this.part; } }
+
+        public int ProviderPowerPriority { get { return 2; } }
 
         public double MinimumThrottle { get { return 0; } }
 
@@ -288,6 +290,5 @@ namespace FNPlugin
             }
             return activeExchangers;
         }
-
     }
 }

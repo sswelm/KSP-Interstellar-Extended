@@ -8,7 +8,7 @@ using FNPlugin.Propulsion;
 
 namespace FNPlugin
 {
-    class InterstellarReactor : FNResourceSuppliableModule, IThermalSource, IRescalable<InterstellarReactor>
+    class InterstellarReactor : FNResourceSuppliableModule, IPowerSource, IRescalable<InterstellarReactor>
     {
         //public enum ReactorTypes
         //{
@@ -57,6 +57,8 @@ namespace FNPlugin
         public double stored_fuel_ratio = 1;
         [KSPField(isPersistant = true)]
         public double reactor_power_ratio = 1;
+        [KSPField(isPersistant = true)]
+        public int providerPowerPriority = 2;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk2 = null;
@@ -123,6 +125,7 @@ namespace FNPlugin
         public double powerOutputMk5;
 
         // Settings
+
         [KSPField(isPersistant = false)]
         public int reactorModeTechBonus = 0;
         [KSPField(isPersistant = false)]
@@ -252,6 +255,8 @@ namespace FNPlugin
         public float upgradedPowerOutput = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade")]
         public string upgradeTechReq = String.Empty;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Balancing")]
+        public bool shouldApplyBalance;
 
         // GUI strings
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Core Temp")]
@@ -375,11 +380,11 @@ namespace FNPlugin
         protected double tritium_molar_mass_ratio = 3.0160 / 7.0183;
         protected double helium_molar_mass_ratio = 4.0023 / 7.0183;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Base Wasteheat", guiFormat = "F1")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Wasteheat", guiFormat = "F1")]
         protected double partBaseWasteheat;
 
-        protected double storedIsThermalEnergyGenratorActive;
-        protected double storedIsChargedEnergyGenratorActive;
+        protected double storedIsThermalEnergyGeneratorActive;
+        protected double storedIsChargedEnergyGeneratorActive;
         protected double currentIsThermalEnergyGenratorActive;
         protected double currentIsChargedEnergyGenratorActive;
 
@@ -410,6 +415,8 @@ namespace FNPlugin
 
         public double ProducedThermalHeat { get { return ongoing_neutron_power_generated; } }
 
+        public int ProviderPowerPriority { get { return providerPowerPriority; } }
+
         private double _requestedThermalHeat;
         public double RequestedThermalHeat
         {
@@ -417,7 +424,7 @@ namespace FNPlugin
             set { _requestedThermalHeat = value; }
         }
 
-        public double RawTotalPowerProduced
+        public double RawTotalPowerProduced 
         {
             get { return rawTotalPowerProduced; }
         }
@@ -503,9 +510,9 @@ namespace FNPlugin
 
         public bool FullPowerForNonNeutronAbsorbants { get { return fullPowerForNonNeutronAbsorbants; } }
 
-        public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGenratorActive; } }
+        public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGeneratorActive; } }
 
-        public double EfficencyConnectedChargedEnergyGenerator { get { return storedIsChargedEnergyGenratorActive; } }
+        public double EfficencyConnectedChargedEnergyGenerator { get { return storedIsChargedEnergyGeneratorActive; } }
 
 
         public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
@@ -524,7 +531,9 @@ namespace FNPlugin
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType)
         {
-            return generatorType == _firstGeneratorType && storedIsThermalEnergyGenratorActive > 0 && storedIsChargedEnergyGenratorActive > 0;
+            shouldApplyBalance = generatorType == _firstGeneratorType && storedIsThermalEnergyGeneratorActive > 0 && storedIsChargedEnergyGeneratorActive > 0;
+
+            return shouldApplyBalance;
         }
 
         public bool IsThermalSource { get { return true; } }
@@ -1179,8 +1188,8 @@ namespace FNPlugin
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
-            storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
-            storedIsChargedEnergyGenratorActive = currentIsChargedEnergyGenratorActive;
+            storedIsThermalEnergyGeneratorActive = currentIsThermalEnergyGenratorActive;
+            storedIsChargedEnergyGeneratorActive = currentIsChargedEnergyGenratorActive;
             currentIsThermalEnergyGenratorActive = 0;
             currentIsChargedEnergyGenratorActive = 0;
 
@@ -1198,7 +1207,7 @@ namespace FNPlugin
                 }
 
                 // Max Power
-                var engineThrottleModifier = disableAtZeroThrottle && connectedEngines.Any() && connectedEngines.All(e => e.CurrentThrottle == 0) ? 0 : 1;
+                
                 max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
 
                 geeForceModifier = CheatOptions.UnbreakableJoints || !hasBuoyancyEffects ? 1
@@ -1229,6 +1238,8 @@ namespace FNPlugin
 
                 // Charged Power
                 fixed_maximum_charged_power = MaximumChargedPower * TimeWarp.fixedDeltaTime;
+
+                var engineThrottleModifier = disableAtZeroThrottle && connectedEngines.Any() && connectedEngines.All(e => e.CurrentThrottle == 0) ? 0 : 1;
 
                 max_charged_to_supply_fixed = Math.Max(fixed_maximum_charged_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
                 max_charged_to_supply_nominal = max_charged_to_supply_fixed / TimeWarp.fixedDeltaTime;
@@ -1372,22 +1383,33 @@ namespace FNPlugin
                     {
                         // to prevent starting up with wasteheat, boot with full power at bootup
                         thermalPowerResource.amount = thermalPowerResource.maxAmount * fuel_ratio;
-                        reactorBooted = true;
                     }
                 }
 
                 if (chargedPowerResource != null)
                 {
-                    var stableChargedPower = 10 * MaximumChargedPower;
-                    var requiredChargedCapacity = Math.Max(0.0001, stableChargedPower * TimeWarp.fixedDeltaTime);
-                    var previousChargedCapacity = Math.Max(0.0001, stableChargedPower * previousDeltaTime);
-                    var chargedPowerRatio = thermalPowerResource.amount / thermalPowerResource.maxAmount;
+                    var stableChargedPowerBuffer = 10 * MaximumChargedPower;
+                    var requiredChargedCapacity = Math.Max(0.0001, stableChargedPowerBuffer * TimeWarp.fixedDeltaTime);
+                    var previousChargedCapacity = Math.Max(0.0001, stableChargedPowerBuffer * previousDeltaTime);
+                    var chargedPowerRatio = chargedPowerResource.amount / chargedPowerResource.maxAmount;
 
                     chargedPowerResource.maxAmount = requiredChargedCapacity;
-                    chargedPowerResource.amount = requiredChargedCapacity > previousChargedCapacity
-                        ? Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerResource.amount + requiredChargedCapacity - previousChargedCapacity))
-                        : Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerRatio * requiredChargedCapacity));
+
+                    if (reactorBooted)
+                    {
+                        // adjust to
+                        chargedPowerResource.amount = requiredChargedCapacity > previousChargedCapacity
+                            ? Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerResource.amount + requiredChargedCapacity - previousChargedCapacity))
+                            : Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerRatio * requiredChargedCapacity));
+                    }
+                    else
+                    {
+                        // to prevent starting up with wasteheat, boot with full power at bootup
+                        chargedPowerResource.amount = chargedPowerResource.maxAmount * fuel_ratio;
+                    }
                 }
+
+                reactorBooted = true;
 
                 if (wasteheatPowerResource != null)
                 {
@@ -1951,41 +1973,47 @@ namespace FNPlugin
 
                         var kg_fuel_use_per_day = 1000 * total_power_per_frame * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
 
-                        var fuel_lifetime_d = kg_fuel_use_per_day > 0 ? availabilityInKg / kg_fuel_use_per_day : 0;
-
-                        var lifetime_years = Math.Floor(fuel_lifetime_d / GameConstants.KERBIN_YEAR_IN_DAYS);
-                        var lifetime_years_day_remainder = lifetime_years < 1e+6 ? fuel_lifetime_d % GameConstants.KERBIN_YEAR_IN_DAYS : 0;
-
                         PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.getFormatedMassString(kg_fuel_use_per_day, "0.000000") + "/day", bold_style, text_style);
 
-                        if (lifetime_years < 1e9)
+                        if (kg_fuel_use_per_day > 0)
                         {
-                            if (lifetime_years > 0)
-                                PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetime_years) ? "-" : lifetime_years + " years " + (lifetime_years_day_remainder).ToString("0.00")) + " days", bold_style, text_style);
-                            else
-                                PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", bold_style, text_style);
+                            var fuel_lifetime_d = availabilityInKg / kg_fuel_use_per_day;
+                            var lifetime_years = Math.Floor(fuel_lifetime_d / GameConstants.KERBIN_YEAR_IN_DAYS);
+                            if (lifetime_years < 1e9)
+                            {
+                                if (lifetime_years > 0)
+                                {
+                                    var lifetime_years_day_remainder = lifetime_years < 1e+6 ? fuel_lifetime_d % GameConstants.KERBIN_YEAR_IN_DAYS : 0;
+                                    PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetime_years) ? "-" : lifetime_years + " years " + (lifetime_years_day_remainder).ToString("0.00")) + " days", bold_style, text_style);
+                                }
+                                else
+                                    PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", bold_style, text_style);
+                            }
                         }
                     }
 
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Products", bold_style, GUILayout.Width(150));
-                    GUILayout.EndHorizontal();
-
-                    foreach (var product in current_fuel_variant.ReactorProducts)
+                    if (current_fuel_variant.ReactorProducts.Count > 0)
                     {
-                        double availabilityInKg = GetProductAvailability(product) * product.DensityInKg;
-                        double maxAvailabilityInKg = GetMaxProductAvailability(product) * product.DensityInKg;
-
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label(product.FuelName + " Storage", bold_style, GUILayout.Width(150));
-                        GUILayout.Label((availabilityInKg).ToString("0.0000") + " kg / " + (maxAvailabilityInKg).ToString("0.0000") + " kg", text_style, GUILayout.Width(150));
+                        GUILayout.Label("Products", bold_style, GUILayout.Width(150));
                         GUILayout.EndHorizontal();
 
-                        double dayly_production_in_Kg = 1000 * total_power_per_frame * product.TonsProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
-                        GUILayout.BeginHorizontal();
-                        GUILayout.Label(product.FuelName + " Production", bold_style, GUILayout.Width(150));
-                        GUILayout.Label(dayly_production_in_Kg.ToString("0.000000") + " kg/day", text_style, GUILayout.Width(150));
-                        GUILayout.EndHorizontal();
+                        foreach (var product in current_fuel_variant.ReactorProducts)
+                        {
+                            double availabilityInKg = GetProductAvailability(product) * product.DensityInKg;
+                            double maxAvailabilityInKg = GetMaxProductAvailability(product) * product.DensityInKg;
+
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Label(product.FuelName + " Storage", bold_style, GUILayout.Width(150));
+                            GUILayout.Label((availabilityInKg).ToString("0.0000") + " kg / " + (maxAvailabilityInKg).ToString("0.0000") + " kg", text_style, GUILayout.Width(150));
+                            GUILayout.EndHorizontal();
+
+                            double dayly_production_in_Kg = 1000 * total_power_per_frame * product.TonsProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                            GUILayout.BeginHorizontal();
+                            GUILayout.Label(product.FuelName + " Production", bold_style, GUILayout.Width(150));
+                            GUILayout.Label(dayly_production_in_Kg.ToString("0.000000") + " kg/day", text_style, GUILayout.Width(150));
+                            GUILayout.EndHorizontal();
+                        }
                     }
                 }
 

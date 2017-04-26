@@ -145,12 +145,9 @@ namespace FNPlugin.Refinery
             updateStatusMessage();
         }
 
-        public void UpdateGUI()
+        public override void UpdateGUI()
         {
-            if (_bold_label == null)
-                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
-            if (_value_label == null)
-                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+            base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
