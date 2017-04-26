@@ -1105,6 +1105,21 @@ namespace FNPlugin
             }
         }
 
+        private void OnEditorDetach()
+        {
+            foreach (var node in part.attachNodes)
+            {
+                if (node.attachedPart == null) continue;
+
+                var generator = node.attachedPart.FindModuleImplementing<FNGenerator>();
+                if (generator != null)
+                {
+                    generator.DetachFromThermalSource();
+                    generator.FindAndAttachToThermalSource();
+                }
+            }
+        }
+
         public virtual void Update()
         {
             currentRawPowerOutput = RawPowerOutput;
