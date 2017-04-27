@@ -112,9 +112,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiativeArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float areaMultiplier = 4;
+        public float areaMultiplier = 3;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float areaMultiplierAtmosphere = 4;
+        public float areaMultiplierAtmosphere = 3;
         //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         //public float radiativeAreaFraction = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]

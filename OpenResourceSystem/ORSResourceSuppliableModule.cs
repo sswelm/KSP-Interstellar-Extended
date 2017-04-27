@@ -33,16 +33,16 @@ namespace OpenResourceSystem
                 fnresource_supplied.Add(resourcename, 0);
 
             double power_taken_fixed = Math.Max(Math.Min(power_fixed, fnresource_supplied[resourcename] * TimeWarp.fixedDeltaTime), 0);
-            fnresource_supplied[resourcename] -= power_taken_fixed;
+            fnresource_supplied[resourcename] -= power_taken_fixed / TimeWarp.fixedDeltaTime;
             
             manager.powerDrawFixed(this, power_fixed, power_taken_fixed);
 
             return power_taken_fixed;
         }
 
-        public double consumeFNResourcePerSecond(double power, String resourcename)
+        public double consumeFNResourcePerSecond(double power_per_second, String resourcename)
         {
-            power = Math.Max(power, 0);
+            power_per_second = Math.Max(power_per_second, 0);
 
             ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
             if (manager == null)
@@ -54,12 +54,10 @@ namespace OpenResourceSystem
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
 
-            double power_taken_fixed = Math.Max(Math.Min(power * TimeWarp.fixedDeltaTime, fnresource_supplied[resourcename] * TimeWarp.fixedDeltaTime), 0);
-            fnresource_supplied[resourcename] -= power_taken_fixed;
+            double power_taken_per_second = Math.Max(Math.Min(power_per_second, fnresource_supplied[resourcename]), 0);
+            fnresource_supplied[resourcename] -= power_taken_per_second;
 
-            var power_taken_per_second = power_taken_fixed / TimeWarp.fixedDeltaTime;
-
-            manager.powerDrawPerSecond(this, power, power_taken_per_second);
+            manager.powerDrawPerSecond(this, power_per_second, power_taken_per_second);
 
             return power_taken_per_second;
         }

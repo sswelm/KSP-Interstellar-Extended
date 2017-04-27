@@ -10,7 +10,7 @@ namespace FNPlugin
     class InterstellarFissionPBDP : InterstellarReactor, IChargedParticleSource
     {
         // Persistant False
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Heat Throttling")]
         public bool heatThrottling = false;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiUnits = "%", guiName = "Overheating", guiFormat = "F3")]
         public double overheatPercentage;
@@ -76,7 +76,7 @@ namespace FNPlugin
         {
             get
             {
-                if (HighLogic.LoadedSceneIsFlight && (reactorType == 4 || heatThrottling))
+                if (HighLogic.LoadedSceneIsFlight && heatThrottling)
                 {
                     resourceBarRatio = CheatOptions.IgnoreMaxTemperature ? 0 : getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
 

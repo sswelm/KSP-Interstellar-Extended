@@ -110,6 +110,8 @@ namespace FNPlugin
         protected double isp_d = 0;
         protected double throttle_d = 0;
 
+        const double oneThird = 1.0 / 3.0;
+
         protected PartResource vacuumPlasmaResource;
 
         private ElectricEnginePropellant _current_propellant;
@@ -458,8 +460,10 @@ namespace FNPlugin
             {
                 var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
                 var megaJoulesBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var powerAvailableForThisEngine = availablePower * _electrical_share_f;
-                var power_per_engine = megaJoulesBarRatio * ModifiedThrotte * EvaluateMaxThrust(powerAvailableForThisEngine) * CurrentIspMultiplier * _modifiedEngineBaseISP / GetPowerThrustModifier() * _g0;
+
+                var effectiveResourceThrotling = megaJoulesBarRatio > oneThird ? 1 : megaJoulesBarRatio * 3;
+
+                var power_per_engine = effectiveResourceThrotling * ModifiedThrotte * EvaluateMaxThrust(availablePower * _electrical_share_f) * CurrentIspMultiplier * _modifiedEngineBaseISP / GetPowerThrustModifier() * _g0;
                 power_request = currentPropellantEfficiency <= 0 ? 0 : Math.Min(power_per_engine / currentPropellantEfficiency, maxThrottlePower);
             }
 

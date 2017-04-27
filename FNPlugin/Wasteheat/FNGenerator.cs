@@ -34,6 +34,11 @@ namespace FNPlugin
         public float powerPercentage = 100;
 
         // Persistent False
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Is MHD")]
+        public bool isMHD = false;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Is Limited by min throtle")]
+        public bool isLimitedByMinThrotle = false;
+
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public bool calculatedMass = false;
         [KSPField(isPersistant = false)]
@@ -84,7 +89,7 @@ namespace FNPlugin
         // Debugging
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public float storedMassMultiplier;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Part Mass", guiUnits = " t")]
         public float partMass;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
         public float targetMass;
@@ -94,13 +99,13 @@ namespace FNPlugin
         public float moduleMassDelta;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Charged Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxChargedPower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxThermalPower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Reactor Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Reactor Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxReactorPower;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Type")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Type")]
         public string generatorType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Current Power")]
         public string OutputPower;
@@ -127,8 +132,6 @@ namespace FNPlugin
         public double currentUnfilledResourceDemand;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Power Needed", guiUnits = " MW", guiFormat = "F6")]
         public double electrical_power_currently_needed;
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Overcapacity", guiUnits = " MW", guiFormat = "F6")]
-        //public double overCapacity;
 
         // Internal
         protected double outputPower;
@@ -152,9 +155,11 @@ namespace FNPlugin
 
         protected PartResource megajouleResource;
         protected PowerStates _powerState;
-        protected IPowerSource attachedPowerSource;
+
         protected Animation anim;
         protected Queue<double> averageRadiatorTemperatureQueue = new Queue<double>();
+
+        protected IPowerSource attachedPowerSource;
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -314,8 +319,8 @@ namespace FNPlugin
             if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
 
-            // only force activate if no certain partmodules are not present
-            if (part.FindModuleImplementing<MicrowavePowerReceiver>() == null)
+            // only force activate if no certain partmodules are not present and not limited by minimum throtle
+            if (!isLimitedByMinThrotle && part.FindModuleImplementing<MicrowavePowerReceiver>() == null)
             {
                 Debug.Log("[WarpPlugin] Generator Force Activated");
                 this.part.force_activate();
@@ -373,8 +378,20 @@ namespace FNPlugin
             if (attachedPowerSource != null)
                 return;
 
-            // otherwise look for other non selfcontained thermal sources
-            var searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, p => p.IsThermalSource && p.ThermalEnergyEfficiency > 0 , 3, 3, 3, true);
+            // otherwise look for other non selfcontained thermal sources that is not already connected
+            ThermalSourceSearchResult searchResult;
+            if (chargedParticleMode)
+                    searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, 
+                        p => p.IsThermalSource 
+                            && p.ConnectedChargedParticleElectricGenerator == null 
+                            && p.ChargedParticleEnergyEfficiency > 0, 3, 3, 3, true);
+            else 
+                searchResult = ThermalSourceSearchResult
+                    .BreadthFirstSearchForThermalSource(part, 
+                        p => p.IsThermalSource 
+                            && p.ConnectedThermalElectricGenerator == null 
+                            && p.ThermalEnergyEfficiency > 0, 3, 3, 3, true);
+
             if (searchResult == null) return;
 
             // verify cost is not higher than 1
@@ -530,11 +547,12 @@ namespace FNPlugin
         {
             if (attachedPowerSource == null) return;
 
-            if (!chargedParticleMode)
+            if (!chargedParticleMode) // thermal mode
             {
-                hotBathTemp = attachedPowerSource.HotBathTemperature;  
+                hotBathTemp = isMHD ? attachedPowerSource.CoreTemperature : attachedPowerSource.HotBathTemperature;  
+
                 averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel) * 0.75);
-                coldBathTemp = averageRadiatorTemperatureQueue.Sum() / averageRadiatorTemperatureQueue.Count;
+                coldBathTemp = averageRadiatorTemperatureQueue.Average();
 
                 int targetBufferLength = (int)Math.Ceiling(Math.Pow(TimeWarp.fixedDeltaTime, 0.5)) + 1;
 
@@ -547,7 +565,10 @@ namespace FNPlugin
             if (HighLogic.LoadedSceneIsEditor)
                 UpdateHeatExchangedThrustDivisor();
 
-            maxThermalPower = attachedPowerSource.MaximumThermalPower * powerCustomSettingFraction;
+            maxThermalPower = isLimitedByMinThrotle 
+                    ? attachedPowerSource.MinimumPower 
+                    : attachedPowerSource.MaximumThermalPower * powerCustomSettingFraction;
+
             maxChargedPower = attachedPowerSource.MaximumChargedPower * powerCustomSettingFraction;
             maxReactorPower = maxThermalPower + maxChargedPower;
         }
@@ -621,7 +642,7 @@ namespace FNPlugin
 
                     double thermal_power_received_per_second = consumeFNResourcePerSecond(thermal_power_requested_per_second, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                    if (thermal_power_received_per_second < reactor_power_requested_per_second && attachedPowerSource.ChargedPowerRatio > 0 && attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0)
+                    if (thermal_power_received_per_second < reactor_power_requested_per_second && attachedPowerSource.ChargedPowerRatio > 0.001 && attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0)
                     {
                         var requested_charged_power_per_second = reactor_power_requested_per_second - thermal_power_received_per_second;
 
@@ -738,6 +759,9 @@ namespace FNPlugin
 
         private double CalculateElectricalPowerCurrentlyNeeded()
         {
+            if (isLimitedByMinThrotle)
+                return attachedPowerSource.MinimumPower;
+
             var powerBufferRatio = Math.Min( 1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES), 1);
 
             double exponent;
@@ -829,6 +853,9 @@ namespace FNPlugin
         public override string getResourceManagerDisplayName()
         {
             var result = base.getResourceManagerDisplayName();
+            if (isLimitedByMinThrotle)
+                return result;
+
             if (attachedPowerSource != null && attachedPowerSource.Part != null)
                 result += " (" + attachedPowerSource.Part.partInfo.title + ")";
             return result;
@@ -836,7 +863,13 @@ namespace FNPlugin
 
         public override int getPowerPriority()
         {
-            return attachedPowerSource != null ? attachedPowerSource.ProviderPowerPriority : base.getPowerPriority();
+            if (isLimitedByMinThrotle)
+                return 1;
+
+            if (attachedPowerSource == null)
+                return base.getPowerPriority();
+
+            return attachedPowerSource.ProviderPowerPriority;
         }
     }
 }

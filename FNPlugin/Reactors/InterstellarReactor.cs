@@ -57,8 +57,8 @@ namespace FNPlugin
         public double stored_fuel_ratio = 1;
         [KSPField(isPersistant = true)]
         public double reactor_power_ratio = 1;
-        [KSPField(isPersistant = true)]
-        public int providerPowerPriority = 2;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Electric Priority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 1)]
+        public float electricPowerPriority = 2;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk2 = null;
@@ -199,6 +199,9 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false)]
         public float alternatorPowerKW = 0;
+        [KSPField(isPersistant = false)]
+        public bool hasAlternator = false;
+
         [KSPField(isPersistant = false)]
         public float thermalPropulsionEfficiency = 1;
         [KSPField(isPersistant = false)]
@@ -415,7 +418,7 @@ namespace FNPlugin
 
         public double ProducedThermalHeat { get { return ongoing_neutron_power_generated; } }
 
-        public int ProviderPowerPriority { get { return providerPowerPriority; } }
+        public int ProviderPowerPriority { get { return (int)electricPowerPriority; } }
 
         private double _requestedThermalHeat;
         public double RequestedThermalHeat
@@ -925,7 +928,7 @@ namespace FNPlugin
             chargedPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
             wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
+            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, FNResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;
 
             windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
@@ -1177,17 +1180,20 @@ namespace FNPlugin
                 UpdateCapacities(stored_fuel_ratio);
             }
 
-            base.OnFixedUpdate();
+            if (!enabled)
+                base.OnFixedUpdate();
 
             // add alternator power
-            if (IsEnabled && alternatorPowerKW != 0)
-            {
-                part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -alternatorPowerKW * TimeWarp.fixedDeltaTime);
-            }
+            //if (IsEnabled && hasAlternator && enabled)
+            //{
+            //    supplyFNResourcePerSecond(MaximumThermalPower * minimumThrottle * 0.05, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            //}
         }
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
+            base.OnFixedUpdate();
+
             storedIsThermalEnergyGeneratorActive = currentIsThermalEnergyGenratorActive;
             storedIsChargedEnergyGeneratorActive = currentIsChargedEnergyGenratorActive;
             currentIsThermalEnergyGenratorActive = 0;
@@ -1754,17 +1760,28 @@ namespace FNPlugin
                 UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability fuel null");
 
             if (!fuel.ConsumeGlobal)
-            {
-                if (part.Resources.Contains(fuel.ResourceName))
-                    return part.Resources[fuel.ResourceName].amount;
-                else
-                    return 0;
-            }
+                return GetLocalResourceAmount(fuel);
 
             if (HighLogic.LoadedSceneIsFlight)
                 return part.GetResourceAvailable(fuel.Definition);
             else
                 return part.FindAmountOfAvailableFuel(fuel.ResourceName, 4);
+        }
+
+        protected double GetLocalResourceRatio(ReactorFuel fuel)
+        {
+            if (part.Resources.Contains(fuel.ResourceName))
+                return part.Resources[fuel.ResourceName].amount / part.Resources[fuel.ResourceName].maxAmount;
+            else
+                return 0;
+        }
+
+        protected double GetLocalResourceAmount(ReactorFuel fuel)
+        {
+            if (part.Resources.Contains(fuel.ResourceName))
+                return part.Resources[fuel.ResourceName].amount;
+            else
+                return 0;
         }
 
         protected double GetFuelAvailability(PartResourceDefinition definition)

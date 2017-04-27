@@ -8,7 +8,8 @@ namespace FNPlugin
 {
     public class AtmosphericResourceHandler 
     {
-        protected static Dictionary<int, List<AtmosphericResource>> body_atmospheric_resource_list = new Dictionary<int, List<AtmosphericResource>>();
+        protected static Dictionary<int, List<AtmosphericResource>> atmospheric_resource_by_id = new Dictionary<int, List<AtmosphericResource>>();
+        protected static Dictionary<string, List<AtmosphericResource>> atmospheric_resource_by_name = new Dictionary<string, List<AtmosphericResource>>();
 
         public static double getAtmosphericResourceContent(int refBody, string resourcename) 
         {
@@ -51,21 +52,78 @@ namespace FNPlugin
             return null;
         }
 
+        public static List<AtmosphericResource> GetAtmosphericCompositionForBody(string celestrialBodyName)
+        {
+            List<AtmosphericResource> bodyAtmosphericComposition;
+
+            // first attempt to lookup if its already stored
+            if (atmospheric_resource_by_name.TryGetValue(celestrialBodyName, out bodyAtmosphericComposition))
+                return bodyAtmosphericComposition;
+            else
+            {
+                bodyAtmosphericComposition = new List<AtmosphericResource>();
+
+                try
+                {
+                    ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
+
+                    Debug.Log("[KSPI] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
+                    if (atmospheric_resource_pack != null)
+                    {
+                        Debug.Log("[KSPI] - searching for atmosphere definition data for " + celestrialBodyName);
+                        List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
+                        if (atmospheric_resource_list.Any())
+                        {
+                            Debug.Log("[KSPI] - found atmospheric resource list for " + celestrialBodyName);
+
+                            // create atmospheric definition from file
+                            bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new AtmosphericResource(
+                                orsc.HasValue("resourceName") 
+                                    ? orsc.GetValue("resourceName") 
+                                    : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                        }
+                        else
+                            Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestrialBodyName);
+                    }
+                    else
+                        Debug.LogError("[KSPI] - Failed to load atmospheric data");
+
+                    // add to database for future reference
+                    atmospheric_resource_by_name.Add(celestrialBodyName, bodyAtmosphericComposition);
+
+                    // lookup celestrial body
+                    CelestialBody celestialBody = FlightGlobals.Bodies.FirstOrDefault(b => b.name == celestrialBodyName);
+                    if (celestialBody != null)
+                        atmospheric_resource_by_id.Add(celestialBody.flightGlobalsIndex, bodyAtmosphericComposition);
+                    else
+                        Debug.LogWarning("[KSPI] - Failed to find FlightGlobalId for " + celestrialBodyName);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log("[KSPI] - Exception while loading atmospheric resources from name : " + ex.ToString());
+                }
+
+                return bodyAtmosphericComposition;
+            }
+        }
+
         public static List<AtmosphericResource> GetAtmosphericCompositionForBody(CelestialBody celestialBody)
         {
             return GetAtmosphericCompositionForBody(celestialBody.flightGlobalsIndex);
         }
 
-        public static List<AtmosphericResource> GetAtmosphericCompositionForBody(int refBody) 
+        public static List<AtmosphericResource> GetAtmosphericCompositionForBody(int refBody)
         {
-            List<AtmosphericResource> bodyAtmosphericComposition = new List<AtmosphericResource>();
+            List<AtmosphericResource> bodyAtmosphericComposition;
 
-            try 
+            // first attempt to lookup if its already stored
+            if (atmospheric_resource_by_id.TryGetValue(refBody, out bodyAtmosphericComposition))
+                return bodyAtmosphericComposition;
+            else
             {
-                // first attemp to lookup if its already stored
-                if (body_atmospheric_resource_list.ContainsKey(refBody))
-                    return body_atmospheric_resource_list[refBody];
-                else
+                bodyAtmosphericComposition = new List<AtmosphericResource>();
+
+                try
                 {
                     CelestialBody celestialBody = FlightGlobals.Bodies[refBody];
 
@@ -83,59 +141,72 @@ namespace FNPlugin
                                 ? orsc.GetValue("resourceName")
                                 : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
                         }
+                        else
+                            Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestialBody.name);
                     }
                     else
-                    {
                         Debug.LogError("[KSPI] - Failed to load atmospheric data");
-                    }
 
                     // add from stock resource definitions if missing
-                    Debug.Log("[KSPI] - adding stock resources");
+                    Debug.Log("[KSPI] - adding stock resource definitions");
                     GenerateCompositionFromResourceAbundances(refBody, bodyAtmosphericComposition);
 
-                    Debug.Log("[KSPI] - som of resource abundance = " + bodyAtmosphericComposition.Sum(m => m.ResourceAbundance));
+                    Debug.Log("[KSPI] - sum of all resource abundance = " + bodyAtmosphericComposition.Sum(m => m.ResourceAbundance));
                     // if no atmsphere is created, create one base on celestrialbody characteristics
                     if (bodyAtmosphericComposition.Sum(m => m.ResourceAbundance) < 0.5)
                         bodyAtmosphericComposition = GenerateCompositionFromCelestialBody(celestialBody);
 
                     // Add rare and isotopes resources
+                    Debug.Log("[KSPI] - adding trace resources and isotopess");
                     AddRaresAndIsotopesToAdmosphereComposition(bodyAtmosphericComposition, celestialBody);
 
                     // add missing stock resources
+                    Debug.Log("[KSPI] - adding missing stock defined resources");
                     AddMissingStockResources(refBody, bodyAtmosphericComposition);
 
                     // sort on resource abundance
                     bodyAtmosphericComposition = bodyAtmosphericComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
 
                     // add to database for future reference
-                    body_atmospheric_resource_list.Add(refBody, bodyAtmosphericComposition);
-
+                    atmospheric_resource_by_id.Add(refBody, bodyAtmosphericComposition);
+                    atmospheric_resource_by_name.Add(celestialBody.name, bodyAtmosphericComposition);
                 }
-            } 
-            catch (Exception ex) 
-            {
-                Debug.Log("[KSPI] - Exception while loading atmospheric resources : " + ex.ToString());
+                catch (Exception ex)
+                {
+                    Debug.Log("[KSPI] - Exception while loading atmospheric resources from id: " + ex.ToString());
+                }
             }
+
             return bodyAtmosphericComposition;
         }
 
 
         public static List<AtmosphericResource> GenerateCompositionFromCelestialBody(CelestialBody celestialBody)
         {
+            Debug.Log("[KSPI] - start to generate composition from celestrial body " + celestialBody.name);
             List<AtmosphericResource> bodyAtmosphericComposition = new List<AtmosphericResource>();
 
             try
             {
                 // return empty is no atmosphere
                 if (!celestialBody.atmosphere)
+                {
+                    Debug.Log("[KSPI] - celestrial body " + celestialBody.name + " is missing an atmosphere");
                     return bodyAtmosphericComposition;
+                }
 
                 // Lookup homeworld
                 CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
+                double currentPresureAtSurface = celestialBody.GetPressure(0);
+                double homeworldPresureAtSurface = homeworld.GetPressure(0);
 
-                double presureAtSurface = celestialBody.GetPressure(0);
+                Debug.Log("[KSPI] - determined " + homeworld.name + " to be the home world");
+                Debug.Log("[KSPI] - surface presure " + celestialBody.name + " is " + currentPresureAtSurface);
+                Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworldPresureAtSurface);
+                Debug.Log("[KSPI] - mass " + celestialBody.name + " is " + celestialBody.Mass);
+                Debug.Log("[KSPI] - mass " + homeworld.name + " is " + celestialBody.Mass);
 
-                if (celestialBody.Mass > homeworld.Mass * 10 && presureAtSurface > 1000)
+                if (celestialBody.Mass > homeworld.Mass * 10 && currentPresureAtSurface > 1000)
                 {
                     float minimumTemperature;
                     float maximumTemperature;
@@ -144,36 +215,36 @@ namespace FNPlugin
 
                     if (celestialBody.Density < 1)
                     {
-                        // it is a gas Saturn like, use Uranus as template
-                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Saturn").flightGlobalsIndex);
+                        Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Saturn" );
+                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody("Saturn");
                     }
                     else if (minimumTemperature < 80)
                     {
-                        // it is a Uranus like planet, use Uranus as template
-                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Uranus").flightGlobalsIndex);
+                        Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Uranus");
+                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody("Uranus");
                     }
                     else
                     {
-                        // it is Jupiter Like, use Jupiter as template
-                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Jupiter").flightGlobalsIndex);
+                        Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Jupiter");
+                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody("Jupiter");
                     }
                 }
                 else
                 {
                     if (celestialBody.atmosphereContainsOxygen)
                     {
-                        // it is a earth like use Earth as template
-                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Earth").flightGlobalsIndex);
+                        Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Earth");
+                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody("Earth");
                     }
-                    else if (presureAtSurface > 200)
+                    else if (currentPresureAtSurface > 200)
                     {
-                        // it is a venus like use Venus as template
-                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Venus").flightGlobalsIndex);
+                        Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Venus");
+                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody("Venus");
                     }
                     else
                     {
-                        // it is a mars like use Mars as template
-                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Mars").flightGlobalsIndex);
+                        Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Mars");
+                        bodyAtmosphericComposition = GetAtmosphericCompositionForBody("Mars");
                     }
                 }
             }
