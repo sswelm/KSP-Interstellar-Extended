@@ -95,8 +95,6 @@ namespace FNPlugin
         public float wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
         public string colorHeat = "_EmissiveColor";
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Pressure Load", guiFormat= "F2", guiUnits = "%")]
-        //public float pressureLoad;
         [KSPField(isPersistant = false, guiActive = false)]
         public double dynamic_pressure;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Type")]
@@ -115,8 +113,6 @@ namespace FNPlugin
         public float areaMultiplier = 3;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float areaMultiplierAtmosphere = 3;
-        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        //public float radiativeAreaFraction = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiatorArea;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
@@ -147,8 +143,6 @@ namespace FNPlugin
 		protected double convectedThermalPower;
 		
 		protected float directionrotate = 1;
-		//protected Vector3 original_eulers;
-		//protected Transform pivot;
         protected long update_count = 0;
 		protected int explode_counter = 0;
         protected int nrAvailableUpgradeTechs;
