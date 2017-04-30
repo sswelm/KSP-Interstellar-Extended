@@ -56,11 +56,8 @@ namespace InterstellarFuelSwitch
     {
         // Persistants
         [KSPField(isPersistant = true)]
-        [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.Editor, suppressEditorShipModified = true)]
+        [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedTankSetup = -1;
-        [KSPField(isPersistant = true)]
-        public int inFlightTankSetup = -1;
-
         [KSPField(isPersistant = true)]
         public string configuredAmounts = "";
         [KSPField(isPersistant = true)]
@@ -143,8 +140,8 @@ namespace InterstellarFuelSwitch
         public bool availableInFlight = false;
         [KSPField]
         public bool availableInEditor = true;
-        //[KSPField(guiActive = false)]
-        //public bool isEmpty = false;
+        [KSPField(guiActive = false)]
+        public bool displaySwitchButtons = false;
         [KSPField]
         public bool returnDryMass = false;
 
@@ -328,26 +325,25 @@ namespace InterstellarFuelSwitch
 
                 this.enabled = true;
 
-                if (state != StartState.Editor)
-                {
-                    if (inFlightTankSetup == -1)
-                        inFlightTankSetup = selectedTankSetup;
-                    else
-                        selectedTankSetup = inFlightTankSetup;
-                }
-
                 AssignResourcesToPart(false);
 
                 _chooseField = Fields["selectedTankSetup"];
                 _chooseField.guiName = switcherDescription;
-                _chooseField.guiActiveEditor = hasSwitchChooseOption && _modularTankList.Count > 1;
-                _chooseField.guiActive = false;
+                _chooseField.guiActiveEditor = hasSwitchChooseOption && availableInEditor && _modularTankList.Count > 1;
+                _chooseField.guiActive = hasSwitchChooseOption && availableInFlight && _modularTankList.Count > 1;
 
                 var chooseOptionEditor = _chooseField.uiControlEditor as UI_ChooseOption;
                 if (chooseOptionEditor != null)
                 {
                     chooseOptionEditor.options = _modularTankList.Select(s => s.SwitchName).ToArray();
                     chooseOptionEditor.onFieldChanged = UpdateFromGUI;
+                }
+
+                var chooseOptionFlight = _chooseField.uiControlFlight as UI_ChooseOption;
+                if (chooseOptionFlight != null)
+                {
+                    chooseOptionFlight.options = _modularTankList.Select(s => s.SwitchName).ToArray();
+                    chooseOptionFlight.onFieldChanged = UpdateFromGUI;
                 }
             }
             catch (Exception e)
@@ -884,7 +880,7 @@ namespace InterstellarFuelSwitch
         private void UpdateDryMass()
         {
             // update Dry Mass
-            dryMass = CalculateDryMass(HighLogic.LoadedSceneIsFlight ? inFlightTankSetup : selectedTankSetup);
+            dryMass = CalculateDryMass(selectedTankSetup);
         }
 
         private double CalculateDryMass(int tankSetupIndex)
@@ -1016,7 +1012,7 @@ namespace InterstellarFuelSwitch
                 UpdateGuiResourceMass();
 
                 //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
-                var showSwitchButtons = availableInFlight && numberOfAvailableTanks > 1 && !part.Resources.Any(r => currentResources.Contains(r.resourceName) && r.amount > r.maxAmount / 1000);
+                var showSwitchButtons = displaySwitchButtons && availableInFlight && numberOfAvailableTanks > 1 && !part.Resources.Any(r => currentResources.Contains(r.resourceName) && r.amount > r.maxAmount / 1000);
 
                 _nextTankSetupEvent.guiActive = showSwitchButtons;
                 _previousTankSetupEvent.guiActive = showSwitchButtons;
@@ -1025,7 +1021,7 @@ namespace InterstellarFuelSwitch
             }
             else
             {
-                var showSwitchButtons = availableInEditor && numberOfAvailableTanks > 1 && _modularTankList[selectedTankSetup].Resources.Count == 1;
+                var showSwitchButtons = displaySwitchButtons && availableInEditor && numberOfAvailableTanks > 1 && _modularTankList[selectedTankSetup].Resources.Count == 1;
 
                 _nextTankSetupEvent.guiActiveEditor = showSwitchButtons;
                 _previousTankSetupEvent.guiActiveEditor = showSwitchButtons;
@@ -1324,8 +1320,6 @@ namespace InterstellarFuelSwitch
             else
                 return false;
         }
-
-        
 
         private void LoadSaveFile()
         {
