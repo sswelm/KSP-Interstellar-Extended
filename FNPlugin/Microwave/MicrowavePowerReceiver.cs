@@ -22,7 +22,7 @@ namespace FNPlugin
 
     class MicrowavePowerReceiverDish: MicrowavePowerReceiver  {} // tweakscales with exponent 2.25
 
-    class MicrowavePowerReceiver : FNResourceSuppliableModule, IPowerSource, IElectricPowerSource // tweakscales with exponent 2.5
+    class MicrowavePowerReceiver : FNResourceSuppliableModule, IPowerSource, IElectricPowerGeneratorSource // tweakscales with exponent 2.5
     {
         //Persistent True
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Bandwidth")]
@@ -36,8 +36,6 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true)]
         public bool animatonDeployed = false;
-        //[KSPField(isPersistant = true)]
-        //public double wasteheatRatio = 0;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Linked for Relay")]
         public bool linkedForRelay;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Mode"), UI_Toggle(disabledText = "Electric", enabledText = "Thermal")]
@@ -286,6 +284,11 @@ namespace FNPlugin
             }
         }
 
+        public void FindAndAttachToPowerSource()
+        {
+            // do nothing
+        }
+
         public double WasteheatElectricConversionEfficiency
         {
             get 
@@ -337,9 +340,9 @@ namespace FNPlugin
 
         public double EfficencyConnectedChargedEnergyGenerator { get { return 0; } }
 
-        public IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
+        public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
 
-        public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
+        public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
         public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
         {
@@ -671,6 +674,13 @@ namespace FNPlugin
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
+            // while in edit mode, listen to on attach/detach event
+            if (state == StartState.Editor)
+            {
+                part.OnEditorAttach += OnEditorAttach;
+                part.OnEditorDetach += OnEditorDetach;
+            }
+
             InitializeThermalModeSwitcher();
 
             InitializeBrandwitdhSelector();
@@ -764,7 +774,7 @@ namespace FNPlugin
 
             if (isThermalReceiverSlave)
             {
-                var result = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is MicrowavePowerReceiver && (MicrowavePowerReceiver)s != this , 2, 2, 2, true);
+                var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is MicrowavePowerReceiver && (MicrowavePowerReceiver)s != this , 2, 2, 2, true);
 
                 if (result == null || result.Source == null)
                     UnityEngine.Debug.LogWarning("[KSPI] - MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
@@ -856,6 +866,49 @@ namespace FNPlugin
 
             if (deployableAntenna == null && deployableSolarPanel == null && deployableRadiator == null && genericAnimation == null && !String.IsNullOrEmpty(animName))
                 animation = part.FindModelAnimators(animName).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Event handler called when part is attached to another part
+        /// </summary>
+        private void OnEditorAttach()
+        {
+            try
+            {
+                Debug.Log("[KSPI] - attach " + part.partInfo.title);
+                foreach (var node in part.attachNodes)
+                {
+                    if (node.attachedPart == null) continue;
+
+                    var generator = node.attachedPart.FindModuleImplementing<FNGenerator>();
+                    if (generator != null)
+                        generator.FindAndAttachToPowerSource();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - Reactor.OnEditorAttach " + e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Event handler called when part is detached from vessel
+        /// </summary>
+        private void OnEditorDetach()
+        {
+            try
+            {
+                Debug.Log("[KSPI] - detach " + part.partInfo.title);
+                if (ConnectedChargedParticleElectricGenerator != null)
+                    ConnectedChargedParticleElectricGenerator.FindAndAttachToPowerSource();
+
+                if (ConnectedThermalElectricGenerator != null)
+                    ConnectedThermalElectricGenerator.FindAndAttachToPowerSource();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - Reactor.OnEditorDetach " + e.Message);
+            }
         }
 
         public override void OnLoad(ConfigNode node)

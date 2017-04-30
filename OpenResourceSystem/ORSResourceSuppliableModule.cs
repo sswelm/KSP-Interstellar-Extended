@@ -392,6 +392,17 @@ namespace OpenResourceSystem
                 priority_manager.UpdateResourceSuppliables(TimeWarp.fixedDeltaTime);
         }
 
+        public void RemoveItselfAsManager()
+        {
+            foreach (String resourcename in resources_to_supply)
+            {
+                ORSResourceManager resource_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+
+                if (resource_manager != null && resource_manager.PartModule == this)
+                    resource_manager.updatePartModule(null);
+            }
+        }
+
         public virtual string getResourceManagerDisplayName()
         {
             return ClassName;

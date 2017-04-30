@@ -428,7 +428,7 @@ namespace FNPlugin
             if (wasteheatPowerResource != null)
             {
                 var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
                 wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }
 
@@ -529,7 +529,7 @@ namespace FNPlugin
         {
             UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
 
-            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 10, 10);
+            var source = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 10, 10);
 
             if (source == null || source.Source == null)
             {

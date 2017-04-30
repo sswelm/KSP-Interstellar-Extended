@@ -20,7 +20,7 @@ namespace FNPlugin
     }
 
     [KSPModule("Electrical Generator")]
-    class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerSource, IPartMassModifier, IRescalable<FNGenerator>
+    class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerGeneratorSource, IPartMassModifier, IRescalable<FNGenerator>
     {
         [KSPField(isPersistant = true, guiActive = true)]
         public bool IsEnabled = true;
@@ -80,19 +80,19 @@ namespace FNPlugin
         /// MW Power to part mass divider, need to be lower for SETI/NFE mode 
         /// </summary>
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float rawPowerToMassDivider = 1000f;
+        public double rawPowerToMassDivider = 1000;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float massModifier = 1;
+        public double massModifier = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Reactor Raw Power", guiFormat = "F4")]
         public double rawMaximumPower;
 
         // Debugging
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public float storedMassMultiplier;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Part Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Part Mass", guiUnits = " t", guiFormat = "F3")]
         public float partMass;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
-        public float targetMass;
+        public double targetMass;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Initial Mass", guiUnits = " t")]
         public float initialMass;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Delta Mass", guiUnits = " t")]
@@ -214,7 +214,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNGenerator.OnRescale" + e.Message);
+                Debug.LogError("[KSPI] - FNGenerator.OnRescale " + e.Message);
             }
         }
 
@@ -234,7 +234,7 @@ namespace FNPlugin
             if (!calculatedMass)
                 return 0;
 
-            moduleMassDelta = targetMass - initialMass;
+            moduleMassDelta = (float)targetMass - initialMass;
 
             return moduleMassDelta;
         }
@@ -252,13 +252,52 @@ namespace FNPlugin
         /// </summary>
         private void OnEditorAttach()
         {
-            FindAndAttachToThermalSource();
+            try
+            {
+                Debug.Log("[KSPI] - attach " + part.partInfo.title);
+                FindAndAttachToPowerSource();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - FNGenerator.OnEditorAttach " + e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Event handler which is called when part is deptach to a exiting part
+        /// </summary>
+        private void OnEditorDetach()
+        {
+            try
+            {
+                Debug.Log("[KSPI] - detach " + part.partInfo.title);
+                if (chargedParticleMode && attachedPowerSource.ConnectedChargedParticleElectricGenerator != null)
+                    attachedPowerSource.ConnectedChargedParticleElectricGenerator = null;
+                if (!chargedParticleMode && attachedPowerSource.ConnectedThermalElectricGenerator != null)
+                    attachedPowerSource.ConnectedThermalElectricGenerator = null;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - FNGenerator.OnEditorDetach " + e.Message);
+            }
+        }
+
+        private void OnDestroyed()
+        {
+            try
+            {
+                OnEditorDetach();
+
+                RemoveItselfAsManager();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - FNGenerator.OnDestroyed " + e.Message);
+            }
         }
 
         public override void OnStart(PartModule.StartState state)
         {
-            //print("[KSP Interstellar]  Generator OnStart Begin " + startcount);
-
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
             this.resources_to_supply = resources_to_supply;
 
@@ -273,7 +312,7 @@ namespace FNPlugin
             {
                 var wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
                 var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
                 wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }
 
@@ -312,7 +351,13 @@ namespace FNPlugin
                 }
                 part.OnEditorAttach += OnEditorAttach;
 
-                FindAndAttachToThermalSource();
+                part.OnEditorDetach += OnEditorDetach;
+                part.OnEditorDestroy += OnEditorDetach;
+
+                part.OnJustAboutToBeDestroyed += OnDestroyed;
+                part.OnJustAboutToDie += OnDestroyed;
+
+                FindAndAttachToPowerSource();
                 return;
             }
 
@@ -352,7 +397,7 @@ namespace FNPlugin
             if (isupgraded)
                 upgradePartModule();
 
-            FindAndAttachToThermalSource();
+            FindAndAttachToPowerSource();
 
             UpdateHeatExchangedThrustDivisor();
         }
@@ -360,7 +405,7 @@ namespace FNPlugin
         /// <summary>
         /// Finds the nearest avialable thermalsource and update effective part mass
         /// </summary>
-        public void FindAndAttachToThermalSource()
+        public void FindAndAttachToPowerSource()
         {
             partDistance = 0;
 
@@ -376,31 +421,52 @@ namespace FNPlugin
             // first look if part contains an thermal source
             attachedPowerSource = part.FindModulesImplementing<IPowerSource>().FirstOrDefault();
             if (attachedPowerSource != null)
+            {
+                ConnectToPowerSource();
+                Debug.Log("[KSPI] - Found power source localy");
                 return;
+            }
 
+            if (!part.attachNodes.Any() || part.attachNodes.All(m => m.attachedPart == null))
+            {
+                Debug.Log("[KSPI] - not connected to any parts yet");
+                UpdateTargetMass();
+                return;
+            }
+
+            Debug.Log("[KSPI] - generator is currently connected to " + part.attachNodes.Count  + " parts");
             // otherwise look for other non selfcontained thermal sources that is not already connected
-            ThermalSourceSearchResult searchResult;
+            PowerSourceSearchResult searchResult;
             if (chargedParticleMode)
-                    searchResult = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, 
-                        p => p.IsThermalSource 
-                            && p.ConnectedChargedParticleElectricGenerator == null 
-                            && p.ChargedParticleEnergyEfficiency > 0, 3, 3, 3, true);
-            else 
-                searchResult = ThermalSourceSearchResult
-                    .BreadthFirstSearchForThermalSource(part, 
-                        p => p.IsThermalSource 
-                            && p.ConnectedThermalElectricGenerator == null 
-                            && p.ThermalEnergyEfficiency > 0, 3, 3, 3, true);
+                searchResult = FindChargedParticleSource();
+            else
+                searchResult = FindThermalPowerSource();
 
-            if (searchResult == null) return;
+            // quit if we failed to find anything
+            if (searchResult == null)
+            {
+                Debug.LogWarning("[KSPI] - Failed to find power source");
+                return;
+            }
 
             // verify cost is not higher than 1
-            partDistance = (int)Math.Max(Math.Ceiling(searchResult.Cost) - 1, 0);
-            if (partDistance > 0) return;
+            partDistance = (int)Math.Max(Math.Ceiling(searchResult.Cost), 0);
+            if (partDistance > 1)
+            {
+                Debug.LogWarning("[KSPI] - Found power source but at too high cost");
+                return;
+            }
 
             // update attached thermalsource
             attachedPowerSource = searchResult.Source;
 
+            Debug.Log("[KSPI] - succesfully connected to " + attachedPowerSource.Part.partInfo.title);
+
+            ConnectToPowerSource();
+        }
+
+        private void ConnectToPowerSource()
+        {
             //connect with source
             if (chargedParticleMode)
                 attachedPowerSource.ConnectedChargedParticleElectricGenerator = this;
@@ -410,23 +476,53 @@ namespace FNPlugin
             UpdateTargetMass();
         }
 
+        private PowerSourceSearchResult FindThermalPowerSource()
+        {
+            PowerSourceSearchResult searchResult = 
+                PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part,
+                    p => p.IsThermalSource
+                        && p.ConnectedThermalElectricGenerator == null
+                        && p.ThermalEnergyEfficiency > 0, 3, 3, 3, true);
+            return searchResult;
+        }
+
+        private PowerSourceSearchResult FindChargedParticleSource()
+        {
+            PowerSourceSearchResult searchResult = 
+                PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part,
+                     p => p.IsThermalSource
+                         && p.ConnectedChargedParticleElectricGenerator == null
+                         && p.ChargedParticleEnergyEfficiency > 0, 3, 3, 3, true);
+            return searchResult;
+        }
+
         private void UpdateTargetMass()
         {
-            // verify if mass calculation is active
-            if (!calculatedMass)
-                return;
-
-            // update part mass
-
-            if (attachedPowerSource.RawMaximumPower > 0 && rawPowerToMassDivider > 0)
+            try
             {
+                if (attachedPowerSource == null)
+                {
+                    targetMass = initialMass;
+                    return;
+                }
+
+                // verify if mass calculation is active
+                if (!calculatedMass)
+                {
+                    targetMass = initialMass;
+                    return;
+                }
+
+                // update part mass
                 rawMaximumPower = attachedPowerSource.RawMaximumPower;
-                targetMass = (float)((massModifier * attachedPowerSource.ThermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider);
+                if (rawMaximumPower > 0 && rawPowerToMassDivider > 0)
+                    targetMass = (massModifier * attachedPowerSource.ThermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
+                else
+                    targetMass = initialMass;
             }
-            else
+            catch (Exception e)
             {
-                Debug.Log("targetMass = partmass = " + part.mass);
-                targetMass = part.mass;
+                Debug.LogError("[KSPI] - FNGenerator.UpdateTargetMass " + e.Message);
             }
         }
 
@@ -541,15 +637,15 @@ namespace FNPlugin
                 : radius * radius / attachedPowerSource.GetRadius() / attachedPowerSource.GetRadius();
         }
 
-        
-
         public void UpdateGeneratorPower()
         {
             if (attachedPowerSource == null) return;
 
             if (!chargedParticleMode) // thermal mode
             {
-                hotBathTemp = isMHD ? attachedPowerSource.CoreTemperature : attachedPowerSource.HotBathTemperature;  
+                hotBathTemp = isMHD 
+                    ? Math.Pow(1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 2) * attachedPowerSource.CoreTemperature 
+                    : attachedPowerSource.HotBathTemperature;  
 
                 averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel) * 0.75);
                 coldBathTemp = averageRadiatorTemperatureQueue.Average();
@@ -573,18 +669,23 @@ namespace FNPlugin
             maxReactorPower = maxThermalPower + maxChargedPower;
         }
 
-
-
-        /// <summary>
-        /// FixedUpdate is also called when not activated
-        /// </summary>
-        public void FixedUpdate()
+        // Update is called in the editor 
+        public void Update()
         {
             partMass = part.mass;
 
             if (HighLogic.LoadedSceneIsFlight) return;
 
-            Fields["targetMass"].guiActive = attachedPowerSource != null && attachedPowerSource.Part != this.part ;
+            UpdateTargetMass();
+
+            Fields["targetMass"].guiActive = attachedPowerSource != null && attachedPowerSource.Part != this.part;
+        }
+
+        /// <summary>
+        /// FixedUpdate is called every frame also called when not activated
+        /// </summary>
+        public void FixedUpdate()
+        {
         }
 
         public override void OnFixedUpdate()

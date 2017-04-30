@@ -113,15 +113,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float basePowerOutputMk5 = 0;
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk1", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk1", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk1;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk2", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk2", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk2;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk3", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk3", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk3;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk4", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk4", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk4;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk5", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk5", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk5;
 
         // Settings
@@ -249,7 +249,7 @@ namespace FNPlugin
         public float powerUpgradeTechMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Extra upgrade Core temp Mult")]
         public float powerUpgradeCoreTempMult = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Active Raw Power", guiUnits = " MJ")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Active Raw Power", guiUnits = " MJ", guiFormat = "F4")]
         public double currentRawPowerOutput;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Output (Basic)", guiUnits = " MW")]
@@ -350,6 +350,8 @@ namespace FNPlugin
         public double totalMaxAmountLithium = 0;
         protected double balanced_thermal_power_received_fixed = 0;
         protected double balanced_charged_power_received_fixed = 0;
+
+        protected Queue<double> averageGeeForce = new Queue<double>();
 
         protected GUIStyle bold_style;
         protected GUIStyle text_style;
@@ -732,9 +734,9 @@ namespace FNPlugin
 
         public virtual double StableMaximumReactorPower { get { return IsEnabled ? RawPowerOutput : 0; } }
 
-        public IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
+        public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
 
-        public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
+        public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
         public double RawPowerOutput
         {
@@ -919,9 +921,12 @@ namespace FNPlugin
                 part.AddResource(node);
             }
 
-            // while in edit mode, listen to on attach event
+            // while in edit mode, listen to on attach/detach event
             if (state == StartState.Editor)
+            {
                 part.OnEditorAttach += OnEditorAttach;
+                part.OnEditorDetach += OnEditorDetach;
+            }
 
             // initialise resource defenitions
             thermalPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_THERMALPOWER);
@@ -1098,13 +1103,38 @@ namespace FNPlugin
         /// </summary>
         private void OnEditorAttach()
         {
-            foreach (var node in part.attachNodes)
+            try
             {
-                if (node.attachedPart == null) continue;
+                Debug.Log("[KSPI] - attach " + part.partInfo.title);
+                foreach (var node in part.attachNodes)
+                {
+                    if (node.attachedPart == null) continue;
 
-                var generator = node.attachedPart.FindModuleImplementing<FNGenerator>();
-                if (generator != null)
-                    generator.FindAndAttachToThermalSource();
+                    var generator = node.attachedPart.FindModuleImplementing<FNGenerator>();
+                    if (generator != null)
+                        generator.FindAndAttachToPowerSource();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - Reactor.OnEditorAttach " + e.Message);
+            }
+        }
+
+        private void OnEditorDetach()
+        {
+            try
+            {
+                Debug.Log("[KSPI] - detach " + part.partInfo.title);
+                if (ConnectedChargedParticleElectricGenerator != null)
+                    ConnectedChargedParticleElectricGenerator.FindAndAttachToPowerSource();
+
+                if (ConnectedThermalElectricGenerator != null)
+                    ConnectedThermalElectricGenerator.FindAndAttachToPowerSource();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - Reactor.OnEditorDetach " + e.Message);
             }
         }
 
@@ -1216,8 +1246,16 @@ namespace FNPlugin
                 
                 max_power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime, 0);
 
-                geeForceModifier = CheatOptions.UnbreakableJoints || !hasBuoyancyEffects ? 1
-                    : Math.Min(Math.Max(1 - ((part.vessel.geeForce - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1);
+                if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
+                {
+                    averageGeeForce.Enqueue(part.vessel.geeForce);
+                    if (averageGeeForce.Count > 50)
+                        averageGeeForce.Dequeue();
+
+                    geeForceModifier = Math.Min(Math.Max(1 - ((averageGeeForce.Average() - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1);
+                }
+                else
+                    geeForceModifier = 1;
 
                 var safetyThrotleModifier = GetSafteOverheatPreventionRatio();
 
@@ -1420,7 +1458,7 @@ namespace FNPlugin
                 if (wasteheatPowerResource != null)
                 {
                     // calculate WasteHeat Capacity
-                    partBaseWasteheat = part.mass * 1.0e+5 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
+                    partBaseWasteheat = part.mass * 1.0e+4 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
 
                     var requiredWasteheatCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * partBaseWasteheat);
                     var previousWasteheatCapacity = Math.Max(0.0001, 10 * previousDeltaTime * partBaseWasteheat);

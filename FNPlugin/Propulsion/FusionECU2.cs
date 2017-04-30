@@ -295,7 +295,7 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
             }
@@ -429,9 +429,14 @@ namespace FNPlugin
                 enginePowerRequirement = CurrentPowerRequirement;
                 var requestedPowerPerSecond = enginePowerRequirement;
 
+                var reservedForHighPriorityPowerUsers = getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - reservedForHighPriorityPowerUsers, 0);
+                var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var effectivePowerThrotling = resourceBarRatio > FNResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
+
                 double recievedPowerPerSecond = CheatOptions.InfiniteElectricity
                     ? requestedPowerPerSecond
-                    : consumeFNResourcePerSecond(requestedPowerPerSecond, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(effectivePowerThrotling * requestedPowerPerSecond, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPowerPerSecond / requestedPowerPerSecond;
                 //fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;

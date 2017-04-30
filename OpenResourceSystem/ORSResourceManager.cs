@@ -26,6 +26,8 @@ namespace OpenResourceSystem
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
 		public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
 
+        public const double ONE_THIRD = 1.0 / 3.0;
+
 		public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
 		public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
                
