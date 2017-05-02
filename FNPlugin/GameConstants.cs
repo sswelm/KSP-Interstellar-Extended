@@ -46,7 +46,7 @@ namespace FNPlugin
         
         public const double microwave_angle = 3.64773814E-10f;
         public const double microwave_dish_efficiency = 0.85f;
-        public const double microwave_alpha = 0.00399201596806387225548902195609f;
+        public const double microwave_alpha = 0.00399201596806387225548902195609;
 
         public const float stefan_const = 5.670373e-8f;  // Stefan-Botzman const for watts / m2
         public const double warpspeed = 29979245.8;

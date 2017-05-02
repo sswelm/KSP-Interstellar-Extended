@@ -13,6 +13,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
+
             if (vessel != null && vessel.parts != null)
             {
                 similarParts = vessel.parts.Where(m => m.partInfo.title == this.part.partInfo.title).ToList();
@@ -20,6 +22,18 @@ namespace FNPlugin
             }
 
             base.OnStart(state);
+        }
+
+        private void OnJustAboutToBeDestroyed()
+        {
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
+            UnityEngine.Debug.LogWarning("[KSPI] - detecting supplyable part " + part.partInfo.title + " is being destroyed");
+
+            var priority_manager = getSupplyPriorityManager(this.vessel);
+            priority_manager.Unregister(this);
+            if (priority_manager.processingPart == this)
+                priority_manager = null;
         }
 
         protected override ORSResourceManager createResourceManagerForResource(string resourcename)
@@ -43,7 +57,7 @@ namespace FNPlugin
      
         public override void OnFixedUpdateResourceSuppliable(float fixedDeltaTime)
         {
-            // Noything yet but do not remove
+            // Nothing yet but do not remove
         }
     }
 }

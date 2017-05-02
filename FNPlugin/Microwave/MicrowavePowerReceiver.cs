@@ -1271,7 +1271,7 @@ namespace FNPlugin
         }
 
         /// <summary>
-        /// FixedUpdate is also called when not activated
+        /// FixedUpdate is only called when stage or force activated
         /// </summary>
         public override void OnFixedUpdate()
         {
@@ -1280,269 +1280,277 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(float fixedDeltaTime)
         {
-            total_conversion_waste_heat_production = 0;
-            currentIsThermalEnergyGenratorActive = 0;
-            storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
-
-            wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
-
-            CalculateThermalSolarPower();
-
-            if (initializationCountdown > 0)
+            try
             {
-                initializationCountdown--;
+                total_conversion_waste_heat_production = 0;
+                currentIsThermalEnergyGenratorActive = 0;
+                storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
 
-                part.temperature = storedTemp;
-                part.skinTemperature = storedTemp;
-            }
-            else
-                storedTemp = part.temperature;
+                wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
 
-            if (receiverIsEnabled && radiatorMode)
-            {
-                if (fnRadiator != null)
+                CalculateThermalSolarPower();
+
+                if (initializationCountdown > 0)
                 {
-                    fnRadiator.canRadiateHeat = true;
-                    fnRadiator.radiatorIsEnabled = true;
+                    initializationCountdown--;
+
+                    part.temperature = storedTemp;
+                    part.skinTemperature = storedTemp;
                 }
-                return;
-            }
-            else
-            {
-                if (fnRadiator != null)
-                {
-                    fnRadiator.canRadiateHeat = false;
-                    fnRadiator.radiatorIsEnabled = false;
-                }
-            }
+                else
+                    storedTemp = part.temperature;
 
-            if (receiverIsEnabled && !radiatorMode)
-            {
-                if (wasteheatRatio >= 0.95 && !isThermalReceiver)
+                if (receiverIsEnabled && radiatorMode)
                 {
-                    receiverIsEnabled = false;
-                    deactivate_timer++;
-                    if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2)
-                        ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency microwave power shutdown occuring NOW!", 5f, ScreenMessageStyle.UPPER_CENTER);
+                    if (fnRadiator != null)
+                    {
+                        fnRadiator.canRadiateHeat = true;
+                        fnRadiator.radiatorIsEnabled = true;
+                    }
                     return;
-                }
-
-                if (solarPowerMode)
-                {
-                    total_beamed_power = 0;
-                    total_beamed_power_max = 0;
-                    total_beamed_wasteheat = 0;
-                    connectedsatsi = 0;
-                    connectedrelaysi = 0;
-                    networkDepth = 0;
-
-                    //add solar power tot toal power
-                    powerInputMegajoules = solarInputMegajoules;
-                    powerInputMegajoulesMax = solarInputMegajoulesMax;
-                }
-                else if (!solarPowerMode && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
-                {
-                    int activeSatsIncr = 0;
-
-                    // reset all output variables at stat of loop
-                    total_beamed_power = 0;
-                    total_beamed_power_max = 0;
-                    total_beamed_wasteheat = 0;
-                    connectedsatsi = 0;
-                    connectedrelaysi = 0;
-                    networkDepth = 0;
-                    powerInputMegajoules = 0;
-                    powerInputMegajoulesMax = 0;
-                    deactivate_timer = 0;
-
-                    HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
-
-                    //Transmitters power calculation
-                    foreach (var connectedTransmitterEntry in GetConnectedTransmitters())
-                    {
-                        VesselMicrowavePersistence transmitterPersistance = connectedTransmitterEntry.Key;
-
-                        // first reset owm recieved power to get correct amount recieved by others
-                        received_power[transmitterPersistance.Vessel] = 0;
-
-                        KeyValuePair<MicrowaveRoute, IEnumerable<VesselRelayPersistence>> keyvaluepair = connectedTransmitterEntry.Value;
-                        var microwaveRoute = keyvaluepair.Key;
-                        routeEfficiency = microwaveRoute.Efficiency;
-                        IEnumerable<VesselRelayPersistence> relays = keyvaluepair.Value;
-
-                        // calculate maximum power avialable from beamed power network
-                        currentPowerUsageByOtherRecievers = MicrowavePowerReceiver.getEnumeratedPowerFromSatelliteForAllLoadedVesssels(transmitterPersistance);
-
-                        // convert initial beamed power from source into MegaWatt
-                        maxAvailablePowerFromSource = transmitterPersistance.getAvailablePower() / 1000;
-
-                        // subtract any power already recieved by other recievers
-                        remainingPowerFromSource = Math.Max(0, (maxAvailablePowerFromSource * routeEfficiency) - currentPowerUsageByOtherRecievers);
-
-                        // take into account maximum route capacity
-                        double sateliteNetworkPowerCapacity = relays != null && relays.Count() > 0 ? Math.Min(remainingPowerFromSource, relays.Min(m => m.PowerCapacity)) : remainingPowerFromSource;
-
-                        // determine allowed power
-                        var maximumRecievePower = MaximumRecievePower;
-                        var currentRecievalPower = maximumRecievePower * Math.Min(PowerCapacityEfficiency, (receiptPower / 100.0f));
-                        var maximumRecievalPower = maximumRecievePower * PowerCapacityEfficiency;
-
-                        // select active or compatible brandWith Converter
-                        var selectedBrandWith = canSwitchBandwidthInEditor
-                            ? activeBandwidthConfiguration
-                            : BandwidthConverters.FirstOrDefault(m => microwaveRoute.WaveLength >= minimumWavelength && microwaveRoute.WaveLength <= m.maximumWavelength);
-
-                        // get effective beamtoPower efficiency
-                        if (selectedBrandWith != null)
-                            efficiencyPercentage = thermalMode
-                                ? selectedBrandWith.MaxThermalEfficiencyPercentage
-                                : selectedBrandWith.MaxElectricEfficiencyPercentage;
-                        else
-                            efficiencyPercentage = 0;
-
-                        // convert to fraction
-                        var efficiency_fraction = efficiencyPercentage / 100;
-
-                        // limit by amount of beampower the reciever is able to process
-                        double satPower = Math.Min(currentRecievalPower, sateliteNetworkPowerCapacity * efficiency_fraction);
-                        double satPowerMax = Math.Min(maximumRecievalPower, sateliteNetworkPowerCapacity * efficiency_fraction);
-                        double satWasteheat = Math.Min(currentRecievalPower, sateliteNetworkPowerCapacity * (1 - efficiency_fraction));
-
-                        // generate conversion wasteheat
-                        total_conversion_waste_heat_production += satPower * (1 - efficiency_fraction);
-
-                        // register amount of raw power recieved
-                        received_power[transmitterPersistance.Vessel] = efficiency_fraction > 0 ? satPower / efficiency_fraction : satPower;
-
-                        // convert raw power into effecive power
-                        total_beamed_power += satPower;
-                        total_beamed_power_max += satPowerMax;
-                        total_beamed_wasteheat += satWasteheat;
-
-                        if (satPower > 0)
-                        {
-                            activeSatsIncr++;
-                            if (relays != null)
-                            {
-                                foreach (var relay in relays)
-                                {
-                                    usedRelays.Add(relay);
-                                }
-                                networkDepth = Math.Max(networkDepth, relays.Count());
-                            }
-                        }
-                    }
-
-                    connectedsatsi = activeSatsIncr;
-                    connectedrelaysi = usedRelays.Count;
-
-                    powerInputMegajoules = total_beamed_power + solarInputMegajoules;
-                    powerInputMegajoulesMax = total_beamed_power_max + solarInputMegajoulesMax;
-                }
-
-                // process conversion wasteheat
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourcePerSecond(total_conversion_waste_heat_production, FNResourceManager.FNRESOURCE_WASTEHEAT);
-
-                // add energy from solar panel to power management and subtract generated power
-                ProcesSolarCellEnergy();
-
-                // add alternator power
-                AddAlternatorPower();
-
-                // update wasteheat buffer
-                if (powerInputMegajoules > 0 && wasteheatResource != null)
-                {
-                    var ratio = wasteheatResource.maxAmount > 0 ? wasteheatResource.amount / wasteheatResource.maxAmount : 0;
-
-                    wasteheatResource.maxAmount = partBaseWasteheat + powerInputMegajoules * TimeWarp.fixedDeltaTime;
-                    wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
-                }
-
-                if (isThermalReceiverSlave || thermalMode)
-                {
-                    slavesAmount = thermalReceiverSlaves.Count;
-
-                    double supplied_beamed_thermal_per_second = supplyManagedFNResourcePerSecond(total_beamed_power, FNResourceManager.FNRESOURCE_THERMALPOWER);
-                    supplyFNResourcePerSecondWithMax(solarInputMegajoules, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_THERMALPOWER);
-
-                    if (!CheatOptions.IgnoreMaxTemperature)
-                    {
-                        // thermal power does not have conversion wasteheat, only distritribution wasteheat
-                        supplyFNResourcePerSecondWithMax(supplied_beamed_thermal_per_second, total_beamed_power_max, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                        supplyFNResourcePerSecondWithMax(solarInputMegajoules, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                    }
-
-                    var cur_thermal_power_per_second = solarInputMegajoules + supplied_beamed_thermal_per_second;
-
-                    var total_thermal_power = isThermalReceiver
-                        ? cur_thermal_power_per_second + thermalReceiverSlaves.Sum(m => m.ThermalPower)
-                        : cur_thermal_power_per_second;
-
-                    if (animT != null)
-                    {
-                        var maximumRecievePower = MaximumRecievePower;
-                        animT[animTName].normalizedTime = maximumRecievePower > 0 ? (float)Math.Min(total_thermal_power / maximumRecievePower, 1) : 0;
-                        animT.Sample();
-                    }
-
-                    if (ThermalPower <= 0)
-                        ThermalPower = total_thermal_power;
-                    else
-                        ThermalPower = total_thermal_power * GameConstants.microwave_alpha + (1.0f - GameConstants.microwave_alpha) * ThermalPower;
                 }
                 else
                 {
-                    wasteheatElectricConversionEfficiency = WasteheatElectricConversionEfficiency;
-
-                    // convert the received beamed energy  into effective electric power
-                    effectiveBeamedPowerElectricEfficiency = wasteheatElectricConversionEfficiency * electricMaxEfficiency;
-                    var avaialbleElectricBeamedPower = total_beamed_power * effectiveBeamedPowerElectricEfficiency;
-                    var suppliedBeamedPower = supplyManagedFNResourcePerSecond(avaialbleElectricBeamedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
-
-                    // only generate wasteheat from beamed power when actualy using the energy
-                    if (!CheatOptions.IgnoreMaxTemperature)
+                    if (fnRadiator != null)
                     {
-                        var supplyRatio = suppliedBeamedPower > 0 ? suppliedBeamedPower / avaialbleElectricBeamedPower : 0;
-                        supplyFNResourcePerSecond(total_beamed_wasteheat * supplyRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        fnRadiator.canRadiateHeat = false;
+                        fnRadiator.radiatorIsEnabled = false;
+                    }
+                }
+
+                if (receiverIsEnabled && !radiatorMode)
+                {
+                    if (wasteheatRatio >= 0.95 && !isThermalReceiver)
+                    {
+                        receiverIsEnabled = false;
+                        deactivate_timer++;
+                        if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2)
+                            ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency microwave power shutdown occuring NOW!", 5f, ScreenMessageStyle.UPPER_CENTER);
+                        return;
                     }
 
-                    // convert all solar thermal energy into electric energy
-                    effectiveSolarThermalElectricEfficiency = wasteheatElectricConversionEfficiency * solarElectricEfficiency;
-                    supplyFNResourcePerSecond(solarInputMegajoules * effectiveSolarThermalElectricEfficiency, FNResourceManager.FNRESOURCE_MEGAJOULES);
-
-                    // always generate wasteheat because the sun cannot be turned off
-                    if (!CheatOptions.IgnoreMaxTemperature)
+                    if (solarPowerMode)
                     {
-                        var effectiveSolarElectricWasteheatRatio = 1 - effectiveSolarThermalElectricEfficiency;
-                        supplyFNResourcePerSecondWithMax(solarInputMegajoules * effectiveSolarElectricWasteheatRatio, solarInputMegajoules, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        total_beamed_power = 0;
+                        total_beamed_power_max = 0;
+                        total_beamed_wasteheat = 0;
+                        connectedsatsi = 0;
+                        connectedrelaysi = 0;
+                        networkDepth = 0;
+
+                        //add solar power tot toal power
+                        powerInputMegajoules = solarInputMegajoules;
+                        powerInputMegajoulesMax = solarInputMegajoulesMax;
+                    }
+                    else if (!solarPowerMode && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
+                    {
+                        int activeSatsIncr = 0;
+
+                        // reset all output variables at stat of loop
+                        total_beamed_power = 0;
+                        total_beamed_power_max = 0;
+                        total_beamed_wasteheat = 0;
+                        connectedsatsi = 0;
+                        connectedrelaysi = 0;
+                        networkDepth = 0;
+                        powerInputMegajoules = 0;
+                        powerInputMegajoulesMax = 0;
+                        deactivate_timer = 0;
+
+                        HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
+
+                        //Transmitters power calculation
+                        foreach (var connectedTransmitterEntry in GetConnectedTransmitters())
+                        {
+                            VesselMicrowavePersistence transmitterPersistance = connectedTransmitterEntry.Key;
+
+                            // first reset owm recieved power to get correct amount recieved by others
+                            received_power[transmitterPersistance.Vessel] = 0;
+
+                            KeyValuePair<MicrowaveRoute, IEnumerable<VesselRelayPersistence>> keyvaluepair = connectedTransmitterEntry.Value;
+                            var microwaveRoute = keyvaluepair.Key;
+                            routeEfficiency = microwaveRoute.Efficiency;
+                            IEnumerable<VesselRelayPersistence> relays = keyvaluepair.Value;
+
+                            // calculate maximum power avialable from beamed power network
+                            currentPowerUsageByOtherRecievers = MicrowavePowerReceiver.getEnumeratedPowerFromSatelliteForAllLoadedVesssels(transmitterPersistance);
+
+                            // convert initial beamed power from source into MegaWatt
+                            maxAvailablePowerFromSource = transmitterPersistance.getAvailablePower() / 1000;
+
+                            // subtract any power already recieved by other recievers
+                            remainingPowerFromSource = Math.Max(0, (maxAvailablePowerFromSource * routeEfficiency) - currentPowerUsageByOtherRecievers);
+
+                            // take into account maximum route capacity
+                            double sateliteNetworkPowerCapacity = relays != null && relays.Count() > 0 ? Math.Min(remainingPowerFromSource, relays.Min(m => m.PowerCapacity)) : remainingPowerFromSource;
+
+                            // determine allowed power
+                            var maximumRecievePower = MaximumRecievePower;
+                            var currentRecievalPower = maximumRecievePower * Math.Min(PowerCapacityEfficiency, (receiptPower / 100.0f));
+                            var maximumRecievalPower = maximumRecievePower * PowerCapacityEfficiency;
+
+                            // select active or compatible brandWith Converter
+                            var selectedBrandWith = canSwitchBandwidthInEditor
+                                ? activeBandwidthConfiguration
+                                : BandwidthConverters.FirstOrDefault(m => microwaveRoute.WaveLength >= minimumWavelength && microwaveRoute.WaveLength <= m.maximumWavelength);
+
+                            // get effective beamtoPower efficiency
+                            if (selectedBrandWith != null)
+                                efficiencyPercentage = thermalMode
+                                    ? selectedBrandWith.MaxThermalEfficiencyPercentage
+                                    : selectedBrandWith.MaxElectricEfficiencyPercentage;
+                            else
+                                efficiencyPercentage = 0;
+
+                            // convert to fraction
+                            var efficiency_fraction = efficiencyPercentage / 100;
+
+                            // limit by amount of beampower the reciever is able to process
+                            double satPower = Math.Min(currentRecievalPower, sateliteNetworkPowerCapacity * efficiency_fraction);
+                            double satPowerMax = Math.Min(maximumRecievalPower, sateliteNetworkPowerCapacity * efficiency_fraction);
+                            double satWasteheat = Math.Min(currentRecievalPower, sateliteNetworkPowerCapacity * (1 - efficiency_fraction));
+
+                            // generate conversion wasteheat
+                            total_conversion_waste_heat_production += satPower * (1 - efficiency_fraction);
+
+                            // register amount of raw power recieved
+                            received_power[transmitterPersistance.Vessel] = efficiency_fraction > 0 ? satPower / efficiency_fraction : satPower;
+
+                            // convert raw power into effecive power
+                            total_beamed_power += satPower;
+                            total_beamed_power_max += satPowerMax;
+                            total_beamed_wasteheat += satWasteheat;
+
+                            if (satPower > 0)
+                            {
+                                activeSatsIncr++;
+                                if (relays != null)
+                                {
+                                    foreach (var relay in relays)
+                                    {
+                                        usedRelays.Add(relay);
+                                    }
+                                    networkDepth = Math.Max(networkDepth, relays.Count());
+                                }
+                            }
+                        }
+
+                        connectedsatsi = activeSatsIncr;
+                        connectedrelaysi = usedRelays.Count;
+
+                        powerInputMegajoules = total_beamed_power + solarInputMegajoules;
+                        powerInputMegajoulesMax = total_beamed_power_max + solarInputMegajoulesMax;
+                    }
+
+                    // process conversion wasteheat
+                    if (!CheatOptions.IgnoreMaxTemperature)
+                        supplyFNResourcePerSecond(total_conversion_waste_heat_production, FNResourceManager.FNRESOURCE_WASTEHEAT);
+
+                    // add energy from solar panel to power management and subtract generated power
+                    ProcesSolarCellEnergy();
+
+                    // add alternator power
+                    AddAlternatorPower();
+
+                    // update wasteheat buffer
+                    if (powerInputMegajoules > 0 && wasteheatResource != null)
+                    {
+                        var ratio = wasteheatResource.maxAmount > 0 ? wasteheatResource.amount / wasteheatResource.maxAmount : 0;
+
+                        wasteheatResource.maxAmount = partBaseWasteheat + powerInputMegajoules * TimeWarp.fixedDeltaTime;
+                        wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
+                    }
+
+                    if (isThermalReceiverSlave || thermalMode)
+                    {
+                        slavesAmount = thermalReceiverSlaves.Count;
+
+                        // first do solar power
+                        double supplied_solar_power = supplyFNResourcePerSecondWithMax(solarInputMegajoules, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                        double supplied_beamed_thermal_per_second = supplyFNResourcePerSecondWithMax(total_beamed_power, total_beamed_power_max, FNResourceManager.FNRESOURCE_THERMALPOWER);
+
+                        if (!CheatOptions.IgnoreMaxTemperature)
+                        {
+                            // thermal power does not have conversion wasteheat, only distritribution wasteheat
+                            supplyFNResourcePerSecondWithMax(supplied_beamed_thermal_per_second, total_beamed_power_max, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                            supplyFNResourcePerSecondWithMax(solarInputMegajoules, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        }
+
+                        var cur_thermal_power_per_second = solarInputMegajoules + total_beamed_power;
+
+                        var total_thermal_power = isThermalReceiver
+                            ? cur_thermal_power_per_second + thermalReceiverSlaves.Sum(m => m.ThermalPower)
+                            : cur_thermal_power_per_second;
+
+                        if (animT != null)
+                        {
+                            var maximumRecievePower = MaximumRecievePower;
+                            animT[animTName].normalizedTime = maximumRecievePower > 0 ? (float)Math.Min(total_thermal_power / maximumRecievePower, 1) : 0;
+                            animT.Sample();
+                        }
+
+                        if (ThermalPower <= 0)
+                            ThermalPower = total_thermal_power;
+                        else
+                            ThermalPower = total_thermal_power * GameConstants.microwave_alpha + (1.0f - GameConstants.microwave_alpha) * ThermalPower;
+                    }
+                    else
+                    {
+                        wasteheatElectricConversionEfficiency = WasteheatElectricConversionEfficiency;
+
+                        // convert the received beamed energy  into effective electric power
+                        effectiveBeamedPowerElectricEfficiency = wasteheatElectricConversionEfficiency * electricMaxEfficiency;
+                        var avaialbleElectricBeamedPower = total_beamed_power * effectiveBeamedPowerElectricEfficiency;
+                        var suppliedBeamedPower = supplyManagedFNResourcePerSecond(avaialbleElectricBeamedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                        // only generate wasteheat from beamed power when actualy using the energy
+                        if (!CheatOptions.IgnoreMaxTemperature)
+                        {
+                            var supplyRatio = suppliedBeamedPower > 0 ? suppliedBeamedPower / avaialbleElectricBeamedPower : 0;
+                            supplyFNResourcePerSecond(total_beamed_wasteheat * supplyRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        }
+
+                        // convert all solar thermal energy into electric energy
+                        effectiveSolarThermalElectricEfficiency = wasteheatElectricConversionEfficiency * solarElectricEfficiency;
+                        supplyFNResourcePerSecond(solarInputMegajoules * effectiveSolarThermalElectricEfficiency, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                        // always generate wasteheat because the sun cannot be turned off
+                        if (!CheatOptions.IgnoreMaxTemperature)
+                        {
+                            var effectiveSolarElectricWasteheatRatio = 1 - effectiveSolarThermalElectricEfficiency;
+                            supplyFNResourcePerSecondWithMax(solarInputMegajoules * effectiveSolarElectricWasteheatRatio, solarInputMegajoules, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        }
+                    }
+                }
+                else
+                {
+                    total_beamed_power = 0;
+                    total_beamed_power_max = 0;
+                    total_beamed_wasteheat = 0;
+
+                    powerInputMegajoules = 0;
+                    powerInputMegajoulesMax = 0;
+
+                    solarInputMegajoules = 0;
+                    solarInputMegajoulesMax = 0;
+
+                    solarFacingFactor = 0;
+                    connectedsatsi = 0;
+                    connectedrelaysi = 0;
+                    ThermalPower = 0;
+
+                    received_power.Clear();
+
+                    if (animT != null)
+                    {
+                        animT[animTName].normalizedTime = 0;
+                        animT.Sample();
                     }
                 }
             }
-            else
+            catch (Exception e)
             {
-                total_beamed_power = 0;
-                total_beamed_power_max = 0;
-                total_beamed_wasteheat = 0;
-
-                powerInputMegajoules = 0;
-                powerInputMegajoulesMax = 0;
-
-                solarInputMegajoules = 0;
-                solarInputMegajoulesMax = 0;
-
-                solarFacingFactor = 0;
-                connectedsatsi = 0;
-                connectedrelaysi = 0;
-                ThermalPower = 0;
-
-                received_power.Clear();
-
-                if (animT != null)
-                {
-                    animT[animTName].normalizedTime = 0;
-                    animT.Sample();
-                }
+                Debug.LogError("[KSPI] - Exception in OnFixedUpdateResourceSuppliable " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -1646,7 +1654,7 @@ namespace FNPlugin
         public void EnableIfPossible()
         {
             if (!receiverIsEnabled && autoDeploy)
-                receiverIsEnabled = true;
+                ActivateRecieverState();
         }
 
         public override string GetInfo()

@@ -953,6 +953,9 @@ namespace FNPlugin
             {
                 if (!HighLogic.LoadedSceneIsFlight) return;
 
+                //if (!enabled)
+                //    base.OnFixedUpdate();
+
                 if (myAttachedEngine == null) return;
 
                 if (AttachedReactor == null)
@@ -979,8 +982,8 @@ namespace FNPlugin
                     : Mathf.MoveTowards(delayedThrottle, myAttachedEngine.currentThrottle, delayedThrottleFactor * TimeWarp.fixedDeltaTime);
 
                 thermalRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_THERMALPOWER);
-                currentMaximumPower = AttachedReactor.MaximumPower * delayedThrottle;
-                availableThermalPower = currentMaximumPower * thermalRatio;
+                currentMaximumPower = Math.Min(getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER), AttachedReactor.MaximumPower) * delayedThrottle;
+                availableThermalPower = currentMaximumPower * (thermalRatio > 0.5 ? 1 : thermalRatio * 2);
 
                 UpdateAnimation();
 
@@ -1054,7 +1057,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error OnFixedUpdate " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI] - Error FixedUpdate " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
             }
         }
 

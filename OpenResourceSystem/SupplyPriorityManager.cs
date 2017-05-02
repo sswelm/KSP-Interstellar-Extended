@@ -25,7 +25,7 @@ namespace OpenResourceSystem
         protected List<ORSResourceSuppliableModule> suppliable_modules = new List<ORSResourceSuppliableModule>();
         
         protected Vessel vessel;
-        public PartModule pocessingPart;
+        public PartModule processingPart;
 
         public SupplyPriorityManager(Vessel vessel)
         {
@@ -37,6 +37,14 @@ namespace OpenResourceSystem
             if (!suppliable_modules.Contains(suppliable))
             {
                 suppliable_modules.Add(suppliable);
+            }
+        }
+
+        public void Unregister(ORSResourceSuppliableModule suppliable)
+        {
+            if (!suppliable_modules.Contains(suppliable))
+            {
+                suppliable_modules.Remove(suppliable);
             }
         }
 
