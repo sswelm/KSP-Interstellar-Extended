@@ -5,9 +5,10 @@ using System.Text;
 
 namespace FNPlugin
 {
-    public interface IElectricPowerSource
+    public interface IElectricPowerGeneratorSource
     {
         double MaxStableMegaWattPower { get; }
         void Refresh();
+        void FindAndAttachToPowerSource();
     }
 }

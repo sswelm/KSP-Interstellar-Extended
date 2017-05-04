@@ -192,7 +192,7 @@ namespace FNPlugin
             }
             else
             {
-                part.RequestResource(_resourceAtmosphere.id, -airThisUpdate); // create the resource, finally
+                part.RequestResource(_resourceAtmosphere.id, -airThisUpdate, ResourceFlowMode.STAGE_PRIORITY_FLOW_BALANCE); // create the resource, finally
             }
 
 

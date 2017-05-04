@@ -5,9 +5,9 @@ using System.Text;
 
 namespace FNPlugin.Extensions
 {
-    public class ThermalSourceSearchResult
+    public class PowerSourceSearchResult
     {
-        public ThermalSourceSearchResult(IPowerSource source, float cost)
+        public PowerSourceSearchResult(IPowerSource source, float cost)
         {
             Cost = cost;
             Source = source;
@@ -16,13 +16,13 @@ namespace FNPlugin.Extensions
         public float Cost { get; private set; }
         public IPowerSource Source { get; private set; }
 
-        public ThermalSourceSearchResult IncreaseCost(float cost)
+        public PowerSourceSearchResult IncreaseCost(float cost)
         {
             Cost += cost;
             return this;
         }
 
-        public static ThermalSourceSearchResult BreadthFirstSearchForThermalSource(Part currentpart, Func<IPowerSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained = false)
+        public static PowerSourceSearchResult BreadthFirstSearchForThermalSource(Part currentpart, Func<IPowerSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained = false)
         {
             // first search withouth parent search
             for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
@@ -36,7 +36,7 @@ namespace FNPlugin.Extensions
             return null;
         }
 
-        public static ThermalSourceSearchResult FindThermalSource(Part currentpart, Func<IPowerSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained)
+        public static PowerSourceSearchResult FindThermalSource(Part currentpart, Func<IPowerSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained)
         {
             if (stackdepth <= 0)
             {
@@ -47,7 +47,7 @@ namespace FNPlugin.Extensions
                     : thermalsources.FirstOrDefault();
 
                 if (source != null)
-                    return new ThermalSourceSearchResult(source, 0);
+                    return new PowerSourceSearchResult(source, 0);
                 else
                     return null;
             }
@@ -58,7 +58,7 @@ namespace FNPlugin.Extensions
                 ? thermalcostModifier.thermalCost 
                 : 1;
 
-            // first look at stack attacked parts
+            // first look at stack attached parts
             foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null && (atn.nodeType == AttachNode.NodeType.Stack || atn.nodeType == AttachNode.NodeType.Dock)))
             {
                 var source = FindThermalSource(attachNodes.attachedPart, condition, (stackdepth - 1), parentdepth, surfacedepth, skipSelfContained);

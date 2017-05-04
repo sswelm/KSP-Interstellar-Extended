@@ -8,12 +8,9 @@ namespace FNPlugin
 {
     abstract class FusionECU2 : EngineECU2
     {
-
         // Persistant
-
         [KSPField(isPersistant = true)]
         bool rad_safety_features = true;
-
 
         // None Persistant
         [KSPField(isPersistant = false, guiActive = true, guiName = "Radiation Hazard To")]
@@ -38,7 +35,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float killDivider = 50;
 
-
         [KSPField(isPersistant = false)]
         public float fusionWasteHeat = 625;
         [KSPField(isPersistant = false)]
@@ -52,16 +48,10 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float powerRequirementMultiplier = 1;
 
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "upgrade tech 1")]
-        public string upgradeTechReq = "advFusionReactions";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "upgrade tech 2")]
-        public string upgradeTechReq2 = "exoticReactions";
-
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Fusion Ratio", guiFormat = "F2")]
         public double fusionRatio;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Requirement", guiFormat = "F2", guiUnits = " MW")]
-        public float enginePowerRequirement;
+        public double enginePowerRequirement;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Laser Wasteheat", guiFormat = "F2", guiUnits = " MW")]
         public double laserWasteheat;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Absorbed Wasteheat", guiFormat = "F2", guiUnits = " MW")]
@@ -77,8 +67,6 @@ namespace FNPlugin
         public double partEmissiveConstant;
 
 
-
-
         // abstracts
         protected abstract float SelectedIsp { get; set; }
         protected abstract float MinIsp { get; set; }
@@ -88,7 +76,6 @@ namespace FNPlugin
         protected abstract float MaxThrustEfficiencyByIspPower { get; }
         protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
         protected abstract FloatCurve BaseFloatCurve { get; set; }
-
 
         // protected
         protected bool hasrequiredupgrade = false;
@@ -103,7 +90,7 @@ namespace FNPlugin
 
         protected double Altitude, lastAltitude;
 
-        public GenerationType EngineGenerationType { get; private set; }
+
 
         [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
         public void DeactivateRadSafety()
@@ -123,30 +110,13 @@ namespace FNPlugin
 
         public void upgradePartModule() { }
 
-        public void DetermineTechLevel()
-        {
-            int numberOfUpgradeTechs = 1;
-            if (PluginHelper.upgradeAvailable(upgradeTechReq))
-                numberOfUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReq2))
-                numberOfUpgradeTechs++;
-
-            if (numberOfUpgradeTechs == 3)
-                EngineGenerationType = GenerationType.Mk3;
-            else if (numberOfUpgradeTechs == 2)
-                EngineGenerationType = GenerationType.Mk2;
-            else
-                EngineGenerationType = GenerationType.Mk2;
-        }
-
         #endregion
 
-        public float MaximumThrust
+        public double MaximumThrust
         {
             get
             {
-                return FullTrustMaximum * Mathf.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / CurveMaxISP;
-               
+                return FullTrustMaximum * Math.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / CurveMaxISP;               
             }
         }
 
@@ -163,7 +133,7 @@ namespace FNPlugin
             }
         }
 
-        public float FullTrustMaximum
+        public double FullTrustMaximum
         {
             get
             {
@@ -241,38 +211,42 @@ namespace FNPlugin
             {
                 Altitude = vessel.atmDensity;
 
-                    BaseField IspField = Fields["localIsp"];
-                 
-                    UI_FloatRange[] IspController = { IspField.uiControlFlight as UI_FloatRange, IspField.uiControlEditor as UI_FloatRange };
+                BaseField IspField = Fields["localIsp"];
 
-                    IspField.OnValueModified += IspField_OnValueModified;
+                UI_FloatRange[] IspController = { IspField.uiControlFlight as UI_FloatRange, IspField.uiControlEditor as UI_FloatRange };
 
-                    for (int I = 0; I < IspController.Length; I++)
-                    {
-                        float akIsp = SelectedIsp;
-                        float akMinIsp = IspController[I].minValue;
-                        float akMaxIsp = IspController[I].maxValue;
-                        float StepIncrement = IspController[I].stepIncrement;
+                IspField.OnValueModified += IspField_OnValueModified;
 
-                        float StepNumb = (akIsp - akMinIsp) / StepIncrement;
+                for (int I = 0; I < IspController.Length; I++)
+                {
+                    float akIsp = SelectedIsp;
+                    float akMinIsp = IspController[I].minValue;
+                    float akMaxIsp = IspController[I].maxValue;
+                    float StepIncrement = IspController[I].stepIncrement;
+                    float StepNumb = (akIsp - akMinIsp) / StepIncrement;
 
-                        if (StepNumb < 0) StepNumb = 0;
-                        else if (StepNumb > MaxSteps) StepNumb = MaxSteps;
-                        
-                        akMinIsp = (float)Math.Round(BaseFloatCurve.Evaluate((float)Altitude));
-                        if (akMinIsp < 1) { akMinIsp = 1; }
-                        akMaxIsp = (float)Math.Round(akMinIsp / MaxMin);
-                        StepIncrement = (akMaxIsp - akMinIsp) / 100;
+                    if (StepNumb < 0)
+                        StepNumb = 0;
+                    else
+                        if (StepNumb > MaxSteps) StepNumb = MaxSteps;
 
-                        IspController[I].minValue = akMinIsp;
-                        IspController[I].maxValue = akMaxIsp;
-                        IspController[I].stepIncrement = StepIncrement;
+                    akMinIsp = (float)Math.Round(BaseFloatCurve.Evaluate((float)Altitude));
 
-                        SelectedIsp = akMinIsp + StepIncrement * StepNumb;
-                        I++;
-                    }
-                    lastAltitude = Altitude;
-                
+                    if (akMinIsp < 1)
+                        akMinIsp = 1;
+
+                    akMaxIsp = (float)Math.Round(akMinIsp / MaxMin);
+                    StepIncrement = (akMaxIsp - akMinIsp) / 100;
+
+                    IspController[I].minValue = akMinIsp;
+                    IspController[I].maxValue = akMaxIsp;
+                    IspController[I].stepIncrement = StepIncrement;
+
+                    SelectedIsp = akMinIsp + StepIncrement * StepNumb;
+                    I++;
+                }
+                lastAltitude = Altitude;
+
             }
             catch (Exception e)
             {
@@ -287,20 +261,16 @@ namespace FNPlugin
 
         public override void UpdateFuel()
         {
-            
-            
             base.UpdateFuel();
             Debug.Log("Fusion Gui Updated");
             BaseFloatCurve = ActiveConfiguration.atmosphereCurve;
             CurveMaxISP = GetMaxKey(BaseFloatCurve);
             FCSetup();
             Debug.Log("Curve Max ISP:" + CurveMaxISP);
-
         }
         
         public override void OnStart(PartModule.StartState state)
         {
-            
             try
             {
                 Fields["selectedFuel"].guiName = "Fusion Type";
@@ -308,7 +278,7 @@ namespace FNPlugin
                 part.maxTemp = maxTemp;
                 part.thermalMass = 1;
                 part.thermalMassModifier = 1;
-                EngineGenerationType = GenerationType.Mk1;
+
                 curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
                 if (curEngineT == null)
                 {
@@ -316,7 +286,6 @@ namespace FNPlugin
                     return;
                 }
                 BaseFloatCurve = curEngineT.atmosphereCurve;
-
 
                 CurveMaxISP = GetMaxKey(BaseFloatCurve);
                 if (hasMultipleConfigurations) FCSetup();
@@ -326,7 +295,7 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
             }
@@ -337,14 +306,9 @@ namespace FNPlugin
             base.OnStart(state);
         }
 
-
-
         public override void OnUpdate()
         {
-
-            
             if (curEngineT == null) return;
-            
 
             Events["DeactivateRadSafety"].active = rad_safety_features;
             Events["ActivateRadSafety"].active = !rad_safety_features;
@@ -419,9 +383,9 @@ namespace FNPlugin
 
             return max;
         }
+
         public void UpdateISP()
         {
-          
                 FloatCurve newIsp = new FloatCurve();
                 Altitude = vessel.atmDensity;
                 float OrigISP = BaseFloatCurve.Evaluate((float)Altitude);
@@ -430,7 +394,6 @@ namespace FNPlugin
                 newIsp.Add((float)Altitude, SelectedIsp);
                 curEngineT.atmosphereCurve = newIsp;
                 MinIsp = OrigISP;
-            
         }
 
 
@@ -460,35 +423,36 @@ namespace FNPlugin
 
             KillKerbalsWithRadiation(throttle);
 
-
-
-
             if (throttle > 0 )
             {
                 // Calculate Fusion Ratio
                 enginePowerRequirement = CurrentPowerRequirement;
-                var requestedPowerFixed = enginePowerRequirement * TimeWarp.fixedDeltaTime;
+                var requestedPowerPerSecond = enginePowerRequirement;
 
-                var recievedPowerFixed = CheatOptions.InfiniteElectricity
-                    ? requestedPowerFixed
-                    : consumeFNResource(requestedPowerFixed, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var reservedForHighPriorityPowerUsers = getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - reservedForHighPriorityPowerUsers, 0);
+                var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var effectivePowerThrotling = resourceBarRatio > FNResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 
-                var plasma_ratio = recievedPowerFixed / requestedPowerFixed;
+                double recievedPowerPerSecond = CheatOptions.InfiniteElectricity
+                    ? requestedPowerPerSecond
+                    : consumeFNResourcePerSecond(effectivePowerThrotling * requestedPowerPerSecond, FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                var plasma_ratio = recievedPowerPerSecond / requestedPowerPerSecond;
                 //fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;
                 fusionRatio = plasma_ratio;
 
-                var laserWasteheatFixed = recievedPowerFixed * (1 - LaserEfficiency);
-                laserWasteheat = laserWasteheatFixed / TimeWarp.fixedDeltaTime;
+                laserWasteheat = recievedPowerPerSecond * (1 - LaserEfficiency);
 
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourceFixed(laserWasteheatFixed, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(laserWasteheat, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
                 var rateMultplier = MinIsp / SelectedIsp;
                 var neutronbsorbionBonus = 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp)));
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;
-                supplyFNResourceFixed(absorbedWasteheat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourcePerSecond(absorbedWasteheat, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
                 //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;
@@ -498,18 +462,15 @@ namespace FNPlugin
                 var currentIsp = SelectedIsp;
                 UpdateISP();
 
-
-                // Update FuelFlow
-                var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-
-
-                curEngineT.maxFuelFlow = (float)maxFuelFlow;
-                curEngineT.maxThrust =  MaximumThrust;
-
-
                 maximumThrust = MaximumThrust;
 
-                if (!curEngineT.getFlameoutState && plasma_ratio < 0.75 && recievedPowerFixed > 0)
+                // Update FuelFlow
+                var maxFuelFlow = fusionRatio * maximumThrust / currentIsp / PluginHelper.GravityConstant;
+
+                curEngineT.maxFuelFlow = (float)maxFuelFlow;
+                curEngineT.maxThrust = (float)maximumThrust;
+
+                if (!curEngineT.getFlameoutState && plasma_ratio < 0.75 && recievedPowerPerSecond > 0)
                     curEngineT.status = "Insufficient Electricity";
             }
             else
@@ -520,12 +481,14 @@ namespace FNPlugin
                 fusionRatio = 0;
                 var currentIsp = SelectedIsp;
 
+                maximumThrust = MaximumThrust;
+
                 UpdateISP();
-                curEngineT.maxThrust = MaximumThrust;
+                curEngineT.maxThrust = (float)maximumThrust;
                 var rateMultplier = MinIsp / SelectedIsp;
 
-                var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = maxFuelFlow;
+                var maxFuelFlow = maximumThrust / currentIsp / PluginHelper.GravityConstant;
+                curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
                 //   curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
             }
@@ -548,12 +511,12 @@ namespace FNPlugin
 
             foreach (Vessel vess in FlightGlobals.Vessels)
             {
-                float distance = (float)Vector3d.Distance(vessel.transform.position, vess.transform.position);
+                double distance = Vector3d.Distance(vessel.transform.position, vess.transform.position);
 
                 if (distance >= leathalDistance || vess == this.vessel || vess.GetCrewCount() <= 0) continue;
 
-                float inv_sq_dist = distance / killDivider;
-                float inv_sq_mult = 1.0f / inv_sq_dist / inv_sq_dist;
+                double inv_sq_dist = distance / killDivider;
+                double inv_sq_mult = 1.0 / inv_sq_dist / inv_sq_dist;
                 foreach (ProtoCrewMember crew_member in vess.GetVesselCrew())
                 {
                     if (UnityEngine.Random.value < (1.0 - death_prob * inv_sq_mult)) continue;
@@ -592,7 +555,7 @@ namespace FNPlugin
 
         public override int getPowerPriority()
         {
-            return 3;
+            return 4;
         }    
     }
 }

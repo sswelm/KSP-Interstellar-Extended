@@ -69,9 +69,9 @@ namespace FNPlugin
 
         public double RawMaximumPower { get { return maximumPowerRecieved; } }
 
-        public IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
+        public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
 
-        public IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
+        public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
         //-----------------------------------------------------------------------------------------------
 

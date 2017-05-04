@@ -26,6 +26,8 @@ namespace OpenResourceSystem
         public const string FNRESOURCE_THERMALPOWER = "ThermalPower";
 		public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
 
+        public const double ONE_THIRD = 1.0 / 3.0;
+
 		public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
 		public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
                
@@ -405,7 +407,7 @@ namespace OpenResourceSystem
 
             power_supply_list_archive = power_produced.OrderByDescending(m => m.Value.maximumSupply).ToList();
 
-            List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_draw).ToList();
+            List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_items = power_consumption.OrderBy(m => m.Key.getResourceManagerDisplayName()).ToList();
 
             power_draw_list_archive = power_draw_items.ToList();
             power_draw_list_archive.Reverse();
@@ -485,7 +487,30 @@ namespace OpenResourceSystem
             {
                 ORSResourceSuppliable resourceSuppliable = power_kvp.Key;
 
-                if (resourceSuppliable.getPowerPriority() >= 4)
+                if (resourceSuppliable.getPowerPriority() == 4)
+                {
+                    double power = power_kvp.Value.Power_draw;
+                    current_resource_demand += power;
+
+                    if (flow_type == FNRESOURCE_FLOWTYPE_EVEN)
+                        power = power * demand_supply_ratio;
+
+                    double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
+
+                    currentPowerSupply -= power_supplied;
+                    total_power_distributed += power_supplied;
+
+                    //notify of supply
+                    resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
+                }
+            }
+
+            // check priority 5 parts and higher
+            foreach (KeyValuePair<ORSResourceSuppliable, PowerConsumption> power_kvp in power_draw_items)
+            {
+                ORSResourceSuppliable resourceSuppliable = power_kvp.Key;
+
+                if (resourceSuppliable.getPowerPriority() >= 5)
                 {
                     double power = power_kvp.Value.Power_draw;
                     current_resource_demand += power;

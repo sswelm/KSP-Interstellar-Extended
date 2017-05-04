@@ -128,30 +128,48 @@ namespace FNPlugin.Refinery
         private GUIStyle _enabled_button;
         private GUIStyle _disabled_button;
 
-        [KSPEvent(guiActive = true, guiName = "Sample Atmosphere", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Test Atmosphere", active = true)]
         public void SampleAtmosphere()
         {
-            List<AtmosphericResource> resources = AtmosphericResourceHandler.GetAtmosphericCompositionForBody(part.vessel.mainBody);
+            CelestialBody celestialBody = vessel.mainBody;
 
-            foreach (var resource in resources)
-            {
-                ScreenMessages.PostScreenMessage(resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
-            }
+            AtmosphericResourceHandler.GenerateCompositionFromCelestialBody(celestialBody);
+
+            //Debug.Log("[KSPI] - determined " + celestialBody.name + " to be current celestrial body");
+
+            //// Lookup homeworld
+            //CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
+
+            //Debug.Log("[KSPI] - determined " + homeworld.name + " to be the home world");
+
+            //double presureAtSurface = celestialBody.GetPressure(0);
+
+            //Debug.Log("[KSPI] - surface presure " + celestialBody.name + " is " + presureAtSurface);
+            //Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworld.GetPressure(0));
+            //Debug.Log("[KSPI] - mass " + celestialBody.name + " is " + celestialBody.Mass);
+            //Debug.Log("[KSPI] - mass " + homeworld.name + " is " + celestialBody.Mass);
+
+            //List<AtmosphericResource> resources = AtmosphericResourceHandler.GetAtmosphericCompositionForBody(part.vessel.mainBody);
+
+            //foreach (var resource in resources)
+            //{
+            //    ScreenMessages.PostScreenMessage(resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
+            //}
         }
 
-        [KSPEvent(guiActive = true, guiName = "Sample Ocean", active = true)]
-        public void SampleOcean()
-        {
-            List<OceanicResource> resources = OceanicResourceHandler.GetOceanicCompositionForBody(part.vessel.mainBody).ToList();
+        //[KSPEvent(guiActive = true, guiName = "Sample Ocean", active = true)]
+        //public void SampleOcean()
+        //{
+        //    List<OceanicResource> resources = OceanicResourceHandler.GetOceanicCompositionForBody(part.vessel.mainBody).ToList();
 
-            foreach (var resource in resources)
-            {
-                PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resource.ResourceName);
+        //    foreach (var resource in resources)
+        //    {
+        //        PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resource.ResourceName);
 
-                string found = definition != null ? "D" : "U";
-                ScreenMessages.PostScreenMessage(found + " " + resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance , 6.0f, ScreenMessageStyle.LOWER_CENTER);
-            }
-        }
+        //        string found = definition != null ? "D" : "U";
+        //        ScreenMessages.PostScreenMessage(found + " " + resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance , 6.0f, ScreenMessageStyle.LOWER_CENTER);
+        //    }
+        //}
 
         [KSPEvent(guiActive = true, guiName = "Toggle Refinery Window", active = true)]
         public void ToggleWindow()

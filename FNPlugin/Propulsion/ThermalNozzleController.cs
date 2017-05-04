@@ -395,109 +395,117 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            // initialize resource manager
-            //String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER };
-            //this.resources_to_supply = resources_to_supply;
-            //base.OnStart(state);
-
-            // make sure thermal values are fixed and not screwed up by Deadly Reentry
-            part.maxTemp = maxTemp;
-            part.emissiveConstant = emissiveConstant;
-            part.heatConductivity = heatConductivity;
-            part.thermalMassModifier = thermalMassModifier;
-            part.heatConvectiveConstant = heatConvectiveConstant;
-
-            part.skinMaxTemp = skinMaxTemp;
-            part.skinSkinConductionMult = skinSkinConductionMult;
-            part.skinThermalMassModifier = skinThermalMassModifier;
-            part.skinInternalConductionMult = skinInternalConductionMult;
-
-            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - setup animation");
-
-            if (!String.IsNullOrEmpty(deployAnimationName))
-                deployAnim = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
-            if (!String.IsNullOrEmpty(pulseAnimationName))
-                pulseAnimationState = PluginHelper.SetUpAnimation(pulseAnimationName, this.part);
-            if (!String.IsNullOrEmpty(emiAnimationName))
-                emiAnimationState = PluginHelper.SetUpAnimation(emiAnimationName, this.part);
-
-            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
-
-            // calculate WasteHeat Capacity
-            PartResource wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
-            if (wasteheatPowerResource != null)
+            try
             {
-                var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
-                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
-            }
 
-            engineType = originalName;
+                // initialize resource manager
+                //String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER };
+                //this.resources_to_supply = resources_to_supply;
+                //base.OnStart(state);
 
-            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - find module implementing <ModuleEngines>");
+                // make sure thermal values are fixed and not screwed up by Deadly Reentry
+                part.maxTemp = maxTemp;
+                part.emissiveConstant = emissiveConstant;
+                part.heatConductivity = heatConductivity;
+                part.thermalMassModifier = thermalMassModifier;
+                part.heatConvectiveConstant = heatConvectiveConstant;
 
-            myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
+                part.skinMaxTemp = skinMaxTemp;
+                part.skinSkinConductionMult = skinSkinConductionMult;
+                part.skinThermalMassModifier = skinThermalMassModifier;
+                part.skinInternalConductionMult = skinInternalConductionMult;
 
-            // find attached thermal source
-            ConnectToThermalSource();
+                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - setup animation");
 
-            maxPressureThresholdAtKerbinSurface = exitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
+                if (!String.IsNullOrEmpty(deployAnimationName))
+                    deployAnim = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
+                if (!String.IsNullOrEmpty(pulseAnimationName))
+                    pulseAnimationState = PluginHelper.SetUpAnimation(pulseAnimationName, this.part);
+                if (!String.IsNullOrEmpty(emiAnimationName))
+                    emiAnimationState = PluginHelper.SetUpAnimation(emiAnimationName, this.part);
 
-            if (state == StartState.Editor)
-            {
-                part.OnEditorAttach += OnEditorAttach;
-                part.OnEditorDetach += OnEditorDetach;
+                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
 
-                propellantsConfignodes = getPropellants(isJet);
-                if (this.HasTechsRequiredToUpgrade())
+                // calculate WasteHeat Capacity
+                PartResource wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+                if (wasteheatPowerResource != null)
                 {
-                    isupgraded = true;
-                    upgradePartModule();
+                    var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
+                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
                 }
-                SetupPropellants();
-                EstimateEditorPerformance();
 
-                return;
+                engineType = originalName;
+
+                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - find module implementing <ModuleEngines>");
+
+                myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
+
+                // find attached thermal source
+                ConnectToThermalSource();
+
+                maxPressureThresholdAtKerbinSurface = exitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
+
+                if (state == StartState.Editor)
+                {
+                    part.OnEditorAttach += OnEditorAttach;
+                    part.OnEditorDetach += OnEditorDetach;
+
+                    propellantsConfignodes = getPropellants(isJet);
+                    if (this.HasTechsRequiredToUpgrade())
+                    {
+                        isupgraded = true;
+                        upgradePartModule();
+                    }
+                    SetupPropellants();
+                    EstimateEditorPerformance();
+
+                    return;
+                }
+                else
+                    UpdateRadiusModifier();
+
+                // presearch all avaialble precoolers, intakes and nozzles on the vessel
+                _vesselPrecoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
+                _vesselResourceIntakes = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir).ToList();
+                _vesselThermalNozzles = vessel.FindPartModulesImplementing<IEngineNoozle>();
+
+                // if we can upgrade, let's do so
+                if (isupgraded)
+                    upgradePartModule();
+                else
+                {
+                    if (this.HasTechsRequiredToUpgrade())
+                        hasrequiredupgrade = true;
+
+                    // if not, use basic propellants
+                    propellantsConfignodes = getPropellants(isJet);
+                }
+
+                bool hasJetUpgradeTech0 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech0);
+                bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
+                bool hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
+                bool hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
+
+                jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3);
+                jetTechBonusPercentage = jetTechBonus / 26.84f;
+
+                hasstarted = true;
+
+                Fields["temperatureStr"].guiActive = showPartTemperature;
             }
-            else
-                UpdateRadiusModifier();
-
-            // presearch all avaialble precoolers, intakes and nozzles on the vessel
-            _vesselPrecoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
-            _vesselResourceIntakes = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir).ToList();
-            _vesselThermalNozzles = vessel.FindPartModulesImplementing<IEngineNoozle>();
-
-            // if we can upgrade, let's do so
-            if (isupgraded)
-                upgradePartModule();
-            else
+            catch (Exception e)
             {
-                if (this.HasTechsRequiredToUpgrade())
-                    hasrequiredupgrade = true;
-
-                // if not, use basic propellants
-                propellantsConfignodes = getPropellants(isJet);
+                Debug.LogError("[KSPI] - OnStart Exception in ThermalNozzleController.OnStart: " + e.Message);
             }
-
-            bool hasJetUpgradeTech0 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech0);
-            bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
-            bool hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
-            bool hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
-
-            jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3);
-            jetTechBonusPercentage = jetTechBonus / 26.84f;
-
-            hasstarted = true;
-
-            Fields["temperatureStr"].guiActive = showPartTemperature;
 
             try
             {
                 SetupPropellants();
             }
-            catch
+            catch (Exception e)
             {
-                Debug.LogError("[KSPI] - OnStart Exception in SetupPropellants");
+                Debug.LogError("[KSPI] - OnStart Exception in SetupPropellants" + e.Message);
             }
         }
 
@@ -529,7 +537,7 @@ namespace FNPlugin
         {
             UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
 
-            var source = ThermalSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 10, 10);
+            var source = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 10, 10);
 
             if (source == null || source.Source == null)
             {
@@ -687,7 +695,7 @@ namespace FNPlugin
                     foreach (Propellant curEngine_propellant in list_of_propellants)
                     {
                         var extendedPropellant = curEngine_propellant as ExtendedPropellant;
-                        //IEnumerable<PartResource> partresources = part.GetConnectedResources(extendedPropellant.StoragePropellantName);
+
                         var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(extendedPropellant.StoragePropellantName);
                         double amount = 0;
                         double maxAmount = 0;
@@ -953,6 +961,9 @@ namespace FNPlugin
             {
                 if (!HighLogic.LoadedSceneIsFlight) return;
 
+                //if (!enabled)
+                //    base.OnFixedUpdate();
+
                 if (myAttachedEngine == null) return;
 
                 if (AttachedReactor == null)
@@ -978,9 +989,11 @@ namespace FNPlugin
                     ? myAttachedEngine.currentThrottle
                     : Mathf.MoveTowards(delayedThrottle, myAttachedEngine.currentThrottle, delayedThrottleFactor * TimeWarp.fixedDeltaTime);
 
+                
+                currentMaximumPower = Math.Min(getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) + getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES), AttachedReactor.MaximumPower) * delayedThrottle;
+
                 thermalRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_THERMALPOWER);
-                currentMaximumPower = AttachedReactor.MaximumPower * delayedThrottle;
-                availableThermalPower = currentMaximumPower * thermalRatio;
+                availableThermalPower = currentMaximumPower * (thermalRatio > 0.5 ? 1 : thermalRatio * 2);
 
                 UpdateAnimation();
 
@@ -1054,7 +1067,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error OnFixedUpdate " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI] - Error FixedUpdate " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
             }
         }
 
@@ -1135,21 +1148,19 @@ namespace FNPlugin
                 var neutronAbsorbingModifier = _isNeutronAbsorber ? 1 : (AttachedReactor.FullPowerForNonNeutronAbsorbants ? 1 : 0);
                 requested_thermal_power = Math.Min(availableThermalPower * thermal_modifiers, AttachedReactor.MaximumThermalPower * delayedThrottle * neutronAbsorbingModifier);
 
-                var fixed_thermal_power_received = consumeFNResource(requested_thermal_power * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                double thermal_power_received_per_second = consumeFNResourcePerSecond(requested_thermal_power, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                var raw_total_power_received = fixed_thermal_power_received;
+                thermal_power_received = thermal_power_received_per_second * AttachedReactor.ThermalPropulsionEfficiency;
 
-                thermal_power_received = fixed_thermal_power_received * AttachedReactor.ThermalPropulsionEfficiency / TimeWarp.fixedDeltaTime;
-
+                double charged_power_received_per_second = 0;
                 if (thermal_power_received < maximum_requested_thermal_power)
                 {
                     var chargedParticleRatio = Math.Pow(getResourceBarRatio(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES), 2);
                     requested_charge_particles = Math.Min((maximum_requested_thermal_power - thermal_power_received), AttachedReactor.MaximumChargedPower) * chargedParticleRatio;
 
-                    var fixed_charged_power_received = consumeFNResource(requested_charge_particles * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-                    raw_total_power_received += fixed_charged_power_received;
+                    charged_power_received_per_second = consumeFNResourcePerSecond(requested_charge_particles, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
-                    thermal_power_received += fixed_charged_power_received / TimeWarp.fixedDeltaTime;
+                    thermal_power_received += charged_power_received_per_second;
                 }
 
                 UpdateSootAccumulation();
@@ -1167,8 +1178,8 @@ namespace FNPlugin
                         ? wasteheatEfficiencyHighTemperature
                         : wasteheatEfficiencyLowTemperature;
 
-                    var fixedConsumedWasteHeatRequest = sootModifier * wasteheatEfficiencyModifier * raw_total_power_received;
-                    consumeFNResource(fixedConsumedWasteHeatRequest, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    var ConsumedWasteHeatRequestPerSecond = sootModifier * wasteheatEfficiencyModifier * (thermal_power_received_per_second + charged_power_received_per_second);
+                    consumeFNResourcePerSecond(ConsumedWasteHeatRequestPerSecond, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // calculate max thrust

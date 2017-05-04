@@ -99,9 +99,9 @@ namespace FNPlugin
 
         double EfficencyConnectedChargedEnergyGenerator { get; }
 
-        IElectricPowerSource ConnectedThermalElectricGenerator { get; set; }
+        IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
 
-        IElectricPowerSource ConnectedChargedParticleElectricGenerator { get; set; }
+        IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
         void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType);
 

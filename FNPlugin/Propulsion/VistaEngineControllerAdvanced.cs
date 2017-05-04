@@ -278,7 +278,7 @@ namespace FNPlugin
                 DetermineTechLevel();
 
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                    part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
 
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;

@@ -557,13 +557,13 @@ namespace FNPlugin
                 {
                     var reservedForHighPriorityPowerUsers = getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                    var availableReactorPower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - reservedForHighPriorityPowerUsers, 0);
+                    var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - reservedForHighPriorityPowerUsers, 0);
 
                     var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                     var effectiveResourceThrotling = resourceBarRatio > oneThird ? 1 : resourceBarRatio * 3;
 
-                    requestedPower = Math.Min(power_capacity, effectiveResourceThrotling * availableReactorPower * reactorPowerTransmissionRatio);
+                    requestedPower = Math.Min(power_capacity, effectiveResourceThrotling * availablePower * reactorPowerTransmissionRatio);
                 }
 
                 var fixedRequestedPower = requestedPower * TimeWarp.fixedDeltaTime;

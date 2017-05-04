@@ -95,8 +95,6 @@ namespace FNPlugin
         public float wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
         public string colorHeat = "_EmissiveColor";
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Pressure Load", guiFormat= "F2", guiUnits = "%")]
-        //public float pressureLoad;
         [KSPField(isPersistant = false, guiActive = false)]
         public double dynamic_pressure;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Type")]
@@ -107,16 +105,14 @@ namespace FNPlugin
         public string partTempStr;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double radiatorArea = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Surface Multiplier", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Surface Multiplier", guiFormat = "F2")]
         public double effectiveMultiplier;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiativeArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float areaMultiplier = 4;
+        public float areaMultiplier = 3;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float areaMultiplierAtmosphere = 4;
-        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        //public float radiativeAreaFraction = 1;
+        public float areaMultiplierAtmosphere = 3;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiatorArea;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
@@ -147,8 +143,6 @@ namespace FNPlugin
 		protected double convectedThermalPower;
 		
 		protected float directionrotate = 1;
-		//protected Vector3 original_eulers;
-		//protected Transform pivot;
         protected long update_count = 0;
 		protected int explode_counter = 0;
         protected int nrAvailableUpgradeTechs;
@@ -426,6 +420,11 @@ namespace FNPlugin
 
         public override void OnStart(StartState state)
         {
+            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
+            this.resources_to_supply = resources_to_supply;
+
+            base.OnStart(state);
+
             radiatedThermalPower = 0;
             convectedThermalPower = 0;
             CurrentRadiatorTemperature = 0;
@@ -458,7 +457,7 @@ namespace FNPlugin
             if (wasteheatPowerResource != null)
             {
                 var ratio = Math.Min(1.0, Math.Max(0.0, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
-                wasteheatPowerResource.maxAmount = part.mass * 1.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
                 wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }
 
@@ -637,6 +636,9 @@ namespace FNPlugin
         {
             try
             {
+                if (!enabled)
+                    base.OnFixedUpdate();
+
                 if (!HighLogic.LoadedSceneIsFlight)
                     return;
 
@@ -682,7 +684,7 @@ namespace FNPlugin
                 wasteheatRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 if (Double.IsNaN(wasteheatRatio))
-                    Debug.LogWarning("FNRadiator: OnFixedUpdate Single.IsNaN detected in wasteheatRatio");
+                    Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in wasteheatRatio");
 
                 radiator_temperature_temp_val = MaxRadiatorTemperature * Math.Pow(wasteheatRatio, 0.25);
 
@@ -702,7 +704,7 @@ namespace FNPlugin
                     double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6 * TimeWarp.fixedDeltaTime;
 
                     if (Double.IsNaN(fixed_thermal_power_dissip))
-                        Debug.LogWarning("FNRadiator: OnFixedUpdate Single.IsNaN detected in fixed_thermal_power_dissip");
+                        Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in fixed_thermal_power_dissip");
 
                     if (canRadiateHeat)
                         radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
@@ -710,13 +712,13 @@ namespace FNPlugin
                         radiatedThermalPower = 0;
 
                     if (Double.IsNaN(radiatedThermalPower))
-                        Debug.LogError("FNRadiator: OnFixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + fixed_thermal_power_dissip + ")");
+                        Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + fixed_thermal_power_dissip + ")");
 
                     instantaneous_rad_temp = Math.Min(radiator_temperature_temp_val * 1.014f, MaxRadiatorTemperature);
                     instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
 
                     if (Double.IsNaN(instantaneous_rad_temp))
-                        Debug.LogError("FNRadiator: OnFixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
+                        Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
 

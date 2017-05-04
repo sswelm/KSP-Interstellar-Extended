@@ -328,11 +328,11 @@ namespace FNPlugin.Refinery
 
             // this should determine how much resource this process can consume
             var fixedMaxAtmosphereConsumptionRate = _current_rate * fixedDeltaTime * _atmosphere_density;
-            var buildineAirIntake = fixedMaxAtmosphereConsumptionRate * _vessel.atmDensity;
+            var buildInAirIntake = fixedMaxAtmosphereConsumptionRate * _vessel.atmDensity;
 
             var atmosphereConsumptionRatio = offlineCollecting ? 1 
                     : fixedMaxAtmosphereConsumptionRate > 0
-                        ? Math.Min(fixedMaxAtmosphereConsumptionRate, buildineAirIntake + _availableAtmosphereMass) / fixedMaxAtmosphereConsumptionRate
+                        ? Math.Min(fixedMaxAtmosphereConsumptionRate, buildInAirIntake + _availableAtmosphereMass) / fixedMaxAtmosphereConsumptionRate
                         : 0;
 
             _fixedConsumptionRate = _current_rate * fixedDeltaTime * atmosphereConsumptionRatio;
