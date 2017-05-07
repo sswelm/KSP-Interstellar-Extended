@@ -694,6 +694,7 @@ namespace FNPlugin
 
                     foreach (Propellant curEngine_propellant in list_of_propellants)
                     {
+                        
                         var extendedPropellant = curEngine_propellant as ExtendedPropellant;
 
                         var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(extendedPropellant.StoragePropellantName);
