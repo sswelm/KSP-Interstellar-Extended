@@ -483,7 +483,7 @@ namespace FNPlugin
             if (wasteheatPowerResource != null)
             {
                 var ratio = Math.Min(1.0, Math.Max(0.0, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
-                wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
+                wasteheatPowerResource.maxAmount = part.mass * 1.0e+3 * wasteHeatMultiplier;
                 wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
             }
 
@@ -688,11 +688,14 @@ namespace FNPlugin
                 if (Double.IsNaN(wasteheatRatio))
                     Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in wasteheatRatio");
 
-                maxCurrentTemperature = maxAtmosphereTemperature * Math.Max(Math.Min(vessel.atmDensity, 1),0) + maxVacuumTemperature * Math.Max(Math.Min(1 - vessel.atmDensity, 1), 0);
+                var normalized_atmosphere = Math.Min(vessel.atmDensity, 1);
 
-                radiator_temperature_temp_val = external_temperature + Math.Min((maxRadiatorTemperature - external_temperature) * Math.Pow(wasteheatRatio, 0.25), maxCurrentTemperature - external_temperature);
+                maxCurrentTemperature = maxAtmosphereTemperature * Math.Max(normalized_atmosphere, 0) + maxVacuumTemperature * Math.Max(Math.Min(1 - vessel.atmDensity, 1), 0);
 
-                var efficiency = 1 - Math.Pow(1 - wasteheatRatio, 200);
+                radiator_temperature_temp_val = external_temperature + Math.Min((maxRadiatorTemperature - external_temperature) * Math.Sqrt(wasteheatRatio), maxCurrentTemperature - external_temperature);
+
+                var efficiency = 1 - Math.Pow(1 - wasteheatRatio, 400);
+                double delta_temp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * normalized_atmosphere, 2.7), 0);
 
                 if (radiatorIsEnabled)
                 {
@@ -705,8 +708,6 @@ namespace FNPlugin
                     else
                         explode_counter = 0;
 
-
-                    double delta_temp = Math.Max(radiator_temperature_temp_val - external_temperature, 0);
                     double thermal_power_dissip_per_second = efficiency * Math.Pow(delta_temp, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6;
 
                     if (Double.IsNaN(thermal_power_dissip_per_second))
@@ -732,7 +733,6 @@ namespace FNPlugin
                 }
                 else
                 {
-                    double delta_temp = Math.Max(radiator_temperature_temp_val - external_temperature, 0);
                     double thermal_power_dissip_per_second = efficiency * Math.Pow(Math.Max(delta_temp - external_temperature, 0), 4) * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7;
 
                     if (canRadiateHeat)
@@ -751,8 +751,8 @@ namespace FNPlugin
                     dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325;
                     pressure += dynamic_pressure;
 
-                    double delta_temp = Math.Max(0, CurrentRadiatorTemperature - external_temperature);
-                    double conv_power_dissip = efficiency * pressure * delta_temp * effectiveRadiatorArea * rad_const_h / 1e6 * convectiveBonus;
+                    double convection_delta_temp = Math.Max(0, CurrentRadiatorTemperature - external_temperature);
+                    double conv_power_dissip = efficiency * pressure * convection_delta_temp * effectiveRadiatorArea * rad_const_h / 1e6 * convectiveBonus;
 
                     if (!radiatorIsEnabled)
                         conv_power_dissip = conv_power_dissip / 2;

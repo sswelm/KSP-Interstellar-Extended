@@ -375,7 +375,7 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
+                part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+3 * wasteHeatMultiplier;
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
             }

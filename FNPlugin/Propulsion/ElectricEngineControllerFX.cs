@@ -223,7 +223,7 @@ namespace FNPlugin
                 if (wasteheatPowerResource != null)
                 {
                     var ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
+                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+3 * wasteHeatMultiplier;
                     wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * ratio;
                 }
 
