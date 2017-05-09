@@ -430,14 +430,16 @@ namespace FNPlugin
                 else
                 {
 
-                    UpdateFuel();
+
                     hideEmpty = true;
                     if (state.ToString().Contains(StartState.PreLaunch.ToString())) // startstate normally == prelaunch,landed
                     {
                         Debug.Log("PreLaunch");
                         hideEmpty = true;
                         UpdateResources();
+                        UpdateusefulConfigurations();
                         InitializeFuelSelector();
+                        UpdateFuel();
                     }
 
                 }
@@ -532,7 +534,7 @@ namespace FNPlugin
                     if (akResource != null)
                     {
 
-                        vessel.UpdateResourceSets();
+                      //  vessel.UpdateResourceSets();
                         part.GetConnectedResourceTotals(akResource.info.id, out akAmount, out akMaxAmount);
                         Debug.Log("Resource: " + akConfig.Fuels[I] + " has " + akAmount);
                         if (akAmount == 0 && akMaxAmount > 0)
