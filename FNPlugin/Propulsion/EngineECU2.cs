@@ -128,8 +128,8 @@ namespace FNPlugin
             hideEmpty = false;
             Events["ShowFuels"].active = hideEmpty; // will activate the event (i.e. show the gui button) if the process is not enabled
             Events["HideFuels"].active = !hideEmpty; // will show the button when the process IS enabled
-            InitializeFuelSelector();
             selectedFuel = ActiveConfigurations.IndexOf(CurConfig);
+            InitializeFuelSelector();
             UpdateFuel();
 
 
@@ -789,48 +789,48 @@ namespace FNPlugin
             }
 
         }
-        private void SaveAmount(GameEvents.FromToAction<GameScenes, GameScenes> data)
+        private void SaveAmount(ShipConstruct Ship)
         {
-            GameEvents.FromToAction<GameScenes, GameScenes> EditorToFlight = new GameEvents.FromToAction<GameScenes, GameScenes>(GameScenes.EDITOR,GameScenes.FLIGHT);
-            Debug.Log("Scene Change!");
+
+          //  Debug.Log("Ship Modified!");
             try
             {
-                if (data.Equals(EditorToFlight))
-                    {
-                    // Debug.Log("akAmont Length: " + akAmount.Length);
-                    // Debug.Log("Amount Length: " + Amount.Length);
-                    Debug.Log("Part Resources Length: " + part.Resources.Count);
-                    int i = 0;
-                    if (part.Resources.Count == Amount.Length)
-                        while (i < Amount.Length)
-                        {
-                            Debug.Log("Saving " + part.Resources[i].resourceName + " Amount " + part.Resources[i].amount);
-                            akAmount[i] = (float)part.Resources[i].amount;
-                            i++;
-                        }
 
-                    strAmount = FloatArrayToString(Amount);
-                }
+
+                // Debug.Log("akAmont Length: " + akAmount.Length);
+                // Debug.Log("Amount Length: " + Amount.Length);
+               // Debug.Log("Part Resources Length: " + part.Resources.Count);
+                int i = 0;
+                if (part.Resources.Count == Amount.Length)
+                    while (i < Amount.Length)
+                    {
+                       // Debug.Log("Saving " + part.Resources[i].resourceName + " Amount " + part.Resources[i].amount);
+                        akAmount[i] = (float)part.Resources[i].amount;
+                        i++;
+                    }
+
+                strAmount = FloatArrayToString(Amount);
+
             }
             catch (Exception e)
             {
                 Debug.LogError("Save Amount Error: " + e);
             }
         }
-
+       
 
         public virtual void OnRescale(ScalingFactor factor)
         {
             
             Scale = factor.absolute.linear;
-            Debug.Log(fuelConfigurationName + " Rescaled to " + Scale);
+          //  Debug.Log(fuelConfigurationName + " Rescaled to " + Scale);
         }
 
         public override void OnStart(StartState state)
         {
             if (fuelConfigurationName != akConfigName || StrMaxAmount != maxAmount) Refresh();
 
-            GameEvents.onGameSceneSwitchRequested.Add(SaveAmount);
+            GameEvents.onEditorShipModified.Add(SaveAmount);
             base.OnStart(state);
 
         }
