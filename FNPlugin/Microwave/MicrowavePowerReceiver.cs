@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using FNPlugin.Propulsion;
 using FNPlugin.Extensions;
@@ -802,11 +800,12 @@ namespace FNPlugin
             thermalResource = part.Resources[FNResourceManager.FNRESOURCE_THERMALPOWER];
 
 			// calculate WasteHeat Capacity
+			partBaseWasteheat = part.mass * 1.0e+3 * wasteHeatMultiplier + (StableMaximumReactorPower * 0.05);
 			var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
 			if (wasteheatPowerResource != null)
 			{
 				var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.amount, 0.95);
-				wasteheatPowerResource.maxAmount = part.mass * 1.0e+3 * wasteHeatMultiplier;
+				wasteheatPowerResource.maxAmount = partBaseWasteheat;
 				wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
 			}
 
@@ -1469,7 +1468,7 @@ namespace FNPlugin
                         slavesAmount = thermalReceiverSlaves.Count;
 
                         // first do solar power
-                        double supplied_solar_power = supplyFNResourcePerSecondWithMax(solarInputMegajoules, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                        supplyFNResourcePerSecondWithMax(solarInputMegajoules, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_THERMALPOWER);
                         double supplied_beamed_thermal_per_second = supplyFNResourcePerSecondWithMax(total_beamed_power, total_beamed_power_max, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
                         if (!CheatOptions.IgnoreMaxTemperature)

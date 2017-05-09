@@ -1564,12 +1564,6 @@ namespace FNPlugin
                 : part.RequestResource(lithium6_def.id, lithium_request * ratioLithium6, ResourceFlowMode.STACK_PRIORITY_SEARCH)
                 + part.RequestResource(lithium7_def.id, lithium_request * ratioLithium7, ResourceFlowMode.STACK_PRIORITY_SEARCH);
 
-            //var lith_used = CheatOptions.InfinitePropellant
-            //    ? lithium_request
-            //    : fastNeutrons
-            //        ? part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium7, lithium_request, ResourceFlowMode.STACK_PRIORITY_SEARCH)
-            //        : part.RequestResource(InterstellarResourcesConfiguration.Instance.Lithium6, lithium_request, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-
             lithium_consumed_per_second = lith_used / fixedDeltaTime;
 
             // caculate products
