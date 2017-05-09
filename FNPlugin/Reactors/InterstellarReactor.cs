@@ -1177,7 +1177,8 @@ namespace FNPlugin
                     }
                     else
                     {
-                        statusStr = current_fuel_variant.ReactorFuels.FirstOrDefault(fuel => GetFuelAvailability(fuel) <= 0).ResourceName + " Deprived";
+						if (current_fuel_variant != null)
+							statusStr = current_fuel_variant.ReactorFuels.FirstOrDefault(fuel => GetFuelAvailability(fuel) <= 0).ResourceName + " Deprived";
                     }
                 }
                 else
@@ -1215,12 +1216,6 @@ namespace FNPlugin
 
             if (!enabled)
                 base.OnFixedUpdate();
-
-            // add alternator power
-            //if (IsEnabled && hasAlternator && enabled)
-            //{
-            //    supplyFNResourcePerSecond(MaximumThermalPower * minimumThrottle * 0.05, FNResourceManager.FNRESOURCE_MEGAJOULES);
-            //}
         }
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
@@ -1464,9 +1459,9 @@ namespace FNPlugin
                     partBaseWasteheat = part.mass * 1.0e+3 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
 
                     var requiredWasteheatCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * partBaseWasteheat);
-                    var previousWasteheatCapacity = Math.Max(0.0001, 10 * previousDeltaTime * partBaseWasteheat);
 
                     var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
+
                     wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
                     wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
                 }
@@ -1482,7 +1477,7 @@ namespace FNPlugin
 
                 if (chargedPowerResource != null)
                 {
-                    var chargedPowerRatio = Math.Max(0, Math.Min(1, thermalPowerResource.amount / thermalPowerResource.maxAmount));
+					var chargedPowerRatio = Math.Max(0, Math.Min(1, chargedPowerResource.amount / chargedPowerResource.maxAmount));
                     chargedPowerResource.maxAmount = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumChargedPower);
                     chargedPowerResource.amount = Math.Max(0, Math.Min(chargedPowerResource.maxAmount, chargedPowerRatio * chargedPowerResource.maxAmount));
                 }

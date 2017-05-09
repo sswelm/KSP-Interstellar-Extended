@@ -1,3 +1,4 @@
+using System.Linq;
 using FNPlugin.Extensions;
 using System;
 using System.Collections.Generic;
@@ -206,7 +207,13 @@ namespace FNPlugin
 					hasrequiredupgrade = true;
 
 				// calculate WasteHeat Capacity
-				part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT].maxAmount = part.mass * 1.0e+3 * wasteHeatMultiplier;
+				var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+				if (wasteheatPowerResource != null)
+				{
+					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.amount, 0.95);
+					wasteheatPowerResource.maxAmount = part.mass * 1.0e+3 * wasteHeatMultiplier;
+					wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+				}
 
 				if (state == StartState.Editor && this.HasTechsRequiredToUpgrade())
 				{
