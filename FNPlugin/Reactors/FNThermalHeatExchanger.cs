@@ -37,6 +37,8 @@ namespace FNPlugin
         protected double storedIsThermalEnergyGeneratorActive;
         protected double currentIsThermalEnergyGeneratorActive;
 
+        public bool SupportMHD { get { return false; } }
+
         public Part Part { get { return this.part; } }
 
         public int ProviderPowerPriority { get { return 2; } }

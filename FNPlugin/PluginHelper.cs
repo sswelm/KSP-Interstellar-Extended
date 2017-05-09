@@ -304,6 +304,8 @@ namespace FNPlugin
         private static bool _matchDemandWithSupply = false;
         public static bool MatchDemandWithSupply { get { return _matchDemandWithSupply; } }
 
+        // Jet Upgrade Techs
+
         private static string _jetUpgradeTech0 = String.Empty;
         public static string JetUpgradeTech0 { get { return _jetUpgradeTech0; } private set { _jetUpgradeTech0 = value; } }
 
@@ -315,6 +317,20 @@ namespace FNPlugin
 
         private static string _jetUpgradeTech3 = String.Empty;
         public static string JetUpgradeTech3 { get { return _jetUpgradeTech3; } private set { _jetUpgradeTech3 = value; } }
+
+        // Radiator Upgrade Techs
+
+        private static string _radiatorUpgradeTech0 = String.Empty;
+        public static string RadiatorUpgradeTech0 { get { return _radiatorUpgradeTech0; } private set { _radiatorUpgradeTech0 = value; } }
+
+        private static string _radiatorUpgradeTech1 = String.Empty;
+        public static string RadiatorUpgradeTech1 { get { return _radiatorUpgradeTech1; } private set { _radiatorUpgradeTech1 = value; } }
+
+        private static string _radiatorUpgradeTech2 = String.Empty;
+        public static string RadiatorUpgradeTech2 { get { return _radiatorUpgradeTech2; } private set { _radiatorUpgradeTech2 = value; } }
+
+        private static string _radiatorUpgradeTech3 = String.Empty;
+        public static string RadiatorUpgradeTech3 { get { return _radiatorUpgradeTech3; } private set { _radiatorUpgradeTech3 = value; } }
 
         #endregion
 
@@ -891,6 +907,8 @@ namespace FNPlugin
                         PluginHelper._minAtmosphericAirDensity = double.Parse(plugin_settings.GetValue("MinAtmosphericAirDensity"));
                         Debug.Log("[KSPI] Minimum Atmospheric Air Density set to: " + PluginHelper.MinAtmosphericAirDensity.ToString("0.0"));
                     }
+
+                    // Jet Upgrade techs
                     if (plugin_settings.HasValue("JetUpgradeTech0"))
                     {
                         PluginHelper.JetUpgradeTech0 = plugin_settings.GetValue("JetUpgradeTech0");
@@ -910,6 +928,28 @@ namespace FNPlugin
                     {
                         PluginHelper.JetUpgradeTech3 = plugin_settings.GetValue("JetUpgradeTech3");
                         Debug.Log("[KSPI] JetUpgradeTech3" + PluginHelper.JetUpgradeTech3);
+                    }
+
+                    // Radiator Upgrade Tech
+                    if (plugin_settings.HasValue("RadiatorUpgradeTech0"))
+                    {
+                        PluginHelper.RadiatorUpgradeTech0 = plugin_settings.GetValue("RadiatorUpgradeTech0");
+                        Debug.Log("[KSPI] RadiatorUpgradeTech0" + PluginHelper.RadiatorUpgradeTech0);
+                    }
+                    if (plugin_settings.HasValue("RadiatorUpgradeTech1"))
+                    {
+                        PluginHelper.RadiatorUpgradeTech1 = plugin_settings.GetValue("RadiatorUpgradeTech1");
+                        Debug.Log("[KSPI] RadiatorUpgradeTech1" + PluginHelper.RadiatorUpgradeTech1);
+                    }
+                    if (plugin_settings.HasValue("RadiatorUpgradeTech2"))
+                    {
+                        PluginHelper.RadiatorUpgradeTech2 = plugin_settings.GetValue("RadiatorUpgradeTech2");
+                        Debug.Log("[KSPI] RadiatorUpgradeTech2" + PluginHelper.RadiatorUpgradeTech2);
+                    }
+                    if (plugin_settings.HasValue("RadiatorUpgradeTech3"))
+                    {
+                        PluginHelper.RadiatorUpgradeTech3 = plugin_settings.GetValue("RadiatorUpgradeTech3");
+                        Debug.Log("[KSPI] RadiatorUpgradeTech3" + PluginHelper.RadiatorUpgradeTech3);
                     }
 
                     resources_configured = true;

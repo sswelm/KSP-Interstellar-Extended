@@ -28,6 +28,8 @@ namespace FNPlugin
         /// </summary>
         double RawMaximumPower { get; }
 
+        bool SupportMHD { get; }
+
         double RawTotalPowerProduced { get; }
 
         /// <summary>

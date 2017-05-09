@@ -47,6 +47,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float radiatorTemperatureMk5 = 3700;
 
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
+        public float maxVacuumTemperature = 3700;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
+        public float maxAtmosphereTemperature = 1200;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
+        public double maxCurrentTemperature = 1200;
+
         [KSPField(isPersistant = false)]
         public string radiatorTypeMk1 = "NaK Loop Radiator";
         [KSPField(isPersistant = false)]
@@ -78,7 +85,7 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public bool isDeployable = false;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Converction Bonus")]
-		public float convectiveBonus = 1.0f;
+		public float convectiveBonus = 1;
 		[KSPField(isPersistant = false)]
 		public string animName;
         [KSPField(isPersistant = false)]
@@ -127,8 +134,10 @@ namespace FNPlugin
         public double instantaneous_rad_temp;
         [KSPField(isPersistant = false, guiActive = false, guiName = "WasteHeat Ratio")]
         public double wasteheatRatio;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Energy Transfer", guiFormat = "F1")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Energy Transfer", guiFormat = "F2")]
         private double _maxEnergyTransfer;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Radiator Temperature", guiFormat = "F0")]
+        public float maxRadiatorTemperature = 3700;
 
         [KSPField(isPersistant = false)]
         public float atmosphereToleranceModifier = 1;
@@ -145,6 +154,7 @@ namespace FNPlugin
 		protected float directionrotate = 1;
         protected long update_count = 0;
 		protected int explode_counter = 0;
+
         protected int nrAvailableUpgradeTechs;
         protected bool doLegacyGraphics;
 
@@ -171,17 +181,22 @@ namespace FNPlugin
         {
             get
             {
-                if (CurrentGenerationType == GenerationType.Mk5)
-                    return radiatorTemperatureMk5;
-                else if (CurrentGenerationType == GenerationType.Mk4)
-                    return radiatorTemperatureMk4;
-                else if (CurrentGenerationType == GenerationType.Mk3)
-                    return radiatorTemperatureMk3;
-                else if (CurrentGenerationType == GenerationType.Mk2)
-                    return radiatorTemperatureMk2;
-                else
-                    return radiatorTemperatureMk1;
+                return GetMaximumTemperatureForGen((int)CurrentGenerationType);
             }
+        }
+
+        private float GetMaximumTemperatureForGen(int generation)
+        {
+            if (generation == 4)
+                return radiatorTemperatureMk5;
+            else if (generation == 3)
+                return radiatorTemperatureMk4;
+            else if (generation == 2)
+                return radiatorTemperatureMk3;
+            else if (generation == 1)
+                return radiatorTemperatureMk2;
+            else
+                return radiatorTemperatureMk1;
         }
 
 
@@ -189,7 +204,8 @@ namespace FNPlugin
         {
             get
             {
-                effectiveMultiplier = !HighLogic.LoadedSceneIsFlight
+                effectiveMultiplier 
+                    = !HighLogic.LoadedSceneIsFlight
                     ? areaMultiplier
                     : vessel.atmDensity == 0
                         ? areaMultiplier
@@ -204,7 +220,7 @@ namespace FNPlugin
         {
             get 
             {
-                effectiveRadiativeArea = EffectiveMultiplier * radiatorArea;
+                effectiveRadiativeArea = areaMultiplier * radiatorArea;
 
                 return hasSurfaceAreaUpgradeTechReq 
                     ? effectiveRadiativeArea * surfaceAreaUpgradeMult 
@@ -219,13 +235,13 @@ namespace FNPlugin
 
             // determine number of upgrade techs
             nrAvailableUpgradeTechs = 1;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk5))
+            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk4))
+            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech2))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk3))
+            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech1))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
+            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech0))
                 nrAvailableUpgradeTechs++;
 
             // determine fusion tech levels
@@ -287,21 +303,31 @@ namespace FNPlugin
 		public static double getAverageRadiatorTemperatureForVessel(Vessel vess) 
         {
 			list_of_all_radiators.RemoveAll(item => item == null);
-			double average_temp = 0;
-			int n_radiators = 0;
 
-            foreach (FNRadiator radiator in list_of_all_radiators.Where(r => r.vessel == vess))
-            {
-                average_temp += radiator.GetAverateRadiatorTemperature();
-                n_radiators += 1;
-            }
+            //double average_temp = 0;
+            //int n_radiators = 0;
 
-			if (n_radiators > 0) 
-				average_temp = average_temp / n_radiators;
-			else 
-				average_temp = 0;
+            //foreach (FNRadiator radiator in list_of_all_radiators.Where(r => r.vessel == vess))
+            //{
+            //    average_temp += radiator.GetAverateRadiatorTemperature();
+            //    n_radiators += 1;
+            //}
 
-			return average_temp;
+            //if (n_radiators > 0) 
+            //    average_temp = average_temp / n_radiators;
+            //else 
+            //    average_temp = 0;
+
+            //return average_temp;
+
+            var filteredList = list_of_all_radiators.Where(r => r.vessel == vess).ToList();
+
+            if (filteredList.Count == 0)
+                return 3700;
+
+            //return list_of_all_radiators.Max(r => r.radiator_temperature_temp_val);
+
+            return filteredList.Max(r => r.GetAverateRadiatorTemperature());
 		}
 
         public static float getAverageMaximumRadiatorTemperatureForVessel(Vessel vess) 
@@ -314,7 +340,7 @@ namespace FNPlugin
             {
                 if (radiator.vessel == vess) 
                 {
-                    average_temp += radiator.MaxRadiatorTemperature;
+                    average_temp += radiator.maxRadiatorTemperature;
                     n_radiators += 1.0f;
                 }
             }
@@ -513,7 +539,7 @@ namespace FNPlugin
                     Retract();
             }
 
-            _maxEnergyTransfer = radiatorArea * 1000 * effectiveMultiplier * (1 + ((int)CurrentGenerationType * 2));
+            _maxEnergyTransfer = radiatorArea * 1000 * areaMultiplier * (1 + ((int)CurrentGenerationType * 2));
 
             if (_moduleActiveRadiator != null)
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
@@ -550,9 +576,14 @@ namespace FNPlugin
             if (radiatorInit == false)
                 radiatorInit = true;
 
-            part.maxTemp = MaxRadiatorTemperature;
+            maxRadiatorTemperature = MaxRadiatorTemperature;
 
-            radiatorTempStr = MaxRadiatorTemperature + "K";
+            part.maxTemp = maxRadiatorTemperature;
+
+            radiatorTempStr = maxRadiatorTemperature + "K";
+
+            maxVacuumTemperature =  String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min(radiatorTemperatureMk3, maxRadiatorTemperature) :  Math.Min(maxVacuumTemperature, maxRadiatorTemperature);
+            maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min(radiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature); 
         }
 
         void radiatorIsEnabled_OnValueModified(object arg1)
@@ -620,7 +651,7 @@ namespace FNPlugin
                     thermalPowerConvStr = "disabled";
                 }
 
-                radiatorTempStr = CurrentRadiatorTemperature.ToString("0.0") + "K / " + MaxRadiatorTemperature.ToString("0.0") + "K";
+                radiatorTempStr = CurrentRadiatorTemperature.ToString("0.0") + "K / " + maxCurrentTemperature.ToString("0.0") + "K";
 
                 partTempStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
 
@@ -649,50 +680,23 @@ namespace FNPlugin
                 if (_moduleActiveRadiator != null)
                     _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
 
-                if (vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))
-                {
-                    double pressure = FlightGlobals.getStaticPressure(vessel.transform.position) / 100;
-                    dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325.0;
-                    pressure += dynamic_pressure;
-                    double low_temp = FlightGlobals.getExternalTemperature(vessel.transform.position);
+                double external_temperature = FlightGlobals.getExternalTemperature(vessel.transform.position);
 
-                    double delta_temp = Math.Max(0, CurrentRadiatorTemperature - low_temp);
-                    double conv_power_dissip = pressure * delta_temp * effectiveRadiatorArea * rad_const_h / 1e6 * TimeWarp.fixedDeltaTime * convectiveBonus;
-
-                    if (!radiatorIsEnabled)
-                        conv_power_dissip = conv_power_dissip / 2.0;
-
-                    if (canRadiateHeat)
-                        convectedThermalPower = consumeWasteHeat(conv_power_dissip);
-                    else
-                        convectedThermalPower = 0;
-
-                    if (update_count == 6)
-                        DeployMentControl(dynamic_pressure);
-                }
-                else
-                {
-                    convectedThermalPower = 0;
-                    //pressureLoad = 0;
-                    if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls)
-                    {
-                        UnityEngine.Debug.Log("[KSPI] - FixedUpdate Automated Deplotment ");
-                        Deploy();
-                    }
-                }
-
+                // get resource bar ratio at start of frame
                 wasteheatRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 if (Double.IsNaN(wasteheatRatio))
                     Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in wasteheatRatio");
 
-                radiator_temperature_temp_val = MaxRadiatorTemperature * Math.Pow(wasteheatRatio, 0.25);
+                maxCurrentTemperature = maxAtmosphereTemperature * Math.Max(Math.Min(vessel.atmDensity, 1),0) + maxVacuumTemperature * Math.Max(Math.Min(1 - vessel.atmDensity, 1), 0);
 
-                radiator_temperature_temp_val = Math.Min(MaxRadiatorTemperature / 1.01, radiator_temperature_temp_val);
+                radiator_temperature_temp_val = external_temperature + Math.Min((maxRadiatorTemperature - external_temperature) * Math.Pow(wasteheatRatio, 0.25), maxCurrentTemperature - external_temperature);
+
+                var efficiency = 1 - Math.Pow(1 - wasteheatRatio, 200);
 
                 if (radiatorIsEnabled)
                 {
-                    if (!CheatOptions.IgnoreMaxTemperature && wasteheatRatio >= 1 && CurrentRadiatorTemperature >= MaxRadiatorTemperature)
+                    if (!CheatOptions.IgnoreMaxTemperature && wasteheatRatio >= 1 && CurrentRadiatorTemperature >= maxRadiatorTemperature)
                     {
                         explode_counter++;
                         if (explode_counter > 25)
@@ -701,21 +705,22 @@ namespace FNPlugin
                     else
                         explode_counter = 0;
 
-                    double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6 * TimeWarp.fixedDeltaTime;
 
-                    if (Double.IsNaN(fixed_thermal_power_dissip))
+                    double delta_temp = Math.Max(radiator_temperature_temp_val - external_temperature, 0);
+                    double thermal_power_dissip_per_second = efficiency * Math.Pow(delta_temp, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6;
+
+                    if (Double.IsNaN(thermal_power_dissip_per_second))
                         Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in fixed_thermal_power_dissip");
 
                     if (canRadiateHeat)
-                        radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
+                        radiatedThermalPower = consumeWasteHeatPerSecond(thermal_power_dissip_per_second);
                     else
                         radiatedThermalPower = 0;
 
                     if (Double.IsNaN(radiatedThermalPower))
-                        Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + fixed_thermal_power_dissip + ")");
+                        Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermal_power_dissip_per_second + ")");
 
-                    instantaneous_rad_temp = Math.Min(radiator_temperature_temp_val * 1.014f, MaxRadiatorTemperature);
-                    instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
+                    instantaneous_rad_temp = Math.Max(radiator_temperature_temp_val, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
 
                     if (Double.IsNaN(instantaneous_rad_temp))
                         Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
@@ -727,17 +732,48 @@ namespace FNPlugin
                 }
                 else
                 {
-                    double fixed_thermal_power_dissip = Math.Pow(radiator_temperature_temp_val, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7 * TimeWarp.fixedDeltaTime;
+                    double delta_temp = Math.Max(radiator_temperature_temp_val - external_temperature, 0);
+                    double thermal_power_dissip_per_second = efficiency * Math.Pow(Math.Max(delta_temp - external_temperature, 0), 4) * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7;
 
                     if (canRadiateHeat)
-                        radiatedThermalPower = consumeWasteHeat(fixed_thermal_power_dissip);
+                        radiatedThermalPower = consumeWasteHeatPerSecond(thermal_power_dissip_per_second);
                     else
                         radiatedThermalPower = 0;
-
-                    instantaneous_rad_temp = Math.Min(radiator_temperature_temp_val * 1.014, MaxRadiatorTemperature);
-                    instantaneous_rad_temp = Math.Max(instantaneous_rad_temp, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
+                    
+                    instantaneous_rad_temp = Math.Max(radiator_temperature_temp_val, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
+                }
+
+                if (vessel.atmDensity > 0)
+                {
+                    double pressure = vessel.atmDensity;
+                    dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325;
+                    pressure += dynamic_pressure;
+
+                    double delta_temp = Math.Max(0, CurrentRadiatorTemperature - external_temperature);
+                    double conv_power_dissip = efficiency * pressure * delta_temp * effectiveRadiatorArea * rad_const_h / 1e6 * convectiveBonus;
+
+                    if (!radiatorIsEnabled)
+                        conv_power_dissip = conv_power_dissip / 2;
+
+                    if (canRadiateHeat)
+                        convectedThermalPower = consumeWasteHeatPerSecond(conv_power_dissip);
+                    else
+                        convectedThermalPower = 0;
+
+                    if (update_count == 6)
+                        DeployMentControl(dynamic_pressure);
+                }
+                else
+                {
+                    convectedThermalPower = 0;
+
+                    if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls)
+                    {
+                        UnityEngine.Debug.Log("[KSPI] - FixedUpdate Automated Deplotment ");
+                        Deploy();
+                    }
                 }
 
             }
@@ -778,21 +814,21 @@ namespace FNPlugin
 
         public float GetAverageTemperatureofOfThermalSource(List<IPowerSource> active_thermal_sources)
         {
-            return MaxRadiatorTemperature;
+            return maxRadiatorTemperature;
         }
 
-        private double consumeWasteHeat(double wasteheatToConsume)
+        private double consumeWasteHeatPerSecond(double wasteheatToConsume)
         {
             if (radiatorIsEnabled)
             {
-                var consumedWasteheat = CheatOptions.IgnoreMaxTemperature 
+                var consumedWasteheat = CheatOptions.IgnoreMaxTemperature || wasteheatToConsume == 0
                     ? wasteheatToConsume 
-                    : consumeFNResource(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    : consumeFNResourcePerSecond(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 if (Double.IsNaN(consumedWasteheat))
                     return 0;
                     
-                return consumedWasteheat / TimeWarp.fixedDeltaTime;
+                return consumedWasteheat;
             }
 
             return 0;
@@ -827,7 +863,7 @@ namespace FNPlugin
 
         public double GetAverateRadiatorTemperature()
         {
-            return temperatureQueue.Count > 0 ? temperatureQueue.Sum(t => t) / temperatureQueue.Count : current_rad_temp;
+            return temperatureQueue.Count > 0 ? temperatureQueue.Average() : current_rad_temp;
         }
 
 		public override string GetInfo() 
@@ -877,7 +913,7 @@ namespace FNPlugin
 
                 double partTempRatio = Math.Min((part.temperature / (part.maxTemp * 0.95)), 1);
 
-                double radiatorTempRatio = Math.Min(currentTemperature / MaxRadiatorTemperature, 1);
+                double radiatorTempRatio = Math.Min(currentTemperature / maxRadiatorTemperature, 1);
 
                 var colorRatio = (float)Math.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
 

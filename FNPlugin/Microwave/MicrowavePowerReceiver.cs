@@ -322,6 +322,8 @@ namespace FNPlugin
             thermalReceiverSlaves.Add(receiver);
         }
 
+        public bool SupportMHD { get { return false; } }
+
         public double MinimumThrottle { get { return 0; } }
 
         public void ConnectWithEngine(IEngineNoozle engine) { }

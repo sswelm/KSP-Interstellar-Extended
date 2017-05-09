@@ -125,7 +125,8 @@ namespace FNPlugin
         public double powerOutputMk5;
 
         // Settings
-
+        [KSPField(isPersistant = false)]
+        public bool supportMHD = false;
         [KSPField(isPersistant = false)]
         public int reactorModeTechBonus = 0;
         [KSPField(isPersistant = false)]
@@ -417,6 +418,8 @@ namespace FNPlugin
                 current_fuel_variant = current_fuel_variants_sorted.First();
             }
         }
+
+        public bool SupportMHD { get { return supportMHD; } }
 
         public double ProducedThermalHeat { get { return ongoing_neutron_power_generated; } }
 
