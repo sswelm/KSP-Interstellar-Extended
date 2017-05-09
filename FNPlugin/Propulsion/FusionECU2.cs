@@ -259,16 +259,23 @@ namespace FNPlugin
             
         }
 
-        public override void UpdateFuel()
+        public override void UpdateFuel(bool isEditor = false)
         {
-            base.UpdateFuel();
-            Debug.Log("Fusion Gui Updated");
-            BaseFloatCurve = ActiveConfiguration.atmosphereCurve;
-            CurveMaxISP = GetMaxKey(BaseFloatCurve);
-            FCSetup();
-            Debug.Log("Curve Max ISP:" + CurveMaxISP);
+            base.UpdateFuel(isEditor);
+            if (!isEditor)
+            {
+
+                Debug.Log("Fusion Gui Updated");
+                BaseFloatCurve = ActiveConfiguration.atmosphereCurve;
+                standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
+                standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
+                CurveMaxISP = GetMaxKey(BaseFloatCurve);
+                FCSetup();
+                Debug.Log("Curve Max ISP:" + CurveMaxISP);
+            }
+
         }
-        
+
         public override void OnStart(PartModule.StartState state)
         {
             try
@@ -290,8 +297,8 @@ namespace FNPlugin
                 CurveMaxISP = GetMaxKey(BaseFloatCurve);
                 if (hasMultipleConfigurations) FCSetup();
 
-                //    standard_deuterium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio;
-               //    standard_tritium_rate = curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio;
+                standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
+                standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
 
                 DetermineTechLevel();
 
@@ -304,6 +311,21 @@ namespace FNPlugin
                 Debug.LogError("FusionEngine OnStart eception: " + e.Message);
             }
             base.OnStart(state);
+        }
+
+        private double GetRatio(string akPropName)
+        {
+            double akRatio = curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName) != null ? curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName).ratio : 0;
+
+            return akRatio;
+        }
+        private void SetRatio(string akPropName, float akRatio)
+        {
+            if (curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName) != null)
+            {
+                curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName).ratio = akRatio;
+            }
+
         }
 
         public override void OnUpdate()
@@ -455,8 +477,8 @@ namespace FNPlugin
                 supplyFNResourcePerSecond(absorbedWasteheat, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
-                //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;
-                //    curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)standard_tritium_rate / rateMultplier;
+                SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)standard_deuterium_rate / rateMultplier);
+                SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)standard_tritium_rate / rateMultplier);
 
                 // Update ISP
                 var currentIsp = SelectedIsp;
@@ -489,8 +511,8 @@ namespace FNPlugin
 
                 var maxFuelFlow = maximumThrust / currentIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
-                //  curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
-                //   curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
+                SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)standard_deuterium_rate / rateMultplier);
+                SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)standard_tritium_rate / rateMultplier);
             }
 
             coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
