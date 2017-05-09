@@ -802,7 +802,7 @@ namespace FNPlugin
             thermalResource = part.Resources[FNResourceManager.FNRESOURCE_THERMALPOWER];
 
             // calculate WasteHeat Capacity
-            partBaseWasteheat = part.mass * 1.0e+4 * wasteHeatMultiplier + (StableMaximumReactorPower * 0.05);
+            partBaseWasteheat = part.mass * 1.0e+3 * wasteHeatMultiplier + (StableMaximumReactorPower * 0.05);
             if (wasteheatResource != null)
             {
                 wasteheatResource.maxAmount = partBaseWasteheat;
