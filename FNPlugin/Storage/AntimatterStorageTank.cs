@@ -25,6 +25,10 @@ namespace FNPlugin
         public string capacityStr;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum")]
         public string maxAmountStr;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Storage Amount")]
+        public double storageAmount;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Part Mass", guiFormat = "F3")]
+        public double partMass; 
 
         bool charging = false;
         bool should_charge = false;
@@ -119,6 +123,12 @@ namespace FNPlugin
         public void Update()
         {
             UpdateAmounts();
+
+            if (HighLogic.LoadedSceneIsFlight)
+                return;
+
+            partMass = part.mass;
+            antimatter.maxAmount = storageAmount;
         }
 
         private void UpdateAmounts()
@@ -252,7 +262,11 @@ namespace FNPlugin
 
         protected string formatMassStr(double amount)
         {
-            if (amount >= 1000)
+            if (amount >= 1000000000)
+                return (amount / 1000000000).ToString("0.0000000") + " t";
+            else if (amount >= 1000000)
+                return (amount / 1000000).ToString("0.0000000") + " kg";
+            else if (amount >= 1000)
                 return (amount / 1000).ToString("0.0000000") + " g";
             else if (amount >= 1)
                 return (amount).ToString("0.0000000") + " mg";

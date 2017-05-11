@@ -1432,7 +1432,7 @@ namespace FNPlugin
                 {
                     var stableChargedPowerBuffer = 10 * MaximumChargedPower;
                     var requiredChargedCapacity = Math.Max(0.0001, stableChargedPowerBuffer * TimeWarp.fixedDeltaTime);
-                    var previousChargedCapacity = Math.Max(0.0001, stableChargedPowerBuffer * previousDeltaTime);
+                    //var previousChargedCapacity = Math.Max(0.0001, stableChargedPowerBuffer * previousDeltaTime);
                     var chargedPowerRatio = chargedPowerResource.amount / chargedPowerResource.maxAmount;
 
                     chargedPowerResource.maxAmount = requiredChargedCapacity;
@@ -1440,9 +1440,10 @@ namespace FNPlugin
                     if (reactorBooted)
                     {
                         // adjust to
-                        chargedPowerResource.amount = requiredChargedCapacity > previousChargedCapacity
-                            ? Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerResource.amount + requiredChargedCapacity - previousChargedCapacity))
-                            : Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerRatio * requiredChargedCapacity));
+                        chargedPowerResource.amount = 
+                            //requiredChargedCapacity > previousChargedCapacity
+                            //? Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerResource.amount + requiredChargedCapacity - previousChargedCapacity)) :
+                            Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerRatio * requiredChargedCapacity));
                     }
                     else
                     {

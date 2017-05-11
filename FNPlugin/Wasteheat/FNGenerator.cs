@@ -740,9 +740,11 @@ namespace FNPlugin
 
                     var effective_thermal_power_needed = thermal_power_currently_needed_per_second / _totalEff;
 
+                    var chargedBufferRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+
                     var adjusted_thermal_power_needed = applies_balance
                         ? effective_thermal_power_needed
-                        : effective_thermal_power_needed * (1 - attachedPowerSource.ChargedPowerRatio);
+                        : effective_thermal_power_needed * (1 - attachedPowerSource.ChargedPowerRatio * Math.Max(Math.Min(2 * chargedBufferRatio - 0.25, 1), 0));
 
                     double thermal_power_requested_per_second = Math.Max(Math.Min(maxThermalPower, adjusted_thermal_power_needed), attachedPowerSource.MinimumPower * (1 - attachedPowerSource.ChargedPowerRatio));
                     double reactor_power_requested_per_second = Math.Max(Math.Min(maxReactorPower, effective_thermal_power_needed), attachedPowerSource.MinimumPower);
