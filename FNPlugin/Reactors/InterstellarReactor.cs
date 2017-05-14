@@ -59,6 +59,8 @@ namespace FNPlugin
         public double reactor_power_ratio = 1;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Electric Priority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 1)]
         public float electricPowerPriority = 2;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 10)]
+        public float powerPercentage = 100;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public string upgradeTechReqMk2 = null;
@@ -419,6 +421,11 @@ namespace FNPlugin
             }
         }
 
+        public double PowerRatio
+        {
+            get { return powerPercentage / 100.0; }
+        }
+
         public bool SupportMHD { get { return supportMHD; } }
 
         public double ProducedThermalHeat { get { return ongoing_neutron_power_generated; } }
@@ -550,8 +557,6 @@ namespace FNPlugin
 
         public Part Part { get { return this.part; } }
 
-        public float ChargedParticlePropulsionEfficiency { get { return chargedParticlePropulsionEfficiency; } }
-
         public double ProducedWasteHeat { get { return ongoing_total_power_generated; } }
 
         public void AttachThermalReciever(Guid key, float radius)
@@ -623,6 +628,10 @@ namespace FNPlugin
             }
         }
 
+        public float ChargedParticlePropulsionEfficiency { get { return chargedParticlePropulsionEfficiency; } }
+
+        public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
+
         public float ThermalEnergyEfficiency { get { return HasBimodelUpgradeTechReq ? thermalEnergyEfficiency : 0; } }
 
         public float ChargedParticleEnergyEfficiency { get { return chargedParticleEnergyEfficiency; } }
@@ -664,7 +673,7 @@ namespace FNPlugin
             get
             {
                 return CurrentFuelMode != null
-                    ? CurrentFuelMode.ChargedPowerRatio * ChargedParticleEnergyEfficiency
+                    ? CurrentFuelMode.ChargedPowerRatio
                     : 0f;
             }
         }
@@ -702,7 +711,7 @@ namespace FNPlugin
             }
         }
 
-        public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
+        
 
         public double EffectiveEmbrittlemenEffectRatio
         {
@@ -721,9 +730,9 @@ namespace FNPlugin
 
         public virtual double MinimumPower { get { return MaximumPower * MinimumThrottle; } }
 
-        public virtual double MaximumThermalPower { get { return NormalisedMaximumPower * (1 - ChargedPowerRatio); } }
+        public virtual double MaximumThermalPower { get { return PowerRatio * NormalisedMaximumPower * (1 - ChargedPowerRatio); } }
 
-        public virtual double MaximumChargedPower { get { return NormalisedMaximumPower * ChargedPowerRatio; } }
+        public virtual double MaximumChargedPower { get { return PowerRatio * NormalisedMaximumPower * ChargedPowerRatio; } }
 
         public virtual bool IsNuclear { get { return false; } }
 
@@ -1409,7 +1418,7 @@ namespace FNPlugin
                 {
                     var stableThemalPowerBuffer = 10 * MaximumThermalPower;
                     var requiredThermalCapacity = Math.Max(0.0001, stableThemalPowerBuffer * TimeWarp.fixedDeltaTime);
-                    var previousThermalCapacity = Math.Max(0.0001, stableThemalPowerBuffer * previousDeltaTime);
+                    //var previousThermalCapacity = Math.Max(0.0001, stableThemalPowerBuffer * previousDeltaTime);
                     var thermalPowerRatio = thermalPowerResource.amount / thermalPowerResource.maxAmount;
 
                     thermalPowerResource.maxAmount = requiredThermalCapacity;
@@ -1417,9 +1426,9 @@ namespace FNPlugin
                     if (reactorBooted)
                     {
                         // adjust to
-                        thermalPowerResource.amount = requiredThermalCapacity > previousThermalCapacity
-                                ? Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerResource.amount + requiredThermalCapacity - previousThermalCapacity))
-                                : Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerRatio * requiredThermalCapacity));
+                        thermalPowerResource.amount = //requiredThermalCapacity > previousThermalCapacity
+                            // ? Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerResource.amount + requiredThermalCapacity - previousThermalCapacity)) : 
+                            Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerRatio * requiredThermalCapacity));
                     }
                     else
                     {
@@ -1457,7 +1466,7 @@ namespace FNPlugin
                 if (wasteheatPowerResource != null)
                 {
                     // calculate WasteHeat Capacity
-                    partBaseWasteheat = part.mass * 1.0e+3 * wasteHeatMultiplier + (StableMaximumReactorPower * 100);
+                    partBaseWasteheat = part.mass * 1.0e+3 * wasteHeatMultiplier + StableMaximumReactorPower;
 
                     var requiredWasteheatCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * partBaseWasteheat);
 

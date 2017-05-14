@@ -45,6 +45,8 @@ namespace FNPlugin
 
         public double MinimumThrottle { get { return 0; } }
 
+        public double PowerRatio { get { return 1; } }
+
         public double RawTotalPowerProduced { get { return _thermalpower * TimeWarp.fixedDeltaTime; } }
 
         public int SupportedPropellantAtoms { get { return GameConstants.defaultSupportedPropellantAtoms; } }
@@ -70,6 +72,8 @@ namespace FNPlugin
         public double ChargedPowerRatio { get { return 0; } }
 
         public double RawMaximumPower { get { return maximumPowerRecieved; } }
+
+        public double NormalisedMaximumPower { get { return MaximumPower; } }
 
         public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
 

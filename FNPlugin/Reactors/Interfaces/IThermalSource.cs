@@ -30,6 +30,8 @@ namespace FNPlugin
 
         bool SupportMHD { get; }
 
+        double PowerRatio { get; }
+
         double RawTotalPowerProduced { get; }
 
         /// <summary>
@@ -60,6 +62,8 @@ namespace FNPlugin
         double MinimumPower { get; }
 
         double ChargedPowerRatio { get; }
+
+        double NormalisedMaximumPower { get; }
 
         double MaximumThermalPower { get; }
 

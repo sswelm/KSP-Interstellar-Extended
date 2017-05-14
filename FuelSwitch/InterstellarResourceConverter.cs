@@ -68,14 +68,16 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool secondaryConversionCostPower = true;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "TrasferRate", guiFormat= "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "TrasferRate", guiFormat= "F3")]
         public double transferRate = 0;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Conversion Ratio", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Conversion Ratio", guiFormat = "F3")]
         public double conversionRatio = 0;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Sec Norm Density")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Sec Norm Density", guiFormat = "F6")]
         public double secondarynormalizedDensity;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Pri Norm Density")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Pri Norm Density", guiFormat = "F6")]
         public double primarynormalizedDensity;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested Power", guiFormat = "F6")]
+        public double requestedPower;
 
         PartResourceDefinition definitionElectricCharge;
         BaseField convertPercentageField;
@@ -205,10 +207,10 @@ namespace InterstellarFuelSwitch
                  return;
             }
 
-            Fields["conversionRatio"].guiActive = conversionRatio != 0;
-            Fields["transferRate"].guiActive = transferRate != 0;
-            Fields["secondarynormalizedDensity"].guiActive = secondarynormalizedDensity != 0;
-            Fields["primarynormalizedDensity"].guiActive = primarynormalizedDensity != 0;  
+            //Fields["conversionRatio"].guiActive = conversionRatio != 0;
+            //Fields["transferRate"].guiActive = transferRate != 0;
+            //Fields["secondarynormalizedDensity"].guiActive = secondarynormalizedDensity != 0;
+            //Fields["primarynormalizedDensity"].guiActive = primarynormalizedDensity != 0;  
 
             if (HighLogic.LoadedSceneIsEditor)
                 return;
@@ -305,12 +307,15 @@ namespace InterstellarFuelSwitch
                 {
                     transferRate = primaryResource.transferRate;
                     var fixedTransferRate = transferRate * TimeWarp.fixedDeltaTime;
-                    var transferRatio = primaryResource.retrieveAmount >= fixedTransferRate ? 1 : primaryResource.retrieveAmount / fixedTransferRate;
+
+                    if (fixedTransferRate == 0)
+                        continue;
 
                     double powerRatio = 1;
                     if (primaryConversionCostPower)
                     {
-                        var requestedPower = transferRatio * maxPowerPrimary * TimeWarp.fixedDeltaTime;
+                        var transferRatio = primaryResource.retrieveAmount >= fixedTransferRate ? 1 : primaryResource.retrieveAmount / fixedTransferRate;
+                        requestedPower = transferRatio * maxPowerPrimary * TimeWarp.fixedDeltaTime;
                         var receivedPower = part.RequestResource(definitionElectricCharge.id, requestedPower);
                         powerRatio = receivedPower / requestedPower;
                     }
@@ -338,12 +343,15 @@ namespace InterstellarFuelSwitch
                     transferRate = secondaryResource.transferRate;
 
                     var fixedTransferRate = transferRate * TimeWarp.fixedDeltaTime;
-                    var transferRatio = secondaryResource.retrieveAmount >= fixedTransferRate ? 1 : secondaryResource.retrieveAmount / fixedTransferRate;
 
+                    if (fixedTransferRate == 0)
+                        continue;
+                    
                     double powerRatio = 1;
                     if (secondaryConversionCostPower)
                     {
-                        var requestedPower = transferRatio * maxPowerSecondary * TimeWarp.fixedDeltaTime;
+                        var transferRatio = secondaryResource.retrieveAmount >= fixedTransferRate ? 1 : secondaryResource.retrieveAmount / fixedTransferRate;
+                        requestedPower = transferRatio * maxPowerSecondary * TimeWarp.fixedDeltaTime;
                         var receivedPower = part.RequestResource(definitionElectricCharge.id, requestedPower);
                         powerRatio = receivedPower / requestedPower;
                     }

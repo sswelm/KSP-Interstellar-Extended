@@ -25,8 +25,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Power Affects Maintenance")]
         public bool powerControlAffectsMaintenance = false;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 10)]
-        public float powerPercentage = 100;
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Startup"), UI_Toggle(disabledText = "Off", enabledText = "Charging")]
         public bool isChargingForJumpstart;
 
@@ -53,11 +51,6 @@ namespace FNPlugin
         public override double PlasmaModifier
         {
             get { return (plasma_ratio >= 0.01 ? Math.Min(plasma_ratio, 1) : 0); }
-        }
-
-        public double PowerRatio
-        {
-            get { return powerPercentage / 100.0; }
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -102,8 +95,6 @@ namespace FNPlugin
             }
         }
 
-
-
         public double LaserPowerRequirements
         {
             get
@@ -137,22 +128,6 @@ namespace FNPlugin
         public override bool shouldScaleDownJetISP()
         {
             return isupgraded ? false : true;
-        }
-
-        public override double MaximumChargedPower
-        {
-            get
-            {
-                return PowerRatio * base.MaximumChargedPower;
-            }
-        }
-
-        public override double MaximumThermalPower
-        {
-            get
-            {
-                return PowerRatio * base.MaximumThermalPower;
-            }
         }
 
         public override void Update()

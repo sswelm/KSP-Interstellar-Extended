@@ -24,10 +24,7 @@ namespace OpenResourceSystem
 
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                //UnityEngine.Debug.LogWarning("ORS - consumeFNResource did not find manager for vessel");
                 return 0;
-            }
 
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
@@ -46,10 +43,7 @@ namespace OpenResourceSystem
 
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                //UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
@@ -66,10 +60,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                //UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.powerSupplyFixed(this, Math.Max(supply, 0));
         }
@@ -78,10 +69,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                //UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.powerSupplyPerSecond(this, Math.Max(supply, 0));
         }
@@ -90,10 +78,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                //UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.powerSupplyFixedWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
         }
@@ -102,10 +87,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.powerSupplyPerSecondWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
         }
@@ -114,10 +96,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.managedPowerSupplyFixed(this, Math.Max(supply, 0));
         }
@@ -126,10 +105,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.managedPowerSupplyPerSecond(this, Math.Max(supply, 0));
         }
@@ -138,10 +114,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.managedPowerSupplyFixedWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
@@ -150,10 +123,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
             
             return manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
@@ -162,10 +132,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.CurrentResourceDemand;
         }
@@ -174,10 +141,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.StableResourceSupply;
         }
@@ -186,10 +150,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.CurrentHighPriorityResourceDemand;
         }
@@ -198,10 +159,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                //UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.ResourceSupply;
         }
@@ -210,10 +168,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.getOverproduction();
         }
@@ -222,10 +177,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.getDemandStableSupply();
         }
@@ -234,10 +186,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.ResourceDemand;
         }
@@ -246,10 +195,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.GetRequiredResourceDemand();
         }
@@ -258,10 +204,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.GetCurrentUnfilledResourceDemand();
         }
@@ -270,10 +213,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.PowerSupply;
         }
@@ -282,10 +222,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.CurrentRresourceDemand;
         }
@@ -294,10 +231,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                //UnityEngine.Debug.LogWarning("ORS - getResourceBarRatio did not find manager for vessel");
                 return 0;
-            }
 
             return manager.ResourceBarRatio;
         }
@@ -306,10 +240,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.getSpareResourceCapacity();
         }
@@ -318,10 +249,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.getResourceAvailability();
         }
@@ -331,10 +259,7 @@ namespace OpenResourceSystem
         {
             ORSResourceManager manager = getManagerForVessel(resourcename, vessel);
             if (manager == null)
-            {
-                UnityEngine.Debug.LogWarning("ORS - did not find manager for vessel");
                 return 0;
-            }
 
             return manager.getTotalResourceCapacity();
         }
@@ -351,7 +276,7 @@ namespace OpenResourceSystem
                 {
                     manager = createResourceManagerForResource(resourcename);
 
-                    print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
+                    print("[KSPI] - Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
                 }
             }
 
@@ -369,13 +294,13 @@ namespace OpenResourceSystem
                 if (resource_manager == null)
                 {
                     resource_manager = createResourceManagerForResource(resourcename);
-                    print("[ORS] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
+                    print("[KSPI] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
                 }
 
                 if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || resource_manager.IsUpdatedAtLeastOnce == false)
                 {
                     resource_manager.updatePartModule(this);
-                    print("[ORS] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
+                    print("[KSPI] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
                 }
 
                 if (resource_manager.PartModule == this)

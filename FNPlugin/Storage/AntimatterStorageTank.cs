@@ -16,7 +16,8 @@ namespace FNPlugin
         //Persistent False
         [KSPField(isPersistant = false)]
         public float chargeNeeded = 100f;
-
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Exploding")]
+        bool exploding = false;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string chargeStatusStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
@@ -25,15 +26,15 @@ namespace FNPlugin
         public string capacityStr;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum")]
         public string maxAmountStr;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Storage Amount")]
-        public double storageAmount;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Part Mass", guiFormat = "F3")]
-        public double partMass; 
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Part Mass", guiFormat = "F3", guiUnits = " t")]
+        public double partMass;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Cur/Max Temp", guiFormat = "F3")]
+        public string TemperatureStr; 
 
         bool charging = false;
         bool should_charge = false;
         double explosion_time = 0.35f;
-        bool exploding = false;
+        
         double explosion_size = 5000;
         double cur_explosion_size = 0;
         double current_antimatter = 0;
@@ -85,7 +86,8 @@ namespace FNPlugin
             antimatter = part.Resources[InterstellarResourcesConfiguration.Instance.Antimatter];
 
             if (state == StartState.Editor) return;
-            //this.part.force_activate();
+            
+            this.part.force_activate();
 
             // charge if there is any antimatter
             should_charge = antimatter.amount > 0;
@@ -97,7 +99,9 @@ namespace FNPlugin
         {
             Events["StartCharge"].active = current_antimatter <= 0.1 && !should_charge;
             Events["StopCharge"].active = current_antimatter <= 0.1 && should_charge;
-            chargeStatusStr = chargestatus.ToString("0.0") + "/" + GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE.ToString("0.0");
+
+            chargeStatusStr = chargestatus.ToString("0.0") + " / " + GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE.ToString("0.0");
+            TemperatureStr = part.temperature.ToString("0.0") + " / " + part.maxTemp.ToString("0.0");  
 
             if (chargestatus <= 60 && !charging && current_antimatter > 0.1)
                 ScreenMessages.PostScreenMessage("Warning!: Antimatter storage unpowered, tank explosion in: " + chargestatus.ToString("0") + "s", 1.0f, ScreenMessageStyle.UPPER_CENTER);
@@ -128,7 +132,6 @@ namespace FNPlugin
                 return;
 
             partMass = part.mass;
-            antimatter.maxAmount = storageAmount;
         }
 
         private void UpdateAmounts()
@@ -144,13 +147,18 @@ namespace FNPlugin
             ExplodeContainer();
         }
 
+        [KSPEvent(guiActive = true, guiName = "Self Destruct", active = true)]
+        public void SelfDestruct()
+        {
+            doExplode();
+        }
+
         private void MaintainContainment()
         {
             if (antimatter == null) return;
 
             float mult = 1;
             current_antimatter = antimatter.amount;
-            explosion_size = Math.Sqrt(current_antimatter) * 5.0;
 
             if (chargestatus > 0 && (current_antimatter > 0.00001 * antimatter.maxAmount))
                 chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
@@ -208,17 +216,12 @@ namespace FNPlugin
         {
             if (!exploding || lightGameObject == null) return;
 
-            if (Math.Sqrt(cur_explosion_size) > explosion_size)
-            {
-                lightGameObject.GetComponent<Collider>().enabled = false;
-                //Destroy (lightGameObject);
-            }
+            explosion_size = Math.Sqrt(current_antimatter) * 5.0;
 
             cur_explosion_size += TimeWarp.fixedDeltaTime * explosion_size * explosion_size / explosion_time;
             lightGameObject.transform.localScale = new Vector3(Mathf.Sqrt((float)cur_explosion_size), Mathf.Sqrt((float)cur_explosion_size), Mathf.Sqrt((float)cur_explosion_size));
             lightGameObject.GetComponent<Light>().range = Mathf.Sqrt((float)cur_explosion_size) * 15f;
-
-            if (Math.Sqrt(cur_explosion_size) <= explosion_size) return;
+            lightGameObject.GetComponent<Collider>().enabled = false;
 
             TimeWarp.SetRate(0, true);
             vessel.GoOffRails();

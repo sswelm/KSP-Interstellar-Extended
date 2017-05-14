@@ -407,7 +407,7 @@ namespace OpenResourceSystem
 
             power_supply_list_archive = power_produced.OrderByDescending(m => m.Value.maximumSupply).ToList();
 
-            List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_items = power_consumption.OrderBy(m => m.Key.getResourceManagerDisplayName()).ToList();
+            List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_draw).ToList();
 
             power_draw_list_archive = power_draw_items.ToList();
             power_draw_list_archive.Reverse();

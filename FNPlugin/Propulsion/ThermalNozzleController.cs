@@ -962,9 +962,6 @@ namespace FNPlugin
             {
                 if (!HighLogic.LoadedSceneIsFlight) return;
 
-                //if (!enabled)
-                //    base.OnFixedUpdate();
-
                 if (myAttachedEngine == null) return;
 
                 if (AttachedReactor == null)
@@ -980,9 +977,9 @@ namespace FNPlugin
 
                 // attach/detach with radius
                 if (myAttachedEngine.isOperational)
-                    _myAttachedReactor.AttachThermalReciever(id, radius);
+                    AttachedReactor.AttachThermalReciever(id, radius);
                 else
-                    _myAttachedReactor.DetachThermalReciever(id);
+                    AttachedReactor.DetachThermalReciever(id);
 
                 ConfigEffects();
 
@@ -990,8 +987,10 @@ namespace FNPlugin
                     ? myAttachedEngine.currentThrottle
                     : Mathf.MoveTowards(delayedThrottle, myAttachedEngine.currentThrottle, delayedThrottleFactor * TimeWarp.fixedDeltaTime);
 
-                
-                currentMaximumPower = Math.Min(getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) + getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES), AttachedReactor.MaximumPower) * delayedThrottle;
+                var effectiveThermalPower = getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) * AttachedReactor.ThermalPropulsionEfficiency;
+                var effectiveChargedPower = getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) * AttachedReactor.ChargedParticlePropulsionEfficiency;
+
+                currentMaximumPower = Math.Min(effectiveThermalPower + effectiveChargedPower, AttachedReactor.MaximumPower) * delayedThrottle;
 
                 thermalRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_THERMALPOWER);
                 availableThermalPower = currentMaximumPower * (thermalRatio > 0.5 ? 1 : thermalRatio * 2);
@@ -1003,9 +1002,6 @@ namespace FNPlugin
                 else
                 {
                     UpdateMaxIsp();
-
-                    //if (!CheatOptions.IgnoreMaxTemperature)
-                    //    consumeFNResource(_myAttachedReactor.RawTotalPowerProduced, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                     expectedMaxThrust = AttachedReactor.MaximumPower * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP * GetHeatExchangerThrustDivisor();
                     calculatedMaxThrust = expectedMaxThrust;
@@ -1151,7 +1147,7 @@ namespace FNPlugin
 
                 double thermal_power_received_per_second = consumeFNResourcePerSecond(requested_thermal_power, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                thermal_power_received = thermal_power_received_per_second * AttachedReactor.ThermalPropulsionEfficiency;
+                thermal_power_received = thermal_power_received_per_second;
 
                 double charged_power_received_per_second = 0;
                 if (thermal_power_received < maximum_requested_thermal_power)
