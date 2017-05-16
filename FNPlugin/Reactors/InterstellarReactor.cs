@@ -51,7 +51,7 @@ namespace FNPlugin
         public float windowPositionY = 20;
         [KSPField(isPersistant = true)]
         public int currentGenerationType;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true)]
         public double storedPowerMultiplier = 1;
         [KSPField(isPersistant = true)]
         public double stored_fuel_ratio = 1;
@@ -115,15 +115,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public float basePowerOutputMk5 = 0;
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk1", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk1", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk1;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk2", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk2", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk2;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk3", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk3", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk3;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk4", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk4", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk4;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk5", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Output Mk5", guiUnits = " MJ", guiFormat = "F3")]
         public double powerOutputMk5;
 
         // Settings
@@ -588,7 +588,7 @@ namespace FNPlugin
             {
                 // calculate multipliers
                 Debug.Log("InterstellarReactor.OnRescale called with " + factor.absolute.linear);
-                storedPowerMultiplier = Mathf.Pow(factor.absolute.linear, powerScaleExponent);
+                storedPowerMultiplier = Math.Pow(factor.absolute.linear, powerScaleExponent);
 
                 // update power
                 DeterminePowerOutput();
@@ -632,7 +632,7 @@ namespace FNPlugin
 
         public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
-        public float ThermalEnergyEfficiency { get { return HasBimodelUpgradeTechReq ? thermalEnergyEfficiency : 0; } }
+        public float ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
 
         public float ChargedParticleEnergyEfficiency { get { return chargedParticleEnergyEfficiency; } }
 
@@ -730,9 +730,19 @@ namespace FNPlugin
 
         public virtual double MinimumPower { get { return MaximumPower * MinimumThrottle; } }
 
-        public virtual double MaximumThermalPower { get { return PowerRatio * NormalisedMaximumPower * (1 - ChargedPowerRatio); } }
+        public virtual double MaximumThermalPower 
+        { 
+            get 
+            {
+                var power = PowerRatio * NormalisedMaximumPower;
 
-        public virtual double MaximumChargedPower { get { return PowerRatio * NormalisedMaximumPower * ChargedPowerRatio; } }
+                return (ChargedParticleEnergyEfficiency == 0 && ChargedParticlePropulsionEfficiency == 0) ? power  : power * (1 - ChargedPowerRatio); 
+            } 
+        }
+
+        public virtual double MaximumChargedPower 
+        { 
+            get { return (ChargedParticleEnergyEfficiency == 0 && ChargedParticlePropulsionEfficiency == 0) ? 0 : PowerRatio * NormalisedMaximumPower * ChargedPowerRatio; } }
 
         public virtual bool IsNuclear { get { return false; } }
 
@@ -877,14 +887,14 @@ namespace FNPlugin
 
         public void DeterminePowerOutput()
         {
-            if (HighLogic.LoadedSceneIsEditor || powerOutputMk1 == 0)
-            {
-                powerOutputMk1 = basePowerOutputMk1 * storedPowerMultiplier;
-                powerOutputMk2 = basePowerOutputMk2 * storedPowerMultiplier;
-                powerOutputMk3 = basePowerOutputMk3 * storedPowerMultiplier;
-                powerOutputMk4 = basePowerOutputMk4 * storedPowerMultiplier;
-                powerOutputMk5 = basePowerOutputMk5 * storedPowerMultiplier;
-            }
+            //if (HighLogic.LoadedSceneIsEditor || powerOutputMk1 == 0)
+            //{
+            powerOutputMk1 = basePowerOutputMk1 * storedPowerMultiplier;
+            powerOutputMk2 = basePowerOutputMk2 * storedPowerMultiplier;
+            powerOutputMk3 = basePowerOutputMk3 * storedPowerMultiplier;
+            powerOutputMk4 = basePowerOutputMk4 * storedPowerMultiplier;
+            powerOutputMk5 = basePowerOutputMk5 * storedPowerMultiplier;
+            //}
 
             // if Mk powerOutput is missing, try use lagacy values
             if (powerOutputMk1 == 0)
@@ -1466,14 +1476,12 @@ namespace FNPlugin
                 if (wasteheatPowerResource != null)
                 {
                     // calculate WasteHeat Capacity
-                    partBaseWasteheat = part.mass * 1.0e+3 * wasteHeatMultiplier + StableMaximumReactorPower;
+                    partBaseWasteheat = part.mass * 1.0e+4 * wasteHeatMultiplier;
 
-                    var requiredWasteheatCapacity = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * partBaseWasteheat);
+                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
 
-                    var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
-
-                    wasteheatPowerResource.maxAmount = requiredWasteheatCapacity;
-                    wasteheatPowerResource.amount = requiredWasteheatCapacity * wasteHeatRatio;
+                    wasteheatPowerResource.maxAmount = TimeWarp.fixedDeltaTime * partBaseWasteheat; ;
+                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
                 }
             }
             else

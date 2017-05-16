@@ -20,13 +20,13 @@ namespace FNPlugin
     }
 
     [KSPModule("Thermal Electric Effect Generator")]
-    class ThermalElectricEffectGenerator:  FNGenerator {}
+    class ThermalElectricEffectGenerator : FNGenerator {}
 
     [KSPModule("Thermal Electric Power Generator")]
-    class ThermalElectricPowerGenerator : FNGenerator { }
+    class ThermalElectricPowerGenerator : FNGenerator {}
 
     [KSPModule("Charged Particles Power Generator")]
-    class ChargedParticlesPowerGenerator : FNGenerator { }
+    class ChargedParticlesPowerGenerator : FNGenerator {}
 
     [KSPModule("Electrical Power Generator")]
     class FNGenerator : FNResourceSuppliableModule, IUpgradeableModule, IElectricPowerGeneratorSource, IPartMassModifier, IRescalable<FNGenerator>
@@ -49,6 +49,7 @@ namespace FNPlugin
         public bool isLimitedByMinThrotle = false;
         [KSPField(isPersistant = false)]
         public float powerOutputMultiplier = 1;
+
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public bool calculatedMass = false;
         [KSPField(isPersistant = false)]
@@ -109,9 +110,9 @@ namespace FNPlugin
         public float moduleMassDelta;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Charged Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Charged Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxChargedPower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxThermalPower;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Reactor Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxReactorPower;
@@ -133,7 +134,7 @@ namespace FNPlugin
         public float heat_exchanger_thrust_divisor;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Requested Power", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_power_per_second;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Cold Bath Temp", guiUnits = "K",  guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Cold Bath Temp", guiUnits = "K", guiFormat = "F3")]
         public double coldBathTemp = 500;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Hot Bath Temp", guiUnits = "K", guiFormat = "F3")]
         public double hotBathTemp = 300;
@@ -141,9 +142,9 @@ namespace FNPlugin
         public double possibleSpareResourceCapacityFilling;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Current Demand", guiUnits = " MW", guiFormat = "F3")]
         public double currentUnfilledResourceDemand;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Power Needed", guiUnits = " MW", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Power Needed", guiUnits = " MW", guiFormat = "F3")]
         public double electrical_power_currently_needed;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Applies Balance")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Applies Balance")]
         public bool applies_balance;
 
         // Internal
@@ -161,13 +162,13 @@ namespace FNPlugin
         protected int partDistance;
         protected int shutdown_counter = 0;
         protected int startcount = 0;
-        
+
         protected float powerCustomSettingFraction;
         protected double _previousMaxStableMegaWattPower;
         protected float previousDeltaTime;
 
         protected PartResource megajouleResource;
-	    protected PartResource electricChargeResource;
+        protected PartResource electricChargeResource;
         protected PowerStates _powerState;
 
         protected Animation anim;
@@ -234,7 +235,7 @@ namespace FNPlugin
 
         public void Refresh()
         {
-            Debug.Log("FNGenerator Refreshed" );
+            Debug.Log("FNGenerator Refreshed");
             UpdateTargetMass();
         }
 
@@ -324,19 +325,19 @@ namespace FNPlugin
             // calculate WasteHeat Capacity
             if (maintainsMegaWattPowerBuffer)
             {
-				// calculate WasteHeat Capacity
-				var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-				if (wasteheatPowerResource != null)
-				{
-					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-					wasteheatPowerResource.maxAmount = part.mass * 1.0e+3 * wasteHeatMultiplier;
-					wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-				}
+                // calculate WasteHeat Capacity
+                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (wasteheatPowerResource != null)
+                {
+                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
+                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
+                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+                }
             }
 
             previousDeltaTime = TimeWarp.fixedDeltaTime - 1.0e-6f;
             megajouleResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
-			electricChargeResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
+            electricChargeResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
 
             base.OnStart(state);
             generatorType = originalName;
@@ -351,8 +352,8 @@ namespace FNPlugin
 
             Fields["partMass"].guiActive = Fields["partMass"].guiActiveEditor = calculatedMass;
 
-            Fields["maxChargedPower"].guiActive = chargedParticleMode;
-            Fields["maxThermalPower"].guiActive = !chargedParticleMode;
+            //Fields["maxChargedPower"].guiActive = chargedParticleMode;
+            //Fields["maxThermalPower"].guiActive = !chargedParticleMode;
 
             Fields["powerPercentage"].guiActive = Fields["powerPercentage"].guiActiveEditor = showSpecialisedUI;
             Fields["generatorType"].guiActive = Fields["generatorType"].guiActiveEditor = showSpecialisedUI;
@@ -409,7 +410,6 @@ namespace FNPlugin
 
             if (generatorInit == false)
             {
-                generatorInit = true;
                 IsEnabled = true;
             }
 
@@ -453,9 +453,9 @@ namespace FNPlugin
                 return;
             }
 
-            Debug.Log("[KSPI] - generator is currently connected to " + part.attachNodes.Count  + " parts");
+            Debug.Log("[KSPI] - generator is currently connected to " + part.attachNodes.Count + " parts");
             // otherwise look for other non selfcontained thermal sources that is not already connected
-	        PowerSourceSearchResult searchResult = chargedParticleMode ? FindChargedParticleSource() : FindThermalPowerSource();
+            PowerSourceSearchResult searchResult = chargedParticleMode ? FindChargedParticleSource() : FindThermalPowerSource();
 
             // quit if we failed to find anything
             if (searchResult == null)
@@ -493,7 +493,7 @@ namespace FNPlugin
 
         private PowerSourceSearchResult FindThermalPowerSource()
         {
-            PowerSourceSearchResult searchResult = 
+            PowerSourceSearchResult searchResult =
                 PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part,
                     p => p.IsThermalSource
                         && p.ConnectedThermalElectricGenerator == null
@@ -503,7 +503,7 @@ namespace FNPlugin
 
         private PowerSourceSearchResult FindChargedParticleSource()
         {
-            PowerSourceSearchResult searchResult = 
+            PowerSourceSearchResult searchResult =
                 PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part,
                      p => p.IsThermalSource
                          && p.ConnectedChargedParticleElectricGenerator == null
@@ -659,8 +659,8 @@ namespace FNPlugin
             if (!chargedParticleMode) // thermal mode
             {
                 hotBathTemp = isMHD && attachedPowerSource.SupportMHD
-                    ? Math.Pow(1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 2) * attachedPowerSource.CoreTemperature 
-                    : attachedPowerSource.HotBathTemperature;  
+                    ? Math.Pow(1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 2) * attachedPowerSource.CoreTemperature
+                    : attachedPowerSource.HotBathTemperature;
 
                 averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel) * 0.75);
                 coldBathTemp = averageRadiatorTemperatureQueue.Average();
@@ -684,12 +684,12 @@ namespace FNPlugin
 
             maxChargedPower = attachedPowerSource.MaximumChargedPower * powerCustomSettingFraction;
 
-            if (attachedPowerSource.PowerRatio > 0)
+            if (attachedPowerSourceRatio > 0)
             {
                 var potentialThermalPower = applies_balance ? maxThermalPower : (maxThermalPower + maxChargedPower);
 
-                maxThermalPower = Math.Min(maxThermalPower, (potentialThermalPower / attachedPowerSource.PowerRatio) * attachedPowerSource.ThermalEnergyEfficiency);
-                maxChargedPower = Math.Min(maxChargedPower, (maxChargedPower / attachedPowerSource.PowerRatio) * attachedPowerSource.ChargedParticleEnergyEfficiency);
+                maxThermalPower = Math.Min(maxThermalPower, (potentialThermalPower / attachedPowerSourceRatio) * attachedPowerSource.ThermalEnergyEfficiency);
+                maxChargedPower = Math.Min(maxChargedPower, (maxChargedPower / attachedPowerSourceRatio) * attachedPowerSource.ChargedParticleEnergyEfficiency);
             }
 
             maxReactorPower = maxThermalPower + maxChargedPower;
@@ -733,6 +733,8 @@ namespace FNPlugin
                 if (maintainsMegaWattPowerBuffer)
                     UpdateMegaWattPowerBuffer();
 
+                generatorInit = true;
+
                 // don't produce any power when our reactor has stopped
                 if (maxStableMegaWattPower <= 0)
                 {
@@ -749,7 +751,7 @@ namespace FNPlugin
                 {
                     carnotEff = Math.Max(Math.Min(1.0f - coldBathTemp / hotBathTemp, 1), 0);
 
-                    _totalEff = Math.Min(pCarnotEff, carnotEff * pCarnotEff);
+                    _totalEff = Math.Min(pCarnotEff, carnotEff * pCarnotEff * attachedPowerSource.ThermalEnergyEfficiency);
 
                     if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
                     {
@@ -798,7 +800,7 @@ namespace FNPlugin
                     electricdtps = Math.Max(effective_input_power_per_second * powerOutputMultiplier, 0.0);
 
                     var effectiveMaxThermalPower = attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0
-                        ? maxThermalPower + maxChargedPower * availableChargedPowerRatio 
+                        ? maxThermalPower + maxChargedPower * availableChargedPowerRatio
                         : maxThermalPower;
 
                     max_electricdtps = effectiveMaxThermalPower * _totalEff;
@@ -829,6 +831,8 @@ namespace FNPlugin
             }
             else
             {
+                generatorInit = true;
+
                 if (attachedPowerSource != null)
                     attachedPowerSource.RequestedThermalHeat = 0;
 
@@ -878,9 +882,10 @@ namespace FNPlugin
                     var mageJouleRatio = megajouleResource.amount / megajouleResource.maxAmount;
                     megajouleResource.maxAmount = requiredMegawattCapacity;
 
-                    megajouleResource.amount = // requiredMegawattCapacity > previousMegawattCapacity
-                        //? Math.Max(0, Math.Min(requiredMegawattCapacity, megajouleResource.amount + requiredMegawattCapacity - previousMegawattCapacity)) : 
-                        Math.Max(0, Math.Min(requiredMegawattCapacity, mageJouleRatio * requiredMegawattCapacity));
+                    if (!generatorInit)
+                        megajouleResource.amount = megajouleResource.maxAmount;
+                    else
+                        megajouleResource.amount =  Math.Max(0, Math.Min(requiredMegawattCapacity, mageJouleRatio * requiredMegawattCapacity));
                 }
 
                 if (part.Resources.Contains(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE))
@@ -889,9 +894,11 @@ namespace FNPlugin
                     var electricChargeRatio = electricChargeResource.amount / electricChargeResource.maxAmount;
                     electricChargeResource.maxAmount = requiredMegawattCapacity;
 
-                    electricChargeResource.amount = // requiredMegawattCapacity > previousMegawattCapacity
-                        //? Math.Max(0, Math.Min(requiredMegawattCapacity, electricChargeResource.amount + requiredMegawattCapacity - previousMegawattCapacity)): 
-                        Math.Max(0, Math.Min(requiredMegawattCapacity, electricChargeRatio * requiredMegawattCapacity));
+                    if (!generatorInit)
+                        electricChargeResource.amount = electricChargeResource.maxAmount;
+                    else
+                        electricChargeResource.amount = Math.Max(0, Math.Min(requiredMegawattCapacity, electricChargeRatio * requiredMegawattCapacity));
+                    
                 }
             }
             previousDeltaTime = TimeWarp.fixedDeltaTime;
@@ -902,7 +909,7 @@ namespace FNPlugin
             if (isLimitedByMinThrotle)
                 return attachedPowerSource.MinimumPower;
 
-            var powerBufferRatio = Math.Min( 1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES), 1);
+            var powerBufferRatio = Math.Min(1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES), 1);
 
             double exponent;
             if (TimeWarp.fixedDeltaTime > 10000)
