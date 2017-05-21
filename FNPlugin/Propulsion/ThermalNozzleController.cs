@@ -150,11 +150,11 @@ namespace FNPlugin
         public double engineHeatProduction;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F4")]
         public double pressureThreshold;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_thermal_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Charge", guiUnits = " MJ")]
         public double requested_charge_particles;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Recieved Power", guiUnits = " MJ", guiFormat="F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Power", guiUnits = " MJ", guiFormat="F3")]
         public double power_received;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
         public string radiusModifier;
@@ -996,9 +996,8 @@ namespace FNPlugin
                 var effectiveThermalPower = getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER);
                 var effectiveChargedPower = getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
-                //currentMaxReactorPower = Math.Min(effectiveThermalPower + effectiveChargedPower, AttachedReactor.MaximumPower * AttachedReactor.ThermalPropulsionEfficiency) * delayedThrottle;
-                currentMaxThermalPower = Math.Min(effectiveThermalPower, AttachedReactor.MaximumThermalPower * AttachedReactor.ThermalPropulsionEfficiency) * delayedThrottle;
-                currentMaxChargedPower = Math.Min(effectiveChargedPower, AttachedReactor.MaximumChargedPower * AttachedReactor.ThermalPropulsionEfficiency) * delayedThrottle;
+                currentMaxThermalPower = Math.Min(effectiveThermalPower, AttachedReactor.MaximumThermalPower * AttachedReactor.ThermalPropulsionEfficiency * delayedThrottle);
+                currentMaxChargedPower = Math.Min(effectiveChargedPower, AttachedReactor.MaximumChargedPower * AttachedReactor.ThermalPropulsionEfficiency * delayedThrottle);
 
                 thermalRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_THERMALPOWER);
                 chargedParticleRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
@@ -1147,7 +1146,7 @@ namespace FNPlugin
 
                 GetMaximumIspAndThrustMultiplier();
 
-                thrust_modifiers = myAttachedEngine.currentThrottle * AttachedReactor.GetFractionThermalReciever(id);
+                thrust_modifiers = AttachedReactor.GetFractionThermalReciever(id);
                 requested_thermal_power = availableThermalPower * thrust_modifiers;
                 power_received = consumeFNResourcePerSecond(requested_thermal_power, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
@@ -1230,7 +1229,7 @@ namespace FNPlugin
                 if (_maxISP <= 0) return;
 
                 // calculate maximum fuel flow rate
-                max_fuel_flow_rate = final_max_engine_thrust / current_isp / PluginHelper.GravityConstant / myAttachedEngine.currentThrottle;
+                max_fuel_flow_rate = final_max_engine_thrust / current_isp / PluginHelper.GravityConstant * myAttachedEngine.currentThrottle;
 
                 if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
                 {
@@ -1279,7 +1278,7 @@ namespace FNPlugin
                 {
                     var resourceRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    consumeFNResource(1000 * resourceRatio * max_fuel_flow_rate, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(20 * resourceRatio * max_fuel_flow_rate, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
 				// Calculate

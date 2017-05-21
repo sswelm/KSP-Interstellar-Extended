@@ -314,8 +314,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false)]
         protected double effective_minimum_throtle;
 
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Neutron Power Generated", guiFormat = "F6")]
-        protected double ongoing_neutron_power_generated;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Generated", guiFormat = "F6")]
+        protected double ongoing_thermal_power_generated;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Generated", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
 
@@ -428,7 +428,7 @@ namespace FNPlugin
 
         public bool SupportMHD { get { return supportMHD; } }
 
-        public double ProducedThermalHeat { get { return ongoing_neutron_power_generated; } }
+        public double ProducedThermalHeat { get { return ongoing_thermal_power_generated; } }
 
         public int ProviderPowerPriority { get { return (int)electricPowerPriority; } }
 
@@ -1190,7 +1190,7 @@ namespace FNPlugin
                 {
                     if (CheatOptions.InfinitePropellant || current_fuel_variant.ReactorFuels.All(fuel => GetFuelAvailability(fuel) > 0))
                     {
-                        currentTPwr = PluginHelper.getFormattedPowerString(ongoing_neutron_power_generated) + "_th";
+                        currentTPwr = PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated) + "_th";
                         currentCPwr = PluginHelper.getFormattedPowerString(ongoing_charged_power_generated) + "_cp";
                         statusStr = "Active (" + powerPcnt.ToString("0.00") + "%)";
                     }
@@ -1329,7 +1329,7 @@ namespace FNPlugin
                 balanced_charged_power_received_fixed = raw_charged_power_received + (chargedpower_shortagage_ratio * fixed_maximum_charged_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
 
                 // update GUI
-                ongoing_neutron_power_generated = balanced_thermal_power_received_fixed / TimeWarp.fixedDeltaTime;
+                ongoing_thermal_power_generated = balanced_thermal_power_received_fixed / TimeWarp.fixedDeltaTime;
                 ongoing_charged_power_generated = balanced_charged_power_received_fixed / TimeWarp.fixedDeltaTime;
 
                 // Total
@@ -1340,8 +1340,18 @@ namespace FNPlugin
 
                 ongoing_total_power_generated = total_power_received_fixed / TimeWarp.fixedDeltaTime;
 
-                // initialy generate equal amount of power into wasteheat, which must be either used by generator or disapated
-                supplyFNResourcePerSecondWithMax(ongoing_total_power_generated, NormalisedMaximumPower, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                {
+                    var thermalSupplyRatio = ongoing_thermal_power_generated > 0 ? Math.Min(1, getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / ongoing_thermal_power_generated) : 0;
+                    var chargedSupplyRatio = ongoing_charged_power_generated > 0 ? Math.Min(1, getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / ongoing_charged_power_generated) : 0;
+                    var maxSupplyRatio = Math.Max(thermalSupplyRatio, chargedSupplyRatio);
+
+                    var thermal_wasteheat = ongoing_thermal_power_generated * maxSupplyRatio;
+                    var charged_wasteheat = ongoing_charged_power_generated * maxSupplyRatio;
+
+                    // initialy generate equal amount of power into wasteheat, which must be either used by generator or disapated
+                    supplyFNResourcePerSecondWithMax(thermal_wasteheat + charged_wasteheat, NormalisedMaximumPower, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                }
 
                 total_power_per_frame = total_power_received_fixed;
                 ongoing_consumption_rate = total_power_received_fixed / MaximumPower / TimeWarp.fixedDeltaTime;
@@ -1370,7 +1380,7 @@ namespace FNPlugin
                     }
                 }
 
-                BreedTritium(ongoing_neutron_power_generated, TimeWarp.fixedDeltaTime);
+                BreedTritium(ongoing_thermal_power_generated, TimeWarp.fixedDeltaTime);
 
                 if (Planetarium.GetUniversalTime() != 0)
                     last_active_time = Planetarium.GetUniversalTime();
@@ -1385,8 +1395,8 @@ namespace FNPlugin
 
                 rawTotalPowerProduced = raw_thermal_power_received;
 
-                ongoing_neutron_power_generated = raw_thermal_power_received / TimeWarp.fixedDeltaTime;
-                BreedTritium(ongoing_neutron_power_generated, TimeWarp.fixedDeltaTime);
+                ongoing_thermal_power_generated = raw_thermal_power_received / TimeWarp.fixedDeltaTime;
+                BreedTritium(ongoing_thermal_power_generated, TimeWarp.fixedDeltaTime);
 
                 ongoing_consumption_rate = MaximumPower > 0 ? raw_thermal_power_received / MaximumPower / TimeWarp.fixedDeltaTime : 0;
 
@@ -1683,7 +1693,7 @@ namespace FNPlugin
             }
 
             // breed tritium
-            BreedTritium(ongoing_neutron_power_generated, delta_time_diff);
+            BreedTritium(ongoing_thermal_power_generated, delta_time_diff);
         }
 
         protected bool ReactorIsOverheating()
@@ -1951,7 +1961,7 @@ namespace FNPlugin
                 PrintToGUILayout("Max Power Output", PluginHelper.getFormattedPowerString(NormalisedMaximumPower, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(RawPowerOutput, "0.0", "0.000"), bold_style, text_style);
 
                 if (ChargedPowerRatio < 1.0)
-                    PrintToGUILayout("Thermal Power", PluginHelper.getFormattedPowerString(ongoing_neutron_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower, "0.0", "0.000"), bold_style, text_style);
+                    PrintToGUILayout("Thermal Power", PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower, "0.0", "0.000"), bold_style, text_style);
                 if (ChargedPowerRatio > 0)
                     PrintToGUILayout("Charged Power", PluginHelper.getFormattedPowerString(ongoing_charged_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower, "0.0", "0.000"), bold_style, text_style);
 

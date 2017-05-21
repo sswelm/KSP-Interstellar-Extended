@@ -86,6 +86,8 @@ namespace FNPlugin
             antimatter = part.Resources[InterstellarResourcesConfiguration.Instance.Antimatter];
 
             if (state == StartState.Editor) return;
+
+            partMass = part.mass;
             
             this.part.force_activate();
 

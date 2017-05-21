@@ -110,12 +110,24 @@ namespace FNPlugin
         public float moduleMassDelta;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Charged Power", guiUnits = " MW", guiFormat = "F4")]
-        public double maxChargedPower;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Initial Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        public double initialThermalPower;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Initial Charged Power", guiUnits = " MW", guiFormat = "F4")]
+        public double initialChargedPower;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Initial Reactor Power", guiUnits = " MW", guiFormat = "F4")]
+        public double initialReactorPower;
+
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxThermalPower;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Charged Power", guiUnits = " MW", guiFormat = "F4")]
+        public double maxChargedPower;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Reactor Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxReactorPower;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Potential Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        public double potentialThermalPower;
+
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Afjusted Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        public double adjusted_thermal_power_needed;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Reactor Power Ratio", guiFormat = "F4")]
         public double attachedPowerSourceRatio;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Type")]
@@ -531,7 +543,16 @@ namespace FNPlugin
                 // update part mass
                 rawMaximumPower = attachedPowerSource.RawMaximumPower;
                 if (rawMaximumPower > 0 && rawPowerToMassDivider > 0)
-                    targetMass = (massModifier * attachedPowerSource.ThermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
+                {
+                    var maxTargetMass = (massModifier * attachedPowerSource.ThermalProcessingModifier * rawMaximumPower) / rawPowerToMassDivider;
+
+                    if (chargedParticleMode && attachedPowerSource.ChargedParticleEnergyEfficiency > 0)
+                        targetMass = maxTargetMass * attachedPowerSource.ChargedParticleEnergyEfficiency;
+                    else if (!chargedParticleMode && attachedPowerSource.ThermalEnergyEfficiency > 0)
+                        targetMass = maxTargetMass * attachedPowerSource.ThermalEnergyEfficiency;
+                    else
+                        targetMass = maxTargetMass;
+                }
                 else
                     targetMass = initialMass;
             }
@@ -678,21 +699,26 @@ namespace FNPlugin
 
             attachedPowerSourceRatio = attachedPowerSource.PowerRatio;
 
-            maxThermalPower = isLimitedByMinThrotle
+            initialThermalPower = isLimitedByMinThrotle
                     ? attachedPowerSource.MinimumPower
                     : attachedPowerSource.MaximumThermalPower * powerCustomSettingFraction;
+            initialChargedPower = attachedPowerSource.MaximumChargedPower * powerCustomSettingFraction;
 
-            maxChargedPower = attachedPowerSource.MaximumChargedPower * powerCustomSettingFraction;
+            maxChargedPower = initialChargedPower;
+            maxThermalPower = initialThermalPower;
+            initialReactorPower = initialThermalPower + initialChargedPower;
+
+            maxReactorPower = initialReactorPower;
 
             if (attachedPowerSourceRatio > 0)
             {
-                var potentialThermalPower = applies_balance ? maxThermalPower : (maxThermalPower + maxChargedPower);
+                potentialThermalPower = ((applies_balance ? maxThermalPower : initialReactorPower) / attachedPowerSourceRatio) * attachedPowerSource.ThermalEnergyEfficiency;
 
-                maxThermalPower = Math.Min(maxThermalPower, (potentialThermalPower / attachedPowerSourceRatio) * attachedPowerSource.ThermalEnergyEfficiency);
+                maxThermalPower = Math.Min(maxReactorPower, potentialThermalPower);
                 maxChargedPower = Math.Min(maxChargedPower, (maxChargedPower / attachedPowerSourceRatio) * attachedPowerSource.ChargedParticleEnergyEfficiency);
-            }
 
-            maxReactorPower = maxThermalPower + maxChargedPower;
+                maxReactorPower = initialReactorPower * (chargedParticleMode ? maxChargedPower : maxThermalPower);
+            }
         }
 
         // Update is called in the editor 
@@ -751,7 +777,7 @@ namespace FNPlugin
                 {
                     carnotEff = Math.Max(Math.Min(1.0f - coldBathTemp / hotBathTemp, 1), 0);
 
-                    _totalEff = Math.Min(pCarnotEff, carnotEff * pCarnotEff * attachedPowerSource.ThermalEnergyEfficiency);
+                    _totalEff = Math.Min(pCarnotEff, carnotEff * pCarnotEff);
 
                     if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
                     {
@@ -769,7 +795,7 @@ namespace FNPlugin
 
                     var availableChargedPowerRatio = Math.Max(Math.Min(2 * chargedBufferRatio - 0.25, 1), 0);
 
-                    var adjusted_thermal_power_needed = applies_balance
+                    adjusted_thermal_power_needed = applies_balance
                         ? effective_thermal_power_needed
                         : effective_thermal_power_needed * (1 - attachedPowerSource.ChargedPowerRatio * availableChargedPowerRatio);
 

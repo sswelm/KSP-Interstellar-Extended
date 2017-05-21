@@ -80,7 +80,7 @@ namespace FNPlugin
         public float surfaceAreaUpgradeMult = 1.6f;
 
         // non persistant
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Mass", guiUnits = " t")]
         public float partMass;
 		[KSPField(isPersistant = false)]
 		public bool isDeployable = false;
@@ -490,7 +490,9 @@ namespace FNPlugin
             var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine == null)
             {
+                partMass = part.mass;
                 Fields["partMass"].guiActiveEditor = true;
+                Fields["partMass"].guiActive = true;
                 Fields["convectiveBonus"].guiActiveEditor = true;
             }
 
@@ -615,6 +617,8 @@ namespace FNPlugin
 
         public void Update()
         {
+            partMass = part.mass;
+
             var isUndefined = _moduleDeployableRadiator == null 
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING 
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTING;
