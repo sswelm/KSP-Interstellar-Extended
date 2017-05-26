@@ -21,7 +21,7 @@ namespace FNPlugin
             if (vessel.Landed)
             {
                 //PopupDialog.SpawnPopupDialog("Seismic Probe", "Surface will be monitored for impact events.", "OK", false, HighLogic.Skin);
-                PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "Seismic Probe", "Surface will be monitored for impact events.", "OK", false, HighLogic.UISkin);
+				PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "Seismic Probe", "Seismic Probe", "Surface will be monitored for impact events.", "OK", false, HighLogic.UISkin);
                 probeIsEnabled = true;
             }
             else
@@ -97,7 +97,7 @@ namespace FNPlugin
 						
                         if (!transmitted)
                         {
-                            ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.SrfLanded, vessel.mainBody, vessel.mainBody.name + "'s surface.");
+							ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.SrfLanded, vessel.mainBody, vessel.mainBody.name + "'s surface.", vessel.mainBody.name + "'s surface.");
                             if (subject == null)
                                 return false;
 							subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);

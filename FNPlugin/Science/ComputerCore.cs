@@ -169,7 +169,7 @@ namespace FNPlugin
 
             if (science_to_add > 0)
             {
-				ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "");
+				ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "", "");
 				if (subject == null)
 					return false;
 				subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);

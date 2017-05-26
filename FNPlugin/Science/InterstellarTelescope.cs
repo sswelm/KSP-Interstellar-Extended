@@ -102,7 +102,7 @@ namespace FNPlugin
 
             if (science_awaiting_addition > 0)
             {
-				ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.InSpaceHigh, vessel.mainBody, "");
+				ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.InSpaceHigh, vessel.mainBody, "", "");
 				if (subject == null)
 					return false;
 

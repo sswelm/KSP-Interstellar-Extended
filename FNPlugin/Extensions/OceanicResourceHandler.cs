@@ -230,7 +230,7 @@ namespace FNPlugin.Extensions
             }
 
             // skip it already registred or used as a Synonym
-            if (bodyComposition.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.title || m.Synonyms.Contains(definition.name)))
+            if (bodyComposition.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.displayName || m.Synonyms.Contains(definition.name)))
             {
                 Debug.Log("[KSPI] - AddMissingResource : Already found existing composition for '" + resourname + "'");
                 return;
