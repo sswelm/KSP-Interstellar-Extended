@@ -229,7 +229,7 @@ namespace FNPlugin
 				if (wasteheatPowerResource != null)
 				{
 					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-					wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
+					wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
 					wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
 				}
 

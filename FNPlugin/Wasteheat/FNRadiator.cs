@@ -97,7 +97,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float temperatureColorDivider = 1;
         [KSPField(isPersistant = false)]
-        public float emissiveColorPower = 6;
+        public float emissiveColorPower = 4;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
@@ -156,7 +156,7 @@ namespace FNPlugin
 		protected int explode_counter = 0;
 
         protected int nrAvailableUpgradeTechs;
-        protected bool doLegacyGraphics;
+        //protected bool doLegacyGraphics;
 
         private BaseEvent deployRadiatorEvent;
         private BaseEvent retractRadiatorEvent;
@@ -476,14 +476,14 @@ namespace FNPlugin
             Actions["RetractRadiatorAction"].guiName = "Retract Radiator";
             Events["RetractRadiator"].guiName = "Retract Radiator";
 
-            doLegacyGraphics = ( part.name.StartsWith("circradiator") || part.name.StartsWith("RadialRadiator") || (part.name.StartsWith("LargeFlatRadiator")));
+            
 
 			// calculate WasteHeat Capacity
 			var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
 			if (wasteheatPowerResource != null)
 			{
 				var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-				wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
+				wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
 				wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
 			}
 
@@ -497,8 +497,11 @@ namespace FNPlugin
             }
 
             if (!String.IsNullOrEmpty(thermalAnim))
+            {
                 heatStates = SetUpAnimation(thermalAnim, this.part);
-            SetHeatAnimationRatio(0);
+                SetHeatAnimationRatio(0);
+            }
+            //doLegacyGraphics = heatStates == null || (part.name.StartsWith("circradiator") || part.name.StartsWith("RadialRadiator") || (part.name.StartsWith("LargeFlatRadiator")));
 
             deployAnim = part.FindModelAnimators(animName).FirstOrDefault();
             if (deployAnim != null)
@@ -907,6 +910,7 @@ namespace FNPlugin
                 }
                 return;
             }
+
         }
 
         private void ColorHeat()
@@ -915,65 +919,57 @@ namespace FNPlugin
             {
                 double currentTemperature = CurrentRadiatorTemperature;
 
-                double partTempRatio = Math.Min((part.temperature / (part.maxTemp * 0.95)), 1);
+                double partTempRatio = Math.Min((part.temperature / maxRadiatorTemperature), 1);
 
                 double radiatorTempRatio = Math.Min(currentTemperature / maxRadiatorTemperature, 1);
 
-                var colorRatio = (float)Math.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
+                var colorRatioRed = (float)Math.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
+                var colorRatioGreen = (float)Math.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower * 2) * 0.6f;
+                var colorRatioBlue = (float)Math.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower * 4) * 0.3f;
 
-                SetHeatAnimationRatio(colorRatio);
+                SetHeatAnimationRatio(colorRatioRed);
 
-                emissiveColor = new Color(colorRatio, 0.0f, 0.0f, 0.5f);
+                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, 0.5f);
             }
             catch (Exception e)
             {
                 Debug.LogError("[KSPI] - FNReactor.ColorHeat head" + e.Message);
             }
 
-           try
-           {
-               if (doLegacyGraphics)
-               {
-                   foreach (Renderer renderer in renderArray)
-                   {
-                       if (renderer.material.shader.name != kspShader)
-                           renderer.material.shader = Shader.Find(kspShader);
+            try
+            {
+                if (heatStates == null && !string.IsNullOrEmpty(colorHeat))
+                {
+                    foreach (Renderer renderer in renderArray)
+                    {
+                        if (renderer.material.shader.name != kspShader)
+                            renderer.material.shader = Shader.Find(kspShader);
 
-                       if (part.name.StartsWith("circradiator"))
-                       {
-                           if (renderer.material.GetTexture("_Emissive") == null)
-                               renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_e", false));
+                        if (part.name.StartsWith("circradiator"))
+                        {
+                            if (renderer.material.GetTexture("_Emissive") == null)
+                                renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_e", false));
 
-                           if (renderer.material.GetTexture("_BumpMap") == null)
-                               renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_n", false));
-                       }
-                       else if (part.name.StartsWith("RadialRadiator"))
-                       {
-                           if (renderer.material.GetTexture("_Emissive") == null)
-                               renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/RadialHeatRadiator/d_glow", false));
-                       }
-                       else if (part.name.StartsWith("LargeFlatRadiator"))
-                       {
+                            if (renderer.material.GetTexture("_BumpMap") == null)
+                                renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_n", false));
+                        }
+                        else if (part.name.StartsWith("RadialRadiator"))
+                        {
+                            if (renderer.material.GetTexture("_Emissive") == null)
+                                renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/RadialHeatRadiator/d_glow", false));
+                        }
+                        else if (part.name.StartsWith("LargeFlatRadiator"))
+                        {
+                            if (renderer.material.GetTexture("_Emissive") == null)
+                                renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/glow", false));
 
-                           if (renderer.material.shader.name != kspShader)
-                               renderer.material.shader = Shader.Find(kspShader);
+                            if (renderer.material.GetTexture("_BumpMap") == null)
+                                renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/radtex_n", false));
+                        }
 
-                           if (renderer.material.GetTexture("_Emissive") == null)
-                               renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/glow", false));
-
-                           if (renderer.material.GetTexture("_BumpMap") == null)
-                               renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/radtex_n", false));
-                       }
-
-                       if (heatStates != null)
-                           return;
-
-                       if (string.IsNullOrEmpty(colorHeat))
-                           return;
-
-                       renderer.material.SetColor(colorHeat, emissiveColor);
-                   }
-               }
+                        renderer.material.SetColor(colorHeat, emissiveColor);
+                    }
+                }
             }
             catch (Exception e)
             {

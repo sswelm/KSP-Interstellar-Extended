@@ -56,14 +56,14 @@ namespace FNPlugin
 		public double fusionRatio = 0;
 		[KSPField(isPersistant = false, guiActive = false, guiName = "Recieved Ratio", guiFormat = "F6")]
 		public double recievedRatio = 0;
-		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "FussionPellets")]
+		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fusion Fuel")]
 		public string fussionPelletsAmounts;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Fusion", guiFormat = "F2", guiUnits = "%")]
 		public double fusionPercentage = 0;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Max Fuel Flow", guiFormat = "F8", guiUnits = " U")]
 		public double calculatedFuelflow = 0;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "FussionPellets Usage", guiFormat = "F2", guiUnits = " L/day")]
-		public double fusionPelletsUsageDay = 0;
+		[KSPField(isPersistant = false, guiActive = true, guiName = "Fuel Usage", guiFormat = "F2", guiUnits = " L/day")]
+		public double fusionFuelUsageDay = 0;
 
 		[KSPField(isPersistant = false, guiActive = false, guiName = "Stored Throtle")]
 		public float storedThrotle = 0;
@@ -75,7 +75,10 @@ namespace FNPlugin
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Max Effective Isp", guiFormat = "F2", guiUnits = "s")]
 		public double effectiveIsp = 0;
 		[KSPField(isPersistant = false, guiActive = false, guiName = "Fuel Remaining", guiFormat = "F3", guiUnits = "%")]
-		private double percentageFuelRemaining; 
+		private double percentageFuelRemaining;
+
+        [KSPField(isPersistant = false)]
+        public string fusionFuel = "FusionPellets";
 
 		[KSPField(isPersistant = false)]
 		public float powerRequirement = 2500;
@@ -132,7 +135,7 @@ namespace FNPlugin
 		private BaseEvent retrofitEngineEvent;
 		private BaseField radhazardstrField;
 
-		private PartResourceDefinition fussionPelletsResourceDefinition;
+		private PartResourceDefinition fussionFuelResourceDefinition;
 
 		private Stopwatch stopWatch;
 
@@ -187,7 +190,7 @@ namespace FNPlugin
 			{
 				stopWatch = new Stopwatch();
 				speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
-				fussionPelletsResourceDefinition = PartResourceLibrary.Instance.GetDefinition("FusionPellets");
+                fussionFuelResourceDefinition = PartResourceLibrary.Instance.GetDefinition(fusionFuel);
 
 				part.maxTemp = maxTemp;
 				part.thermalMass = 1;
@@ -211,7 +214,7 @@ namespace FNPlugin
 				if (wasteheatPowerResource != null)
 				{
 					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-					wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
+					wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
 					wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
 				}
 
@@ -242,7 +245,7 @@ namespace FNPlugin
 
 				double fussionPelletsCurrentAmount;
 				double fussionPelletsMaxAmount;
-				part.GetConnectedResourceTotals(fussionPelletsResourceDefinition.id, out fussionPelletsCurrentAmount, out fussionPelletsMaxAmount);
+				part.GetConnectedResourceTotals(fussionFuelResourceDefinition.id, out fussionPelletsCurrentAmount, out fussionPelletsMaxAmount);
 
 				percentageFuelRemaining = fussionPelletsCurrentAmount / fussionPelletsMaxAmount * 100;
 				fussionPelletsAmounts = percentageFuelRemaining.ToString("0.0000") + "% " + fussionPelletsMaxAmount.ToString("0") + " L";
@@ -430,9 +433,9 @@ namespace FNPlugin
 					curEngineT.maxThrust = (float)effectiveThrust;
 
 					// calculate day usage
-					var demandedMass = calculatedFuelflow / fussionPelletsResourceDefinition.density;
-					var fusionPelletsrequestAmount = demandedMass / fussionPelletsResourceDefinition.density;
-					fusionPelletsUsageDay = fusionPelletsrequestAmount / fixedDeltaTime * PluginHelper.SecondsInDay;
+					var demandedMass = calculatedFuelflow / fussionFuelResourceDefinition.density;
+					var fusionFuelRequestAmount = demandedMass / fussionFuelResourceDefinition.density;
+					fusionFuelUsageDay = fusionFuelRequestAmount / fixedDeltaTime * PluginHelper.SecondsInDay;
 
 					if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
 					{
@@ -471,7 +474,7 @@ namespace FNPlugin
 						vessel.ctrlState.mainThrottle = 0;
 					}
 
-					fusionPelletsUsageDay = 0;
+					fusionFuelUsageDay = 0;
 					fusionPercentage = 0;
 
 					UpdateAtmosphericCurve();
@@ -508,15 +511,15 @@ namespace FNPlugin
 			double demandMass;
 			CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, thrustUV, out demandMass);
 
-			var fusionPelletsrequestAmount = demandMass / fussionPelletsResourceDefinition.density;
-			fusionPelletsUsageDay = fusionPelletsrequestAmount / modifiedFixedDeltaTime * PluginHelper.SecondsInDay;
+			var fusionFuelRequestAmount = demandMass / fussionFuelResourceDefinition.density;
+			fusionFuelUsageDay = fusionFuelRequestAmount / modifiedFixedDeltaTime * PluginHelper.SecondsInDay;
 
 			if (CheatOptions.InfinitePropellant)
 				recievedRatio = 1;
 			else
 			{
-				var recievedFusionPellets = part.RequestResource(fussionPelletsResourceDefinition.id, fusionPelletsrequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-				recievedRatio = fusionPelletsrequestAmount > 0 ? recievedFusionPellets/ fusionPelletsrequestAmount : 0;
+				var recievedFusionFuel = part.RequestResource(fussionFuelResourceDefinition.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+				recievedRatio = fusionFuelRequestAmount > 0 ? recievedFusionFuel/ fusionFuelRequestAmount : 0;
 			}
 
 			effectiveThrust = timeDilationMaximumThrust * recievedRatio;

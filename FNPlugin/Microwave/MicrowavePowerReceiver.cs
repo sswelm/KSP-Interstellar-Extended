@@ -805,7 +805,7 @@ namespace FNPlugin
             thermalResource = part.Resources[FNResourceManager.FNRESOURCE_THERMALPOWER];
 
 			// calculate WasteHeat Capacity
-			partBaseWasteheat = part.mass * 1.0e+4 * wasteHeatMultiplier;
+			partBaseWasteheat = part.mass * 2.0e+4 * wasteHeatMultiplier;
 			var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
 			if (wasteheatPowerResource != null)
 			{

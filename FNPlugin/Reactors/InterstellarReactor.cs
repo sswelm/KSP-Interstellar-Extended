@@ -1436,49 +1436,28 @@ namespace FNPlugin
             {
                 if (thermalPowerResource != null)
                 {
-                    var stableThemalPowerBuffer = 10 * MaximumThermalPower;
-                    var requiredThermalCapacity = Math.Max(0.0001, stableThemalPowerBuffer * TimeWarp.fixedDeltaTime);
-                    //var previousThermalCapacity = Math.Max(0.0001, stableThemalPowerBuffer * previousDeltaTime);
+                    var requiredThermalCapacity = Math.Max(0.0001, 4 * MaximumThermalPower * TimeWarp.fixedDeltaTime);
                     var thermalPowerRatio = thermalPowerResource.amount / thermalPowerResource.maxAmount;
 
                     thermalPowerResource.maxAmount = requiredThermalCapacity;
 
                     if (reactorBooted)
-                    {
-                        // adjust to
-                        thermalPowerResource.amount = //requiredThermalCapacity > previousThermalCapacity
-                            // ? Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerResource.amount + requiredThermalCapacity - previousThermalCapacity)) : 
-                            Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerRatio * requiredThermalCapacity));
-                    }
+                        thermalPowerResource.amount = Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerRatio * requiredThermalCapacity));
                     else
-                    {
-                        // to prevent starting up with wasteheat, boot with full power at bootup
                         thermalPowerResource.amount = thermalPowerResource.maxAmount * fuel_ratio;
-                    }
                 }
 
                 if (chargedPowerResource != null)
                 {
-                    var stableChargedPowerBuffer = 10 * MaximumChargedPower;
-                    var requiredChargedCapacity = Math.Max(0.0001, stableChargedPowerBuffer * TimeWarp.fixedDeltaTime);
-                    //var previousChargedCapacity = Math.Max(0.0001, stableChargedPowerBuffer * previousDeltaTime);
+                    var requiredChargedCapacity = Math.Max(0.0001, 4 * MaximumChargedPower * TimeWarp.fixedDeltaTime);
                     var chargedPowerRatio = chargedPowerResource.amount / chargedPowerResource.maxAmount;
 
                     chargedPowerResource.maxAmount = requiredChargedCapacity;
 
                     if (reactorBooted)
-                    {
-                        // adjust to
-                        chargedPowerResource.amount = 
-                            //requiredChargedCapacity > previousChargedCapacity
-                            //? Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerResource.amount + requiredChargedCapacity - previousChargedCapacity)) :
-                            Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerRatio * requiredChargedCapacity));
-                    }
+                        chargedPowerResource.amount = Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerRatio * requiredChargedCapacity));
                     else
-                    {
-                        // to prevent starting up with wasteheat, boot with full power at bootup
                         chargedPowerResource.amount = chargedPowerResource.maxAmount * fuel_ratio;
-                    }
                 }
 
                 reactorBooted = true;
@@ -1486,7 +1465,7 @@ namespace FNPlugin
                 if (wasteheatPowerResource != null)
                 {
                     // calculate WasteHeat Capacity
-                    partBaseWasteheat = part.mass * 1.0e+4 * wasteHeatMultiplier;
+                    partBaseWasteheat = part.mass * 2.0e+4 * wasteHeatMultiplier;
 
                     var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
 
@@ -1499,21 +1478,21 @@ namespace FNPlugin
                 if (thermalPowerResource != null)
                 {
                     var thermalPowerRatio = Math.Max(0, Math.Min(1,thermalPowerResource.amount / thermalPowerResource.maxAmount));
-                    thermalPowerResource.maxAmount = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumThermalPower);
+                    thermalPowerResource.maxAmount = Math.Max(0.0001, 4 * TimeWarp.fixedDeltaTime * MaximumThermalPower);
                     thermalPowerResource.amount = Math.Max(0, Math.Min(thermalPowerResource.maxAmount, thermalPowerRatio * thermalPowerResource.maxAmount));
                 }
 
                 if (chargedPowerResource != null)
                 {
 					var chargedPowerRatio = Math.Max(0, Math.Min(1, chargedPowerResource.amount / chargedPowerResource.maxAmount));
-                    chargedPowerResource.maxAmount = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * MaximumChargedPower);
+                    chargedPowerResource.maxAmount = Math.Max(0.0001, 4 * TimeWarp.fixedDeltaTime * MaximumChargedPower);
                     chargedPowerResource.amount = Math.Max(0, Math.Min(chargedPowerResource.maxAmount, chargedPowerRatio * chargedPowerResource.maxAmount));
                 }
 
                 if (wasteheatPowerResource != null)
                 {
                     var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
-                    wasteheatPowerResource.maxAmount = Math.Max(0.0001, 10 * TimeWarp.fixedDeltaTime * partBaseWasteheat);
+                    wasteheatPowerResource.maxAmount = Math.Max(0.0001, TimeWarp.fixedDeltaTime * partBaseWasteheat);
                     wasteheatPowerResource.amount = Math.Max(0, Math.Min(wasteheatPowerResource.maxAmount, wasteHeatRatio * wasteheatPowerResource.maxAmount));
                 }
             }

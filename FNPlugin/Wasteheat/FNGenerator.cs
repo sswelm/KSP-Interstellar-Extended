@@ -342,7 +342,7 @@ namespace FNPlugin
                 if (wasteheatPowerResource != null)
                 {
                     var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
+                    wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
                     wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
                 }
             }
@@ -382,7 +382,6 @@ namespace FNPlugin
                     upgradePartModule();
                 }
                 part.OnEditorAttach += OnEditorAttach;
-
                 part.OnEditorDetach += OnEditorDetach;
                 part.OnEditorDestroy += OnEditorDetach;
 
@@ -652,8 +651,8 @@ namespace FNPlugin
             {
                 return attachedPowerSource != null && IsEnabled
                     ? chargedParticleMode
-                        ? attachedPowerSource.StableMaximumReactorPower * 0.85
-                        : attachedPowerSource.StableMaximumReactorPower * pCarnotEff
+                        ? attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * attachedPowerSource.ChargedParticleEnergyEfficiency * 0.85
+                        : attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * attachedPowerSource.ThermalEnergyEfficiency * pCarnotEff
                     : 0;
             }
         }
@@ -752,9 +751,7 @@ namespace FNPlugin
                 UpdateGeneratorPower();
 
                 // check if MaxStableMegaWattPower is changed
-                maxStableMegaWattPower = fullPowerBuffer && attachedPowerSource != null
-                    ? attachedPowerSource.StableMaximumReactorPower
-                    : MaxStableMegaWattPower;
+                maxStableMegaWattPower = MaxStableMegaWattPower;
 
                 if (maintainsMegaWattPowerBuffer)
                     UpdateMegaWattPowerBuffer();
@@ -868,7 +865,7 @@ namespace FNPlugin
                     if (!FNRadiator.hasRadiatorsForVessel(vessel))
                     {
                         IsEnabled = false;
-                        Debug.Log("[WarpPlugin] Generator Shutdown: No radiators available!");
+                        Debug.Log("[KSPI] - Generator Shutdown: No radiators available!");
                         ScreenMessages.PostScreenMessage("Generator Shutdown: No radiators available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         PowerDown();
                     }
@@ -876,7 +873,7 @@ namespace FNPlugin
                     if (attachedPowerSource == null)
                     {
                         IsEnabled = false;
-                        Debug.Log("[WarpPlugin] Generator Shutdown: No reactor available!");
+                        Debug.Log("[KSPI] - Generator Shutdown: No reactor available!");
                         ScreenMessages.PostScreenMessage("Generator Shutdown: No reactor available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                         PowerDown();
                     }

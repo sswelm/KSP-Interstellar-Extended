@@ -4,19 +4,19 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using OpenResourceSystem;
+using TweakScale;
 
 namespace FNPlugin
 {
-    class AntimatterStorageTank : FNResourceSuppliableModule
+    class AntimatterStorageTank : FNResourceSuppliableModule, IPartMassModifier, IRescalable<FNGenerator>
     {
-        //Persistent True
         [KSPField(isPersistant = true)]
-        public double chargestatus = 1000.0f;
-
-        //Persistent False
+        public double chargestatus = 1000;
+        [KSPField(isPersistant = false)]
+        public float massExponent = 3;
         [KSPField(isPersistant = false)]
         public float chargeNeeded = 100f;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Exploding")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Exploding")]
         bool exploding = false;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string chargeStatusStr;
@@ -26,10 +26,31 @@ namespace FNPlugin
         public string capacityStr;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum")]
         public string maxAmountStr;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Part Mass", guiFormat = "F3", guiUnits = " t")]
-        public double partMass;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiUnits = "K",  guiName = "Maximum Temperature"), UI_FloatRange(stepIncrement = 10f, maxValue = 1000f, minValue = 40f)]
+        public float maxTemperature = 1000;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiUnits = "g", guiName = "Maximum Acceleration"), UI_FloatRange(stepIncrement = 0.1f, maxValue = 10f, minValue = 0.1f)]
+        public float maxGeeforce = 10;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Cur/Max Temp", guiFormat = "F3")]
-        public string TemperatureStr; 
+        public string TemperatureStr;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Cur/Max Geeforce")]
+        public string GeeforceStr;
+
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Stored Mass")]
+        public double storedMassMultiplier = 1;
+        [KSPField(isPersistant = true, guiActiveEditor = true)]
+        public bool calculatedMass = false;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Part Mass", guiUnits = " t", guiFormat = "F3" )]
+        public double partMass;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Initial Mass", guiUnits = " t", guiFormat = "F3")]
+        public double initialMass;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t", guiFormat = "F3")]
+        public double targetMass;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Delta Mass", guiUnits = " t", guiFormat = "F3")]
+        public double moduleMassDelta;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Attached Tanks Count")]
+        public double attachedAntimatterTanksCount;
+
+
 
         bool charging = false;
         bool should_charge = false;
@@ -38,9 +59,14 @@ namespace FNPlugin
         double explosion_size = 5000;
         double cur_explosion_size = 0;
         double current_antimatter = 0;
-        int explode_counter = 0;
+
+        int power_explode_counter = 0;
+        int geeforce_explode_counter = 0;
+        int temperature_explode_counter = 0;
+
         GameObject lightGameObject;
         PartResource antimatter;
+        List<AntimatterStorageTank> attachedAntimatterTanks;
 
         [KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
         public void StartCharge()
@@ -52,6 +78,51 @@ namespace FNPlugin
         public void StopCharge()
         {
             should_charge = false;
+        }
+
+        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        {
+            try
+            {
+                Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
+                storedMassMultiplier = Math.Pow(factor.absolute.linear, massExponent);
+                initialMass = part.prefabMass * storedMassMultiplier;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - FNGenerator.OnRescale " + e.Message);
+            }
+        }
+
+        private void UpdateTargetMass()
+        {
+            // verify if mass calculation is active
+            if (!calculatedMass)
+            {
+                targetMass = part.mass;
+                return;
+            }
+
+            targetMass = (((maxTemperature - 30d) / 2000d) + (maxGeeforce / 20d)) * storedMassMultiplier;
+            targetMass *= (1d - (0.2 * attachedAntimatterTanksCount));
+        }
+
+        public ModifierChangeWhen GetModuleMassChangeWhen()
+        {
+            if (HighLogic.LoadedSceneIsFlight)
+                return ModifierChangeWhen.STAGED;
+            else
+                return ModifierChangeWhen.CONSTANTLY;
+        }
+
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
+        {
+            if (!calculatedMass)
+                return 0;
+
+            moduleMassDelta = (float)targetMass - initialMass;
+
+            return (float)moduleMassDelta;
         }
 
         public void doExplode()
@@ -85,9 +156,22 @@ namespace FNPlugin
         {
             antimatter = part.Resources[InterstellarResourcesConfiguration.Instance.Antimatter];
 
-            if (state == StartState.Editor) return;
-
             partMass = part.mass;
+            initialMass = part.prefabMass * storedMassMultiplier;
+
+            if (state == StartState.Editor)
+            {
+                part.OnEditorAttach += OnEditorAttach;
+                part.OnEditorDetach += OnEditorDetach;
+
+                calculatedMass = true;
+                UpdateTargetMass();
+                return;
+            }
+            else
+            {
+                UpdateTargetMass();
+            }
             
             this.part.force_activate();
 
@@ -95,6 +179,40 @@ namespace FNPlugin
             should_charge = antimatter.amount > 0;
 
             this.enabled = true;
+
+            UpdateAttachedTanks();
+        }
+
+        private void OnEditorAttach()
+        {
+            UpdateAttachedTanks();
+            UpdateTargetMass();
+        }
+
+        private void OnEditorDetach()
+        {
+            if (attachedAntimatterTanks != null)
+                attachedAntimatterTanks.ForEach(m => m.UpdateMass());
+
+            UpdateAttachedTanks();
+            UpdateTargetMass();
+        }
+
+        private void UpdateMass()
+        {
+            if (part.attachNodes == null) return;
+
+            attachedAntimatterTanksCount = part.attachNodes.Where(m => m.nodeType == AttachNode.NodeType.Stack && m.attachedPart != null).Select(m => m.attachedPart.FindModuleImplementing<AntimatterStorageTank>()).Where(m => m != null).Count();
+            UpdateTargetMass();
+        }
+
+        private void UpdateAttachedTanks()
+        {
+            if (part.attachNodes == null) return;
+
+            attachedAntimatterTanks = part.attachNodes.Where(m => m.nodeType == AttachNode.NodeType.Stack && m.attachedPart != null).Select(m => m.attachedPart.FindModuleImplementing<AntimatterStorageTank>()).Where(m => m != null).ToList();
+            attachedAntimatterTanks.ForEach(m => m.UpdateMass());
+            attachedAntimatterTanksCount = attachedAntimatterTanks.Count();
         }
 
         public override void OnUpdate()
@@ -103,7 +221,8 @@ namespace FNPlugin
             Events["StopCharge"].active = current_antimatter <= 0.1 && should_charge;
 
             chargeStatusStr = chargestatus.ToString("0.0") + " / " + GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE.ToString("0.0");
-            TemperatureStr = part.temperature.ToString("0.0") + " / " + part.maxTemp.ToString("0.0");  
+            TemperatureStr = part.temperature.ToString("0") + " / " + maxTemperature.ToString("0");
+            GeeforceStr = part.vessel.geeForce.ToString("0.0") + " / " + maxGeeforce.ToString("0.0");
 
             if (chargestatus <= 60 && !charging && current_antimatter > 0.1)
                 ScreenMessages.PostScreenMessage("Warning!: Antimatter storage unpowered, tank explosion in: " + chargestatus.ToString("0") + "s", 1.0f, ScreenMessageStyle.UPPER_CENTER);
@@ -129,11 +248,11 @@ namespace FNPlugin
         public void Update()
         {
             UpdateAmounts();
+            UpdateTargetMass();
+            partMass = part.mass;
 
             if (HighLogic.LoadedSceneIsFlight)
                 return;
-
-            partMass = part.mass;
         }
 
         private void UpdateAmounts()
@@ -196,19 +315,62 @@ namespace FNPlugin
                     ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while Antimatter Tank is Unpowered", 1.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
-            //print (chargestatus);
-            if (chargestatus <= 0)
+
+            if (current_antimatter > 0.00001 * antimatter.maxAmount)
             {
-                chargestatus = 0;
-                if (current_antimatter > 0.00001 * antimatter.maxAmount)
+                //verify temperature
+                if (part.temperature > maxTemperature)
                 {
-                    explode_counter++;
-                    if (explode_counter > 5)
+                    temperature_explode_counter++;
+                    if (temperature_explode_counter > 10)
+                    {
+                        Debug.Log("[KSPI] - Antimatter container exploded due to reaching critical temperature");
+                        ScreenMessages.PostScreenMessage("Antimatter container exploded due to reaching critical temperature", 60.0f, ScreenMessageStyle.UPPER_CENTER);
                         doExplode();
+                    }
                 }
+                else
+                    temperature_explode_counter = 0;
+
+                //verify geeforce
+                if (part.vessel.geeForce > maxGeeforce)
+                {
+                    geeforce_explode_counter++;
+                    if (geeforce_explode_counter > 10)
+                    {
+                        Debug.Log("[KSPI] - Antimatter container exploded due to reaching critical geeforce");
+                        ScreenMessages.PostScreenMessage("Antimatter container exploded due to reaching critical geeforce", 60.0f, ScreenMessageStyle.UPPER_CENTER);
+                        doExplode();
+                    }
+                }
+                else
+                    geeforce_explode_counter = 0;
+
+                //verify power
+                if (chargestatus <= 0)
+                {
+                    chargestatus = 0;
+                    if (current_antimatter > 0.00001 * antimatter.maxAmount)
+                    {
+                        power_explode_counter++;
+                        if (power_explode_counter > 10)
+                        {
+                            Debug.Log("[KSPI] - Antimatter container exploded due to running out of power");
+                            ScreenMessages.PostScreenMessage("Antimatter container exploded due to running out of power", 60.0f, ScreenMessageStyle.UPPER_CENTER);
+                            doExplode();
+                        }
+                    }
+                }
+                else
+                    power_explode_counter = 0;
             }
             else
-                explode_counter = 0;
+            {
+                temperature_explode_counter = 0;
+                geeforce_explode_counter = 0;
+                power_explode_counter = 0;
+            }
+        
 
             if (chargestatus > GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE)
                 chargestatus = GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE;
