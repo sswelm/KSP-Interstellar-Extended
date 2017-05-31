@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using OpenResourceSystem;
+//using OpenResourceSystem;
 using TweakScale;
 
 namespace FNPlugin
@@ -15,7 +15,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float massExponent = 3;
         [KSPField(isPersistant = false)]
-        public float chargeNeeded = 100f;
+        public double chargeNeeded = 100;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Exploding")]
         bool exploding = false;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
@@ -35,7 +35,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Cur/Max Geeforce")]
         public string GeeforceStr;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Stored Mass")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public double storedMassMultiplier = 1;
         [KSPField(isPersistant = true, guiActiveEditor = true)]
         public bool calculatedMass = false;
@@ -50,7 +50,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Attached Tanks Count")]
         public double attachedAntimatterTanksCount;
 
-
+        
 
         bool charging = false;
         bool should_charge = false;
@@ -59,7 +59,9 @@ namespace FNPlugin
         double explosion_size = 5000;
         double cur_explosion_size = 0;
         double current_antimatter = 0;
+        double minimimAnimatterAmount;
 
+        int startup_timeout = 200;
         int power_explode_counter = 0;
         int geeforce_explode_counter = 0;
         int temperature_explode_counter = 0;
@@ -155,6 +157,8 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             antimatter = part.Resources[InterstellarResourcesConfiguration.Instance.Antimatter];
+
+            minimimAnimatterAmount = 0.00001 * antimatter.maxAmount;
 
             partMass = part.mass;
             initialMass = part.prefabMass * storedMassMultiplier;
@@ -299,7 +303,7 @@ namespace FNPlugin
 
             if (charge_to_add < 2f * TimeWarp.fixedDeltaTime)
             {
-                float more_charge_to_add = ORSHelper.fixedRequestResource(part, FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2 * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
+                double more_charge_to_add = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2d * chargeNeeded * TimeWarp.fixedDeltaTime) / chargeNeeded;
                 charge_to_add += more_charge_to_add;
                 chargestatus += more_charge_to_add;
             }
@@ -309,14 +313,17 @@ namespace FNPlugin
             else
             {
                 charging = false;
-                if (TimeWarp.CurrentRateIndex > 3 && (current_antimatter > 0.00001 * antimatter.maxAmount))
+                if (TimeWarp.CurrentRateIndex > 3 && (current_antimatter > minimimAnimatterAmount))
                 {
                     TimeWarp.SetRate(3, true);
                     ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while Antimatter Tank is Unpowered", 1.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
 
-            if (current_antimatter > 0.00001 * antimatter.maxAmount)
+            if (startup_timeout > 0)
+                startup_timeout--;
+
+            if (startup_timeout == 0 && current_antimatter > minimimAnimatterAmount)
             {
                 //verify temperature
                 if (part.temperature > maxTemperature)

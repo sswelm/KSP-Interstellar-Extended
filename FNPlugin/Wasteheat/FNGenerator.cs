@@ -297,6 +297,9 @@ namespace FNPlugin
         {
             try
             {
+                if (attachedPowerSource == null)
+                    return;
+
                 Debug.Log("[KSPI] - detach " + part.partInfo.title);
                 if (chargedParticleMode && attachedPowerSource.ConnectedChargedParticleElectricGenerator != null)
                     attachedPowerSource.ConnectedChargedParticleElectricGenerator = null;

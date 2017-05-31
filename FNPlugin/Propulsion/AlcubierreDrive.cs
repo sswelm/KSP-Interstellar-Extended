@@ -38,7 +38,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string upgradeTechReq;
         [KSPField(isPersistant = false)]
-        public float powerRequirementMultiplier = 1;
+        public double powerRequirementMultiplier = 1;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Pull", guiUnits = "g", guiFormat = "F3")]
         public double gravityPull;
@@ -814,8 +814,8 @@ namespace FNPlugin
                 if (insufficientPowerTimeout < 0)
                 {
                     insufficientPowerTimeout--;
-                    Debug.Log("[KSPI] - Not enough MW power to initiate stable warp field!");
-                    ScreenMessages.PostScreenMessage("Not enough MW power to initiate stable warp field!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    Debug.Log("[KSPI] - Not enough power to initiate stable warp field!");
+                    ScreenMessages.PostScreenMessage("Not enough power to initiate stable warp field!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     StopCharging();
 
                     return;
@@ -827,7 +827,7 @@ namespace FNPlugin
                 }
 
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourceFixed(-power_returned * 0.999 * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(-power_returned * (isupgraded ? 0.25 : 0.50) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             }
 
             if (!IsEnabled)
@@ -882,7 +882,7 @@ namespace FNPlugin
                 power_returned = consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourceFixed(-power_returned * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(-power_returned * (isupgraded ? 0.25 : 0.5) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
             }
 
             // retreive vessel heading

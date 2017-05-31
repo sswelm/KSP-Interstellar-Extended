@@ -929,7 +929,7 @@ namespace FNPlugin
 
                 SetHeatAnimationRatio(colorRatioRed);
 
-                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, 0.5f);
+                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, (float)wasteheatRatio);
             }
             catch (Exception e)
             {

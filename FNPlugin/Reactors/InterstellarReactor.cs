@@ -1274,7 +1274,7 @@ namespace FNPlugin
                 else
                     geeForceModifier = 1;
 
-                var safetyThrotleModifier = GetSafteOverheatPreventionRatio();
+                var safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
 
                 current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.First();
@@ -1689,7 +1689,7 @@ namespace FNPlugin
             return false;
         }
 
-        protected double GetSafteOverheatPreventionRatio()
+        protected double GetSafetyOverheatPreventionRatio()
         {
             if (CheatOptions.IgnoreMaxTemperature)
                 return 1;
