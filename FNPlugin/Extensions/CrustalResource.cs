@@ -20,7 +20,7 @@ namespace FNPlugin.Extensions
         {
             this.ResourceName = definition.name;
             this.ResourceAbundance = abundance;
-            this.DisplayName = string.IsNullOrEmpty(definition.title) ? definition.name : definition.title;
+            this.DisplayName = string.IsNullOrEmpty(definition.displayName) ? definition.name : definition.displayName;
             this.Synonyms = new[] { ResourceName, DisplayName }.Distinct().ToList();
         }
 

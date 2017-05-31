@@ -310,7 +310,7 @@ namespace FNPlugin.Collectors
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[KSPI] UniversalCrustExtractor - Error while getting the crustal composition for the current body. Msg: {e.Message}. StackTrace: {e.StackTrace}.");
+                Console.WriteLine("[KSPI] UniversalCrustExtractor - Error while getting the crustal composition for the current body. Msg: " + e.Message + ". StackTrace: " + e.StackTrace );
                 return false;
             }
             if (localResources == null)
@@ -343,14 +343,14 @@ namespace FNPlugin.Collectors
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"[KSPI] - UniversalCrustExtractor - Error while retrieving crustal resource percentage for {strName} from CrustalResourceHandler. Setting to zero.");
+                    Console.WriteLine("[KSPI] - UniversalCrustExtractor - Error while retrieving crustal resource percentage for "+ strName + " from CrustalResourceHandler. Setting to zero.");
                     return false; // if the percentage was not gotten correctly, we want to know, so return false
                 }
                 return true; // if we got here, the percentage-getting went well, so return true
             }
             else
             {
-                Console.WriteLine($"[KSPI] - UniversalCrustExtractor - Error while calculating percentage, resource null. Setting to zero.");
+                Console.WriteLine("[KSPI] - UniversalCrustExtractor - Error while calculating percentage, resource null. Setting to zero.");
                 return false; // resource was null, we want to know that we should disregard it, so return false
             }
         }
@@ -440,7 +440,7 @@ namespace FNPlugin.Collectors
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[KSPI] UniversalCrustExtractor. Mined amount calculation failed. Setting to 0. { ex.Message }.");
+                Console.WriteLine("[KSPI] UniversalCrustExtractor. Mined amount calculation failed. Setting to 0. " + ex.Message );
             }
             return true;
 
@@ -474,7 +474,7 @@ namespace FNPlugin.Collectors
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[KSPI] - UniversalCrustExtractor - error while calculating spare room for the current resource. {ex.Message}.");
+                Console.WriteLine("[KSPI] - UniversalCrustExtractor - error while calculating spare room for the current resource. " + ex.Message );
                 return 0;
             }
             return spareRoom;
@@ -618,7 +618,7 @@ namespace FNPlugin.Collectors
                     }    
                 }
                 // inform the player about the offline processing
-                ScreenMessages.PostScreenMessage($"Universal drill mined offline for {deltaTime:#} seconds, drilling out {totalAmount} units of {numberOfResources} resources.", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("Universal drill mined offline for {deltaTime:#} seconds, drilling out "+ totalAmount + " units of " + numberOfResources + " resources.", 5.0f, ScreenMessageStyle.LOWER_CENTER);
             }
 
 
