@@ -8,8 +8,8 @@ namespace FNPlugin.Extensions
 {
     class CrustalResourceHandler
     {
-
         protected static Dictionary<int, List<CrustalResource>> body_Crustal_resource_list = new Dictionary<int, List<CrustalResource>>();
+        protected static Dictionary<string, List<CrustalResource>> body_Crustal_resource_by_name = new Dictionary<string, List<CrustalResource>>();
 
         public static double getCrustalResourceContent(int refBody, string resourcename)
         {
@@ -50,6 +50,45 @@ namespace FNPlugin.Extensions
             return GetCrustalCompositionForBody(celestialBody.flightGlobalsIndex); // calls the function that uses refBody int as an argument
         }
 
+        public static List<CrustalResource> GetCrustalCompositionForBody(string celestrialBodyName) // function for getting or creating Crustal composition
+        {
+            List<CrustalResource> bodyCrustalComposition;
+
+            if (!body_Crustal_resource_by_name.TryGetValue(celestrialBodyName, out bodyCrustalComposition))
+            {
+                // try to find celestrial body id it exists in this universe
+                CelestialBody celestialBody = FlightGlobals.Bodies.FirstOrDefault(m => m.name == celestrialBodyName);
+
+                if (celestialBody != null)
+                {
+                    // create composition from kspi Crustal definition file
+                    bodyCrustalComposition = CreateFromKspiCrustDefinitionFile(celestialBody);
+
+                    // add from stock resource definitions if missing
+                    GenerateCompositionFromResourceAbundances(celestialBody.flightGlobalsIndex, bodyCrustalComposition);
+
+                    // add missing stock resources
+                    AddMissingStockResources(celestialBody.flightGlobalsIndex, bodyCrustalComposition);
+
+                    // add to database for future reference
+                    body_Crustal_resource_list.Add(celestialBody.flightGlobalsIndex, bodyCrustalComposition);
+                }
+                else
+                {
+                    // create composition from kspi Crustal definition file
+                    bodyCrustalComposition = CreateFromKspiCrustDefinitionFile(celestrialBodyName);
+                }
+
+                // Add rare and isotopic resources
+                AddRaresAndIsotopesToCrustComposition(bodyCrustalComposition);
+
+                // add to database for future reference
+                body_Crustal_resource_by_name.Add(celestialBody.name, bodyCrustalComposition);
+            }
+
+            return bodyCrustalComposition;
+        }
+
         public static List<CrustalResource> GetCrustalCompositionForBody(int refBody) // function for getting or creating Crustal composition
         {
             List<CrustalResource> bodyCrustalComposition = new List<CrustalResource>(); // create an object list for holding all the resources
@@ -66,7 +105,7 @@ namespace FNPlugin.Extensions
                     CelestialBody celestialBody = FlightGlobals.Bodies[refBody]; // create a celestialBody object referencing the current body (makes it easier on us in the next lines)
 
                     // create composition from kspi Crustal definition file
-                    bodyCrustalComposition = CreateFromKspiCrustDefinitionFile(refBody, celestialBody);
+                    bodyCrustalComposition = CreateFromKspiCrustDefinitionFile(celestialBody);
 
                     // add from stock resource definitions if missing
                     GenerateCompositionFromResourceAbundances(refBody, bodyCrustalComposition); // calls the generating function below
@@ -76,9 +115,9 @@ namespace FNPlugin.Extensions
                     {
                         bodyCrustalComposition = GenerateCompositionFromCelestialBody(celestialBody);
                     }
-                        
+
                     // Add rare and isotopic resources
-                    AddRaresAndIsotopesToCrustComposition(bodyCrustalComposition, celestialBody);
+                    AddRaresAndIsotopesToCrustComposition(bodyCrustalComposition);
 
                     // add missing stock resources
                     AddMissingStockResources(refBody, bodyCrustalComposition);
@@ -88,6 +127,7 @@ namespace FNPlugin.Extensions
 
                     // add to database for future reference
                     body_Crustal_resource_list.Add(refBody, bodyCrustalComposition);
+                    body_Crustal_resource_by_name.Add(celestialBody.name, bodyCrustalComposition);
                 }
             }
             catch (Exception ex)
@@ -97,7 +137,7 @@ namespace FNPlugin.Extensions
             return bodyCrustalComposition;
         }
 
-        private static List<CrustalResource> CreateFromKspiCrustDefinitionFile(int refBody, CelestialBody celestialBody)
+        private static List<CrustalResource> CreateFromKspiCrustDefinitionFile(CelestialBody celestialBody)
         {
             var bodyCrustalComposition = new List<CrustalResource>();
             //CRUSTAL_RESOURCE_PACK_DEFINITION_KSPI
@@ -106,16 +146,30 @@ namespace FNPlugin.Extensions
             //Debug.Log("[KSPI] - Loading Crustal data from pack: " + (Crustal_resource_pack.HasValue("name") ? Crustal_resource_pack.GetValue("name") : "unknown pack"));
             if (Crustal_resource_pack != null)
             {
-                //Debug.Log("[KSPI] - searching for crustal definition for " + celestialBody.name);
-                List<ConfigNode> Crustal_resource_list = Crustal_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
+                Debug.Log("[KSPI] - searching for crustal definition for " + celestialBody.name);
+                List<ConfigNode> Crustal_resource_list = Crustal_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestialBody.name).ToList();
                 if (Crustal_resource_list.Any())
                 {
                     bodyCrustalComposition = Crustal_resource_list.Select(orsc => new CrustalResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
-                    //if (bodyCrustalComposition.Any())
-                    //{
-                    //    bodyCrustalComposition = bodyCrustalComposition.OrderByDescending(bacd => bacd.ResourceAbundance).ToList();
-                    //    body_Crustal_resource_list.Add(refBody, bodyCrustalComposition);
-                    //}
+                }
+            }
+            return bodyCrustalComposition;
+        }
+
+        private static List<CrustalResource> CreateFromKspiCrustDefinitionFile(string celestrialBodyName)
+        {
+            var bodyCrustalComposition = new List<CrustalResource>();
+            //CRUSTAL_RESOURCE_PACK_DEFINITION_KSPI
+            ConfigNode Crustal_resource_pack = GameDatabase.Instance.GetConfigNodes("CRUSTAL_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
+
+            //Debug.Log("[KSPI] - Loading Crustal data from pack: " + (Crustal_resource_pack.HasValue("name") ? Crustal_resource_pack.GetValue("name") : "unknown pack"));
+            if (Crustal_resource_pack != null)
+            {
+                Debug.Log("[KSPI] - searching for crustal definition for " + celestrialBodyName);
+                List<ConfigNode> Crustal_resource_list = Crustal_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
+                if (Crustal_resource_list.Any())
+                {
+                    bodyCrustalComposition = Crustal_resource_list.Select(orsc => new CrustalResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
                 }
             }
             return bodyCrustalComposition;
@@ -130,7 +184,6 @@ namespace FNPlugin.Extensions
                 // return empty if there's no crust
                 if (!celestialBody.hasSolidSurface)
                     return bodyCrustalComposition;
-                
 
                 // Lookup homeworld
                 CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
@@ -142,12 +195,12 @@ namespace FNPlugin.Extensions
                     if (pressureAtSurface > 200)
                     {
                         // it is Venus-like/Eve-like, use Eve as a template
-                        bodyCrustalComposition = GetCrustalCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Eve").flightGlobalsIndex);
+                        bodyCrustalComposition = GetCrustalCompositionForBody("Eve");
                     }
                     else if (celestialBody.Mass > (homeworld.Mass / 2) && celestialBody.Mass < homeworld.Mass && pressureAtSurface < 100) // it's at least half as big as the homeworld and has significant atmosphere
                     {
                         // it is Laythe-like, use Laythe as a template
-                        bodyCrustalComposition = GetCrustalCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Laythe").flightGlobalsIndex);
+                        bodyCrustalComposition = GetCrustalCompositionForBody("Laythe"); 
                     }
                     else if (celestialBody.atmosphereContainsOxygen)
                     {
@@ -155,11 +208,11 @@ namespace FNPlugin.Extensions
                         bool hasEarth = FlightGlobals.Bodies.Any(b => b.name == "Earth"); // is there a planet called Earth present in KSP?
                         if (hasEarth)
                         {
-                            bodyCrustalComposition = GetCrustalCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Earth").flightGlobalsIndex);
+                            bodyCrustalComposition = GetCrustalCompositionForBody("Earth"); 
                         }
                         else // if there is not, use the definition for Kerbin
                         {
-                            bodyCrustalComposition = GetCrustalCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Kerbin").flightGlobalsIndex);
+                            bodyCrustalComposition = GetCrustalCompositionForBody("Kerbin");
                         }
                     }
                     else 
@@ -168,13 +221,12 @@ namespace FNPlugin.Extensions
                         bool hasMars = FlightGlobals.Bodies.Any(b => b.name == "Mars"); // is there a planet called Mars present in KSP?
                         if (hasMars)
                         {
-                            bodyCrustalComposition = GetCrustalCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Mars").flightGlobalsIndex);
+                            bodyCrustalComposition = GetCrustalCompositionForBody("Mars");
                         }
                         else // if there is not, use the definition for Duna
                         {
-                            bodyCrustalComposition = GetCrustalCompositionForBody(FlightGlobals.Bodies.Single(b => b.name == "Duna").flightGlobalsIndex);
+                            bodyCrustalComposition = GetCrustalCompositionForBody("Duna");
                         }
-                        
                     }
                 }
 
@@ -303,7 +355,7 @@ namespace FNPlugin.Extensions
             }
         }
 
-        private static void AddRaresAndIsotopesToCrustComposition(List<CrustalResource> bodyCrustalComposition, CelestialBody celestialBody)
+        private static void AddRaresAndIsotopesToCrustComposition(List<CrustalResource> bodyCrustalComposition)
         {
             // add heavywater based on water abundance in crust
             if (!bodyCrustalComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.HeavyWater) && bodyCrustalComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water))

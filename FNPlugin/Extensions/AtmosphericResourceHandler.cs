@@ -57,54 +57,84 @@ namespace FNPlugin
             List<AtmosphericResource> bodyAtmosphericComposition;
 
             // first attempt to lookup if its already stored
-            if (atmospheric_resource_by_name.TryGetValue(celestrialBodyName, out bodyAtmosphericComposition))
-                return bodyAtmosphericComposition;
-            else
+            if (!atmospheric_resource_by_name.TryGetValue(celestrialBodyName, out bodyAtmosphericComposition))
             {
-                bodyAtmosphericComposition = new List<AtmosphericResource>();
+                // lookup celestrial body
+                CelestialBody celestialBody = FlightGlobals.Bodies.FirstOrDefault(b => b.name == celestrialBodyName);
 
-                try
+                bodyAtmosphericComposition = CreateFromKspiDefinitionFile(celestrialBodyName);
+
+                if (celestialBody != null)
                 {
-                    ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
-
-                    Debug.Log("[KSPI] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
-                    if (atmospheric_resource_pack != null)
-                    {
-                        Debug.Log("[KSPI] - searching for atmosphere definition data for " + celestrialBodyName);
-                        List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
-                        if (atmospheric_resource_list.Any())
-                        {
-                            Debug.Log("[KSPI] - found atmospheric resource list for " + celestrialBodyName);
-
-                            // create atmospheric definition from file
-                            bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new AtmosphericResource(
-                                orsc.HasValue("resourceName") 
-                                    ? orsc.GetValue("resourceName") 
-                                    : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
-                        }
-                        else
-                            Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestrialBodyName);
-                    }
-                    else
-                        Debug.LogError("[KSPI] - Failed to load atmospheric data");
-
-                    // add to database for future reference
-                    atmospheric_resource_by_name.Add(celestrialBodyName, bodyAtmosphericComposition);
-
-                    // lookup celestrial body
-                    CelestialBody celestialBody = FlightGlobals.Bodies.FirstOrDefault(b => b.name == celestrialBodyName);
-                    if (celestialBody != null)
-                        atmospheric_resource_by_id.Add(celestialBody.flightGlobalsIndex, bodyAtmosphericComposition);
-                    else
-                        Debug.LogWarning("[KSPI] - Failed to find FlightGlobalId for " + celestrialBodyName);
+                    atmospheric_resource_by_id.Add(celestialBody.flightGlobalsIndex, bodyAtmosphericComposition);
                 }
-                catch (Exception ex)
+                else
                 {
-                    Debug.Log("[KSPI] - Exception while loading atmospheric resources from name : " + ex.ToString());
+                    Debug.LogWarning("[KSPI] - Failed to find FlightGlobalId for " + celestrialBodyName);
                 }
 
-                return bodyAtmosphericComposition;
+                // add to database for future reference
+                atmospheric_resource_by_name.Add(celestrialBodyName, bodyAtmosphericComposition);
+
             }
+
+            return bodyAtmosphericComposition;
+        }
+
+        private static List<AtmosphericResource> CreateFromKspiDefinitionFile(string celestrialBodyName)
+        {
+            List<AtmosphericResource> bodyAtmosphericComposition = new List<AtmosphericResource>();
+
+            ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
+
+            Debug.Log("[KSPI] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
+            if (atmospheric_resource_pack != null)
+            {
+                Debug.Log("[KSPI] - searching for atmosphere definition data for " + celestrialBodyName);
+                List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
+                if (atmospheric_resource_list.Any())
+                {
+                    Debug.Log("[KSPI] - found atmospheric resource list for " + celestrialBodyName);
+
+                    // create atmospheric definition from file
+                    bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new AtmosphericResource(
+                        orsc.HasValue("resourceName")
+                            ? orsc.GetValue("resourceName")
+                            : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                }
+                else
+                    Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestrialBodyName);
+            }
+            else
+                Debug.LogError("[KSPI] - Failed to load atmospheric data");
+
+            return bodyAtmosphericComposition;
+        }
+
+        private static List<AtmosphericResource> CreateFromKspiDefinitionFile(CelestialBody celestialBody)
+        {
+            List<AtmosphericResource> bodyAtmosphericComposition = new List<AtmosphericResource>();
+
+            ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
+
+            Debug.Log("[KSPI] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
+            if (atmospheric_resource_pack != null)
+            {
+                Debug.Log("[KSPI] - searching for atmosphere definition for " + celestialBody.name);
+                List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestialBody.name).ToList();
+                if (atmospheric_resource_list.Any())
+                {
+                    // create atmospheric definition from file
+                    bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new AtmosphericResource(orsc.HasValue("resourceName")
+                        ? orsc.GetValue("resourceName")
+                        : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                }
+                else
+                    Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestialBody.name);
+            }
+            else
+                Debug.LogError("[KSPI] - Failed to load atmospheric data");
+            return bodyAtmosphericComposition;
         }
 
         public static List<AtmosphericResource> GetAtmosphericCompositionForBody(CelestialBody celestialBody)
@@ -127,28 +157,10 @@ namespace FNPlugin
                 {
                     CelestialBody celestialBody = FlightGlobals.Bodies[refBody];
 
-                    ConfigNode atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
-
-                    Debug.Log("[KSPI] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
-                    if (atmospheric_resource_pack != null)
-                    {
-                        Debug.Log("[KSPI] - searching for atmosphere definition for " + celestialBody.name);
-                        List<ConfigNode> atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestialBody.name).ToList();
-                        if (atmospheric_resource_list.Any())
-                        {
-                            // create atmospheric definition from file
-                            bodyAtmosphericComposition = atmospheric_resource_list.Select(orsc => new AtmosphericResource(orsc.HasValue("resourceName")
-                                ? orsc.GetValue("resourceName")
-                                : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
-                        }
-                        else
-                            Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestialBody.name);
-                    }
-                    else
-                        Debug.LogError("[KSPI] - Failed to load atmospheric data");
+                    bodyAtmosphericComposition = CreateFromKspiDefinitionFile(celestialBody);
 
                     // add from stock resource definitions if missing
-                    Debug.Log("[KSPI] - adding stock resource definitions");
+                    Debug.Log("[KSPI] - adding stock resource definitions for " + celestialBody.name);
                     GenerateCompositionFromResourceAbundances(refBody, bodyAtmosphericComposition);
 
                     Debug.Log("[KSPI] - sum of all resource abundance = " + bodyAtmosphericComposition.Sum(m => m.ResourceAbundance));
@@ -179,6 +191,8 @@ namespace FNPlugin
 
             return bodyAtmosphericComposition;
         }
+
+
 
 
         public static List<AtmosphericResource> GenerateCompositionFromCelestialBody(CelestialBody celestialBody)

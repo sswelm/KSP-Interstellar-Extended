@@ -531,7 +531,6 @@ namespace FNPlugin.Collectors
                     return;
                 }
 
-
                 double crustThickness = 0;
                 double minedAmount = 0;
 
@@ -562,7 +561,7 @@ namespace FNPlugin.Collectors
                     {
                         if (GetLocalAbundance(resource, out localAbundance))
                         {
-                            deltaTime = (deltaTime >= 1.0 ? deltaTime : 1.0 ); 
+                            deltaTime = (deltaTime >= 1.0 ? deltaTime : 1.0);
                             amount = CalculateResourceAmountCollected(minedAmount, percentage, localAbundance, deltaTime);
                             spareRoom = CalculateSpareRoom(resourceName);
 
@@ -618,11 +617,8 @@ namespace FNPlugin.Collectors
                     }    
                 }
                 // inform the player about the offline processing
-                ScreenMessages.PostScreenMessage("Universal drill mined offline for {deltaTime:#} seconds, drilling out "+ totalAmount + " units of " + numberOfResources + " resources.", 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("Universal drill mined offline for " + deltaTime.ToString("0") + " seconds, drilling out "+ totalAmount.ToString("0.000") + " units of " + numberOfResources + " resources.", 10.0f, ScreenMessageStyle.LOWER_CENTER);
             }
-
-
-
         }
 
 
