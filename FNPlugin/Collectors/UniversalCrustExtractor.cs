@@ -8,6 +8,14 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin.Collectors
 {
+    class CrustalResourceAbundance
+    {
+        public CrustalResource Resource { get; set; }
+        public double Global { get; set; }
+        public double Biome { get; set; }
+        public double Local { get; set; }
+    }
+
     class UniversalCrustExtractor : FNResourceSuppliableModule
     {
         List<CrustalResource> localResources; // list of resources
@@ -35,18 +43,20 @@ namespace FNPlugin.Collectors
         public double drillReach = 5.0; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
 
         // GUI elements declaration
-        private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth, 150);
+        private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 3, 150);
         private int _window_ID;
         private bool _render_window;
         private Vector2 scrollPosition;
 
         private const int labelWidth = 200;
-        private const int valueWidth = 200;
+        private const int valueWidth = 100;
 
         private GUIStyle _bold_label;
         private GUIStyle _enabled_button;
         private GUIStyle _disabled_button;
         // end of GUI elements declaration
+
+        Dictionary<string, CrustalResourceAbundance> CrustalResourceAbundanceDict = new Dictionary<string, CrustalResourceAbundance>();
 
         private AbundanceRequest resourceRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
         {
@@ -122,6 +132,30 @@ namespace FNPlugin.Collectors
         {
             Events["ActivateCollector"].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
             Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
+
+
+            UpdateResourceAbundances();
+        }
+
+        private void UpdateResourceAbundances()
+        {
+            if (localResources == null)
+                return;
+
+            foreach (CrustalResource resource in localResources)
+            {
+                var currentAbundance = GetResourceAbundance(resource);
+
+                CrustalResourceAbundance existingAbundance;
+                if (CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out existingAbundance))
+                {
+                    existingAbundance.Global = currentAbundance.Global;
+                    existingAbundance.Local = currentAbundance.Local;
+                    existingAbundance.Biome = currentAbundance.Biome;
+                }
+                else
+                    CrustalResourceAbundanceDict.Add(resource.ResourceName, currentAbundance);
+            }
         }
 
         public override void OnFixedUpdate()
@@ -307,6 +341,8 @@ namespace FNPlugin.Collectors
             try
             {
                 localResources = CrustalResourceHandler.GetCrustalCompositionForBody(FlightGlobals.currentMainBody);
+
+                UpdateResourceAbundances();
             }
             catch (Exception e)
             {
@@ -327,31 +363,63 @@ namespace FNPlugin.Collectors
         /// Returns boolean true if the data was gotten without trouble and also returns a double with the percentage.
         /// </summary>
         /// <param name="currentResource">A CrustalResource we want to get the percentage for.</param>
-        /// <param name="percentage">An output parameter, returns the resource content percentage on the current planet.</param>
+        /// <param name="globalPercentage">An output parameter, returns the resource content percentage on the current planet.</param>
         /// <returns></returns>
-        private bool CalculateResourcePercentage(CrustalResource currentResource, out double percentage)
+        private CrustalResourceAbundance GetResourceAbundance(CrustalResource currentResource)
         {
-            percentage = 0;
+            var abundance = new CrustalResourceAbundance(){ Resource = currentResource};
 
             if (currentResource != null)
             {
-                string strName = currentResource.ResourceName;
-                var definition = PartResourceLibrary.Instance.GetDefinition(strName);
+                var definition = PartResourceLibrary.Instance.GetDefinition(currentResource.ResourceName);
                 try
                 {
-                    percentage = CrustalResourceHandler.getCrustalResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, strName);
+                    abundance.Global = ResourceMap.Instance.GetAbundance(
+                        new AbundanceRequest()
+                        {
+                            ResourceType = HarvestTypes.Planetary,
+                            ResourceName = currentResource.ResourceName,
+                            BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
+                            CheckForLock = false
+                        });
+                    abundance.Local = ResourceMap.Instance.GetAbundance(
+                            new AbundanceRequest()
+                            {
+                                ResourceType = HarvestTypes.Planetary,
+                                ResourceName = currentResource.ResourceName,
+                                BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
+                                Latitude = FlightGlobals.ship_latitude,
+                                Longitude = FlightGlobals.ship_longitude,
+                                CheckForLock = false
+                            });
+
+                    var biome_attribute = part.vessel.mainBody.BiomeMap.GetAtt(FlightGlobals.ship_latitude, FlightGlobals.ship_longitude);
+                    if (biome_attribute != null)
+                    {
+                        abundance.Biome = ResourceMap.Instance.GetAbundance(
+                             new AbundanceRequest()
+                             {
+                                 ResourceType = HarvestTypes.Planetary,
+                                 ResourceName = currentResource.ResourceName,
+                                 BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
+                                 BiomeName = biome_attribute.name,
+                                 CheckForLock = false
+                             });
+                    }
+
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine("[KSPI] - UniversalCrustExtractor - Error while retrieving crustal resource percentage for "+ strName + " from CrustalResourceHandler. Setting to zero.");
-                    return false; // if the percentage was not gotten correctly, we want to know, so return false
+                    Console.WriteLine("[KSPI] - UniversalCrustExtractor - Error while retrieving crustal resource percentage for " + currentResource.ResourceName + " from CrustalResourceHandler. Setting to zero.");
+                    return null; // if the percentage was not gotten correctly, we want to know, so return false
                 }
-                return true; // if we got here, the percentage-getting went well, so return true
+
+                return abundance; // if we got here, the percentage-getting went well, so return true
             }
             else
             {
                 Console.WriteLine("[KSPI] - UniversalCrustExtractor - Error while calculating percentage, resource null. Setting to zero.");
-                return false; // resource was null, we want to know that we should disregard it, so return false
+                return null; // resource was null, we want to know that we should disregard it, so return false
             }
         }
 
@@ -450,13 +518,13 @@ namespace FNPlugin.Collectors
         /// Calculates the amount of actual resource that will be collected.
         /// </summary>
         /// <param name="minedAmount">The amount of the crust pseudo-resource that has been "mined".</param>
-        /// <param name="resourcePercentage">The percentage of the current resource in this planet's crust.</param>
+        /// <param name="globalPercentage">The percentage of the current resource in this planet's crust.</param>
         /// <param name="localAbundance">The local abundance of the resource.</param>
         /// <param name="deltaTime">The time since last Fixed Update (Unity).</param>
         /// <returns>Double, signifying the amount of the current resource to collect.</returns>
-        private double CalculateResourceAmountCollected(double minedAmount, double resourcePercentage, double localAbundance, double deltaTime)
+        private double CalculateResourceAmountCollected(double minedAmount, double globalPercentage, double localAbundance, double deltaTime)
         {
-            double resourceAmount = minedAmount * resourcePercentage * localAbundance * deltaTime;
+            double resourceAmount = minedAmount * globalPercentage * localAbundance * deltaTime;
             return resourceAmount;
         }
 
@@ -550,44 +618,26 @@ namespace FNPlugin.Collectors
 
                 foreach (CrustalResource resource in localResources)
                 {
-                    double percentage = 0;
-                    double localAbundance = 0;
-                    double amount = 0;
-                    double spareRoom = 0;
-                    string resourceName = resource.ResourceName;
-                    int iterator = 0;
+                    CrustalResourceAbundance abundance;
+                    CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out abundance);
 
-                    if (CalculateResourcePercentage(resource, out percentage))
-                    {
-                        if (GetLocalAbundance(resource, out localAbundance))
-                        {
-                            deltaTime = (deltaTime >= 1.0 ? deltaTime : 1.0);
-                            amount = CalculateResourceAmountCollected(minedAmount, percentage, localAbundance, deltaTime);
-                            spareRoom = CalculateSpareRoom(resourceName);
+                    if (abundance == null)
+                        continue;
 
-                            if (spareRoom > 0) // if there's space, add the resource
-                            {
-                                AddResource(amount, resourceName);
-                            }
+                    deltaTime = (deltaTime >= 1.0 ? deltaTime : 1.0);
+                    double amount = CalculateResourceAmountCollected(minedAmount, abundance.Global, abundance.Local, deltaTime);
+                    double spareRoom = CalculateSpareRoom(resource.ResourceName);
 
-                            iterator++;
-                        }
-                    }
+                    if (spareRoom > 0) // if there's space, add the resource
+                        AddResource(amount, resource.ResourceName);
                 }
             }
             else // this is offline collecting, so use the simplified version
             {
-                // calculate the elapsed time since we last checked on the vessel
-                //double elapsedTime = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
-
                 // these are helper variables for the message
                 double amount = 0;
                 double totalAmount = 0;
                 int numberOfResources = 0;
-                double percentage;
-                double localAbundance;
-                double spareRoom;
-                string resourceName;
 
                 // get the resource data
                 if (!GetResourceData()) // if getting the resource data went wrong, no offline mining
@@ -599,22 +649,20 @@ namespace FNPlugin.Collectors
                 // go through each resource, calculate the percentage, abundance, amount collected and spare room in tanks. If possible, add the resource
                 foreach (CrustalResource resource in localResources)
                 {
-                    resourceName = resource.ResourceName;
-                    if (CalculateResourcePercentage(resource, out percentage))
-                    {
-                        if (GetLocalAbundance(resource, out localAbundance))
+                    CrustalResourceAbundance abundance;
+                    CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out abundance);
+                    if (abundance == null)
+                        continue;
+
+                    amount = CalculateResourceAmountCollected(dLastPseudoMinedAmount, abundance.Global, abundance.Local, deltaTime);
+                        double spareRoom = CalculateSpareRoom(resource.ResourceName);
+                        if ((spareRoom > 0) && (amount > 0))
                         {
-                            // dLastPseudoMinedAmount is persistently stored, saving us some processing power
-                            amount = CalculateResourceAmountCollected(dLastPseudoMinedAmount, percentage, localAbundance, deltaTime);
-                            spareRoom = CalculateSpareRoom(resourceName);
-                            if ((spareRoom > 0) && (amount > 0))
-                            {
-                                AddResource(amount, resourceName);
-                                totalAmount += (amount > spareRoom) ? spareRoom : amount; // add the mined amount to the total for the message, but only the amount that actually got into the tanks
-                                numberOfResources++;
-                            }
+                            AddResource(amount, resource.ResourceName);
+                            totalAmount += (amount > spareRoom) ? spareRoom : amount; // add the mined amount to the total for the message, but only the amount that actually got into the tanks
+                            numberOfResources++;
                         }
-                    }    
+                       
                 }
                 // inform the player about the offline processing
                 ScreenMessages.PostScreenMessage("Universal drill mined offline for " + deltaTime.ToString("0") + " seconds, drilling out "+ totalAmount.ToString("0.000") + " units of " + numberOfResources + " resources.", 10.0f, ScreenMessageStyle.LOWER_CENTER);
@@ -664,26 +712,34 @@ namespace FNPlugin.Collectors
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Resources for the current location:", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Resources abundances:", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Name", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label("Avg. crustal abundance", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Global ", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Biome ", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Local ", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GetResourceData();
-
             
-            //GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(labelWidth + valueWidth), GUILayout.Height(150));
+            //GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(labelWidth + valueWidth * 3), GUILayout.Height(200));
             
             if (localResources != null)
             {
                 foreach (CrustalResource resource in localResources)
                 {
+                    CrustalResourceAbundance abundance;
+                    CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out abundance);
+                    if (abundance == null)
+                        continue;
+
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(resource.DisplayName, GUILayout.Width(labelWidth));
-                    GUILayout.Label(resource.ResourceAbundance.ToString("##.######"));
+                    GUILayout.Label(abundance.Global.ToString("##.######"), GUILayout.Width(valueWidth));
+                    GUILayout.Label(abundance.Biome.ToString("##.######"), GUILayout.Width(valueWidth));
+                    GUILayout.Label(abundance.Local.ToString("##.######"), GUILayout.Width(valueWidth));
                     GUILayout.EndHorizontal();
                 }
             }

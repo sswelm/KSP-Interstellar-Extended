@@ -14,7 +14,9 @@ namespace FNPlugin.Extensions
         public static double getCrustalResourceContent(int refBody, string resourcename)
         {
             List<CrustalResource> bodyCrustalComposition = GetCrustalCompositionForBody(refBody);
+
             CrustalResource resource = bodyCrustalComposition.FirstOrDefault(oor => oor.ResourceName == resourcename);
+
             return resource != null ? resource.ResourceAbundance : 0;
         }
 
@@ -95,12 +97,7 @@ namespace FNPlugin.Extensions
             try
             {
                 // check if there's a composition for this body
-                if (body_Crustal_resource_list.ContainsKey(refBody))
-                {
-                    // skip all the other stuff and return the composition we already have
-                    return body_Crustal_resource_list[refBody];
-                }
-                else
+                if (!body_Crustal_resource_list.TryGetValue(refBody, out bodyCrustalComposition))
                 {
                     CelestialBody celestialBody = FlightGlobals.Bodies[refBody]; // create a celestialBody object referencing the current body (makes it easier on us in the next lines)
 
@@ -368,18 +365,13 @@ namespace FNPlugin.Extensions
 
         private static float GetAbundance(string resourceName, int refBody)
         {
-            return ResourceMap.Instance.GetAbundance(CreateRequest(resourceName, refBody));
-        }
-
-        public static AbundanceRequest CreateRequest(string resourceName, int refBody)
-        {
-            return new AbundanceRequest
-            {
+            return ResourceMap.Instance.GetAbundance(new AbundanceRequest()
+            {               
                 ResourceType = HarvestTypes.Planetary,
                 ResourceName = resourceName,
                 BodyId = refBody,
                 CheckForLock = false
-            };
+            });
         }
 
     }
