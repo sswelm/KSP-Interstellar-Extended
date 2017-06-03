@@ -1001,21 +1001,18 @@ namespace FNPlugin
 
                     }
 
+
                     if (prefab_available_part.FindModulesImplementing<ModuleDeployableSolarPanel>().Any())
                     {
+                        // FNSolarPanelWasteHeatModule is not already on the part
                         var existingSolarControlModule = prefab_available_part.FindModuleImplementing<FNSolarPanelWasteHeatModule>();
                         if (existingSolarControlModule == null)
                         {
                             ModuleDeployableSolarPanel panel = prefab_available_part.FindModuleImplementing<ModuleDeployableSolarPanel>();
                             if (panel.chargeRate > 0)
                             {
-                                //Type type = AssemblyLoader.GetClassByName(typeof(PartModule), "FNSolarPanelWasteHeatModule");
-                                Type type = typeof(FNSolarPanelWasteHeatModule);
-                                //if (type != null)
-                                //{
-                                FNSolarPanelWasteHeatModule pm = prefab_available_part.gameObject.AddComponent(type) as FNSolarPanelWasteHeatModule;
+                                FNSolarPanelWasteHeatModule pm = prefab_available_part.gameObject.AddComponent(typeof(FNSolarPanelWasteHeatModule)) as FNSolarPanelWasteHeatModule;
                                 prefab_available_part.Modules.Add(pm);
-                                //}
                             }
 
                             //if (!prefab_available_part.Resources.Contains("WasteHeat") && panel.chargeRate > 0)

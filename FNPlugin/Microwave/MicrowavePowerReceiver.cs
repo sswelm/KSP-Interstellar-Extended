@@ -1602,7 +1602,10 @@ namespace FNPlugin
                     : flowRateQueue.Average();
 
                 double fixed_stabalized_flow_rate = stabalizedFlowRate * TimeWarp.fixedDeltaTime;
-                double maxSupply = Math.Max(fixed_stabalized_flow_rate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult * TimeWarp.fixedDeltaTime);
+
+                double maxSupply = deployableSolarPanel._distMult > 0
+                    ? Math.Max(fixed_stabalized_flow_rate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult * TimeWarp.fixedDeltaTime)
+                    : fixed_stabalized_flow_rate;
 
                 if (deployableSolarPanel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                 {

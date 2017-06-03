@@ -341,9 +341,12 @@ namespace OpenResourceSystem
 
         public bool IsUpdatedAtLeastOnce { get; set; }
 
-        public void update() 
+        public long Counter { get; private set; }
+
+        public void update(long counter) 
         {
             IsUpdatedAtLeastOnce = true;
+            Counter = counter;
 
             stored_supply = currentPowerSupply;
 			stored_stable_supply = stable_supply;

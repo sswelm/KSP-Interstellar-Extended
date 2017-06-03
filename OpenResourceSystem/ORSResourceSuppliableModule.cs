@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace OpenResourceSystem
 {
     public abstract class ORSResourceSuppliableModule : PartModule, ORSResourceSuppliable, IORSResourceSupplier
     {
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Update Counter")]
+        public long updateCounter = 0;
+
         protected Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
         protected String[] resources_to_supply;
 
@@ -285,36 +289,46 @@ namespace OpenResourceSystem
 
         public override void OnFixedUpdate()
         {
-            if (resources_to_supply == null) return;
-
-            foreach (String resourcename in resources_to_supply)
+            try
             {
-                ORSResourceManager resource_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+                updateCounter++;
 
-                if (resource_manager == null)
+                if (resources_to_supply == null) return;
+
+                foreach (String resourcename in resources_to_supply)
                 {
-                    resource_manager = createResourceManagerForResource(resourcename);
-                    print("[KSPI] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
+                    ORSResourceManager resource_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+
+                    if (resource_manager == null)
+                    {
+                        resource_manager = createResourceManagerForResource(resourcename);
+                        print("[KSPI] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
+                    }
+
+                    if (resource_manager.PartModule == null || (resource_manager.PartModule.vessel != this.vessel && resource_manager.Counter != updateCounter))
+                    {
+                        resource_manager.updatePartModule(this);
+                        print("[KSPI] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
+                    }
+
+                    if (resource_manager.PartModule == this)
+                        resource_manager.update(updateCounter);
                 }
 
-                if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || resource_manager.IsUpdatedAtLeastOnce == false)
+                var priority_manager = getSupplyPriorityManager(this.vessel);
+                if (priority_manager.processingPart == null || priority_manager.processingPart.vessel != this.vessel)
                 {
-                    resource_manager.updatePartModule(this);
-                    print("[KSPI] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
+                    priority_manager.processingPart = this;
                 }
 
-                if (resource_manager.PartModule == this)
-                    resource_manager.update();
+                if (priority_manager.processingPart == this)
+                    priority_manager.UpdateResourceSuppliables(TimeWarp.fixedDeltaTime);
             }
-
-            var priority_manager = getSupplyPriorityManager(this.vessel);
-            if (priority_manager.processingPart == null || priority_manager.processingPart.vessel != this.vessel)
+            catch (Exception e)
             {
-                priority_manager.processingPart = this;
+                Debug.LogError("[KSPI] - Exception in ORSResourceSuppliableModule.OnFixedUpdate " + e.Message);
+                throw;
             }
-
-            if (priority_manager.processingPart == this)
-                priority_manager.UpdateResourceSuppliables(TimeWarp.fixedDeltaTime);
         }
 
         public void RemoveItselfAsManager()

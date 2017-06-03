@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace OpenResourceSystem
 {
@@ -50,9 +51,17 @@ namespace OpenResourceSystem
 
         public void UpdateResourceSuppliables(float fixedDeltaTime)
         {
-            var suppliable_modules_priotised = suppliable_modules.Where(m => m != null).OrderBy(m => m.getPowerPriority()).ToList();
+            try
+            {
+                var suppliable_modules_priotised = suppliable_modules.Where(m => m != null).OrderBy(m => m.getPowerPriority()).ToList();
 
-            suppliable_modules_priotised.ForEach(s => s.OnFixedUpdateResourceSuppliable(fixedDeltaTime));
+                suppliable_modules_priotised.ForEach(s => s.OnFixedUpdateResourceSuppliable(fixedDeltaTime));
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - Exception in SupplyPriorityManager.UpdateResourceSuppliables " + e.Message);
+                throw;
+            }
         }
        
     }

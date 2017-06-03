@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class FusionEmgineController : DaedalusEngineController {} 
+    class FusionEngineController : DaedalusEngineController { } 
 
 	class DaedalusEngineController : FNResourceSuppliableModule, IUpgradeableModule 
 	{

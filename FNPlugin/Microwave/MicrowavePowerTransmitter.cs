@@ -583,9 +583,15 @@ namespace FNPlugin
                     var multiplier = panel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES ? 1000 
                         : panel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE ? 1 : 0;
 
-                    displayed_solar_power += panel._flowRate * multiplier;
+                    var currentPower = panel._flowRate * multiplier;
 
-                    solar_power += panel.chargeRate * panel._distMult * panel._efficMult * multiplier;
+                    displayed_solar_power += currentPower;
+
+                    var maximumPower = panel._distMult > 0 
+                        ? panel.chargeRate * panel._distMult * panel._efficMult * multiplier
+                        : currentPower;
+
+                    solar_power += maximumPower;
 
                     //panel.alignType = ModuleDeployablePart.PanelAlignType.X;
                     //panel.panelType = ModuleDeployableSolarPanel.PanelType.CYLINDRICAL;
