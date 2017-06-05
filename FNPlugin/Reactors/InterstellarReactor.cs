@@ -261,7 +261,7 @@ namespace FNPlugin
         public float upgradedPowerOutput = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade")]
         public string upgradeTechReq = String.Empty;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Balancing")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Balancing")]
         public bool shouldApplyBalance;
 
         // GUI strings
@@ -372,7 +372,6 @@ namespace FNPlugin
         protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
 
         protected PartResourceDefinition lithium6_def;
-        protected PartResourceDefinition lithium7_def;
         protected PartResourceDefinition tritium_def;
         protected PartResourceDefinition helium_def;
 
@@ -391,6 +390,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Wasteheat", guiFormat = "F1")]
         protected double partBaseWasteheat;
 
+        protected double tritiumBreedingMassAdjustment;
+        protected double heliumBreedingMassAdjustment;
+
         protected double storedIsThermalEnergyGeneratorActive;
         protected double storedIsChargedEnergyGeneratorActive;
         protected double currentIsThermalEnergyGenratorActive;
@@ -403,10 +405,13 @@ namespace FNPlugin
         protected ModuleAnimateGeneric loopingAnimation;
 
         protected ElectricGeneratorType _firstGeneratorType;
+        
 
         public List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
 
         private ReactorFuelType current_fuel_mode;
+
+        protected PartResource partResourceLithium6;
 
         public ReactorFuelType CurrentFuelMode
         {
@@ -992,8 +997,15 @@ namespace FNPlugin
 
             tritium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.TritiumGas);
             helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
-            lithium7_def =  PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium7);
             lithium6_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
+
+            tritiumBreedingMassAdjustment = tritium_molar_mass_ratio * lithium6_def.density / tritium_def.density;
+            heliumBreedingMassAdjustment = helium_molar_mass_ratio * lithium6_def.density / helium_def.density;
+
+            if (part.Resources.Contains(lithium6_def.id))
+            {
+                partResourceLithium6 = part.Resources[InterstellarResourcesConfiguration.Instance.Lithium6];
+            }
 
             if (IsEnabled && last_active_time > 0)
                 DoPersistentResourceUpdate();
@@ -1519,63 +1531,42 @@ namespace FNPlugin
                 return;
             }
 
-            double localAmountLithium6 = 0;
-            double localAmountLithium7 = 0;
-            double localMaxAmountLithium6 = 0;
-            double localMaxAmountLithium7 = 0;
-
-            if (part.Resources.Contains(lithium6_def.id))
+            if (partResourceLithium6 != null)
             {
-                var resource = part.Resources[InterstellarResourcesConfiguration.Instance.Lithium6];
-                localAmountLithium6 = resource.amount;
-                localMaxAmountLithium6 = resource.maxAmount;
-            }
-            if (part.Resources.Contains(lithium7_def.id))
-            {
-                var resource = part.Resources[InterstellarResourcesConfiguration.Instance.Lithium7];
-                localAmountLithium7 = resource.amount;
-                localMaxAmountLithium7 = resource.maxAmount;
-            }
-
-            totalAmountLithium = localAmountLithium6 + localAmountLithium7;
-            totalMaxAmountLithium = localMaxAmountLithium6 + localMaxAmountLithium7;
-            
-            double averageDensityLithium;
-            double ratioLithium6 = 0.5;
-            double ratioLithium7 = 0.5;
-
-            if (totalAmountLithium > 0)
-            {
-                ratioLithium6 = localAmountLithium6 / totalAmountLithium;
-                ratioLithium7 = localAmountLithium7 / totalAmountLithium;
-                averageDensityLithium = (localAmountLithium6 * lithium6_def.density) + (ratioLithium7 * lithium7_def.density);
+                totalAmountLithium = partResourceLithium6.amount;
+                totalMaxAmountLithium = partResourceLithium6.maxAmount;
             }
             else
-                averageDensityLithium = (lithium6_def.density + lithium7_def.density) / 2;
+            {
+                totalAmountLithium = 0;
+                totalMaxAmountLithium = 0;
+            }
+
+            double ratioLithium6 = totalAmountLithium > 0 ? totalAmountLithium / totalMaxAmountLithium : 0;
 
             // calculate current maximum litlium consumption
-            var breed_rate = CurrentFuelMode.TritiumBreedModifier * staticBreedRate * neutron_power_received_each_second * fixedDeltaTime;
-            var lith_rate = breed_rate / averageDensityLithium;
+            var breed_rate = CurrentFuelMode.TritiumBreedModifier * staticBreedRate * neutron_power_received_each_second * fixedDeltaTime * Math.Sqrt(ratioLithium6);
+            var lith_rate = breed_rate / lithium6_def.density;
 
             // get spare room tritium
             var spareRoomTritiumAmount = part.GetResourceSpareCapacity(tritium_def);
 
             // limit lithium consumption to maximum tritium storage
-            var maximumTritiumProduction = lith_rate * tritium_molar_mass_ratio * averageDensityLithium / tritium_def.density;
+            var maximumTritiumProduction = lith_rate * tritiumBreedingMassAdjustment;
             var maximumLitiumConsumtionRatio = maximumTritiumProduction > 0 ? Math.Min(maximumTritiumProduction, spareRoomTritiumAmount) / maximumTritiumProduction : 0;
             var lithium_request = lith_rate * maximumLitiumConsumtionRatio;
 
             // consume the lithium
             var lith_used = CheatOptions.InfinitePropellant
                 ? lithium_request
-                : part.RequestResource(lithium6_def.id, lithium_request * ratioLithium6, ResourceFlowMode.STACK_PRIORITY_SEARCH)
-                + part.RequestResource(lithium7_def.id, lithium_request * ratioLithium7, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                : part.RequestResource(lithium6_def.id, lithium_request, ResourceFlowMode.STACK_PRIORITY_SEARCH);
 
+            // calculate effective lithium used for tritium breeding
             lithium_consumed_per_second = lith_used / fixedDeltaTime;
 
             // caculate products
-            var tritium_production = lith_used * tritium_molar_mass_ratio * averageDensityLithium / tritium_def.density;
-            var helium_production = lith_used * helium_molar_mass_ratio * averageDensityLithium / helium_def.density;
+            var tritium_production = lith_used * tritiumBreedingMassAdjustment;
+            var helium_production = lith_used * heliumBreedingMassAdjustment;
 
             // produce tritium and helium
             tritium_produced_per_second = CheatOptions.InfinitePropellant
@@ -1948,16 +1939,12 @@ namespace FNPlugin
                 {
                     if (IsFuelNeutronRich && breedtritium && canBreedTritium)
                     {
-                        double totalLithium7Amount;
-                        double totalLithium7MaxAmount;
-                        part.GetConnectedResourceTotals(lithium7_def.id, out totalLithium7Amount, out totalLithium7MaxAmount);
-
                         double totalLithium6Amount;
                         double totalLithium6MaxAmount;
                         part.GetConnectedResourceTotals(lithium6_def.id, out totalLithium6Amount, out totalLithium6MaxAmount);
 
-                        double totalLithiumAmount = totalLithium7Amount + totalLithium6Amount;
-                        double totalLithiumMaxAmount = totalLithium7MaxAmount + totalLithium6MaxAmount;
+                        double totalLithiumAmount = totalLithium6Amount;
+                        double totalLithiumMaxAmount = totalLithium6MaxAmount;
 
                         double totalTritiumAmount;
                         double totalTritiumMaxAmount;
