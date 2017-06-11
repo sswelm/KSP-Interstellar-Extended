@@ -40,7 +40,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float exitArea = 0;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Max Power Input", guiUnits = " MW")]
-        public float maxPower;
+        public float maxPower = 1000;
         [KSPField(isPersistant = false, guiName = "Power Thrust Multiplier")]
         public float powerThrustMultiplier = 1.0f;
         [KSPField(isPersistant = false)]
@@ -218,10 +218,11 @@ namespace FNPlugin
                 _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.upgradeAvailable(gearsTechReq);
                 _modifiedEngineBaseISP = baseISP * PluginHelper.ElectricEngineIspMult;
                 _hasrequiredupgrade = this.HasTechsRequiredToUpgrade();
-                vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
 
                 if (_hasrequiredupgrade && (isupgraded || state == StartState.Editor))
                     upgradePartModule();
+
+                vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
                 UpdateEngineTypeString();
 
 				// calculate WasteHeat Capacity
@@ -545,6 +546,7 @@ namespace FNPlugin
 
             if (isupgraded && vacuumPlasmaResource != null)
             {
+                //vacuumPlasmaResource.maxAmount = maxPower * 0.00001 * TimeWarp.fixedDeltaTime;
                 this.part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
             }
         }
@@ -625,8 +627,8 @@ namespace FNPlugin
                 vacplasmaadded = true;
                 ConfigNode node = new ConfigNode("RESOURCE");
                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.VacuumPlasma);
-                node.AddValue("maxAmount", MaxPower / 100);
-                node.AddValue("amount", MaxPower / 100);
+                node.AddValue("maxAmount", maxPower * 0.0000001);
+                node.AddValue("amount", maxPower * 0.0000001);
                 this.part.AddResource(node);
             }
         }

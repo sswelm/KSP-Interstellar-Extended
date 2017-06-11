@@ -302,13 +302,13 @@ namespace OpenResourceSystem
                     if (resource_manager == null)
                     {
                         resource_manager = createResourceManagerForResource(resourcename);
-                        print("[KSPI] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
+                        Debug.Log("[KSPI] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
                     }
 
-                    if (resource_manager.PartModule == null || (resource_manager.PartModule.vessel != this.vessel && resource_manager.Counter != updateCounter))
+                    if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || (resource_manager.PartModule != this && resource_manager.Counter < updateCounter))
                     {
                         resource_manager.updatePartModule(this);
-                        print("[KSPI] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
+                        Debug.Log("[KSPI] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
                     }
 
                     if (resource_manager.PartModule == this)

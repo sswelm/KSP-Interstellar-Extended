@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-//using OpenResourceSystem;
 using TweakScale;
 
 namespace FNPlugin
@@ -12,6 +11,8 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         public double chargestatus = 1000;
+        [KSPField(isPersistant = false)]
+        public double maxCharge = 1000;
         [KSPField(isPersistant = false)]
         public float massExponent = 3;
         [KSPField(isPersistant = false)]
@@ -37,8 +38,12 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public double storedMassMultiplier = 1;
-        [KSPField(isPersistant = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = false, guiActiveEditor = false)]
         public bool calculatedMass = false;
+        [KSPField(isPersistant = false, guiActiveEditor = false)]
+        public bool canExplodeFromGeeForce = false;
+        [KSPField(isPersistant = false, guiActiveEditor = false)]
+        public bool canExplodeFromHeat = false;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Part Mass", guiUnits = " t", guiFormat = "F3" )]
         public double partMass;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Initial Mass", guiUnits = " t", guiFormat = "F3")]
@@ -46,11 +51,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t", guiFormat = "F3")]
         public double targetMass;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Delta Mass", guiUnits = " t", guiFormat = "F3")]
-        public double moduleMassDelta;
+        public float moduleMassDelta;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Attached Tanks Count")]
         public double attachedAntimatterTanksCount;
-
-        
 
         bool charging = false;
         bool should_charge = false;
@@ -89,6 +92,7 @@ namespace FNPlugin
                 Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
                 storedMassMultiplier = Math.Pow(factor.absolute.linear, massExponent);
                 initialMass = part.prefabMass * storedMassMultiplier;
+                chargestatus = maxCharge;
             }
             catch (Exception e)
             {
@@ -122,9 +126,9 @@ namespace FNPlugin
             if (!calculatedMass)
                 return 0;
 
-            moduleMassDelta = (float)targetMass - initialMass;
+            moduleMassDelta = (float)(targetMass - initialMass);
 
-            return (float)moduleMassDelta;
+            return moduleMassDelta;
         }
 
         public void doExplode()
@@ -146,11 +150,7 @@ namespace FNPlugin
             light.range = 100f;
             light.intensity = 500000.0f;
             light.renderMode = LightRenderMode.ForcePixel;
-            //Destroy (lightGameObject.collider, 0.25f);
             Destroy(lightGameObject, 0.25f);
-
-            //bool exist_parts_to_explode = true;
-            //Part part_to_explode = null;
             exploding = true;
         }
 
@@ -168,16 +168,11 @@ namespace FNPlugin
                 part.OnEditorAttach += OnEditorAttach;
                 part.OnEditorDetach += OnEditorDetach;
 
-                calculatedMass = true;
                 UpdateTargetMass();
                 return;
             }
             else
-            {
                 UpdateTargetMass();
-            }
-            
-            this.part.force_activate();
 
             // charge if there is any antimatter
             should_charge = antimatter.amount > 0;
@@ -219,12 +214,28 @@ namespace FNPlugin
             attachedAntimatterTanksCount = attachedAntimatterTanks.Count();
         }
 
-        public override void OnUpdate()
+        public void Update()
         {
+            UpdateAmounts();
+            UpdateTargetMass();
+            partMass = part.mass;
+
+            if (HighLogic.LoadedSceneIsEditor)
+            {
+                chargestatus = maxCharge;
+
+                Fields["maxGeeforce"].guiActiveEditor = canExplodeFromGeeForce;
+                Fields["maxTemperature"].guiActiveEditor = canExplodeFromHeat;
+                return;
+            }
+
+            Fields["TemperatureStr"].guiActive = canExplodeFromHeat;
+            Fields["GeeforceStr"].guiActive = canExplodeFromGeeForce;
+
             Events["StartCharge"].active = current_antimatter <= 0.1 && !should_charge;
             Events["StopCharge"].active = current_antimatter <= 0.1 && should_charge;
 
-            chargeStatusStr = chargestatus.ToString("0.0") + " / " + GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE.ToString("0.0");
+            chargeStatusStr = chargestatus.ToString("0.0") + " / " + maxCharge.ToString("0.0");
             TemperatureStr = part.temperature.ToString("0") + " / " + maxTemperature.ToString("0");
             GeeforceStr = part.vessel.geeForce.ToString("0.0") + " / " + maxGeeforce.ToString("0.0");
 
@@ -249,24 +260,17 @@ namespace FNPlugin
             UpdateAmounts();
         }
 
-        public void Update()
-        {
-            UpdateAmounts();
-            UpdateTargetMass();
-            partMass = part.mass;
-
-            if (HighLogic.LoadedSceneIsFlight)
-                return;
-        }
-
         private void UpdateAmounts()
         {
             capacityStr = formatMassStr(antimatter.amount);
             maxAmountStr = formatMassStr(antimatter.maxAmount);
         }
 
-        public override void OnFixedUpdate()
+        public void FixedUpdate()
         {
+            if (HighLogic.LoadedSceneIsEditor)
+                return;
+
             MaintainContainment();
 
             ExplodeContainer();
@@ -288,7 +292,7 @@ namespace FNPlugin
             if (chargestatus > 0 && (current_antimatter > 0.00001 * antimatter.maxAmount))
                 chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
 
-            if (chargestatus >= GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE)
+            if (chargestatus >= maxCharge)
                 mult = 0.5f;
 
             if (!should_charge && current_antimatter <= 0.00001 * antimatter.maxAmount) return;
@@ -326,7 +330,7 @@ namespace FNPlugin
             if (startup_timeout == 0 && current_antimatter > minimimAnimatterAmount)
             {
                 //verify temperature
-                if (part.temperature > maxTemperature)
+                if (!CheatOptions.IgnoreMaxTemperature &&  canExplodeFromHeat && part.temperature > maxTemperature)
                 {
                     temperature_explode_counter++;
                     if (temperature_explode_counter > 10)
@@ -340,7 +344,7 @@ namespace FNPlugin
                     temperature_explode_counter = 0;
 
                 //verify geeforce
-                if (part.vessel.geeForce > maxGeeforce)
+                if (!CheatOptions.UnbreakableJoints && canExplodeFromGeeForce && part.vessel.geeForce > maxGeeforce)
                 {
                     geeforce_explode_counter++;
                     if (geeforce_explode_counter > 10)
@@ -357,7 +361,7 @@ namespace FNPlugin
                 if (chargestatus <= 0)
                 {
                     chargestatus = 0;
-                    if (current_antimatter > 0.00001 * antimatter.maxAmount)
+                    if (!CheatOptions.InfiniteElectricity && current_antimatter > 0.00001 * antimatter.maxAmount)
                     {
                         power_explode_counter++;
                         if (power_explode_counter > 10)
@@ -377,10 +381,10 @@ namespace FNPlugin
                 geeforce_explode_counter = 0;
                 power_explode_counter = 0;
             }
-        
 
-            if (chargestatus > GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE)
-                chargestatus = GameConstants.MAX_ANTIMATTER_TANK_STORED_CHARGE;
+
+            if (chargestatus > maxCharge)
+                chargestatus = maxCharge;
         }
 
         private void ExplodeContainer()
@@ -420,8 +424,6 @@ namespace FNPlugin
             }
             vessel.rootPart.explode();
             this.part.explode();
-            //	this.part.explode ();
-            //	vessel.rootPart.explode ();
         }
 
         public override string GetInfo()
