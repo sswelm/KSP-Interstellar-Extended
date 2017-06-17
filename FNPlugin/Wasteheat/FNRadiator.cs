@@ -133,6 +133,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Radiator Temperature", guiFormat = "F0")]
         public float maxRadiatorTemperature = 3700;
 
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Base Wasteheat")]
+        public double partBaseWasteheat;
+
         [KSPField(isPersistant = false)]
         public float atmosphereToleranceModifier = 1;
 
@@ -148,6 +151,7 @@ namespace FNPlugin
 		protected float directionrotate = 1;
         protected long update_count = 0;
 		protected int explode_counter = 0;
+        protected float previousDeltaTime;
 
         protected int nrAvailableUpgradeTechs;
         //protected bool doLegacyGraphics;
@@ -161,7 +165,9 @@ namespace FNPlugin
         private AnimationState[] heatStates;
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
+        private PartResource wasteheatPowerResource = null;
 
+        
         private bool active;
         private bool hasSurfaceAreaUpgradeTechReq;
         private List<IPowerSource> list_of_thermal_sources;
@@ -454,14 +460,11 @@ namespace FNPlugin
             Actions["RetractRadiatorAction"].guiName = "Retract Radiator";
             Events["RetractRadiator"].guiName = "Retract Radiator";
 
-			// calculate WasteHeat Capacity
-			var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-			if (wasteheatPowerResource != null)
-			{
-				var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-				wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-				wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-			}
+            // calculate WasteHeat Capacity
+            partBaseWasteheat = part.mass * 1e+6 * wasteHeatMultiplier;
+            wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+
+            //UpdateWasteheatBuffer(0.02f, 0.95f);
 
             var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine == null)
@@ -567,6 +570,16 @@ namespace FNPlugin
             maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min(radiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature); 
         }
 
+        private void UpdateWasteheatBuffer(float deltaTime, float maximum_ratio)
+        {
+            if (wasteheatPowerResource == null)
+                return;
+
+            var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, maximum_ratio);
+            wasteheatPowerResource.maxAmount = partBaseWasteheat * deltaTime;
+            wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+        }
+
         void radiatorIsEnabled_OnValueModified(object arg1)
         {
             UnityEngine.Debug.Log("[KSPI] - radiatorIsEnabled_OnValueModified " + arg1.ToString());
@@ -597,6 +610,7 @@ namespace FNPlugin
         public void Update()
         {
             partMass = part.mass;
+            partBaseWasteheat = part.mass * 1e+6 * wasteHeatMultiplier;
 
             var isUndefined = _moduleDeployableRadiator == null 
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING 
@@ -667,6 +681,8 @@ namespace FNPlugin
         {
             try
             {
+                UpdateWasteheatBuffer();
+
                 if (!HighLogic.LoadedSceneIsFlight)
                     return;
 
@@ -781,6 +797,19 @@ namespace FNPlugin
             {
                 Debug.LogError("[KSPI] - FNReactor.FixedUpdate" + e.Message);
             }
+        }
+
+
+        private void UpdateWasteheatBuffer()
+        {
+            var deltaTime = HighLogic.LoadedSceneIsFlight ? TimeWarp.fixedDeltaTime : 0.02f;
+
+            //if (previousDeltaTime != deltaTime)
+            //{
+                UpdateWasteheatBuffer(deltaTime, 1);
+                //if (HighLogic.LoadedSceneIsFlight)
+                //    previousDeltaTime = deltaTime;
+            //}
         }
 
         private void DeployMentControl(double dynamic_pressure)

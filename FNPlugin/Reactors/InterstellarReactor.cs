@@ -283,15 +283,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Power to Supply frame")]
         protected double max_power_to_supply = 0;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fixed Max Thermal Power")]
-        protected double fixed_maximum_thermal_power;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fixed Max Charged Power")]
-        protected double fixed_maximum_charged_power;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fixed Max Thermal Power")]
+        //protected double fixed_maximum_thermal_power;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fixed Max Charged Power")]
+        //protected double fixed_maximum_charged_power;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        protected double max_thermal_to_supply_fixed;
+        protected double max_thermal_to_supply_per_second;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        protected double max_charged_to_supply_fixed;
+        protected double max_charged_to_supply_per_second;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max TP To Supply", guiFormat = "F6")]
         protected double max_thermal_to_supply_nominal;
@@ -319,11 +319,6 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Generated", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Requested", guiFormat = "F6")]
-        protected double ongoing_thermal_power_requested;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Requested", guiFormat = "F6")]
-        protected double ongoing_charged_power_requested;
-
         [KSPField(isPersistant = false, guiActive = false)]
         public bool initialized = false;
         [KSPField(isPersistant = true)]
@@ -345,9 +340,9 @@ namespace FNPlugin
         protected long last_draw_update;
         protected double staticBreedRate;
 
-        protected double raw_charged_power_received = 0;
-        protected double raw_thermal_power_received = 0;
-        public double rawTotalPowerProduced = 0;
+        protected double charged_power_received_per_second = 0;
+        protected double thermal_power_received_per_second = 0;
+        public double total_power_received_per_second = 0;
 
         public double totalAmountLithium = 0;
         public double totalMaxAmountLithium = 0;
@@ -361,7 +356,7 @@ namespace FNPlugin
 
         protected int nrAvailableUpgradeTechs;
         //protected double currentAnimatioRatio;
-        protected double total_power_per_frame;
+        //protected double total_power_per_frame;
         protected bool decay_ongoing = false;
         protected Rect windowPosition;
         protected int windowID = 90175467;
@@ -446,7 +441,7 @@ namespace FNPlugin
 
         public double RawTotalPowerProduced 
         {
-            get { return rawTotalPowerProduced; }
+            get { return total_power_received_per_second; }
         }
 
         public double UseProductForPropulsion(double ratio, double consumedAmount)
@@ -1286,8 +1281,6 @@ namespace FNPlugin
                 else
                     geeForceModifier = 1;
 
-                var safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
-
                 current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.First();
 
@@ -1304,69 +1297,47 @@ namespace FNPlugin
                 {
                     var requested_ratio = Math.Min(Math.Max((RequestedThermalHeat / MaximumThermalPower), 0), 1);
                     effective_minimum_throtle = Math.Max(effective_minimum_throtle, requested_ratio);
-                }
-
-                ongoing_charged_power_requested = GetRequiredResourceDemand(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-                ongoing_thermal_power_requested = GetRequiredResourceDemand(FNResourceManager.FNRESOURCE_THERMALPOWER);
-
-                // Charged Power
-                fixed_maximum_charged_power = MaximumChargedPower * TimeWarp.fixedDeltaTime;
+                }               
 
                 var engineThrottleModifier = disableAtZeroThrottle && connectedEngines.Any() && connectedEngines.All(e => e.CurrentThrottle == 0) ? 0 : 1;
+                var safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
 
-                max_charged_to_supply_fixed = Math.Max(fixed_maximum_charged_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
-                max_charged_to_supply_nominal = max_charged_to_supply_fixed / TimeWarp.fixedDeltaTime;
+                //fixed_maximum_charged_power = MaximumChargedPower * TimeWarp.fixedDeltaTime;
+                max_charged_to_supply_per_second = MaximumChargedPower * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
+                max_charged_to_supply_nominal = max_charged_to_supply_per_second;  // / TimeWarp.fixedDeltaTime;
 
-                raw_charged_power_received = supplyManagedFNResourceFixedWithMinimumRatio(max_charged_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-                double charged_power_ratio = max_charged_to_supply_fixed > 0 ? raw_charged_power_received / max_charged_to_supply_fixed : 0;
+                var chargedParticlesManager = getManagerForVessel(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                var thermalHeatManager = getManagerForVessel(FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                // Thermal Power
-                fixed_maximum_thermal_power = MaximumThermalPower * TimeWarp.fixedDeltaTime;
-                max_thermal_to_supply_fixed = Math.Max(fixed_maximum_thermal_power, 0) * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
-                max_thermal_to_supply_nominal = max_thermal_to_supply_fixed / TimeWarp.fixedDeltaTime;
-                raw_thermal_power_received = supplyManagedFNResourceFixedWithMinimumRatio(max_thermal_to_supply_fixed, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                var needed_charged_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(max_charged_to_supply_per_second, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
+                var charged_power_ratio = max_charged_to_supply_per_second > 0 ? needed_charged_power_per_second / max_charged_to_supply_per_second : 0;
 
-                rawTotalPowerProduced = raw_thermal_power_received + raw_charged_power_received;
+                max_thermal_to_supply_per_second = MaximumThermalPower * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
+                max_thermal_to_supply_nominal = max_thermal_to_supply_per_second; 
 
-                // add additional power
-                double thermal_power_ratio = max_thermal_to_supply_fixed > 0 && (1 - ChargedPowerRatio) > 0 ? raw_thermal_power_received / max_thermal_to_supply_fixed : 0;
+                var needed_thermal_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(max_thermal_to_supply_per_second, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
+                var thermal_power_ratio = max_thermal_to_supply_per_second > 0 ? needed_thermal_power_per_second / max_thermal_to_supply_per_second : 0;
 
-                reactor_power_ratio = Math.Max(charged_power_ratio, thermal_power_ratio);
+                reactor_power_ratio = Math.Min(1, Math.Max(charged_power_ratio, thermal_power_ratio));
+                charged_power_received_per_second = supplyManagedFNResourcePerSecondWithMinimumRatio(max_charged_to_supply_per_second, reactor_power_ratio, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
+                thermal_power_received_per_second = supplyManagedFNResourcePerSecondWithMinimumRatio(max_thermal_to_supply_per_second, reactor_power_ratio, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
 
-                var thermal_shortage_ratio = charged_power_ratio > thermal_power_ratio ? charged_power_ratio - thermal_power_ratio : 0;
-                var chargedpower_shortagage_ratio = thermal_power_ratio > charged_power_ratio ? thermal_power_ratio - charged_power_ratio : 0;
+                ongoing_thermal_power_generated = thermal_power_received_per_second; 
+                ongoing_charged_power_generated = charged_power_received_per_second; 
+                
+                total_power_received_per_second = thermal_power_received_per_second + charged_power_received_per_second;
 
-                // fix any inbalance in power draw
-                balanced_thermal_power_received_fixed = raw_thermal_power_received + (thermal_shortage_ratio * fixed_maximum_thermal_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
-                balanced_charged_power_received_fixed = raw_charged_power_received + (chargedpower_shortagage_ratio * fixed_maximum_charged_power * stored_fuel_ratio * geeForceModifier * engineThrottleModifier);
-
-                // update GUI
-                ongoing_thermal_power_generated = balanced_thermal_power_received_fixed / TimeWarp.fixedDeltaTime;
-                ongoing_charged_power_generated = balanced_charged_power_received_fixed / TimeWarp.fixedDeltaTime;
-
-                // Total
-                double total_power_received_fixed = balanced_thermal_power_received_fixed + balanced_charged_power_received_fixed;
+                var total_power_received_fixed = total_power_received_per_second * TimeWarp.fixedDeltaTime;
 
                 if (!CheatOptions.UnbreakableJoints)
                     neutronEmbrittlementDamage += total_power_received_fixed * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
 
-                ongoing_total_power_generated = total_power_received_fixed / TimeWarp.fixedDeltaTime;
-
+                ongoing_total_power_generated = total_power_received_per_second; 
+                
                 if (!CheatOptions.IgnoreMaxTemperature)
-                {
-                    var thermalSupplyRatio = ongoing_thermal_power_generated > 0 ? Math.Min(1, getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / ongoing_thermal_power_generated) : 0;
-                    var chargedSupplyRatio = ongoing_charged_power_generated > 0 ? Math.Min(1, getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES) / ongoing_charged_power_generated) : 0;
-                    var maxSupplyRatio = Math.Max(thermalSupplyRatio, chargedSupplyRatio);
+                    supplyFNResourcePerSecondWithMax(ongoing_thermal_power_generated + ongoing_charged_power_generated, NormalisedMaximumPower, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    var thermal_wasteheat = ongoing_thermal_power_generated * maxSupplyRatio;
-                    var charged_wasteheat = ongoing_charged_power_generated * maxSupplyRatio;
-
-                    // initialy generate equal amount of power into wasteheat, which must be either used by generator or disapated
-                    supplyFNResourcePerSecondWithMax(thermal_wasteheat + charged_wasteheat, NormalisedMaximumPower, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                }
-
-                total_power_per_frame = total_power_received_fixed;
-                ongoing_consumption_rate = total_power_received_fixed / MaximumPower / TimeWarp.fixedDeltaTime;
+                ongoing_consumption_rate = total_power_received_per_second / MaximumPower; 
 
                 PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, 4), pulseAnimation);
 
@@ -1386,8 +1357,7 @@ namespace FNPlugin
                     // produce reactor products
                     foreach (ReactorProduct product in current_fuel_variant.ReactorProducts)
                     {
-                        var massProduced = ProduceReactorProduct(product, total_power_received_fixed / geeForceModifier);
-
+                        var massProduced = ProduceReactorProduct(product, total_power_received_per_second / geeForceModifier);
                         reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
                     }
                 }
@@ -1403,21 +1373,21 @@ namespace FNPlugin
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 double power_fraction = 0.1 * Math.Exp(-(Planetarium.GetUniversalTime() - last_active_time) / PluginHelper.SecondsInDay / 24.0 * 9.0);
                 double power_to_supply = Math.Max(MaximumPower * TimeWarp.fixedDeltaTime * power_fraction, 0);
-                raw_thermal_power_received = supplyManagedFNResourceFixedWithMinimumRatio(power_to_supply, 1, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                thermal_power_received_per_second = supplyManagedFNResourceFixedWithMinimumRatio(power_to_supply, 1, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                rawTotalPowerProduced = raw_thermal_power_received;
+                total_power_received_per_second = thermal_power_received_per_second;
 
-                ongoing_thermal_power_generated = raw_thermal_power_received / TimeWarp.fixedDeltaTime;
+                ongoing_thermal_power_generated = thermal_power_received_per_second / TimeWarp.fixedDeltaTime;
                 BreedTritium(ongoing_thermal_power_generated, TimeWarp.fixedDeltaTime);
 
-                ongoing_consumption_rate = MaximumPower > 0 ? raw_thermal_power_received / MaximumPower / TimeWarp.fixedDeltaTime : 0;
+                ongoing_consumption_rate = MaximumPower > 0 ? thermal_power_received_per_second / MaximumPower / TimeWarp.fixedDeltaTime : 0;
 
                 powerPcnt = 100 * ongoing_consumption_rate;
                 decay_ongoing = true;
             }
             else
             {
-                rawTotalPowerProduced = 0;
+                total_power_received_per_second = 0;
                 reactor_power_ratio = 0;
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
                 powerPcnt = 0;
@@ -1477,9 +1447,9 @@ namespace FNPlugin
                 if (wasteheatPowerResource != null)
                 {
                     // calculate WasteHeat Capacity
-                    partBaseWasteheat = part.mass * 2.0e+4 * wasteHeatMultiplier;
+                    partBaseWasteheat = part.mass * 1e+6 * wasteHeatMultiplier;
 
-                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
+                    var wasteheat_ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
 
                     wasteheatPowerResource.maxAmount = TimeWarp.fixedDeltaTime * partBaseWasteheat; ;
                     wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
@@ -2004,7 +1974,10 @@ namespace FNPlugin
                     {
                         var resourceVariantsDefinitions = CurrentFuelMode.ResourceGroups.First(m => m.name == fuel.FuelName).resourceVariantsMetaData;
 
-                        var availableRessources = resourceVariantsDefinitions.Select(metadata => new {amount = GetFuelAvailability(metadata.resourceDefinition), effectiveDensity = metadata.resourceDefinition.density * metadata.ratio }).Where(m => m.amount > 0).ToList();
+                        var availableRessources = resourceVariantsDefinitions
+                            .Select(m => new {resourceDefinition = m.resourceDefinition, ratio = m.ratio}).Distinct()
+                            .Select(d => new { definition = d.resourceDefinition, amount = GetFuelAvailability(d.resourceDefinition), effectiveDensity = d.resourceDefinition.density * d.ratio})
+                            .Where(m => m.amount > 0).ToList();
 
                         var availabilityInKg = availableRessources.Sum(m => m.amount * m.effectiveDensity * 1000);
 
@@ -2012,7 +1985,7 @@ namespace FNPlugin
 
                         PrintToGUILayout(fuel.FuelName + " Reserves", availableText + " (" + availableRessources.Count + " variants)", bold_style, text_style);
 
-                        var kg_fuel_use_per_day = 1000 * total_power_per_frame * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                        var kg_fuel_use_per_day = 1000 * total_power_received_per_second * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
 
                         PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.getFormatedMassString(kg_fuel_use_per_day, "0.000000") + "/day", bold_style, text_style);
 
@@ -2049,7 +2022,7 @@ namespace FNPlugin
                             GUILayout.Label((availabilityInKg).ToString("0.0000") + " kg / " + (maxAvailabilityInKg).ToString("0.0000") + " kg", text_style, GUILayout.Width(150));
                             GUILayout.EndHorizontal();
 
-                            double dayly_production_in_Kg = 1000 * total_power_per_frame * product.TonsProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                            double dayly_production_in_Kg = 1000 * total_power_received_per_second * product.TonsProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(product.FuelName + " Production", bold_style, GUILayout.Width(150));
                             GUILayout.Label(dayly_production_in_Kg.ToString("0.000000") + " kg/day", text_style, GUILayout.Width(150));

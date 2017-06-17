@@ -17,6 +17,8 @@ namespace FNPlugin
         public float massExponent = 3;
         [KSPField(isPersistant = false)]
         public double chargeNeeded = 100;
+        [KSPField(isPersistant = false)]
+        public string resourceName = "Antimatter";
         [KSPField(isPersistant = false, guiActive = false, guiName = "Exploding")]
         bool exploding = false;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
@@ -70,7 +72,8 @@ namespace FNPlugin
         int temperature_explode_counter = 0;
 
         GameObject lightGameObject;
-        PartResource antimatter;
+        PartResource antimatterResource;
+        PartResourceDefinition antimatterDefinition;
         List<AntimatterStorageTank> attachedAntimatterTanks;
 
         [KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
@@ -156,9 +159,10 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            antimatter = part.Resources[InterstellarResourcesConfiguration.Instance.Antimatter];
+            antimatterResource = part.Resources[resourceName];
+            antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
 
-            minimimAnimatterAmount = 0.00001 * antimatter.maxAmount;
+            minimimAnimatterAmount = 1e-13 /  antimatterDefinition.density * antimatterResource.maxAmount;
 
             partMass = part.mass;
             initialMass = part.prefabMass * storedMassMultiplier;
@@ -174,8 +178,8 @@ namespace FNPlugin
             else
                 UpdateTargetMass();
 
-            // charge if there is any antimatter
-            should_charge = antimatter.amount > 0;
+            // charge if there is any significant antimatter
+            should_charge = antimatterResource.amount > minimimAnimatterAmount;
 
             this.enabled = true;
 
@@ -262,8 +266,8 @@ namespace FNPlugin
 
         private void UpdateAmounts()
         {
-            capacityStr = formatMassStr(antimatter.amount);
-            maxAmountStr = formatMassStr(antimatter.maxAmount);
+            capacityStr = formatMassStr(antimatterResource.amount);
+            maxAmountStr = formatMassStr(antimatterResource.maxAmount);
         }
 
         public void FixedUpdate()
@@ -284,18 +288,18 @@ namespace FNPlugin
 
         private void MaintainContainment()
         {
-            if (antimatter == null) return;
+            if (antimatterResource == null) return;
 
             float mult = 1;
-            current_antimatter = antimatter.amount;
+            current_antimatter = antimatterResource.amount;
 
-            if (chargestatus > 0 && (current_antimatter > 0.00001 * antimatter.maxAmount))
+            if (chargestatus > 0 && (current_antimatter > 0.00001 * antimatterResource.maxAmount))
                 chargestatus -= 1.0f * TimeWarp.fixedDeltaTime;
 
             if (chargestatus >= maxCharge)
                 mult = 0.5f;
 
-            if (!should_charge && current_antimatter <= 0.00001 * antimatter.maxAmount) return;
+            if (!should_charge && current_antimatter <= 0.00001 * antimatterResource.maxAmount) return;
 
             var powerRequest = mult * 2.0 * chargeNeeded / 1000.0 * TimeWarp.fixedDeltaTime;
 
@@ -361,7 +365,7 @@ namespace FNPlugin
                 if (chargestatus <= 0)
                 {
                     chargestatus = 0;
-                    if (!CheatOptions.InfiniteElectricity && current_antimatter > 0.00001 * antimatter.maxAmount)
+                    if (!CheatOptions.InfiniteElectricity && current_antimatter > 0.00001 * antimatterResource.maxAmount)
                     {
                         power_explode_counter++;
                         if (power_explode_counter > 10)
@@ -438,20 +442,22 @@ namespace FNPlugin
 
         protected string formatMassStr(double amount)
         {
-            if (amount >= 1000000000)
-                return (amount / 1000000000).ToString("0.0000000") + " t";
-            else if (amount >= 1000000)
-                return (amount / 1000000).ToString("0.0000000") + " kg";
-            else if (amount >= 1000)
-                return (amount / 1000).ToString("0.0000000") + " g";
-            else if (amount >= 1)
-                return (amount).ToString("0.0000000") + " mg";
-            else if (amount >= 1e-3)
-                return (amount * 1e3).ToString("0.000000") + " ug";
-            else if (amount > 1e-6)
-                return (amount * 1e6).ToString("0.0000000") + " ng";
+            var mass = amount * antimatterDefinition.density;
+
+            if (mass >= 1)
+                return (mass / 1e+0).ToString("0.0000000") + " t";
+            else if (mass >= 1e-3)
+                return (mass / 1e-3).ToString("0.0000000") + " kg";
+            else if (amount >= 1e-6)
+                return (amount / 1e-6).ToString("0.0000000") + " g";
+            else if (amount >= 1e-9)
+                return (amount / 1e-9).ToString("0.0000000") + " mg";
+            else if (amount >= 1e-12)
+                return (amount * 1e-12).ToString("0.000000") + " ug";
+            else if (amount > 1e-15)
+                return (amount * 1e-15).ToString("0.0000000") + " ng";
             else
-                return (amount * 1e9).ToString("0.0000000") + " pg";
+                return (amount * 1e-18).ToString("0.0000000") + " pg";
         }
     }
 

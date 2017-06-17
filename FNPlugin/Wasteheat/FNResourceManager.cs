@@ -59,7 +59,7 @@ namespace FNPlugin
                 // passive dissip of waste heat - a little bit of this
                 double vessel_mass = my_vessel.GetTotalMass();
                 double passive_dissip = passive_temp_p4 * GameConstants.stefan_const * vessel_mass * 2.0;
-                internl_power_extract += passive_dissip * TimeWarp.fixedDeltaTime;
+                internl_power_extract_fixed += passive_dissip * TimeWarp.fixedDeltaTime;
 
                 if (my_vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(my_vessel.mainBody)) 
                 { 
@@ -67,7 +67,7 @@ namespace FNPlugin
                     double pressure = FlightGlobals.getStaticPressure(my_vessel.transform.position) / 100;
                     double delta_temp = 20;
                     double conv_power_dissip = pressure * delta_temp * vessel_mass * 2.0 * GameConstants.rad_const_h / 1e6 * TimeWarp.fixedDeltaTime;
-                    internl_power_extract += conv_power_dissip;
+                    internl_power_extract_fixed += conv_power_dissip;
                 }
             }
         }

@@ -40,6 +40,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double powerRequirementMultiplier = 1;
 
+        [KSPField(isPersistant = false)]
+        public float wasteheatRatio = 0.5f;
+        [KSPField(isPersistant = false)]
+        public float wasteheatRatioUpgraded = 0.25f;
+
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Pull", guiUnits = "g", guiFormat = "F3")]
         public double gravityPull;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Warp Limit", guiUnits = "c", guiFormat = "F3")]
@@ -826,8 +831,7 @@ namespace FNPlugin
                     part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -power_returned * 0.001 * TimeWarp.fixedDeltaTime);
                 }
 
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourceFixed(-power_returned * (isupgraded ? 0.25 : 0.50) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                ProduceWasteheat(power_returned);
             }
 
             if (!IsEnabled)
@@ -852,6 +856,12 @@ namespace FNPlugin
                 warp_effect2_renderer.enabled = true;
                 warp_effect1_renderer.enabled = true;
             }
+        }
+
+        private void ProduceWasteheat(double power_returned)
+        {
+            if (!CheatOptions.IgnoreMaxTemperature)
+                supplyFNResourceFixed(power_returned * (isupgraded ? wasteheatRatioUpgraded : wasteheatRatio) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
         }
 
         private double GetPowerRequirementForWarp(double lightspeedFraction)
@@ -881,8 +891,7 @@ namespace FNPlugin
             {
                 power_returned = consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourceFixed(-power_returned * (isupgraded ? 0.25 : 0.5) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                ProduceWasteheat(power_returned);
             }
 
             // retreive vessel heading

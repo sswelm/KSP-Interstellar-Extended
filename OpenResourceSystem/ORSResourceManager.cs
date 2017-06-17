@@ -14,6 +14,7 @@ namespace OpenResourceSystem
     public class PowerGenerated
     {
         public double currentSupply { get; set; }
+        public double currentProvided { get; set; }
         public double maximumSupply { get; set; }
         public double minimumSupply { get; set; }
     }
@@ -40,6 +41,8 @@ namespace OpenResourceSystem
         protected PartResourceDefinition megajouleResourceDefinition;
         protected PartResourceDefinition thermalpowerResourceDefinition;
         protected PartResourceDefinition chargedpowerResourceDefinition;
+
+        protected bool producesWasteHeat;
 
         protected Dictionary<ORSResourceSuppliable, PowerConsumption> power_consumption;
         protected Dictionary<IORSResourceSupplier, PowerGenerated> power_produced;
@@ -71,7 +74,7 @@ namespace OpenResourceSystem
         protected int windowID = 36549835;
 		protected double resource_bar_ratio = 0;
 
-        protected double internl_power_extract = 0;
+        protected double internl_power_extract_fixed = 0;
 
         public Rect WindowPosition 
         { 
@@ -103,6 +106,8 @@ namespace OpenResourceSystem
             megajouleResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ORSResourceManager.FNRESOURCE_MEGAJOULES); 
             thermalpowerResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ORSResourceManager.FNRESOURCE_THERMALPOWER);
             chargedpowerResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ORSResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+
+            producesWasteHeat = resourceDefinition.id == thermalpowerResourceDefinition.id || resourceDefinition.id == chargedpowerResourceDefinition.id;
 
             if (resource_name == FNRESOURCE_WASTEHEAT || resource_name == FNRESOURCE_THERMALPOWER || resource_name == FNRESOURCE_CHARGED_PARTICLES) 
 				flow_type = FNRESOURCE_FLOWTYPE_EVEN;
@@ -151,6 +156,7 @@ namespace OpenResourceSystem
                 power_produced.Add(pm, powerGenerated);
             }
 			powerGenerated.currentSupply += current_power_supply_per_second;
+            powerGenerated.currentProvided += current_power_supply_per_second;
 			powerGenerated.maximumSupply += current_power_supply_per_second;
             
             return power;
@@ -168,6 +174,7 @@ namespace OpenResourceSystem
                 power_produced.Add(pm, powerGenerated);
             }
             powerGenerated.currentSupply += power;
+            powerGenerated.currentProvided += power;
             powerGenerated.maximumSupply += power;
 
             return power;
@@ -188,6 +195,7 @@ namespace OpenResourceSystem
                 power_produced.Add(pm, powerGenerated);
             }
             powerGenerated.currentSupply += current_power_supply_per_second;
+            powerGenerated.currentProvided += current_power_supply_per_second;
             powerGenerated.maximumSupply += maximum_power_supply_per_second;
 
 			return power;
@@ -247,10 +255,33 @@ namespace OpenResourceSystem
             return maxAmount;
 		}
 
+        public double getNeededPowerSupplyPerSecondWithMinimumRatio(double power, double ratio_min)
+        {
+            var maximum_available_power_per_second = power;
+            var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
+
+            var needed_power_per_second = Math.Min(maximum_available_power_per_second, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
+
+            return needed_power_per_second;
+        }
+
+        public double getNeededPowerSupplyFixedWithMinimumRatio(double power, double ratio_min)
+        {
+            var maximum_available_power_per_second = power / TimeWarp.fixedDeltaTime;
+            var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
+
+            var needed_power_per_second = Math.Min(maximum_available_power_per_second, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
+
+            return needed_power_per_second * TimeWarp.fixedDeltaTime;
+        }
+
         public double managedPowerSupplyFixedWithMinimumRatio(IORSResourceSupplier pm, double power, double ratio_min) 
         {
 			var maximum_available_power_per_second = power / TimeWarp.fixedDeltaTime;
             var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
+
+            var provided_demand_power_per_second = Math.Min(maximum_available_power_per_second, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
+
             var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
             var managed_supply_per_second = Math.Min(maximum_available_power_per_second, required_power_per_second);
 
@@ -265,15 +296,19 @@ namespace OpenResourceSystem
             }
 
             powerGenerated.currentSupply += managed_supply_per_second;
+            powerGenerated.currentProvided += provided_demand_power_per_second;
             powerGenerated.maximumSupply += maximum_available_power_per_second;
             powerGenerated.minimumSupply += minimum_power_per_second;
 
-			return managed_supply_per_second * TimeWarp.fixedDeltaTime;
+            return provided_demand_power_per_second * TimeWarp.fixedDeltaTime;
+            //return managed_supply_per_second * TimeWarp.fixedDeltaTime;
 		}
 
         public double managedPowerSupplyPerSecondWithMinimumRatio(IORSResourceSupplier pm, double maximum_power, double ratio_min)
         {
             var minimum_power_per_second = maximum_power * ratio_min;
+
+            var provided_demand_power_per_second = Math.Min(maximum_power, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
             var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
             var managed_supply_per_second = Math.Min(maximum_power, required_power_per_second);
 
@@ -288,6 +323,7 @@ namespace OpenResourceSystem
             }
 
             powerGenerated.currentSupply += managed_supply_per_second;
+            powerGenerated.currentProvided += provided_demand_power_per_second;
             powerGenerated.maximumSupply += maximum_power;
             powerGenerated.minimumSupply += minimum_power_per_second;
 
@@ -322,7 +358,8 @@ namespace OpenResourceSystem
 
         public double GetRequiredResourceDemand()
         {
-            return GetCurrentUnfilledResourceDemand() + getSpareResourceCapacity() / TimeWarp.fixedDeltaTime;
+            //return GetCurrentUnfilledResourceDemand() + getSpareResourceCapacity() / TimeWarp.fixedDeltaTime;
+            return GetCurrentUnfilledResourceDemand() + getSpareResourceCapacity();
         }
 
 		public void updatePartModule(PartModule pm) 
@@ -533,19 +570,20 @@ namespace OpenResourceSystem
 
             // substract avaialble resource amount to get delta resource change
             currentPowerSupply -= Math.Max(availableResourceAmount, 0.0);
-            internl_power_extract = -currentPowerSupply * TimeWarp.fixedDeltaTime;
+            internl_power_extract_fixed = -currentPowerSupply * TimeWarp.fixedDeltaTime;
 
             pluginSpecificImpl();
 
-            if (internl_power_extract > 0) 
-                internl_power_extract = Math.Min(internl_power_extract, availableResourceAmount);
+            if (internl_power_extract_fixed > 0) 
+                internl_power_extract_fixed = Math.Min(internl_power_extract_fixed, availableResourceAmount);
             else
-                internl_power_extract = Math.Max(internl_power_extract, -missingResourceAmount);
+                internl_power_extract_fixed = Math.Max(internl_power_extract_fixed, -missingResourceAmount);
 
-            var actual_stored_power = my_part.RequestResource(this.resource_name, internl_power_extract);
+            my_part.RequestResource(this.resource_name, internl_power_extract_fixed);
 
             //calculate total input and output
-            //var total_current_produced = power_produced.Sum(m => m.Value.currentSupply);
+            //var total_current_supplied = power_produced.Sum(m => m.Value.currentSupply);
+            //var total_current_provided = power_produced.Sum(m => m.Value.currentProvided);
             //var total_power_consumed = power_consumption.Sum(m => m.Value.Power_consume);
             //var total_power_min_supplied = power_produced.Sum(m => m.Value.minimumSupply);
 

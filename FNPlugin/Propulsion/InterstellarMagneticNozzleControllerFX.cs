@@ -25,6 +25,8 @@ namespace FNPlugin
         private double _charged_particles_requested;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Particles", guiUnits = " MW")]
         private double _charged_particles_received;
+
+        
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Electricity", guiUnits = " MW")]
         private double _requestedElectricPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Electricity", guiUnits = " MW")]
@@ -47,6 +49,7 @@ namespace FNPlugin
         protected int _attached_reactor_distance;
         protected float exchanger_thrust_divisor;
         protected double calculatedIsp;
+        protected double _previous_charged_particles_received;
 
         protected double minimum_isp;
         protected double maximum_isp;
@@ -142,10 +145,10 @@ namespace FNPlugin
            
 		public void FixedUpdate() 
         {
-            if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_engine.isOperational && _attached_reactor != null && _attached_reactor.ChargedParticlePropulsionEfficiency > 0)
+            if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_reactor != null && _attached_reactor.ChargedParticlePropulsionEfficiency > 0)
             {
                 _max_charged_particles_power = _attached_reactor.MaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
-                _charged_particles_requested = _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0; 
+                _charged_particles_requested = _attached_engine.isOperational && _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0; 
                 _charged_particles_received = consumeFNResourcePerSecond(_charged_particles_requested, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                 // convert reactor product into propellants when possible
@@ -155,14 +158,30 @@ namespace FNPlugin
                 _hydrogenProduction = !CheatOptions.InfinitePropellant && chargedParticleRatio > 0 ? _attached_reactor.UseProductForPropulsion(chargedParticleRatio, consumedByEngine) : 0;
 
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    consumeFNResourcePerSecond(_charged_particles_received, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                {
+                    if (_attached_engine.isOperational && _attached_engine.currentThrottle > 0)
+                    {
+                        consumeFNResourcePerSecond(_charged_particles_received, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        _previous_charged_particles_received = _charged_particles_received;
+                    }
+                    else if (_previous_charged_particles_received > 1)
+                    {
+                        consumeFNResourcePerSecond(_previous_charged_particles_received, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        _previous_charged_particles_received /= 2;
+                    }
+                    else
+                    {
+                        _charged_particles_received = 0;
+                        _previous_charged_particles_received = 0;
+                    }
+                }
 
                 // update Isp
-                double current_isp = _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
+                double current_isp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
 
                 var ispPowerCostMultiplier = 1 + max_power_multiplier - Math.Log10(current_isp / minimum_isp);
 
-                _requestedElectricPower = _charged_particles_received * ispPowerCostMultiplier * 0.01 * Math.Max(_attached_reactor_distance, 1);
+                _requestedElectricPower = _charged_particles_received * ispPowerCostMultiplier * 0.005 * Math.Max(_attached_reactor_distance, 1);
 
                 _recievedElectricPower = CheatOptions.InfiniteElectricity
                     ? _requestedElectricPower
@@ -170,10 +189,6 @@ namespace FNPlugin
 
                 var megajoules_ratio = _recievedElectricPower / _requestedElectricPower;
                 megajoules_ratio = (double.IsNaN(megajoules_ratio) || double.IsInfinity(megajoules_ratio)) ? 0 : megajoules_ratio;
-
-
-
-                
 
                 FloatCurve new_isp = new FloatCurve();
                 new_isp.Add(0, (float)(current_isp * megajoules_ratio), 0, 0);
