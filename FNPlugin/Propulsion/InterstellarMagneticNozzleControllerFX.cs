@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Propulsion;
 
 namespace FNPlugin
 {
-	class InterstellarMagneticNozzleControllerFX : FNResourceSuppliableModule
+    class InterstellarMagneticNozzleControllerFX : FNResourceSuppliableModule, IEngineNoozle
     {
 		//Persistent False
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = "m")]
@@ -54,6 +55,19 @@ namespace FNPlugin
         protected double minimum_isp;
         protected double maximum_isp;
         protected double max_power_multiplier;
+
+        public double GetNozzleFlowRate()
+        {
+            return _attached_engine.maxFuelFlow;
+        }
+
+        public float CurrentThrottle 
+        {
+            get
+            {
+                return _attached_engine.currentThrottle > 0 ? 1 : 0;
+            }
+        }
         
 
 		public override void OnStart(PartModule.StartState state) 
@@ -112,6 +126,8 @@ namespace FNPlugin
 
                 if (particleSource != null)
                 {
+                    particleSource.ConnectWithEngine(this);
+
                     _attached_reactor_distance = currentDepth;
                     return particleSource;
                 }

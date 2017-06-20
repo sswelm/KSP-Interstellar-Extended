@@ -347,12 +347,12 @@ namespace FNPlugin
 
         public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
-        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, ElectricGeneratorType generatorType)
         {
             currentIsThermalEnergyGenratorActive = efficency;
         }
 
-        public void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType) { }
+        public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio, ElectricGeneratorType generatorType) { }
 
         public bool IsThermalSource
         {

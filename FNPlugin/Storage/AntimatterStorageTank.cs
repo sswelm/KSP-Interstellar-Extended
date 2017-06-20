@@ -448,16 +448,16 @@ namespace FNPlugin
                 return (mass / 1e+0).ToString("0.0000000") + " t";
             else if (mass >= 1e-3)
                 return (mass / 1e-3).ToString("0.0000000") + " kg";
-            else if (amount >= 1e-6)
-                return (amount / 1e-6).ToString("0.0000000") + " g";
-            else if (amount >= 1e-9)
-                return (amount / 1e-9).ToString("0.0000000") + " mg";
-            else if (amount >= 1e-12)
-                return (amount * 1e-12).ToString("0.000000") + " ug";
-            else if (amount > 1e-15)
-                return (amount * 1e-15).ToString("0.0000000") + " ng";
+            else if (mass >= 1e-6)
+                return (mass / 1e-6).ToString("0.0000000") + " g";
+            else if (mass >= 1e-9)
+                return (mass / 1e-9).ToString("0.0000000") + " mg";
+            else if (mass >= 1e-12)
+                return (mass * 1e-12).ToString("0.000000") + " ug";
+            else if (mass > 1e-15)
+                return (mass * 1e-15).ToString("0.0000000") + " ng";
             else
-                return (amount * 1e-18).ToString("0.0000000") + " pg";
+                return (mass * 1e-18).ToString("0.0000000") + " pg";
         }
     }
 

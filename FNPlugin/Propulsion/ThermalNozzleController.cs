@@ -274,10 +274,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         protected float jetTechBonusPercentage;
 
-        //public bool Static_updating { get { return static_updating; } set { static_updating = value; } }
-        //public bool Static_updating2 { get { return static_updating2; } set { static_updating2 = value; } }
-        public int Fuel_mode { get { return fuel_mode; } }
-
         private IPowerSource _myAttachedReactor;
         public IPowerSource AttachedReactor
         {

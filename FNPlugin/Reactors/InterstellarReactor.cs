@@ -355,8 +355,6 @@ namespace FNPlugin
         protected GUIStyle text_style;
 
         protected int nrAvailableUpgradeTechs;
-        //protected double currentAnimatioRatio;
-        //protected double total_power_per_frame;
         protected bool decay_ongoing = false;
         protected Rect windowPosition;
         protected int windowID = 90175467;
@@ -388,10 +386,17 @@ namespace FNPlugin
         protected double tritiumBreedingMassAdjustment;
         protected double heliumBreedingMassAdjustment;
 
-        protected double storedIsThermalEnergyGeneratorActive;
-        protected double storedIsChargedEnergyGeneratorActive;
-        protected double currentIsThermalEnergyGenratorActive;
-        protected double currentIsChargedEnergyGenratorActive;
+        protected double storedIsThermalEnergyGeneratorEfficiency;
+        protected double storedIsChargedEnergyGeneratorEfficiency;
+
+        protected double currentIsThermalEnergyGeneratorEfficiency;
+        protected double currentIsChargedEnergyGenratorEfficiency;
+
+        protected double storedIsThermalEnergyGeneratorRatio;
+        protected double storedIsChargedEnergyGeneratorRatio;
+
+        protected double currentIsThermalEnergyGeneratorRatio;
+        protected double currentIsChargedEnergyGeneratorRatio;
 
         protected bool isFixedUpdatedCalled;
         protected AnimationState[] pulseAnimation;
@@ -525,28 +530,34 @@ namespace FNPlugin
 
         public bool FullPowerForNonNeutronAbsorbants { get { return fullPowerForNonNeutronAbsorbants; } }
 
-        public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGeneratorActive; } }
+        public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGeneratorEfficiency; } }
 
-        public double EfficencyConnectedChargedEnergyGenerator { get { return storedIsChargedEnergyGeneratorActive; } }
+        public double EfficencyConnectedChargedEnergyGenerator { get { return storedIsChargedEnergyGeneratorEfficiency; } }
 
 
-        public void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, ElectricGeneratorType generatorType)
         {
-            currentIsThermalEnergyGenratorActive = efficency;
+            currentIsThermalEnergyGeneratorEfficiency = efficency;
+            currentIsThermalEnergyGeneratorRatio = power_ratio;
+
+            // initialise firstGeneratorType if needed 
             if (_firstGeneratorType == ElectricGeneratorType.unknown)
                 _firstGeneratorType = generatorType;
         }
 
-        public void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType)
+        public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio,ElectricGeneratorType generatorType)
         {
-            currentIsChargedEnergyGenratorActive = efficency;
+            currentIsChargedEnergyGenratorEfficiency = efficency;
+            currentIsChargedEnergyGeneratorRatio = power_ratio;
+
+            // initialise firstGeneratorType if needed 
             if (_firstGeneratorType == ElectricGeneratorType.unknown)
                 _firstGeneratorType = generatorType;
         }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType)
         {
-            shouldApplyBalance = generatorType == _firstGeneratorType && storedIsThermalEnergyGeneratorActive > 0 && storedIsChargedEnergyGeneratorActive > 0;
+            shouldApplyBalance = generatorType == _firstGeneratorType && storedIsThermalEnergyGeneratorEfficiency > 0 && storedIsChargedEnergyGeneratorEfficiency > 0;
 
             return shouldApplyBalance;
         }
@@ -1248,10 +1259,7 @@ namespace FNPlugin
         {
             base.OnFixedUpdate();
 
-            storedIsThermalEnergyGeneratorActive = currentIsThermalEnergyGenratorActive;
-            storedIsChargedEnergyGeneratorActive = currentIsChargedEnergyGenratorActive;
-            currentIsThermalEnergyGenratorActive = 0;
-            currentIsChargedEnergyGenratorActive = 0;
+            StoreGeneratorRequests();
 
             decay_ongoing = false;
 
@@ -1297,14 +1305,16 @@ namespace FNPlugin
                 {
                     var requested_ratio = Math.Min(Math.Max((RequestedThermalHeat / MaximumThermalPower), 0), 1);
                     effective_minimum_throtle = Math.Max(effective_minimum_throtle, requested_ratio);
-                }               
+                }
 
                 var engineThrottleModifier = disableAtZeroThrottle && connectedEngines.Any() && connectedEngines.All(e => e.CurrentThrottle == 0) ? 0 : 1;
                 var safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
 
-                //fixed_maximum_charged_power = MaximumChargedPower * TimeWarp.fixedDeltaTime;
-                max_charged_to_supply_per_second = MaximumChargedPower * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
-                max_charged_to_supply_nominal = max_charged_to_supply_per_second;  // / TimeWarp.fixedDeltaTime;
+                var ThrottleRatio = connectedEngines.Any() ? connectedEngines.Max(e => e.CurrentThrottle) : 0;
+                var directPowerRequestRatio = Math.Max(ThrottleRatio, Math.Max(storedIsThermalEnergyGeneratorRatio, storedIsChargedEnergyGeneratorRatio));
+
+                max_charged_to_supply_per_second = MaximumChargedPower * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier * directPowerRequestRatio;
+                max_charged_to_supply_nominal = max_charged_to_supply_per_second; 
 
                 var chargedParticlesManager = getManagerForVessel(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 var thermalHeatManager = getManagerForVessel(FNResourceManager.FNRESOURCE_THERMALPOWER);
@@ -1312,10 +1322,11 @@ namespace FNPlugin
                 var needed_charged_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(max_charged_to_supply_per_second, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
                 var charged_power_ratio = max_charged_to_supply_per_second > 0 ? needed_charged_power_per_second / max_charged_to_supply_per_second : 0;
 
-                max_thermal_to_supply_per_second = MaximumThermalPower * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier;
+                max_thermal_to_supply_per_second = MaximumThermalPower * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier * directPowerRequestRatio;
                 max_thermal_to_supply_nominal = max_thermal_to_supply_per_second; 
 
                 var needed_thermal_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(max_thermal_to_supply_per_second, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
+
                 var thermal_power_ratio = max_thermal_to_supply_per_second > 0 ? needed_thermal_power_per_second / max_thermal_to_supply_per_second : 0;
 
                 reactor_power_ratio = Math.Min(1, Math.Max(charged_power_ratio, thermal_power_ratio));
@@ -1408,6 +1419,18 @@ namespace FNPlugin
                 }
             }
 
+        }
+
+        private void StoreGeneratorRequests()
+        {
+            storedIsThermalEnergyGeneratorEfficiency = currentIsThermalEnergyGeneratorEfficiency;
+            storedIsChargedEnergyGeneratorEfficiency = currentIsChargedEnergyGenratorEfficiency;
+            currentIsThermalEnergyGeneratorEfficiency = 0;
+            currentIsChargedEnergyGenratorEfficiency = 0;
+            storedIsThermalEnergyGeneratorRatio = currentIsThermalEnergyGeneratorRatio;
+            storedIsChargedEnergyGeneratorRatio = currentIsChargedEnergyGeneratorRatio;
+            currentIsThermalEnergyGeneratorRatio = 0;
+            currentIsChargedEnergyGeneratorRatio = 0;
         }
 
 
@@ -2003,7 +2026,11 @@ namespace FNPlugin
                                 else
                                     PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(fuel_lifetime_d) ? "-" : (fuel_lifetime_d).ToString("0.00")) + " days", bold_style, text_style);
                             }
+                            else
+                                PrintToGUILayout(fuel.FuelName + " Lifetime", "", bold_style, text_style);
                         }
+                        else
+                            PrintToGUILayout(fuel.FuelName + " Lifetime", "", bold_style, text_style);
                     }
 
                     if (current_fuel_variant.ReactorProducts.Count > 0)

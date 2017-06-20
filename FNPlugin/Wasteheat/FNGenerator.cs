@@ -832,8 +832,6 @@ namespace FNPlugin
                         return;
                     }
 
-                    attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, ElectricGeneratorType.thermal);
-
                     double thermal_power_currently_needed_for_electricity = CalculateElectricalPowerCurrentlyNeeded();
 
                     var effective_thermal_power_needed_for_electricity = thermal_power_currently_needed_for_electricity / _totalEff;
@@ -852,6 +850,10 @@ namespace FNPlugin
                     requested_power_per_second = thermal_power_requested;
 
                     attachedPowerSource.RequestedThermalHeat = thermal_power_requested;
+
+                    var thermalPowerRequestRatio = Math.Min(1, maxThermalPower > 0 ?  thermal_power_requested / maxThermalPower : 0);
+
+                    attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, ElectricGeneratorType.thermal);
 
                     double thermal_power_received = consumeFNResourcePerSecond(thermal_power_requested, FNResourceManager.FNRESOURCE_THERMALPOWER);
 
@@ -880,15 +882,17 @@ namespace FNPlugin
                 }
                 else // charged particle mode
                 {
-                    _totalEff = maxEfficiency; //isupgraded ? upgradedDirectConversionEff : directConversionEff;
-
-                    attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, ElectricGeneratorType.charged_particle);
+                    _totalEff = maxEfficiency;
 
                     if (_totalEff <= 0) return;
 
                     double charged_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
 
                     requested_power_per_second = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff), attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio);
+
+                    var chargedPowerRequestRatio = Math.Min(1, maxChargedPower > 0 ? requested_power_per_second / maxChargedPower : 0);
+
+                    attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio, ElectricGeneratorType.charged_particle);
 
                     double received_power_per_second = consumeFNResourcePerSecond(requested_power_per_second, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 

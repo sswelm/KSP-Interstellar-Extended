@@ -7,8 +7,6 @@ namespace FNPlugin.Propulsion
 {
     public interface IEngineNoozle
     {
-        int Fuel_mode { get; }
-        ConfigNode[] getPropellants();
         double GetNozzleFlowRate();
         float CurrentThrottle { get; }
     }

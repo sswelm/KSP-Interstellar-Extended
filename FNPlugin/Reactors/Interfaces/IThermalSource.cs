@@ -109,9 +109,9 @@ namespace FNPlugin
 
         IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
-        void NotifyActiveThermalEnergyGenerator(double efficency, ElectricGeneratorType generatorType);
+        void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, ElectricGeneratorType generatorType);
 
-        void NotifyActiveChargedEnergyGenerator(double efficency, ElectricGeneratorType generatorType);
+        void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio, ElectricGeneratorType generatorType);
 
         bool ShouldApplyBalance(ElectricGeneratorType generatorType);
 
