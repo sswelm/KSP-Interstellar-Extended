@@ -266,6 +266,8 @@ namespace OpenResourceSystem
             var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
 
             var needed_power_per_second = Math.Min(maximum_available_power_per_second, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
+            //var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
+            //Math.Min(maximum_available_power_per_second, required_power_per_second);
 
             return needed_power_per_second;
         }

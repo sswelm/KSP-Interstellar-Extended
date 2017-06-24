@@ -95,7 +95,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float recoveryAnimationDivider = 1;
         [KSPField(isPersistant = false)]
-        public float wasteheatEfficiencyLowTemperature = 0.95f;
+        public float wasteheatEfficiencyLowTemperature = 0.99f;
         [KSPField(isPersistant = false)]
         public float wasteheatEfficiencyHighTemperature = 0.9f;
         [KSPField(isPersistant = false)]
@@ -1006,10 +1006,6 @@ namespace FNPlugin
                     AttachedReactor.DetachThermalReciever(id);
 
                 ConfigEffects();
-
-                //delayedThrottle = _currentpropellant_is_jet || myAttachedEngine.currentThrottle < delayedThrottle || delayedThrottleFactor <= 0
-                //    ? myAttachedEngine.currentThrottle
-                //    : Mathf.MoveTowards(delayedThrottle, myAttachedEngine.currentThrottle, delayedThrottleFactor * TimeWarp.fixedDeltaTime);
 
                 var effectiveThermalPower = getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER);
                 var effectiveChargedPower = getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);

@@ -7,7 +7,7 @@ using TweakScale;
 
 namespace FNPlugin
 {
-    class AntimatterStorageTank : FNResourceSuppliableModule, IPartMassModifier, IRescalable<FNGenerator>
+    class AntimatterStorageTank : FNResourceSuppliableModule, IPartMassModifier,  IPartCostModifier,  IRescalable<FNGenerator>
     {
         [KSPField(isPersistant = true)]
         public double chargestatus = 1000;
@@ -40,6 +40,11 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public double storedMassMultiplier = 1;
+
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Scaling Factor")]
+        public double storedScalingfactor = 1;
+
+
         [KSPField(isPersistant = false, guiActiveEditor = false)]
         public bool calculatedMass = false;
         [KSPField(isPersistant = false, guiActiveEditor = false)]
@@ -56,6 +61,14 @@ namespace FNPlugin
         public float moduleMassDelta;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Attached Tanks Count")]
         public double attachedAntimatterTanksCount;
+
+
+        [KSPField(isPersistant = true)]
+        public float emptyCost = 0;
+        [KSPField(isPersistant = true)]
+        public float dryCost = 0;
+        [KSPField(isPersistant = true)]
+        public double partCost;
 
         bool charging = false;
         bool should_charge = false;
@@ -93,7 +106,8 @@ namespace FNPlugin
             try
             {
                 Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
-                storedMassMultiplier = Math.Pow(factor.absolute.linear, massExponent);
+                storedScalingfactor = factor.absolute.linear;
+                storedMassMultiplier = Math.Pow(storedScalingfactor, massExponent);
                 initialMass = part.prefabMass * storedMassMultiplier;
                 chargestatus = maxCharge;
             }
@@ -101,6 +115,19 @@ namespace FNPlugin
             {
                 Debug.LogError("[KSPI] - FNGenerator.OnRescale " + e.Message);
             }
+        }
+
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
+        {
+            if (storedMassMultiplier == 1 && emptyCost != 0)
+                return emptyCost; 
+            else
+                return dryCost * Mathf.Pow((float)storedScalingfactor, 3);
+        }
+        
+        public ModifierChangeWhen GetModuleCostChangeWhen()
+        {
+            return ModifierChangeWhen.STAGED;
         }
 
         private void UpdateTargetMass()
@@ -223,6 +250,7 @@ namespace FNPlugin
             UpdateAmounts();
             UpdateTargetMass();
             partMass = part.mass;
+            partCost = part.partInfo.cost;
 
             if (HighLogic.LoadedSceneIsEditor)
             {

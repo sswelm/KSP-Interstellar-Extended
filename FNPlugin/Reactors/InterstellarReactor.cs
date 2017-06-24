@@ -55,8 +55,14 @@ namespace FNPlugin
         public double storedPowerMultiplier = 1;
         [KSPField(isPersistant = true)]
         public double stored_fuel_ratio = 1;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Ratio")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Thermal Power Ratio")]
+        public double thermal_power_ratio = 1;
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Charged Power Ratio")]
+        public double charged_power_ratio = 1;
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Reactor Power Ratio")]
         public double reactor_power_ratio = 1;
+
+
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Electric Priority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 1)]
         public float electricPowerPriority = 2;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 10)]
@@ -1332,23 +1338,27 @@ namespace FNPlugin
                     connectedEngines.Any(m => m.RequiresChargedPower) ? chargedParticlePropulsionEfficiency : 0,
                     storedIsChargedEnergyGeneratorEfficiency > 0 ? chargedParticleEnergyEfficiency : 0);
 
-                max_charged_to_supply_per_second = MaximumChargedPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
+                var maximumChargedPower = MaximumChargedPower;
+                var maximumThermalPower = MaximumThermalPower;
+
+                max_charged_to_supply_per_second = maximumChargedPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
                 requested_charged_to_supply_per_second = max_charged_to_supply_per_second * directPowerRequestRatio;
 
                 var chargedParticlesManager = getManagerForVessel(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 var thermalHeatManager = getManagerForVessel(FNResourceManager.FNRESOURCE_THERMALPOWER);
 
                 var needed_charged_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(requested_charged_to_supply_per_second, min_throttle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
-                var charged_power_ratio = requested_charged_to_supply_per_second > 0 ? needed_charged_power_per_second / MaximumChargedPower : 0;
+                charged_power_ratio = maximumChargedPower > 0 ? needed_charged_power_per_second / maximumChargedPower : 0;
 
-                max_thermal_to_supply_per_second = MaximumThermalPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
+                max_thermal_to_supply_per_second = maximumThermalPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
                 requested_thermal_to_supply_per_second = max_thermal_to_supply_per_second * directPowerRequestRatio;
 
                 var needed_thermal_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(requested_thermal_to_supply_per_second, min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
 
-                var thermal_power_ratio = requested_thermal_to_supply_per_second > 0 ? needed_thermal_power_per_second / MaximumThermalPower : 0;
+                thermal_power_ratio = maximumThermalPower > 0 ? needed_thermal_power_per_second / maximumThermalPower : 0;
 
-                reactor_power_ratio = Math.Min(Math.Min(1, requested_ratio), Math.Max(charged_power_ratio, thermal_power_ratio));
+                var speedDivider = reactorSpeedMult > 0 ? 20 / reactorSpeedMult : 20;
+                reactor_power_ratio = Math.Min(1, (requested_ratio + Math.Min(requested_ratio, Math.Max(charged_power_ratio, thermal_power_ratio)) * speedDivider) / (speedDivider + 1));
 
                 charged_power_received_per_second = managedRequestedPowerSupplyPerSecondMinimumRatio(requested_charged_to_supply_per_second, max_charged_to_supply_per_second, reactor_power_ratio, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
                 thermal_power_received_per_second = managedRequestedPowerSupplyPerSecondMinimumRatio(requested_thermal_to_supply_per_second, max_thermal_to_supply_per_second, reactor_power_ratio, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
