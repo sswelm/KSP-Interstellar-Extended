@@ -25,8 +25,12 @@ namespace InterstellarFuelSwitch
         // persistant control
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Convert", guiUnits = "%"), UI_FloatRange()]
         public float convertPercentage = 0;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Usage", guiUnits = "%"), UI_FloatRange(minValue = 0,  maxValue = 100, stepIncrement = 1 )]
+        public float powerUsagePercentage = 0;
 
         // configs
+        [KSPField]
+        public bool showPowerUsageFloatRange = false;
         [KSPField]
         public bool showControlToggle = false;
         [KSPField]
@@ -36,7 +40,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public float percentageMinValue = -100;
         [KSPField]
-        public float percentageStepIncrement = 5;
+        public float percentageStepIncrement = 1;
         [KSPField]
         public bool percentageSymetry = true;
         [KSPField]
@@ -49,6 +53,14 @@ namespace InterstellarFuelSwitch
         public double primaryConversionEnergyCost = 500;
         [KSPField]
         public double secondaryConversionEnergyCost = 1000;
+        [KSPField]
+        public string primaryConversionEnergyResource = "ElectricCharge";
+        [KSPField]
+        public string secondaryConversionEnergResource = "ElectricCharge";
+        [KSPField]
+        public float primaryConversionEnergyMult = 1;
+        [KSPField]
+        public float secondaryConversionEnergMult = 1;
 
         [KSPField]
         bool retreivePrimary;
@@ -68,7 +80,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool secondaryConversionCostPower = true;
 
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "TrasferRate", guiFormat= "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "TransferRate", guiFormat= "F3")]
         public double transferRate = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Conversion Ratio", guiFormat = "F3")]
         public double conversionRatio = 0;
@@ -79,7 +91,9 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested Power", guiFormat = "F6")]
         public double requestedPower;
 
-        PartResourceDefinition definitionElectricCharge;
+        PartResourceDefinition definitionPrimaryPowerResource;
+        PartResourceDefinition definitionSecondaryPowerResource;
+
         BaseField convertPercentageField;
         List<ResourceStats> primaryResources;
         List<ResourceStats> secondaryResources;
@@ -88,9 +102,15 @@ namespace InterstellarFuelSwitch
 
         bool hasNullDefinitions = false;
 
+        public float PowerUsagePercentageRatio
+        {
+            get { return 1 - (showPowerUsageFloatRange ? powerUsagePercentage / 100 : 1); }
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
-            definitionElectricCharge = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
+            definitionPrimaryPowerResource = PartResourceLibrary.Instance.GetDefinition(primaryConversionEnergyResource);
+            definitionSecondaryPowerResource = PartResourceLibrary.Instance.GetDefinition(secondaryConversionEnergResource);
 
             convertPercentageField = Fields["convertPercentage"];
             var floatrange = convertPercentageField.uiControlFlight as UI_FloatRange;
@@ -311,17 +331,26 @@ namespace InterstellarFuelSwitch
                     if (fixedTransferRate == 0)
                         continue;
 
-                    double powerRatio = 1;
+                    double powerReceivedRatio = 1;
                     if (primaryConversionCostPower)
                     {
+                        double powerCurrentAmount;
+                        double powerMaxAmount;
+                        part.GetConnectedResourceTotals(definitionPrimaryPowerResource.id, out powerCurrentAmount, out powerMaxAmount);
+
+                        var powerStorageRatio = powerMaxAmount > 0 ? powerCurrentAmount / powerMaxAmount : 0;
+                        var availablePower = powerMaxAmount * Math.Max(0, powerStorageRatio - PowerUsagePercentageRatio);
+
                         var transferRatio = primaryResource.retrieveAmount >= fixedTransferRate ? 1 : primaryResource.retrieveAmount / fixedTransferRate;
-                        requestedPower = transferRatio * maxPowerPrimary * TimeWarp.fixedDeltaTime;
-                        var receivedPower = part.RequestResource(definitionElectricCharge.id, requestedPower);
-                        powerRatio = receivedPower / requestedPower;
+                        var maximumPower = transferRatio * maxPowerPrimary * TimeWarp.fixedDeltaTime * primaryConversionEnergyMult;
+
+                        requestedPower = Math.Min(availablePower, maximumPower);
+                        var receivedPower = part.RequestResource(definitionPrimaryPowerResource.id, requestedPower);
+                        powerReceivedRatio = requestedPower > 0 ? receivedPower / requestedPower : 0;
                     }
 
                     var fixedRequest = Math.Min(fixedTransferRate, primaryResource.retrieveAmount);
-                    var receivedSourceAmountFixed = part.RequestResource(primaryResource.definition.id, fixedRequest * powerRatio);
+                    var receivedSourceAmountFixed = part.RequestResource(primaryResource.definition.id, fixedRequest * powerReceivedRatio);
 
                     double createdAmount = 0;
                     foreach(var secondary in secondaryResources)
@@ -347,17 +376,26 @@ namespace InterstellarFuelSwitch
                     if (fixedTransferRate == 0)
                         continue;
                     
-                    double powerRatio = 1;
+                    double powerReceiverRatio = 1;
                     if (secondaryConversionCostPower)
                     {
+                        double powerCurrentAmount;
+                        double powerMaxAmount;
+                        part.GetConnectedResourceTotals(definitionSecondaryPowerResource.id, out powerCurrentAmount, out powerMaxAmount);
+
+                        var powerStorageRatio = powerMaxAmount > 0 ? powerCurrentAmount / powerMaxAmount : 0;
+                        var availablePower = powerMaxAmount * Math.Max(0, powerStorageRatio - PowerUsagePercentageRatio);
+
                         var transferRatio = secondaryResource.retrieveAmount >= fixedTransferRate ? 1 : secondaryResource.retrieveAmount / fixedTransferRate;
-                        requestedPower = transferRatio * maxPowerSecondary * TimeWarp.fixedDeltaTime;
-                        var receivedPower = part.RequestResource(definitionElectricCharge.id, requestedPower);
-                        powerRatio = receivedPower / requestedPower;
+                        var maximumPower = transferRatio * maxPowerPrimary * TimeWarp.fixedDeltaTime * secondaryConversionEnergMult;
+
+                        requestedPower = Math.Min(availablePower, maximumPower);
+                        var receivedPower = part.RequestResource(definitionSecondaryPowerResource.id, requestedPower);
+                        powerReceiverRatio = requestedPower > 0 ? receivedPower / requestedPower : 0;
                     }
 
                     var fixedRequest = Math.Min(fixedTransferRate, secondaryResource.retrieveAmount);
-                    var receivedSourceAmountFixed = part.RequestResource(secondaryResource.definition.id, fixedRequest * powerRatio);
+                    var receivedSourceAmountFixed = part.RequestResource(secondaryResource.definition.id, fixedRequest * powerReceiverRatio);
 
                     double createdAmount = 0;
                     foreach (var primary in primaryResources)

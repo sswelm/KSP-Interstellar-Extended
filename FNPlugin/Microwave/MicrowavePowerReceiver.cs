@@ -337,6 +337,8 @@ namespace FNPlugin
 
         public bool FullPowerForNonNeutronAbsorbants { get { return true; } }
 
+        public float ReactorSpeedMult { get { return 1; } }
+
         public float ThermalProcessingModifier { get { return thermalProcessingModifier; } }
 
         public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGenratorActive; } }

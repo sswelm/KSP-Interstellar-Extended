@@ -41,11 +41,12 @@ namespace OpenResourceSystem
             return power_taken_fixed;
         }
 
-        public double consumeFNResourcePerSecond(double power_per_second, String resourcename)
+        public double consumeFNResourcePerSecond(double power_per_second, String resourcename, ORSResourceManager manager = null)
         {
             power_per_second = Math.Max(power_per_second, 0);
 
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -152,6 +153,16 @@ namespace OpenResourceSystem
                 return 0;
             
             return manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
+        }
+
+        public double managedRequestedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ORSResourceManager manager = null)
+        {
+            if (manager == null)
+                manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            return manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
         }
 
         public double getCurrentResourceDemand(String resourcename)

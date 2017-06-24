@@ -9,5 +9,6 @@ namespace FNPlugin.Propulsion
     {
         double GetNozzleFlowRate();
         float CurrentThrottle { get; }
+        bool RequiresChargedPower { get; }
     }
 }

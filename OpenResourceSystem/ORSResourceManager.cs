@@ -14,10 +14,13 @@ namespace OpenResourceSystem
     public class PowerGenerated
     {
         public double currentSupply { get; set; }
+        public double averageSupply { get; set; }
         public double currentProvided { get; set; }
         public double maximumSupply { get; set; }
         public double minimumSupply { get; set; }
     }
+
+
 
     public class ORSResourceManager 
     {
@@ -46,6 +49,8 @@ namespace OpenResourceSystem
 
         protected Dictionary<ORSResourceSuppliable, PowerConsumption> power_consumption;
         protected Dictionary<IORSResourceSupplier, PowerGenerated> power_produced;
+
+        protected Dictionary<IORSResourceSupplier, Queue<double>> power_produced_history = new Dictionary<IORSResourceSupplier, Queue<double>>() ;
 
         protected string resource_name;
         protected double currentPowerSupply = 0;
@@ -301,8 +306,33 @@ namespace OpenResourceSystem
             powerGenerated.minimumSupply += minimum_power_per_second;
 
             return provided_demand_power_per_second * TimeWarp.fixedDeltaTime;
-            //return managed_supply_per_second * TimeWarp.fixedDeltaTime;
 		}
+
+        public double managedRequestedPowerSupplyPerSecondMinimumRatio(IORSResourceSupplier pm, double requested_power,  double maximum_power, double ratio_min)
+        {
+            var minimum_power_per_second = maximum_power * ratio_min;
+
+            var provided_demand_power_per_second = Math.Min(requested_power, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
+            var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
+            var managed_supply_per_second = Math.Min(requested_power, required_power_per_second);
+
+            currentPowerSupply += managed_supply_per_second;
+            stable_supply += maximum_power;
+
+            PowerGenerated powerGenerated;
+            if (!power_produced.TryGetValue(pm, out powerGenerated))
+            {
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
+            }
+
+            powerGenerated.currentSupply += managed_supply_per_second;
+            powerGenerated.currentProvided += provided_demand_power_per_second;
+            powerGenerated.maximumSupply += maximum_power;
+            powerGenerated.minimumSupply += minimum_power_per_second;
+
+            return provided_demand_power_per_second;
+        }
 
         public double managedPowerSupplyPerSecondWithMinimumRatio(IORSResourceSupplier pm, double maximum_power, double ratio_min)
         {
@@ -327,7 +357,7 @@ namespace OpenResourceSystem
             powerGenerated.maximumSupply += maximum_power;
             powerGenerated.minimumSupply += minimum_power_per_second;
 
-            return managed_supply_per_second;
+            return provided_demand_power_per_second;
         }
 
         public double StableResourceSupply { get { return stored_stable_supply; } }
@@ -385,7 +415,7 @@ namespace OpenResourceSystem
             IsUpdatedAtLeastOnce = true;
             Counter = counter;
 
-            stored_supply = currentPowerSupply;
+             stored_supply = currentPowerSupply;
 			stored_stable_supply = stable_supply;
             stored_resource_demand = current_resource_demand;
 			stored_current_demand = current_resource_demand;
@@ -446,6 +476,24 @@ namespace OpenResourceSystem
 			}
 
             power_supply_list_archive = power_produced.OrderByDescending(m => m.Value.maximumSupply).ToList();
+
+            // store current supply and update average
+            power_supply_list_archive.ForEach(m =>
+                {
+                    Queue<double> queue;
+
+                    if (!power_produced_history.TryGetValue(m.Key, out queue))
+                    {
+                        queue = new Queue<double>(10);
+                        power_produced_history.Add(m.Key, queue);
+                    }
+
+                    if (queue.Count > 10)
+                        queue.Dequeue();
+                    queue.Enqueue(m.Value.currentSupply);
+
+                    m.Value.averageSupply = queue.Average();
+                });
 
             List<KeyValuePair<ORSResourceSuppliable, PowerConsumption>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_draw).ToList();
 

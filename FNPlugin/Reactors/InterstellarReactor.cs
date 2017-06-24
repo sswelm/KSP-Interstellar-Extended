@@ -55,7 +55,7 @@ namespace FNPlugin
         public double storedPowerMultiplier = 1;
         [KSPField(isPersistant = true)]
         public double stored_fuel_ratio = 1;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Ratio")]
         public double reactor_power_ratio = 1;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Electric Priority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 1)]
         public float electricPowerPriority = 2;
@@ -170,6 +170,8 @@ namespace FNPlugin
         public string startupAnimationName;
         [KSPField(isPersistant = false)]
         public string shutdownAnimationName;
+        [KSPField(isPersistant = false)]
+        public float reactorSpeedMult = 1;
 
         [KSPField(isPersistant = false)]
         public string upgradedName;
@@ -282,22 +284,14 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Power to Supply frame")]
         protected double max_power_to_supply = 0;
-
-        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fixed Max Thermal Power")]
-        //protected double fixed_maximum_thermal_power;
-        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fixed Max Charged Power")]
-        //protected double fixed_maximum_charged_power;
-
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        protected double requested_thermal_to_supply_per_second;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max TP To Supply", guiFormat = "F6")]
         protected double max_thermal_to_supply_per_second;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        protected double max_charged_to_supply_per_second;
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max TP To Supply", guiFormat = "F6")]
-        protected double max_thermal_to_supply_nominal;
+        protected double requested_charged_to_supply_per_second;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max CP To Supply", guiFormat = "F6")]
-        protected double max_charged_to_supply_nominal;
-
+        protected double max_charged_to_supply_per_second;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Min throttle")]
         protected double min_throttle;
 
@@ -310,21 +304,14 @@ namespace FNPlugin
         public double geeForceModifier;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Produced", guiUnits = " MW", guiFormat = "F6")]
         public double ongoing_total_power_generated;
-
-        [KSPField(isPersistant = false, guiActive = false)]
-        protected double effective_minimum_throtle;
-
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Generated", guiFormat = "F6")]
         protected double ongoing_thermal_power_generated;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Generated", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
 
-        [KSPField(isPersistant = false, guiActive = false)]
-        public bool initialized = false;
-        [KSPField(isPersistant = true)]
-        public double animationStarted = 0;
-
         // value types
+        protected bool initialized = false;
+        protected double animationStarted = 0;
         protected bool hasrequiredupgrade = false;
         protected int deactivate_timer = 0;
         protected List<ReactorFuelType> fuel_modes;
@@ -392,11 +379,11 @@ namespace FNPlugin
         protected double currentIsThermalEnergyGeneratorEfficiency;
         protected double currentIsChargedEnergyGenratorEfficiency;
 
-        protected double storedIsThermalEnergyGeneratorRatio;
-        protected double storedIsChargedEnergyGeneratorRatio;
+        protected double storedGeneratorThermalEnergyRequestRatio;
+        protected double storedGeneratorChargedEnergyRequestRatio;
 
-        protected double currentIsThermalEnergyGeneratorRatio;
-        protected double currentIsChargedEnergyGeneratorRatio;
+        protected double currentGeneratorThermalEnergyRequestRatio;
+        protected double currentGeneratorChargedEnergyRequestRatio;
 
         protected bool isFixedUpdatedCalled;
         protected AnimationState[] pulseAnimation;
@@ -538,7 +525,7 @@ namespace FNPlugin
         public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, ElectricGeneratorType generatorType)
         {
             currentIsThermalEnergyGeneratorEfficiency = efficency;
-            currentIsThermalEnergyGeneratorRatio = power_ratio;
+            currentGeneratorThermalEnergyRequestRatio = power_ratio;
 
             // initialise firstGeneratorType if needed 
             if (_firstGeneratorType == ElectricGeneratorType.unknown)
@@ -548,7 +535,7 @@ namespace FNPlugin
         public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio,ElectricGeneratorType generatorType)
         {
             currentIsChargedEnergyGenratorEfficiency = efficency;
-            currentIsChargedEnergyGeneratorRatio = power_ratio;
+            currentGeneratorChargedEnergyRequestRatio = power_ratio;
 
             // initialise firstGeneratorType if needed 
             if (_firstGeneratorType == ElectricGeneratorType.unknown)
@@ -753,7 +740,10 @@ namespace FNPlugin
 
         public virtual double MaximumChargedPower 
         { 
-            get { return (ChargedParticleEnergyEfficiency == 0 && ChargedParticlePropulsionEfficiency == 0) ? 0 : PowerRatio * NormalisedMaximumPower * ChargedPowerRatio; } }
+            get { return (ChargedParticleEnergyEfficiency == 0 && ChargedParticlePropulsionEfficiency == 0) ? 0 : PowerRatio * NormalisedMaximumPower * ChargedPowerRatio; } 
+        }
+
+        public float ReactorSpeedMult { get { return reactorSpeedMult; } }
 
         public virtual bool IsNuclear { get { return false; } }
 
@@ -1297,41 +1287,71 @@ namespace FNPlugin
                 UpdateCapacities(stored_fuel_ratio);
 
                 min_throttle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
-                effective_minimum_throtle = connectedEngines.Any()
-                    ? Math.Max(connectedEngines.Max(e => e.CurrentThrottle), min_throttle)
-                    : min_throttle;
 
-                if (RequestedThermalHeat > 0)
-                {
-                    var requested_ratio = Math.Min(Math.Max((RequestedThermalHeat / MaximumThermalPower), 0), 1);
-                    effective_minimum_throtle = Math.Max(effective_minimum_throtle, requested_ratio);
-                }
+                //effective_minimum_throtle = connectedEngines.Any()
+                //    ? Math.Max(connectedEngines.Max(e => e.CurrentThrottle), min_throttle)
+                //    : min_throttle;
 
-                var engineThrottleModifier = disableAtZeroThrottle && connectedEngines.Any() && connectedEngines.All(e => e.CurrentThrottle == 0) ? 0 : 1;
+                //if (RequestedThermalHeat > 0)
+                //{
+                    //var requested_ratio = Math.Min(Math.Max((RequestedThermalHeat / MaximumThermalPower), 0), 1);
+                    //effective_minimum_throtle = Math.Max(effective_minimum_throtle, requested_ratio);
+                //}
+
+                //var engineThrottleModifier = disableAtZeroThrottle && connectedEngines.Any() && connectedEngines.All(e => e.CurrentThrottle == 0) ? 0 : 1;
                 var safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
 
-                var ThrottleRatio = connectedEngines.Any() ? connectedEngines.Max(e => e.CurrentThrottle) : 0;
-                var directPowerRequestRatio = Math.Max(ThrottleRatio, Math.Max(storedIsThermalEnergyGeneratorRatio, storedIsChargedEnergyGeneratorRatio));
+                var thermalThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
+                var chargedThrottleRatio = connectedEngines.Any(m => m.RequiresChargedPower) ? connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
 
-                max_charged_to_supply_per_second = MaximumChargedPower * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier * directPowerRequestRatio;
-                max_charged_to_supply_nominal = max_charged_to_supply_per_second; 
+                var directPowerRequestRatio = Math.Max(Math.Max(thermalThrottleRatio, chargedThrottleRatio), Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorChargedEnergyRequestRatio));
+
+                var requested_ratio = Math.Max(
+                    Math.Max(
+                        thermalPropulsionEfficiency * thermalThrottleRatio,
+                        chargedParticlePropulsionEfficiency * chargedThrottleRatio),
+                   Math.Max(
+                        thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio,
+                        chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio
+                   ));
+
+                var power_access_modifier = Math.Max(
+                    Math.Max(
+                        connectedEngines.Any(m => !m.RequiresChargedPower) ? 1 : 0,
+                        connectedEngines.Any(m => m.RequiresChargedPower) ? 1 : 0),
+                   Math.Max(
+                        storedIsThermalEnergyGeneratorEfficiency > 0 ? 1 : 0,
+                        storedIsChargedEnergyGeneratorEfficiency > 0 ? 1 : 0
+                   ));
+
+                var available_thermal_power_ratio = Math.Max(
+                    connectedEngines.Any(m => !m.RequiresChargedPower) ? thermalPropulsionEfficiency : 0, 
+                    storedIsThermalEnergyGeneratorEfficiency > 0 ? thermalEnergyEfficiency : 0);
+
+                var available_charged_power_ratio = Math.Max(
+                    connectedEngines.Any(m => m.RequiresChargedPower) ? chargedParticlePropulsionEfficiency : 0,
+                    storedIsChargedEnergyGeneratorEfficiency > 0 ? chargedParticleEnergyEfficiency : 0);
+
+                max_charged_to_supply_per_second = MaximumChargedPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
+                requested_charged_to_supply_per_second = max_charged_to_supply_per_second * directPowerRequestRatio;
 
                 var chargedParticlesManager = getManagerForVessel(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 var thermalHeatManager = getManagerForVessel(FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                var needed_charged_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(max_charged_to_supply_per_second, effective_minimum_throtle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
-                var charged_power_ratio = max_charged_to_supply_per_second > 0 ? needed_charged_power_per_second / max_charged_to_supply_per_second : 0;
+                var needed_charged_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(requested_charged_to_supply_per_second, min_throttle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
+                var charged_power_ratio = requested_charged_to_supply_per_second > 0 ? needed_charged_power_per_second / MaximumChargedPower : 0;
 
-                max_thermal_to_supply_per_second = MaximumThermalPower * stored_fuel_ratio * geeForceModifier * engineThrottleModifier * safetyThrotleModifier * directPowerRequestRatio;
-                max_thermal_to_supply_nominal = max_thermal_to_supply_per_second; 
+                max_thermal_to_supply_per_second = MaximumThermalPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
+                requested_thermal_to_supply_per_second = max_thermal_to_supply_per_second * directPowerRequestRatio;
 
-                var needed_thermal_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(max_thermal_to_supply_per_second, effective_minimum_throtle, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
+                var needed_thermal_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(requested_thermal_to_supply_per_second, min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
 
-                var thermal_power_ratio = max_thermal_to_supply_per_second > 0 ? needed_thermal_power_per_second / max_thermal_to_supply_per_second : 0;
+                var thermal_power_ratio = requested_thermal_to_supply_per_second > 0 ? needed_thermal_power_per_second / MaximumThermalPower : 0;
 
-                reactor_power_ratio = Math.Min(1, Math.Max(charged_power_ratio, thermal_power_ratio));
-                charged_power_received_per_second = supplyManagedFNResourcePerSecondWithMinimumRatio(max_charged_to_supply_per_second, reactor_power_ratio, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
-                thermal_power_received_per_second = supplyManagedFNResourcePerSecondWithMinimumRatio(max_thermal_to_supply_per_second, reactor_power_ratio, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
+                reactor_power_ratio = Math.Min(Math.Min(1, requested_ratio), Math.Max(charged_power_ratio, thermal_power_ratio));
+
+                charged_power_received_per_second = managedRequestedPowerSupplyPerSecondMinimumRatio(requested_charged_to_supply_per_second, max_charged_to_supply_per_second, reactor_power_ratio, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
+                thermal_power_received_per_second = managedRequestedPowerSupplyPerSecondMinimumRatio(requested_thermal_to_supply_per_second, max_thermal_to_supply_per_second, reactor_power_ratio, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
 
                 ongoing_thermal_power_generated = thermal_power_received_per_second; 
                 ongoing_charged_power_generated = charged_power_received_per_second; 
@@ -1427,10 +1447,10 @@ namespace FNPlugin
             storedIsChargedEnergyGeneratorEfficiency = currentIsChargedEnergyGenratorEfficiency;
             currentIsThermalEnergyGeneratorEfficiency = 0;
             currentIsChargedEnergyGenratorEfficiency = 0;
-            storedIsThermalEnergyGeneratorRatio = currentIsThermalEnergyGeneratorRatio;
-            storedIsChargedEnergyGeneratorRatio = currentIsChargedEnergyGeneratorRatio;
-            currentIsThermalEnergyGeneratorRatio = 0;
-            currentIsChargedEnergyGeneratorRatio = 0;
+            storedGeneratorThermalEnergyRequestRatio = currentGeneratorThermalEnergyRequestRatio;
+            storedGeneratorChargedEnergyRequestRatio = currentGeneratorChargedEnergyRequestRatio;
+            currentGeneratorThermalEnergyRequestRatio = 0;
+            currentGeneratorChargedEnergyRequestRatio = 0;
         }
 
 
@@ -1470,7 +1490,7 @@ namespace FNPlugin
                 if (wasteheatPowerResource != null)
                 {
                     // calculate WasteHeat Capacity
-                    partBaseWasteheat = part.mass * 1e+6 * wasteHeatMultiplier;
+                    partBaseWasteheat = part.mass * 1e+5 * wasteHeatMultiplier;
 
                     var wasteheat_ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
 

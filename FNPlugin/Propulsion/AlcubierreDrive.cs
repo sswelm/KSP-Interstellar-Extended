@@ -44,6 +44,8 @@ namespace FNPlugin
         public float wasteheatRatio = 0.5f;
         [KSPField(isPersistant = false)]
         public float wasteheatRatioUpgraded = 0.25f;
+        [KSPField(isPersistant = false)]
+        public float wasteHeatMultiplier = 1;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Pull", guiUnits = "g", guiFormat = "F3")]
         public double gravityPull;
@@ -103,6 +105,7 @@ namespace FNPlugin
         protected AudioSource warp_sound;
         protected const float warp_size = 50000;
         protected bool hasrequiredupgrade;
+        private float previousDeltaTime;
 
         private AnimationState[] animationState;
         private Vector3d heading_act;
@@ -114,6 +117,9 @@ namespace FNPlugin
         private int minimumPowerAllowedFactor;
         private int insufficientPowerTimeout = 10;
         private bool vesselWasInOuterspace;
+
+        private PartResource wasteheatPowerResource;
+        private PartResource exoticMatterResource;
 
         private Renderer warp_effect1_renderer;
         private Renderer warp_effect2_renderer;
@@ -455,7 +461,10 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             exoticResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.ExoticMatter);
-            var exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
+
+            wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+            exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
+            
             // reset Exotic Matter Capacity
             if (exoticMatterResource != null)
             {
@@ -509,6 +518,8 @@ namespace FNPlugin
                     selected_factor = minimum_selected_factor;
 
                 if (state == StartState.Editor) return;
+
+                UpdateWateheatBuffer(0.95);
 
                 if (!IsSlave)
                 {
@@ -718,6 +729,8 @@ namespace FNPlugin
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
         {
+            UpdateWateheatBuffer();
+
             WarpEngineThrottle = engine_throtle[selected_factor];
 
             if (alcubierreDrives != null)
@@ -862,6 +875,18 @@ namespace FNPlugin
         {
             if (!CheatOptions.IgnoreMaxTemperature)
                 supplyFNResourceFixed(power_returned * (isupgraded ? wasteheatRatioUpgraded : wasteheatRatio) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+        }
+
+        private void UpdateWateheatBuffer(double maxWasteheatRatio = 1)
+        {
+            if (wasteheatPowerResource != null && TimeWarp.fixedDeltaTime != previousDeltaTime)
+            {
+                var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, maxWasteheatRatio);
+                wasteheatPowerResource.maxAmount = part.mass * TimeWarp.fixedDeltaTime * 2.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+            }
+
+            previousDeltaTime = TimeWarp.fixedDeltaTime;
         }
 
         private double GetPowerRequirementForWarp(double lightspeedFraction)

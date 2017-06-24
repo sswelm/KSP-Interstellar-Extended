@@ -61,13 +61,9 @@ namespace FNPlugin
             return _attached_engine.maxFuelFlow;
         }
 
-        public float CurrentThrottle 
-        {
-            get
-            {
-                return _attached_engine.currentThrottle > 0 ? 1 : 0;
-            }
-        }
+        public float CurrentThrottle {  get { return _attached_engine.currentThrottle > 0 ? 1 : 0; } }
+
+        public bool RequiresChargedPower { get { return true; } }
         
 
 		public override void OnStart(PartModule.StartState state) 

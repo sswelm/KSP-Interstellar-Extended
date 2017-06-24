@@ -184,11 +184,11 @@ namespace FNPlugin
 
                 foreach (var group in groupedPowerSupply)
                 {
-                    var sumOfCurrentSupply =  group.Sum(m => m.Value.currentSupply);
+                    var sumOfCurrentSupply = group.Sum(m => m.Value.averageSupply);
                     var sumOfMaximumSupply = group.Sum(m => m.Value.maximumSupply);
 
-                    // skip anything with less then 0.0 KW
-                    if (sumOfMaximumSupply < 0.000005)
+                    // skip anything with less then 0.00 KW
+                    if (sumOfCurrentSupply < 0.000005)
                         continue;
 
                     GUILayout.BeginHorizontal();

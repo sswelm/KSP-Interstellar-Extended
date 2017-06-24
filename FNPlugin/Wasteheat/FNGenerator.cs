@@ -100,8 +100,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
 
-
-
         [KSPField(isPersistant = false)]
         public bool maintainsMegaWattPowerBuffer = true;
         [KSPField(isPersistant = false)]
@@ -203,8 +201,10 @@ namespace FNPlugin
         protected double _previousMaxStableMegaWattPower;
         protected float previousDeltaTime;
 
+        protected PartResource wasteheatPowerResource;
         protected PartResource megajouleResource;
         protected PartResource electricChargeResource;
+
         protected PowerStates _powerState;
 
         protected Animation anim;
@@ -361,22 +361,17 @@ namespace FNPlugin
                 return;
             }
 
-            // calculate WasteHeat Capacity
-            if (maintainsMegaWattPowerBuffer)
-            {
-                // calculate WasteHeat Capacity
-                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-                if (wasteheatPowerResource != null)
-                {
-                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                    wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-                }
-            }
-
             previousDeltaTime = TimeWarp.fixedDeltaTime - 1.0e-6f;
             megajouleResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
             electricChargeResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
+            wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+
+            if (wasteheatPowerResource != null)
+            {
+                var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
+                wasteheatPowerResource.maxAmount = part.mass * TimeWarp.fixedDeltaTime * 2.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+            }
 
             base.OnStart(state);
             generatorType = originalName;
@@ -803,8 +798,7 @@ namespace FNPlugin
                 // check if MaxStableMegaWattPower is changed
                 maxStableMegaWattPower = MaxStableMegaWattPower;
 
-                if (maintainsMegaWattPowerBuffer)
-                    UpdateMegaWattPowerBuffer();
+                UpdateMegaWattPowerBuffer();
 
                 generatorInit = true;
 
@@ -849,7 +843,7 @@ namespace FNPlugin
 
                     requested_power_per_second = thermal_power_requested;
 
-                    attachedPowerSource.RequestedThermalHeat = thermal_power_requested;
+                    //attachedPowerSource.RequestedThermalHeat = thermal_power_requested;
 
                     var thermalPowerRequestRatio = Math.Min(1, maxThermalPower > 0 ?  thermal_power_requested / maxThermalPower : 0);
 
@@ -941,9 +935,11 @@ namespace FNPlugin
 
         private void UpdateMegaWattPowerBuffer()
         {
+            if (!maintainsMegaWattPowerBuffer)
+                return;
+
             if (maxStableMegaWattPower != _previousMaxStableMegaWattPower)
                 _powerState = PowerStates.powerChange;
-
             _previousMaxStableMegaWattPower = maxStableMegaWattPower;
 
             if (maxStableMegaWattPower > 0 && (TimeWarp.fixedDeltaTime != previousDeltaTime || _powerState != PowerStates.powerOnline))
@@ -978,6 +974,14 @@ namespace FNPlugin
                     
                 }
             }
+
+            if (wasteheatPowerResource != null && TimeWarp.fixedDeltaTime != previousDeltaTime)
+            {
+                var wasteheat_ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
+                wasteheatPowerResource.maxAmount = part.mass * TimeWarp.fixedDeltaTime * 2.0e+5 * wasteHeatMultiplier;
+                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+            }
+
             previousDeltaTime = TimeWarp.fixedDeltaTime;
         }
 

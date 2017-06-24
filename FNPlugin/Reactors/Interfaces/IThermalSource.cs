@@ -105,6 +105,8 @@ namespace FNPlugin
 
         double EfficencyConnectedChargedEnergyGenerator { get; }
 
+        float ReactorSpeedMult { get; }
+
         IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
 
         IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
@@ -118,6 +120,8 @@ namespace FNPlugin
         void ConnectWithEngine(IEngineNoozle engine);
 
         void DisconnectWithEngine(IEngineNoozle engine);
+
+        
 	}
 }
 
