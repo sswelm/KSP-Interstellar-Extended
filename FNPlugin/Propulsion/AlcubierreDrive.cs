@@ -692,7 +692,6 @@ namespace FNPlugin
 
         }
 
-
         public override void OnUpdate()
         {
             Events["StartCharging"].active = !IsSlave && !IsCharging;
@@ -931,12 +930,6 @@ namespace FNPlugin
                 ProduceWasteheat(power_returned);
             }
 
-            // retreive vessel heading
-            Vector3d new_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
-
-            // detect any changes in vessel heading and heading stability
-            magnitudeDiff = (active_part_heading - new_part_heading).magnitude;
-
             // detect power shortage
             if (currentPowerRequirementForWarp > available_power)
                 insufficientPowerTimeout = -1;
@@ -945,7 +938,7 @@ namespace FNPlugin
             else
                 insufficientPowerTimeout = 10;
 
-            if (this.vessel.altitude < this.vessel.mainBody.atmosphereDepth * (1 + 2 * Math.Pow(new_warp_factor, 0.25)))
+            if (this.vessel.altitude < this.vessel.mainBody.atmosphereDepth * (2 + Math.Pow(new_warp_factor, 0.25)))
             {
                 if (vesselWasInOuterspace)
                 {
@@ -956,6 +949,12 @@ namespace FNPlugin
             }
             else
                 vesselWasInOuterspace = true;
+
+            // retreive vessel heading
+            Vector3d new_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
+
+            // detect any changes in vessel heading and heading stability
+            magnitudeDiff = (active_part_heading - new_part_heading).magnitude;
 
             // determine if we need to change speed and heading
             var hasPowerShortage = insufficientPowerTimeout < 0;

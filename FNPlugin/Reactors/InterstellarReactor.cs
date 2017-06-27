@@ -398,7 +398,9 @@ namespace FNPlugin
         protected double currentIsThermalEnergyGeneratorEfficiency;
         protected double currentIsChargedEnergyGenratorEfficiency;
 
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Thermal Energy Request Ratio")]
         protected double storedGeneratorThermalEnergyRequestRatio;
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Charged Energy Request Ratio")]
         protected double storedGeneratorChargedEnergyRequestRatio;
 
         protected double currentGeneratorThermalEnergyRequestRatio;
@@ -1342,13 +1344,13 @@ namespace FNPlugin
                 var chargedParticlesManager = getManagerForVessel(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 var thermalHeatManager = getManagerForVessel(FNResourceManager.FNRESOURCE_THERMALPOWER);
 
-                var needed_charged_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(requested_charged_to_supply_per_second, min_throttle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
+                var needed_charged_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(max_charged_to_supply_per_second, min_throttle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
                 charged_power_ratio = Math.Min(maximum_charged_request_ratio, maximumChargedPower > 0 ? needed_charged_power_per_second / maximumChargedPower : 0);
                          
                 max_thermal_to_supply_per_second = maximumThermalPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
                 requested_thermal_to_supply_per_second = max_thermal_to_supply_per_second * power_request_ratio * maximum_thermal_request_ratio;
 
-                var needed_thermal_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(requested_thermal_to_supply_per_second, min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
+                var needed_thermal_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(max_thermal_to_supply_per_second, min_throttle, FNResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
                 thermal_power_ratio = Math.Min(maximum_thermal_request_ratio, maximumThermalPower > 0 ? needed_thermal_power_per_second / maximumThermalPower : 0);
 
                 var speedDivider = reactorSpeedMult > 0 ? 20 / reactorSpeedMult : 20;
