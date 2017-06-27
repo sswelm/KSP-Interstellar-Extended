@@ -30,9 +30,9 @@ namespace FNPlugin
 
 
         // reference types
-        protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
-        protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
-        protected float connectedRecieversSum;
+        protected Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
+        protected Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
+        protected double connectedRecieversSum;
 
         protected double storedIsThermalEnergyGeneratorActive;
         protected double currentIsThermalEnergyGeneratorActive;
@@ -55,9 +55,9 @@ namespace FNPlugin
 
         public bool FullPowerForNonNeutronAbsorbants { get { return true; } }
 
-        public float ReactorSpeedMult { get { return 1; } }
+        public double ReactorSpeedMult { get { return 1; } }
 
-        public float ThermalProcessingModifier { get { return 1; } }
+        public double ThermalProcessingModifier { get { return 1; } }
 
         public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGeneratorActive; } }
 
@@ -83,7 +83,7 @@ namespace FNPlugin
 
         //-----------------------------------------------------------------------------------------------
 
-        public void AttachThermalReciever(Guid key, float radius)
+        public void AttachThermalReciever(Guid key, double radius)
         {
             try
             {
@@ -112,9 +112,9 @@ namespace FNPlugin
             }
         }
 
-        public float GetFractionThermalReciever(Guid key)
+        public double GetFractionThermalReciever(Guid key)
         {
-            float result;
+            double result;
             if (connectedRecieversFraction.TryGetValue(key, out result))
                 return result;
             else
@@ -138,15 +138,15 @@ namespace FNPlugin
 
         public double PowerBufferBonus { get { return 0; } }
 
-        public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
+        public double ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
-        public float ThermalPropulsionEfficiency { get { return 1; } }
+        public double ThermalPropulsionEfficiency { get { return 1; } }
 
-        public float ThermalEnergyEfficiency { get { return 1; } }
+        public double ThermalEnergyEfficiency { get { return 1; } }
 
-        public float ChargedParticleEnergyEfficiency { get { return 0; } }
+        public double ChargedParticleEnergyEfficiency { get { return 0; } }
 
-        public float ChargedParticlePropulsionEfficiency { get { return 0; } }
+        public double ChargedParticlePropulsionEfficiency { get { return 0; } }
 
         public bool IsSelfContained { get { return false; } }
 
@@ -255,7 +255,7 @@ namespace FNPlugin
             return _thermalpower;
         }
 
-        public float GetRadius()
+        public double GetRadius()
         {
             return radius;
         }

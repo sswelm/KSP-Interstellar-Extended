@@ -122,7 +122,7 @@ namespace FNPlugin
         public double baseMaxIsp;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
-        public float radius;
+        public double radius;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
         public float exitArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Afterburner upgrade tech")]
@@ -507,8 +507,8 @@ namespace FNPlugin
 
                 jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3);
                 jetTechBonusPercentage = jetTechBonus / 26.84f;
-                effectiveJetengineAccelerationSpeed = jetengineAccelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * jetTechBonus / 5.368f * 5;
-                effectiveJetengineDecelerationSpeed = jetengineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * jetTechBonus / 5.368f * 5;
+                effectiveJetengineAccelerationSpeed = jetengineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonus / 5.368f * 5;
+                effectiveJetengineDecelerationSpeed = jetengineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonus / 5.368f * 5;
 
                 hasstarted = true;
 
@@ -863,8 +863,8 @@ namespace FNPlugin
 
                 myAttachedEngine.useAtmCurve = false;
                 myAttachedEngine.useVelCurve = false;
-                myAttachedEngine.engineAccelerationSpeed = engineAccelerationBaseSpeed * AttachedReactor.ReactorSpeedMult;
-                myAttachedEngine.engineDecelerationSpeed = engineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult;
+                myAttachedEngine.engineAccelerationSpeed = engineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult;
+                myAttachedEngine.engineDecelerationSpeed = engineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult;
                 myAttachedEngine.useEngineResponseTime = true;
             }
             else
@@ -1507,7 +1507,7 @@ namespace FNPlugin
         }
 
 
-        private float storedFractionThermalReciever;
+        private double storedFractionThermalReciever;
         private double GetHeatExchangerThrustDivisor()
         {
             if (AttachedReactor == null || AttachedReactor.GetRadius() == 0 || radius == 0) return 0;

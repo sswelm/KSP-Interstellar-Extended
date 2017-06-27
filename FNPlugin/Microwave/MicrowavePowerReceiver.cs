@@ -144,13 +144,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float atmosphereToleranceModifier = 1;
         [KSPField(isPersistant = false)]
-        public float thermalPropulsionEfficiency = 1;
+        public double thermalPropulsionEfficiency = 1;
         [KSPField(isPersistant = false)]
-        public float thermalEnergyEfficiency = 1;
+        public double thermalEnergyEfficiency = 1;
         [KSPField(isPersistant = false)]
-        public float chargedParticleEnergyEfficiency = 1;
+        public double chargedParticleEnergyEfficiency = 1;
         [KSPField(isPersistant = false)]
-        public float thermalProcessingModifier = 1;
+        public double thermalProcessingModifier = 1;
         [KSPField(isPersistant = false)]
         public bool canSwitchBandwidthInEditor = false;
         [KSPField(isPersistant = false)]
@@ -243,15 +243,15 @@ namespace FNPlugin
         protected bool isLoaded = false;
         protected bool waitForAnimationToComplete = false;
         protected double total_conversion_waste_heat_production;
-        protected float connectedRecieversSum;
+        protected double connectedRecieversSum;
         protected int initializationCountdown;
 
         protected Dictionary<Vessel, double> received_power = new Dictionary<Vessel, double>();
         protected List<MicrowavePowerReceiver> thermalReceiverSlaves = new List<MicrowavePowerReceiver>();
 
         // reference types
-        protected Dictionary<Guid, float> connectedRecievers = new Dictionary<Guid, float>();
-        protected Dictionary<Guid, float> connectedRecieversFraction = new Dictionary<Guid, float>();
+        protected Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
+        protected Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
 
         protected Dictionary<Guid, MonitorData> _monitorDataStore = new Dictionary<Guid,MonitorData>();
 
@@ -337,9 +337,9 @@ namespace FNPlugin
 
         public bool FullPowerForNonNeutronAbsorbants { get { return true; } }
 
-        public float ReactorSpeedMult { get { return 1; } }
+        public double ReactorSpeedMult { get { return 1; } }
 
-        public float ThermalProcessingModifier { get { return thermalProcessingModifier; } }
+        public double ThermalProcessingModifier { get { return thermalProcessingModifier; } }
 
         public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGenratorActive; } }
 
@@ -365,7 +365,7 @@ namespace FNPlugin
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
-        public void AttachThermalReciever(Guid key, float radius)
+        public void AttachThermalReciever(Guid key, double radius)
         {
             try
             {
@@ -396,9 +396,9 @@ namespace FNPlugin
             }
         }
 
-        public float GetFractionThermalReciever(Guid key)
+        public double GetFractionThermalReciever(Guid key)
         {
-            float result;
+            double result;
             if (connectedRecieversFraction.TryGetValue(key, out result))
                 return result;
             else
@@ -437,13 +437,14 @@ namespace FNPlugin
 
         public double PowerBufferBonus { get { return 0; } }
 
-        public float ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
+        public double ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
-        public float ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
+        public double ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
+        public double ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
-        public float ChargedParticleEnergyEfficiency { get { return 0; } }
+        public double ChargedParticleEnergyEfficiency { get { return 0; } }
 
-        public float ChargedParticlePropulsionEfficiency { get { return 0; } }
+        public double ChargedParticlePropulsionEfficiency { get { return 0; } }
 
         public bool IsSelfContained { get { return false; } }
 
@@ -468,8 +469,6 @@ namespace FNPlugin
         public bool IsActive { get { return receiverIsEnabled; } }
 
         public bool IsNuclear { get { return false; } }
-
-        public float ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
         [KSPEvent(guiActive = true, guiName = "Link Receiver for Relay", active = true)]
         public void LinkReceiver()
@@ -1648,7 +1647,7 @@ namespace FNPlugin
             return ThermalPower;
         }
 
-        public float GetRadius()
+        public double GetRadius()
         {
             return radius;
         }

@@ -48,8 +48,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Is Limited by min throtle")]
         public bool isLimitedByMinThrotle = false;
         [KSPField(isPersistant = false)]
-        public float powerOutputMultiplier = 1;
-
+        public double powerOutputMultiplier = 1;
 
         [KSPField(isPersistant = false, guiName = "Hot/Cold Bath Ratio")]
         public double hotColdBathRatio;
@@ -63,21 +62,21 @@ namespace FNPlugin
         public string originalName;
 
         [KSPField(isPersistant = false)]
-        public float pCarnotEff = 0.32f;
+        public double pCarnotEff = 0.32f;
         [KSPField(isPersistant = false)]
-        public float upgradedpCarnotEff = 0.64f;
+        public double upgradedpCarnotEff = 0.64f;
 
         [KSPField(isPersistant = false)]
-        public float directConversionEff = 0.6f;
+        public double directConversionEff = 0.6f;
         [KSPField(isPersistant = false)]
-        public float upgradedDirectConversionEff = 0.865f;
+        public double upgradedDirectConversionEff = 0.865f;
 
         [KSPField(isPersistant = false)]
-        public float efficiencyMk1 = 0;
+        public double efficiencyMk1 = 0;
         [KSPField(isPersistant = false)]
-        public float efficiencyMk2 = 0;
+        public double efficiencyMk2 = 0;
         [KSPField(isPersistant = false)]
-        public float efficiencyMk3 = 0;
+        public double efficiencyMk3 = 0;
 
         [KSPField(isPersistant = false)]
         public string Mk2TechReq = "";
@@ -85,7 +84,7 @@ namespace FNPlugin
         public string Mk3TechReq = "";
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Max Efficiency")]
-        public float maxEfficiency = 0;
+        public double maxEfficiency = 0;
 
         [KSPField(isPersistant = false)]
         public string animName;
@@ -94,11 +93,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float upgradeCost;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius")]
-        public float radius;
+        public double radius;
         [KSPField(isPersistant = false)]
         public string altUpgradedName;
         [KSPField(isPersistant = false)]
-        public float wasteHeatMultiplier = 1;
+        public double wasteHeatMultiplier = 1;
 
         [KSPField(isPersistant = false)]
         public bool maintainsMegaWattPowerBuffer = true;
@@ -165,7 +164,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Required Capacity", guiUnits = " MW_e")]
         public double requiredMegawattCapacity;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Heat Exchange Divisor")]
-        public float heat_exchanger_thrust_divisor;
+        public double heat_exchanger_thrust_divisor;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Requested Power", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_power_per_second;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Cold Bath Temp", guiUnits = "K", guiFormat = "F3")]
@@ -197,7 +196,7 @@ namespace FNPlugin
         protected int shutdown_counter = 0;
         protected int startcount = 0;
 
-        protected float powerCustomSettingFraction;
+        protected double powerCustomSettingFraction;
         protected double _previousMaxStableMegaWattPower;
         protected float previousDeltaTime;
 
@@ -605,12 +604,17 @@ namespace FNPlugin
             }
         }
 
+        public double PowerRatio
+        {
+            get { return (double)(decimal)(powerPercentage / 100); }
+        }
+
         /// <summary>
         /// Is called by KSP while the part is active
         /// </summary>
         public override void OnUpdate()
         {
-            powerCustomSettingFraction = powerPercentage / 100;
+            powerCustomSettingFraction = PowerRatio;
 
             Events["ActivateGenerator"].active = !IsEnabled && showSpecialisedUI;
             Events["DeactivateGenerator"].active = IsEnabled && showSpecialisedUI;

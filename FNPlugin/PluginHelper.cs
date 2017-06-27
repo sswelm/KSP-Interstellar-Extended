@@ -332,6 +332,22 @@ namespace FNPlugin
         private static string _radiatorUpgradeTech3 = String.Empty;
         public static string RadiatorUpgradeTech3 { get { return _radiatorUpgradeTech3; } private set { _radiatorUpgradeTech3 = value; } }
 
+
+        private static double _radiatorTemperatureMk1 = 1850;
+        public static double RadiatorTemperatureMk1 { get { return _radiatorTemperatureMk1; } private set { _radiatorTemperatureMk1 = value; } }
+
+        private static double _radiatorTemperatureMk2 = 2200;
+        public static double RadiatorTemperatureMk2 { get { return _radiatorTemperatureMk2; } private set { _radiatorTemperatureMk2 = value; } }
+
+        private static double _radiatorTemperatureMk3 = 2616;
+        public static double RadiatorTemperatureMk3 { get { return _radiatorTemperatureMk3; } private set { _radiatorTemperatureMk3 = value; } }
+
+        private static double _radiatorTemperatureMk4 = 3111;
+        public static double RadiatorTemperatureMk4 { get { return _radiatorTemperatureMk4; } private set { _radiatorTemperatureMk4 = value; } }
+
+        private static double _radiatorTemperatureMk5 = 3700;
+        public static double RadiatorTemperatureMk5 { get { return _radiatorTemperatureMk5; } private set { _radiatorTemperatureMk5 = value; } }
+
         #endregion
 
         public static bool HasTechRequirementOrEmpty(string techName)
@@ -950,6 +966,32 @@ namespace FNPlugin
                     {
                         PluginHelper.RadiatorUpgradeTech3 = plugin_settings.GetValue("RadiatorUpgradeTech3");
                         Debug.Log("[KSPI] RadiatorUpgradeTech3" + PluginHelper.RadiatorUpgradeTech3);
+                    }
+
+                    if (plugin_settings.HasValue("RadiatorTemperatureMk1"))
+                    {
+                        PluginHelper.RadiatorTemperatureMk1 = double.Parse(plugin_settings.GetValue("RadiatorTemperatureMk1"));
+                        Debug.Log("[KSPI] RadiatorTemperatureMk1" + PluginHelper.RadiatorTemperatureMk1);
+                    }
+                    if (plugin_settings.HasValue("RadiatorTemperatureMk2"))
+                    {
+                        PluginHelper.RadiatorTemperatureMk2 = double.Parse(plugin_settings.GetValue("RadiatorTemperatureMk2"));
+                        Debug.Log("[KSPI] RadiatorTemperatureMk2" + PluginHelper.RadiatorTemperatureMk2);
+                    }
+                    if (plugin_settings.HasValue("RadiatorTemperatureMk3"))
+                    {
+                        PluginHelper.RadiatorTemperatureMk3 = double.Parse(plugin_settings.GetValue("RadiatorTemperatureMk3"));
+                        Debug.Log("[KSPI] RadiatorTemperatureMk3" + PluginHelper.RadiatorTemperatureMk3);
+                    }
+                    if (plugin_settings.HasValue("RadiatorTemperatureMk4"))
+                    {
+                        PluginHelper.RadiatorTemperatureMk4 = double.Parse(plugin_settings.GetValue("RadiatorTemperatureMk4"));
+                        Debug.Log("[KSPI] RadiatorTemperatureMk4" + PluginHelper.RadiatorTemperatureMk4);
+                    }
+                    if (plugin_settings.HasValue("RadiatorTemperatureMk5"))
+                    {
+                        PluginHelper.RadiatorTemperatureMk5 = double.Parse(plugin_settings.GetValue("RadiatorTemperatureMk5"));
+                        Debug.Log("[KSPI] RadiatorTemperatureMk5" + PluginHelper.RadiatorTemperatureMk5);
                     }
 
                     resources_configured = true;

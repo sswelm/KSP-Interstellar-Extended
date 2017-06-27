@@ -14,7 +14,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false)]
         public bool IsCharging = false;
         [KSPField(isPersistant = true)]
-        private float existing_warpfactor;
+        private double existing_warpfactor;
         [KSPField(isPersistant = true)]
         public bool warpInit = false;
         [KSPField(isPersistant = true)]
@@ -41,63 +41,58 @@ namespace FNPlugin
         public double powerRequirementMultiplier = 1;
 
         [KSPField(isPersistant = false)]
-        public float wasteheatRatio = 0.5f;
+        public double wasteheatRatio = 0.5;
         [KSPField(isPersistant = false)]
-        public float wasteheatRatioUpgraded = 0.25f;
+        public double wasteheatRatioUpgraded = 0.25;
         [KSPField(isPersistant = false)]
-        public float wasteHeatMultiplier = 1;
-
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Pull", guiUnits = "g", guiFormat = "F3")]
-        public double gravityPull;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Warp Limit", guiUnits = "c", guiFormat = "F3")]
-        public double maximumWarpForGravityPull;
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Mass", guiUnits = "t")]
-        public float partMass;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Total Warp Power", guiFormat = "F3", guiUnits = "t")]
-        protected double sumOfAlcubierreDrives;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Vessel Total Mass", guiFormat = "F3", guiUnits = "t")]
-        public float vesselTotalMass;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Warp to Mass Ratio", guiFormat = "F3")]
-        public double warpToMassRatio;
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
-        public double magnitudeDiff;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Change")]
-        public double magnitudeChange;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Req Exotic Matter", guiUnits = " MW", guiFormat = "F2")]
-        protected double exotic_power_required = 1000;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Abs Min Power Warp", guiFormat = "F2", guiUnits = "MW")]
-        public double minPowerRequirementForLightSpeed;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Cur Power for Warp ", guiFormat = "F2", guiUnits = "MW")]
-        public double currentPowerRequirementForWarp;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Power Max Speed", guiFormat = "F2", guiUnits = "MW")]
-        public double PowerRequirementForMaximumAllowedLightSpeed;
-
+        public double wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
         public string warpdriveType = "Alcubierre Drive";
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Current Selected Throttle", guiUnits = "c", guiFormat = "F3")]
-        public float WarpEngineThrottle;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Allowed Throtle", guiUnits = "c", guiFormat = "F3")]
-        public float maximumAllowedWarpThrotle;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity At Sea Level", guiUnits = "g", guiFormat = "F4")]
+        public double gravityAtSeaLevel;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Pull", guiUnits = "g", guiFormat = "F4")]
+        public double gravityPull;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Drag", guiUnits = "%", guiFormat = "F4")]
+        public double gravityDragPercentage;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Maximum Warp Limit", guiUnits = "c", guiFormat = "F4")]
+        public double maximumWarpForGravityPull;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Mass", guiUnits = "t")]
+        public float partMass;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Total Warp Power", guiFormat = "F4", guiUnits = "t")]
+        protected double sumOfAlcubierreDrives;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Vessel Total Mass", guiFormat = "F4", guiUnits = "t")]
+        public float vesselTotalMass;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Warp to Mass Ratio", guiFormat = "F4")]
+        public double warpToMassRatio;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
+        public double magnitudeDiff;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Req Exotic Matter", guiUnits = " MW", guiFormat = "F2")]
+        protected double exotic_power_required = 1000;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Abs Min Power Warp", guiUnits = "MW", guiFormat = "F4")]
+        public double minPowerRequirementForLightSpeed;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Cur Power for Warp ", guiUnits = "MW", guiFormat = "F4")]
+        public double currentPowerRequirementForWarp;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Power Max Speed", guiUnits = "MW", guiFormat = "F4")]
+        public double PowerRequirementForMaximumAllowedLightSpeed;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Current Selected Throttle", guiUnits = "c", guiFormat = "F4")]
+        public double WarpEngineThrottle;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Allowed Throtle", guiUnits = "c", guiFormat = "F4")]
+        public double maximumAllowedWarpThrotle;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string DriveStatus;
-
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
-
         [KSPField(isPersistant = true)]
         public string serialisedwarpvector;
-
         [KSPField(isPersistant = true)]
         public bool isDeactivatingWarpDrive = false;
 
-        private float[] engine_throtle = { 0.01f, 0.016f, 0.025f, 0.04f, 0.063f, 0.1f, 0.16f, 0.25f, 0.40f, 0.63f, 1.0f, 1.6f, 2.5f, 4.0f, 6.3f, 10, 16, 25, 40, 63, 100, 160, 250, 400, 630, 1000 };
+        private double[] engine_throtle = { 0.001, 0.0016, 0.0025, 0.004, 0.0063, 0.01, 0.016, 0.025, 0.04, 0.063, 0.1, 0.16, 0.25, 0.40, 0.63, 1.0, 1.6, 2.5, 4.0, 6.3, 10, 16, 25, 40, 63, 100, 160, 250, 400, 630, 1000 };
 
         protected int old_selected_factor = 0;
-        protected float tex_count;
+        protected double tex_count;
         protected GameObject warp_effect;
         protected GameObject warp_effect2;
         protected Texture[] warp_textures;
@@ -109,7 +104,6 @@ namespace FNPlugin
 
         private AnimationState[] animationState;
         private Vector3d heading_act;
-        private Vector3d previous_Frame_heading;
         private Vector3d active_part_heading;
         private List<AlcubierreDrive> alcubierreDrives;
         private int minimum_selected_factor;
@@ -117,6 +111,9 @@ namespace FNPlugin
         private int minimumPowerAllowedFactor;
         private int insufficientPowerTimeout = 10;
         private bool vesselWasInOuterspace;
+
+        private long counterCurrent;
+        private long counterPreviousChange;
 
         private PartResource wasteheatPowerResource;
         private PartResource exoticMatterResource;
@@ -128,6 +125,8 @@ namespace FNPlugin
         private Collider warp_effect2_collider;
 
         private PartResourceDefinition exoticResourceDefinition;
+
+        private CelestialBody warpInitialMainBody;
 
 
         [KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
@@ -225,7 +224,7 @@ namespace FNPlugin
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
 
-            float new_warpfactor = engine_throtle[selected_factor];
+            double new_warpfactor = engine_throtle[selected_factor];
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warpfactor);
 
@@ -262,7 +261,7 @@ namespace FNPlugin
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
 
-            float new_warp_factor = engine_throtle[selected_factor];
+            double new_warp_factor = engine_throtle[selected_factor];
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warp_factor);
 
@@ -305,8 +304,10 @@ namespace FNPlugin
             warp_sound.Play();
             warp_sound.loop = true;
 
+            warpInitialMainBody = vessel.mainBody;
+
             // prevent g-force effects
-            part.vessel.IgnoreGForces(50);
+            part.vessel.IgnoreGForces(1);
 
             active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
 
@@ -328,7 +329,6 @@ namespace FNPlugin
             IsEnabled = true;
 
             existing_warpfactor = new_warp_factor;
-            previous_Frame_heading = active_part_heading;
         }
 
         [KSPEvent(guiActive = true, guiName = "Deactivate Warp Drive", active = false)]
@@ -338,15 +338,8 @@ namespace FNPlugin
             if (!IsEnabled)
                 return;
 
-            //float atmosphere_height = (float)this.vessel.mainBody.atmosphereDepth;
-            //if (this.vessel.altitude <= atmosphere_height && vessel.mainBody.flightGlobalsIndex != 0) 
-            //{
-            //    ScreenMessages.PostScreenMessage("Cannot deactivate warp drive within the atmosphere!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-            //    return;
-            //}
-
             // prevent g-force effects
-            part.vessel.IgnoreGForces(50);
+            part.vessel.IgnoreGForces(1);
 
             IsEnabled = false;
             warp_sound.Stop();
@@ -366,6 +359,11 @@ namespace FNPlugin
             
             Debug.Log("[KSPI] - GoOffRails");
             vessel.GoOffRails();
+
+            if (warpInitialMainBody != null && vessel.mainBody != warpInitialMainBody)
+            {
+                Develocitize();
+            }
         }
 
         [KSPEvent(guiActive = true, guiName = "Warp Throttle (+)", active = true)]
@@ -740,6 +738,9 @@ namespace FNPlugin
             {
                 vesselTotalMass = vessel.GetTotalMass();
                 gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
+                gravityAtSeaLevel = vessel.mainBody.GeeASL * GameConstants.STANDARD_GRAVITY;
+                gravityDragPercentage = (1 - Math.Pow((1 - gravityPull / gravityAtSeaLevel), 2)) * 100;
+
                 maximumWarpForGravityPull = vessel.mainBody.flightGlobalsIndex != 0
                     ? 1 / (Math.Max(gravityPull - 0.006, 0.001) * 10)
                     : 1 / gravityPull;
@@ -771,6 +772,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
+            counterCurrent++;
 
             if (initiateWarpTimeout > 0)
                 InitiateWarp();
@@ -794,7 +796,7 @@ namespace FNPlugin
 
             WarpEngineThrottle = engine_throtle[selected_factor];
 
-            tex_count += 1f * WarpEngineThrottle;
+            tex_count += WarpEngineThrottle;
 
             WarpdriveCharging();
 
@@ -820,9 +822,13 @@ namespace FNPlugin
                     ? (maxExoticMatter - currentExoticMatter) / 0.001
                     : Math.Max(minPowerRequirementForLightSpeed, Math.Min((maxExoticMatter - currentExoticMatter) / 0.001, getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES)));
 
+                var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+
+                var effectiveResourceThrotling = resourceBarRatio > 0.5 ? 1 : resourceBarRatio * 2;
+
                 double power_returned = CheatOptions.InfiniteElectricity 
                     ? powerDraw
-                    : consumeFNResource(powerDraw * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                    : consumeFNResourcePerSecond(effectiveResourceThrotling * powerDraw, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 if (power_returned < 0.99 * minPowerRequirementForLightSpeed)
                     insufficientPowerTimeout--;
@@ -874,7 +880,10 @@ namespace FNPlugin
         private void ProduceWasteheat(double power_returned)
         {
             if (!CheatOptions.IgnoreMaxTemperature)
-                supplyFNResourceFixed(power_returned * (isupgraded ? wasteheatRatioUpgraded : wasteheatRatio) * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourcePerSecond(power_returned * 
+                    (isupgraded 
+                        ? wasteheatRatioUpgraded 
+                        : wasteheatRatio), FNResourceManager.FNRESOURCE_WASTEHEAT);
         }
 
         private void UpdateWateheatBuffer(double maxWasteheatRatio = 1)
@@ -892,7 +901,11 @@ namespace FNPlugin
         private double GetPowerRequirementForWarp(double lightspeedFraction)
         {
             var sqrtSpeed = Math.Sqrt(lightspeedFraction);
-            var powerModifier = lightspeedFraction < 1 ? 1 / sqrtSpeed : sqrtSpeed;
+
+            var powerModifier = lightspeedFraction < 1 
+                ? 1 / sqrtSpeed 
+                : sqrtSpeed;
+
             return powerModifier * exotic_power_required;
         }
 
@@ -900,7 +913,7 @@ namespace FNPlugin
         {
             if (!IsEnabled || exotic_power_required <= 0) return;
 
-            float new_warp_factor = engine_throtle[selected_factor];
+            double new_warp_factor = engine_throtle[selected_factor];
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warp_factor);
 
@@ -914,8 +927,7 @@ namespace FNPlugin
                 power_returned = currentPowerRequirementForWarp;
             else
             {
-                power_returned = consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-
+                power_returned = consumeFNResourcePerSecond(currentPowerRequirementForWarp, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 ProduceWasteheat(power_returned);
             }
 
@@ -924,8 +936,6 @@ namespace FNPlugin
 
             // detect any changes in vessel heading and heading stability
             magnitudeDiff = (active_part_heading - new_part_heading).magnitude;
-            magnitudeChange = (previous_Frame_heading - new_part_heading).magnitude;
-            previous_Frame_heading = new_part_heading;
 
             // detect power shortage
             if (currentPowerRequirementForWarp > available_power)
@@ -935,12 +945,11 @@ namespace FNPlugin
             else
                 insufficientPowerTimeout = 10;
 
-
-            if (this.vessel.altitude < this.vessel.mainBody.atmosphereDepth * 3)
+            if (this.vessel.altitude < this.vessel.mainBody.atmosphereDepth * (1 + 2 * Math.Pow(new_warp_factor, 0.25)))
             {
                 if (vesselWasInOuterspace)
                 {
-                    Debug.Log("[KSPI] - Droped out of warp because close to atmosphere");
+                    Debug.Log("[KSPI] - Droped out of warp because too close to atmosphere");
                     DeactivateWarpDrive();
                     return;
                 }
@@ -950,33 +959,38 @@ namespace FNPlugin
 
             // determine if we need to change speed and heading
             var hasPowerShortage = insufficientPowerTimeout < 0;
-            var hasHeadingChanged = magnitudeDiff > 0.05 && magnitudeChange < 0.0001;
+            var hasHeadingChanged = magnitudeDiff > 0.001 && counterCurrent > counterPreviousChange + 50;
             var hasWarpFactorChange = existing_warpfactor != new_warp_factor;
             var hasGavityPullInbalance = maximumWarpSpeedFactor < selected_factor;
 
             if (hasGavityPullInbalance)
-            {
                 selected_factor = maximumWarpSpeedFactor;
-            }
 
             if (!CheatOptions.InfiniteElectricity && hasPowerShortage)
             {
-                if (selected_factor == minimumPowerAllowedFactor || selected_factor == minimum_selected_factor || power_returned < 0.99 * PowerRequirementForMaximumAllowedLightSpeed)
+                if (selected_factor == minimumPowerAllowedFactor || selected_factor == minimum_selected_factor || available_power < 0.63 * PowerRequirementForMaximumAllowedLightSpeed)
                 {
-                    var message = "Critical Power shortage, deactivating warp";
+                    string message;
+                    if (available_power < 0.63 * PowerRequirementForMaximumAllowedLightSpeed)
+                        message = "Critical Power supply at " + power_returned / PowerRequirementForMaximumAllowedLightSpeed * 100 + "% , deactivating warp";
+                    else
+                        message = "Critical Power shortage while at minimum speed, deactivating warp";
+
                     Debug.Log("[KSPI] - " + message);
-                    ScreenMessages.PostScreenMessage(message);
+                    ScreenMessages.PostScreenMessage(message, 5);
                     DeactivateWarpDrive();
                     return;
                 }
                 var insufficientMessage = "Insufficient Power " + power_returned.ToString("0.0") + " / " + currentPowerRequirementForWarp.ToString("0.0") + ", reducing power drain";
                 Debug.Log("[KSPI] - " + insufficientMessage);
-                ScreenMessages.PostScreenMessage(insufficientMessage);
+                ScreenMessages.PostScreenMessage(insufficientMessage, 5);
                 ReduceWarpPower();
             }
 
             if (hasWarpFactorChange || hasPowerShortage || hasHeadingChanged || hasGavityPullInbalance)
             {
+                counterPreviousChange = counterCurrent;
+
                 new_warp_factor = engine_throtle[selected_factor];
                 existing_warpfactor = new_warp_factor;
 
@@ -986,21 +1000,21 @@ namespace FNPlugin
                 active_part_heading = new_part_heading;
                 serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
-                // prevent g-force effects
-                part.vessel.IgnoreGForces(50);
+                var previous_rotation = vessel.transform.rotation;
 
-                Debug.Log("[KSPI] - GoOnRails");
+                // prevent g-force effects for next frame
+                part.vessel.IgnoreGForces(1);
+
                 vessel.GoOnRails();
 
-                var vel = vessel.orbit.vel + reverse_heading + heading_act;
-                Debug.Log("[KSPI] - UpdateFromStateVectors position x:" + vessel.orbit.pos.x + ",y:" + vessel.orbit.pos.y + ",z" + vessel.orbit.pos.z);
-                Debug.Log("[KSPI] - UpdateFromStateVectors velocity x:" + vel.x + ",y:" + vel.y + ",z" + vel.z);
+                var new_velocity = vessel.orbit.vel + reverse_heading + heading_act;
 
-                vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vel, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
-                Debug.Log("[KSPI] - GoOffRails");
+                vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, new_velocity, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
                 vessel.GoOffRails();
-            }
 
+                if (TimeWarp.fixedDeltaTime == 0.02)
+                    vessel.SetRotation(previous_rotation); 
+            }
         }
 
         public static AnimationState[] SetUpAnimation(string animationName, Part part)
@@ -1017,7 +1031,70 @@ namespace FNPlugin
             }
             return states.ToArray();
         }
+
+        public void Develocitize()
+        {
+            // This code is inspired quite heavily by HyperEdit's OrbitEditor.cs
+            double universalTime = Planetarium.GetUniversalTime();
+            Orbit currentOrbit = vessel.orbitDriver.orbit;
+            Vector3d currentOrbitalVelocity = currentOrbit.getOrbitalVelocityAtUT(universalTime);
+            Vector3d progradeNormalizedVelocity = currentOrbitalVelocity.normalized;
+
+            Vector3d velocityToCancel = currentOrbitalVelocity;
+            velocityToCancel *= Math.Pow((1 - gravityPull / gravityAtSeaLevel), 2); 
+            Vector3d exVelocityToCancel = velocityToCancel;
+            velocityToCancel += currentOrbitalVelocity;
+
+            // Extremely small velocities cause the game to mess up very badly, so try something small and increase...
+            float multiplier = 0;
+            Orbit newOribit;
+            do
+            {
+                Vector3d retrogradeNormalizedVelocity = progradeNormalizedVelocity * -multiplier;
+
+                newOribit = new Orbit(currentOrbit);
+                newOribit.UpdateFromStateVectors(currentOrbit.pos, retrogradeNormalizedVelocity - exVelocityToCancel, currentOrbit.referenceBody, universalTime);
+
+                multiplier += 1;
+            } while (double.IsNaN(newOribit.getOrbitalVelocityAtUT(universalTime).magnitude));
+
+            vessel.Landed = false;
+            vessel.Splashed = false;
+            vessel.landedAt = string.Empty;
+
+            // I'm actually not sure what this is for... but HyperEdit does it.
+            // I had weird problems when I took it out, anyway.
+            try
+            {
+                OrbitPhysicsManager.HoldVesselUnpack(60);
+            }
+            catch (NullReferenceException)
+            {
+                //print("[WSXDV] NullReferenceException");
+            }
+            var allVessels = FlightGlobals.fetch == null 
+                ? (IEnumerable<Vessel>)new[] { vessel } 
+                : FlightGlobals.Vessels;
+
+            foreach (var currentVessel in allVessels.Where(v => v.packed == false))
+            {
+                currentVessel.GoOnRails();
+            }
+            // End HyperEdit code I don't really understand
+
+            currentOrbit.inclination = newOribit.inclination;
+            currentOrbit.eccentricity = newOribit.eccentricity;
+            currentOrbit.semiMajorAxis = newOribit.semiMajorAxis;
+            currentOrbit.LAN = newOribit.LAN;
+            currentOrbit.argumentOfPeriapsis = newOribit.argumentOfPeriapsis;
+            currentOrbit.meanAnomalyAtEpoch = newOribit.meanAnomalyAtEpoch;
+            currentOrbit.epoch = newOribit.epoch;
+            currentOrbit.Init();
+            currentOrbit.UpdateFromUT(universalTime);
+
+            vessel.orbitDriver.pos = vessel.orbit.pos.xzy;
+            vessel.orbitDriver.vel = vessel.orbit.vel;
+        }
+
     }
-
-
 }

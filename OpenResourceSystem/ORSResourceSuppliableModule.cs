@@ -13,6 +13,7 @@ namespace OpenResourceSystem
 
         protected Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
         protected String[] resources_to_supply;
+        protected double timeWarpFixedDeltaTime;
 
         public void receiveFNResource(double power, String resourcename)
         {
@@ -97,15 +98,6 @@ namespace OpenResourceSystem
             return manager.powerSupplyPerSecondWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
         }
 
-        public double supplyManagedFNResourceFixed(double supply, String resourcename)
-        {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
-            if (manager == null)
-                return 0;
-
-            return manager.managedPowerSupplyFixed(this, Math.Max(supply, 0));
-        }
-
         public double supplyManagedFNResourcePerSecond(double supply, String resourcename)
         {
             ORSResourceManager manager = getManagerForVessel(resourcename);
@@ -123,26 +115,6 @@ namespace OpenResourceSystem
                 return 0;
 
             return manager.getNeededPowerSupplyPerSecondWithMinimumRatio(Math.Max(supply, 0), Math.Max(ratio_min, 0));
-        }
-
-        public double getNeededPowerSupplyFixedWithMinimumRatio(double supply, double ratio_min, String resourcename, ORSResourceManager manager = null)
-        {
-            if (manager == null)
-                manager = getManagerForVessel(resourcename);
-            if (manager == null)
-                return 0;
-
-            return manager.getNeededPowerSupplyFixedWithMinimumRatio(Math.Max(supply, 0), Math.Max(ratio_min, 0));
-        }
-
-        public double supplyManagedFNResourceFixedWithMinimumRatio(double supply, double ratio_min, String resourcename, ORSResourceManager manager = null)
-        {
-            if (manager == null)
-                manager = getManagerForVessel(resourcename);
-            if (manager == null)
-                return 0;
-
-            return manager.managedPowerSupplyFixedWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
         public double supplyManagedFNResourcePerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ORSResourceManager manager = null)
@@ -291,7 +263,6 @@ namespace OpenResourceSystem
             return manager.getResourceAvailability();
         }
 
-
         public double getTotalResourceCapacity(String resourcename)
         {
             ORSResourceManager manager = getManagerForVessel(resourcename);
@@ -320,8 +291,15 @@ namespace OpenResourceSystem
             getSupplyPriorityManager(this.vessel).Register(this);
         }
 
+        protected double TimeWarpFixedDeltaTime
+        {
+            get { return (double)(decimal)TimeWarp.fixedDeltaTime; }
+        }
+
         public override void OnFixedUpdate()
         {
+            timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
+
             try
             {
                 updateCounter++;

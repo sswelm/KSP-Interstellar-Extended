@@ -122,8 +122,9 @@ namespace OpenResourceSystem
 
         public void powerDrawFixed(ORSResourceSuppliable pm, double power_draw, double power_cosumtion) 
         {
-            var power_draw_per_second = power_draw / TimeWarp.fixedDeltaTime;
-            var power_cosumtion_per_second = power_cosumtion / TimeWarp.fixedDeltaTime;
+            var timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
+            var power_draw_per_second = power_draw / timeWarpFixedDeltaTime;
+            var power_cosumtion_per_second = power_cosumtion / timeWarpFixedDeltaTime;
             
             PowerConsumption powerConsumption;
             if (!power_consumption.TryGetValue(pm, out powerConsumption))
@@ -149,7 +150,7 @@ namespace OpenResourceSystem
 
         public double powerSupplyFixed(IORSResourceSupplier pm, double power) 
         {
-            var current_power_supply_per_second = power / TimeWarp.fixedDeltaTime;
+            var current_power_supply_per_second = power / TimeWarpFixedDeltaTime;
 
             currentPowerSupply += current_power_supply_per_second;
             stable_supply += current_power_supply_per_second;
@@ -187,8 +188,10 @@ namespace OpenResourceSystem
 
         public double powerSupplyFixedWithMax(IORSResourceSupplier pm, double power, double maxpower) 
         {
-            var current_power_supply_per_second = power / TimeWarp.fixedDeltaTime;
-            var maximum_power_supply_per_second = maxpower / TimeWarp.fixedDeltaTime;
+            var timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
+
+            var current_power_supply_per_second = power / timeWarpFixedDeltaTime;
+            var maximum_power_supply_per_second = maxpower / timeWarpFixedDeltaTime;
 
             currentPowerSupply += current_power_supply_per_second;
             stable_supply += maximum_power_supply_per_second;
@@ -222,11 +225,6 @@ namespace OpenResourceSystem
 
             return power;
         }
-
-        public double managedPowerSupplyFixed(IORSResourceSupplier pm, double power) 
-        {
-			return managedPowerSupplyFixedWithMinimumRatio (pm, power, 0);
-		}
 
         public double managedPowerSupplyPerSecond(IORSResourceSupplier pm, double power)
         {
@@ -266,57 +264,16 @@ namespace OpenResourceSystem
             var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
 
             var needed_power_per_second = Math.Min(maximum_available_power_per_second, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
-            //var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
-            //Math.Min(maximum_available_power_per_second, required_power_per_second);
 
             return needed_power_per_second;
         }
-
-        public double getNeededPowerSupplyFixedWithMinimumRatio(double power, double ratio_min)
-        {
-            var maximum_available_power_per_second = power / TimeWarp.fixedDeltaTime;
-            var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
-
-            var needed_power_per_second = Math.Min(maximum_available_power_per_second, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
-
-            return needed_power_per_second * TimeWarp.fixedDeltaTime;
-        }
-
-        public double managedPowerSupplyFixedWithMinimumRatio(IORSResourceSupplier pm, double power, double ratio_min) 
-        {
-			var maximum_available_power_per_second = power / TimeWarp.fixedDeltaTime;
-            var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
-
-            var provided_demand_power_per_second = Math.Min(maximum_available_power_per_second, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
-
-            var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
-            var managed_supply_per_second = Math.Min(maximum_available_power_per_second, required_power_per_second);
-
-			currentPowerSupply += managed_supply_per_second;
-			stable_supply += maximum_available_power_per_second;
-
-            PowerGenerated powerGenerated;
-            if (!power_produced.TryGetValue(pm, out powerGenerated))
-            {
-                powerGenerated = new PowerGenerated();
-                power_produced.Add(pm, powerGenerated);
-            }
-
-            powerGenerated.currentSupply += managed_supply_per_second;
-            powerGenerated.currentProvided += provided_demand_power_per_second;
-            powerGenerated.maximumSupply += maximum_available_power_per_second;
-            powerGenerated.minimumSupply += minimum_power_per_second;
-
-            return provided_demand_power_per_second * TimeWarp.fixedDeltaTime;
-		}
 
         public double managedRequestedPowerSupplyPerSecondMinimumRatio(IORSResourceSupplier pm, double requested_power,  double maximum_power, double ratio_min)
         {
             var minimum_power_per_second = maximum_power * ratio_min;
 
-            var provided_demand_power_per_second = Math.Min(requested_power, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
-            var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
-            var managed_supply_per_second = Math.Min(requested_power, required_power_per_second);
+            var provided_demand_power_per_second = Math.Max(minimum_power_per_second, Math.Min(requested_power, GetCurrentUnfilledResourceDemand()));
+            var managed_supply_per_second = Math.Max(minimum_power_per_second, Math.Min(requested_power, GetRequiredResourceDemand()));
 
             currentPowerSupply += managed_supply_per_second;
             stable_supply += maximum_power;
@@ -390,7 +347,6 @@ namespace OpenResourceSystem
 
         public double GetRequiredResourceDemand()
         {
-            //return GetCurrentUnfilledResourceDemand() + getSpareResourceCapacity() / TimeWarp.fixedDeltaTime;
             return GetCurrentUnfilledResourceDemand() + getSpareResourceCapacity();
         }
 
@@ -414,6 +370,8 @@ namespace OpenResourceSystem
 
         public void update(long counter) 
         {
+            var timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
+
             IsUpdatedAtLeastOnce = true;
             Counter = counter;
 
@@ -460,10 +418,10 @@ namespace OpenResourceSystem
                 my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
                 double stock_electric_charge_needed = maxAmount - amount;
 
-                double power_supplied = Math.Min(currentPowerSupply * 1000 * TimeWarp.fixedDeltaTime, stock_electric_charge_needed);
+                double power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
                 if (stock_electric_charge_needed > 0)
                 {
-                    var deltaResourceDemand = stock_electric_charge_needed / 1000.0 / TimeWarp.fixedDeltaTime;
+                    var deltaResourceDemand = stock_electric_charge_needed / 1000 / timeWarpFixedDeltaTime;
                     current_resource_demand += deltaResourceDemand;
                     charge_resource_demand += deltaResourceDemand;
                 }
@@ -471,7 +429,7 @@ namespace OpenResourceSystem
                 if (power_supplied > 0)
                 {
                     double fixed_provided_electric_charge_in_MW = my_part.RequestResource(ORSResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -power_supplied) / 1000;
-                    var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW / TimeWarp.fixedDeltaTime;
+                    var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW / timeWarpFixedDeltaTime;
                     total_power_distributed += -provided_electric_charge_per_second;
                     currentPowerSupply += provided_electric_charge_per_second;
                 }
@@ -620,7 +578,7 @@ namespace OpenResourceSystem
 
             // substract avaialble resource amount to get delta resource change
             currentPowerSupply -= Math.Max(availableResourceAmount, 0.0);
-            internl_power_extract_fixed = -currentPowerSupply * TimeWarp.fixedDeltaTime;
+            internl_power_extract_fixed = -currentPowerSupply * timeWarpFixedDeltaTime;
 
             pluginSpecificImpl();
 
@@ -663,6 +621,11 @@ namespace OpenResourceSystem
 
             power_produced.Clear();
             power_consumption.Clear();
+        }
+
+        protected double TimeWarpFixedDeltaTime
+        {
+            get { return (double)(decimal)TimeWarp.fixedDeltaTime; }
         }
 
         protected virtual void pluginSpecificImpl() 

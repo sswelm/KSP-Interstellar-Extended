@@ -48,7 +48,7 @@ namespace FNPlugin
         protected ModuleEnginesWarp _attached_warpable_engine;
 		protected IChargedParticleSource _attached_reactor;
         protected int _attached_reactor_distance;
-        protected float exchanger_thrust_divisor;
+        protected double exchanger_thrust_divisor;
         protected double calculatedIsp;
         protected double _previous_charged_particles_received;
 

@@ -188,7 +188,7 @@ namespace FNPlugin
                     var sumOfMaximumSupply = group.Sum(m => m.Value.maximumSupply);
 
                     // skip anything with less then 0.00 KW
-                    if (sumOfCurrentSupply < 0.000005)
+                    if (sumOfCurrentSupply < 0.00005)
                         continue;
 
                     GUILayout.BeginHorizontal();
