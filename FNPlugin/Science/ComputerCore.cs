@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -9,7 +7,7 @@ namespace FNPlugin
     class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule
     {
         [KSPField(isPersistant = false)]
-        const float baseScienceRate = 0.3f;
+        const double baseScienceRate = 0.3;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
         public string computercoreType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]

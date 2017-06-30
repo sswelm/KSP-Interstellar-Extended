@@ -169,7 +169,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false)]
         public string surfaceAreaUpgradeTechReq = null;
         [KSPField(isPersistant = false, guiActive = false)]
-        public float surfaceAreaUpgradeMult = 1.6f;
+        public double surfaceAreaUpgradeMult = 1.6;
 
         // non persistant
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Mass", guiUnits = " t")]
@@ -191,7 +191,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float emissiveColorPower = 3;
         [KSPField(isPersistant = false)]
-        public float wasteHeatMultiplier = 1;
+        public double wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
         public string colorHeat = "_EmissiveColor";
         [KSPField(isPersistant = false, guiActive = false)]
@@ -207,7 +207,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiativeArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public float areaMultiplier = 2.5f;
+        public double areaMultiplier = 2.5;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
         public double effectiveRadiatorArea;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
@@ -244,10 +244,8 @@ namespace FNPlugin
 		protected double radiatedThermalPower;
 		protected double convectedThermalPower;
 		
-		protected float directionrotate = 1;
-        protected long update_count = 0;
-		protected int explode_counter = 0;
-
+        protected long update_count;
+		protected int explode_counter;
         
 
         private BaseEvent deployRadiatorEvent;
@@ -264,7 +262,7 @@ namespace FNPlugin
         private AnimationState[] heatStates;
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
-        private PartResource wasteheatPowerResource = null;
+        private PartResource wasteheatPowerResource;
         private ORSResourceManager wasteheatManager;
 
         
@@ -406,7 +404,7 @@ namespace FNPlugin
                 if (radiator.vessel == vess) 
                 {
                     average_temp += radiator.maxRadiatorTemperature;
-                    n_radiators += 1.0f;
+                    n_radiators += 1;
                 }
             }
 
@@ -448,7 +446,7 @@ namespace FNPlugin
             deployAnim[animName].enabled = true;
             deployAnim[animName].speed = 0.5f;
             deployAnim[animName].normalizedTime = 0f;
-            deployAnim.Blend(animName, 2f);
+            deployAnim.Blend(animName, 2);
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Retract Radiator", active = true)]
@@ -480,8 +478,8 @@ namespace FNPlugin
 
             deployAnim[animName].enabled = true;
             deployAnim[animName].speed = -0.5f;
-            deployAnim[animName].normalizedTime = 1f;
-            deployAnim.Blend(animName, 2f);
+            deployAnim[animName].normalizedTime = 1;
+            deployAnim.Blend(animName, 2);
         }
 
 		[KSPAction("Deploy Radiator")]
@@ -519,7 +517,6 @@ namespace FNPlugin
             radiatedThermalPower = 0;
             convectedThermalPower = 0;
             CurrentRadiatorTemperature = 0;
-            directionrotate = 1;
             update_count = 0;
             explode_counter = 0;
 

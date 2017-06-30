@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace FNPlugin.Extensions
 {
@@ -13,10 +11,10 @@ namespace FNPlugin.Extensions
             Source = source;
         }
 
-        public float Cost { get; private set; }
+        public double Cost { get; private set; }
         public IPowerSource Source { get; private set; }
 
-        public PowerSourceSearchResult IncreaseCost(float cost)
+        public PowerSourceSearchResult IncreaseCost(double cost)
         {
             Cost += cost;
             return this;
@@ -54,7 +52,7 @@ namespace FNPlugin.Extensions
 
             var thermalcostModifier = currentpart.FindModuleImplementing<ThermalPowerTransport>();
 
-            float stackDepthCost = thermalcostModifier != null 
+            double stackDepthCost = thermalcostModifier != null 
                 ? thermalcostModifier.thermalCost 
                 : 1;
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using TweakScale;
 using FNPlugin.Extensions;
@@ -39,6 +38,7 @@ namespace FNPlugin
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         public bool chargedParticleMode = false;
+
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 1f, maxValue = 100f, minValue = 0f)]
         public float powerPercentage = 100;
 
@@ -62,14 +62,14 @@ namespace FNPlugin
         public string originalName;
 
         [KSPField(isPersistant = false)]
-        public double pCarnotEff = 0.32f;
+        public double pCarnotEff = 0.32;
         [KSPField(isPersistant = false)]
-        public double upgradedpCarnotEff = 0.64f;
+        public double upgradedpCarnotEff = 0.64;
 
         [KSPField(isPersistant = false)]
-        public double directConversionEff = 0.6f;
+        public double directConversionEff = 0.6;
         [KSPField(isPersistant = false)]
-        public double upgradedDirectConversionEff = 0.865f;
+        public double upgradedDirectConversionEff = 0.865;
 
         [KSPField(isPersistant = false)]
         public double efficiencyMk1 = 0;
@@ -292,8 +292,6 @@ namespace FNPlugin
         public void upgradePartModule()
         {
             isupgraded = true;
-            //pCarnotEff = upgradedpCarnotEff;
-            //directConversionEff = this.upgradedDirectConversionEff;
             generatorType = chargedParticleMode ? altUpgradedName : upgradedName;
         }
 
@@ -425,13 +423,13 @@ namespace FNPlugin
                 anim[animName].layer = 1;
                 if (!IsEnabled)
                 {
-                    anim[animName].normalizedTime = 1f;
-                    anim[animName].speed = -1f;
+                    anim[animName].normalizedTime = 1;
+                    anim[animName].speed = -1;
                 }
                 else
                 {
-                    anim[animName].normalizedTime = 0f;
-                    anim[animName].speed = 1f;
+                    anim[animName].normalizedTime = 0;
+                    anim[animName].speed = 1;
                 }
                 anim.Play();
             }
@@ -639,9 +637,9 @@ namespace FNPlugin
                 {
                     play_down = true;
                     play_up = false;
-                    anim[animName].speed = 1f;
-                    anim[animName].normalizedTime = 0f;
-                    anim.Blend(animName, 2f);
+                    anim[animName].speed = 1;
+                    anim[animName].normalizedTime = 0;
+                    anim.Blend(animName, 2);
                 }
             }
             else
@@ -650,9 +648,9 @@ namespace FNPlugin
                 {
                     play_down = false;
                     play_up = true;
-                    anim[animName].speed = -1f;
-                    anim[animName].normalizedTime = 1f;
-                    anim.Blend(animName, 2f);
+                    anim[animName].speed = -1;
+                    anim[animName].normalizedTime = 1;
+                    anim.Blend(animName, 2);
                 }
             }
 
@@ -870,7 +868,7 @@ namespace FNPlugin
                     if (!CheatOptions.IgnoreMaxTemperature)
                         consumeFNResourcePerSecond(effective_input_power_per_second, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    electricdtps = Math.Max(effective_input_power_per_second * powerOutputMultiplier, 0.0);
+                    electricdtps = Math.Max(effective_input_power_per_second * powerOutputMultiplier, 0);
 
                     var effectiveMaxThermalPower = attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0
                         ? maxThermalPower + maxChargedPower * availableChargedPowerRatio
@@ -899,7 +897,7 @@ namespace FNPlugin
                     if (!CheatOptions.IgnoreMaxTemperature)
                         consumeFNResourcePerSecond(effective_input_power_per_second, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    electricdtps = Math.Max(effective_input_power_per_second * powerOutputMultiplier, 0.0);
+                    electricdtps = Math.Max(effective_input_power_per_second * powerOutputMultiplier, 0);
                     max_electricdtps = maxChargedPower * _totalEff;
                 }
                 outputPower = -supplyFNResourcePerSecondWithMax(electricdtps, max_electricdtps, FNResourceManager.FNRESOURCE_MEGAJOULES);

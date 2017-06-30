@@ -393,7 +393,7 @@ namespace OpenResourceSystem
             double maxResouceAmount;
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out availableResourceAmount, out maxResouceAmount);
 
-			if (maxResouceAmount > 0) 
+			if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount)) 
 				resource_bar_ratio = availableResourceAmount / maxResouceAmount;
             else 
 				resource_bar_ratio = 0.0001;

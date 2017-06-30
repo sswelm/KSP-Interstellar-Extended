@@ -34,13 +34,13 @@ namespace FNPlugin.Collectors
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill size", guiUnits = " m\xB3")]
         public double drillSize = 5; // Volume of the collector's drill. Raise in part config (for larger drills) to make collecting faster.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill effectiveness", guiFormat = "P1")]
-        public double effectiveness = 1.0; // Effectiveness of the drill. Lower in part config (to a 0.5, for example) to slow down resource collecting.
+        public double effectiveness = 1; // Effectiveness of the drill. Lower in part config (to a 0.5, for example) to slow down resource collecting.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
-        public double mwRequirements = 1.0; // MW requirements of the drill. Affects heat produced.
+        public double mwRequirements = 1; // MW requirements of the drill. Affects heat produced.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Waste Heat Modifier", guiFormat = "P1")]
         public double wasteHeatModifier = 0.25; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill reach", guiUnits = " m\xB3")]
-        public double drillReach = 5.0; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
+        public double drillReach = 5; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
 
         // GUI elements declaration
         private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 3, 150);

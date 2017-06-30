@@ -15,11 +15,11 @@ namespace FNPlugin
 
         //Persistent False
         [KSPField(isPersistant = false)]
-        public float radius;
+		public double radius;
         [KSPField(isPersistant = false)]
-        public float heatTransportationEfficiency = 0.7f;
+        public double heatTransportationEfficiency = 0.7f;
         [KSPField(isPersistant = false)]
-        public float maximumPowerRecieved = 6;
+		public double maximumPowerRecieved = 6;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]

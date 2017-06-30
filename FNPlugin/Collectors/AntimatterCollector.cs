@@ -1,10 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace FNPlugin 
+﻿namespace FNPlugin 
 {
     public class AntimatterCollector : PartModule    
     {
@@ -28,7 +22,7 @@ namespace FNPlugin
             if (last_active_time != 0 && vessel.orbit.eccentricity < 1) 
             {
                 double lat = vessel.mainBody.GetLatitude(vessel.transform.position);
-                double vessel_avg_alt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2.0;
+                double vessel_avg_alt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2;
                 double vessel_inclination = vessel.orbit.inclination;
                 double flux = collectionMultiplier * 0.5 * (vessel.mainBody.GetBeltAntiparticles(vessel_avg_alt, vessel_inclination) + vessel.mainBody.GetBeltAntiparticles(vessel_avg_alt, 0.0));
                 double time_diff = Planetarium.GetUniversalTime() - last_active_time;

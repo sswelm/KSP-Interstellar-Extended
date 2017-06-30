@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
-using FNPlugin.Extensions;
 
 namespace FNPlugin.Refinery
 {
@@ -100,15 +98,16 @@ namespace FNPlugin.Refinery
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
+
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string status_str = string.Empty;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Base Production", guiFormat = "F3")]
-        public float baseProduction = 1f;
+        public double baseProduction = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Production Multiplier", guiFormat = "F3")]
-        public float productionMult = 1f;
+		public double productionMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Power Req Multiplier", guiFormat = "F3")]
-        public float powerReqMult = 1f;
+		public double powerReqMult = 1;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Requirement", guiFormat = "F3", guiUnits = " MW")]
         public double currentPowerReq;

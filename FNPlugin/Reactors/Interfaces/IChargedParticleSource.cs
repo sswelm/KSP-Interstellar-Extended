@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿
 namespace FNPlugin
 {
     public interface IChargedParticleSource : IPowerSource
@@ -11,8 +7,8 @@ namespace FNPlugin
 
         double  UseProductForPropulsion(double ratio, double consumedAmount);
 
-        float MaximumChargedIspMult { get; }
+        double MaximumChargedIspMult { get; }
 
-        float MinimumChargdIspMult { get; }
+        double MinimumChargdIspMult { get; }
     }
 }

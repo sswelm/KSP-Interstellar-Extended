@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -28,7 +27,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string gearsTechReq;
         [KSPField(isPersistant = false)]
-        public float powerReqMult = 1; 
+        public double powerReqMult = 1; 
         [KSPField(isPersistant = false)]
         public int type;
         [KSPField(isPersistant = false)]
@@ -38,11 +37,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float ispGears = 3;
         [KSPField(isPersistant = false)]
-        public float exitArea = 0;
+        public double exitArea = 0;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Max Power Input", guiUnits = " MW")]
-        public float maxPower = 1000;
+        public double maxPower = 1000;
         [KSPField(isPersistant = false, guiName = "Power Thrust Multiplier")]
-        public float powerThrustMultiplier = 1.0f;
+        public double powerThrustMultiplier = 1.0;
         [KSPField(isPersistant = false)]
         public float upgradeCost;
         [KSPField(isPersistant = false)]
@@ -50,11 +49,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string upgradedName;
         [KSPField(isPersistant = false)]
-        public float wasteHeatMultiplier = 1;
+        public double wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
-        public float baseEfficency = 0.3f;
+        public double baseEfficency = 0.3;
         [KSPField(isPersistant = false)]
-        public float variableEfficency = 0.3f;
+        public double variableEfficency = 0.3;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Stored Throtle")]
@@ -131,7 +130,7 @@ namespace FNPlugin
             get { return maxPower * powerReqMult; }
         }
 
-        public float CurrentIspMultiplier
+        public double CurrentIspMultiplier
         {
             get { return type == (int)ElectricEngineType.VASIMR ? Current_propellant.DecomposedIspMult : Current_propellant.IspMultiplier; }
         }
@@ -655,7 +654,7 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            var powerThrustModifier = GetPowerThrustModifier();
+            //var powerThrustModifier = GetPowerThrustModifier();
             List<ElectricEnginePropellant> props = ElectricEnginePropellant.GetPropellantsEngineForType(type);
             string return_str = "Max Power Consumption: " + MaxPower.ToString("") + " MW\n";
             var thrust_per_mw = (2e6 * powerThrustMultiplier) / _g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
@@ -693,7 +692,7 @@ namespace FNPlugin
 
         protected void toggleNextPropellant()
         {
-            UnityEngine.Debug.Log("[KSPI] - ElectricEngineControllerFX toggleNextPropellant");
+            Debug.Log("[KSPI] - ElectricEngineControllerFX toggleNextPropellant");
             fuel_mode++;
             if (fuel_mode >= _propellants.Count)
                 fuel_mode = 0;
@@ -703,7 +702,7 @@ namespace FNPlugin
 
         protected void togglePreviousPropellant()
         {
-            UnityEngine.Debug.Log("[KSPI] - ElectricEngineControllerFX togglePreviousPropellant");
+            Debug.Log("[KSPI] - ElectricEngineControllerFX togglePreviousPropellant");
             fuel_mode--;
             if (fuel_mode < 0)
                 fuel_mode = _propellants.Count - 1;

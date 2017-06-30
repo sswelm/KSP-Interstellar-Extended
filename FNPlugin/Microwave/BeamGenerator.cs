@@ -12,7 +12,7 @@ namespace FNPlugin.Microwave
     {
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Wavelength")]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
-        public int selectedBeamConfiguration = 0;
+        public int selectedBeamConfiguration;
 
         [KSPField(isPersistant = true)]
         public bool isInitialized = false;
@@ -48,7 +48,7 @@ namespace FNPlugin.Microwave
         public float partMass;
 
         [KSPField(isPersistant = false)]
-        public float powerMassFraction = 0.5f;
+        public double powerMassFraction = 0.5;
         [KSPField(isPersistant = false)]
         public bool fixedMass = false;
 

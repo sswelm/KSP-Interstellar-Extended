@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using FNPlugin.Propulsion;
 
@@ -15,7 +13,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = " t")]
         public float partMass;
         [KSPField(isPersistant = false)]
-        public float powerThrustMultiplier = 1.0f;
+        public double powerThrustMultiplier = 1.0;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
 
@@ -85,7 +83,7 @@ namespace FNPlugin
             if (_attached_engine != null)
                 _attached_engine.Fields["finalThrust"].guiFormat = "F5";
             else
-                UnityEngine.Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no ModuleEnginesFX found for MagneticNozzle!");
+                Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no ModuleEnginesFX found for MagneticNozzle!");
 
             // first try to look in part
             _attached_reactor = this.part.FindModuleImplementing<IChargedParticleSource>();
@@ -96,7 +94,7 @@ namespace FNPlugin
 
             if (_attached_reactor == null)
             {
-                UnityEngine.Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
+                Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
                 return;
             }
 

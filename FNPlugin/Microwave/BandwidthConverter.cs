@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
-
-namespace FNPlugin.Microwave
+﻿namespace FNPlugin.Microwave
 {
     class BandwidthConverter : PartModule
     {
@@ -14,7 +9,7 @@ namespace FNPlugin.Microwave
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Start Wavelength", guiFormat = "F9", guiUnits = " m")]
         public double minimumWavelength = 0.001;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "End Wavelength", guiFormat = "F9", guiUnits = " m")]
-        public double maximumWavelength = 1.000;
+        public double maximumWavelength = 1;
 
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Tech Requirement")]
         public int AvailableTechLevel;
@@ -107,7 +102,6 @@ namespace FNPlugin.Microwave
                     return 0;
             }
         }
-
 
         public double TargetWavelength
         {

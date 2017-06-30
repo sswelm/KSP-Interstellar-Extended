@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using TweakScale;
 
@@ -29,10 +28,12 @@ namespace FNPlugin
         public string capacityStr;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Maximum")]
         public string maxAmountStr;
+
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiUnits = "K",  guiName = "Maximum Temperature"), UI_FloatRange(stepIncrement = 10f, maxValue = 1000f, minValue = 40f)]
         public float maxTemperature = 1000;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiUnits = "g", guiName = "Maximum Acceleration"), UI_FloatRange(stepIncrement = 0.1f, maxValue = 10f, minValue = 0.1f)]
         public float maxGeeforce = 10;
+
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Cur/Max Temp", guiFormat = "F3")]
         public string TemperatureStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Cur/Max Geeforce")]

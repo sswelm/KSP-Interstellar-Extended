@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace OpenResourceSystem 
@@ -15,12 +14,12 @@ namespace OpenResourceSystem
         static int map_body = -1;
         static protected string displayed_resource = "";
         static protected string map_resource = "";
-        static protected long update_count = 0;
+        //static protected long update_count = 0;
         static GameObject sphere = null;
         static Vector3d sphere_scale = new Vector3d(5000, 5000, 5000);
         static Vector3d sphere_scale_scaled = new Vector3d(2, 2, 2);
         static string sphere_texture;
-        static double stored_scale = -1;
+        //static double stored_scale = -1;
 
         public static IDictionary<string, ORSPlanetaryResourceInfo> PlanetaryResourceMapData { get { return body_resource_maps; } }
 
@@ -227,7 +226,7 @@ namespace OpenResourceSystem
                     }
                     map_body = current_body;
                     map_resource = displayed_resource;
-                    stored_scale = ScaledSpace.ScaleFactor;
+                    //stored_scale = ScaledSpace.ScaleFactor;
                 }
                 //celbody.renderer.material.mainTexture.
             } 

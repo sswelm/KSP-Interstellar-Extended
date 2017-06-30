@@ -1,8 +1,6 @@
-using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -14,7 +12,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string AnimationName = "";
         [KSPField(isPersistant = false)]
-        public float efficency = 0.8f;
+        public double efficency = 0.8;
         [KSPField(isPersistant = false)]
         public int type = 16;
         [KSPField(isPersistant = false)]
@@ -39,7 +37,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Maximum Isp")]
         public float maxPropellantIsp;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Thrust Multiplier")]
-        public float currentThrustMultiplier;
+        public double currentThrustMultiplier;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]
         public float thrustLimiter = 100;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Max Thrust")]
@@ -63,13 +61,13 @@ namespace FNPlugin
         private bool rcsIsOn;
         private bool rcsPartActive;
 
-        private float power_ratio = 1;
-        private float power_requested_f = 0;
+        private double power_ratio = 1;
+        private double power_requested_f = 0;
         private double power_recieved_f = 1;
         private double heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
-        private float efficencyModifier;
+        private double efficencyModifier;
         private float currentMaxThrust;
         private float oldThrustLimiter;
         private bool oldPowerEnabled;
@@ -171,7 +169,7 @@ namespace FNPlugin
                 moduleConfig.AddValue("resourceName", new_propellant.name);
                 moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
 
-                maxPropellantIsp = (hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier;
+                maxPropellantIsp = (float)((hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier);
 
                 var atmosphereCurve = new ConfigNode("atmosphereCurve");
                 atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
@@ -206,7 +204,7 @@ namespace FNPlugin
             attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
             oldThrustLimiter = thrustLimiter;
             oldPowerEnabled = powerEnabled;
-            efficencyModifier = (float)g0 * 0.5f / 1000.0f / efficency;
+            efficencyModifier = g0 * 0.5 / 1000 / efficency;
             efficencyStr = (efficency * 100).ToString() + "%";
 
             if (!String.IsNullOrEmpty(AnimationName))
@@ -239,7 +237,7 @@ namespace FNPlugin
 
             propNameStr = Current_propellant.PropellantGUIName;
 
-            currentMaxThrust = baseThrust / (float)Current_propellant.IspMultiplier * currentThrustMultiplier;
+            currentMaxThrust = (float)(baseThrust / Current_propellant.IspMultiplier * currentThrustMultiplier);
 
             thrustStr = attachedRCS.thrusterPower.ToString("0.000") + " / " + currentMaxThrust.ToString("0.000") + " kN";
         }
@@ -313,7 +311,7 @@ namespace FNPlugin
                     ? heat_to_produce 
                     : supplyFNResourceFixed(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
-                power_ratio = power_requested_f > 0 ? (float)Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
+                power_ratio = power_requested_f > 0 ? Math.Min(power_recieved_f / power_requested_f, 1) : 1;
             }
             else
             {

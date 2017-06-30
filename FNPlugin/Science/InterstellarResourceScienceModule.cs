@@ -8,23 +8,23 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiName = "Active")]
         public bool generatorActive;
         [KSPField(isPersistant = true)]
-        public float last_active_time;
+        public double last_active_time;
         [KSPField(isPersistant = true)]
-        public float lastGeneratedPerSecond;
+        public double lastGeneratedPerSecond;
 
         [KSPField(isPersistant = false, guiActive = false)]
-        public float resourceAmount;
+        public double resourceAmount;
         [KSPField(isPersistant = false, guiActive = false)]
         public string resourceName;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Generated Data", guiFormat = "F3")]
-        public float totalGeneratedData;
+        public double totalGeneratedData;
 
         //consume this resource per game-second
         [KSPField(isPersistant = false, guiActive = false)]
-        public float generatorResourceIn;
+        public double generatorResourceIn;
         //produce this resource per game second
         [KSPField(isPersistant = false, guiActive = false)]
-        public float generatorResourceOut;
+        public double generatorResourceOut;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public string generatorResourceInName;
@@ -38,8 +38,8 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Biodome" )]
         public string currentBiome = "";
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Research")]
-        public float research;
+		//[KSPField(isPersistant = false, guiActive = false, guiName = "Research")]
+		//public double research;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public bool needSubjects = false;
@@ -100,7 +100,7 @@ namespace FNPlugin
         public override void OnUpdate()
         {
             // store current time in case vesel is unloaded
-            last_active_time = (float)Planetarium.GetUniversalTime();
+            last_active_time = Planetarium.GetUniversalTime();
 
             int lcrewCount = part.protoModuleCrew.Count;
             if (generatorActive)
@@ -155,7 +155,7 @@ namespace FNPlugin
             if (!offlineCollecting)
             {
                 spent = part.RequestResource(generatorResourceInName, generatorResourceIn * deltaTime);
-                lastGeneratedPerSecond = (float)(spent / deltaTime);
+                lastGeneratedPerSecond = spent / deltaTime;
             }
             else
             {
@@ -176,7 +176,7 @@ namespace FNPlugin
 
             double generated = part.RequestResource(generatorResourceOutName, -generatedScience);
 
-            totalGeneratedData = (float)part.Resources[generatorResourceOutName].amount;
+            totalGeneratedData = part.Resources[generatorResourceOutName].amount;
 
             //  print("generated " + generated.ToString());
             if (generated == 0 && !offlineCollecting) //if we didn't generate anything then we're full, refund the spent resource
@@ -196,7 +196,7 @@ namespace FNPlugin
             return situation;
         }
 
-        float getResourceBudget(string name)
+        double getResourceBudget(string name)
         {
             //   
             if (this.vessel == FlightGlobals.ActiveVessel)
@@ -213,13 +213,14 @@ namespace FNPlugin
                     if (resources[i].info.name == resourceName)
                     {
                         // print("Found the resouce!!");
-                        return (float)resources[i].amount;
+                        return resources[i].amount;
                     }
                 }
             }
             return 0;
         }
-        bool vesselHasEnoughResource(string name, float rc)
+
+        bool vesselHasEnoughResource(string name, double rc)
         {
             //   
             if (this.vessel == FlightGlobals.ActiveVessel)

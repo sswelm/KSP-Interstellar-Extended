@@ -161,8 +161,8 @@ namespace FNPlugin
                 ctrlZ -= vessel.ctrlState.mainThrottle;
                 ctrlZ = Mathf.Clamp(ctrlZ, -1f, 1f);
             }
-            inputLinear = vessel.ReferenceTransform.rotation * new Vector3(enableX ? vessel.ctrlState.X : 0f, enableZ ? ctrlZ : 0f, enableY ? vessel.ctrlState.Y : 0f);
-            inputAngular = vessel.ReferenceTransform.rotation * new Vector3(enablePitch ? vessel.ctrlState.pitch : 0f, enableRoll ? vessel.ctrlState.roll : 0f, enableYaw ? vessel.ctrlState.yaw : 0);
+            inputLinear = vessel.ReferenceTransform.rotation * new Vector3(enableX ? vessel.ctrlState.X : 0, enableZ ? ctrlZ : 0, enableY ? vessel.ctrlState.Y : 0);
+            inputAngular = vessel.ReferenceTransform.rotation * new Vector3(enablePitch ? vessel.ctrlState.pitch : 0, enableRoll ? vessel.ctrlState.roll : 0, enableYaw ? vessel.ctrlState.yaw : 0);
 
             // Epsilon checks (min values)
             float EPSILON2 = EPSILON * EPSILON;
@@ -173,17 +173,17 @@ namespace FNPlugin
             inputLinearY = inputLinear.y;
             inputLinearZ = inputLinear.z;
             if (inputAngularX * inputAngularX < EPSILON2)
-                inputAngularX = 0f;
+                inputAngularX = 0;
             if (inputAngularY * inputAngularY < EPSILON2)
-                inputAngularY = 0f;
+                inputAngularY = 0;
             if (inputAngularZ * inputAngularZ < EPSILON2)
-                inputAngularZ = 0f;
+                inputAngularZ = 0;
             if (inputLinearX * inputLinearX < EPSILON2)
-                inputLinearX = 0f;
+                inputLinearX = 0;
             if (inputLinearY * inputLinearY < EPSILON2)
-                inputLinearY = 0f;
+                inputLinearY = 0;
             if (inputLinearZ * inputLinearZ < EPSILON2)
-                inputLinearZ = 0f;
+                inputLinearZ = 0;
             inputLinear.x = inputLinearX;
             inputLinear.y = inputLinearY;
             inputLinear.z = inputLinearZ;
@@ -299,11 +299,11 @@ namespace FNPlugin
                                     thrusterFX[i].Power = Mathf.Clamp(thrust, 0.1f, 1f);
                                     if (effectPower < thrusterFX[i].Power)
                                         effectPower = thrusterFX[i].Power;
-                                    thrusterFX[i].setActive(thrustForce > 0f);
+                                    thrusterFX[i].setActive(thrustForce > 0);
                                 }
                                 else
                                 {
-                                    thrusterFX[i].Power = 0f;
+                                    thrusterFX[i].Power = 0;
 
                                     /*if (!(flameoutEffectName.Equals("")))
                                         part.Effect(flameoutEffectName, 1.0f);*/
@@ -311,7 +311,7 @@ namespace FNPlugin
                             }
                             else
                             {
-                                thrusterFX[i].Power = 0f;
+                                thrusterFX[i].Power = 0;
                             }
                         }
                     }

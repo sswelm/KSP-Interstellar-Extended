@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using TweakScale;
@@ -27,7 +26,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         bool Launched = false;
         [KSPField(isPersistant = true)]
-        public float scale = 1;
+        public double scale = 1;
         [KSPField(isPersistant = true)]
         public bool hideEmpty = false;
         [KSPField(isPersistant = true)]
@@ -44,9 +43,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float minThrottleRatioMk1 = 0.2f;
         [KSPField(isPersistant = false)]
-        public float minThrottleRatioMk2 = 0.1f;
+		public float minThrottleRatioMk2 = 0.1f;
         [KSPField(isPersistant = false)]
-        public float minThrottleRatioMk3 = 0.05f;
+		public float minThrottleRatioMk3 = 0.05f;
 
         [KSPField(isPersistant = false)]
         public float maxThrust = 75;
@@ -70,11 +69,11 @@ namespace FNPlugin
         }
 
         [KSPField(isPersistant = false)]
-        public float efficiency = 0.19f;
+        public double efficiency = 0.19;
         [KSPField(isPersistant = false)]
-        public float efficiencyUpgraded = 0.38f;
+		public double efficiencyUpgraded = 0.38;
         [KSPField(isPersistant = false)]
-        public float efficiencyUpgraded2 = 0.76f;
+		public double efficiencyUpgraded2 = 0.76;
 
         [KSPField(isPersistant = false)]
         public bool isLoaded = false;

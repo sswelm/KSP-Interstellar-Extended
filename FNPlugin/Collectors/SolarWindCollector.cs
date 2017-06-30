@@ -2,7 +2,6 @@ using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -28,9 +27,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Surface area", guiUnits = " m\xB2")]
         public double surfaceArea = 0; // Surface area of the panel.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Collector effectiveness", guiFormat = "P1")]
-        public double effectiveness = 1.0; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
+        public double effectiveness = 1; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
-        public double mwRequirements = 1.0f; // MW requirements of the collector panel.
+        public double mwRequirements = 1; // MW requirements of the collector panel.
         [KSPField(isPersistant = false)]
         public string animName;
         [KSPField(isPersistant = false)]
@@ -141,14 +140,14 @@ namespace FNPlugin
             // verify altitude is not too low
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
             {
-                ScreenMessages.PostScreenMessage("Solar Wind Collection Error, vessel in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("Solar Wind Collection Error, vessel in atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
                 return;
             }
 
             // if the part should be extended (from last time), go to the extended animation
             if (bIsExtended == true && anim != null)
             {
-                anim[animName].normalizedTime = 1f;
+                anim[animName].normalizedTime = 1;
             }
 
             // calculate time difference since last time the vessel was active
@@ -252,7 +251,7 @@ namespace FNPlugin
 
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
             {
-                ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
                 strStarDist = UpdateDistanceInGUI();
                 strSolarWindConc = "0";
                 return bCanCollect;
@@ -268,8 +267,8 @@ namespace FNPlugin
             {
                 if (anim != null)
                 {
-                    anim[animName].speed = 1f;
-                    anim[animName].normalizedTime = 0f; // normalizedTime at 0 is the start of the animation
+                    anim[animName].speed = 1;
+                    anim[animName].normalizedTime = 0; // normalizedTime at 0 is the start of the animation
                     anim.Blend(animName, part.mass);
                 }
                 bIsExtended = true;
@@ -281,8 +280,8 @@ namespace FNPlugin
             {
                 if (anim != null)
                 {
-                    anim[animName].speed = -1f; // speed of 1 is normal playback, -1 is reverse playback (so in this case we go from the end of animation backwards)
-                    anim[animName].normalizedTime = 1f; // normalizedTime at 1 is the end of the animation
+                    anim[animName].speed = -1; // speed of 1 is normal playback, -1 is reverse playback (so in this case we go from the end of animation backwards)
+                    anim[animName].normalizedTime = 1; // normalizedTime at 1 is the end of the animation
                     anim.Blend(animName, part.mass);
                 }
                 bIsExtended = false;
@@ -295,7 +294,7 @@ namespace FNPlugin
         private static double CalculateSolarWindConcentration(double flux)
         {
             double dAvgKerbinSolarFlux = 1409.285; // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
-            double dAvgSolarWindPerCubM = 6000.0; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
+            double dAvgSolarWindPerCubM = 6000; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
 
             double solarWindSpeed = 500000; // Average Solar win speed 500 km/s
             double avogadroConstant = 6.022140857e+23; // number of atmons 

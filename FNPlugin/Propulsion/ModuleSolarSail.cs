@@ -12,7 +12,7 @@ namespace FNPlugin {
 
         // Persistent False
         [KSPField]
-        public float reflectedPhotonRatio = 1f;
+        public float reflectedPhotonRatio = 1;
         [KSPField]
         public float surfaceArea; // Surface area of the panel.
         [KSPField]
@@ -37,9 +37,9 @@ namespace FNPlugin {
         [KSPEvent(guiActive = true, guiName = "Deploy Sail", active = true)]
         public void DeploySail() {
             if (animName != null && solarSailAnim != null) {
-                solarSailAnim[animName].speed = 1f;
-                solarSailAnim[animName].normalizedTime = 0f;
-                solarSailAnim.Blend(animName, 2f);
+                solarSailAnim[animName].speed = 1;
+                solarSailAnim[animName].normalizedTime = 0;
+                solarSailAnim.Blend(animName, 2);
             }
             IsEnabled = true;
         }
@@ -47,9 +47,9 @@ namespace FNPlugin {
         [KSPEvent(guiActive = true, guiName = "Retract Sail", active = false)]
         public void RetractSail() {
             if (animName != null && solarSailAnim != null) {
-                solarSailAnim[animName].speed = -1f;
-                solarSailAnim[animName].normalizedTime = 1f;
-                solarSailAnim.Blend(animName, 2f);
+                solarSailAnim[animName].speed = -1;
+                solarSailAnim[animName].normalizedTime = 1;
+                solarSailAnim.Blend(animName, 2);
             }
             IsEnabled = false;
         }
@@ -66,8 +66,8 @@ namespace FNPlugin {
                 }
                 if (IsEnabled) 
                 {
-                    solarSailAnim[animName].speed = 1f;
-                    solarSailAnim[animName].normalizedTime = 0f;
+                    solarSailAnim[animName].speed = 1;
+                    solarSailAnim[animName].normalizedTime = 0;
                     solarSailAnim.Blend(animName, 0.1f);
                 }
 
@@ -92,12 +92,12 @@ namespace FNPlugin {
                 solar_force_d = 0;
                 if (!IsEnabled) return;
 
-                double sunlightFactor = 1.0;
+                double sunlightFactor = 1;
                 Vector3 sunVector = FlightGlobals.fetch.bodies[0].position - part.orgPos;
 
                 if (!PluginHelper.lineOfSightToSun(vessel)) 
                 {
-                    sunlightFactor = 0.0f;
+                    sunlightFactor = 0.0;
                 }
 
                 //Debug.Log("Detecting sunlight: " + sunlightFactor.ToString());

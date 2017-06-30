@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace FNPlugin  
@@ -7,7 +6,7 @@ namespace FNPlugin
     class AtmosphericIntake : PartModule
     {
         [KSPField(isPersistant = false, guiName = "Intake Speed", guiActive = false, guiFormat = "F3")]
-        protected float _intake_speed;
+        protected double _intake_speed;
         [KSPField(isPersistant = false, guiName = "Atmosphere Flow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]
         public double airFlow;
         [KSPField(isPersistant = false, guiName = "Atmosphere Speed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]
@@ -17,15 +16,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiName = "Intake Ratio",  guiActive = true, guiFormat = "F3")]
         public float intakeAngle = 0;
         [KSPField(isPersistant = false, guiName = "aoaThreshold",  guiActive = true, guiActiveEditor = false)]
-        public float aoaThreshold = 0.1f;
+        public double aoaThreshold = 0.1;
         [KSPField(isPersistant = false, guiName = "Area", guiActiveEditor = true, guiActive = false)]
-        public double area = 0.01f;
+        public double area = 0.01;
         [KSPField(isPersistant = false)]
         public string intakeTransformName;
         [KSPField(isPersistant = false, guiName = "maxIntakeSpeed", guiActive = true, guiActiveEditor = false)]
-        public float maxIntakeSpeed = 100;
+        public double maxIntakeSpeed = 100;
         [KSPField(isPersistant = false, guiName = "unitScalar", guiActive = true, guiActiveEditor = false)]
-        public double unitScalar = 0.2f;
+        public double unitScalar = 0.2;
         [KSPField(isPersistant = false, guiName = "storesResource", guiActive = true, guiActiveEditor = true)]
         public bool storesResource = false;
         [KSPField(isPersistant = false, guiName = "Intake Exposure",guiActive = true, guiActiveEditor = false )]
@@ -35,7 +34,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiName = "Air Density", guiActive = true,   guiFormat = "F3")]
         public double airDensity;
         [KSPField(isPersistant = false, guiName = "Tech Bonus", guiActive = true,  guiFormat = "F3")]
-        public float jetTechBonusPercentage;
+        public double jetTechBonusPercentage;
         [KSPField(isPersistant = false, guiName = "Upper Atmo Fraction", guiActive = true,  guiFormat = "F3")]
         public double upperAtmoFraction;
         [KSPField(isPersistant = false, guiActive = true)]

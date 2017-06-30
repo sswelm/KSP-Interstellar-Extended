@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace FNPlugin
 {
@@ -105,7 +101,7 @@ namespace FNPlugin
 
 							float base_science = experiment.baseValue * distribution_factor;
 							data_size = base_science * subject.dataScale;
-							science_data = new ScienceData((float)data_size, 1f, 0f, subject.id, "Impactor Data");
+							science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Impactor Data");
 
 							result_string = vessel_name + " impacted into " + vessel.mainBody.name + " producing seismic activity.  From this data, information on the structure of " + vessel.mainBody.name + "'s crust can be determined.";
 

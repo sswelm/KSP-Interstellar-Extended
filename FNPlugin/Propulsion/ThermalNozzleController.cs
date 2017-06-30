@@ -61,29 +61,29 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float delayedThrottleFactor = 0.5f;
         [KSPField(isPersistant = false)]
-        public float maxTemp = 2750;
+        public double maxTemp = 2750;
         [KSPField(isPersistant = false)]
-        public float heatConductivity = 0.12f;
+        public double heatConductivity = 0.12;
         [KSPField(isPersistant = false)]
-        public float heatConvectiveConstant = 1f;
+        public double heatConvectiveConstant = 1;
         [KSPField(isPersistant = false)]
-        public float emissiveConstant = 0.85f;
+		public double emissiveConstant = 0.85;
         [KSPField(isPersistant = false)]
         public float thermalMassModifier = 1f;
         [KSPField(isPersistant = false)]
         public float engineHeatProductionConst = 3000; 
         [KSPField(isPersistant = false)]
-        public float engineHeatProductionExponent = 0.8f;
+        public double engineHeatProductionExponent = 0.8;
         [KSPField(isPersistant = false)]
-        public float engineHeatFuelThreshold = 0.001f;
+        public double engineHeatFuelThreshold = 0.001;
         [KSPField(isPersistant = false)]
-        public float skinMaxTemp = 2750;
+		public double skinMaxTemp = 2750;
         [KSPField(isPersistant = false)]
-        public float skinInternalConductionMult = 1;
+		public double skinInternalConductionMult = 1;
         [KSPField(isPersistant = false)]
-        public float skinThermalMassModifier = 1;
+		public double skinThermalMassModifier = 1;
         [KSPField(isPersistant = false)]
-        public float skinSkinConductionMult = 1;
+		public double skinSkinConductionMult = 1;
         [KSPField(isPersistant = false)]
         public string deployAnimationName = String.Empty;
         [KSPField(isPersistant = false)]
@@ -91,13 +91,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string emiAnimationName = String.Empty;
         [KSPField(isPersistant = false)]
-        public float pulseDuration = 0;
+		public float pulseDuration = 0;
         [KSPField(isPersistant = false)]
-        public float recoveryAnimationDivider = 1;
+		public float recoveryAnimationDivider = 1;
         [KSPField(isPersistant = false)]
-        public float wasteheatEfficiencyLowTemperature = 0.99f;
+        public double wasteheatEfficiencyLowTemperature = 0.99;
         [KSPField(isPersistant = false)]
-        public float wasteheatEfficiencyHighTemperature = 0.9f;
+		public double wasteheatEfficiencyHighTemperature = 0.9;
         [KSPField(isPersistant = false)]
         public float upgradeCost;
         [KSPField(isPersistant = false)]
@@ -196,7 +196,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
-        protected float maxPressureThresholdAtKerbinSurface;
+        protected double maxPressureThresholdAtKerbinSurface;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Ratio")]
         protected double thermalRatio;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Ratio")]
@@ -260,7 +260,7 @@ namespace FNPlugin
 
         protected float _minDecompositionTemp;
         protected float _maxDecompositionTemp;
-        protected const float _hydroloxDecompositionEnergy = 16.2137f;
+        protected const double _hydroloxDecompositionEnergy = 16.2137;
         protected Guid id = Guid.NewGuid();
         protected ConfigNode[] propellantsConfignodes;
 
@@ -871,10 +871,10 @@ namespace FNPlugin
             {
                 if (jetPerformanceProfile == 0)
                 {
-                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5.0f / 4.0f, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4.0f / 5.0f, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5.0f / 4.0f, (float)PluginHelper.MaxThermalNozzleIsp));
+					atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+					atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+					atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4.0f / 5.0f, (float)PluginHelper.MaxThermalNozzleIsp));
 
                     var curveChange = jetTechBonus / 5.368f;
 
@@ -885,10 +885,10 @@ namespace FNPlugin
                 }
                 else if (jetPerformanceProfile == 1)
                 {
-                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5.0f / 4.0f, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
+					atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5.0f / 4.0f, (float)PluginHelper.MaxThermalNozzleIsp));
+					atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+					atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+					atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
 
                     velCurve.Add(0.00f, 0.50f + jetTechBonusPercentage);
                     velCurve.Add(1.00f, 1.00f);
@@ -1030,7 +1030,7 @@ namespace FNPlugin
                     expectedMaxThrust = AttachedReactor.MaximumPower * AttachedReactor.ThermalPropulsionEfficiency * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP * GetHeatExchangerThrustDivisor();
                     calculatedMaxThrust = expectedMaxThrust;
 
-                    var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / 200f;
+                    var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / 200;
 
                     expectedMaxThrust *= _thrustPropellantMultiplier * sootMult;
 
@@ -1069,9 +1069,9 @@ namespace FNPlugin
                     }
 
                     // prevent to low number of maxthrust 
-                    if (calculatedMaxThrust <= 0.00001f)
+                    if (calculatedMaxThrust <= 0.00001)
                     {
-                        calculatedMaxThrust = 0.00001f;
+                        calculatedMaxThrust = 0.00001;
                         max_fuel_flow_rate = 0;
                     }
 
@@ -1196,13 +1196,13 @@ namespace FNPlugin
                 if (availableThermalPower > 0 && _maxISP > 0)
                 {
                     var ispRatio = _currentpropellant_is_jet ? current_isp / _maxISP : 1;
-                    var thrustLimit = myAttachedEngine.thrustPercentage / 100f;
+                    var thrustLimit = myAttachedEngine.thrustPercentage / 100;
                     engineMaxThrust = Math.Max(thrustLimit * GetPowerThrustModifier() * GetHeatThrustModifier() * power_received / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.001f);
                     calculatedMaxThrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio;
                 }
                 else
                 {
-                    engineMaxThrust = 0.001f;
+                    engineMaxThrust = 0.0001;
                     calculatedMaxThrust = 0;
                 }
 
@@ -1219,7 +1219,7 @@ namespace FNPlugin
                 {
                     max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold, Math.Max(myAttachedEngine.currentThrottle * 0.01, 0.0000000001));
 
-                    var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(max_thrust_in_current_atmosphere / max_thrust_in_space, 0.01) : 0.01f;
+                    var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(max_thrust_in_current_atmosphere / max_thrust_in_space, 0.01) : 0.01;
                     UpdateIspEngineParams(thrustAtmosphereRatio);
                     current_isp = _maxISP * thrustAtmosphereRatio;
                     calculatedMaxThrust = Math.Max((calculatedMaxThrust - pressureThreshold), 0.0000000001);
@@ -1274,9 +1274,9 @@ namespace FNPlugin
                     }
                 }
 
-                if (calculatedMaxThrust <= 0.00001f)
+                if (calculatedMaxThrust <= 0.00001)
                 {
-                    calculatedMaxThrust = 0.00001f;
+                    calculatedMaxThrust = 0.00001;
                     max_fuel_flow_rate = 0.0000000001;
                 }
 
@@ -1363,7 +1363,7 @@ namespace FNPlugin
             }
             else
             {
-                sootAccumulationPercentage -= TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle * 0.1f;
+                sootAccumulationPercentage -= TimeWarp.fixedDeltaTime * myAttachedEngine.currentThrottle * 0.1;
                 sootAccumulationPercentage = Math.Max(0, sootAccumulationPercentage);
             }
         }
@@ -1457,7 +1457,7 @@ namespace FNPlugin
             }
         }
 
-        private float GetPowerThrustModifier()
+		private double GetPowerThrustModifier()
         {
             return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalThermalNozzlePowerMaxThrustMult * CurrentPowerThrustMultiplier;
         }

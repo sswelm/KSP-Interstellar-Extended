@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+
 
 namespace FNPlugin
 {
@@ -17,17 +14,17 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wasteheat Ratio")]
         public double resourceBarRatio;
         [KSPField(isPersistant = false)]
-        public float thermalRatioEfficiencyModifier = 0.81f;
+		public double thermalRatioEfficiencyModifier = 0.81;
         [KSPField(isPersistant = false)]
-        public float maximumChargedIspMult = 114f;
+		public double maximumChargedIspMult = 114;
         [KSPField(isPersistant = false)]
-        public float minimumChargdIspMult = 11.4f;
+		public double minimumChargdIspMult = 11.4;
         [KSPField(isPersistant = false)]
-        public float coreTemperatureWasteheatPower = 0.3f;
+		public double coreTemperatureWasteheatPower = 0.3;
         [KSPField(isPersistant = false)]
-        public float coreTemperatureWasteheatModifier = -0.2f;
+		public double coreTemperatureWasteheatModifier = -0.2;
         [KSPField(isPersistant = false)]
-        public float coreTemperatureWasteheatMultiplier = 1.25f;
+        public double coreTemperatureWasteheatMultiplier = 1.25;
 
         private double optimalTempDifference;
 
@@ -44,9 +41,9 @@ namespace FNPlugin
             IsEnabled = false;
         }
 
-        public float MaximumChargedIspMult { get { return maximumChargedIspMult; } }
+        public double MaximumChargedIspMult { get { return (float)maximumChargedIspMult; } }
 
-        public float MinimumChargdIspMult { get { return minimumChargdIspMult; } }
+		public double MinimumChargdIspMult { get { return (float)minimumChargdIspMult; } }
 
         public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 

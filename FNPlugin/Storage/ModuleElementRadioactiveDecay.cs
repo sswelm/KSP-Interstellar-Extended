@@ -1,9 +1,5 @@
 ﻿using OpenResourceSystem;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
 
 namespace FNPlugin 
 {
@@ -12,13 +8,13 @@ namespace FNPlugin
     {
         // Persistent False
         [KSPField(isPersistant = false)]
-        public float decayConstant;
+        public double decayConstant;
         [KSPField(isPersistant = false)]
         public string resourceName;
         [KSPField(isPersistant = false)]
         public string decayProduct;
         [KSPField(isPersistant = false)]
-        public float convFactor = 1;
+        public double convFactor = 1;
 
         [KSPField(isPersistant = true)]
         public double lastActiveTime = 1;

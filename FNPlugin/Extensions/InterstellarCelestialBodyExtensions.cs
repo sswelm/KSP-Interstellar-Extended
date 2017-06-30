@@ -52,8 +52,8 @@ namespace FNPlugin
             double peakbelt = body.GetPeakProtonBeltAltitude(altitude, lat);
             double altituded = altitude;
             double a = peakbelt / Math.Sqrt(2);
-            double beltparticles = Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(a, 2))) / (Math.Pow(a, 3));
-            beltparticles = beltparticles * relrp / relrt * 50.0;
+            double beltparticles = Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2 * Math.Pow(a, 2))) / (Math.Pow(a, 3));
+            beltparticles = beltparticles * relrp / relrt * 50;
 
             if (body.flightGlobalsIndex == 0)
                 beltparticles = beltparticles / 1000;
@@ -90,8 +90,8 @@ namespace FNPlugin
             double peakbelt2 = body.GetPeakElectronBeltAltitude(altitude, lat);
             double altituded = altitude;
             double b = peakbelt2 / Math.Sqrt(2);
-            double beltparticles = 0.9 * Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2.0 * Math.Pow(b, 2))) / (Math.Pow(b, 3));
-            beltparticles = beltparticles * relrp / relrt * 50.0;
+            double beltparticles = 0.9 * Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2 * Math.Pow(b, 2))) / (Math.Pow(b, 3));
+            beltparticles = beltparticles * relrp / relrt * 50;
 
             if (body.flightGlobalsIndex == 0)
             {

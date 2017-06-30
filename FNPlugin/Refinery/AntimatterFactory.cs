@@ -1,8 +1,4 @@
 ﻿using OpenResourceSystem;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 
 namespace FNPlugin.Refinery 
@@ -31,7 +27,7 @@ namespace FNPlugin.Refinery
 
         public void produceAntimatterFrame(double rate_multiplier) 
         {
-            double energy_provided = rate_multiplier * PluginHelper.BaseAMFPowerConsumption * 1E6f;
+            double energy_provided = rate_multiplier * PluginHelper.BaseAMFPowerConsumption * 1E6;
             double antimatter_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter).density;
             double antimatter_mass = energy_provided / GameConstants.warpspeed / GameConstants.warpspeed / 200000.0f / antimatter_density*efficiency;
             current_rate = -ORSHelper.fixedRequestResource(_part, InterstellarResourcesConfiguration.Instance.Antimatter, -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;

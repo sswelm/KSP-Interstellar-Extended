@@ -1,8 +1,6 @@
 ﻿using OpenResourceSystem;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using FNPlugin.Refinery; 
 
@@ -55,7 +53,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = false)]
-        public float powerReqMult = 1f;
+        public float powerReqMult = 1;
 
         protected float megajoules_supplied = 0;
         protected String[] modes = { "Scanning", "Reprocessing", "Producing Antimatter", "Electrolysing", "Centrifuging" };
@@ -87,12 +85,12 @@ namespace FNPlugin
             IsEnabled = true;
             active_mode = 0;
 
-            anim[animName1].speed = 1f;
-            anim[animName1].normalizedTime = 0f;
-            anim.Blend(animName1, 2f);
-            anim2[animName2].speed = 1f;
-            anim2[animName2].normalizedTime = 0f;
-            anim2.Blend(animName2, 2f);
+            anim[animName1].speed = 1;
+            anim[animName1].normalizedTime = 0;
+            anim.Blend(animName1, 2);
+            anim2[animName2].speed = 1;
+            anim2[animName2].normalizedTime = 0;
+            anim2.Blend(animName2, 2);
             play_down = true;
         }
 
@@ -104,12 +102,12 @@ namespace FNPlugin
             IsEnabled = true;
             active_mode = 1;
 
-            anim[animName1].speed = 1f;
-            anim[animName1].normalizedTime = 0f;
-            anim.Blend(animName1, 2f);
-            anim2[animName2].speed = 1f;
-            anim2[animName2].normalizedTime = 0f;
-            anim2.Blend(animName2, 2f);
+            anim[animName1].speed = 1;
+            anim[animName1].normalizedTime = 0;
+            anim.Blend(animName1, 2);
+            anim2[animName2].speed = 1;
+            anim2[animName2].normalizedTime = 0;
+            anim2.Blend(animName2, 2);
             play_down = true;
         }
 
@@ -121,12 +119,12 @@ namespace FNPlugin
             IsEnabled = true;
             active_mode = 2;
 
-            anim[animName1].speed = 1f;
-            anim[animName1].normalizedTime = 0f;
-            anim.Blend(animName1, 2f);
-            anim2[animName2].speed = 1f;
-            anim2[animName2].normalizedTime = 0f;
-            anim2.Blend(animName2, 2f);
+            anim[animName1].speed = 1;
+            anim[animName1].normalizedTime = 0;
+            anim.Blend(animName1, 2);
+            anim2[animName2].speed = 1;
+            anim2[animName2].normalizedTime = 0;
+            anim2.Blend(animName2, 2);
             play_down = true;
         }
 
@@ -138,12 +136,12 @@ namespace FNPlugin
             IsEnabled = true;
             active_mode = 3;
 
-            anim[animName1].speed = 1f;
-            anim[animName1].normalizedTime = 0f;
-            anim.Blend(animName1, 2f);
-            anim2[animName2].speed = 1f;
-            anim2[animName2].normalizedTime = 0f;
-            anim2.Blend(animName2, 2f);
+            anim[animName1].speed = 1;
+            anim[animName1].normalizedTime = 0;
+            anim.Blend(animName1, 2);
+            anim2[animName2].speed = 1;
+            anim2[animName2].normalizedTime = 0;
+            anim2.Blend(animName2, 2);
             play_down = true;
         }
 
@@ -155,12 +153,12 @@ namespace FNPlugin
             IsEnabled = true;
             active_mode = 4;
 
-            anim[animName1].speed = 1f;
-            anim[animName1].normalizedTime = 0f;
-            anim.Blend(animName1, 2f);
-            anim2[animName2].speed = 1f;
-            anim2[animName2].normalizedTime = 0f;
-            anim2.Blend(animName2, 2f);
+            anim[animName1].speed = 1;
+            anim[animName1].normalizedTime = 0;
+            anim.Blend(animName1, 2);
+            anim2[animName2].speed = 1;
+            anim2[animName2].normalizedTime = 0;
+            anim2.Blend(animName2, 2);
             play_down = true;
         }
 
@@ -278,7 +276,7 @@ namespace FNPlugin
                     var currentAntimatter_missing = maxAmount - amount;
 
                     var total_electrical_power_provided = (electrical_power_ratio * (PluginHelper.BaseAMFPowerConsumption + PluginHelper.BasePowerConsumption) * 1E6);
-                    var antimatter_mass = total_electrical_power_provided / GameConstants.warpspeed / GameConstants.warpspeed * 1E6 / 20000.0;
+                    var antimatter_mass = total_electrical_power_provided / GameConstants.warpspeed / GameConstants.warpspeed * 1E6 / 20000d;
                     var antimatter_peristence_to_add = -Math.Min(currentAntimatter_missing, antimatter_mass * time_diff);
                     part.RequestResource(InterstellarResourcesConfiguration.Instance.Antimatter, antimatter_peristence_to_add);
                 }
@@ -372,16 +370,16 @@ namespace FNPlugin
             {
                 if (play_down) 
                 {
-                    anim[animName1].speed = -1f;
-                    anim[animName1].normalizedTime = 1f;
-                    anim.Blend(animName1, 2f);
-                    anim2[animName2].speed = -1f;
-                    anim2[animName2].normalizedTime = 1f;
-                    anim2.Blend(animName2, 2f);
+                    anim[animName1].speed = -1;
+                    anim[animName1].normalizedTime = 1;
+                    anim.Blend(animName1, 2);
+                    anim2[animName2].speed = -1;
+                    anim2[animName2].normalizedTime = 1;
+                    anim2.Blend(animName2, 2);
                     play_down = false;
                 }
 
-                //anim [animName1].normalizedTime = 0f;
+                //anim [animName1].normalizedTime = 0;
                 Fields["scienceRate"].guiActive = false;
                 Fields["collectedScience"].guiActive = false;
                 Fields["reprocessingRate"].guiActive = false;

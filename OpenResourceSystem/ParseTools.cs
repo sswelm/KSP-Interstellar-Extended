@@ -34,7 +34,7 @@ namespace InterstellarFuelSwitch
 			var array = stringOfDoubles.Trim().Split(';');
 			foreach (var arrayItem in array)
 			{
-				double item = 0f;
+				double item;
 				if (Double.TryParse(arrayItem.Trim(), out item))
 					list.Add(item);
 				else

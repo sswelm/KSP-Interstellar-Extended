@@ -9,9 +9,9 @@ namespace FNPlugin
     class VistaEngineControllerAdvanced2 : FusionEngineControllerBase2
     {
         const float maxMin = defaultMinIsp / defaultMaxIsp;
-        const float defaultMaxIsp = 27200f;
-        const float defaultMinIsp = 15500f;
-        const float defaultSteps = (defaultMaxIsp - defaultMinIsp) / 100.00f;
+        const float defaultMaxIsp = 27200;
+        const float defaultMinIsp = 15500;
+        const float defaultSteps = (defaultMaxIsp - defaultMinIsp) / 100;
         const float stepNumb = 0;
 
         // Persistant setting
@@ -20,9 +20,9 @@ namespace FNPlugin
 
         // settings
         [KSPField(isPersistant = false)]
-        public float neutronAbsorptionFractionAtMinIsp = 0.5f;
+        public double neutronAbsorptionFractionAtMinIsp = 0.5;
         [KSPField(isPersistant = false)]
-        public float maxThrustEfficiencyByIspPower = 2f;
+        public double maxThrustEfficiencyByIspPower = 2;
         public float minIsp = 15500;
         public FloatCurve atmophereCurve;
 
@@ -48,8 +48,8 @@ namespace FNPlugin
         protected override float MinIsp { get { return minIsp; } set { if (value <= 10) { minIsp = value + .01f;  } else { minIsp = value; } } }
         protected override float MaxIsp { get { return minIsp / maxMin; } }
         protected override float MaxMin { get { return maxMin; } }
-        protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
-        protected override float NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
+		protected override double MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
+        protected override double NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
     }
 
     //class DaedalusEngineControllerAdvanced : FusionEngineControllerBase
@@ -110,18 +110,18 @@ namespace FNPlugin
         public float maxThrustUpgraded2 = 1200;
 
         [KSPField(isPersistant = false)]
-        public float maxAtmosphereDensity = 0.001f;
+        public double maxAtmosphereDensity = 0.001;
         [KSPField(isPersistant = false)]
         public float leathalDistance = 2000;
         [KSPField(isPersistant = false)]
         public float killDivider = 50;
 
         [KSPField(isPersistant = false)]
-        public float efficiency = 0.19f;
+        public double efficiency = 0.19f;
         [KSPField(isPersistant = false)]
-        public float efficiencyUpgraded = 0.38f;
+		public double efficiencyUpgraded = 0.38;
         [KSPField(isPersistant = false)]
-        public float efficiencyUpgraded2 = 0.76f;
+		public double efficiencyUpgraded2 = 0.76;
 
         [KSPField(isPersistant = false)]
         public float fusionWasteHeat = 625;
@@ -156,7 +156,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Laser Wasteheat", guiFormat = "F2", guiUnits = " MW")]
         public double laserWasteheat;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Absorbed Wasteheat", guiFormat = "F2", guiUnits = " MW")]
-        public float absorbedWasteheat;
+        public double absorbedWasteheat;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Radiator Temp")]
         public float coldBathTemp;
@@ -174,8 +174,8 @@ namespace FNPlugin
         protected abstract float MinIsp { get; set; }
         protected abstract float MaxIsp { get; }
         protected abstract float MaxMin { get; }
-        protected abstract float MaxThrustEfficiencyByIspPower { get; }
-        protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
+        protected abstract double MaxThrustEfficiencyByIspPower { get; }
+		protected abstract double NeutronAbsorptionFractionAtMinIsp { get; }
         protected abstract FloatCurve OrigFloatCurve { get; set; }
 
 
@@ -228,12 +228,12 @@ namespace FNPlugin
 
         #endregion
 
-        public float MaximumThrust
+        public double MaximumThrust
         {
             get
             {
 
-                return FullTrustMaximum * Mathf.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / CurveMaxISP;
+                return FullTrustMaximum * Math.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / CurveMaxISP;
             }
         }
 
@@ -263,7 +263,7 @@ namespace FNPlugin
             }
         }
 
-        public float LaserEfficiency
+        public double LaserEfficiency
         {
             get
             {
@@ -540,10 +540,12 @@ namespace FNPlugin
 
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = maxFuelFlow;
-                curEngineT.maxThrust = MaximumThrust;
+				maximumThrust = (float)MaximumThrust;
 
-                maximumThrust = MaximumThrust;
+                curEngineT.maxFuelFlow = (float)maxFuelFlow;
+				curEngineT.maxThrust = maximumThrust;
+
+                
 
                 if (!curEngineT.getFlameoutState && plasma_ratio < 0.75 && recievedPowerFixed > 0)
                     curEngineT.status = "Insufficient Electricity";
@@ -557,11 +559,11 @@ namespace FNPlugin
                 var currentIsp = SelectedIsp;
 
                 UpdateISP();
-                curEngineT.maxThrust = MaximumThrust;
+                curEngineT.maxThrust = (float)MaximumThrust;
                 var rateMultplier = MinIsp / SelectedIsp;
 
                 var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = maxFuelFlow;
+                curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;
             }

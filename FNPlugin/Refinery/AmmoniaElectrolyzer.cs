@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
@@ -9,7 +7,7 @@ namespace FNPlugin.Refinery
     class AmmoniaElectrolyzer : RefineryActivityBase, IRefineryActivity
     {
         protected double _current_mass_rate;
-         protected double _ammonia_density;
+        protected double _ammonia_density;
         protected double _nitrogen_density;
         protected double _hydrogen_density;
 

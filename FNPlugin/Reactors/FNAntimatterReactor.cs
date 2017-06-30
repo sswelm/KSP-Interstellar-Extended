@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿
 namespace FNPlugin
 {
     [KSPModule("Antimatter Reactor")]
@@ -12,8 +8,8 @@ namespace FNPlugin
 
         public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 
-        public float MaximumChargedIspMult { get { return 100f; } }
+        public double MaximumChargedIspMult { get { return 100; } }
 
-        public float MinimumChargdIspMult { get { return 1; } }
+		public double MinimumChargdIspMult { get { return 1; } }
     }
 }

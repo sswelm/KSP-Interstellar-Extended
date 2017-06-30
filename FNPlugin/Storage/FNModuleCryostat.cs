@@ -1,8 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 
 
 namespace FNPlugin
@@ -30,7 +26,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false)]
         public double powerReqKW = 0;
         [KSPField(isPersistant = false, guiActive = false)]
-        public float powerReqMult = 1f;
+        public double powerReqMult = 1;
         [KSPField(isPersistant = false)]
         public double boilOffMultiplier = 0;
         [KSPField(isPersistant = false)]

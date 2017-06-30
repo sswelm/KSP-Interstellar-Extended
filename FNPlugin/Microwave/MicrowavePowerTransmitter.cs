@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -81,8 +80,10 @@ namespace FNPlugin
         public string statusStr;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Transmission Efficiency", guiUnits = "%")]
         public double transmissionEfficiencyPercentage;
+
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reactor Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
+
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
         public string beamedpower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Solar Power", guiFormat = "F2")]
@@ -94,9 +95,9 @@ namespace FNPlugin
 
         // Near Future Compatibility properties
         [KSPField(isPersistant = false)]
-        public float powerMult = 1;
+        public double powerMult = 1;
         [KSPField(isPersistant = false)]
-        public float powerHeatMultiplier = 1;
+        public double powerHeatMultiplier = 1;
 
         protected string scalarModuleID = Guid.NewGuid().ToString();
         protected EventData<float, float> onMoving;
@@ -113,7 +114,7 @@ namespace FNPlugin
 
         protected ModuleAnimateGeneric genericAnimation;
 
-        const double oneThird = 1.0 / 3.0;
+        const double oneThird = 1d / 3d;
 
         public bool CanMove { get { return true; } }
 
@@ -141,14 +142,14 @@ namespace FNPlugin
             {
                 if (t > 0.5)
                 {
-                    anim[animName].speed = 1f;
-                    anim[animName].normalizedTime = 0f;
+                    anim[animName].speed = 1;
+                    anim[animName].normalizedTime = 0;
                     anim.Blend(animName, part.mass);
                 }
                 else
                 {
-                    anim[animName].speed = -1f;
-                    anim[animName].normalizedTime = 1f;
+                    anim[animName].speed = -1;
+                    anim[animName].normalizedTime = 1;
                     anim.Blend(animName, part.mass);
                 }
             }
@@ -173,8 +174,8 @@ namespace FNPlugin
 
             if (anim != null)
             {
-                anim[animName].speed = 1f;
-                anim[animName].normalizedTime = 0f;
+                anim[animName].speed = 1;
+                anim[animName].normalizedTime = 0;
                 anim.Blend(animName, part.mass);
             }
             IsEnabled = true;
@@ -194,8 +195,8 @@ namespace FNPlugin
  
             if (anim != null)
             {
-                anim[animName].speed = -1f;
-                anim[animName].normalizedTime = 1f;
+                anim[animName].speed = -1;
+                anim[animName].normalizedTime = 1;
                 anim.Blend(animName, part.mass);
             }
             IsEnabled = false;
@@ -208,8 +209,8 @@ namespace FNPlugin
 
             if (anim != null)
             {
-                anim[animName].speed = 1f;
-                anim[animName].normalizedTime = 0f;
+                anim[animName].speed = 1;
+                anim[animName].normalizedTime = 0;
                 anim.Blend(animName, part.mass);
             }
 
@@ -226,12 +227,12 @@ namespace FNPlugin
         {
             if (!relay) return;
 
-            ScreenMessages.PostScreenMessage("Relay deactivated", 4.0f, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage("Relay deactivated", 4, ScreenMessageStyle.UPPER_CENTER);
 
             if (anim != null)
             {
-                anim[animName].speed = 1f;
-                anim[animName].normalizedTime = 0f;
+                anim[animName].speed = 1;
+                anim[animName].normalizedTime = 0;
                 anim.Blend(animName, part.mass);
             }
             IsEnabled = false;
@@ -323,23 +324,19 @@ namespace FNPlugin
 
             UpdateRelayWavelength();
 
-            //ScreenMessages.PostScreenMessage("Microwave Transmitter Updated Wvelength", 10.0f, ScreenMessageStyle.UPPER_CENTER);
-
             anim = part.FindModelAnimators(animName).FirstOrDefault();
             if ( anim != null &&  part_receiver == null)
             {
                 anim[animName].layer = 1;
                 if (IsEnabled)
                 {
-                    //ScreenMessages.PostScreenMessage("Microwave Transmitter Activates", 10.0f, ScreenMessageStyle.UPPER_CENTER);
-                    anim[animName].normalizedTime = 0f;
-                    anim[animName].speed = 1f;
+                    anim[animName].normalizedTime = 0;
+                    anim[animName].speed = 1;
                 }
                 else
                 {
-                    //ScreenMessages.PostScreenMessage("Microwave Transmitter Deactivates", 10.0f, ScreenMessageStyle.UPPER_CENTER);
-                    anim[animName].normalizedTime = 1f;
-                    anim[animName].speed = -1f;
+                    anim[animName].normalizedTime = 1;
+                    anim[animName].speed = -1;
                 }
                 //anim.Play();
                 anim.Blend(animName, part.mass);
@@ -347,7 +344,6 @@ namespace FNPlugin
 
             if (forceActivateAtStartup)
                 this.part.force_activate();
-            //ScreenMessages.PostScreenMessage("Microwave Transmitter Force Activated", 5.0f, ScreenMessageStyle.UPPER_CENTER);
         }
 
         /// <summary>
@@ -399,12 +395,12 @@ namespace FNPlugin
                 if (anim == null) 
                     return true;
 
-                var pressure = FlightGlobals.getStaticPressure(vessel.transform.position) / 100f;
-                var dynamic_pressure = 0.5f * pressure * 1.2041f * vessel.srf_velocity.sqrMagnitude / 101325.0f;
+                var pressure = FlightGlobals.getStaticPressure(vessel.transform.position) / 100;
+                var dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325.0;
 
                 if (dynamic_pressure <= 0) return true;
 
-                var pressureLoad = (dynamic_pressure / 1.4854428818159e-3f) * 100;
+                var pressureLoad = (dynamic_pressure / 1.4854428818159e-3) * 100;
                 if (pressureLoad > 100 * atmosphereToleranceModifier)
                     return false;
                 else 
@@ -542,8 +538,6 @@ namespace FNPlugin
             if (activeBeamGenerator != null && IsEnabled && !relay)
             {
                 double reactorPowerTransmissionRatio = transmitPower / 100d;
-                //double solarPowertransmissionRatio = solarPowertransmission / 100d;
-
                 double transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100d;
                 double transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100d;
 

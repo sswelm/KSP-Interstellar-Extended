@@ -1,4 +1,3 @@
-using System.Linq;
 using FNPlugin.Extensions;
 using System;
 using System.Collections.Generic;
@@ -23,6 +22,7 @@ namespace FNPlugin
 		public float speedLimit = 1;
 		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Fuel Limiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
 		public float fuelLimit = 100;
+
 		[KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Maximise Thrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
 		public bool maximizeThrust = true;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Power Usage")]
@@ -90,12 +90,12 @@ namespace FNPlugin
 		[KSPField(isPersistant = false)]
 		public float maxThrustUpgraded = 1200;
 		[KSPField(isPersistant = false)]
-		public float maxAtmosphereDensity = 0.001f;
+		public float maxAtmosphereDensity = 0;
 
 		[KSPField(isPersistant = false)]
-		public float efficiency = 0.25f;
+		public double efficiency = 0.25;
 		[KSPField(isPersistant = false)]
-		public float efficiencyUpgraded = 0.5f;
+		public double efficiencyUpgraded = 0.5;
 		[KSPField(isPersistant = false)]
 		public float leathalDistance = 2000;
 		[KSPField(isPersistant = false)]
@@ -167,7 +167,7 @@ namespace FNPlugin
 
 		public String UpgradeTechnology { get { return upgradeTechReq; } }
 
-		public float Efficiency { get { return isupgraded ? efficiencyUpgraded : efficiency; } }
+		public double Efficiency { get { return isupgraded ? efficiencyUpgraded : efficiency; } }
 		public float MaximumThrust { get { return isupgraded ? maxThrustUpgraded : maxThrust; } }
 		public float FusionWasteHeat { get { return isupgraded ? fusionWasteHeatUpgraded : fusionWasteHeat; } }
 

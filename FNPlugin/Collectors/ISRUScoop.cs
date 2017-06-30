@@ -1,10 +1,7 @@
 ﻿using OpenResourceSystem;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-using FNPlugin.Extensions;
 
 namespace FNPlugin 
 {
@@ -22,9 +19,9 @@ namespace FNPlugin
 
         // part proterties
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Scooped Air", guiFormat = "F6")]
-        public float scoopair = 0;
+        public double scoopair = 0;
         [KSPField(isPersistant = false, guiActiveEditor = false)]
-        public float powerReqMult = 1;
+        public double powerReqMult = 1;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
 
@@ -36,7 +33,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Resource")]
         public string currentresourceStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Percentage", guiUnits = "%")]
-        public float rescourcePercentage;
+        public double rescourcePercentage;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Storage")]
         public string resourceStoragename;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
@@ -46,7 +43,7 @@ namespace FNPlugin
 
         
         // internals
-        protected float resflowf = 0;
+        protected double resflowf = 0;
 
         [KSPEvent(guiActive = true, guiName = "Activate Scoop", active = true)]
         public void ActivateScoop() 
@@ -131,14 +128,14 @@ namespace FNPlugin
             // verify altitude is not too high
             if (vessel.altitude > (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) * PluginHelper.MaxAtmosphericAltitudeMult))
             {
-                ScreenMessages.PostScreenMessage("Vessel is too high for resource accumulation", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("Vessel is too high for resource accumulation", 10, ScreenMessageStyle.LOWER_CENTER);
                 return;
             }
 
             // verify altitude is not too low
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
             {
-                ScreenMessages.PostScreenMessage("Vessel is too low for resource accumulation", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("Vessel is too low for resource accumulation", 10, ScreenMessageStyle.LOWER_CENTER);
                 return;
             }
 
@@ -156,7 +153,7 @@ namespace FNPlugin
                 p.FindModulesImplementing<ThermalNozzleController>().Any(e => e.AttachedReactor.CoreTemperature > 40000));
             if (highIspEngine == null)
             {
-                ScreenMessages.PostScreenMessage("No engine available, with high enough Isp and propelant switch ability to compensate for atmospheric drag", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("No engine available, with high enough Isp and propelant switch ability to compensate for atmospheric drag", 10, ScreenMessageStyle.LOWER_CENTER);
                 return;
             }
 
@@ -205,7 +202,7 @@ namespace FNPlugin
 
             if (ors_atmospheric_resource_name == null)
             {
-                resflowf = 0.0f;
+                resflowf = 0;
                 recievedPower = "error";
                 densityFractionOfUpperAthmosphere = "error";
                 return;
@@ -245,21 +242,21 @@ namespace FNPlugin
             else if (resourceDisplayName == "Helium")
                 rescourceFraction += heliumTax;
 
-            densityFractionOfUpperAthmosphere = (upperatmosphereDensity * 100.0).ToString("0.000") + "%";
-            rescourcePercentage = (float)rescourceFraction * 100f;
+            densityFractionOfUpperAthmosphere = (upperatmosphereDensity * 100).ToString("0.000") + "%";
+            rescourcePercentage = rescourceFraction * 100;
             if (rescourceFraction <= 0 || vessel.altitude > (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) * PluginHelper.MaxAtmosphericAltitudeMult))
             {
-                resflowf = 0.0f;
+                resflowf = 0;
                 recievedPower = "off";
                 densityFractionOfUpperAthmosphere = "too high";
                 rescourcePercentage = 0;
                 return;
             }
 
-            double airspeed = part.vessel.srf_velocity.magnitude + 40.0;
+            double airspeed = part.vessel.srf_velocity.magnitude + 40;
             double air = airspeed * (airDensity / 1000) * scoopair / resourcedensity;
             double scoopedAtm = air * rescourceFraction;
-            double powerrequirementsMW = (scoopair / 0.15f) * 6f * PluginHelper.PowerConsumptionMultiplier * powerReqMult;
+            double powerrequirementsMW = (scoopair / 0.15) * 6 * PluginHelper.PowerConsumptionMultiplier * powerReqMult;
 
             if (scoopedAtm > 0 && part.GetResourceSpareCapacity(resourceStoragename) > 0)
             {

@@ -29,7 +29,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float maxThrustUpgraded = 1200;
         [KSPField(isPersistant = false)]
-        public float maxAtmosphereDensity = 0.001f;
+        public double maxAtmosphereDensity = 0.001;
 
         [KSPField(isPersistant = false)]
         public float efficiency = 0.19f;

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -20,14 +19,14 @@ namespace FNPlugin
 
         // settings
         [KSPField(isPersistant = false)]
-        public float neutronAbsorptionFractionAtMinIsp = 0.5f;
+        public double neutronAbsorptionFractionAtMinIsp = 0.5;
         [KSPField(isPersistant = false)]
-        public float maxThrustEfficiencyByIspPower = 2f;
+        public double maxThrustEfficiencyByIspPower = 2;
 
         protected override float SelectedIsp { get { return localIsp; } }
         protected override float MaxIsp { get { return maxIsp; } }
-        protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
-        protected override float NeutronAbsorptionFractionAtMinIsp  { get { return neutronAbsorptionFractionAtMinIsp; } }
+		protected override double MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
+		protected override double NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
     }
 
     abstract class FusionEngineControllerBase : FNResourceSuppliableModule, IUpgradeableModule 
@@ -73,11 +72,11 @@ namespace FNPlugin
         public float killDivider = 50;
 
         [KSPField(isPersistant = false)]
-        public float efficiency = 0.19f;
+        public double efficiency = 0.19;
         [KSPField(isPersistant = false)]
-        public float efficiencyUpgraded = 0.38f;
+		public double efficiencyUpgraded = 0.38;
         [KSPField(isPersistant = false)]
-        public float efficiencyUpgraded2 = 0.76f;
+		public double efficiencyUpgraded2 = 0.76;
 
         [KSPField(isPersistant = false)]
         public float fusionWasteHeat = 625;
@@ -127,8 +126,8 @@ namespace FNPlugin
         // abstracts
         protected abstract float SelectedIsp { get; }
         protected abstract float MaxIsp { get; }
-        protected abstract float MaxThrustEfficiencyByIspPower { get; }
-        protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
+        protected abstract double MaxThrustEfficiencyByIspPower { get; }
+		protected abstract double NeutronAbsorptionFractionAtMinIsp { get; }
 
         // protected
         protected bool hasrequiredupgrade = false;
@@ -177,7 +176,7 @@ namespace FNPlugin
 
         #endregion
 
-        public float MaximumThrust { get { return FullTrustMaximum * Mathf.Pow((minISP / SelectedIsp), MaxThrustEfficiencyByIspPower); } }
+        public float MaximumThrust { get { return FullTrustMaximum * Mathf.Pow((minISP / SelectedIsp), (float)MaxThrustEfficiencyByIspPower); } }
         
         public float FusionWasteHeat 
         { 
@@ -205,7 +204,7 @@ namespace FNPlugin
             }
         }
 
-        public float LaserEfficiency
+        public double LaserEfficiency
         {
             get
             {
@@ -431,7 +430,7 @@ namespace FNPlugin
                 var rateMultplier = minISP / SelectedIsp;
 
                 var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-                curEngineT.maxFuelFlow = maxFuelFlow;
+                curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate / rateMultplier);
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate / rateMultplier);
             }

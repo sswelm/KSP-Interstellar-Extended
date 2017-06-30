@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
-using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -68,7 +66,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Total Warp Power", guiFormat = "F4", guiUnits = "t")]
         protected double sumOfAlcubierreDrives;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Vessel Total Mass", guiFormat = "F4", guiUnits = "t")]
-        public float vesselTotalMass;
+        public double vesselTotalMass;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Warp to Mass Ratio", guiFormat = "F4")]
         public double warpToMassRatio;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
@@ -573,7 +571,7 @@ namespace FNPlugin
 
                 Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
                 Vector3 end_beam_pos = ship_pos + transform.up * warp_size;
-                Vector3 mid_pos = (ship_pos - end_beam_pos) / 2.0f;
+                Vector3 mid_pos = (ship_pos - end_beam_pos) / 2f;
 
                 warp_effect.transform.localScale = new Vector3(effectSize1, mid_pos.magnitude, effectSize1);
                 warp_effect.transform.position = new Vector3(mid_pos.x, ship_pos.y + mid_pos.y, mid_pos.z);
@@ -641,8 +639,8 @@ namespace FNPlugin
                 warp_effect1_renderer.material.renderQueue = 1001;
                 /*gameObject.AddComponent<Light>();
                 gameObject.light.color = Color.cyan;
-                gameObject.light.intensity = 1f;
-                gameObject.light.range = 4000f;
+                gameObject.light.intensity = 1;
+                gameObject.light.range = 4000;
                 gameObject.light.type = LightType.Spot;
                 gameObject.light.transform.position = end_beam_pos;
                 gameObject.light.cullingMask = ~0;*/
@@ -696,8 +694,8 @@ namespace FNPlugin
                 else
                     warpdriveType = originalName;
 
-                //warp_effect.transform.localScale.y = 2.5f;
-                //warp_effect.transform.localScale.z = 200f;
+                //warp_effect.transform.localScale.y = 2.5;
+                //warp_effect.transform.localScale.z = 200;
 
                 // disable charging at startup
                 //IsCharging = false;
@@ -764,7 +762,7 @@ namespace FNPlugin
 
             if (vessel != null)
             {
-                vesselTotalMass = vessel.GetTotalMass();
+                vesselTotalMass = (double)(decimal)vessel.GetTotalMass();
                 gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
                 gravityAtSeaLevel = vessel.mainBody.GeeASL * GameConstants.STANDARD_GRAVITY;
                 gravityDragPercentage = (1 - Math.Pow((1 - gravityPull / gravityAtSeaLevel), 2)) * 100;

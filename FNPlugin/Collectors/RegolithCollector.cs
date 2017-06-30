@@ -26,11 +26,11 @@ namespace FNPlugin.Collectors
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill size", guiUnits = " m\xB3")]
         public double drillSize = 0; // Volume of the collector's drill. Raise in part config (for larger drills) to make collecting faster.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill effectiveness", guiFormat = "P1")]
-        public double effectiveness = 1.0; // Effectiveness of the drill. Lower in part config (to a 0.5, for example) to slow down resource collecting.
+        public double effectiveness = 1; // Effectiveness of the drill. Lower in part config (to a 0.5, for example) to slow down resource collecting.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
-        public double mwRequirements = 1.0; // MW requirements of the drill. Affects heat produced.
+        public double mwRequirements = 1; // MW requirements of the drill. Affects heat produced.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Waste Heat Modifier", guiFormat = "P1")]
-        public double wasteHeatModifier = 1.0; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
+        public double wasteHeatModifier = 1; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
         
 
 
@@ -57,7 +57,7 @@ namespace FNPlugin.Collectors
                 bTouchDown = TryRaycastToHitTerrain(); // check if there's ground within reach and if the drill is deployed
                 if (bTouchDown == false) // if not, no collecting
                 {
-                    ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Make sure drill is deployed and can reach the terrain.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
+                    ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Make sure drill is deployed and can reach the terrain.", 3, ScreenMessageStyle.LOWER_CENTER);
                     DisableCollector();
                     return;
                 }
@@ -222,7 +222,7 @@ namespace FNPlugin.Collectors
                     bTouchDown = TryRaycastToHitTerrain();
                     if (bTouchDown == false) // if not, disable collecting
                     {
-                        ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Disabling drill.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
+                        ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Disabling drill.", 3, ScreenMessageStyle.LOWER_CENTER);
                         DisableCollector();
                         return;
                     }
@@ -286,7 +286,7 @@ namespace FNPlugin.Collectors
         {
             Vector3d partPosition = this.part.transform.position; // find the position of the transform in 3d space
             double scaleFactor = this.part.rescaleFactor; // what is the rescale factor of the drill?
-            float drillDistance = (float)(5.0 * scaleFactor); // adjust the distance for the ray with the rescale factor, needs to be a float for raycast. The 5 is just about the reach of the drill.
+            float drillDistance = (float)(5 * scaleFactor); // adjust the distance for the ray with the rescale factor, needs to be a float for raycast. The 5 is just about the reach of the drill.
 
             RaycastHit hit = new RaycastHit(); // create a variable that stores info about hit colliders etc.
             LayerMask terrainMask = 32768; // layermask in unity, number 1 bitshifted to the left 15 times (1 << 15), (terrain = 15, the bitshift is there so that the mask bits are raised; this is a good reading about that: http://answers.unity3d.com/questions/8715/how-do-i-use-layermasks.html)
@@ -340,7 +340,7 @@ namespace FNPlugin.Collectors
              * Go to a higher terrain and you will find **more** regolith. The + 500 shift is there so that even at altitude of 0 (i.e. Minmus flats etc.) there will
              * still be at least SOME regolith to be mined.
              */
-            double dAltModifier = (altitude + 500.0) / 2500.0;
+            double dAltModifier = (altitude + 500) / 2500;
             double dConcentration =  dAltModifier * (dAvgMunDistance / (Vector3d.Distance(planetPosition, sunPosition))); // get a basic concentration. Should range from numbers lower than one for planets further away from the sun, to about 2.5 at Moho
             return dConcentration;
         }

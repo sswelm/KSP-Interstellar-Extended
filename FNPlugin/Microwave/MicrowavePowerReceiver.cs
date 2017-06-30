@@ -59,9 +59,9 @@ namespace FNPlugin
         public int supportedPropellantTypes = 127;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Electric Wasteheat Exponent")]
-        public float electricWasteheatExponent = 1;
+        public double electricWasteheatExponent = 1;
         [KSPField(isPersistant = false)]
-        public float electricMaxEfficiency = 1;
+        public double electricMaxEfficiency = 1;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Wasteheat Ratio", guiFormat = "F6")]
         public double wasteheatRatio;
@@ -75,13 +75,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "instance ID")]
         public int instanceId;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public float facingThreshold = 0;
+        public double facingThreshold = 0;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public float facingSurfaceExponent = 1;
+        public double facingSurfaceExponent = 1;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public float facingEfficiencyExponent = 0.1f;
+        public double facingEfficiencyExponent = 0.1;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public float spotsizeNormalizationExponent = 1f;
+        public double spotsizeNormalizationExponent = 1;
         [KSPField(isPersistant = false)]
         public bool canLinkup = true;
 
@@ -116,33 +116,33 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Effective Thermal Power", guiFormat = "F3", guiUnits = " MJ")]
         public double ThermalPower;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Radius", guiUnits = " m")]
-        public float radius = 2.5f;
+        public double radius = 2.5;
         [KSPField(isPersistant = false)]
         public float alternatorRatio = 1;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "min Wavelength")]
-        public double minimumWavelength = 0.00000001f;
+        public double minimumWavelength = 0.00000001;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "max Wavelength")]
-        public double maximumWavelength = 1f;
+        public double maximumWavelength = 1;
 
         [KSPField(isPersistant = false)]
-        public float heatTransportationEfficiency = 0.7f;
+        public double heatTransportationEfficiency = 0.7;
         [KSPField(isPersistant = false)]
-        public float powerHeatExponent = 0.7f;
+        public double powerHeatExponent = 0.7;
         [KSPField(isPersistant = false)]
-        public float powerHeatBase = 3200f;
+        public double powerHeatBase = 3200;
         [KSPField(isPersistant = false)]
         public int receiverType = 0;
         [KSPField(isPersistant = false)]
-        public float receiverFracionBonus = 0;
+        public double receiverFracionBonus = 0;
         [KSPField(isPersistant = false)]
-        public float wasteHeatMultiplier = 1;
+		public double wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
-        public float apertureMultiplier = 1;
+		public double apertureMultiplier = 1;
         [KSPField(isPersistant = false)]
-        public float highSpeedAtmosphereFactor = 0;
+		public double highSpeedAtmosphereFactor = 0;
         [KSPField(isPersistant = false)]
-        public float atmosphereToleranceModifier = 1;
+		public double atmosphereToleranceModifier = 1;
         [KSPField(isPersistant = false)]
         public double thermalPropulsionEfficiency = 1;
         [KSPField(isPersistant = false)]
@@ -191,11 +191,11 @@ namespace FNPlugin
         public int slavesAmount;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
-        public float maximumPower = 0;
+		public double maximumPower = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
-        public float maximumElectricPower = 0;
+		public double maximumElectricPower = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
-        public float maximumThermalPower = 0;
+        public double maximumThermalPower = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Power Source", guiFormat = "F2", guiUnits = "MW")]
         public double maxAvailablePowerFromSource;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Route Efficiency", guiFormat = "F4")]
@@ -213,9 +213,9 @@ namespace FNPlugin
         public double partBaseMegajoules;
 
         [KSPField(isPersistant = false)]
-        public float powerMult = 1;
+        public double powerMult = 1;
         [KSPField(isPersistant = false)]
-        public float powerHeatMultiplier = 1;
+        public double powerHeatMultiplier = 1;
 
         protected double total_beamed_power = 0;
         protected double total_beamed_power_max = 0;
@@ -450,7 +450,7 @@ namespace FNPlugin
 
         public double CoreTemperature { get { return powerHeatBase; } }
 
-        public double HotBathTemperature { get { return CoreTemperature * 1.5f; } }
+        public double HotBathTemperature { get { return CoreTemperature * 1.5; } }
 
         public double StableMaximumReactorPower { get { return RawMaximumPower; } }
 
@@ -535,8 +535,8 @@ namespace FNPlugin
                     if (animation[animName].normalizedTime == 1)
                         animation[animName].normalizedTime = 0;
 
-                    animation[animName].speed = 1f;
-                    animation.Blend(animName, 2f);
+                    animation[animName].speed = 1;
+                    animation.Blend(animName, 2);
                 }
             }
 
@@ -589,8 +589,8 @@ namespace FNPlugin
                     if (animation[animName].normalizedTime == 0)
                         animation[animName].normalizedTime = 1;
 
-                    animation[animName].speed = -1f;
-                    animation.Blend(animName, 2f);
+                    animation[animName].speed = -1;
+                    animation.Blend(animName, 2);
                 }
             }
 
@@ -862,7 +862,7 @@ namespace FNPlugin
                 {
                     animT[animTName].enabled = true;
                     animT[animTName].layer = 1;
-                    animT[animTName].normalizedTime = 0f;
+                    animT[animTName].normalizedTime = 0;
                     animT[animTName].speed = 0.001f;
 
                     animT.Sample();
@@ -1193,10 +1193,10 @@ namespace FNPlugin
             //            animatonDeployed = true;
 
             //            if (anim[animName].normalizedTime == 1f)
-            //                anim[animName].normalizedTime = 0f;
+            //                anim[animName].normalizedTime = 0;
 
-            //            anim[animName].speed = 1f;
-            //            anim.Blend(animName, 2f);
+            //            anim[animName].speed = 1;
+            //            anim.Blend(animName, 2);
             //        }
             //    }
             //    else
@@ -1207,10 +1207,10 @@ namespace FNPlugin
             //            animatonDeployed = false;
 
             //            if (anim[animName].normalizedTime == 0)
-            //                anim[animName].normalizedTime = 1f;
+            //                anim[animName].normalizedTime = 1;
 
-            //            anim[animName].speed = -1f;
-            //            anim.Blend(animName, 2f);
+            //            anim[animName].speed = -1;
+            //            anim.Blend(animName, 2);
             //        }
             //    }
             //}

@@ -1,8 +1,6 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin 
@@ -18,7 +16,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string AnimationName = "";
         [KSPField(isPersistant = false)]
-        public float efficency = 0.8f;
+        public double efficency = 0.8;
         [KSPField(isPersistant = false)]
         public int type = 16;
         [KSPField(isPersistant = false)]
@@ -49,7 +47,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Propellant Maximum Isp")]
         public float maxPropellantIsp;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Propellant Thrust Multiplier")]
-        public float currentThrustMultiplier = 1;
+        public double currentThrustMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Thrust / ISP Mult")]
         public string thrustIspMultiplier = "";
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]
@@ -187,7 +185,7 @@ namespace FNPlugin
                 moduleConfig.AddValue("resourceName", new_propellant.name);
                 moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
 
-                maxPropellantIsp = (hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier;
+                maxPropellantIsp = (float)((hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier);
 
                 var atmosphereCurve = new ConfigNode("atmosphereCurve");
                 atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
@@ -392,7 +390,7 @@ namespace FNPlugin
 
             propNameStr = Current_propellant.PropellantGUIName;
 
-            currentMaxThrust = baseThrust / Current_propellant.IspMultiplier * currentThrustMultiplier;
+            currentMaxThrust = (float)(baseThrust / Current_propellant.IspMultiplier * currentThrustMultiplier);
 
             thrustStr = attachedRCS.thrusterPower.ToString("0.000") + " / " + currentMaxThrust.ToString("0.000") + " kN";
 

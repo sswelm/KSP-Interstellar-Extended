@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin 
@@ -28,18 +25,18 @@ namespace FNPlugin
 		[KSPEvent(guiActive = true, guiName = "Activate Magnetometer", active = true)]
 		public void ActivateMagnetometer() 
         {
-			anim [animName].speed = 1f;
-			anim [animName].normalizedTime = 0f;
-			anim.Blend (animName, 2f);
+			anim [animName].speed = 1;
+			anim [animName].normalizedTime = 0;
+			anim.Blend (animName, 2);
 			IsEnabled = true;
 		}
 
 		[KSPEvent(guiActive = true, guiName = "Deactivate Magnetometer", active = false)]
 		public void DeactivateMagnetometer() 
         {
-			anim [animName].speed = -1f;
-			anim [animName].normalizedTime = 1f;
-			anim.Blend (animName, 2f);
+			anim [animName].speed = -1;
+			anim [animName].normalizedTime = 1;
+			anim.Blend (animName, 2);
 			IsEnabled = false;
 		}
 
@@ -75,13 +72,13 @@ namespace FNPlugin
 				anim [animName].layer = 1;
 				if (!IsEnabled) 
                 {
-					anim [animName].normalizedTime = 1f;
-					anim [animName].speed = -1f;
+					anim [animName].normalizedTime = 1;
+					anim [animName].speed = -1;
 				} 
                 else 
                 {
-					anim [animName].normalizedTime = 0f;
-					anim [animName].speed = 1f;
+					anim [animName].normalizedTime = 0;
+					anim [animName].speed = 1;
 				}
 				anim.Play ();
 			}

@@ -54,9 +54,9 @@ namespace FNPlugin
                 group.audio = gameObject.AddComponent<AudioSource>();
                 group.audio.volume = GameSettings.SHIP_VOLUME;
                 group.audio.rolloffMode = AudioRolloffMode.Logarithmic;
-                group.audio.dopplerLevel = 0f;
+                group.audio.dopplerLevel = 0;
                 //group.audio.panLevel = 1f; Depreciated so we add 'spatialBlend' below
-                group.audio.spatialBlend = 1f;
+                group.audio.spatialBlend = 1;
                 group.audio.clip = GameDatabase.Instance.GetAudioClip(filename);
                 group.audio.loop = loop;
                 group.audio.playOnAwake = false;

@@ -53,13 +53,14 @@ namespace FNPlugin
             
             double proton_rad = cur_ref_body.GetProtonRadiationLevel(FlightGlobals.ship_altitude, FlightGlobals.ship_latitude);
             double electron_rad = cur_ref_body.GetElectronRadiationLevel(FlightGlobals.ship_altitude, FlightGlobals.ship_latitude);
-            double divisor = Math.Pow(cur_ref_body.Radius / crefkerbin.Radius, 2.0);
+            double divisor = Math.Pow(cur_ref_body.Radius / crefkerbin.Radius, 2);
             double proton_rad_level = proton_rad / divisor;
             double electron_rad_level = electron_rad / divisor;
 
             double inv_square_mult = Math.Pow(Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2) / Math.Pow(Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position), 2);
             double solar_radiation = 0.19 * inv_square_mult;
             double mag_field_strength = cur_ref_body.GetBeltMagneticFieldMagnitude(FlightGlobals.ship_altitude, FlightGlobals.ship_latitude);
+
             while (cur_ref_body.referenceBody != null)
             {
                 CelestialBody old_ref_body = cur_ref_body;

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -18,15 +16,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public bool powerIsAffectedByLithium = true;
         [KSPField(isPersistant = false)]
-        public float fusionEnergyGainFactorMk1 = 10;
+        public double fusionEnergyGainFactorMk1 = 10;
         [KSPField(isPersistant = false)]
-        public float fusionEnergyGainFactorMk2 = 20;
+		public double fusionEnergyGainFactorMk2 = 20;
         [KSPField(isPersistant = false)]
-        public float fusionEnergyGainFactorMk3 = 40;
+		public double fusionEnergyGainFactorMk3 = 40;
         [KSPField(isPersistant = false)]
-        public float fusionEnergyGainFactorMk4 = 80;
+		public double fusionEnergyGainFactorMk4 = 80;
         [KSPField(isPersistant = false)]
-        public float fusionEnergyGainFactorMk5 = 120;
+		public double fusionEnergyGainFactorMk5 = 120;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
@@ -42,9 +40,9 @@ namespace FNPlugin
         //public float
         protected PartResource lithiumPartResource = null;
 
-        public float MaximumChargedIspMult { get { return 100; } }
+        public double MaximumChargedIspMult { get { return 100; } }
 
-        public float MinimumChargdIspMult { get { return 1; } }
+		public double MinimumChargdIspMult { get { return 1; } }
 
         public override double StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
 
@@ -89,7 +87,7 @@ namespace FNPlugin
         public double NormalizedPowerRequirment { get { return PowerRequirement * CurrentFuelMode.NormalisedPowerRequirements; } }
 
 
-        public float FusionEnergyGainFactor
+        public double FusionEnergyGainFactor
         {
             get
             {

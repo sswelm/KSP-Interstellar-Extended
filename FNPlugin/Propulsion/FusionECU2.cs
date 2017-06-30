@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -19,34 +18,34 @@ namespace FNPlugin
         public string temperatureStr = "";
 
         [KSPField(isPersistant = false)]
-        public float powerRequirement = 625;
+		public double powerRequirement = 625;
         [KSPField(isPersistant = false)]
-        public float powerRequirementUpgraded = 1250;
+		public double powerRequirementUpgraded = 1250;
         [KSPField(isPersistant = false)]
-        public float powerRequirementUpgraded2 = 2500;
+		public double powerRequirementUpgraded2 = 2500;
 
         [KSPField(isPersistant = false)]
         public bool selectableIsp = false;
 
         [KSPField(isPersistant = false)]
-        public float maxAtmosphereDensity = 0.001f;
+        public double maxAtmosphereDensity = 0.001;
         [KSPField(isPersistant = false)]
-        public float leathalDistance = 2000;
+		public double leathalDistance = 2000;
         [KSPField(isPersistant = false)]
-        public float killDivider = 50;
+		public double killDivider = 50;
 
         [KSPField(isPersistant = false)]
-        public float fusionWasteHeat = 625;
+		public double fusionWasteHeat = 625;
         [KSPField(isPersistant = false)]
-        public float fusionWasteHeatUpgraded = 2500;
+		public double fusionWasteHeatUpgraded = 2500;
         [KSPField(isPersistant = false)]
-        public float fusionWasteHeatUpgraded2 = 10000;
+		public double fusionWasteHeatUpgraded2 = 10000;
 
         // Use for SETI Mode
         [KSPField(isPersistant = false)]
-        public float wasteHeatMultiplier = 1;
+		public double wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
-        public float powerRequirementMultiplier = 1;
+		public double powerRequirementMultiplier = 1;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Fusion Ratio", guiFormat = "F2")]
         public double fusionRatio;
@@ -120,7 +119,7 @@ namespace FNPlugin
             }
         }
 
-        public float FusionWasteHeat
+        public double FusionWasteHeat
         {
             get
             {
@@ -146,7 +145,7 @@ namespace FNPlugin
             }
         }
 
-        public float LaserEfficiency
+        public double LaserEfficiency
         {
             get
             {
@@ -159,7 +158,7 @@ namespace FNPlugin
             }
         }
 
-        public float CurrentPowerRequirement
+        public double CurrentPowerRequirement
         {
             get
             {
@@ -167,7 +166,7 @@ namespace FNPlugin
             }
         }
 
-        public float PowerRequirementMaximum
+        public double PowerRequirementMaximum
         {
             get
             {
@@ -192,11 +191,11 @@ namespace FNPlugin
                     return minThrottleRatioMk3;
             }
         }
-        private float powerMult ()
+        private double powerMult ()
         {
-            return (FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1) *
-                        (float)(scale == 0 ? 1 : Math.Pow(scale, 2));
+            return (FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1) * (scale == 0 ? 1 : Math.Pow(scale, 2));
         }
+
         public void FCUpdate()
         {
             if (vessel.loaded && Altitude != lastAltitude)
@@ -205,6 +204,7 @@ namespace FNPlugin
                 lastAltitude = Altitude;
             }
         }
+
         public void FCSetup()
         {
             try

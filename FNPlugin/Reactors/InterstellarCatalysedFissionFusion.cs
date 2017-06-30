@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿
 namespace FNPlugin
 {
     [KSPModule("Antimatter Initiated Reactor")]
@@ -12,9 +8,9 @@ namespace FNPlugin
 
         public override bool IsFuelNeutronRich { get { return CurrentFuelMode != null ? !CurrentFuelMode.Aneutronic : false; } }
 
-        public float MaximumChargedIspMult { get { return 1f; } }
+        public double MaximumChargedIspMult { get { return 1; } }
 
-        public float MinimumChargdIspMult { get { return 100; } }
+		public double MinimumChargdIspMult { get { return 100; } }
 
     }
 }

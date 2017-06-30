@@ -13,7 +13,7 @@ namespace FNPlugin.Extensions
 			var array = stringOfDoubles.Trim().Split(';');
 			foreach (var arrayItem in array)
 			{
-				double item = 0f;
+				double item;
 				if (Double.TryParse(arrayItem.Trim(), out item))
 					list.Add(item);
 				else
@@ -34,7 +34,7 @@ namespace FNPlugin.Extensions
 
 		public static List<string> ParseNames(string names, bool replaceBackslashErrors, bool trimWhiteSpace, string prefix)
 		{
-			var source = names.Split(';').ToList<string>();
+			var source = names.Split(';').ToList();
 			for (var i = source.Count - 1; i >= 0; i--)
 			{
 				if (source[i] == String.Empty)
@@ -61,7 +61,7 @@ namespace FNPlugin.Extensions
 					source[i] = source[i].Replace('\\', '/');
 				}
 			}
-			return source.ToList<string>();
+			return source.ToList();
 		}
 
 		public static string Print(IEnumerable<string> list)
