@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using FNPlugin.Extensions;
-using KSP.UI.Screens;
-using KSP.IO;
 
 namespace FNPlugin
 {
@@ -59,7 +56,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Current Rate Index")]
         public int currentRateIndex;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Warp engine mass", guiUnits = " t")]
-        public float partMass;
+        public float partMass = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Total Warp Power", guiFormat = "F1", guiUnits = " t")]
         public float sumOfAlcubierreDrives;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Vessel Total Mass", guiFormat = "F4", guiUnits = " t")]
@@ -361,22 +358,14 @@ namespace FNPlugin
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
             if (!this.vessel.packed)
-            {
-                //Debug.Log("[KSPI] - GoOnRails");
                 vessel.GoOnRails();
-            }
 
             var newHeading = vessel.orbit.vel + heading_act;
-            //Debug.Log("[KSPI] - UpdateFromStateVectors position x:" + vessel.orbit.pos.x + ",y:" + vessel.orbit.pos.y + ",z" + vessel.orbit.pos.z);
-            //Debug.Log("[KSPI] - UpdateFromStateVectors velocity x:" + newHeading.x + ",y:" + newHeading.y + ",z" + newHeading.z);
 
             vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
             if (!this.vessel.packed)
-            {
-                //Debug.Log("[KSPI] - GoOffRails");
                 vessel.GoOffRails();
-            }
             
             IsEnabled = true;
 
@@ -818,20 +807,6 @@ namespace FNPlugin
 
             sumOfAlcubierreDrives = massOfAlcubiereDrives * (isupgraded ? 20 : 10);
             warpToMassRatio = vesselTotalMass > 0 ? sumOfAlcubierreDrives / vesselTotalMass : 0;
-        }
-
-        private float GetTotalMass()
-        {
-            float mass = 0;
-
-            List<Part> parts = (HighLogic.LoadedSceneIsEditor ? EditorLogic.fetch.ship.parts : vessel.parts);
-
-            foreach (var currentPart in parts)
-            {
-                mass += currentPart.mass;
-            }
-
-            return mass;
         }
 
         public override void OnUpdate()
