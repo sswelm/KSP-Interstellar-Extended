@@ -175,6 +175,7 @@ namespace FNPlugin
         private static double _nonMicrowaveApertureDiameterMult = 1;
         public static double NonMicrowaveApertureDiameterMult { get { return _nonMicrowaveApertureDiameterMult; } }
 
+        private static double _speedOfLight = 29979245.8;
         public static double SpeedOfLight { get { return GameConstants.speedOfLight * _speedOfLightMult; } } 
 
         private static double _speedOfLightMult = 0.1 ;
@@ -308,9 +309,6 @@ namespace FNPlugin
 
         // Jet Upgrade Techs
 
-        private static string _jetUpgradeTech0 = String.Empty;
-        public static string JetUpgradeTech0 { get { return _jetUpgradeTech0; } private set { _jetUpgradeTech0 = value; } }
-
         private static string _jetUpgradeTech1 = String.Empty;
         public static string JetUpgradeTech1 { get { return _jetUpgradeTech1; } private set { _jetUpgradeTech1 = value; } }
 
@@ -320,10 +318,13 @@ namespace FNPlugin
         private static string _jetUpgradeTech3 = String.Empty;
         public static string JetUpgradeTech3 { get { return _jetUpgradeTech3; } private set { _jetUpgradeTech3 = value; } }
 
-        // Radiator Upgrade Techs
+        private static string _jetUpgradeTech4 = String.Empty;
+        public static string JetUpgradeTech4 { get { return _jetUpgradeTech4; } private set { _jetUpgradeTech4 = value; } }
 
-        private static string _radiatorUpgradeTech0 = String.Empty;
-        public static string RadiatorUpgradeTech0 { get { return _radiatorUpgradeTech0; } private set { _radiatorUpgradeTech0 = value; } }
+        private static string _jetUpgradeTech5 = String.Empty;
+        public static string JetUpgradeTech5 { get { return _jetUpgradeTech5; } private set { _jetUpgradeTech5 = value; } }
+
+        // Radiator Upgrade Techs
 
         private static string _radiatorUpgradeTech1 = String.Empty;
         public static string RadiatorUpgradeTech1 { get { return _radiatorUpgradeTech1; } private set { _radiatorUpgradeTech1 = value; } }
@@ -333,6 +334,9 @@ namespace FNPlugin
 
         private static string _radiatorUpgradeTech3 = String.Empty;
         public static string RadiatorUpgradeTech3 { get { return _radiatorUpgradeTech3; } private set { _radiatorUpgradeTech3 = value; } }
+
+        private static string _radiatorUpgradeTech4 = String.Empty;
+        public static string RadiatorUpgradeTech4 { get { return _radiatorUpgradeTech4; } private set { _radiatorUpgradeTech4 = value; } }
 
 
         private static double _radiatorTemperatureMk1 = 1850;
@@ -780,6 +784,8 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("SpeedOfLightMult"))
                     {
                         _speedOfLightMult = double.Parse(plugin_settings.GetValue("SpeedOfLightMult"));
+                        _speedOfLight = GameConstants.speedOfLight * _speedOfLightMult;
+
                         Debug.Log("[KSPI] Speed Of Light Multiplier set to: " + PluginHelper.SpeedOfLightMult.ToString());
                     }
                     if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
@@ -927,47 +933,52 @@ namespace FNPlugin
                     }
 
                     // Jet Upgrade techs
-                    if (plugin_settings.HasValue("JetUpgradeTech0"))
-                    {
-                        PluginHelper.JetUpgradeTech0 = plugin_settings.GetValue("JetUpgradeTech0");
-                        Debug.Log("[KSPI] JetUpgradeTech0" + PluginHelper.JetUpgradeTech0);
-                    }
                     if (plugin_settings.HasValue("JetUpgradeTech1"))
                     {
                         PluginHelper.JetUpgradeTech1 = plugin_settings.GetValue("JetUpgradeTech1");
-                        Debug.Log("[KSPI] JetUpgradeTech1" + PluginHelper.JetUpgradeTech1);
+                        Debug.Log("[KSPI] JetUpgradeTech1 " + PluginHelper.JetUpgradeTech1);
                     }
-                    if (plugin_settings.HasValue("JetUpgradeTech2"))
+                    if (plugin_settings.HasValue("JetUpgradeTech1"))
                     {
                         PluginHelper.JetUpgradeTech2 = plugin_settings.GetValue("JetUpgradeTech2");
-                        Debug.Log("[KSPI] JetUpgradeTech2" + PluginHelper.JetUpgradeTech2);
+                        Debug.Log("[KSPI] JetUpgradeTech2 " + PluginHelper.JetUpgradeTech2);
                     }
                     if (plugin_settings.HasValue("JetUpgradeTech3"))
                     {
                         PluginHelper.JetUpgradeTech3 = plugin_settings.GetValue("JetUpgradeTech3");
-                        Debug.Log("[KSPI] JetUpgradeTech3" + PluginHelper.JetUpgradeTech3);
+                        Debug.Log("[KSPI] JetUpgradeTech3 " + PluginHelper.JetUpgradeTech3);
+                    }
+                    if (plugin_settings.HasValue("JetUpgradeTech4"))
+                    {
+                        PluginHelper.JetUpgradeTech4 = plugin_settings.GetValue("JetUpgradeTech4");
+                        Debug.Log("[KSPI] JetUpgradeTech4 " + PluginHelper.JetUpgradeTech4);
+                    }
+                    if (plugin_settings.HasValue("JetUpgradeTech5"))
+                    {
+                        PluginHelper.JetUpgradeTech5 = plugin_settings.GetValue("JetUpgradeTech5");
+                        Debug.Log("[KSPI] JetUpgradeTech5 " + PluginHelper.JetUpgradeTech5);
                     }
 
                     // Radiator Upgrade Tech
-                    if (plugin_settings.HasValue("RadiatorUpgradeTech0"))
-                    {
-                        PluginHelper.RadiatorUpgradeTech0 = plugin_settings.GetValue("RadiatorUpgradeTech0");
-                        Debug.Log("[KSPI] RadiatorUpgradeTech0" + PluginHelper.RadiatorUpgradeTech0);
-                    }
                     if (plugin_settings.HasValue("RadiatorUpgradeTech1"))
                     {
                         PluginHelper.RadiatorUpgradeTech1 = plugin_settings.GetValue("RadiatorUpgradeTech1");
-                        Debug.Log("[KSPI] RadiatorUpgradeTech1" + PluginHelper.RadiatorUpgradeTech1);
+                        Debug.Log("[KSPI] RadiatorUpgradeTech1 " + PluginHelper.RadiatorUpgradeTech1);
                     }
                     if (plugin_settings.HasValue("RadiatorUpgradeTech2"))
                     {
                         PluginHelper.RadiatorUpgradeTech2 = plugin_settings.GetValue("RadiatorUpgradeTech2");
-                        Debug.Log("[KSPI] RadiatorUpgradeTech2" + PluginHelper.RadiatorUpgradeTech2);
+                        Debug.Log("[KSPI] RadiatorUpgradeTech2 " + PluginHelper.RadiatorUpgradeTech2);
                     }
                     if (plugin_settings.HasValue("RadiatorUpgradeTech3"))
                     {
                         PluginHelper.RadiatorUpgradeTech3 = plugin_settings.GetValue("RadiatorUpgradeTech3");
                         Debug.Log("[KSPI] RadiatorUpgradeTech3" + PluginHelper.RadiatorUpgradeTech3);
+                    }
+                    if (plugin_settings.HasValue("RadiatorUpgradeTech4"))
+                    {
+                        PluginHelper.RadiatorUpgradeTech4 = plugin_settings.GetValue("RadiatorUpgradeTech4");
+                        Debug.Log("[KSPI] RadiatorUpgradeTech4 " + PluginHelper.RadiatorUpgradeTech4);
                     }
 
                     if (plugin_settings.HasValue("RadiatorTemperatureMk1"))

@@ -41,13 +41,13 @@ namespace FNPlugin
 
             // determine number of upgrade techs
             NrAvailableUpgradeTechs = 1;
+            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech4))
+                NrAvailableUpgradeTechs++;
             if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
                 NrAvailableUpgradeTechs++;
             if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech2))
                 NrAvailableUpgradeTechs++;
             if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech1))
-                NrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech0))
                 NrAvailableUpgradeTechs++;
 
             // determine fusion tech levels
@@ -202,13 +202,13 @@ namespace FNPlugin
 		public string radiatorTempStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Part Temp")]
         public string partTempStr;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double radiatorArea = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double effectiveRadiativeArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         public double areaMultiplier = 2.5;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double effectiveRadiatorArea;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
 		public string thermalPowerDissipStr;
@@ -316,13 +316,13 @@ namespace FNPlugin
 
             // determine number of upgrade techs
             nrAvailableUpgradeTechs = 1;
+            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech4))
+                nrAvailableUpgradeTechs++;
             if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
                 nrAvailableUpgradeTechs++;
             if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech2))
                 nrAvailableUpgradeTechs++;
             if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech1))
-                nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech0))
                 nrAvailableUpgradeTechs++;
 
             // determine fusion tech levels
@@ -966,19 +966,30 @@ namespace FNPlugin
         public override string GetInfo()
         {
             DetermineGenerationType();
-
             effectiveRadiatorArea = EffectiveRadiatorArea;
 
+            var stefan_area = GameConstants.stefan_const * effectiveRadiatorArea;
             var sb = new StringBuilder();
 
-            sb.Append(String.Format("Maximum Waste Heat Radiated\nMk1: {0} MW\n\n", GameConstants.stefan_const * effectiveRadiatorArea * Math.Pow(PluginHelper.RadiatorTemperatureMk1, 4) / 1e6f));
+            sb.Append(String.Format("Base surface area: {0:F2} m\xB2 \n", radiatorArea));
+            sb.Append(String.Format("Surface area / Mass : {0:F2}\n", radiatorArea / part.mass));
 
-            sb.Append(String.Format("Mk2: {0} MW\n", GameConstants.stefan_const * effectiveRadiatorArea * Math.Pow(PluginHelper.RadiatorTemperatureMk2, 4) / 1e6f));
-            sb.Append(String.Format("Mk3: {0} MW\n", GameConstants.stefan_const * effectiveRadiatorArea * Math.Pow(PluginHelper.RadiatorTemperatureMk3, 4) / 1e6f));
+            sb.Append(String.Format("Surface Area Bonus: {0:P0}\n", String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? 0 : surfaceAreaUpgradeMult - 1 ));
+            sb.Append(String.Format("Atm Convection Bonus: {0:P0}\n", convectiveBonus - 1));
+
+            sb.Append(String.Format("\nMaximum Waste Heat Radiated\nMk1: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk1, stefan_area * Math.Pow(PluginHelper.RadiatorTemperatureMk1, 4) / 1e6));
+
+            sb.Append(String.Format("Mk2: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk2, stefan_area * Math.Pow(PluginHelper.RadiatorTemperatureMk2, 4) / 1e6));
+            sb.Append(String.Format("Mk3: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk3, stefan_area * Math.Pow(PluginHelper.RadiatorTemperatureMk3, 4) / 1e6));
             if (!String.IsNullOrEmpty(surfaceAreaUpgradeTechReq))
             {
-                sb.Append(String.Format("Mk4: {0} MW\n", GameConstants.stefan_const * effectiveRadiatorArea * Math.Pow(PluginHelper.RadiatorTemperatureMk4, 4) / 1e6f));
-                sb.Append(String.Format("Mk5: {0} MW\n", GameConstants.stefan_const * effectiveRadiatorArea * Math.Pow(PluginHelper.RadiatorTemperatureMk5, 4) / 1e6f));
+                sb.Append(String.Format("Mk4: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk4, stefan_area * Math.Pow(PluginHelper.RadiatorTemperatureMk4, 4) / 1e6));
+                sb.Append(String.Format("Mk5: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk5, stefan_area * Math.Pow(PluginHelper.RadiatorTemperatureMk5, 4) / 1e6));
+
+                var convection = 900 * effectiveRadiatorArea * rad_const_h / 1e6 * convectiveBonus;
+                var disapation = stefan_area * Math.Pow(900, 4) / 1e6;
+
+                sb.Append(String.Format("\nMaximum @ 1 atmosphere : 1200 K, dissipation: {0:F3} MW\n, convection: {1:F3} MW\n", disapation, convection));
             }
 
             return sb.ToString();

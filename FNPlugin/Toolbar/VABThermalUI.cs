@@ -19,10 +19,13 @@ namespace FNPlugin
         protected double source_temp_at_100pc = 0;
         protected double source_temp_at_30pc = 0;
         protected double rad_max_dissip = 0;
+        protected double total_area = 0;
         protected double min_source_power = 0;
         protected double resting_radiator_temp_at_100pcnt = 0;
         protected double resting_radiator_temp_at_30pcnt = 0;
         protected double average_rad_temp = 0;
+        protected int n_rads;
+
         protected double au_scale = 1;
         protected bool has_generators = false;
         protected double generator_efficiency_at_100pcnt = 0;
@@ -73,13 +76,15 @@ namespace FNPlugin
                 total_source_power += panel.chargeRate * 0.0005/au_scale/au_scale;
             }
 
-            double n_rads = 0;
+            n_rads = 0;
             rad_max_dissip = 0;
             average_rad_temp = 0;
+            total_area = 0;
 
             foreach (FNRadiator radiator in radiators) 
             {
-                double area = radiator.EffectiveRadiatorArea; 
+                double area = radiator.EffectiveRadiatorArea;
+                total_area += area;
                 double temp = radiator.MaxRadiatorTemperature;
                 temp = Math.Min(temp, source_temp_at_100pc);
                 n_rads += 1;
@@ -143,17 +148,19 @@ namespace FNPlugin
             }
 
             GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Distance from Kerbol: /AU (Kerbin = 1)", GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true));
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            au_scale = GUILayout.HorizontalSlider((float)au_scale, 0.001f, 8f, GUILayout.ExpandWidth(true));
-            GUILayout.Label(au_scale.ToString("0.000")+ " AU", GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
-            GUILayout.EndHorizontal();
+            //GUILayout.BeginHorizontal();
+            //GUILayout.Label("Distance from Kerbol: /AU (Kerbin = 1)", GUILayout.ExpandWidth(false), GUILayout.ExpandWidth(true));
+            //GUILayout.EndHorizontal();
+            //GUILayout.BeginHorizontal();
+            //au_scale = GUILayout.HorizontalSlider((float)au_scale, 0.001f, 8f, GUILayout.ExpandWidth(true));
+            //GUILayout.Label(au_scale.ToString("0.000")+ " AU", GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
+            //GUILayout.EndHorizontal();
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Total Heat Production:", bold_label, GUILayout.ExpandWidth(true));
             GUILayout.Label(getPowerFormatString(total_source_power), GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Thermal Source Temperature at 100%:", bold_label, GUILayout.ExpandWidth(true));
             string source_temp_string = (source_temp_at_100pc < 0) ? "N/A" : source_temp_at_100pc.ToString("0.0") + " K";
@@ -164,6 +171,17 @@ namespace FNPlugin
             string source_temp_string2 = (source_temp_at_30pc < 0) ? "N/A" : source_temp_at_30pc.ToString("0.0") + " K";
             GUILayout.Label(source_temp_string2, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
             GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Total Number of Radiators:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(n_rads.ToString(), GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Total Area Radiators:", bold_label, GUILayout.ExpandWidth(true));
+            GUILayout.Label(total_area + " m\xB2", GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));
+            GUILayout.EndHorizontal();
+
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Radiator Maximum Dissipation:", bold_label, GUILayout.ExpandWidth(true));
             GUILayout.Label(getPowerFormatString(rad_max_dissip), radiator_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(80));

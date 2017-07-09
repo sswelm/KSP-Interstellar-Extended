@@ -276,7 +276,7 @@ namespace FNPlugin
                     var currentAntimatter_missing = maxAmount - amount;
 
                     var total_electrical_power_provided = (electrical_power_ratio * (PluginHelper.BaseAMFPowerConsumption + PluginHelper.BasePowerConsumption) * 1E6);
-                    var antimatter_mass = total_electrical_power_provided / GameConstants.warpspeed / GameConstants.warpspeed * 1E6 / 20000d;
+                    var antimatter_mass = total_electrical_power_provided / GameConstants.speedOfLight / GameConstants.speedOfLight * 1E6 / 20000d;
                     var antimatter_peristence_to_add = -Math.Min(currentAntimatter_missing, antimatter_mass * time_diff);
                     part.RequestResource(InterstellarResourcesConfiguration.Instance.Antimatter, antimatter_peristence_to_add);
                 }

@@ -85,7 +85,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Current Selected Speed", guiUnits = "c", guiFormat = "F4")]
         public double warpEngineThrottle;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Speed of light")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Speed of light")]
         public double speedOfLight;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
@@ -354,7 +354,7 @@ namespace FNPlugin
 
             active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
 
-            heading_act = active_part_heading * GameConstants.warpspeed * new_warp_speed;
+            heading_act = active_part_heading * speedOfLight * new_warp_speed;
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
             if (!this.vessel.packed)
@@ -593,6 +593,8 @@ namespace FNPlugin
 
             wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
             exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
+
+            speedOfLight = PluginHelper.SpeedOfLight;
             
             // reset Exotic Matter Capacity
             if (exoticMatterResource != null)
@@ -863,7 +865,7 @@ namespace FNPlugin
 
             if (vessel != null)
             {
-                speedOfLight = PluginHelper.SpeedOfLight;
+                
                 vesselTotalMass = vessel.GetTotalMass();
                 gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
                 gravityAtSeaLevel = vessel.mainBody.GeeASL * GameConstants.STANDARD_GRAVITY;
