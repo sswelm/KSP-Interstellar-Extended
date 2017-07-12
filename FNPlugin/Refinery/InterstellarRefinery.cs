@@ -1,86 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+//using FNPlugin.Extensions;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
-    [KSPModule("ISRU Refinery Controller")]
-    class InterstellarPowerSupply : FNResourceSuppliableModule
-    {
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Proces")]
-        public string displayName = "";
-
-        public override void OnStart(PartModule.StartState state)
-        {
-            displayName = part.partInfo.title;
-        }
-
-        public double ConsumeFNResource(double powerRequest, string resourceName)
-        {
-            return consumeFNResource(powerRequest, resourceName);
-        }
-
-        public override string getResourceManagerDisplayName()
-        {
-            return displayName; 
-        }
-
-        public override string GetInfo()
-        {
-            return displayName;
-        }
-
-        public override int getPowerPriority()
-        {
-            return 4;
-        }
-    }
-
-
     [KSPModule("ISRU Refinery")]
-    class InterstellarRefineryController : InterstellarRefinery 
-    {
-        protected InterstellarPowerSupply powerSupply;
-
-        public override void OnStart(PartModule.StartState state)
-        {
-            powerSupply = part.FindModuleImplementing<InterstellarPowerSupply>();
-            powerSupply.displayName = "started";
-
-            base.OnStart(state);
-        }
-
-        public void Update()
-        {
-            try
-            {
-                if (HighLogic.LoadedSceneIsEditor)
-                    return;
-
-                if (_current_activity == null)
-                {
-                    powerSupply.displayName = part.partInfo.title;
-                    return;
-                }
-
-                powerSupply.displayName = part.partInfo.title + " (" + _current_activity.ActivityName + ")";
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI] - InterstellarRefineryController Exception " + e.Message);
-            }
-        }
-
-        protected override double ConsumeMegaJoules(double powerRequest)
-        {
-            return powerSupply.ConsumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
-        }
-    }
-
-
-    [KSPModule("Generic ISRU Refinery")]
-    class InterstellarRefinery : PartModule
+	class InterstellarRefineryController : PartModule
     {
         [KSPField(isPersistant = true)]
         protected bool refinery_is_enabled;
@@ -117,6 +44,7 @@ namespace FNPlugin.Refinery
         public double consumedPowerMW;
 
         protected IRefineryActivity _current_activity = null;
+		protected IPowerSupply powerSupply;
 
         private List<IRefineryActivity> _refinery_activities;
         private Rect _window_position = new Rect(50, 50, RefineryActivityBase.labelWidth + RefineryActivityBase.valueWidth, 150);
@@ -127,48 +55,52 @@ namespace FNPlugin.Refinery
         private GUIStyle _enabled_button;
         private GUIStyle _disabled_button;
 
-        [KSPEvent(guiActive = true, guiName = "Test Atmosphere", active = true)]
-        public void SampleAtmosphere()
-        {
-            CelestialBody celestialBody = vessel.mainBody;
+		/*
 
-            AtmosphericResourceHandler.GenerateCompositionFromCelestialBody(celestialBody);
+		[KSPEvent(guiActive = true, guiName = "Test Atmosphere", active = true)]
+		public void SampleAtmosphere()
+		{
+			CelestialBody celestialBody = vessel.mainBody;
 
-            //Debug.Log("[KSPI] - determined " + celestialBody.name + " to be current celestrial body");
+			AtmosphericResourceHandler.GenerateCompositionFromCelestialBody(celestialBody);
 
-            //// Lookup homeworld
-            //CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
+			Debug.Log("[KSPI] - determined " + celestialBody.name + " to be current celestrial body");
 
-            //Debug.Log("[KSPI] - determined " + homeworld.name + " to be the home world");
+			// Lookup homeworld
+			CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
 
-            //double presureAtSurface = celestialBody.GetPressure(0);
+			Debug.Log("[KSPI] - determined " + homeworld.name + " to be the home world");
 
-            //Debug.Log("[KSPI] - surface presure " + celestialBody.name + " is " + presureAtSurface);
-            //Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworld.GetPressure(0));
-            //Debug.Log("[KSPI] - mass " + celestialBody.name + " is " + celestialBody.Mass);
-            //Debug.Log("[KSPI] - mass " + homeworld.name + " is " + celestialBody.Mass);
+			double presureAtSurface = celestialBody.GetPressure(0);
 
-            //List<AtmosphericResource> resources = AtmosphericResourceHandler.GetAtmosphericCompositionForBody(part.vessel.mainBody);
+			Debug.Log("[KSPI] - surface presure " + celestialBody.name + " is " + presureAtSurface);
+			Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworld.GetPressure(0));
+			Debug.Log("[KSPI] - mass " + celestialBody.name + " is " + celestialBody.Mass);
+			Debug.Log("[KSPI] - mass " + homeworld.name + " is " + celestialBody.Mass);
 
-            //foreach (var resource in resources)
-            //{
-            //    ScreenMessages.PostScreenMessage(resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
-            //}
-        }
+			List<AtmosphericResource> resources = AtmosphericResourceHandler.GetAtmosphericCompositionForBody(part.vessel.mainBody);
 
-        //[KSPEvent(guiActive = true, guiName = "Sample Ocean", active = true)]
-        //public void SampleOcean()
-        //{
-        //    List<OceanicResource> resources = OceanicResourceHandler.GetOceanicCompositionForBody(part.vessel.mainBody).ToList();
+			foreach (var resource in resources)
+			{
+				ScreenMessages.PostScreenMessage(resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
+			}
+		}
 
-        //    foreach (var resource in resources)
-        //    {
-        //        PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resource.ResourceName);
+		[KSPEvent(guiActive = true, guiName = "Sample Ocean", active = true)]
+		public void SampleOcean()
+		{
+			List<OceanicResource> resources = OceanicResourceHandler.GetOceanicCompositionForBody(part.vessel.mainBody).ToList();
 
-        //        string found = definition != null ? "D" : "U";
-        //        ScreenMessages.PostScreenMessage(found + " " + resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance , 6.0f, ScreenMessageStyle.LOWER_CENTER);
-        //    }
-        //}
+			foreach (var resource in resources)
+			{
+				PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resource.ResourceName);
+
+				string found = definition != null ? "D" : "U";
+				ScreenMessages.PostScreenMessage(found + " " + resource.DisplayName + " " + resource.ResourceName + " " + resource.ResourceAbundance, 6.0f, ScreenMessageStyle.LOWER_CENTER);
+			}
+		}
+		 * 
+		 */
 
         [KSPEvent(guiActive = true, guiName = "Toggle Refinery Window", active = true)]
         public void ToggleWindow()
@@ -178,6 +110,11 @@ namespace FNPlugin.Refinery
 
         public override void OnStart(PartModule.StartState state)
         {
+			powerSupply = part.FindModuleImplementing<IPowerSupply>();
+
+			if (powerSupply != null)
+				powerSupply.DisplayName = "started";
+
             if (state == StartState.Editor) return;
 
             // load stored overflow setting
@@ -241,6 +178,27 @@ namespace FNPlugin.Refinery
 
         }
 
+		public void Update()
+		{
+			try
+			{
+				if (HighLogic.LoadedSceneIsEditor)
+					return;
+
+				if (_current_activity == null)
+				{
+					powerSupply.DisplayName = part.partInfo.title;
+					return;
+				}
+
+				powerSupply.DisplayName = part.partInfo.title + " (" + _current_activity.ActivityName + ")";
+			}
+			catch (Exception e)
+			{
+				Debug.LogError("[KSPI] - InterstellarRefineryController Exception " + e.Message);
+			}
+		}
+
         public override void OnUpdate()
         {
             status_str = "Offline";
@@ -248,11 +206,6 @@ namespace FNPlugin.Refinery
             if (_current_activity == null) return;
 
             status_str = _current_activity.Status;
-        }
-
-        protected virtual double ConsumeMegaJoules(double powerRequest)
-        {
-            return part.RequestResource("Megajoules", powerRequest);
         }
 
         public void FixedUpdate()
@@ -273,7 +226,7 @@ namespace FNPlugin.Refinery
 
             var fixedConsumedPowerMW = CheatOptions.InfiniteElectricity
                 ? powerRequest
-                : ConsumeMegaJoules(powerRequest);
+				: powerSupply.ConsumeMegajoulesFixed(powerRequest);
 
             consumedPowerMW = fixedConsumedPowerMW / TimeWarp.fixedDeltaTime;
 
