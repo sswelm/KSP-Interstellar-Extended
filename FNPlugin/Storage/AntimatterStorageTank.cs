@@ -188,6 +188,10 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             antimatterResource = part.Resources[resourceName];
+
+            antimatterResource.isTweakable = false;
+            //antimatterResource.isVisible = true;
+
             antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
 
             minimimAnimatterAmount = 1e-13 /  antimatterDefinition.density * antimatterResource.maxAmount;
