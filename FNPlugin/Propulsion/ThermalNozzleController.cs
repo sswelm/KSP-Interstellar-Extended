@@ -1,6 +1,5 @@
 ﻿using FNPlugin.Propulsion;
 using FNPlugin.Extensions;
-using OpenResourceSystem;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
@@ -14,8 +13,6 @@ namespace FNPlugin
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
-        [KSPField(isPersistant = true)]
-        public bool isHybrid = false;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
@@ -252,7 +249,6 @@ namespace FNPlugin
 
         //Internal
         protected string _particleFXName;
-        //protected string _currentAudioFX;
         protected bool _fuelRequiresUpgrade;
         protected string _fuelTechRequirement;
         protected float _fuelToxicity;
@@ -265,7 +261,6 @@ namespace FNPlugin
         protected ConfigNode[] propellantsConfignodes;
 
         protected bool hasrequiredupgrade = false;
-        protected bool hasstarted = false;
         protected bool hasSetupPropellant = false;
         protected ModuleEngines myAttachedEngine;
         protected bool _currentpropellant_is_jet = false;
@@ -380,7 +375,6 @@ namespace FNPlugin
             if (isJet)
             {
                 propellantsConfignodes = getPropellantsHybrid();
-                isHybrid = true;
             }
             else
                 propellantsConfignodes = getPropellants(isJet);
@@ -431,7 +425,7 @@ namespace FNPlugin
                 part.skinThermalMassModifier = skinThermalMassModifier;
                 part.skinInternalConductionMult = skinInternalConductionMult;
 
-                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - setup animation");
+                Debug.Log("[KSPI] - ThermalNozzleController - setup animation");
 
                 if (!String.IsNullOrEmpty(deployAnimationName))
                     deployAnim = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
@@ -440,7 +434,7 @@ namespace FNPlugin
                 if (!String.IsNullOrEmpty(emiAnimationName))
                     emiAnimationState = PluginHelper.SetUpAnimation(emiAnimationName, this.part);
 
-                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
+                Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
 
 				// calculate WasteHeat Capacity
 				var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
@@ -453,7 +447,7 @@ namespace FNPlugin
 
                 engineType = originalName;
 
-                UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - find module implementing <ModuleEngines>");
+                Debug.Log("[KSPI] - ThermalNozzleController - find module implementing <ModuleEngines>");
 
                 myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
 
@@ -504,14 +498,12 @@ namespace FNPlugin
                 bool hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
                 bool hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
 
-                jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech4);
+				jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
                 jetTechBonusCurveChange = jetTechBonus / 9.92992f;
                 jetTechBonusPercentage = jetTechBonus / 49.6496f;
 
                 effectiveJetengineAccelerationSpeed = jetengineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonusCurveChange * 5;
                 effectiveJetengineDecelerationSpeed = jetengineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonusCurveChange * 5;
-
-                hasstarted = true;
 
                 Fields["temperatureStr"].guiActive = showPartTemperature;
             }
@@ -556,13 +548,13 @@ namespace FNPlugin
 
         private void ConnectToThermalSource()
         {
-            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
+            Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
 
             var source = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource, 10, 10, 10);
 
             if (source == null || source.Source == null)
             {
-                UnityEngine.Debug.LogWarning("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource-Failed to find thermal source");
+                Debug.LogWarning("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource-Failed to find thermal source");
                 return;
             }
 
@@ -570,7 +562,7 @@ namespace FNPlugin
             AttachedReactor.ConnectWithEngine(this);
 
             partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
-            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource- Found thermal searchResult with distance " + partDistance);
+            Debug.Log("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource- Found thermal searchResult with distance " + partDistance);
         }
 
         // Note: does not seem to be called while in vab mode
@@ -805,7 +797,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error SetupPropellants " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
+                Debug.LogError("[KSPI] - Error SetupPropellants " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
             }
         }
 
@@ -1144,7 +1136,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error UpdateAnimation " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
+                Debug.LogError("[KSPI] - Error UpdateAnimation " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
             }
         }
 
@@ -1326,7 +1318,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error GenerateThrustFromReactorHeat " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
+                Debug.LogError("[KSPI] - Error GenerateThrustFromReactorHeat " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
             }
         }
 
@@ -1422,7 +1414,7 @@ namespace FNPlugin
 
         public static ConfigNode[] getPropellants(bool isJet)
         {
-            UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - getPropellants");
+            Debug.Log("[KSPI] - ThermalNozzleController - getPropellants");
 
             ConfigNode[] propellantlist = isJet
                 ? GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_NTR_PROPELLANT")
