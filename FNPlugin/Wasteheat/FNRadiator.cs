@@ -137,17 +137,6 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool showControls = true;
 
-        //[KSPField(isPersistant = false)]
-        //public float radiatorTemperatureMk1 = 1850;
-        //[KSPField(isPersistant = false)]
-        //public float radiatorTemperatureMk2 = 2200;
-        //[KSPField(isPersistant = false)]
-        //public float radiatorTemperatureMk3 = 2616;
-        //[KSPField(isPersistant = false)]
-        //public float radiatorTemperatureMk4 = 3111;
-        //[KSPField(isPersistant = false)]
-        //public float radiatorTemperatureMk5 = 3700;
-
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
         public float maxVacuumTemperature = 3700;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
@@ -202,7 +191,7 @@ namespace FNPlugin
 		public string radiatorTempStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Part Temp")]
         public string partTempStr;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double radiatorArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double effectiveRadiativeArea = 1;
@@ -228,9 +217,9 @@ namespace FNPlugin
         public float maxRadiatorTemperature = 3700;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Wasteheat")]
         public double partBaseWasteheat;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Upgrade Techs")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade Techs")]
         public int nrAvailableUpgradeTechs;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Has Surface Upgrade")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Has Surface Upgrade")]
         public bool hasSurfaceAreaUpgradeTechReq;
         [KSPField(isPersistant = false)]
         public float atmosphereToleranceModifier = 1;

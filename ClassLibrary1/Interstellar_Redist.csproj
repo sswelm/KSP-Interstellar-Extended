@@ -35,7 +35,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IElectricPowerSource.cs" />
     <Compile Include="IEngineNoozle.cs" />
     <Compile Include="INuclearFuelReprocessable.cs" />
     <Compile Include="IPowerSupply.cs" />

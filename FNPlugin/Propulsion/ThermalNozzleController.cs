@@ -17,7 +17,7 @@ namespace FNPlugin
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Soot Accumulation", guiUnits = " %", guiFormat = "F4")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Soot Accumulation", guiUnits = " %", guiFormat = "F4")]
         public double sootAccumulationPercentage;
         [KSPField(isPersistant = true)]
         public bool isDeployed = false;
@@ -156,7 +156,7 @@ namespace FNPlugin
         public double engineHeatProduction;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F4")]
         public double pressureThreshold;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_thermal_power;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Charge", guiUnits = " MJ")]
         public double requested_charge_particles;
@@ -174,7 +174,7 @@ namespace FNPlugin
         protected float _decompositionEnergy;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Exchange Divider")]
         protected double heatExchangerThrustDivisor;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Engine Max Thrust", guiFormat = "F3", guiUnits = " kN")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Engine Max Thrust", guiFormat = "F3", guiUnits = " kN")]
         protected double engineMaxThrust;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust In Space")]
         protected double max_thrust_in_space;
@@ -223,8 +223,6 @@ namespace FNPlugin
         protected double availableThermalPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Available C Power ", guiUnits = " MJ")]
         protected double availableChargedPower;
-        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Delayed Throttle")]
-        //protected float delayedThrottle = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
         double airflowHeatModifier;
 
@@ -237,9 +235,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         double proportion;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Jet Acceleration")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Jet Acceleration")]
         float effectiveJetengineAccelerationSpeed;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Jet Deceleration")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Jet Deceleration")]
         float effectiveJetengineDecelerationSpeed;
         
         [KSPField]
@@ -257,13 +255,14 @@ namespace FNPlugin
         protected float _minDecompositionTemp;
         protected float _maxDecompositionTemp;
         protected const double _hydroloxDecompositionEnergy = 16.2137;
-        protected Guid id = Guid.NewGuid();
-        protected ConfigNode[] propellantsConfignodes;
 
         protected bool hasrequiredupgrade = false;
         protected bool hasSetupPropellant = false;
-        protected ModuleEngines myAttachedEngine;
         protected bool _currentpropellant_is_jet = false;
+
+        protected ModuleEngines myAttachedEngine;
+        protected Guid id = Guid.NewGuid();
+        protected ConfigNode[] propellantsConfignodes;
 
         protected Animation deployAnim;
         protected AnimationState[] pulseAnimationState;
@@ -1411,7 +1410,6 @@ namespace FNPlugin
             return 1;
         }
 
-
         public static ConfigNode[] getPropellants(bool isJet)
         {
             Debug.Log("[KSPI] - ThermalNozzleController - getPropellants");
@@ -1527,7 +1525,7 @@ namespace FNPlugin
 
         private double normalizeFraction(double variable, double normalizer)
         {
-            return (normalizer + variable) / (1f + normalizer);
+            return (normalizer + variable) / (1 + normalizer);
         }
 
         private static ConfigNode[] getPropellantsHybrid()

@@ -17,7 +17,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = false)]
         public double animationExponent = 1;
 
-        [KSPField(isPersistant = false, guiName = "Animation Ratio",  guiActiveEditor = true, guiActive = true, guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiName = "Animation Ratio",  guiActiveEditor = true, guiActive = true, guiFormat = "F3")]
         public float animationRatio;
 
         private AnimationState[] containerStates;
@@ -33,7 +33,7 @@ namespace InterstellarFuelSwitch
 
         void Update()
         {
-            animationRatio = (float)Math.Pow(animatedResource.amount / animatedResource.maxAmount, animationExponent);
+            animationRatio = (float)Math.Round( Math.Pow(animatedResource.amount / animatedResource.maxAmount, animationExponent), 3);
 
             foreach (var cs in containerStates)
             {

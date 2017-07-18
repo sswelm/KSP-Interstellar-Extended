@@ -51,7 +51,7 @@ namespace FNPlugin
         public float windowPositionY = 20;
         [KSPField(isPersistant = true)]
         public int currentGenerationType;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true)]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false)]
         public double storedPowerMultiplier = 1;
         [KSPField(isPersistant = true)]
         public double stored_fuel_ratio = 1;
@@ -316,17 +316,17 @@ namespace FNPlugin
         protected double min_throttle;
 
         // Gui
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
         public float partMass = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F6")]
         public double maximumThermalPowerEffective = 0;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Gee Force Mod")]
         public double geeForceModifier;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "Power Produced", guiUnits = " MW", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Produced", guiUnits = " MW", guiFormat = "F6")]
         public double ongoing_total_power_generated;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "Thermal Power Generated", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Generated", guiFormat = "F6")]
         protected double ongoing_thermal_power_generated;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "Charged Power Generated", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Generated", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
 
 

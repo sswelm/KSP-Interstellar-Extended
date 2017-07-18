@@ -1,24 +1,27 @@
-﻿using OpenResourceSystem;
-
-
-namespace FNPlugin.Refinery 
+﻿namespace FNPlugin.Refinery 
 {
     class AntimatterFactory : RefineryActivityBase
     {
         protected double current_rate = 0;
         protected double efficiency = 0.01149;
 
+        PartResourceDefinition antimattterDefinition;
+
         public AntimatterFactory(Part part)
         {
             _part = part;
             _vessel = part.vessel;
 
+            antimattterDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter);
+
             if (HighLogic.CurrentGame != null && HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
             {
 
-                if (PluginHelper.hasTech("ultraHighEnergyPhysics"))
+                if (PluginHelper.upgradeAvailable("ultraHighEnergyPhysics"))
                     efficiency = efficiency / 100;
-                else if (PluginHelper.hasTech("highEnergyScience"))
+                else if (PluginHelper.upgradeAvailable("appliedHighEnergyPhysics"))
+                    efficiency = efficiency / 500;
+                else if (PluginHelper.upgradeAvailable("highEnergyScience"))
                     efficiency = efficiency / 1000;
                 else
                     efficiency = efficiency / 10000;
@@ -27,10 +30,10 @@ namespace FNPlugin.Refinery
 
         public void produceAntimatterFrame(double rate_multiplier) 
         {
-            double energy_provided = rate_multiplier * PluginHelper.BaseAMFPowerConsumption * 1E6;
-            double antimatter_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter).density;
-            double antimatter_mass = energy_provided / GameConstants.speedOfLight / GameConstants.speedOfLight / 200000.0f / antimatter_density * efficiency;
-            current_rate = -ORSHelper.fixedRequestResource(_part, InterstellarResourcesConfiguration.Instance.Antimatter, -antimatter_mass * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+            double energy_provided_in_joules = rate_multiplier * PluginHelper.BaseAMFPowerConsumption * 1E6;
+            double antimatter_units = energy_provided_in_joules / GameConstants.lightSpeedSquared / 2000 / antimattterDefinition.density * efficiency;
+
+            current_rate = -_part.RequestResource(antimattterDefinition.id, -antimatter_units * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
         }
 
         public double getAntimatterProductionRate() 

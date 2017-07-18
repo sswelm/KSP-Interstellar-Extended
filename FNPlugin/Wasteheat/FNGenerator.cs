@@ -77,11 +77,15 @@ namespace FNPlugin
         public double efficiencyMk2 = 0;
         [KSPField(isPersistant = false)]
         public double efficiencyMk3 = 0;
+        [KSPField(isPersistant = false)]
+        public double efficiencyMk4 = 0;
 
         [KSPField(isPersistant = false)]
         public string Mk2TechReq = "";
         [KSPField(isPersistant = false)]
         public string Mk3TechReq = "";
+        [KSPField(isPersistant = false)]
+        public string Mk4TechReq = "";
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Max Efficiency")]
         public double maxEfficiency = 0;
@@ -121,7 +125,7 @@ namespace FNPlugin
         // Debugging
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public float storedMassMultiplier;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Part Mass", guiUnits = " t", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t", guiFormat = "F3")]
         public float partMass;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
         public double targetMass;
@@ -155,7 +159,7 @@ namespace FNPlugin
         public string generatorType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Current Power")]
         public string OutputPower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Power")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Power")]
         public string MaxPowerStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
         public string OverallEfficiency;
@@ -165,11 +169,11 @@ namespace FNPlugin
         public double requiredMegawattCapacity;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Heat Exchange Divisor")]
         public double heat_exchanger_thrust_divisor;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Requested Power", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Requested Power", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_power_per_second;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Cold Bath Temp", guiUnits = "K", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Cold Bath Temp", guiUnits = "K", guiFormat = "F3")]
         public double coldBathTemp = 500;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Hot Bath Temp", guiUnits = "K", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Hot Bath Temp", guiUnits = "K", guiFormat = "F3")]
         public double hotBathTemp = 300;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Spare Fill Cap", guiUnits = " MW", guiFormat = "F3")]
         public double possibleSpareResourceCapacityFilling;
@@ -461,11 +465,15 @@ namespace FNPlugin
 
             if (efficiencyMk3 == 0)
                 efficiencyMk3 = efficiencyMk2;
+            if (efficiencyMk4 == 0)
+                efficiencyMk4 = efficiencyMk3;
 
             if (String.IsNullOrEmpty(Mk2TechReq))
                 Mk2TechReq = upgradeTechReq;
 
-            if (PluginHelper.upgradeAvailable(Mk3TechReq))
+            if (PluginHelper.upgradeAvailable(Mk4TechReq))
+                maxEfficiency = efficiencyMk4;
+            else if (PluginHelper.upgradeAvailable(Mk3TechReq))
                 maxEfficiency = efficiencyMk3;
             else if (PluginHelper.upgradeAvailable(Mk2TechReq))
                 maxEfficiency = efficiencyMk2;

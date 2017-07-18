@@ -125,6 +125,7 @@
     <Compile Include="Propulsion\VistaEngineControllerAdvanced.cs" />
     <Compile Include="Propulsion\DeadalusEngineController.cs" />
     <Compile Include="Propulsion\VistaEngineControllerAdvanced2.cs" />
+    <Compile Include="Reactors\Interfaces\IElectricPowerSource.cs" />
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />
     <Compile Include="Collectors\AntimatterCollector.cs" />
     <Compile Include="Refinery\AtmosphericExtractor.cs" />

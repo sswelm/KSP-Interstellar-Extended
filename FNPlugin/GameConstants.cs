@@ -57,6 +57,7 @@ namespace FNPlugin
         public const double telescopeGLensScience = 5;
 
         public const double speedOfLight = 299792458;
+        public const double lightSpeedSquared = speedOfLight * speedOfLight;
 
         //public const double antimatter_initiated_antimatter_cons_constant = 6.5075e-6;
         //public const double antimatter_initiated_uf4_cons_constant = 1.0 / 128700.0;

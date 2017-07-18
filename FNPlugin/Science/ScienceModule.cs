@@ -60,7 +60,11 @@ namespace FNPlugin
         protected double science_rate_f;
         protected double reprocessing_rate_f = 0;
         protected float crew_capacity_ratio;
+
+
         protected double antimatter_rate_f = 0;
+
+
         protected float electrolysis_rate_f = 0;
         protected double deut_rate_f = 0;
         protected bool play_down = true;
