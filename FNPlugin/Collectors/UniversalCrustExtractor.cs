@@ -11,7 +11,8 @@ namespace FNPlugin.Collectors
     class CrustalResourceAbundance
     {
         public CrustalResource Resource { get; set; }
-        public double Global { get; set; }
+        public double GlobalWithVariance { get; set; }
+        public double GlobalWithoutVariance { get; set; }
         public double Biome { get; set; }
         public double Local { get; set; }
     }
@@ -30,6 +31,11 @@ namespace FNPlugin.Collectors
         [KSPField(isPersistant = true)]
         double dLastPseudoMinedAmount;
 
+        [KSPField(isPersistant = true)]
+        public float windowPositionX = 20;
+        [KSPField(isPersistant = true)]
+        public float windowPositionY = 20;
+
         // drill properties, need to be adressed in the cfg file of the part
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill size", guiUnits = " m\xB3")]
         public double drillSize = 5; // Volume of the collector's drill. Raise in part config (for larger drills) to make collecting faster.
@@ -43,7 +49,7 @@ namespace FNPlugin.Collectors
         public double drillReach = 5; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
 
         // GUI elements declaration
-        private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 3, 150);
+        private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 4, 150);
         private int _window_ID;
         private bool _render_window;
         private Vector2 scrollPosition;
@@ -52,9 +58,7 @@ namespace FNPlugin.Collectors
         private const int valueWidth = 100;
 
         private GUIStyle _bold_label;
-        private GUIStyle _enabled_button;
-        private GUIStyle _disabled_button;
-        // end of GUI elements declaration
+        private GUIStyle _normal_label;
 
         Dictionary<string, CrustalResourceAbundance> CrustalResourceAbundanceDict = new Dictionary<string, CrustalResourceAbundance>();
 
@@ -149,7 +153,7 @@ namespace FNPlugin.Collectors
                 CrustalResourceAbundance existingAbundance;
                 if (CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out existingAbundance))
                 {
-                    existingAbundance.Global = currentAbundance.Global;
+                    existingAbundance.GlobalWithVariance = currentAbundance.GlobalWithVariance;
                     existingAbundance.Local = currentAbundance.Local;
                     existingAbundance.Biome = currentAbundance.Biome;
                 }
@@ -171,11 +175,14 @@ namespace FNPlugin.Collectors
 
         private void OnGUI()
         {
-            if (this.vessel != FlightGlobals.ActiveVessel || !_render_window) return;
+            if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
+                _window_position = GUILayout.Window(_window_ID, _window_position, Window, "Universal Mining Interface");
 
-            _window_position = GUILayout.Window(_window_ID, _window_position, DrawGUI, "Universal Mining Interface");
+            //if (this.vessel != FlightGlobals.ActiveVessel || !_render_window) return;
 
-            scrollPosition[1] = GUI.VerticalScrollbar(_window_position, scrollPosition[1], 1, 0, 150, "Scroll");
+            //_window_position = GUILayout.Window(_window_ID, _window_position, Window, "Universal Mining Interface");
+
+            //scrollPosition[1] = GUI.VerticalScrollbar(_window_position, scrollPosition[1], 1, 0, 150, "Scroll");
         }
 
         // *** STARTUP FUNCTIONS ***
@@ -374,37 +381,48 @@ namespace FNPlugin.Collectors
                 var definition = PartResourceLibrary.Instance.GetDefinition(currentResource.ResourceName);
                 try
                 {
-                    abundance.Global = ResourceMap.Instance.GetAbundance(
-                        new AbundanceRequest()
+                    abundance.GlobalWithVariance = 
+                        ResourceMap.Instance.GetAbundance(new AbundanceRequest()
                         {
                             ResourceType = HarvestTypes.Planetary,
                             ResourceName = currentResource.ResourceName,
                             BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
                             CheckForLock = false
                         });
-                    abundance.Local = ResourceMap.Instance.GetAbundance(
-                            new AbundanceRequest()
+
+                    abundance.GlobalWithoutVariance =
+                            ResourceMap.Instance.GetAbundance(new AbundanceRequest()
                             {
                                 ResourceType = HarvestTypes.Planetary,
                                 ResourceName = currentResource.ResourceName,
                                 BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
-                                Latitude = FlightGlobals.ship_latitude,
-                                Longitude = FlightGlobals.ship_longitude,
-                                CheckForLock = false
+                                CheckForLock = false, 
+                                ExcludeVariance = true,
                             });
+
+                    abundance.Local = ResourceMap.Instance.GetAbundance(
+                        new AbundanceRequest()
+                        {
+                            ResourceType = HarvestTypes.Planetary,
+                            ResourceName = currentResource.ResourceName,
+                            BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
+                            Latitude = FlightGlobals.ship_latitude,
+                            Longitude = FlightGlobals.ship_longitude,
+                            CheckForLock = false
+                        });
 
                     var biome_attribute = part.vessel.mainBody.BiomeMap.GetAtt(FlightGlobals.ship_latitude, FlightGlobals.ship_longitude);
                     if (biome_attribute != null)
                     {
                         abundance.Biome = ResourceMap.Instance.GetAbundance(
-                             new AbundanceRequest()
-                             {
-                                 ResourceType = HarvestTypes.Planetary,
-                                 ResourceName = currentResource.ResourceName,
-                                 BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
-                                 BiomeName = biome_attribute.name,
-                                 CheckForLock = false
-                             });
+                        new AbundanceRequest()
+                        {
+                            ResourceType = HarvestTypes.Planetary,
+                            ResourceName = currentResource.ResourceName,
+                            BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
+                            BiomeName = biome_attribute.name,
+                            CheckForLock = false
+                        });
                     }
 
                 }
@@ -625,7 +643,7 @@ namespace FNPlugin.Collectors
                         continue;
 
                     deltaTime = (deltaTime >= 1.0 ? deltaTime : 1.0);
-                    double amount = CalculateResourceAmountCollected(minedAmount, abundance.Global, abundance.Local, deltaTime);
+                    double amount = CalculateResourceAmountCollected(minedAmount, abundance.GlobalWithVariance, abundance.Local, deltaTime);
                     double spareRoom = CalculateSpareRoom(resource.ResourceName);
 
                     if (spareRoom > 0) // if there's space, add the resource
@@ -654,7 +672,7 @@ namespace FNPlugin.Collectors
                     if (abundance == null)
                         continue;
 
-                    amount = CalculateResourceAmountCollected(dLastPseudoMinedAmount, abundance.Global, abundance.Local, deltaTime);
+                    amount = CalculateResourceAmountCollected(dLastPseudoMinedAmount, abundance.GlobalWithVariance, abundance.Local, deltaTime);
                         double spareRoom = CalculateSpareRoom(resource.ResourceName);
                         if ((spareRoom > 0) && (amount > 0))
                         {
@@ -670,7 +688,7 @@ namespace FNPlugin.Collectors
         }
 
 
-        private void DrawGUI(int window)
+        private void Window(int window)
         {
             if (_bold_label == null)
             {
@@ -678,37 +696,32 @@ namespace FNPlugin.Collectors
                 _bold_label.fontStyle = FontStyle.Bold;
             }
 
-            //if (_enabled_button == null)
-            //{
-            //    _enabled_button = new GUIStyle(GUI.skin.button);
-            //    _enabled_button.fontStyle = FontStyle.Bold;
-            //}
-
-            //if (_disabled_button == null)
-            //{
-            //    _disabled_button = new GUIStyle(GUI.skin.button);
-            //    _disabled_button.fontStyle = FontStyle.Normal;
-            //}
+            if (_normal_label == null)
+            {
+                _normal_label = new GUIStyle(GUI.skin.label);
+                _normal_label.fontStyle = FontStyle.Normal;
+            }
 
             if (GUI.Button(new Rect(_window_position.width - 20, 2, 18, 18), "x"))
-            {
                 _render_window = false;
-            }
-                
+               
             
             GUILayout.BeginVertical();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Drill parameters:",_bold_label, GUILayout.Width(labelWidth));
             GUILayout.EndHorizontal();
+
+            
+
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Size: " + drillSize.ToString("#.#") + " m\xB3");
+            GUILayout.Label("Size: " + drillSize.ToString("#.#") + " m\xB3", _normal_label);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("MW Requirements: " + mwRequirements.ToString("#.#") + " MW");
+            GUILayout.Label("MW Requirements: " + mwRequirements.ToString("#.#") + " MW", _normal_label);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Drill effectiveness: " + effectiveness.ToString("P1"));
+            GUILayout.Label("Drill effectiveness: " + effectiveness.ToString("P1"), _normal_label);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -717,7 +730,8 @@ namespace FNPlugin.Collectors
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Name", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label("Global ", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Global 1", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Global 2", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.Label("Biome ", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.Label("Local ", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
@@ -736,14 +750,17 @@ namespace FNPlugin.Collectors
                         continue;
 
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(resource.DisplayName, GUILayout.Width(labelWidth));
-                    GUILayout.Label(abundance.Global.ToString("##.######"), GUILayout.Width(valueWidth));
-                    GUILayout.Label(abundance.Biome.ToString("##.######"), GUILayout.Width(valueWidth));
-                    GUILayout.Label(abundance.Local.ToString("##.######"), GUILayout.Width(valueWidth));
+                    GUILayout.Label(resource.DisplayName, _normal_label, GUILayout.Width(labelWidth));
+                    GUILayout.Label(abundance.GlobalWithVariance.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
+                    GUILayout.Label(abundance.GlobalWithoutVariance.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
+                    GUILayout.Label(abundance.Biome.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
+                    GUILayout.Label(abundance.Local.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
                     GUILayout.EndHorizontal();
                 }
             }
             //GUILayout.EndScrollView();
+             
+            
 
             GUILayout.EndVertical();
             GUI.DragWindow();

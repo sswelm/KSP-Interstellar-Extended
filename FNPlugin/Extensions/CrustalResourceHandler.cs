@@ -307,7 +307,7 @@ namespace FNPlugin.Extensions
             if (abundance <= 0)
             {
                 Debug.LogWarning("[KSPI] - AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
-                return;
+                //return;
             }
 
             // create Crustalresource from definition and abundance

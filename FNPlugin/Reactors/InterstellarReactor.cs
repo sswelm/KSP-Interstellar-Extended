@@ -1926,6 +1926,7 @@ namespace FNPlugin
                     render_window = false;
 
                 GUILayout.BeginVertical();
+
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(TypeName, bold_style, GUILayout.ExpandWidth(true));
                 GUILayout.EndHorizontal();

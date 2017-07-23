@@ -732,7 +732,7 @@ namespace FNPlugin
 
             if (!chargedParticleMode) // thermal mode
             {
-                hotBathTemp = isMHD && attachedPowerSource.SupportMHD
+                hotBathTemp = isMHD && attachedPowerSource.SupportMHD && !applies_balance
                     ? Math.Pow(1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT), 2) * attachedPowerSource.CoreTemperature
                     : attachedPowerSource.HotBathTemperature;
 
