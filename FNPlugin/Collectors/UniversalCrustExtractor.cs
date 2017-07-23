@@ -22,7 +22,7 @@ namespace FNPlugin.Collectors
         List<CrustalResource> localResources; // list of resources
 
         // state of the extractor
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Drill Enabled")]
         public bool bIsEnabled = false;
 
         // previous data
@@ -52,7 +52,15 @@ namespace FNPlugin.Collectors
         private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 4, 150);
         private int _window_ID;
         private bool _render_window;
-        private Vector2 scrollPosition;
+
+        //[KSPField(isPersistant = false, guiActive = true, guiName = "Update Counter")]
+        //public long updateCounter = 0;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Reason Not Collecting")]
+        public string reasonNotCollecting;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Window shown")]
+        public bool autoWindowShown;
+
+        ModuleScienceExperiment _moduleScienceExperiment;
 
         private const int labelWidth = 200;
         private const int valueWidth = 100;
@@ -74,25 +82,26 @@ namespace FNPlugin.Collectors
         };
 
         // *** KSP Events ***
-        [KSPEvent(guiActive = true, guiName = "Activate Drill", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Activate Drill", active = false)]
         public void ActivateCollector()
         {
             bIsEnabled = true;
             OnFixedUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Disable Drill", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Disable Drill", active = false)]
         public void DisableCollector()
         {
             bIsEnabled = false;
             OnFixedUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Toggle Mining Interface", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Toggle Mining Interface", active = false)]
         public void ToggleWindow()
         {
             _render_window = !_render_window;
         }
+
         // *** END of KSP Events
 
         // *** KSP Actions ***
@@ -111,6 +120,8 @@ namespace FNPlugin.Collectors
 
         public override void OnStart(PartModule.StartState state)
         {
+            _moduleScienceExperiment = this.part.FindModuleImplementing<ModuleScienceExperiment>();
+
             // if the setup went well, do the offline collecting dance
             if (StartupSetup(state))
             {
@@ -134,11 +145,51 @@ namespace FNPlugin.Collectors
 
         public override void OnUpdate()
         {
-            Events["ActivateCollector"].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
-            Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
+            reasonNotCollecting = CheckIfCollectingPossible();
 
+            if (String.IsNullOrEmpty(reasonNotCollecting))
+            {
+                if (_moduleScienceExperiment != null)
+                {
+                    _moduleScienceExperiment.Events["DeployExperiment"].active = true;
+                    _moduleScienceExperiment.Events["DeployExperimentExternal"].active = true;
+                    _moduleScienceExperiment.Actions["DeployAction"].active = true;
+                }
 
-            UpdateResourceAbundances();
+                if (!autoWindowShown)
+                {
+                    if (_moduleScienceExperiment != null)
+                        _moduleScienceExperiment.DeployAction(new KSPActionParam(KSPActionGroup.None, KSPActionType.Activate));
+
+                    _render_window = true;
+                    autoWindowShown = true;
+                }
+
+                if (effectiveness > 0)
+                {
+                    Events["ActivateCollector"].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
+                    Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
+                }
+
+                Events["ToggleWindow"].active = true;
+
+                UpdateResourceAbundances();
+            }
+            else
+            {
+                if (_moduleScienceExperiment != null)
+                {
+                    _moduleScienceExperiment.Events["DeployExperiment"].active = false;
+                    _moduleScienceExperiment.Events["DeployExperimentExternal"].active = false;
+                    _moduleScienceExperiment.Actions["DeployAction"].active = false;
+                }
+
+                Events["ActivateCollector"].active = false;
+                Events["DisableCollector"].active = false;
+                Events["ToggleWindow"].active = false;
+
+                _render_window = false;
+            }
         }
 
         private void UpdateResourceAbundances()
@@ -176,11 +227,7 @@ namespace FNPlugin.Collectors
         private void OnGUI()
         {
             if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
-                _window_position = GUILayout.Window(_window_ID, _window_position, Window, "Universal Mining Interface");
-
-            //if (this.vessel != FlightGlobals.ActiveVessel || !_render_window) return;
-
-            //_window_position = GUILayout.Window(_window_ID, _window_position, Window, "Universal Mining Interface");
+                _window_position = GUILayout.Window(_window_ID, _window_position, DrawGui, "Universal Mining Interface");
 
             //scrollPosition[1] = GUI.VerticalScrollbar(_window_position, scrollPosition[1], 1, 0, 150, "Scroll");
         }
@@ -231,28 +278,28 @@ namespace FNPlugin.Collectors
         /// The main "check-if-we-can-mine-here" function.
         /// </summary>
         /// <returns>Bool signifying whether yes, we can mine here, or not.</returns>
-        private bool CheckIfCollectingPossible()
+        private string CheckIfCollectingPossible()
         {
             if (vessel.checkLanded() == false || vessel.checkSplashed() == true)
             {
-                ScreenMessages.PostScreenMessage("Vessel is not landed properly.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
-                return false;
+                autoWindowShown = false;
+                return "Vessel is not landed properly.";
             }
 
             if (!IsDrillExtended())
             {
-                ScreenMessages.PostScreenMessage("The universal drill needs to be extended before it can be used.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
-                return false;
+                autoWindowShown = false;
+                return "The universal drill needs to be extended before it can be used.";
             }
 
             if (!CanReachTerrain())
             {
-                ScreenMessages.PostScreenMessage("The universal drill has trouble reaching the terrain, check the vessel situation and setup.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
-                return false;
+                autoWindowShown = false;
+                return "The universal drill has trouble reaching the terrain, check the vessel situation and setup.";
             }
 
             // cleared all the prerequisites
-            return true;
+            return String.Empty;
         }
 
         /// <summary>
@@ -262,7 +309,16 @@ namespace FNPlugin.Collectors
         private bool IsDrillExtended()
         {
             ModuleAnimationGroup thisPartsAnimGroup = this.part.FindModuleImplementing<ModuleAnimationGroup>();
-            return thisPartsAnimGroup.isDeployed;
+
+            if (thisPartsAnimGroup)
+                return thisPartsAnimGroup.isDeployed;
+
+            ModuleAnimateGeneric animateGeneric = this.part.FindModuleImplementing<ModuleAnimateGeneric>();
+
+            if (animateGeneric)
+                return animateGeneric.GetScalar == 1;
+
+            return false;
         }
 
         /// <summary>
@@ -286,14 +342,8 @@ namespace FNPlugin.Collectors
              * this module in a difficult terrain, it just doesn't work properly. (I blame KSP planet meshes + Unity problems with accuracy further away from origin). 
             */
             Physics.Raycast(drillPartRay, out hit, drillDistance, terrainMask); // use the defined ray, pass info about a hit, go the proper distance and choose the proper layermask 
-            if (hit.collider != null) // we definitely hit the terrain
-            {
-                return true;
-            }
-            else // no hit, dammit
-            {
-                return false;
-            }
+
+            return hit.collider != null;
         }
 
         /// <summary>
@@ -304,38 +354,27 @@ namespace FNPlugin.Collectors
         /// <returns>Bool signifying if there is enough power for the extractor to operate.</returns>
         private bool HasEnoughPower(double deltaTime)
         {
-            if (CheatOptions.InfiniteElectricity) // is the cheat option of infinite electricity ON? Then skip all these checks.
-            {
+            if (CheatOptions.InfiniteElectricity || mwRequirements == 0) // is the cheat option of infinite electricity ON? Then skip all these checks.
                 return true;
-            }
-            else
+
+            double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements;
+
+            // calculate the provided power and consume it
+            double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * deltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+            double dNormalisedRecievedPowerMW = dPowerReceivedMW / deltaTime;
+
+            // when the requirements are low enough, we can get the power needed from stock energy charge
+            if (dPowerRequirementsMW < 5 && dNormalisedRecievedPowerMW <= dPowerRequirementsMW)
             {
-                double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements;
-
-                // calculate the provided power and consume it
-                double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * deltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
-                double dNormalisedRecievedPowerMW = dPowerReceivedMW / deltaTime;
-
-                // when the requirements are low enough, we can get the power needed from stock energy charge
-                if (dPowerRequirementsMW < 5 && dNormalisedRecievedPowerMW <= dPowerRequirementsMW)
-                {
-                    double dRequiredKW = (dPowerRequirementsMW - dNormalisedRecievedPowerMW) * 1000;
-                    double dReceivedKW = ORSHelper.fixedRequestResource(part, FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * deltaTime);
-                    dPowerReceivedMW += (dReceivedKW / 1000);
-                    dNormalisedRecievedPowerMW = dPowerReceivedMW / deltaTime;
-                }
-
-                //dLastPowerPercentage = (dPowerReceivedMW / dPowerRequirementsMW / deltaTime);
-
-                if (dNormalisedRecievedPowerMW >= dPowerRequirementsMW)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                double dRequiredKW = (dPowerRequirementsMW - dNormalisedRecievedPowerMW) * 1000;
+                double dReceivedKW = ORSHelper.fixedRequestResource(part, FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * deltaTime);
+                dPowerReceivedMW += (dReceivedKW / 1000);
+                dNormalisedRecievedPowerMW = dPowerReceivedMW / deltaTime;
             }
+
+            //dLastPowerPercentage = (dPowerReceivedMW / dPowerRequirementsMW / deltaTime);
+
+            return dNormalisedRecievedPowerMW >= dPowerRequirementsMW;
         }
 
         /// <summary>
@@ -604,8 +643,12 @@ namespace FNPlugin.Collectors
                     return;
                 }
 
-                if (!CheckIfCollectingPossible()) // collecting not possible due to some reasons.
+                reasonNotCollecting = CheckIfCollectingPossible();
+
+                if (!String.IsNullOrEmpty(reasonNotCollecting)) // collecting not possible due to some reasons.
                 {
+                    ScreenMessages.PostScreenMessage(reasonNotCollecting, 3.0f, ScreenMessageStyle.LOWER_CENTER);
+
                     DisableCollector();
                     return; // let's get out of here, no mining for now
                 }
@@ -688,7 +731,7 @@ namespace FNPlugin.Collectors
         }
 
 
-        private void Window(int window)
+        private void DrawGui(int window)
         {
             if (_bold_label == null)
             {
