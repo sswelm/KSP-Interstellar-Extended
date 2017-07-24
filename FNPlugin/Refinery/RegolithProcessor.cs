@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Schema;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
@@ -13,6 +14,7 @@ namespace FNPlugin.Refinery
 
         protected double dRegolithDensity;
         protected double dHydrogenDensity;
+	    protected double dDeuteriumDensity;
         protected double dLiquidHelium3Density;
         protected double dLiquidHelium4Density;
         protected double dMonoxideDensity;
@@ -25,6 +27,7 @@ namespace FNPlugin.Refinery
         protected double regolithConsumptionRate;
 
         protected double dHydrogenProductionRate;
+	    protected double dDeuteriumProductionRate;
         protected double dLiquidHelium3ProductionRate;
         protected double dLiquidHelium4ProductionRate;
         protected double dMonoxideProductionRate;
@@ -50,7 +53,8 @@ namespace FNPlugin.Refinery
         public String Status { get { return String.Copy(_status); } }
 
         protected string strRegolithResourceName;
-        protected string strHydrogenResourceName;
+		protected string strHydrogenResourceName;
+        protected string stDeuteriumResourceName;
         protected string strLiquidHelium3ResourceName;
         protected string strLiquidHelium4ResourceName;
         protected string strMonoxideResourceName;
@@ -66,6 +70,7 @@ namespace FNPlugin.Refinery
 
             strRegolithResourceName = InterstellarResourcesConfiguration.Instance.Regolith;
             strHydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
+			stDeuteriumResourceName = InterstellarResourcesConfiguration.Instance.DeuteriumGas;
             strLiquidHelium3ResourceName = InterstellarResourcesConfiguration.Instance.LqdHelium3;
             strLiquidHelium4ResourceName = InterstellarResourcesConfiguration.Instance.LqdHelium4;
             strMonoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
@@ -76,6 +81,7 @@ namespace FNPlugin.Refinery
 
             dRegolithDensity = PartResourceLibrary.Instance.GetDefinition(strRegolithResourceName).density;
             dHydrogenDensity = PartResourceLibrary.Instance.GetDefinition(strHydrogenResourceName).density;
+			dDeuteriumDensity = PartResourceLibrary.Instance.GetDefinition(stDeuteriumResourceName).density;
             dLiquidHelium3Density = PartResourceLibrary.Instance.GetDefinition(strLiquidHelium3ResourceName).density;
             dLiquidHelium4Density = PartResourceLibrary.Instance.GetDefinition(strLiquidHelium4ResourceName).density;
             dMonoxideDensity = PartResourceLibrary.Instance.GetDefinition(strMonoxideResourceName).density;
@@ -87,6 +93,7 @@ namespace FNPlugin.Refinery
 
         protected double dMaxCapacityRegolithMass;
         protected double dMaxCapacityHydrogenMass;
+	    protected double dMaxCapacityDeuteriumMass;
         protected double dMaxCapacityHelium3Mass;
         protected double dMaxCapacityHelium4Mass;
         protected double dMaxCapacityMonoxideMass;
@@ -97,6 +104,7 @@ namespace FNPlugin.Refinery
 
         protected double dAvailableRegolithMass;
         protected double dSpareRoomHydrogenMass;
+		protected double dSpareRoomDeuteriumMass;
         protected double dSpareRoomHelium3Mass;
         protected double dSpareRoomHelium4Mass;
         protected double dSpareRoomMonoxideMass;
@@ -108,7 +116,7 @@ namespace FNPlugin.Refinery
         /* these are the constituents of regolith with their appropriate mass ratios. I'm using concentrations from lunar regolith, yes, I know regolith on other planets varies, let's keep this simple.
          * The exact fractions were calculated mostly from a chart that's also available on http://imgur.com/lpaE1Ah.
          */
-        protected double dHydrogenMassByFraction = 0.3351464205;
+		protected double dHydrogenMassByFraction = 0.3351424205;
         protected double dHelium3MassByFraction = 0.000054942036;
         protected double dHelium4MassByFraction = 0.1703203120;
         protected double dMonoxideMassByFraction = 0.1043898686;
@@ -116,6 +124,8 @@ namespace FNPlugin.Refinery
         protected double dMethaneMassByFraction = 0.0879072578;
         protected double dNitrogenMassByFraction = 0.0274710180;
         protected double dWaterMassByFraction = 0.18130871930;
+
+		protected double dDeuteriumMassByFraction = 0.000004; // based on a measurement of 0.0001% of hydrogen beeing deuterium
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
@@ -126,6 +136,7 @@ namespace FNPlugin.Refinery
             // determine how much resource we have
             var partsThatContainRegolith = _part.GetConnectedResources(strRegolithResourceName);
             var partsThatContainHydrogen = _part.GetConnectedResources(strHydrogenResourceName);
+			var partsThatContainDeuterium = _part.GetConnectedResources(stDeuteriumResourceName);
             var partsThatContainLqdHelium3 = _part.GetConnectedResources(strLiquidHelium3ResourceName);
             var partsThatContainLqdHelium4 = _part.GetConnectedResources(strLiquidHelium4ResourceName);
             var partsThatContainMonoxide = _part.GetConnectedResources(strMonoxideResourceName);
@@ -137,6 +148,7 @@ namespace FNPlugin.Refinery
             // determine the maximum amount of a resource the vessel can hold (ie. tank capacities combined)
             dMaxCapacityRegolithMass = partsThatContainRegolith.Sum(p => p.maxAmount) * dRegolithDensity;
             dMaxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * dHydrogenDensity;
+			dMaxCapacityDeuteriumMass = partsThatContainDeuterium.Sum(p => p.maxAmount) * dDeuteriumDensity;
             dMaxCapacityHelium3Mass = partsThatContainLqdHelium3.Sum(p => p.maxAmount) * dLiquidHelium3Density;
             dMaxCapacityHelium4Mass = partsThatContainLqdHelium4.Sum(p => p.maxAmount) * dLiquidHelium4Density;
             dMaxCapacityMonoxideMass = partsThatContainMonoxide.Sum(p => p.maxAmount) * dMonoxideDensity;
@@ -150,7 +162,8 @@ namespace FNPlugin.Refinery
 
             // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
             dSpareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * dHydrogenDensity;
-            dSpareRoomHelium3Mass = partsThatContainLqdHelium3.Sum(r => r.maxAmount - r.amount) * dLiquidHelium3Density;
+			dSpareRoomDeuteriumMass = partsThatContainDeuterium.Sum(r => r.maxAmount - r.amount) * dDeuteriumDensity;
+            dSpareRoomHelium3Mass = partsThatContainLqdHelium3.Sum(r => r.maxAmount - r.amount)  * dLiquidHelium3Density;
             dSpareRoomHelium4Mass = partsThatContainLqdHelium4.Sum(r => r.maxAmount - r.amount) * dLiquidHelium4Density;
             dSpareRoomMonoxideMass = partsThatContainMonoxide.Sum(r => r.maxAmount - r.amount) * dMonoxideDensity;
             dSpareRoomDioxideMass = partsThatContainDioxide.Sum(r => r.maxAmount - r.amount) * dDioxideDensity;
@@ -167,10 +180,11 @@ namespace FNPlugin.Refinery
             dFixedConsumptionRate = _current_rate * fixedDeltaTime * dRegolithConsumptionRatio;
 
             // begin the regolith processing
-            if (dFixedConsumptionRate > 0 && (dSpareRoomHydrogenMass > 0 || dSpareRoomHelium3Mass > 0 || dSpareRoomHelium4Mass > 0 || dSpareRoomMonoxideMass > 0 || dSpareRoomNitrogenMass > 0)) // check if there is anything to consume and spare room for at least one of the products
+            if (dFixedConsumptionRate > 0 && (dSpareRoomHydrogenMass > 0 || dSpareRoomDeuteriumMass > 0 ||  dSpareRoomHelium3Mass > 0 || dSpareRoomHelium4Mass > 0 || dSpareRoomMonoxideMass > 0 || dSpareRoomNitrogenMass > 0)) // check if there is anything to consume and spare room for at least one of the products
             {
 
                 double dFixedMaxHydrogenRate = dFixedConsumptionRate * dHydrogenMassByFraction;
+				double dFixedMaxDeuteriumRate = dFixedConsumptionRate * dDeuteriumMassByFraction;
                 double dFixedMaxHelium3Rate = dFixedConsumptionRate * dHelium3MassByFraction;
                 double dFixedMaxHelium4Rate = dFixedConsumptionRate * dHelium4MassByFraction;
                 double dFixedMaxMonoxideRate = dFixedConsumptionRate * dMonoxideMassByFraction;
@@ -179,17 +193,28 @@ namespace FNPlugin.Refinery
                 double dFixedMaxNitrogenRate = dFixedConsumptionRate * dNitrogenMassByFraction;
                 double dFixedMaxWaterRate = dFixedConsumptionRate * dWaterMassByFraction;
 
-                double dFixedMaxPossibleHydrogenRate = allowOverflow ? dFixedMaxHydrogenRate : Math.Min(dSpareRoomHydrogenMass, dFixedMaxHydrogenRate);
-                double dFixedMaxPossibleHelium3Rate = allowOverflow ? dFixedMaxHelium3Rate : Math.Min(dSpareRoomHelium3Mass, dFixedMaxHelium3Rate);
-                double dFixedMaxPossibleHelium4Rate = allowOverflow ? dFixedMaxHelium4Rate : Math.Min(dSpareRoomHelium4Mass, dFixedMaxHelium4Rate);
-                double dFixedMaxPossibleMonoxideRate = allowOverflow ? dFixedMaxMonoxideRate : Math.Min(dSpareRoomMonoxideMass, dFixedMaxMonoxideRate);
-                double dFixedMaxPossibleDioxideRate = allowOverflow ? dFixedMaxDioxideRate : Math.Min(dSpareRoomDioxideMass, dFixedMaxDioxideRate);
-                double dFixedMaxPossibleMethaneRate = allowOverflow ? dFixedMaxMethaneRate : Math.Min(dSpareRoomMethaneMass, dFixedMaxMethaneRate);
-                double dFixedMaxPossibleNitrogenRate = allowOverflow ? dFixedMaxNitrogenRate : Math.Min(dSpareRoomNitrogenMass, dFixedMaxNitrogenRate);
-                double dFixedMaxPossibleWaterRate = allowOverflow ? dFixedMaxWaterRate : Math.Min(dSpareRoomWaterMass, dFixedMaxWaterRate);
+                double dFixedMaxPossibleHydrogenRate =	allowOverflow ? dFixedMaxHydrogenRate : Math.Min(dSpareRoomHydrogenMass, dFixedMaxHydrogenRate);
+				double dFixedMaxPossibleDeuteriumRate = allowOverflow ? dFixedMaxDeuteriumRate : Math.Min(dSpareRoomDeuteriumMass, dFixedMaxDeuteriumRate);
+                double dFixedMaxPossibleHelium3Rate =	allowOverflow ? dFixedMaxHelium3Rate : Math.Min(dSpareRoomHelium3Mass, dFixedMaxHelium3Rate);
+                double dFixedMaxPossibleHelium4Rate =	allowOverflow ? dFixedMaxHelium4Rate : Math.Min(dSpareRoomHelium4Mass, dFixedMaxHelium4Rate);
+                double dFixedMaxPossibleMonoxideRate =	allowOverflow ? dFixedMaxMonoxideRate : Math.Min(dSpareRoomMonoxideMass, dFixedMaxMonoxideRate);
+                double dFixedMaxPossibleDioxideRate =	allowOverflow ? dFixedMaxDioxideRate : Math.Min(dSpareRoomDioxideMass, dFixedMaxDioxideRate);
+                double dFixedMaxPossibleMethaneRate =	allowOverflow ? dFixedMaxMethaneRate : Math.Min(dSpareRoomMethaneMass, dFixedMaxMethaneRate);
+                double dFixedMaxPossibleNitrogenRate =	allowOverflow ? dFixedMaxNitrogenRate : Math.Min(dSpareRoomNitrogenMass, dFixedMaxNitrogenRate);
+                double dFixedMaxPossibleWaterRate =		allowOverflow ? dFixedMaxWaterRate : Math.Min(dSpareRoomWaterMass, dFixedMaxWaterRate);
 
-                // finds the minimum of these eight numbers (fixedMaxPossibleZZRate / fixedMaxZZRate). Could be more pretty with a custom Min8() function. Seriously. Put in the work, me. This is hideous. But it should be more effective than doing it with array.
-                dConsumptionStorageRatio = Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(Math.Min(dFixedMaxPossibleHydrogenRate / dFixedMaxHydrogenRate, dFixedMaxPossibleHelium3Rate / dFixedMaxHelium3Rate), dFixedMaxPossibleHelium4Rate / dFixedMaxHelium4Rate), dFixedMaxPossibleMonoxideRate / dFixedMaxMonoxideRate), dFixedMaxPossibleNitrogenRate / dFixedMaxNitrogenRate), dFixedMaxPossibleWaterRate / dFixedMaxWaterRate), dFixedMaxPossibleDioxideRate / dFixedMaxDioxideRate), dFixedMaxPossibleMethaneRate / dFixedMaxMethaneRate);
+				var ratios = new List<double> { 
+					dFixedMaxPossibleHydrogenRate / dFixedMaxHydrogenRate, 
+					dFixedMaxPossibleDeuteriumRate / dFixedMaxDeuteriumRate, 
+					dFixedMaxPossibleHelium3Rate / dFixedMaxHelium3Rate,
+					dFixedMaxPossibleHelium4Rate / dFixedMaxHelium4Rate, 
+					dFixedMaxPossibleMonoxideRate / dFixedMaxMonoxideRate, 
+					dFixedMaxPossibleNitrogenRate / dFixedMaxNitrogenRate, 
+					dFixedMaxPossibleWaterRate / dFixedMaxWaterRate, 
+					dFixedMaxPossibleDioxideRate / dFixedMaxDioxideRate, 
+					dFixedMaxPossibleMethaneRate / dFixedMaxMethaneRate };
+
+	            dConsumptionStorageRatio = ratios.Min(m => m);
 
                 // this consumes the resource
                 fixed_regolithConsumptionRate = _part.RequestResource(strRegolithResourceName, dConsumptionStorageRatio * dFixedConsumptionRate / dRegolithDensity, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fixedDeltaTime * dRegolithDensity;
@@ -197,6 +222,7 @@ namespace FNPlugin.Refinery
 
                 // this produces the products
                 double dHydrogenRateTemp = fixed_regolithConsumptionRate * dHydrogenMassByFraction;
+				double dDeuteriumRateTemp = fixed_regolithConsumptionRate * dDeuteriumMassByFraction;
                 double dHelium3RateTemp = fixed_regolithConsumptionRate * dHelium3MassByFraction;
                 double dHelium4RateTemp = fixed_regolithConsumptionRate * dHelium4MassByFraction;
                 double dMonoxideRateTemp = fixed_regolithConsumptionRate * dMonoxideMassByFraction;
@@ -206,6 +232,7 @@ namespace FNPlugin.Refinery
                 double dWaterRateTemp = fixed_regolithConsumptionRate * dWaterMassByFraction;
 
                 dHydrogenProductionRate = -_part.RequestResource(strHydrogenResourceName, -dHydrogenRateTemp * fixedDeltaTime / dHydrogenDensity) / fixedDeltaTime * dHydrogenDensity;
+				dDeuteriumProductionRate = -_part.RequestResource(strHydrogenResourceName, -dDeuteriumRateTemp * fixedDeltaTime / dDeuteriumDensity) / fixedDeltaTime * dDeuteriumDensity;
                 dLiquidHelium3ProductionRate = -_part.RequestResource(strLiquidHelium3ResourceName, -dHelium3RateTemp * fixedDeltaTime / dLiquidHelium3Density) / fixedDeltaTime * dLiquidHelium3Density;
                 dLiquidHelium4ProductionRate = -_part.RequestResource(strLiquidHelium4ResourceName, -dHelium4RateTemp * fixedDeltaTime / dLiquidHelium4Density) / fixedDeltaTime * dLiquidHelium4Density;
                 dMonoxideProductionRate = -_part.RequestResource(strMonoxideResourceName, -dMonoxideRateTemp * fixedDeltaTime / dMonoxideDensity) / fixedDeltaTime * dMonoxideDensity;
@@ -218,6 +245,7 @@ namespace FNPlugin.Refinery
             {
                 fixed_regolithConsumptionRate = 0;
                 dHydrogenProductionRate = 0;
+				dDeuteriumProductionRate = 0;
                 dLiquidHelium3ProductionRate = 0;
                 dLiquidHelium4ProductionRate = 0;
                 dMonoxideProductionRate = 0;
@@ -258,6 +286,16 @@ namespace FNPlugin.Refinery
             GUILayout.Label((dHydrogenProductionRate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Deuterium Storage", _bold_label, GUILayout.Width(labelWidth));
+			GUILayout.Label(dSpareRoomDeuteriumMass.ToString("0.0000") + " mT / " + dMaxCapacityDeuteriumMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Deuterium Production Rate", _bold_label, GUILayout.Width(labelWidth));
+			GUILayout.Label((dDeuteriumProductionRate * GameConstants.HOUR_SECONDS).ToString("0.0000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+			GUILayout.EndHorizontal();
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Helium-3 Storage", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(dSpareRoomHelium3Mass.ToString("0.0000") + " mT / " + dMaxCapacityHelium3Mass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
@@ -265,7 +303,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Helium-3 Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((dLiquidHelium3ProductionRate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((dLiquidHelium3ProductionRate * GameConstants.HOUR_SECONDS).ToString("0.0000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
