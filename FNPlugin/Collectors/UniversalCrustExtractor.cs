@@ -53,8 +53,6 @@ namespace FNPlugin.Collectors
         private int _window_ID;
         private bool _render_window;
 
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Update Counter")]
-        //public long updateCounter = 0;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Reason Not Collecting")]
         public string reasonNotCollecting;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Window shown")]
@@ -78,7 +76,8 @@ namespace FNPlugin.Collectors
             Latitude = 0, // this will need to be updated before 'sending the request'
             Longitude = 0, // this will need to be updated before 'sending the request'
             Altitude = 0, // this will need to be updated before 'sending the request'
-            CheckForLock = false
+            CheckForLock = false, 
+            ExcludeVariance = false,
         };
 
         // *** KSP Events ***
