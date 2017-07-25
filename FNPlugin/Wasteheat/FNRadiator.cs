@@ -116,11 +116,11 @@ namespace FNPlugin
     class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
-	class FNRadiator : FNResourceSuppliableModule	
+    class FNRadiator : FNResourceSuppliableModule	
     {
         // persitant
         [KSPField(isPersistant = true, guiActive = true, guiName = "Radiator Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts= UI_Scene.All)]
-		public bool radiatorIsEnabled = false;
+        public bool radiatorIsEnabled = false;
         [KSPField(isPersistant = true, guiActive = false)]
         public bool canRadiateHeat = true;
         [KSPField(isPersistant = true)]
@@ -163,18 +163,18 @@ namespace FNPlugin
         // non persistant
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Mass", guiUnits = " t")]
         public float partMass;
-		[KSPField(isPersistant = false)]
-		public bool isDeployable = false;
+        [KSPField(isPersistant = false)]
+        public bool isDeployable = false;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Converction Bonus")]
-		public float convectiveBonus = 1;
-		[KSPField(isPersistant = false)]
-		public string animName;
+        public float convectiveBonus = 1;
+        [KSPField(isPersistant = false)]
+        public string animName;
         [KSPField(isPersistant = false)]
         public string thermalAnim;
-		[KSPField(isPersistant = false)]
-		public string originalName;
-		[KSPField(isPersistant = false)]
-		public float upgradeCost = 100;
+        [KSPField(isPersistant = false)]
+        public string originalName;
+        [KSPField(isPersistant = false)]
+        public float upgradeCost = 100;
         [KSPField(isPersistant = false)]
         public float temperatureColorDivider = 1;
         [KSPField(isPersistant = false)]
@@ -186,9 +186,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false)]
         public double dynamic_pressure;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Type")]
-		public string radiatorType;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Rad Temp")]
-		public string radiatorTempStr;
+        public string radiatorType;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Rad Temp")]
+        public string radiatorTempStr;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Part Temp")]
         public string partTempStr;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
@@ -199,12 +199,12 @@ namespace FNPlugin
         public double areaMultiplier = 2.5;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double effectiveRadiatorArea;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
-		public string thermalPowerDissipStr;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Power Convected")]
-		public string thermalPowerConvStr;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
+        public string thermalPowerDissipStr;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Power Convected")]
+        public string thermalPowerConvStr;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Rad Upgrade Cost")]
-		public string upgradeCostStr;
+        public string upgradeCostStr;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Radiator Start Temp")]
         public double radiator_temperature_temp_val;
         [KSPField(isPersistant = false, guiActive = false)]
@@ -227,14 +227,12 @@ namespace FNPlugin
         const float rad_const_h = 1000;
         const String kspShader = "KSP/Emissive/Bumped Specular";
 
-        private Queue<double> temperatureQueue = new Queue<double>(10);
-
-		protected Animation deployAnim;
-		protected double radiatedThermalPower;
-		protected double convectedThermalPower;
-		
+        protected Animation deployAnim;
+        protected double radiatedThermalPower;
+        protected double convectedThermalPower;
+        
         protected long update_count;
-		protected int explode_counter;
+        protected int explode_counter;
         
 
         private BaseEvent deployRadiatorEvent;
@@ -254,9 +252,11 @@ namespace FNPlugin
         private PartResource wasteheatPowerResource;
         private ORSResourceManager wasteheatManager;
 
+		private Queue<double> temperatureQueue = new Queue<double>(10);
+
         
         private bool active;
-        private List<IPowerSource> list_of_thermal_sources;
+        //private List<IPowerSource> list_of_thermal_sources;
 
         private static List<FNRadiator> list_of_all_radiators = new List<FNRadiator>();
 
@@ -274,19 +274,18 @@ namespace FNPlugin
 
         private double GetMaximumTemperatureForGen(GenerationType generation)
         {
-            if (generation == GenerationType.Mk5)
+	        if (generation == GenerationType.Mk5)
                 return PluginHelper.RadiatorTemperatureMk5;
-            else if (generation == GenerationType.Mk4)
-                return PluginHelper.RadiatorTemperatureMk4;
-            else if (generation == GenerationType.Mk3)
-                return PluginHelper.RadiatorTemperatureMk3;
-            else if (generation == GenerationType.Mk2)
-                return PluginHelper.RadiatorTemperatureMk2;
-            else
-                return PluginHelper.RadiatorTemperatureMk1;
+	        if (generation == GenerationType.Mk4)
+		        return PluginHelper.RadiatorTemperatureMk4;
+	        if (generation == GenerationType.Mk3)
+		        return PluginHelper.RadiatorTemperatureMk3;
+	        if (generation == GenerationType.Mk2)
+		        return PluginHelper.RadiatorTemperatureMk2;
+	        return PluginHelper.RadiatorTemperatureMk1;
         }
 
-        public double EffectiveRadiatorArea
+	    public double EffectiveRadiatorArea
         {
             get 
             {
@@ -331,48 +330,52 @@ namespace FNPlugin
         {
             get
             {
-                if (CurrentGenerationType == GenerationType.Mk5)
+	            if (CurrentGenerationType == GenerationType.Mk5)
                     return radiatorTypeMk5;
-                else if (CurrentGenerationType == GenerationType.Mk4)
-                    return radiatorTypeMk4;
-                else if (CurrentGenerationType == GenerationType.Mk3)
-                    return radiatorTypeMk3;
-                else if (CurrentGenerationType == GenerationType.Mk2)
-                    return radiatorTypeMk2;
-                else
-                    return radiatorTypeMk1;
+	            if (CurrentGenerationType == GenerationType.Mk4)
+		            return radiatorTypeMk4;
+	            if (CurrentGenerationType == GenerationType.Mk3)
+		            return radiatorTypeMk3;
+	            if (CurrentGenerationType == GenerationType.Mk2)
+		            return radiatorTypeMk2;
+	            return radiatorTypeMk1;
             }
         }
 
-		public static List<FNRadiator> getRadiatorsForVessel(Vessel vess) 
+	    public static void Reset()
+	    {
+		    list_of_all_radiators.Clear();
+	    }
+
+        public static List<FNRadiator> getRadiatorsForVessel(Vessel vess) 
         {
-			list_of_all_radiators.RemoveAll(item => item == null);
+            list_of_all_radiators.RemoveAll(item => item == null);
 
             List<FNRadiator> list_of_radiators_for_vessel = new List<FNRadiator>();
-			foreach (FNRadiator radiator in list_of_all_radiators) 
+            foreach (FNRadiator radiator in list_of_all_radiators) 
             {
-				if (radiator.vessel == vess) 
-					list_of_radiators_for_vessel.Add (radiator);
-			}
-			return list_of_radiators_for_vessel;
-		}
+                if (radiator.vessel == vess) 
+                    list_of_radiators_for_vessel.Add (radiator);
+            }
+            return list_of_radiators_for_vessel;
+        }
 
-		public static bool hasRadiatorsForVessel(Vessel vess) 
+        public static bool hasRadiatorsForVessel(Vessel vess) 
         {
-			list_of_all_radiators.RemoveAll(item => item == null);
+            list_of_all_radiators.RemoveAll(item => item == null);
 
-			bool has_radiators = false;
-			foreach (FNRadiator radiator in list_of_all_radiators) 
+            bool has_radiators = false;
+            foreach (FNRadiator radiator in list_of_all_radiators) 
             {
-				if (radiator.vessel == vess) 
-					has_radiators = true;
-			}
-			return has_radiators;
-		}
+                if (radiator.vessel == vess) 
+                    has_radiators = true;
+            }
+            return has_radiators;
+        }
 
-		public static double getAverageRadiatorTemperatureForVessel(Vessel vess) 
+        public static double getAverageRadiatorTemperatureForVessel(Vessel vess) 
         {
-			list_of_all_radiators.RemoveAll(item => item == null);
+            list_of_all_radiators.RemoveAll(item => item == null);
 
             var filteredList = list_of_all_radiators.Where(r => r.vessel == vess).ToList();
 
@@ -380,7 +383,7 @@ namespace FNPlugin
                 return 3700;
 
             return filteredList.Max(r => r.GetAverateRadiatorTemperature());
-		}
+        }
 
         public static float getAverageMaximumRadiatorTemperatureForVessel(Vessel vess) 
         {
@@ -405,19 +408,19 @@ namespace FNPlugin
             return average_temp;
         }
 
-		[KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Deploy Radiator", active = true)]
-		public void DeployRadiator() 
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Deploy Radiator", active = true)]
+        public void DeployRadiator() 
         {
             isAutomated = false;
 
-            UnityEngine.Debug.Log("[KSPI] - DeployRadiator Called ");
+            Debug.Log("[KSPI] - DeployRadiator Called ");
 
             Deploy();
-		}
+        }
 
         private void Deploy()
         {
-            UnityEngine.Debug.Log("[KSPI] - Deploy Called ");
+            Debug.Log("[KSPI] - Deploy Called ");
 
             if (part.ShieldedFromAirstream)
                 return;
@@ -439,18 +442,18 @@ namespace FNPlugin
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Retract Radiator", active = true)]
-		public void RetractRadiator() 
+        public void RetractRadiator() 
         {
             if (!isDeployable) return;
 
             isAutomated = false;
 
             Retract();
-		}
+        }
 
         private void Retract()
         {
-            UnityEngine.Debug.Log("[KSPI] - Retract Called ");
+            Debug.Log("[KSPI] - Retract Called ");
 
             if (_moduleDeployableRadiator != null)
             {
@@ -471,30 +474,30 @@ namespace FNPlugin
             deployAnim.Blend(animName, 2);
         }
 
-		[KSPAction("Deploy Radiator")]
-		public void DeployRadiatorAction(KSPActionParam param) 
+        [KSPAction("Deploy Radiator")]
+        public void DeployRadiatorAction(KSPActionParam param) 
         {
-            UnityEngine.Debug.Log("[KSPI] - DeployRadiatorAction Called ");
+            Debug.Log("[KSPI] - DeployRadiatorAction Called ");
             DeployRadiator();
-		}
+        }
 
-		[KSPAction("Retract Radiator")]
-		public void RetractRadiatorAction(KSPActionParam param) 
+        [KSPAction("Retract Radiator")]
+        public void RetractRadiatorAction(KSPActionParam param) 
         {
-			RetractRadiator();
-		}
+            RetractRadiator();
+        }
 
-		[KSPAction("Toggle Radiator")]
-		public void ToggleRadiatorAction(KSPActionParam param) 
+        [KSPAction("Toggle Radiator")]
+        public void ToggleRadiatorAction(KSPActionParam param) 
         {
             if (radiatorIsEnabled)
                 RetractRadiator();
             else
             {
-                UnityEngine.Debug.Log("[KSPI] - ToggleRadiatorAction Called ");
+                Debug.Log("[KSPI] - ToggleRadiatorAction Called ");
                 DeployRadiator();
             }
-		}
+        }
 
         public override void OnStart(StartState state)
         {
@@ -593,8 +596,6 @@ namespace FNPlugin
             if (_moduleActiveRadiator != null)
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
 
-            
-
             if (state == StartState.Editor) return;
 
             int depth = 0;
@@ -608,19 +609,19 @@ namespace FNPlugin
                 star = FlightGlobals.Bodies[0];
 
             // find all thermal sources
-            list_of_thermal_sources = vessel.FindPartModulesImplementing<IPowerSource>().Where(tc => tc.IsThermalSource).ToList();
+            //list_of_thermal_sources = vessel.FindPartModulesImplementing<IPowerSource>().Where(tc => tc.IsThermalSource).ToList();
 
             if (ResearchAndDevelopment.Instance != null)
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
 
-            if (state == PartModule.StartState.Docked)
-            {
-                base.OnStart(state);
-                return;
-            }
+            //if (state == PartModule.StartState.Docked)
+            //{
+            //	base.OnStart(state);
+            //	return;
+            //}
 
             // add to static list of all radiators
-            FNRadiator.list_of_all_radiators.Add(this);
+            list_of_all_radiators.Add(this);
 
             renderArray = part.FindModelComponents<Renderer>().ToArray();
 
@@ -850,7 +851,7 @@ namespace FNPlugin
 
                     if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls && update_count == 6)
                     {
-                        UnityEngine.Debug.Log("[KSPI] - FixedUpdate Automated Deplotment ");
+                        Debug.Log("[KSPI] - FixedUpdate Automated Deplotment ");
                         Deploy();
                     }
                 }
@@ -877,14 +878,14 @@ namespace FNPlugin
                 {
                     if (isAutomated)
                     {
-                        UnityEngine.Debug.Log("[KSPI] - DeployMentControl Auto Retracted");
+                        Debug.Log("[KSPI] - DeployMentControl Auto Retracted");
                         Retract();
                     }
                     else
                     {
                         if (!CheatOptions.UnbreakableJoints)
                         {
-                            UnityEngine.Debug.Log("[KSPI] - DeployMentControl Decoupled!");
+                            Debug.Log("[KSPI] - DeployMentControl Decoupled!");
                             part.deactivate();
                             part.decouple(1);
                         }
@@ -893,7 +894,7 @@ namespace FNPlugin
             }
             else if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls && !part.ShieldedFromAirstream)
             {
-                UnityEngine.Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
+                Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
                 Deploy();
             }
         }
@@ -920,23 +921,12 @@ namespace FNPlugin
             return 0;
         }
 
-        public bool hasTechsRequiredToUpgrade()
-        {
-            if (HighLogic.CurrentGame == null) return false;
-
-            if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER) return true;
-
-            return false;
-        }
-
-
-
         protected double current_rad_temp;
-		public double CurrentRadiatorTemperature 
+        public double CurrentRadiatorTemperature 
         {
             get 
             {
-			    return current_rad_temp;
+                return current_rad_temp;
             }
             set
             {
@@ -945,7 +935,7 @@ namespace FNPlugin
                 if (temperatureQueue.Count > 10)
                     temperatureQueue.Dequeue();
             }
-		}
+        }
 
         public double GetAverateRadiatorTemperature()
         {
@@ -995,7 +985,6 @@ namespace FNPlugin
             {
                 anim.normalizedTime = colorRatio;
             }
-            return;
         }
 
         private void ColorHeat()
@@ -1059,5 +1048,5 @@ namespace FNPlugin
             // use identical names so it will be grouped together
             return part.partInfo.title;
         }
-	}
+    }
 }

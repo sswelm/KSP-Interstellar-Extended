@@ -356,11 +356,11 @@ namespace FNPlugin
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
             this.resources_to_supply = resources_to_supply;
 
-            if (state == PartModule.StartState.Docked)
-            {
-                base.OnStart(state);
-                return;
-            }
+			//if (state == PartModule.StartState.Docked)
+			//{
+			//	base.OnStart(state);
+			//	return;
+			//}
 
             previousDeltaTime = TimeWarp.fixedDeltaTime - 1.0e-6f;
             megajouleResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];

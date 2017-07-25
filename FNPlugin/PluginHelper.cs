@@ -1,10 +1,8 @@
-﻿using UnityEngine;
+﻿using OpenResourceSystem;
+using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenResourceSystem;
-using System.Text;
-using KSP.IO;
 using KSP.UI.Screens;
 
 namespace FNPlugin
@@ -84,12 +82,11 @@ namespace FNPlugin
 
                 Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange reinitialising");
 
-                var generators = change.host.FindPartModulesImplementing<FNGenerator>();
+                //var generators = change.host.FindPartModulesImplementing<FNGenerator>();
+                //generators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
 
-                generators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
-
+                FNRadiator.Reset();
                 var radiators = change.host.FindPartModulesImplementing<FNRadiator>();
-
                 radiators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
             }
         }

@@ -11,6 +11,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            part.OnJustAboutToBeDestroyed -= OnJustAboutToBeDestroyed;
             part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
 
             if (vessel != null && vessel.parts != null)
@@ -30,8 +31,6 @@ namespace FNPlugin
 
             var priority_manager = getSupplyPriorityManager(this.vessel);
             priority_manager.Unregister(this);
-            if (priority_manager.processingPart == this)
-                priority_manager = null;
         }
 
         protected override ORSResourceManager createResourceManagerForResource(string resourcename)
