@@ -2,7 +2,7 @@
 
 namespace FNPlugin
 {
-    [KSPModule("Omega Fusion Reactor")]
+    [KSPModule("Inertial Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor
     {
         [KSPField(isPersistant = true)]
