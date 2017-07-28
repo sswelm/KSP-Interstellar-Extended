@@ -135,12 +135,12 @@ namespace FNPlugin
         public float moduleMassDelta;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Initial Thermal Power", guiUnits = " MW", guiFormat = "F4")]
-        public double initialThermalPower;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Initial Charged Power", guiUnits = " MW", guiFormat = "F4")]
-        public double initialChargedPower;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Initial Reactor Power", guiUnits = " MW", guiFormat = "F4")]
-        public double initialReactorPower;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        public double rawThermalPower;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Charged Power", guiUnits = " MW", guiFormat = "F4")]
+        public double rawChargedPower;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Reactor Power", guiUnits = " MW", guiFormat = "F4")]
+        public double rawReactorPower;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F4")]
         public double maxThermalPower;
@@ -752,25 +752,23 @@ namespace FNPlugin
 
             attachedPowerSourceRatio = attachedPowerSource.PowerRatio;
 
-            initialThermalPower = isLimitedByMinThrotle
+            rawThermalPower = isLimitedByMinThrotle
                     ? attachedPowerSource.MinimumPower
                     : attachedPowerSource.MaximumThermalPower * powerCustomSettingFraction;
-            initialChargedPower = attachedPowerSource.MaximumChargedPower * powerCustomSettingFraction;
+            rawChargedPower = attachedPowerSource.MaximumChargedPower * powerCustomSettingFraction;
 
-            maxChargedPower = initialChargedPower;
-            maxThermalPower = initialThermalPower;
-            initialReactorPower = initialThermalPower + initialChargedPower;
+            maxChargedPower = rawChargedPower;
+            maxThermalPower = rawThermalPower;
+            rawReactorPower = rawThermalPower + rawChargedPower;
 
-            maxReactorPower = initialReactorPower;
+            maxReactorPower = rawReactorPower;
 
             if (attachedPowerSourceRatio > 0)
             {
-                potentialThermalPower = ((applies_balance ? maxThermalPower : initialReactorPower) / attachedPowerSourceRatio) * attachedPowerSource.ThermalEnergyEfficiency;
+                potentialThermalPower = ((applies_balance ? maxThermalPower : rawReactorPower) / attachedPowerSourceRatio) * attachedPowerSource.ThermalEnergyEfficiency;
 
                 maxThermalPower = Math.Min(maxReactorPower, potentialThermalPower);
                 maxChargedPower = Math.Min(maxChargedPower, (maxChargedPower / attachedPowerSourceRatio) * attachedPowerSource.ChargedParticleEnergyEfficiency);
-
-                //maxReactorPower = initialReactorPower * (chargedParticleMode ? maxChargedPower : maxThermalPower);
                 maxReactorPower = chargedParticleMode ? maxChargedPower : maxThermalPower;
             }
         }
@@ -853,10 +851,7 @@ namespace FNPlugin
 
                     requested_power_per_second = thermal_power_requested;
 
-                    //attachedPowerSource.RequestedThermalHeat = thermal_power_requested;
-
-                    var thermalPowerRequestRatio = Math.Min(1, maxThermalPower > 0 ?  thermal_power_requested / maxThermalPower : 0);
-
+                    var thermalPowerRequestRatio = Math.Min(1, attachedPowerSource.MaximumThermalPower > 0 ? thermal_power_requested / attachedPowerSource.MaximumThermalPower : 0);
                     attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, ElectricGeneratorType.thermal);
 
                     double thermal_power_received = consumeFNResourcePerSecond(thermal_power_requested, FNResourceManager.FNRESOURCE_THERMALPOWER);
@@ -894,8 +889,7 @@ namespace FNPlugin
 
                     requested_power_per_second = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff), attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio);
 
-                    var chargedPowerRequestRatio = Math.Min(1, maxChargedPower > 0 ? requested_power_per_second / maxChargedPower : 0);
-
+                    var chargedPowerRequestRatio = Math.Min(1, attachedPowerSource.MaximumChargedPower > 0 ? requested_power_per_second / attachedPowerSource.MaximumChargedPower : 0);
                     attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio, ElectricGeneratorType.charged_particle);
 
                     double received_power_per_second = consumeFNResourcePerSecond(requested_power_per_second, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);

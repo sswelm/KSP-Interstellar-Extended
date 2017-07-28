@@ -1011,6 +1011,20 @@ namespace FNPlugin
 
                 UpdateAnimation();
 
+                // prevent instant acceleration at startup
+                if (myAttachedEngine.getIgnitionState)
+                {
+                    if (trustCounter < 100)
+                    {
+                        var allowedThrustRatio = trustCounter / 100f;
+                        if (myAttachedEngine.requestedThrottle > allowedThrustRatio)
+                            myAttachedEngine.currentThrottle = allowedThrustRatio;
+                        trustCounter += (float)AttachedReactor.ReactorSpeedMult;
+                    }
+                }
+                else
+                    trustCounter = 0;
+
                 if (myAttachedEngine.getIgnitionState && myAttachedEngine.currentThrottle >= 0.01)
                     GenerateThrustFromReactorHeat();
                 else
@@ -1140,6 +1154,8 @@ namespace FNPlugin
         }
 
         private float currentAnimatioRatio;
+
+        float trustCounter = 0;
 
         private void GenerateThrustFromReactorHeat()
         {

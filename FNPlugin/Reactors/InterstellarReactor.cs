@@ -302,17 +302,17 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Reactor Surface", guiUnits = " m2")]
         public double reactorSurface;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Power to Supply frame")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Power to Supply frame")]
         protected double max_power_to_supply = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Requested Thermal Power")]
         protected double requested_thermal_to_supply_per_second;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max TP To Supply", guiFormat = "F6")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max TP To Supply", guiFormat = "F6")]
         protected double max_thermal_to_supply_per_second;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         protected double requested_charged_to_supply_per_second;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max CP To Supply", guiFormat = "F6")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max CP To Supply", guiFormat = "F6")]
         protected double max_charged_to_supply_per_second;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Min throttle")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Min throttle")]
         protected double min_throttle;
 
         // Gui
@@ -349,9 +349,8 @@ namespace FNPlugin
         protected long last_draw_update;
         protected double staticBreedRate;
 
-        //public double total_power_received_per_second = 0;
-        public double totalAmountLithium = 0;
-        public double totalMaxAmountLithium = 0;
+        protected double totalAmountLithium = 0;
+        protected double totalMaxAmountLithium = 0;
         protected double balanced_thermal_power_received_fixed = 0;
         protected double balanced_charged_power_received_fixed = 0;
 
@@ -398,7 +397,7 @@ namespace FNPlugin
         protected double currentIsThermalEnergyGeneratorEfficiency;
         protected double currentIsChargedEnergyGenratorEfficiency;
 
-        [KSPField(isPersistant = true, guiActive = false, guiName = "Thermal Energy Request Ratio")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Thermal Energy Request Ratio")]
         protected double storedGeneratorThermalEnergyRequestRatio;
         [KSPField(isPersistant = true, guiActive = false, guiName = "Charged Energy Request Ratio")]
         protected double storedGeneratorChargedEnergyRequestRatio;
@@ -1221,7 +1220,7 @@ namespace FNPlugin
                     {
                         currentTPwr = PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated) + "_th";
                         currentCPwr = PluginHelper.getFormattedPowerString(ongoing_charged_power_generated) + "_cp";
-                        statusStr = "Active (" + powerPcnt.ToString("0.00") + "%)";
+                        statusStr = "Active (" + powerPcnt.ToString("0.000") + "%)";
                     }
                     else
                     {
@@ -1232,7 +1231,7 @@ namespace FNPlugin
                 else
                 {
                     if (powerPcnt > 0)
-                        statusStr = "Decay Heating (" + powerPcnt.ToString("0.00") + "%)";
+                        statusStr = "Decay Heating (" + powerPcnt.ToString("0.000") + "%)";
                     else
                         statusStr = "Offline";
                 }

@@ -272,7 +272,12 @@ namespace OpenResourceSystem
         {
             var minimum_power_per_second = maximum_power * ratio_min;
 
-            var provided_demand_power_per_second = Math.Max(minimum_power_per_second, Math.Min(requested_power, GetCurrentUnfilledResourceDemand()));
+            var currentUnfilledResourceDemand = GetCurrentUnfilledResourceDemand();
+            var required_power = requested_power > currentUnfilledResourceDemand 
+                ? requested_power 
+                : Math.Min(requested_power, currentUnfilledResourceDemand);
+
+            var provided_demand_power_per_second = Math.Max(minimum_power_per_second, required_power);
             var managed_supply_per_second = Math.Max(minimum_power_per_second, Math.Min(requested_power, GetRequiredResourceDemand()));
 
             currentPowerSupply += managed_supply_per_second;

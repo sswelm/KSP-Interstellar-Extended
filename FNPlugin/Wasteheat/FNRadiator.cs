@@ -755,7 +755,7 @@ namespace FNPlugin
 
                 effectiveRadiatorArea = EffectiveRadiatorArea;
 
-                double external_temperature = FlightGlobals.getExternalTemperature(vessel.transform.position);
+                double external_temperature = FlightGlobals.getExternalTemperature(part.transform.position);
 
                 wasteheatManager = getManagerForVessel(FNResourceManager.FNRESOURCE_WASTEHEAT);
 
@@ -831,8 +831,10 @@ namespace FNPlugin
                     dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325;
                     pressure += dynamic_pressure;
 
+                    var splashBonus = part.Splashed ? 10 : 1;
+
                     double convection_delta_temp = Math.Max(0, CurrentRadiatorTemperature - external_temperature);
-                    double conv_power_dissip = efficiency * pressure * convection_delta_temp * effectiveRadiatorArea * rad_const_h / 1e6 * convectiveBonus;
+                    double conv_power_dissip = efficiency * pressure * convection_delta_temp * effectiveRadiatorArea * rad_const_h / 1e6 * convectiveBonus * splashBonus;
 
                     if (!radiatorIsEnabled)
                         conv_power_dissip = conv_power_dissip / 2;
