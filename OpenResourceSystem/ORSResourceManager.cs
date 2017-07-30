@@ -355,7 +355,7 @@ namespace OpenResourceSystem
             return GetCurrentUnfilledResourceDemand() + getSpareResourceCapacity();
         }
 
-		public void updatePartModule(PartModule pm) 
+		public void UpdatePartModule(PartModule pm) 
         {
             if (pm != null)
             {

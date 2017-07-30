@@ -43,6 +43,11 @@ namespace FNPlugin
             return FNResourceOvermanager.getResourceOvermanagerForResource(resourcename);
         }
 
+        protected override ORSResourceManager getManagerForVessel(string resourcename)
+        {
+            return getOvermanagerForResource(resourcename).getManagerForVessel(this.vessel);
+        }
+
         public override string getResourceManagerDisplayName()
         {
             string displayName = part.partInfo.title;

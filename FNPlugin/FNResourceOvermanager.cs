@@ -10,16 +10,16 @@ namespace FNPlugin
         public static new FNResourceOvermanager getResourceOvermanagerForResource(String resource_name) 
         {
             FNResourceOvermanager fnro;
-            //Debug.Log("getResourceOvermanager");
-            if (ORSResourceOvermanager.resources_managers.ContainsKey(resource_name)) 
-            {
-                fnro = (FNResourceOvermanager) ORSResourceOvermanager.resources_managers[resource_name];
-            } 
-            else 
+            ORSResourceOvermanager orsResourcManager;
+
+            if (!ORSResourceOvermanager.resources_managers.TryGetValue(resource_name, out orsResourcManager))
             {
                 fnro = new FNResourceOvermanager(resource_name);
                 ORSResourceOvermanager.resources_managers.Add(resource_name, fnro);
             }
+            else
+                fnro = (FNResourceOvermanager)orsResourcManager;
+
             return fnro;
         }
 

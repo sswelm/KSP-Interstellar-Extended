@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace OpenResourceSystem 
 {
@@ -40,7 +41,6 @@ namespace OpenResourceSystem
 
         public ORSResourceManager getManagerForVessel(Vessel vess) 
         {
-            //return managers[vess];
             ORSResourceManager manager;
 
             managers.TryGetValue(vess, out manager);

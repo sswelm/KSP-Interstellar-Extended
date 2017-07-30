@@ -203,30 +203,6 @@ namespace FNPlugin
             part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exoticMatterAmount);
         }
 
-        [KSPAction("Start Charging")]
-        public void StartChargingAction(KSPActionParam param)
-        {
-            Debug.Log("[KSPI] - Start Charging Action activated");
-            StartCharging();
-        }
-
-        [KSPAction("Stop Charging")]
-        public void StopChargingAction(KSPActionParam param)
-        {
-            Debug.Log("[KSPI] - Stop Charging Action activated");
-            StopCharging();
-        }
-
-        [KSPAction("Toggle Charging")]
-        public void ToggleChargingAction(KSPActionParam param)
-        {
-            Debug.Log("[KSPI] - Toggle Charging Action activated");
-            if (IsCharging)
-                StopCharging();
-            else
-                StartCharging();
-        }
-
         [KSPEvent(guiActive = true, guiName = "Activate Warp Drive", active = true)]
         public void ActivateWarpDrive()
         {
@@ -468,7 +444,7 @@ namespace FNPlugin
                 old_selected_factor = selected_factor;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Decrease Warp Speed (-)", active = true)]
+        [KSPEvent(guiActive = true, guiActiveUnfocused = true, guiName = "Decrease Warp Speed (-)", active = true)]
         public void ToggleWarpSpeedDown()
         {
             Debug.Log("[KSPI] - Warp Throttle (-) button pressed");
@@ -528,6 +504,37 @@ namespace FNPlugin
                 ToggleWarpSpeedDown();
         }
 
+        [KSPAction("Toggle Warp Control Window")]
+        public void ToggleWarpControlWindowAction(KSPActionParam param)
+        {
+            Debug.Log("[KSPI] - Toggled Warp Control Window");
+            ToggleWarpControlWindow();
+        }
+
+        [KSPAction("Start Charging")]
+        public void StartChargingAction(KSPActionParam param)
+        {
+            Debug.Log("[KSPI] - Start Charging Action activated");
+            StartCharging();
+        }
+
+        [KSPAction("Stop Charging")]
+        public void StopChargingAction(KSPActionParam param)
+        {
+            Debug.Log("[KSPI] - Stop Charging Action activated");
+            StopCharging();
+        }
+
+        [KSPAction("Toggle Charging")]
+        public void ToggleChargingAction(KSPActionParam param)
+        {
+            Debug.Log("[KSPI] - Toggle Charging Action activated");
+            if (IsCharging)
+                StopCharging();
+            else
+                StartCharging();
+        }
+
         [KSPAction("Reduce Warp Power")]
         public void ReduceWarpDriveAction(KSPActionParam param)
         {
@@ -552,15 +559,44 @@ namespace FNPlugin
         [KSPAction("Increase Warp Speed (+)")]
         public void ToggleWarpSpeedUpAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Warp Speed (+) action activated");
+            Debug.Log("[KSPI] - Toggle Warp SpeedUp pressed");
             ToggleWarpSpeedUp();
         }
+
+        [KSPAction("Increase Warp Speed x3 (+)")]
+        public void ToggleWarpSpeedUpAction3(KSPActionParam param)
+        {
+            Debug.Log("[KSPI] - Toggle Warp Speed Up x3 pressed");
+            ToggleWarpSpeedUp3();
+        }
+
+        [KSPAction("Increase Warp Speed x3 (+)")]
+        public void ToggleWarpSpeedUpAction10(KSPActionParam param)
+        {
+            Debug.Log("[KSPI] - Toggle Warp Speed Up x10 pressed");
+            ToggleWarpSpeedUp10();
+        }
+
 
         [KSPAction("Decrease Warp Speed (-)")]
         public void ToggleWarpSpeedDownAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Warp Speed (-) action activated");
+            Debug.Log("[KSPI] - Toggle Warp Speed Down pressed");
             ToggleWarpSpeedDown();
+        }
+
+        [KSPAction("Decrease Warp Speed x3 (-)")]
+        public void ToggleWarpSpeedDownAction3(KSPActionParam param)
+        {
+            Debug.Log("[KSPI] - Toggle Warp Speed Down x3 pressed");
+            ToggleWarpSpeedDown3();
+        }
+
+        [KSPAction("Decrease Warp Speed x10 (-)")]
+        public void ToggleWarpSpeedDownAction10(KSPActionParam param)
+        {
+            Debug.Log("[KSPI] - Toggle Warp Speed Down x10 pressed");
+            ToggleWarpSpeedDown10();
         }
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]

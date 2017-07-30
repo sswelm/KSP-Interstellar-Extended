@@ -24,13 +24,19 @@ namespace OpenResourceSystem
         }
 
         protected List<ORSResourceSuppliableModule> suppliable_modules = new List<ORSResourceSuppliableModule>();
-        
-        protected Vessel vessel;
-        public PartModule processingPart;
+
+        public Vessel Vessel {get; private set;}
+        public PartModule ProcessingPart { get; private set; }
+
+        public void UpdatePartModule(PartModule partmodule)
+        {
+            Vessel = partmodule.vessel;
+            ProcessingPart = partmodule;
+        }
 
         public SupplyPriorityManager(Vessel vessel)
         {
-            this.vessel = vessel;
+            this.Vessel = vessel;
         }
 
         public void Register(ORSResourceSuppliableModule suppliable)
@@ -49,10 +55,14 @@ namespace OpenResourceSystem
             }
         }
 
-        public void UpdateResourceSuppliables(float fixedDeltaTime)
+        public long Counter { get; private set; }
+
+        public void UpdateResourceSuppliables(long  updateCounter, float fixedDeltaTime)
         {
             try
             {
+                Counter = updateCounter;
+
                 var suppliable_modules_priotised = suppliable_modules.Where(m => m != null).OrderBy(m => m.getPowerPriority()).ToList();
 
                 suppliable_modules_priotised.ForEach(s => s.OnFixedUpdateResourceSuppliable(fixedDeltaTime));

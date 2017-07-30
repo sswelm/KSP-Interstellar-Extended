@@ -6,7 +6,7 @@ namespace OpenResourceSystem
 {
     public abstract class ORSResourceSuppliableModule : PartModule, ORSResourceSuppliable, IORSResourceSupplier
     {
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Update Counter")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Update Counter")]
         public long updateCounter = 0;
 
         protected Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
@@ -110,7 +110,10 @@ namespace OpenResourceSystem
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI] - failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.getNeededPowerSupplyPerSecondWithMinimumRatio(Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
@@ -294,6 +297,8 @@ namespace OpenResourceSystem
             get { return (double)(decimal)TimeWarp.fixedDeltaTime; }
         }
 
+
+
         public override void OnFixedUpdate()
         {
             timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
@@ -314,10 +319,10 @@ namespace OpenResourceSystem
                         Debug.Log("[KSPI] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
                     }
 
-                    if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || (resource_manager.PartModule != this && resource_manager.Counter < updateCounter))
+                    if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || resource_manager.Counter < updateCounter )
                     {
-                        resource_manager.updatePartModule(this);
-                        Debug.Log("[KSPI] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
+                        resource_manager.UpdatePartModule(this);
+                        //Debug.Log("[KSPI] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
                     }
 
                     if (resource_manager.PartModule == this)
@@ -325,13 +330,13 @@ namespace OpenResourceSystem
                 }
 
                 var priority_manager = getSupplyPriorityManager(this.vessel);
-                if (priority_manager.processingPart == null || priority_manager.processingPart.vessel != this.vessel)
+                if (priority_manager.ProcessingPart == null || priority_manager.ProcessingPart.vessel != this.vessel ||  priority_manager.Counter < updateCounter)
                 {
-                    priority_manager.processingPart = this;
+                    priority_manager.UpdatePartModule(this);
                 }
 
-                if (priority_manager.processingPart == this)
-                    priority_manager.UpdateResourceSuppliables(TimeWarp.fixedDeltaTime);
+                if (priority_manager.ProcessingPart == this)
+                    priority_manager.UpdateResourceSuppliables(updateCounter, TimeWarp.fixedDeltaTime);
             }
             catch (Exception e)
             {
@@ -347,7 +352,7 @@ namespace OpenResourceSystem
                 ORSResourceManager resource_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
                 if (resource_manager != null && resource_manager.PartModule == this)
-                    resource_manager.updatePartModule(null);
+                    resource_manager.UpdatePartModule(null);
             }
         }
 
@@ -380,7 +385,10 @@ namespace OpenResourceSystem
         {
             var overmanager = getOvermanagerForResource(resourcename);
             if (overmanager == null)
+            {
+                Debug.LogError("[KSPI] - failed to find Overmanager");
                 return null;
+            }
             return overmanager.getManagerForVessel(vessel);
         }
 
