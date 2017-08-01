@@ -6,7 +6,7 @@ namespace OpenResourceSystem
 {
     public abstract class ORSResourceSuppliableModule : PartModule, ORSResourceSuppliable, IORSResourceSupplier
     {
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Update Counter")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Update Counter")]
         public long updateCounter = 0;
 
         protected Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
@@ -297,8 +297,6 @@ namespace OpenResourceSystem
             get { return (double)(decimal)TimeWarp.fixedDeltaTime; }
         }
 
-
-
         public override void OnFixedUpdate()
         {
             timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
@@ -320,10 +318,7 @@ namespace OpenResourceSystem
                     }
 
                     if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || resource_manager.Counter < updateCounter )
-                    {
                         resource_manager.UpdatePartModule(this);
-                        //Debug.Log("[KSPI] Updated PartModule of Manager for " + resourcename + "  to " + this.part.partInfo.title);
-                    }
 
                     if (resource_manager.PartModule == this)
                         resource_manager.update(updateCounter);

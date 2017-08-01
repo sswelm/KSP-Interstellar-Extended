@@ -215,7 +215,7 @@ namespace FNPlugin
         public double upgradedFuelEfficiency = 1;
         [KSPField(isPersistant = false)]
         public bool containsPowerGenerator = false;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "fuelUsePerMJMult")]
         public double fuelUsePerMJMult = 1;
         [KSPField(isPersistant = false)]
         public double wasteHeatMultiplier = 1;
@@ -320,16 +320,16 @@ namespace FNPlugin
         public float partMass = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F6")]
         public double maximumThermalPowerEffective = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Gee Force Mod")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Gee Force Modifier")]
         public double geeForceModifier;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Produced", guiUnits = " MW", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Power Produced", guiUnits = " MW", guiFormat = "F6")]
         public double ongoing_total_power_generated;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Generated", guiFormat = "F6")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Thermal Power Generated", guiFormat = "F6")]
         protected double ongoing_thermal_power_generated;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Generated", guiFormat = "F6")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Charged Power Generated", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
-
-
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Consumed fuel per Frame", guiFormat = "F6")]
+        protected double consume_amount_in_unit_of_storage;
 
         // value types
         protected bool initialized = false;
@@ -397,7 +397,7 @@ namespace FNPlugin
         protected double currentIsThermalEnergyGeneratorEfficiency;
         protected double currentIsChargedEnergyGenratorEfficiency;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Thermal Energy Request Ratio")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Thermal Energy Request Ratio")]
         protected double storedGeneratorThermalEnergyRequestRatio;
         [KSPField(isPersistant = true, guiActive = false, guiName = "Charged Energy Request Ratio")]
         protected double storedGeneratorChargedEnergyRequestRatio;
@@ -1387,7 +1387,7 @@ namespace FNPlugin
                     // produce reactor products
                     foreach (ReactorProduct product in current_fuel_variant.ReactorProducts)
                     {
-                        var massProduced = ProduceReactorProduct(product, ongoing_total_power_generated / geeForceModifier);
+                        var massProduced = ProduceReactorProduct(product, total_power_received_fixed / geeForceModifier);
                         reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
                     }
                 }
@@ -1750,7 +1750,7 @@ namespace FNPlugin
 
         protected double ConsumeReactorFuel(ReactorFuel fuel, double MJpower)
         {
-            var consume_amount_in_unit_of_storage = MJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
+            consume_amount_in_unit_of_storage = MJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
 
             if (!fuel.ConsumeGlobal)
             {
@@ -2024,11 +2024,11 @@ namespace FNPlugin
 
                         var availabilityInKg = availableRessources.Sum(m => m.amount * m.effectiveDensity * 1000);
 
-                        string availableText = availabilityInKg > 1000 ? (availabilityInKg / 1000).ToString("0.0000") + " t" : availabilityInKg.ToString("0.000000") + " kg";
+                        string availableText = availabilityInKg > 10000 ? (availabilityInKg / 1000).ToString("0.000000") + " t" : availabilityInKg.ToString("0.000000") + " kg";
 
                         PrintToGUILayout(fuel.FuelName + " Reserves", availableText + " (" + availableRessources.Count + " variants)", bold_style, text_style);
 
-                        var kg_fuel_use_per_day = 1000 * ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / TimeWarpFixedDeltaTime / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                        var kg_fuel_use_per_day = 1000 * ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
 
                         PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.getFormatedMassString(kg_fuel_use_per_day, "0.000000") + "/day", bold_style, text_style);
 
@@ -2066,10 +2066,10 @@ namespace FNPlugin
 
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(product.FuelName + " Storage", bold_style, GUILayout.Width(150));
-                            GUILayout.Label((availabilityInKg).ToString("0.0000") + " kg / " + (maxAvailabilityInKg).ToString("0.0000") + " kg", text_style, GUILayout.Width(150));
+                            GUILayout.Label((availabilityInKg).ToString("0.000000") + " kg / " + (maxAvailabilityInKg).ToString("0.000000") + " kg", text_style, GUILayout.Width(150));
                             GUILayout.EndHorizontal();
 
-                            double dayly_production_in_Kg = 1000 * ongoing_total_power_generated * product.TonsProductUsePerMJ * fuelUsePerMJMult / TimeWarp.fixedDeltaTime / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                            double dayly_production_in_Kg = 1000 * ongoing_total_power_generated * product.TonsProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(product.FuelName + " Production", bold_style, GUILayout.Width(150));
                             GUILayout.Label(dayly_production_in_Kg.ToString("0.000000") + " kg/day", text_style, GUILayout.Width(150));
