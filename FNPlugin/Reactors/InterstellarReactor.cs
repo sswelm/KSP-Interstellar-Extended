@@ -1300,9 +1300,9 @@ namespace FNPlugin
                     geeForceModifier = 1;
 
                 current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier, fuelUsePerMJMult);
-                current_fuel_variant = current_fuel_variants_sorted.First();
-
-                stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : Math.Min(current_fuel_variant.FuelRatio, 1);
+                current_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
+                
+                stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
 
                 UpdateCapacities(stored_fuel_ratio);
 
@@ -1319,7 +1319,6 @@ namespace FNPlugin
                 var charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
 
                 maximum_thermal_request_ratio = Math.Max(thermal_propulsion_ratio, thermal_generator_ratio);
-                //maximum_charged_request_ratio = Math.Max(Math.Max(thermal_propulsion_ratio, charged_propulsion_ratio), Math.Max(thermal_generator_ratio, charged_generator_ratio));
                 maximum_charged_request_ratio = Math.Max(charged_propulsion_ratio, charged_generator_ratio);
                 maximum_reactor_request_ratio = Math.Max(maximum_thermal_request_ratio, maximum_charged_request_ratio);
 

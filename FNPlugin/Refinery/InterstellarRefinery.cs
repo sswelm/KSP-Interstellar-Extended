@@ -47,7 +47,7 @@ namespace FNPlugin.Refinery
 		protected IPowerSupply powerSupply;
 
         private List<IRefineryActivity> _refinery_activities;
-        private Rect _window_position = new Rect(50, 50, RefineryActivityBase.labelWidth + RefineryActivityBase.valueWidth, 150);
+        private Rect _window_position = new Rect(50, 50, RefineryActivityBase.labelWidth * 4, 150);
         private int _window_ID;
         private bool _render_window;
         private GUIStyle _bold_label;

@@ -62,6 +62,8 @@ namespace FNPlugin.Refinery
 		protected string strNitrogenResourceName;
 		protected string strWaterResourceName;
 
+        protected PartResourceDefinition deuteriumDefinition;
+
 		public RegolithProcessor(Part part)
 		{
 			_part = part;
@@ -70,8 +72,8 @@ namespace FNPlugin.Refinery
 			strRegolithResourceName = InterstellarResourcesConfiguration.Instance.Regolith;
 			strHydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
 			stDeuteriumResourceName = InterstellarResourcesConfiguration.Instance.DeuteriumGas;
-			strLiquidHelium3ResourceName = InterstellarResourcesConfiguration.Instance.LqdHelium3;
-			strLiquidHelium4ResourceName = InterstellarResourcesConfiguration.Instance.LqdHelium4;
+            strLiquidHelium3ResourceName = InterstellarResourcesConfiguration.Instance.Helium3Gas;
+            strLiquidHelium4ResourceName = InterstellarResourcesConfiguration.Instance.Helium4Gas;
 			strMonoxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonMoxoxide;
 			strDioxideResourceName = InterstellarResourcesConfiguration.Instance.CarbonDioxide;
 			strMethaneResourceName = InterstellarResourcesConfiguration.Instance.Methane;
@@ -90,6 +92,8 @@ namespace FNPlugin.Refinery
 			dMethaneDensity = PartResourceLibrary.Instance.GetDefinition(strMethaneResourceName).density;
 			dNitrogenDensity = PartResourceLibrary.Instance.GetDefinition(strNitrogenResourceName).density;
 			dWaterDensity = PartResourceLibrary.Instance.GetDefinition(strWaterResourceName).density;
+
+            deuteriumDefinition = PartResourceLibrary.Instance.GetDefinition(stDeuteriumResourceName);
 		}
 
 		protected double dMaxCapacityRegolithMass;
@@ -113,6 +117,8 @@ namespace FNPlugin.Refinery
 		protected double dSpareRoomMethaneMass;
 		protected double dSpareRoomNitrogenMass;
 		protected double dSpareRoomWaterMass;
+
+        //double dFixedMaxDeuteriumRate;
 
 		/* these are the constituents of regolith with their appropriate mass ratios. I'm using concentrations from lunar regolith, yes, I know regolith on other planets varies, let's keep this simple.
 		 * The exact fractions were calculated mostly from a chart that's also available on http://imgur.com/lpaE1Ah.
@@ -150,7 +156,7 @@ namespace FNPlugin.Refinery
 			// determine the maximum amount of a resource the vessel can hold (ie. tank capacities combined)
 			dMaxCapacityRegolithMass = partsThatContainRegolith.Sum(p => p.maxAmount) * dRegolithDensity;
 			dMaxCapacityHydrogenMass = partsThatContainHydrogen.Sum(p => p.maxAmount) * dHydrogenDensity;
-			dMaxCapacityDeuteriumMass = partsThatContainDeuterium.Sum(p => p.maxAmount) * dDeuteriumDensity;
+            dMaxCapacityDeuteriumMass = partsThatContainDeuterium.Sum(p => p.maxAmount) * dDeuteriumDensity;
 			dMaxCapacityHelium3Mass = partsThatContainLqdHelium3.Sum(p => p.maxAmount) * dLiquidHelium3Density;
 			dMaxCapacityHelium4Mass = partsThatContainLqdHelium4.Sum(p => p.maxAmount) * dLiquidHelium4Density;
 			dMaxCapacityMonoxideMass = partsThatContainMonoxide.Sum(p => p.maxAmount) * dMonoxideDensity;
@@ -164,7 +170,7 @@ namespace FNPlugin.Refinery
 
 			// determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
 			dSpareRoomHydrogenMass = partsThatContainHydrogen.Sum(r => r.maxAmount - r.amount) * dHydrogenDensity;
-			dSpareRoomDeuteriumMass = partsThatContainDeuterium.Sum(r => r.maxAmount - r.amount) * dDeuteriumDensity;
+            dSpareRoomDeuteriumMass = partsThatContainDeuterium.Sum(r => r.maxAmount - r.amount) * deuteriumDefinition.density;
 			dSpareRoomHelium3Mass = partsThatContainLqdHelium3.Sum(r => r.maxAmount - r.amount)  * dLiquidHelium3Density;
 			dSpareRoomHelium4Mass = partsThatContainLqdHelium4.Sum(r => r.maxAmount - r.amount) * dLiquidHelium4Density;
 			dSpareRoomMonoxideMass = partsThatContainMonoxide.Sum(r => r.maxAmount - r.amount) * dMonoxideDensity;
@@ -228,7 +234,7 @@ namespace FNPlugin.Refinery
 				dConsumptionStorageRatio =  allowOverflow ? ratios.Max(m => m) : ratios.Min(m => m);
 
 				// this consumes the resource
-				fixed_regolithConsumptionRate = _part.RequestResource(strRegolithResourceName, dConsumptionStorageRatio * dFixedConsumptionRate / dRegolithDensity, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fixedDeltaTime * dRegolithDensity;
+				fixed_regolithConsumptionRate = _part.RequestResource(strRegolithResourceName, dConsumptionStorageRatio * dFixedConsumptionRate / dRegolithDensity, ResourceFlowMode.STACK_PRIORITY_SEARCH) * dRegolithDensity;
 				regolithConsumptionRate = fixed_regolithConsumptionRate / fixedDeltaTime;
 
 				// this produces the products
@@ -242,15 +248,15 @@ namespace FNPlugin.Refinery
 				double dNitrogenRateTemp = fixed_regolithConsumptionRate * dNitrogenMassByFraction;
 				double dWaterRateTemp = fixed_regolithConsumptionRate * dWaterMassByFraction;
 
-				dHydrogenProductionRate = -_part.RequestResource(strHydrogenResourceName, -dHydrogenRateTemp * fixedDeltaTime / dHydrogenDensity) / fixedDeltaTime * dHydrogenDensity;
-				dDeuteriumProductionRate = -_part.RequestResource(strHydrogenResourceName, -dDeuteriumRateTemp * fixedDeltaTime / dDeuteriumDensity) / fixedDeltaTime * dDeuteriumDensity;
-				dLiquidHelium3ProductionRate = -_part.RequestResource(strLiquidHelium3ResourceName, -dHelium3RateTemp * fixedDeltaTime / dLiquidHelium3Density) / fixedDeltaTime * dLiquidHelium3Density;
-				dLiquidHelium4ProductionRate = -_part.RequestResource(strLiquidHelium4ResourceName, -dHelium4RateTemp * fixedDeltaTime / dLiquidHelium4Density) / fixedDeltaTime * dLiquidHelium4Density;
-				dMonoxideProductionRate = -_part.RequestResource(strMonoxideResourceName, -dMonoxideRateTemp * fixedDeltaTime / dMonoxideDensity) / fixedDeltaTime * dMonoxideDensity;
-				dDioxideProductionRate = -_part.RequestResource(strDioxideResourceName, -dDioxideRateTemp * fixedDeltaTime / dDioxideDensity) / fixedDeltaTime * dDioxideDensity;
-				dMethaneProductionRate = -_part.RequestResource(strMethaneResourceName, -dMethaneRateTemp * fixedDeltaTime / dMethaneDensity) / fixedDeltaTime * dMethaneDensity;
-				dNitrogenProductionRate = -_part.RequestResource(strNitrogenResourceName, -dNitrogenRateTemp * fixedDeltaTime / dNitrogenDensity) / fixedDeltaTime * dNitrogenDensity;
-				dWaterProductionRate = -_part.RequestResource(strWaterResourceName, -dWaterRateTemp * fixedDeltaTime / dWaterDensity) / fixedDeltaTime * dWaterDensity;
+				dHydrogenProductionRate = -_part.RequestResource(strHydrogenResourceName, -dHydrogenRateTemp  / dHydrogenDensity) / fixedDeltaTime * dHydrogenDensity;
+                dDeuteriumProductionRate = -_part.RequestResource(stDeuteriumResourceName, -dDeuteriumRateTemp / dDeuteriumDensity) / fixedDeltaTime * dDeuteriumDensity;
+				dLiquidHelium3ProductionRate = -_part.RequestResource(strLiquidHelium3ResourceName, -dHelium3RateTemp  / dLiquidHelium3Density) / fixedDeltaTime * dLiquidHelium3Density;
+				dLiquidHelium4ProductionRate = -_part.RequestResource(strLiquidHelium4ResourceName, -dHelium4RateTemp  / dLiquidHelium4Density) / fixedDeltaTime * dLiquidHelium4Density;
+				dMonoxideProductionRate = -_part.RequestResource(strMonoxideResourceName, -dMonoxideRateTemp  / dMonoxideDensity) / fixedDeltaTime * dMonoxideDensity;
+				dDioxideProductionRate = -_part.RequestResource(strDioxideResourceName, -dDioxideRateTemp  / dDioxideDensity) / fixedDeltaTime * dDioxideDensity;
+				dMethaneProductionRate = -_part.RequestResource(strMethaneResourceName, -dMethaneRateTemp  / dMethaneDensity) / fixedDeltaTime * dMethaneDensity;
+				dNitrogenProductionRate = -_part.RequestResource(strNitrogenResourceName, -dNitrogenRateTemp  / dNitrogenDensity) / fixedDeltaTime * dNitrogenDensity;
+				dWaterProductionRate = -_part.RequestResource(strWaterResourceName, -dWaterRateTemp  / dWaterDensity) / fixedDeltaTime * dWaterDensity;
 			}
 			else
 			{
@@ -278,11 +284,6 @@ namespace FNPlugin.Refinery
 			GUILayout.EndHorizontal();
 
 			GUILayout.BeginHorizontal();
-			GUILayout.Label("Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(((dFixedConsumptionRate / dFixedDeltaTime).ToString("0.000000")), _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
 			GUILayout.Label("Regolith Consumption", _bold_label, GUILayout.Width(labelWidth));
 			GUILayout.Label(((regolithConsumptionRate * GameConstants.HOUR_SECONDS).ToString("0.000000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
 			GUILayout.EndHorizontal();
@@ -292,96 +293,37 @@ namespace FNPlugin.Refinery
 			GUILayout.Label(dAvailableRegolithMass.ToString("0.000000") + " mT / " + dMaxCapacityRegolithMass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
 			GUILayout.EndHorizontal();
 
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Hydrogen Storage", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(dSpareRoomHydrogenMass.ToString("0.000000") + " mT / " + dMaxCapacityHydrogenMass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Output", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.EndHorizontal();
 
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Hydrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label((dHydrogenProductionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Resource Name", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Spare Room", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Maximum Storage", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.EndHorizontal();
 
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Deuterium Storage", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(dSpareRoomDeuteriumMass.ToString("0.000000") + " mT / " + dMaxCapacityDeuteriumMass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Deuterium Production Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label((dDeuteriumProductionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Helium-3 Storage", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(dSpareRoomHelium3Mass.ToString("0.000000") + " mT / " + dMaxCapacityHelium3Mass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Helium-3 Production Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label((dLiquidHelium3ProductionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Helium-4 Storage", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(dSpareRoomHelium4Mass.ToString("0.000000") + " mT / " + dMaxCapacityHelium4Mass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Helium-4 Production Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label((dLiquidHelium4ProductionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Carbon Monoxide Storage", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(dSpareRoomMonoxideMass.ToString("0.000000") + " mT / " + dMaxCapacityMonoxideMass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Carbon Monoxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label((dMonoxideProductionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-			
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Carbon Dioxide Storage", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(dSpareRoomDioxideMass.ToString("0.000000") + " mT / " + dMaxCapacityDioxideMass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Carbon Dioxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label((dDioxideProductionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-			
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Methane Storage", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(dSpareRoomMethaneMass.ToString("0.000000") + " mT / " + dMaxCapacityMethaneMass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Methane Production Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label((dMethaneProductionRate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Nitrogen Storage", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(dSpareRoomNitrogenMass.ToString("0.000000") + " mT / " + dMaxCapacityNitrogenMass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Nitrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label((dNitrogenProductionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Water Storage", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(dSpareRoomWaterMass.ToString("0.000000") + " mT / " + dMaxCapacityWaterMass.ToString("0.000000") + " mT", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Water Production Rate", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label((dWaterProductionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
+            DisplayResourceOutput(strHydrogenResourceName, dSpareRoomHydrogenMass, dMaxCapacityHydrogenMass, dHydrogenProductionRate);
+            DisplayResourceOutput(stDeuteriumResourceName, dSpareRoomDeuteriumMass, dMaxCapacityDeuteriumMass, dDeuteriumProductionRate);
+            DisplayResourceOutput(strLiquidHelium3ResourceName, dSpareRoomHelium3Mass, dMaxCapacityHelium3Mass, dLiquidHelium3ProductionRate);
+            DisplayResourceOutput(strLiquidHelium4ResourceName, dSpareRoomHelium4Mass, dMaxCapacityHelium4Mass, dLiquidHelium4ProductionRate);
+            DisplayResourceOutput(strMonoxideResourceName, dSpareRoomMonoxideMass, dMaxCapacityMonoxideMass, dMonoxideProductionRate);
+            DisplayResourceOutput(strDioxideResourceName, dSpareRoomDioxideMass, dMaxCapacityDioxideMass, dDioxideProductionRate);
+            DisplayResourceOutput(strMethaneResourceName, dSpareRoomMethaneMass, dMaxCapacityMethaneMass, dMethaneProductionRate);
+            DisplayResourceOutput(strNitrogenResourceName, dSpareRoomNitrogenMass, dMaxCapacityNitrogenMass, dNitrogenProductionRate);
+            DisplayResourceOutput(strWaterResourceName, dSpareRoomWaterMass, dMaxCapacityWaterMass, dWaterProductionRate);
 		}
+
+        private void DisplayResourceOutput(string resourceName, double spareRoom, double maxCapacity, double productionRate)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(resourceName, _value_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(spareRoom.ToString("0.000000") + " mT", maxCapacity > 0 && spareRoom == 0 ? _value_label_red : _value_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(maxCapacity.ToString("0.000000") + " mT", maxCapacity == 0 ? _value_label_red : _value_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((productionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", productionRate > 0 ? _value_label_green : _value_label, GUILayout.Width(labelWidth));
+            GUILayout.EndHorizontal();
+        }
 
 		private void updateStatusMessage()
 		{

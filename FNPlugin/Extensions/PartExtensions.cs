@@ -15,6 +15,16 @@ namespace FNPlugin
             return part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == resourcename));
         }
 
+        public static void GetResourceMass(this Part part, PartResourceDefinition definition, out double currentMass, out double maximumMass) 
+        {
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+
+            currentMass = currentAmount * definition.density;
+            maximumMass = maxAmount * definition.density;
+        }
+
         public static double GetResourceSpareCapacity(this Part part, String resourcename)
         {
             var resourcDdefinition = PartResourceLibrary.Instance.GetDefinition(resourcename);

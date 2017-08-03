@@ -14,6 +14,9 @@ namespace FNPlugin.Refinery
         protected Vessel _vessel;
         protected GUIStyle _bold_label;
         protected GUIStyle _value_label;
+        protected GUIStyle _value_label_green;
+        protected GUIStyle _value_label_red;
+        protected GUIStyle _value_label_number;
 
         protected string _status = "";
         protected bool _allowOverflow;
@@ -29,6 +32,18 @@ namespace FNPlugin.Refinery
                 _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
             if (_value_label == null)
                 _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+            if (_value_label_green == null)
+            {
+                _value_label_green = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont};
+                _value_label_green.normal.textColor = Color.green;
+            }
+            if (_value_label_red == null)
+            {
+                _value_label_red = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+                _value_label_red.normal.textColor = Color.red;
+            }
+            if (_value_label_number == null)
+                _value_label_number = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, alignment = TextAnchor.MiddleRight };
         }
     }
 

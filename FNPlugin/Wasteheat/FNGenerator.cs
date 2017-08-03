@@ -135,29 +135,29 @@ namespace FNPlugin
         public float moduleMassDelta;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Thermal Power", guiUnits = " MW", guiFormat = "F3")]
         public double rawThermalPower;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Charged Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Charged Power", guiUnits = " MW", guiFormat = "F3")]
         public double rawChargedPower;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Reactor Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Reactor Power", guiUnits = " MW", guiFormat = "F3")]
         public double rawReactorPower;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Thermal Power", guiUnits = " MW", guiFormat = "F3")]
         public double maxThermalPower;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Charged Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Charged Power", guiUnits = " MW", guiFormat = "F3")]
         public double maxChargedPower;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Reactor Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Reactor Power", guiUnits = " MW", guiFormat = "F3")]
         public double maxReactorPower;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Potential Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Potential Thermal Power", guiUnits = " MW", guiFormat = "F3")]
         public double potentialThermalPower;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Afjusted Thermal Power", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Afjusted Thermal Power", guiUnits = " MW", guiFormat = "F3")]
         public double adjusted_thermal_power_needed;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Reactor Power Ratio", guiFormat = "F4")]
         public double attachedPowerSourceRatio;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Type")]
         public string generatorType;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Current Power")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Current Power", guiUnits = " MW_e", guiFormat = "F3")]
         public string OutputPower;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Power")]
         public string MaxPowerStr;
@@ -171,9 +171,9 @@ namespace FNPlugin
         public double heat_exchanger_thrust_divisor;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Requested Power", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_power_per_second;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Cold Bath Temp", guiUnits = "K", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Cold Bath Temp", guiUnits = "K", guiFormat = "F3")]
         public double coldBathTemp = 500;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Hot Bath Temp", guiUnits = "K", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Hot Bath Temp", guiUnits = "K", guiFormat = "F3")]
         public double hotBathTemp = 300;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Spare Fill Cap", guiUnits = " MW", guiFormat = "F3")]
         public double possibleSpareResourceCapacityFilling;
@@ -851,7 +851,8 @@ namespace FNPlugin
 
                     requested_power_per_second = thermal_power_requested;
 
-                    var thermalPowerRequestRatio = Math.Min(1, attachedPowerSource.MaximumThermalPower > 0 ? thermal_power_requested / attachedPowerSource.MaximumThermalPower : 0);
+                    var maximum_thermal_power = attachedPowerSource.MaximumThermalPower * attachedPowerSource.ThermalEnergyEfficiency;
+                    var thermalPowerRequestRatio = Math.Min(1, maximum_thermal_power > 0 ? thermal_power_requested / maximum_thermal_power : 0);
                     attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, ElectricGeneratorType.thermal);
 
                     double thermal_power_received = consumeFNResourcePerSecond(thermal_power_requested, FNResourceManager.FNRESOURCE_THERMALPOWER);
@@ -889,7 +890,8 @@ namespace FNPlugin
 
                     requested_power_per_second = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff), attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio);
 
-                    var chargedPowerRequestRatio = Math.Min(1, attachedPowerSource.MaximumChargedPower > 0 ? requested_power_per_second / attachedPowerSource.MaximumChargedPower : 0);
+                    var maximum_charged_power = attachedPowerSource.MaximumChargedPower * attachedPowerSource.ChargedParticleEnergyEfficiency;
+                    var chargedPowerRequestRatio = Math.Min(1, maximum_charged_power > 0 ? requested_power_per_second / maximum_charged_power : 0);
                     attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio, ElectricGeneratorType.charged_particle);
 
                     double received_power_per_second = consumeFNResourcePerSecond(requested_power_per_second, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);

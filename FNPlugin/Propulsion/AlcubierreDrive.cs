@@ -99,11 +99,12 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Max Speed", guiUnits = " MW", guiFormat = "F4")]
         public double powerRequirementForMaximumAllowedLightSpeed;
 
-
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Speed", guiUnits = " m/s", guiFormat = "F3")]
         public double exitSpeed;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Periapis", guiUnits = " m", guiFormat = "F3")]
-        public double exitPeriapis;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Apoapsis", guiUnits = " km", guiFormat = "F3")]
+        public double exitApoapsis;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Periapsis", guiUnits = " km", guiFormat = "F3")]
+        public double exitPeriapsis;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string driveStatus;
 
@@ -116,8 +117,6 @@ namespace FNPlugin
         public bool isDeactivatingWarpDrive = false;
 
         //private double[] engine_throtle = { 0.001, 0.0016, 0.0025, 0.004, 0.0063, 0.01, 0.016, 0.025, 0.04, 0.063, 0.1, 0.16, 0.25, 0.40, 0.63, 1.0, 1.6, 2.5, 4.0, 6.3, 10, 16, 25, 40, 63, 100, 160, 250, 400, 630, 1000 };
-        private double tex_count;
-
         private double[] engine_throtle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
 
         private GameObject warp_effect;
@@ -126,6 +125,7 @@ namespace FNPlugin
         private Texture[] warp_textures2;
         private AudioSource warp_sound;
 
+        private double tex_count;
         private float previousDeltaTime;
         private float warp_size = 50000;
 
@@ -951,17 +951,11 @@ namespace FNPlugin
                 double universalTime = Planetarium.GetUniversalTime();
                 Vector3d reverse_heading_warp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
-
                 var new_direction = currentOrbitalVelocity + reverse_heading_warp;
-
-                // get speed in m/s
-                exitSpeed = new_direction.magnitude;
-
-                if (warpInitialMainBody != null && vessel.mainBody != warpInitialMainBody)
-                    exitSpeed *= Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Log(gravityAtSeaLevel, 2)));
 
                 Orbit currentOrbit = vessel.orbitDriver.orbit;
                 Orbit predictedExitOrbit;
+
                 float multiplier = 0;
                 do
                 {
@@ -981,8 +975,10 @@ namespace FNPlugin
                     multiplier += 1;
                 } while (double.IsNaN(predictedExitOrbit.getOrbitalVelocityAtUT(universalTime).magnitude));
 
-                // update expected exit Periapis
-                exitPeriapis = predictedExitOrbit.PeA;
+                // update expected exit orbit data
+                exitPeriapsis = predictedExitOrbit.PeA / 1000;
+                exitApoapsis = predictedExitOrbit.ApA / 1000;
+                exitSpeed = predictedExitOrbit.getOrbitalVelocityAtUT(universalTime).magnitude;
             }
 
             Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
@@ -1355,7 +1351,11 @@ namespace FNPlugin
                 PrintToGUILayout("Max Allowed Throtle", maximumAllowedWarpThrotle.ToString("0.0000") + " c", bold_black_style, text_black_style);
                 PrintToGUILayout("Current Selected Speed", warpEngineThrottle.ToString("0.0000") + " c", bold_black_style, text_black_style);
                 PrintToGUILayout("Cur Power for Warp", currentPowerRequirementForWarp.ToString("0.000") + " MW", bold_black_style, text_black_style);
+
                 PrintToGUILayout("Exit Speed", exitSpeed.ToString("0.000") + " m/s", bold_black_style, text_black_style);
+                PrintToGUILayout("Exit Apoapsis", exitApoapsis.ToString("0.000") + " km", bold_black_style, text_black_style);
+                PrintToGUILayout("Exit Periapsis", exitPeriapsis.ToString("0.000") + " km", bold_black_style, text_black_style);                
+
                 PrintToGUILayout("Status", driveStatus, bold_black_style, text_black_style);
 
                 GUILayout.BeginHorizontal();
