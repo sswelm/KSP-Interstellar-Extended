@@ -102,6 +102,8 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Speed", guiUnits = " m/s", guiFormat = "F3")]
         public double exitSpeed;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Periapis", guiUnits = " m", guiFormat = "F3")]
+        public double exitPeriapis;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string driveStatus;
 
@@ -946,8 +948,9 @@ namespace FNPlugin
 
             if (IsEnabled)
             {
+                double universalTime = Planetarium.GetUniversalTime();
                 Vector3d reverse_heading_warp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
-                var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(Planetarium.GetUniversalTime());
+                var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
 
                 var new_direction = currentOrbitalVelocity + reverse_heading_warp;
 
@@ -956,6 +959,30 @@ namespace FNPlugin
 
                 if (warpInitialMainBody != null && vessel.mainBody != warpInitialMainBody)
                     exitSpeed *= Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Log(gravityAtSeaLevel, 2)));
+
+                Orbit currentOrbit = vessel.orbitDriver.orbit;
+                Orbit predictedExitOrbit;
+                float multiplier = 0;
+                do
+                {
+                    // first predict dropping out of warp
+                    predictedExitOrbit = new Orbit(currentOrbit);
+                    predictedExitOrbit.UpdateFromStateVectors(currentOrbit.pos, new_direction, vessel.orbit.referenceBody, universalTime);
+
+                    // then calculated predicted gravity breaking
+                    if (warpInitialMainBody != null && vessel.mainBody != warpInitialMainBody)
+                    {
+                        Vector3d retrogradeNormalizedVelocity = new_direction.normalized *-multiplier;
+                        Vector3d velocityToCancel = predictedExitOrbit.getOrbitalVelocityAtUT(universalTime) * Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Log(gravityAtSeaLevel, 2)));
+
+                        predictedExitOrbit.UpdateFromStateVectors(currentOrbit.pos, retrogradeNormalizedVelocity - velocityToCancel, currentOrbit.referenceBody, universalTime);
+                    }
+
+                    multiplier += 1;
+                } while (double.IsNaN(predictedExitOrbit.getOrbitalVelocityAtUT(universalTime).magnitude));
+
+                // update expected exit Periapis
+                exitPeriapis = predictedExitOrbit.PeA;
             }
 
             Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
@@ -1234,8 +1261,8 @@ namespace FNPlugin
             Vector3d velocityToCancel = currentOrbitalVelocity;
 
             velocityToCancel *= Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Log(gravityAtSeaLevel, 2))); 
-            Vector3d exVelocityToCancel = velocityToCancel;
-            velocityToCancel += currentOrbitalVelocity;
+            //Vector3d exVelocityToCancel = velocityToCancel;
+            //velocityToCancel += currentOrbitalVelocity;
 
             // Extremely small velocities cause the game to mess up very badly, so try something small and increase...
             float multiplier = 0;
@@ -1245,7 +1272,7 @@ namespace FNPlugin
                 Vector3d retrogradeNormalizedVelocity = progradeNormalizedVelocity * -multiplier;
 
                 newOribit = new Orbit(currentOrbit);
-                newOribit.UpdateFromStateVectors(currentOrbit.pos, retrogradeNormalizedVelocity - exVelocityToCancel, currentOrbit.referenceBody, universalTime);
+                newOribit.UpdateFromStateVectors(currentOrbit.pos, retrogradeNormalizedVelocity - velocityToCancel, currentOrbit.referenceBody, universalTime);
 
                 multiplier += 1;
             } while (double.IsNaN(newOribit.getOrbitalVelocityAtUT(universalTime).magnitude));
