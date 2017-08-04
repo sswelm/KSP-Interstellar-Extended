@@ -78,16 +78,12 @@ namespace FNPlugin.Refinery
         {
             var intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>(); // add any atmo intake part on the vessel to our list
             double tempLqd = 0; // reset tempLqd before we go into the list
-            double tempArea = 0;
-            double tempSubmergedPercentage = 0;
 
             foreach (AtmosphericIntake intake in intakesList) // go through the list
             {
                 if (intake.IntakeEnabled) // only process open intakes
                 {
-                    tempArea = intake.area; // get the area of the intake part (basically size of intake)
-                    tempSubmergedPercentage = intake.part.submergedPortion; // get the percentage of submersion of the intake part (0-1), works only when everything is fully loaded
-                    tempLqd += (tempArea * tempSubmergedPercentage); // add the current intake's liquid intake to our tempLqd. When done with the foreach cycle, we will have the total amount of liquid these intakes collect per cycle
+                    tempLqd += (intake.area * intake.part.submergedPortion); // add the current intake's liquid intake to our tempLqd. When done with the foreach cycle, we will have the total amount of liquid these intakes collect per cycle
                 }
             }
             return tempLqd;
@@ -212,7 +208,7 @@ namespace FNPlugin.Refinery
             GUILayout.Label(((currentResourceProductionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
-            foreach (OceanicResource resource in localResources)
+            foreach (var resource in localResources)
             {
                 if (resource == null || resource.ResourceName == null) 
                     continue; // this resource does not interest us anymore
