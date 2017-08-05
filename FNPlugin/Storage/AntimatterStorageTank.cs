@@ -6,6 +6,7 @@ using TweakScale;
 
 namespace FNPlugin
 {
+    [KSPModule("Antimatter Storage")]
     class AntimatterStorageTank : FNResourceSuppliableModule, IPartMassModifier, IRescalable<FNGenerator> , IPartCostModifier
     {
         [KSPField(isPersistant = true)]

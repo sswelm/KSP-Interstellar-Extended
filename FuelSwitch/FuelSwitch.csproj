@@ -55,8 +55,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnimatedContainerContent.cs" />
     <Compile Include="InterstellarAnimate.cs" />
-    <Compile Include="InterstellarFuelAnimator.cs" />
     <Compile Include="InterstellarResourceConverter.cs" />
     <Compile Include="InterstellarTextureSwitch2.cs" />
     <Compile Include="InterstellarDebugMessages.cs" />
