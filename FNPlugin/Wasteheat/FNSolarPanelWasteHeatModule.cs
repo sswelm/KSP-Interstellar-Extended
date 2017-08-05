@@ -21,13 +21,6 @@ namespace FNPlugin
         public double solar_supply = 0;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public double solar_maxSupply = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public double chargeRate;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public double distMult;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public double efficMult;
-        
 
         private MicrowavePowerReceiver microwavePowerReceiver;
         private ModuleDeployableSolarPanel solarPanel;
@@ -45,13 +38,16 @@ namespace FNPlugin
         {
             try
             {
-
                 if (state == StartState.Editor) return;
 
-                part.force_activate();
-
                 microwavePowerReceiver = part.FindModuleImplementing<MicrowavePowerReceiver>();
-                if (microwavePowerReceiver != null) return;
+                if (microwavePowerReceiver != null)
+                {
+                    Fields["megaJouleSolarPowerSupply"].guiActive = false;
+                    return;
+                }
+
+                part.force_activate();
 
                 String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES };
                 this.resources_to_supply = resources_to_supply;
@@ -177,26 +173,23 @@ namespace FNPlugin
                         ? Math.Max(0, Math.Min(requiredElectricChargeCapacity, electricChargePartResource.amount + requiredElectricChargeCapacity - previousPreviousElectricCapacity))
                         : Math.Max(0, Math.Min(requiredElectricChargeCapacity, ratio * requiredElectricChargeCapacity));
                 }
-
                 previousDeltaTime = TimeWarp.fixedDeltaTime;
 
-                double solar_rate = solarPanel.flowRate * TimeWarp.fixedDeltaTime;
+                double solar_rate = solarPanel.flowRate > 0 
+                    ? solarPanel.flowRate
+                    : solarPanel._flowRate;
 
-                chargeRate = solarPanel.chargeRate;
-                distMult = solarPanel._distMult;
-                efficMult = solarPanel._efficMult;
-
-                double maxSupply = distMult > 0 
-                    ? chargeRate * distMult * efficMult * TimeWarp.fixedDeltaTime 
+                double maxSupply = solarPanel._distMult > 0
+                    ? solarPanel.chargeRate * solarPanel._distMult * solarPanel._efficMult 
                     : solar_rate;
 
-                // extract power oyherwise we end up with double power
-                part.RequestResource(outputDefinition.id, solar_rate);
+                // extract power otherwise we end up with double power
+                part.RequestResource(outputDefinition.id, solar_rate * TimeWarp.fixedDeltaTime);
 
                 solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate / 1000;
                 solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply / 1000;
 
-                megaJouleSolarPowerSupply = supplyFNResourceFixedWithMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES);
             }
             catch (Exception e)
             {

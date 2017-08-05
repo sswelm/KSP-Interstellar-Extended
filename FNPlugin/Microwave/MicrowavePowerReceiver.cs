@@ -212,6 +212,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Buffer Power", guiFormat = "F4", guiUnits = " MW")]
         public double partBaseMegajoules;
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "FlowRate", guiFormat = "F4")]
+        public double flowRate;
+
         [KSPField(isPersistant = false)]
         public double powerMult = 1;
         [KSPField(isPersistant = false)]
@@ -1593,7 +1596,11 @@ namespace FNPlugin
         {
             if (deployableSolarPanel != null)
             {
-                flowRateQueue.Enqueue(deployableSolarPanel.flowRate);
+                flowRate = deployableSolarPanel.flowRate > 0 
+                    ? deployableSolarPanel.flowRate 
+                    : deployableSolarPanel.chargeRate * deployableSolarPanel._flowRate;
+
+                flowRateQueue.Enqueue(flowRate);
 
                 if (flowRateQueue.Count > 50)
                     flowRateQueue.Dequeue();
@@ -1602,33 +1609,31 @@ namespace FNPlugin
                     ? flowRateQueue.OrderBy(m => m).Skip(10).Average()
                     : flowRateQueue.Average();
 
-                double fixed_stabalized_flow_rate = stabalizedFlowRate * TimeWarp.fixedDeltaTime;
-
                 double maxSupply = deployableSolarPanel._distMult > 0
-                    ? Math.Max(fixed_stabalized_flow_rate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult * TimeWarp.fixedDeltaTime)
-                    : fixed_stabalized_flow_rate;
+                    ? Math.Max(stabalizedFlowRate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
+                    : stabalizedFlowRate;
 
                 if (deployableSolarPanel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                 {
-                    part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixed_stabalized_flow_rate);
+                    part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, flowRate * TimeWarp.fixedDeltaTime);
 
-                    if (fixed_stabalized_flow_rate > 0)
-                        fixed_stabalized_flow_rate /= 1000;
+                    if (stabalizedFlowRate > 0)
+                        stabalizedFlowRate /= 1000;
                     if (maxSupply > 0)
                         maxSupply /= 1000;
                 }
                 else if (deployableSolarPanel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES)
                 {
-                    part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, fixed_stabalized_flow_rate);
+                    part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, flowRate * TimeWarp.fixedDeltaTime);
                 }
                 else
                 {
-                    fixed_stabalized_flow_rate = 0;
+                    stabalizedFlowRate = 0;
                     maxSupply = 0;
                 }
 
-                if (fixed_stabalized_flow_rate > 0)
-                    supplyFNResourceFixedWithMax(fixed_stabalized_flow_rate, maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                if (stabalizedFlowRate > 0)
+                    supplyFNResourcePerSecondWithMax(stabalizedFlowRate, maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES);
             }
         }
 
