@@ -36,10 +36,7 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
-        public String ActivityName { get { return "Anthraquinone Process"; } }
-
-
-        private double _effectiveMaxPower;
+        public String ActivityName { get { return "Anthraquinone Process (HTP production)"; } }
 
         public bool HasActivityRequirements 
         { 

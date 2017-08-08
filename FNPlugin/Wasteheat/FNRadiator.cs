@@ -252,7 +252,20 @@ namespace FNPlugin
 
         private Queue<double> temperatureQueue = new Queue<double>(10);
 
-        private static List<FNRadiator> list_of_all_radiators = new List<FNRadiator>();
+        private static Dictionary<Vessel, List<FNRadiator>> radiators_by_vessel = new Dictionary<Vessel, List<FNRadiator>>();
+
+        private static List<FNRadiator> GetRadiatorsForVessel(Vessel vessel)
+        {
+            List<FNRadiator> vessel_radiator;
+
+            if (!radiators_by_vessel.TryGetValue(vessel, out vessel_radiator))
+            {
+                vessel_radiator = vessel.FindPartModulesImplementing<FNRadiator>().ToList();
+                radiators_by_vessel.Add(vessel, vessel_radiator);
+            }
+
+            return vessel_radiator;
+        }
 
         public GenerationType CurrentGenerationType { get; private set; }
 
@@ -338,60 +351,37 @@ namespace FNPlugin
 
         public static void Reset()
         {
-            list_of_all_radiators.Clear();
-        }
-
-        public static List<FNRadiator> getRadiatorsForVessel(Vessel vess) 
-        {
-            list_of_all_radiators.RemoveAll(item => item == null);
-
-            List<FNRadiator> list_of_radiators_for_vessel = new List<FNRadiator>();
-            foreach (FNRadiator radiator in list_of_all_radiators) 
-            {
-                if (radiator.vessel == vess) 
-                    list_of_radiators_for_vessel.Add (radiator);
-            }
-            return list_of_radiators_for_vessel;
+            radiators_by_vessel.Clear();
         }
 
         public static bool hasRadiatorsForVessel(Vessel vess) 
         {
-            list_of_all_radiators.RemoveAll(item => item == null);
-
-            bool has_radiators = false;
-            foreach (FNRadiator radiator in list_of_all_radiators) 
-            {
-                if (radiator.vessel == vess) 
-                    has_radiators = true;
-            }
-            return has_radiators;
+            return GetRadiatorsForVessel(vess).Any();
         }
 
         public static double getAverageRadiatorTemperatureForVessel(Vessel vess) 
         {
-            list_of_all_radiators.RemoveAll(item => item == null);
+            var radiator_vessel = GetRadiatorsForVessel(vess).Where(r => r != null).ToList(); ;
 
-            var filteredList = list_of_all_radiators.Where(r => r.vessel == vess).ToList();
-
-            if (filteredList.Count == 0)
+            if (radiator_vessel.Any())
+                return radiator_vessel.Max(r => r.GetAverateRadiatorTemperature());
+            else
                 return 3700;
-
-            return filteredList.Max(r => r.GetAverateRadiatorTemperature());
         }
 
         public static float getAverageMaximumRadiatorTemperatureForVessel(Vessel vess) 
         {
-            list_of_all_radiators.RemoveAll(item => item == null);
+            var radiator_vessel = GetRadiatorsForVessel(vess);
+
             float average_temp = 0;
             float n_radiators = 0;
 
-            foreach (FNRadiator radiator in list_of_all_radiators) 
+            foreach (FNRadiator radiator in radiator_vessel)
             {
-                if (radiator.vessel == vess) 
-                {
-                    average_temp += radiator.maxRadiatorTemperature;
-                    n_radiators += 1;
-                }
+                if (radiator == null) continue;
+
+                average_temp += radiator.maxRadiatorTemperature;
+                n_radiators += 1;
             }
 
             if (n_radiators > 0) 
@@ -602,9 +592,6 @@ namespace FNPlugin
             if (ResearchAndDevelopment.Instance != null)
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
 
-            // add to static list of all radiators
-            list_of_all_radiators.Add(this);
-
             renderArray = part.FindModelComponents<Renderer>().ToArray();
 
             if (radiatorInit == false)
@@ -670,49 +657,51 @@ namespace FNPlugin
 
         public override void OnUpdate() // is called while in flight
         {
-            if (update_count > 8)
+            update_count++;
+
+            if (update_count < 9)
+                return;
+
+            update_count = 0;
+
+            thermalPowerConvStrField.guiActive = convectedThermalPower > 0;
+
+            // synchronize states
+            if (_moduleDeployableRadiator != null && pivotEnabled && showControls)
             {
-                update_count = 0;
-                
-                thermalPowerConvStrField.guiActive = convectedThermalPower > 0;
-
-                // synchronize states
-                if (_moduleDeployableRadiator != null && pivotEnabled && showControls)
-                {
-                    if (_moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED)
-                        radiatorIsEnabled = true;
-                    else if (_moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.RETRACTED)
-                        radiatorIsEnabled = false;
-                }
-
-                radiatorIsEnabledField.guiActive = showControls;
-                radiatorIsEnabledField.guiActiveEditor = showControls;
-
-                isAutomatedField.guiActive = showControls;
-                isAutomatedField.guiActiveEditor = showControls;
-
-                pivotEnabledField.guiActive = showControls;
-                pivotEnabledField.guiActiveEditor = showControls;
-
-                if (radiatorIsEnabled && canRadiateHeat)
-                {
-                    thermalPowerDissipStr = PluginHelper.getFormattedPowerString(radiatedThermalPower, "0.0", "0.000");
-                    thermalPowerConvStr = PluginHelper.getFormattedPowerString(convectedThermalPower, "0.0", "0.000");
-                }
-                else
-                {
-                    thermalPowerDissipStr = "disabled";
-                    thermalPowerConvStr = "disabled";
-                }
-
-                radiatorTempStr = CurrentRadiatorTemperature.ToString("0.0") + "K / " + maxCurrentTemperature.ToString("0.0") + "K";
-                partTempStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
-
-                if (showColorHeat)
-                    ColorHeat();
+                if (_moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.EXTENDED)
+                    radiatorIsEnabled = true;
+                else if (_moduleDeployableRadiator.deployState == ModuleDeployableRadiator.DeployState.RETRACTED)
+                    radiatorIsEnabled = false;
             }
 
-            update_count++;
+            radiatorIsEnabledField.guiActive = showControls;
+            radiatorIsEnabledField.guiActiveEditor = showControls;
+
+            isAutomatedField.guiActive = showControls;
+            isAutomatedField.guiActiveEditor = showControls;
+
+            pivotEnabledField.guiActive = showControls;
+            pivotEnabledField.guiActiveEditor = showControls;
+
+            if (radiatorIsEnabled && canRadiateHeat)
+            {
+                thermalPowerDissipStr = PluginHelper.getFormattedPowerString(radiatedThermalPower, "0.0", "0.000");
+                thermalPowerConvStr = PluginHelper.getFormattedPowerString(convectedThermalPower, "0.0", "0.000");
+            }
+            else
+            {
+                thermalPowerDissipStr = "disabled";
+                thermalPowerConvStr = "disabled";
+            }
+
+            radiatorTempStr = CurrentRadiatorTemperature.ToString("0.0") + "K / " + maxCurrentTemperature.ToString("0.0") + "K";
+
+            partTempStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
+
+            if (showColorHeat)
+                ColorHeat();
+
         }
 
         public override void OnFixedUpdate()
@@ -831,7 +820,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNReactor.FixedUpdate" + e.Message);
+                Debug.LogError("[KSPI] - FNRadiator.FixedUpdate" + e.Message);
             }
         }
 
@@ -948,33 +937,38 @@ namespace FNPlugin
         {
             foreach (AnimationState anim in heatStates)
             {
+                if (anim == null)
+                    continue;
                 anim.normalizedTime = colorRatio;
             }
         }
 
         private void ColorHeat()
         {
-            float radiatorTempRatio = Mathf.Min((float) CurrentRadiatorTemperature/maxRadiatorTemperature, 1);
+            float radiatorTempRatio = Mathf.Min((float)CurrentRadiatorTemperature / maxRadiatorTemperature, 1);
 
-            if (heatStates != null)
+            if (heatStates != null && heatStates.Count() > 0)
             {
                 SetHeatAnimationRatio(radiatorTempRatio);
             }
             else if (!string.IsNullOrEmpty(colorHeat))
             {
-                var partTempRatio = Mathf.Min(((float) part.temperature/maxRadiatorTemperature), 1);
-                var colorRatioRed = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio)/temperatureColorDivider,
-                    emissiveColorPower);
-                var colorRatioGreen =
-                    Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio)/temperatureColorDivider, emissiveColorPower*2)*0.6f;
-                var colorRatioBlue =
-                    Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio)/temperatureColorDivider, emissiveColorPower*4)*0.3f;
+                if (renderArray == null)
+                    return;
 
-                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, (float) wasteheatRatio);
+                var partTempRatio = Mathf.Min(((float)part.temperature / maxRadiatorTemperature), 1);
+                var colorRatioRed = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
+                var colorRatioGreen = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower * 2) * 0.6f;
+                var colorRatioBlue = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower * 4) * 0.3f;
+
+                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, (float)wasteheatRatio);
 
                 foreach (var renderer in renderArray)
                 {
-                    if (renderer.material.shader.name != kspShader)
+                    if (renderer == null || renderer.material == null)
+                        continue;
+
+                    if (renderer.material.shader != null && renderer.material.shader.name != kspShader)
                         renderer.material.shader = Shader.Find(kspShader);
 
                     if (part.name.StartsWith("circradiator"))
@@ -1005,6 +999,7 @@ namespace FNPlugin
                     }
 
                     renderer.material.SetColor(colorHeat, emissiveColor);
+
                 }
             }
         }

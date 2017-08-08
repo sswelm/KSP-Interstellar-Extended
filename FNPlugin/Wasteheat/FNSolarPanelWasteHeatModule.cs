@@ -12,10 +12,13 @@ namespace FNPlugin
         electricCharge, megajoule, other
     }
 
+    [KSPModule("Solar Panel Adapter")]
 	class FNSolarPanelWasteHeatModule : FNResourceSuppliableModule 
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true,  guiName = "Solar current power", guiUnits = " MW", guiFormat="F5")]
         public double megaJouleSolarPowerSupply;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Kerbalism power output", guiUnits = " KW", guiFormat = "F5")]
+        public double kerbalismPowerOutput;
 
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public double solar_supply = 0;
@@ -28,6 +31,8 @@ namespace FNPlugin
         private resourceType outputType = 0;
         private PartResource megajoulePartResource;
         private PartResource electricChargePartResource;
+        private BaseField field_output;
+        private PartModule warpfixer;
 
         private bool active = false;
         private float previousDeltaTime;
@@ -46,6 +51,13 @@ namespace FNPlugin
                     Fields["megaJouleSolarPowerSupply"].guiActive = false;
                     return;
                 }
+
+                if (part.Modules.Contains("WarpFixer"))
+                {
+                    warpfixer = part.Modules["WarpFixer"];
+                    field_output = warpfixer.Fields["field_output"];
+                }
+
 
                 part.force_activate();
 
@@ -149,6 +161,9 @@ namespace FNPlugin
                 if (solarPanel == null) return;
 
                 if (outputType == resourceType.other) return;
+
+                if (field_output != null)
+                    kerbalismPowerOutput = field_output.GetValue<double>(warpfixer);
 
                 if (megajoulePartResource != null && fixedMegajouleBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
                 {

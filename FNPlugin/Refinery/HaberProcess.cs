@@ -18,7 +18,7 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
-        public String ActivityName { get { return "Haber Process ISRU"; } }
+        public String ActivityName { get { return "Haber Process (Ammonia Production)"; } }
 
         public bool HasActivityRequirements 
         { 
@@ -32,8 +32,9 @@ namespace FNPlugin.Refinery
 
         private bool HasAccessToNitrogen()
         {
-            return (FlightGlobals.getStaticPressure(_vessel.transform.position) / 100) * AtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Nitrogen") >= 0.01
-                    || _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Nitrogen).Any(rs => rs.amount > 0);
+            var atmosphericNitrogen = AtmosphericResourceHandler.getAtmosphericResourceContentByDisplayName(_vessel.mainBody.flightGlobalsIndex, "Nitrogen");
+
+            return _vessel.atmDensity * atmosphericNitrogen >= 0.01 || _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Nitrogen).Any(rs => rs.amount > 0);
         }
 
         public double PowerRequirements { get { return PluginHelper.BaseHaberProcessPowerConsumption; } }

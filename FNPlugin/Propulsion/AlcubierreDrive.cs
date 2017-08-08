@@ -68,7 +68,10 @@ namespace FNPlugin
         public double gravityAtSeaLevel;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Vessel Pull", guiUnits = " m/s\xB2", guiFormat = "F5")]
         public double gravityPull;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Drag", guiUnits = "%", guiFormat = "F3")]
+
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Gravity Drag Ratio", guiFormat = "F5")]
+        public double gravityDragRatio;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Drag %", guiUnits = "%", guiFormat = "F3")]
         public double gravityDragPercentage;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "GravityRatio")]
         public double gravityRatio;
@@ -105,6 +108,15 @@ namespace FNPlugin
         public double exitApoapsis;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Periapsis", guiUnits = " km", guiFormat = "F3")]
         public double exitPeriapsis;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Eccentricity", guiFormat = "F3")]
+        public double exitEccentricity;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Mean Anomaly", guiUnits = "\xB0", guiFormat = "F3")]
+        public double exitMeanAnomaly;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Burn to Circularize", guiUnits = " m/s", guiFormat = "F3")]
+        public double exitBurnCircularize;
+        //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Burn to Circularize2", guiUnits = " m/s", guiFormat = "F3")]
+        //public double exitBurnCircularize2;
+
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string driveStatus;
 
@@ -164,6 +176,7 @@ namespace FNPlugin
         private Collider warp_effect1_collider;
         private Collider warp_effect2_collider;
 
+        private Orbit predictedExitOrbit;
         private PartResourceDefinition exoticResourceDefinition;
         private CelestialBody warpInitialMainBody;
         private ModuleReactionWheel moduleReactionWheel;
@@ -375,21 +388,13 @@ namespace FNPlugin
             heading.z = -heading.z;
 
             if (!this.vessel.packed)
-            {
-                //Debug.Log("[KSPI] - GoOnRails");
                 vessel.GoOnRails();
-            }
 
             var newHeading = vessel.orbit.vel + heading;
-            //Debug.Log("[KSPI] - UpdateFromStateVectors position x:" + vessel.orbit.pos.x + ",y:" + vessel.orbit.pos.y + ",z" + vessel.orbit.pos.z);
-            //Debug.Log("[KSPI] - UpdateFromStateVectors velocity x:" + newHeading.x + ",y:" + newHeading.y + ",z" + newHeading.z);
             vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, newHeading, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
             if (!this.vessel.packed)
-            {
-                //Debug.Log("[KSPI] - GoOffRails");
                 vessel.GoOffRails();
-            }
 
             if (warpInitialMainBody != null && vessel.mainBody != warpInitialMainBody)
             {
@@ -826,8 +831,6 @@ namespace FNPlugin
                     warp_sound.Play();
                     warp_sound.loop = true;
                 }
-
-
             }
             catch (Exception e)
             {
@@ -894,30 +897,28 @@ namespace FNPlugin
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
         {
+            if (vessel == null) return;
+
             UpdateWateheatBuffer();
 
             warpEngineThrottle = engine_throtle[selected_factor];
 
+            gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
+            gravityAtSeaLevel = vessel.mainBody.GeeASL * GameConstants.STANDARD_GRAVITY;
+            gravityRatio = gravityAtSeaLevel > 0 ? Math.Min(1, gravityPull / gravityAtSeaLevel) : 0;
+            gravityDragRatio = Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Log(gravityAtSeaLevel, 2)));
+            gravityDragPercentage = (1 - gravityDragRatio) * 100;
+            maximumWarpForGravityPull = gravityPull > 0 ? 1 / gravityPull : 0;
+            maximumWarpForAltitude = vessel.altitude / speedOfLight;
+            maximumWarpWeighted = gravityRatio * maximumWarpForGravityPull + (1 - gravityRatio) * maximumWarpForAltitude;
+            maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpWeighted);
+            maximumAllowedWarpThrotle = engine_throtle[maximumWarpSpeedFactor];
+            minimumPowerAllowedFactor = maximumWarpSpeedFactor > minimum_selected_factor ? maximumWarpSpeedFactor : minimum_selected_factor;
+
             if (alcubierreDrives != null)
                 sumOfAlcubierreDrives = alcubierreDrives.Sum(p => p.partMass * (p.isupgraded ? 20 : 10));
 
-            if (vessel != null)
-            {
-                
-                vesselTotalMass = vessel.GetTotalMass();
-                gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
-                gravityAtSeaLevel = vessel.mainBody.GeeASL * GameConstants.STANDARD_GRAVITY;
-                gravityRatio = gravityAtSeaLevel > 0 ? Math.Min(1, gravityPull / gravityAtSeaLevel) : 0;
-                gravityDragPercentage = (1 - Math.Pow((1 - gravityRatio), 2)) * 100;
-                maximumWarpForGravityPull = gravityPull > 0 ? 1 / gravityPull : 0;
-                maximumWarpForAltitude = vessel.altitude / speedOfLight;
-                maximumWarpWeighted = gravityRatio * maximumWarpForGravityPull + (1 - gravityRatio) * maximumWarpForAltitude;
-                maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpWeighted);
-                maximumAllowedWarpThrotle = engine_throtle[maximumWarpSpeedFactor];
-
-                minimumPowerAllowedFactor = maximumWarpSpeedFactor > minimum_selected_factor ? maximumWarpSpeedFactor : minimum_selected_factor;
-            }
-
+            vesselTotalMass = vessel.GetTotalMass();
             if (sumOfAlcubierreDrives != 0 && vesselTotalMass != 0)
             {
                 warpToMassRatio = sumOfAlcubierreDrives / vesselTotalMass;
@@ -946,15 +947,14 @@ namespace FNPlugin
             if (initiateWarpTimeout > 0)
                 InitiateWarp();
 
+            Orbit currentOrbit = vessel.orbitDriver.orbit;
+            double universalTime = Planetarium.GetUniversalTime();
+
             if (IsEnabled)
             {
-                double universalTime = Planetarium.GetUniversalTime();
                 Vector3d reverse_heading_warp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
                 var new_direction = currentOrbitalVelocity + reverse_heading_warp;
-
-                Orbit currentOrbit = vessel.orbitDriver.orbit;
-                Orbit predictedExitOrbit;
 
                 float multiplier = 0;
                 do
@@ -966,8 +966,8 @@ namespace FNPlugin
                     // then calculated predicted gravity breaking
                     if (warpInitialMainBody != null && vessel.mainBody != warpInitialMainBody)
                     {
-                        Vector3d retrogradeNormalizedVelocity = new_direction.normalized *-multiplier;
-                        Vector3d velocityToCancel = predictedExitOrbit.getOrbitalVelocityAtUT(universalTime) * Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Log(gravityAtSeaLevel, 2)));
+                        Vector3d retrogradeNormalizedVelocity = new_direction.normalized * -multiplier;
+                        Vector3d velocityToCancel = predictedExitOrbit.getOrbitalVelocityAtUT(universalTime) * gravityDragRatio;
 
                         predictedExitOrbit.UpdateFromStateVectors(currentOrbit.pos, retrogradeNormalizedVelocity - velocityToCancel, currentOrbit.referenceBody, universalTime);
                     }
@@ -979,6 +979,20 @@ namespace FNPlugin
                 exitPeriapsis = predictedExitOrbit.PeA / 1000;
                 exitApoapsis = predictedExitOrbit.ApA / 1000;
                 exitSpeed = predictedExitOrbit.getOrbitalVelocityAtUT(universalTime).magnitude;
+                exitEccentricity = predictedExitOrbit.eccentricity * 180 / Math.PI;
+                exitMeanAnomaly = predictedExitOrbit.meanAnomaly;
+                exitBurnCircularize = DeltaVToCircularize(predictedExitOrbit);
+                //exitBurnCircularize2 = DeltaVToCircularize(predictedExitOrbit, universalTime);
+            }
+            else
+            {
+                exitPeriapsis = currentOrbit.PeA / 1000;
+                exitApoapsis = currentOrbit.ApA / 1000;
+                exitSpeed = currentOrbit.getOrbitalVelocityAtUT(universalTime).magnitude;
+                exitEccentricity = currentOrbit.eccentricity;
+                exitMeanAnomaly = currentOrbit.meanAnomaly * 180 / Math.PI;
+                exitBurnCircularize = DeltaVToCircularize(currentOrbit);
+                //exitBurnCircularize2 = DeltaVToCircularize(currentOrbit, universalTime);
             }
 
             Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
@@ -1005,6 +1019,41 @@ namespace FNPlugin
             WarpdriveCharging();
 
             UpdateWarpSpeed();
+        }
+
+        public static double DeltaVToCircularize(Orbit orbit)
+        {
+            var r_ap = orbit.ApR;
+            var r_pe = orbit.PeR;
+            var mu = orbit.referenceBody.gravParameter;
+
+            //if (r_ap < 0 || r_pe < 0) return 0;
+
+            //∆v_circ_burn = sqrt(mu / r_ap) - sqrt((r_pe * mu) / (r_ap * (r_pe + r_ap) / 2) ) 
+            return Math.Abs(Sqrt(mu / r_ap) - Sqrt((r_pe * mu) / (r_ap * (r_pe + r_ap) / 2)));
+        }
+
+        private static double Sqrt(double value)
+        {
+            if (value < 0)
+                return -Math.Sqrt(-1 * value);
+            else
+                return Math.Sqrt(value);
+        }
+
+        //Computes the deltaV of the burn needed to circularize an orbit at a given UT.
+        public static double DeltaVToCircularize(Orbit o, double UT)
+        {
+            var desiredVelocity = CircularOrbitSpeed(o.referenceBody, o.radius) ;
+            var actualVelocity = o.getOrbitalVelocityAtUT(UT).magnitude;
+            return desiredVelocity - actualVelocity;
+        }
+
+        //Computes the speed of a circular orbit of a given radius for a given body.
+        public static double CircularOrbitSpeed(CelestialBody body, double radius)
+        {
+            //v = sqrt(GM/r)
+            return Math.Sqrt(body.gravParameter / radius);
         }
 
         private void WarpdriveCharging()
@@ -1256,9 +1305,8 @@ namespace FNPlugin
             Vector3d progradeNormalizedVelocity = currentOrbitalVelocity.normalized;
             Vector3d velocityToCancel = currentOrbitalVelocity;
 
-            velocityToCancel *= Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Log(gravityAtSeaLevel, 2))); 
-            //Vector3d exVelocityToCancel = velocityToCancel;
-            //velocityToCancel += currentOrbitalVelocity;
+            // apply gravity drag modifier
+            velocityToCancel *= gravityDragRatio; 
 
             // Extremely small velocities cause the game to mess up very badly, so try something small and increase...
             float multiplier = 0;
@@ -1354,7 +1402,10 @@ namespace FNPlugin
 
                 PrintToGUILayout("Exit Speed", exitSpeed.ToString("0.000") + " m/s", bold_black_style, text_black_style);
                 PrintToGUILayout("Exit Apoapsis", exitApoapsis.ToString("0.000") + " km", bold_black_style, text_black_style);
-                PrintToGUILayout("Exit Periapsis", exitPeriapsis.ToString("0.000") + " km", bold_black_style, text_black_style);                
+                PrintToGUILayout("Exit Periapsis", exitPeriapsis.ToString("0.000") + " km", bold_black_style, text_black_style);
+                PrintToGUILayout("Exit Eccentricity", exitEccentricity.ToString("0.000"), bold_black_style, text_black_style);
+                PrintToGUILayout("Exit Mean Anomaly", exitMeanAnomaly.ToString("0.000") + "\xB0", bold_black_style, text_black_style);
+                PrintToGUILayout("Exit ∆v to Circularize", exitBurnCircularize.ToString("0.000") + " m/s", bold_black_style, text_black_style);
 
                 PrintToGUILayout("Status", driveStatus, bold_black_style, text_black_style);
 

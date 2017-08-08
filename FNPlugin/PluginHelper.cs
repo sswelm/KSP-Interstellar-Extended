@@ -86,8 +86,8 @@ namespace FNPlugin
                 //generators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
 
                 FNRadiator.Reset();
-                var radiators = change.host.FindPartModulesImplementing<FNRadiator>();
-                radiators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
+                //var radiators = change.host.FindPartModulesImplementing<FNRadiator>();
+                //radiators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
             }
         }
 

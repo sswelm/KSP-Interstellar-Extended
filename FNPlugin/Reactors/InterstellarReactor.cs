@@ -295,7 +295,7 @@ namespace FNPlugin
         public string currentTPwr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Charged Power")]
         public string currentCPwr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Fuel")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel")]        // keep active as it allows switching
         public string fuelModeStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Connections Surface")]
         public string connectedRecieversStr = String.Empty;
@@ -328,7 +328,7 @@ namespace FNPlugin
         protected double ongoing_thermal_power_generated;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Charged Power Generated", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Consumed fuel per Frame", guiFormat = "F6")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Consumed fuel per Frame", guiFormat = "F6")]
         protected double consume_amount_in_unit_of_storage;
 
         // value types

@@ -14,7 +14,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string animationName;
         [KSPField(isPersistant = false)]
-        public string resourceName = "";
+        public string resourceName;
         [KSPField(isPersistant = false)]
         public double animationExponent = 1;
         [KSPField(isPersistant = false)]
@@ -36,18 +36,16 @@ namespace FNPlugin
 
             if (!String.IsNullOrEmpty(resourceName))
             {
-                PartResource animatedResource = part.Resources.FirstOrDefault(m => m.resourceName == resourceName);
+                PartResource animatedResource = part.Resources[resourceName];
 
                 if (animatedResource != null)
-                    resourceRatio = animatedResource.amount / animatedResource.maxAmount;
+                    resourceRatio = animatedResource.maxAmount > 0 ? animatedResource.amount / animatedResource.maxAmount : 0;
             }
 
             if (resourceRatio == -1)
             {
-                var allResources = part.Resources.Where(m => m != null);
-
-                var sumMaxAmount = allResources.Sum(m => m.maxAmount);
-                var sumAmount = allResources.Sum(m => m.amount);
+                var sumMaxAmount = part.Resources.Sum(m => m.maxAmount);
+                var sumAmount = part.Resources.Sum(m => m.amount);
 
                 resourceRatio = sumMaxAmount > 0 ? sumAmount / sumMaxAmount : 0;
             }
@@ -61,7 +59,7 @@ namespace FNPlugin
             }
         }
 
-        public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
+        private static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
         {
             var states = new List<AnimationState>();
             foreach (var animation in part.FindModelAnimators(animationName))

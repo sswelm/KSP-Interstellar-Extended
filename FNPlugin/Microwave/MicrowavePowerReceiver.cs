@@ -20,6 +20,7 @@ namespace FNPlugin
 
     class MicrowavePowerReceiverDish: MicrowavePowerReceiver  {} // tweakscales with exponent 2.25
 
+    [KSPModule("Beamed Power Receiver")]
     class MicrowavePowerReceiver : FNResourceSuppliableModule, IPowerSource, IElectricPowerGeneratorSource // tweakscales with exponent 2.5
     {
         //Persistent True

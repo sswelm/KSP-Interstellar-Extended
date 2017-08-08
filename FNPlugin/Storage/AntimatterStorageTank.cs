@@ -266,10 +266,12 @@ namespace FNPlugin
 
         void OnJustAboutToBeDestroyed()
         {
-            if (HighLogic.LoadedSceneIsEditor || current_antimatter <= minimimAnimatterAmount) return;
+            if (HighLogic.LoadedSceneIsEditor || current_antimatter <= minimimAnimatterAmount || !FlightGlobals.VesselsLoaded.Contains(this.vessel)) return;
 
             if (part.temperature >= part.maxTemp)
                 doExplode("Antimatter container exploded because antimatter melted and breached containment");
+            else if (part.vessel.geeForce >= part.gTolerance)
+                doExplode("Antimatter container exploded because exceeding gee force Tolerance");
             else
                 doExplode("Antimatter container exploded because containment was breached");
             ExplodeContainer();
