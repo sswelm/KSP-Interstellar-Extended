@@ -88,7 +88,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Current Selected Speed", guiUnits = "c", guiFormat = "F4")]
         public double warpEngineThrottle;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Speed of light")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Speed of light")]
         public double speedOfLight;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
@@ -906,10 +906,11 @@ namespace FNPlugin
             gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
             gravityAtSeaLevel = vessel.mainBody.GeeASL * GameConstants.STANDARD_GRAVITY;
             gravityRatio = gravityAtSeaLevel > 0 ? Math.Min(1, gravityPull / gravityAtSeaLevel) : 0;
-            gravityDragRatio = Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Log(gravityAtSeaLevel, 2)));
+
+            gravityDragRatio = Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Sqrt(gravityAtSeaLevel)));
             gravityDragPercentage = (1 - gravityDragRatio) * 100;
             maximumWarpForGravityPull = gravityPull > 0 ? 1 / gravityPull : 0;
-            maximumWarpForAltitude = vessel.altitude / speedOfLight;
+            maximumWarpForAltitude =  Math.Abs(vessel.altitude / speedOfLight);
             maximumWarpWeighted = gravityRatio * maximumWarpForGravityPull + (1 - gravityRatio) * maximumWarpForAltitude;
             maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpWeighted);
             maximumAllowedWarpThrotle = engine_throtle[maximumWarpSpeedFactor];

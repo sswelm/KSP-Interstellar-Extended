@@ -152,9 +152,9 @@ namespace FNPlugin
         public double chargedParticleEnergyEfficiency = 1;
         [KSPField(isPersistant = false)]
         public double thermalProcessingModifier = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false)]
         public bool canSwitchBandwidthInEditor = false;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = false)]
         public bool canSwitchBandwidthInFlight = false;
         [KSPField(isPersistant = false)]
         public string bandWidthName;
@@ -957,12 +957,15 @@ namespace FNPlugin
                 chooseField.guiActiveEditor = canSwitchBandwidthInEditor;
                 chooseField.guiActive = canSwitchBandwidthInFlight;
 
-                var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
-                var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
-
                 var names = BandwidthConverters.Select(m => m.bandwidthName).ToArray();
+
+                var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
                 chooseOptionEditor.options = names;
+                //chooseOptionEditor.controlEnabled = canSwitchBandwidthInEditor;
+
+                var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
                 chooseOptionFlight.options = names;
+                //chooseOptionFlight.controlEnabled = canSwitchBandwidthInFlight;
 
                 UpdateFromGUI(chooseField, selectedBandwidthConfiguration);
 
@@ -1151,7 +1154,7 @@ namespace FNPlugin
             Fields["minimumWavelength"].guiActive = receiverIsEnabled;
             Fields["maximumWavelength"].guiActive = receiverIsEnabled;
 
-            Fields["selectedBandwidthConfiguration"].guiActive = canSwitchBandwidthInEditor && receiverIsEnabled;
+            Fields["selectedBandwidthConfiguration"].guiActive = canSwitchBandwidthInFlight && receiverIsEnabled;
 
             Fields["solarFacingFactor"].guiActive = solarReceptionSurfaceArea > 0;
             Fields["solarFlux"].guiActive = solarReceptionSurfaceArea > 0;

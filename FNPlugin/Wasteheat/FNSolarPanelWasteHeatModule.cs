@@ -17,9 +17,9 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true,  guiName = "Solar current power", guiUnits = " MW", guiFormat="F5")]
         public double megaJouleSolarPowerSupply;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Kerbalism power output", guiUnits = " KW", guiFormat = "F5")]
+        
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public double kerbalismPowerOutput;
-
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public double solar_supply = 0;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
@@ -57,7 +57,6 @@ namespace FNPlugin
                     warpfixer = part.Modules["WarpFixer"];
                     field_output = warpfixer.Fields["field_output"];
                 }
-
 
                 part.force_activate();
 
@@ -162,8 +161,7 @@ namespace FNPlugin
 
                 if (outputType == resourceType.other) return;
 
-                if (field_output != null)
-                    kerbalismPowerOutput = field_output.GetValue<double>(warpfixer);
+
 
                 if (megajoulePartResource != null && fixedMegajouleBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
                 {
@@ -192,14 +190,21 @@ namespace FNPlugin
 
                 double solar_rate = solarPanel.flowRate > 0 
                     ? solarPanel.flowRate
-                    : solarPanel._flowRate;
+                    : solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT 
+                        ? solarPanel._flowRate 
+                        : solarPanel._flowRate * solarPanel.chargeRate;
 
                 double maxSupply = solarPanel._distMult > 0
                     ? solarPanel.chargeRate * solarPanel._distMult * solarPanel._efficMult 
                     : solar_rate;
 
+                // readout kerbalism solar power output so we can remove it
+                if (field_output != null)
+                    kerbalismPowerOutput = field_output.GetValue<double>(warpfixer);
+
                 // extract power otherwise we end up with double power
-                part.RequestResource(outputDefinition.id, solar_rate * TimeWarp.fixedDeltaTime);
+                var power_reduction = solarPanel.flowRate > 0 ? solarPanel.flowRate : kerbalismPowerOutput;
+                part.RequestResource(outputDefinition.id, power_reduction * TimeWarp.fixedDeltaTime);
 
                 solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate / 1000;
                 solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply / 1000;
