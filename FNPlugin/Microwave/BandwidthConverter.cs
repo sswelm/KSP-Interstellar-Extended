@@ -1,5 +1,12 @@
-﻿namespace FNPlugin.Microwave
+﻿using System.Text;
+
+namespace FNPlugin.Microwave
 {
+    [KSPModule("Rectenna Bandwidth Converter")]
+    class RectennaConverter : BandwidthConverter {}
+
+
+    [KSPModule("Beamed Power Bandwidth Converter")]
     class BandwidthConverter : PartModule
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wavelength Name")]
@@ -45,17 +52,11 @@
         public void Initialize()
         {
             if (PluginHelper.HasTechRequirementAndNotEmpty(techRequirement2))
-            {
                 AvailableTechLevel = 2;
-            }
             if (PluginHelper.HasTechRequirementAndNotEmpty(techRequirement1))
-            {
                 AvailableTechLevel = 1;
-            }
             else if (PluginHelper.HasTechRequirementOrEmpty(techRequirement0))
-            {
                 AvailableTechLevel = 0;
-            }
         }
 
         public double MaxElectricEfficiencyPercentage
@@ -112,6 +113,33 @@
                 
                 return targetWavelength;
             }
+        }
+
+        public override string GetInfo()
+        {
+            var info = new StringBuilder();
+
+            info.AppendLine("Name: " + bandwidthName);
+            info.AppendLine("Bandwidth start: " + minimumWavelength + " m");
+            info.AppendLine("Bandwidth end: " + maximumWavelength + " m");
+
+            if (!string.IsNullOrEmpty(techRequirement0))
+            {
+                info.AppendLine("Mk1 technode: " + techRequirement0);
+                info.AppendLine("Mk1 efficiency: " + efficiencyPercentage0 + "%");
+            }
+            if (!string.IsNullOrEmpty(techRequirement1))
+            {
+                info.AppendLine("Mk2 technode: " + techRequirement1);
+                info.AppendLine("Mk2 efficiency: " + efficiencyPercentage1 + "%");
+            }
+            if (!string.IsNullOrEmpty(techRequirement2))
+            {
+                info.AppendLine("Mk3 technode: " + techRequirement2);
+                info.AppendLine("Mk3 efficiency: " + efficiencyPercentage2 + "%");
+            }
+
+            return info.ToString();
         }
 
     }

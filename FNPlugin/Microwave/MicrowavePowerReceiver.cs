@@ -215,6 +215,8 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "FlowRate", guiFormat = "F4")]
         public double flowRate;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        public double kerbalismPowerOutput;
 
         [KSPField(isPersistant = false)]
         public double powerMult = 1;
@@ -227,6 +229,7 @@ namespace FNPlugin
 
         protected BaseField _radiusField;
         protected BaseField _coreTempereratureField;
+        protected BaseField _field_kerbalism_output;
 
         protected BaseEvent _linkReceiverBaseEvent;
         protected BaseEvent _unlinkReceiverBaseEvent;
@@ -239,7 +242,8 @@ namespace FNPlugin
 
         protected ModuleActiveRadiator activeRadiator;
         protected FNRadiator fnRadiator;
-
+        protected PartModule warpfixer;
+        
         public Queue<double> solarFluxQueue = new Queue<double>(50);
         public Queue<double> flowRateQueue = new Queue<double>(50);
 
@@ -706,6 +710,12 @@ namespace FNPlugin
 
             coreTempererature = CoreTemperature.ToString("0.0") + " K";
             _coreTempereratureField = Fields["coreTempererature"];
+
+            if (part.Modules.Contains("WarpFixer"))
+            {
+                warpfixer = part.Modules["WarpFixer"];
+                _field_kerbalism_output = warpfixer.Fields["field_output"];
+            }
 
             if (IsThermalSource && !isThermalReceiverSlave)
             {
@@ -1571,74 +1581,81 @@ namespace FNPlugin
 
         private void CalculateThermalSolarPower()
         {
-            if (solarReceptionSurfaceArea > 0 && solarReceptionEfficiency > 0)
-            {
-                solarFluxQueue.Enqueue(part.vessel.solarFlux);
+            if (solarReceptionSurfaceArea <= 0 || solarReceptionEfficiency <= 0)
+                return;
 
-                if (solarFluxQueue.Count > 50)
-                    solarFluxQueue.Dequeue();
+            solarFluxQueue.Enqueue(part.vessel.solarFlux);
 
-                solarFlux = solarFluxQueue.Count > 10 
-                    ? solarFluxQueue.OrderBy(m => m).Skip(10).Average()
-                    : solarFluxQueue.Average();
+            if (solarFluxQueue.Count > 50)
+                solarFluxQueue.Dequeue();
 
-                solarInputMegajoulesMax = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarReceptionEfficiency;
-                solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
-                solarInputMegajoules = solarInputMegajoulesMax * solarFacingFactor;
-            }
+            solarFlux = solarFluxQueue.Count > 10
+                ? solarFluxQueue.OrderBy(m => m).Skip(10).Average()
+                : solarFluxQueue.Average();
+
+            solarInputMegajoulesMax = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarReceptionEfficiency;
+            solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
+            solarInputMegajoules = solarInputMegajoulesMax * solarFacingFactor;
         }
 
         private void AddAlternatorPower()
         {
-            if (alternatorRatio != 0)
-            {
-                supplyFNResourceFixed(alternatorRatio * powerInputMegajoules * TimeWarp.fixedDeltaTime / 1000, FNResourceManager.FNRESOURCE_MEGAJOULES);
-            }
+            if (alternatorRatio == 0)
+                return;
+            
+            supplyFNResourceFixed(alternatorRatio * powerInputMegajoules * TimeWarp.fixedDeltaTime / 1000, FNResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
         private void ProcesSolarCellEnergy()
         {
-            if (deployableSolarPanel != null)
+            if (deployableSolarPanel == null)
+                return;
+
+            // readout kerbalism solar power output so we can remove it
+            if (_field_kerbalism_output != null)
+                kerbalismPowerOutput = _field_kerbalism_output.GetValue<double>(warpfixer);
+
+            flowRate = deployableSolarPanel.flowRate > 0
+                ? deployableSolarPanel.flowRate
+                : deployableSolarPanel.chargeRate * deployableSolarPanel._flowRate;
+
+            flowRateQueue.Enqueue(flowRate);
+
+            if (flowRateQueue.Count > 50)
+                flowRateQueue.Dequeue();
+
+            var stabalizedFlowRate = flowRateQueue.Count > 10
+                ? flowRateQueue.OrderBy(m => m).Skip(10).Average()
+                : flowRateQueue.Average();
+
+            double maxSupply = deployableSolarPanel._distMult > 0
+                ? Math.Max(stabalizedFlowRate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
+                : stabalizedFlowRate;
+
+            // extract power otherwise we end up with double power
+            var power_reduction = deployableSolarPanel.flowRate > 0 ? deployableSolarPanel.flowRate : kerbalismPowerOutput;
+
+            if (deployableSolarPanel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
             {
-                flowRate = deployableSolarPanel.flowRate > 0 
-                    ? deployableSolarPanel.flowRate 
-                    : deployableSolarPanel.chargeRate * deployableSolarPanel._flowRate;
-
-                flowRateQueue.Enqueue(flowRate);
-
-                if (flowRateQueue.Count > 50)
-                    flowRateQueue.Dequeue();
-
-                var stabalizedFlowRate = flowRateQueue.Count > 10
-                    ? flowRateQueue.OrderBy(m => m).Skip(10).Average()
-                    : flowRateQueue.Average();
-
-                double maxSupply = deployableSolarPanel._distMult > 0
-                    ? Math.Max(stabalizedFlowRate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
-                    : stabalizedFlowRate;
-
-                if (deployableSolarPanel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
-                {
-                    part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, flowRate * TimeWarp.fixedDeltaTime);
-
-                    if (stabalizedFlowRate > 0)
-                        stabalizedFlowRate /= 1000;
-                    if (maxSupply > 0)
-                        maxSupply /= 1000;
-                }
-                else if (deployableSolarPanel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES)
-                {
-                    part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, flowRate * TimeWarp.fixedDeltaTime);
-                }
-                else
-                {
-                    stabalizedFlowRate = 0;
-                    maxSupply = 0;
-                }
+                part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, power_reduction * TimeWarp.fixedDeltaTime);
 
                 if (stabalizedFlowRate > 0)
-                    supplyFNResourcePerSecondWithMax(stabalizedFlowRate, maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    stabalizedFlowRate /= 1000;
+                if (maxSupply > 0)
+                    maxSupply /= 1000;
             }
+            else if (deployableSolarPanel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES)
+            {
+                part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, power_reduction * TimeWarp.fixedDeltaTime);
+            }
+            else
+            {
+                stabalizedFlowRate = 0;
+                maxSupply = 0;
+            }
+
+            if (stabalizedFlowRate > 0)
+                supplyFNResourcePerSecondWithMax(stabalizedFlowRate, maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
         public double MaxStableMegaWattPower

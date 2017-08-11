@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Microwave;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -925,6 +926,18 @@ namespace FNPlugin
             relay.MaximumRelayWavelenght = maximumRelayWavelenght;
 
             return relay;
+        }
+
+        public override string GetInfo()
+        {
+            var info = new StringBuilder();
+
+            info.AppendLine("Aperture Diameter: " + apertureDiameter + " m");
+            info.AppendLine("Can Mirror power: " + isMirror.ToString());
+            info.AppendLine("Can Transmit power: " + canTransmit.ToString());
+            info.AppendLine("Can Relay independantly " + buildInRelay.ToString());
+
+            return info.ToString();
         }
     }
 }

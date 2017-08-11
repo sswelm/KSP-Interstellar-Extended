@@ -31,7 +31,7 @@ namespace FNPlugin
         private resourceType outputType = 0;
         private PartResource megajoulePartResource;
         private PartResource electricChargePartResource;
-        private BaseField field_output;
+        private BaseField _field_kerbalism_output;
         private PartModule warpfixer;
 
         private bool active = false;
@@ -55,7 +55,7 @@ namespace FNPlugin
                 if (part.Modules.Contains("WarpFixer"))
                 {
                     warpfixer = part.Modules["WarpFixer"];
-                    field_output = warpfixer.Fields["field_output"];
+                    _field_kerbalism_output = warpfixer.Fields["field_output"];
                 }
 
                 part.force_activate();
@@ -199,8 +199,8 @@ namespace FNPlugin
                     : solar_rate;
 
                 // readout kerbalism solar power output so we can remove it
-                if (field_output != null)
-                    kerbalismPowerOutput = field_output.GetValue<double>(warpfixer);
+                if (_field_kerbalism_output != null)
+                    kerbalismPowerOutput = _field_kerbalism_output.GetValue<double>(warpfixer);
 
                 // extract power otherwise we end up with double power
                 var power_reduction = solarPanel.flowRate > 0 ? solarPanel.flowRate : kerbalismPowerOutput;
