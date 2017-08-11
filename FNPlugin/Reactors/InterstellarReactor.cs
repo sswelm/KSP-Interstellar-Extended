@@ -1304,12 +1304,13 @@ namespace FNPlugin
                 
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
 
+                LookForAlternativeFuelTypes();
+
                 UpdateCapacities(stored_fuel_ratio);
 
-                min_throttle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
-
-                var safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
-
+                if (stored_fuel_ratio > 0.0001 && stored_fuel_ratio < 0.99)
+                    ScreenMessages.PostScreenMessage("Ran out of fuel for " + CurrentFuelMode.ModeGUIName + " but no alternative fuel mode found! ", 20.0f, ScreenMessageStyle.UPPER_CENTER);
+             
                 thermalThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
                 chargedThrottleRatio = connectedEngines.Any(m => m.RequiresChargedPower) ? connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
 
@@ -1336,12 +1337,14 @@ namespace FNPlugin
 
                 power_request_ratio = Math.Max(Math.Max(thermalThrottleRatio, chargedThrottleRatio), Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorChargedEnergyRequestRatio));
 
+                var safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
                 max_charged_to_supply_per_second = maximumChargedPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
                 requested_charged_to_supply_per_second = max_charged_to_supply_per_second * power_request_ratio * maximum_charged_request_ratio;
 
                 var chargedParticlesManager = getManagerForVessel(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 var thermalHeatManager = getManagerForVessel(FNResourceManager.FNRESOURCE_THERMALPOWER);
 
+                min_throttle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
                 var needed_charged_power_per_second = getNeededPowerSupplyPerSecondWithMinimumRatio(max_charged_to_supply_per_second, min_throttle, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
                 charged_power_ratio = Math.Min(maximum_charged_request_ratio, maximumChargedPower > 0 ? needed_charged_power_per_second / maximumChargedPower : 0);
                          
@@ -1431,7 +1434,44 @@ namespace FNPlugin
                     chargedPowerResource.amount = 0;
                 }
             }
+        }
 
+        private void LookForAlternativeFuelTypes()
+        {
+            SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType1);
+            SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType2);
+            SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType3);
+            SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType4);
+        }
+
+        private void SwitchToAlternativeFuelWhenAvailable(string alternativeFuelTypeName)
+        {
+            if (stored_fuel_ratio >= 0.99)
+                return;
+
+            if (String.IsNullOrEmpty(alternativeFuelTypeName))
+                return;
+
+            // look for most advanced version
+            var alternativeFuelType = fuel_modes.Last(m => m.ModeGUIName.Contains(alternativeFuelTypeName));
+            if (alternativeFuelType == null)
+                return;
+
+            var alternative_fuel_variants_sorted = alternativeFuelType.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply*geeForceModifier, fuelUsePerMJMult);
+
+            var alternative_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
+            if (alternative_fuel_variant == null)
+                return;
+
+            if (Math.Min(current_fuel_variant.FuelRatio, 1) < 0.99)
+                return;
+
+            ScreenMessages.PostScreenMessage("Ran out of fuel for " + CurrentFuelMode.ModeGUIName + " switching to alternative fuel mode " + alternativeFuelType.ModeGUIName, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+
+            CurrentFuelMode = alternativeFuelType;
+            current_fuel_variants_sorted = alternative_fuel_variants_sorted;
+            current_fuel_variant = alternative_fuel_variant;
+            stored_fuel_ratio = current_fuel_variant.FuelRatio;
         }
 
         private void StoreGeneratorRequests()
@@ -1667,7 +1707,7 @@ namespace FNPlugin
             // produce reactor products
             foreach (ReactorProduct product in persistant_fuel_variants_sorted.First().ReactorProducts)
             {
-                var massProduced = ProduceReactorProduct(product, delta_time_diff * ongoing_total_power_generated);
+                ProduceReactorProduct(product, delta_time_diff * ongoing_total_power_generated);
             }
 
             // breed tritium

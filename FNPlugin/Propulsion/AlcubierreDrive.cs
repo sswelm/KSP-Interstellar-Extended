@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -114,8 +113,6 @@ namespace FNPlugin
         public double exitMeanAnomaly;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Burn to Circularize", guiUnits = " m/s", guiFormat = "F3")]
         public double exitBurnCircularize;
-        //[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Burn to Circularize2", guiUnits = " m/s", guiFormat = "F3")]
-        //public double exitBurnCircularize2;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string driveStatus;
@@ -125,8 +122,6 @@ namespace FNPlugin
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         public string serialisedwarpvector;
-        [KSPField(isPersistant = true)]
-        public bool isDeactivatingWarpDrive = false;
 
         //private double[] engine_throtle = { 0.001, 0.0016, 0.0025, 0.004, 0.0063, 0.01, 0.016, 0.025, 0.04, 0.063, 0.1, 0.16, 0.25, 0.40, 0.63, 1.0, 1.6, 2.5, 4.0, 6.3, 10, 16, 25, 40, 63, 100, 160, 250, 400, 630, 1000 };
         private double[] engine_throtle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
@@ -223,8 +218,6 @@ namespace FNPlugin
         {
             Debug.Log("[KSPI] - Activate Warp Drive button pressed");
             if (IsEnabled) return;
-
-            isDeactivatingWarpDrive = false;
 
             if (warpToMassRatio < 1)
             {
@@ -953,7 +946,7 @@ namespace FNPlugin
 
             if (IsEnabled)
             {
-                Vector3d reverse_heading_warp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
+                var reverse_heading_warp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
                 var new_direction = currentOrbitalVelocity + reverse_heading_warp;
 
@@ -983,7 +976,6 @@ namespace FNPlugin
                 exitEccentricity = predictedExitOrbit.eccentricity * 180 / Math.PI;
                 exitMeanAnomaly = predictedExitOrbit.meanAnomaly;
                 exitBurnCircularize = DeltaVToCircularize(predictedExitOrbit);
-                //exitBurnCircularize2 = DeltaVToCircularize(predictedExitOrbit, universalTime);
             }
             else
             {
@@ -993,7 +985,6 @@ namespace FNPlugin
                 exitEccentricity = currentOrbit.eccentricity;
                 exitMeanAnomaly = currentOrbit.meanAnomaly * 180 / Math.PI;
                 exitBurnCircularize = DeltaVToCircularize(currentOrbit);
-                //exitBurnCircularize2 = DeltaVToCircularize(currentOrbit, universalTime);
             }
 
             Vector3 ship_pos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
@@ -1027,8 +1018,6 @@ namespace FNPlugin
             var r_ap = orbit.ApR;
             var r_pe = orbit.PeR;
             var mu = orbit.referenceBody.gravParameter;
-
-            //if (r_ap < 0 || r_pe < 0) return 0;
 
             //∆v_circ_burn = sqrt(mu / r_ap) - sqrt((r_pe * mu) / (r_ap * (r_pe + r_ap) / 2) ) 
             return Math.Abs(Sqrt(mu / r_ap) - Sqrt((r_pe * mu) / (r_ap * (r_pe + r_ap) / 2)));
@@ -1406,7 +1395,7 @@ namespace FNPlugin
                 PrintToGUILayout("Exit Periapsis", exitPeriapsis.ToString("0.000") + " km", bold_black_style, text_black_style);
                 PrintToGUILayout("Exit Eccentricity", exitEccentricity.ToString("0.000"), bold_black_style, text_black_style);
                 PrintToGUILayout("Exit Mean Anomaly", exitMeanAnomaly.ToString("0.000") + "\xB0", bold_black_style, text_black_style);
-                PrintToGUILayout("Exit ∆v to Circularize", exitBurnCircularize.ToString("0.000") + " m/s", bold_black_style, text_black_style);
+                PrintToGUILayout("Exit Burn to Circularize", exitBurnCircularize.ToString("0.000") + " m/s", bold_black_style, text_black_style);
 
                 PrintToGUILayout("Status", driveStatus, bold_black_style, text_black_style);
 
@@ -1441,7 +1430,6 @@ namespace FNPlugin
                 if (IsEnabled && GUILayout.Button("Deactivate Warp", GUILayout.ExpandWidth(true)))
                     DeactivateWarpDrive();
 
-
                 GUILayout.EndVertical();
                 GUI.DragWindow();
             }
@@ -1455,16 +1443,20 @@ namespace FNPlugin
         {
             if (bold_black_style == null)
             {
-                bold_black_style = new GUIStyle(GUI.skin.label);
-                bold_black_style.fontStyle = FontStyle.Bold;
-                bold_black_style.font = PluginHelper.MainFont;
+                bold_black_style = new GUIStyle(GUI.skin.label)
+                {
+                    fontStyle = FontStyle.Bold,
+                    font = PluginHelper.MainFont
+                };
             }
 
             if (text_black_style == null)
             {
-                text_black_style = new GUIStyle(GUI.skin.label);
-                text_black_style.fontStyle = FontStyle.Normal;
-                text_black_style.font = PluginHelper.MainFont;
+                text_black_style = new GUIStyle(GUI.skin.label)
+                {
+                    fontStyle = FontStyle.Normal,
+                    font = PluginHelper.MainFont
+                };
             }
         }
 
