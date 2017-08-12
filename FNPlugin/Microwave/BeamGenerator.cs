@@ -16,8 +16,6 @@ namespace FNPlugin.Microwave
 
         [KSPField(isPersistant = true)]
         public bool isInitialized = false;
-
-
         [KSPField(isPersistant = false)]
         public bool canSwitchWavelengthInFlight = true;
         [KSPField(isPersistant = false)]
@@ -136,13 +134,8 @@ namespace FNPlugin.Microwave
 
         private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
         {
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI is called with " + selectedBeamConfiguration);
-
             if (!BeamConfigurations.Any())
-            {
-                //Debug.Log("[KSP Interstellar] UpdateFromGUI no BeamConfigurations found");
                 return;
-            }
 
             if (isLoaded == false)
                 LoadInitialConfiguration();
@@ -150,12 +143,10 @@ namespace FNPlugin.Microwave
             {
                 if (selectedBeamConfiguration < BeamConfigurations.Count)
                 {
-                    //Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedBeamConfiguration + " < orderedBeamGenerators.Count");
                     activeConfiguration = BeamConfigurations[selectedBeamConfiguration];
                 }
                 else
                 {
-                    //Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedBeamConfiguration + " >= orderedBeamGenerators.Count");
                     selectedBeamConfiguration = BeamConfigurations.Count - 1;
                     activeConfiguration = BeamConfigurations.Last();
                 }
@@ -168,24 +159,15 @@ namespace FNPlugin.Microwave
             }
 
             beamWaveName = activeConfiguration.beamWaveName;
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI set beamWaveName to " + beamWaveName);
-            
             wavelength = activeConfiguration.wavelength;
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI set wavelenth to " + wavelength);
-            
             atmosphericAbsorptionPercentage = activeConfiguration.atmosphericAbsorptionPercentage;
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI set atmosphericAbsorptionPercentage to " + atmosphericAbsorptionPercentage);
-
             waterAbsorptionPercentage = activeConfiguration.waterAbsorptionPercentage;
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI set waterAbsorptionPercentage to " + waterAbsorptionPercentage);
 
             UpdateEfficiencyPercentage();
         }
 
         private void UpdateEfficiencyPercentage()
         {
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI UpdateEfficiencyPercentage");
-
             var techLevel = -1;
 
             if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement3))
@@ -214,10 +196,6 @@ namespace FNPlugin.Microwave
             isLoaded = true;
 
             var currentWavelength = wavelength != 0 ? wavelength : 1;
-
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI initialize initial beam configuration with wavelength target " + currentWavelength);
-
-            // find wavelength closes to target wavelength
             activeConfiguration = BeamConfigurations.FirstOrDefault();
             selectedBeamConfiguration = 0;
             var lowestWavelengthDifference = Math.Abs(currentWavelength - activeConfiguration.wavelength);
@@ -253,10 +231,6 @@ namespace FNPlugin.Microwave
             var info = new StringBuilder();
 
             info.AppendLine("Beam type: " + beamTypeName);
-            //info.AppendLine("wavelength: " + wavelength + "m");
-            //info.AppendLine("atmospheric Absorption: " + atmosphericAbsorptionPercentage + "%");
-            //info.AppendLine("Power to Beam Efficiency: " + efficiencyPercentage + "%");
-
             return info.ToString();
         }
     }

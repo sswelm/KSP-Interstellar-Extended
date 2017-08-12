@@ -1,4 +1,8 @@
 ﻿using System.Text;
+using System;
+using System.Linq;
+using KSP.Localization;
+using KSP.UI.Screens;
 
 namespace FNPlugin.Microwave
 {
@@ -39,17 +43,17 @@ namespace FNPlugin.Microwave
 
             if (!string.IsNullOrEmpty(techRequirement0))
             {
-                info.AppendLine("Mk1 technode: " + techRequirement0);
-                info.AppendLine("Mk1 efficiency: " + efficiencyPercentage0 + "%");               
+                info.AppendLine("Mk1 technode: \n" + PluginHelper.GetTechTitleById(techRequirement0));
+                info.AppendLine("Mk1 efficiency: " + efficiencyPercentage0 + "%");
             }
             if (!string.IsNullOrEmpty(techRequirement1))
             {
-                info.AppendLine("Mk2 technode: " + techRequirement1);
+                info.AppendLine("Mk2 technode: \n" + PluginHelper.GetTechTitleById(techRequirement1));
                 info.AppendLine("Mk2 efficiency: " + efficiencyPercentage1 + "%");
             }
             if (!string.IsNullOrEmpty(techRequirement2))
             {
-                info.AppendLine("Mk3 technode: " + techRequirement2);
+                info.AppendLine("Mk3 technode: \n" + PluginHelper.GetTechTitleById(techRequirement2));
                 info.AppendLine("Mk3 efficiency: " + efficiencyPercentage2 + "%");
             }
 

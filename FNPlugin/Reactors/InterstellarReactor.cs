@@ -1309,7 +1309,11 @@ namespace FNPlugin
                 UpdateCapacities(stored_fuel_ratio);
 
                 if (stored_fuel_ratio > 0.0001 && stored_fuel_ratio < 0.99)
-                    ScreenMessages.PostScreenMessage("Ran out of fuel for " + CurrentFuelMode.ModeGUIName + " but no alternative fuel mode found! ", 20.0f, ScreenMessageStyle.UPPER_CENTER);
+                {
+                    string message = "Ran out of fuel for " + CurrentFuelMode.ModeGUIName + " but no alternative fuel mode found!";
+                    Debug.Log("[KSPI] - " + message);
+                    ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+                }
              
                 thermalThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
                 chargedThrottleRatio = connectedEngines.Any(m => m.RequiresChargedPower) ? connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
@@ -1442,6 +1446,7 @@ namespace FNPlugin
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType2);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType3);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType4);
+            SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType5);
         }
 
         private void SwitchToAlternativeFuelWhenAvailable(string alternativeFuelTypeName)
@@ -1453,24 +1458,34 @@ namespace FNPlugin
                 return;
 
             // look for most advanced version
-            var alternativeFuelType = fuel_modes.Last(m => m.ModeGUIName.Contains(alternativeFuelTypeName));
+            var alternativeFuelType = fuel_modes.LastOrDefault(m => m.ModeGUIName.Contains(alternativeFuelTypeName));
             if (alternativeFuelType == null)
+            {
+                Debug.LogWarning("[KSPI] failed to find fueltype " + alternativeFuelTypeName);
                 return;
+            }
 
-            var alternative_fuel_variants_sorted = alternativeFuelType.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply*geeForceModifier, fuelUsePerMJMult);
+            Debug.Log("[KSPI] sorting fuelmodes for alternative fuel type " + alternativeFuelTypeName);
+            var alternative_fuel_variants_sorted = alternativeFuelType.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult);
 
-            var alternative_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
+            var alternative_fuel_variant = alternative_fuel_variants_sorted.FirstOrDefault();
             if (alternative_fuel_variant == null)
+            {
+                Debug.LogError("[KSPI] - failed to find any variant for fueltype " + alternativeFuelTypeName);
                 return;
+            }
 
-            if (Math.Min(current_fuel_variant.FuelRatio, 1) < 0.99)
+            if (alternative_fuel_variant.FuelRatio < 0.99)
+            {
+                Debug.LogWarning("[KSPI] - failed to find sufficient resource for " + alternative_fuel_variant.Name);
                 return;
+            }
 
-            ScreenMessages.PostScreenMessage("Ran out of fuel for " + CurrentFuelMode.ModeGUIName + " switching to alternative fuel mode " + alternativeFuelType.ModeGUIName, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+            var message = "Ran out of fuel for fuelmode " + CurrentFuelMode.ModeGUIName + " switching to alternative fuel mode " + alternativeFuelType.ModeGUIName;
+            Debug.Log("[KSPI] - " + message);
+            ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
 
             CurrentFuelMode = alternativeFuelType;
-            current_fuel_variants_sorted = alternative_fuel_variants_sorted;
-            current_fuel_variant = alternative_fuel_variant;
             stored_fuel_ratio = current_fuel_variant.FuelRatio;
         }
 

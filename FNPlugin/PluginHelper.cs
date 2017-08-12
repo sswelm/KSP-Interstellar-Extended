@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using KSP.UI.Screens;
+using UnityEngine.Events;
 
 namespace FNPlugin
 {
@@ -103,6 +104,8 @@ namespace FNPlugin
     [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
     public class PluginHelper : MonoBehaviour
     {
+        const string WARP_PLUGIN_SETTINGS_FILEPATH = "WarpPlugin/WarpPluginSettings/WarpPluginSettings";
+
         public const double FIXED_SAT_ALTITUDE = 13599840256;
         public const int REF_BODY_KERBOL = 0;
         public const int REF_BODY_KERBIN = 1;
@@ -123,8 +126,8 @@ namespace FNPlugin
         public const int REF_BODY_EELOO = 16;
 
         public static bool using_toolbar = false;
-        public const int interstellar_major_version = 13;
-        public const int interstellar_minor_version = 5;
+        //public const int interstellar_major_version = 13;
+        //public const int interstellar_minor_version = 5;
 
         protected static bool plugin_init = false;
         //protected static GameDatabase gdb;
@@ -134,7 +137,7 @@ namespace FNPlugin
         static protected Texture2D appIcon = null;
         static protected ApplicationLauncherButton appLauncherButton = null;
 
-        #region Static Properties
+        #region static Properties
 
         public static bool TechnologyIsInUse
         {
@@ -353,6 +356,7 @@ namespace FNPlugin
 
         #endregion
 
+
         public static bool HasTechRequirementOrEmpty(string techName)
         {
             return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
@@ -361,6 +365,51 @@ namespace FNPlugin
         public static bool HasTechRequirementAndNotEmpty(string techName)
         {
             return techName != String.Empty && PluginHelper.upgradeAvailable(techName);
+        }
+
+        public static Dictionary<string, string> TechTitleById;
+
+        public static string GetTechTitleById(string techId)
+        {
+            string result = ResearchAndDevelopment.GetTechnologyTitle(techId);
+
+            if (!String.IsNullOrEmpty(result))
+                return result;
+
+            if (TechTitleById == null && GameDatabase.Instance != null)
+            {
+                Debug.Log("[KSPI] - Attempting to read " + WARP_PLUGIN_SETTINGS_FILEPATH);
+                ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH);
+                if (plugin_settings != null && plugin_settings.HasValue("TechnodeTitles"))
+                {
+                    string rawstring = plugin_settings.GetValue("TechnodeTitles");
+                    string[] technodes = rawstring.Split(';').Select(sValue => sValue.Trim()).ToArray();
+
+                    if (technodes.Count() > 0)
+                    {
+                        Debug.Log("[KSPI] - found " + technodes.Count()  + " technode titles");
+                        TechTitleById = new Dictionary<string, string>();
+                    }
+
+                    foreach (string keyvalueString in technodes )
+                    {
+                        var keyvaluePair = keyvalueString.Split(',').ToArray();
+                        if (keyvaluePair.Count() >= 1)
+                        {
+                            Debug.Log("[KSPI] - added technode: " + keyvalueString);
+                            TechTitleById.Add(keyvaluePair[0].Trim(), keyvaluePair[1].Trim());
+                        }
+                    }
+                }
+            }
+            
+            if (TechTitleById != null)
+                TechTitleById.TryGetValue(techId, out result);
+
+            if (!String.IsNullOrEmpty(result))
+                return result;
+            else
+                return techId;
         }
 
         public static bool hasTech(string techid)
@@ -707,7 +756,7 @@ namespace FNPlugin
             if (!resources_configured)
             {
                 // read WarpPluginSettings.cfg 
-                ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode("WarpPlugin/WarpPluginSettings/WarpPluginSettings");
+                ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH);
                 if (plugin_settings != null)
                 {
                     if (plugin_settings.HasValue("PartTechUpgrades"))
