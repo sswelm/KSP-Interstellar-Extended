@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Collectors;
 
 namespace FNPlugin.Refinery
 {
@@ -134,6 +135,12 @@ namespace FNPlugin.Refinery
 
 		protected double dDeuteriumMassByFraction = 0.000004; // based on a measurement of 0.0001% of hydrogen beeing deuterium
 
+        private double GetTotalExtractedPerSecond()
+        {
+            var collectorsList = _vessel.FindPartModulesImplementing<RegolithCollector>(); // add any atmo intake part on the vessel to our list
+            return collectorsList.Where(m => m.bIsEnabled).Sum(m => m.resourceProduction);
+        }
+
 		public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
 		{
 			dFixedDeltaTime = fixedDeltaTime;
@@ -181,8 +188,12 @@ namespace FNPlugin.Refinery
 
 			// this should determine how much resource this process can consume
 			var dFixedMaxRegolithConsumptionRate = _current_rate * fixedDeltaTime * dRegolithDensity;
+
+            // determine the amount of regolith collected
+            var availableRegolithExtractionMassFixed = GetTotalExtractedPerSecond() * dRegolithDensity * fixedDeltaTime;
+
 			var dRegolithConsumptionRatio = dFixedMaxRegolithConsumptionRate > 0
-				? Math.Min(dFixedMaxRegolithConsumptionRate, dAvailableRegolithMass) / dFixedMaxRegolithConsumptionRate
+                ? Math.Min(dFixedMaxRegolithConsumptionRate, Math.Max(availableRegolithExtractionMassFixed, dAvailableRegolithMass)) / dFixedMaxRegolithConsumptionRate
 				: 0;
 
 			dFixedConsumptionRate = _current_rate * fixedDeltaTime * dRegolithConsumptionRatio;
@@ -234,7 +245,10 @@ namespace FNPlugin.Refinery
 				dConsumptionStorageRatio =  allowOverflow ? ratios.Max(m => m) : ratios.Min(m => m);
 
 				// this consumes the resource
-				fixed_regolithConsumptionRate = _part.RequestResource(strRegolithResourceName, dConsumptionStorageRatio * dFixedConsumptionRate / dRegolithDensity, ResourceFlowMode.STACK_PRIORITY_SEARCH) * dRegolithDensity;
+				var fixed_collected_regolith = _part.RequestResource(strRegolithResourceName, dConsumptionStorageRatio * dFixedConsumptionRate / dRegolithDensity, ResourceFlowMode.STACK_PRIORITY_SEARCH) * dRegolithDensity;
+
+                fixed_regolithConsumptionRate = Math.Max(fixed_collected_regolith, availableRegolithExtractionMassFixed);
+
 				regolithConsumptionRate = fixed_regolithConsumptionRate / fixedDeltaTime;
 
 				// this produces the products

@@ -20,7 +20,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double maximumRatio = 1;
 
-        [KSPField(isPersistant = false, guiName = "Animation Ratio",  guiActiveEditor = true, guiActive = true, guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiName = "Animation Ratio", guiActiveEditor = false, guiActive = false, guiFormat = "F3")]
         public float animationRatio;
 
         private AnimationState[] containerStates;
@@ -44,14 +44,20 @@ namespace FNPlugin
 
             if (resourceRatio == -1)
             {
-                var sumMaxAmount = part.Resources.Sum(m => m.maxAmount);
-                var sumAmount = part.Resources.Sum(m => m.amount);
+                var resourcesWithDensity = part.Resources.Where(m => m.info.density > 0).ToList();
+                if (resourcesWithDensity.Count == 0)
+                    resourcesWithDensity = part.Resources.ToList();
 
+                var sumMaxAmount = resourcesWithDensity.Sum(m => m.maxAmount);
+                var sumAmount = resourcesWithDensity.Sum(m => m.amount);
                 resourceRatio = sumMaxAmount > 0 ? sumAmount / sumMaxAmount : 0;
             }
 
-            var multiplier = maximumRatio > 0 ? 1 / maximumRatio : 1;
-            animationRatio = (float)Math.Round(Math.Pow(Math.Min(multiplier * resourceRatio, 1), animationExponent), 3);
+            var multiplier = maximumRatio == 1 ? 1 : maximumRatio > 0 ? 1 / maximumRatio : 1;
+            var multipledRatio = multiplier == 1 ? resourceRatio : Math.Min(multiplier * resourceRatio, 1);
+            var manipulatedRatio = animationExponent == 1 ? multipledRatio : Math.Pow(multipledRatio, animationExponent);
+
+            animationRatio = (float)Math.Round(manipulatedRatio, 3);
 
             foreach (var cs in containerStates)
             {

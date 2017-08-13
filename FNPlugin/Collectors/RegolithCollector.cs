@@ -20,8 +20,6 @@ namespace FNPlugin.Collectors
         [KSPField(isPersistant = true)]
         public double dLastRegolithConcentration;
 
-
-
         // Part properties
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill size", guiUnits = " m\xB3")]
         public double drillSize = 0; // Volume of the collector's drill. Raise in part config (for larger drills) to make collecting faster.
@@ -31,8 +29,6 @@ namespace FNPlugin.Collectors
         public double mwRequirements = 1; // MW requirements of the drill. Affects heat produced.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Waste Heat Modifier", guiFormat = "P1")]
         public double wasteHeatModifier = 1; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
-        
-
 
         // GUI
         [KSPField(guiActive = true, guiName = "Regolith Concentration", guiFormat = "P1")]
@@ -45,6 +41,9 @@ namespace FNPlugin.Collectors
         protected string strReceivedPower = "";
         [KSPField(guiActive = true, guiName = "Altitude", guiUnits = " m")]
         protected string strAltitude = "";
+
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Resource Production", guiUnits = " Unit/s")]
+        public double resourceProduction;
 
         // internals
         protected double dResourceFlow = 0;
@@ -64,10 +63,6 @@ namespace FNPlugin.Collectors
                 bIsEnabled = true;
                 OnUpdate();
             }
-            
-            
-
-            
         }
 
         [KSPEvent(guiActive = true, guiName = "Disable Drill", active = true)]
@@ -417,7 +412,10 @@ namespace FNPlugin.Collectors
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            double dResourceChange = (dConcentrationRegolith * drillSize * dRegolithDensity) * effectiveness * dLastPowerPercentage * deltaTimeInSeconds;
+
+            resourceProduction = dConcentrationRegolith * drillSize * dRegolithDensity * effectiveness * dLastPowerPercentage;
+
+            double dResourceChange = resourceProduction * deltaTimeInSeconds;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
@@ -428,7 +426,9 @@ namespace FNPlugin.Collectors
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
-            dResourceFlow = (float)ORSHelper.fixedRequestResource(part, strRegolithResourceName, -dResourceChange);
+            //dResourceFlow = (float)ORSHelper.fixedRequestResource(part, strRegolithResourceName, -dResourceChange);
+            dResourceFlow = part.RequestResource(strRegolithResourceName, -dResourceChange);
+
             dResourceFlow = -dResourceFlow / TimeWarp.fixedDeltaTime;
 
             /* This takes care of wasteheat production (but takes into account if waste heat mechanics weren't disabled).
