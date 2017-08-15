@@ -806,7 +806,7 @@ namespace FNPlugin
                 // check if MaxStableMegaWattPower is changed
                 maxStableMegaWattPower = MaxStableMegaWattPower;
 
-                UpdateMegaWattPowerBuffer();
+                UpdateBuffers();
 
                 generatorInit = true;
 
@@ -939,7 +939,7 @@ namespace FNPlugin
             }
         }
 
-        private void UpdateMegaWattPowerBuffer()
+        private void UpdateBuffers()
         {
             if (!maintainsMegaWattPowerBuffer)
                 return;
