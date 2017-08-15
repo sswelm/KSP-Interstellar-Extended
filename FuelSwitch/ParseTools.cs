@@ -71,7 +71,7 @@ namespace InterstellarFuelSwitch
 
 		public static List<string> ParseNames(string names, bool replaceBackslashErrors, bool trimWhiteSpace, string prefix)
 		{
-			var source = names.Split(';').ToList<string>();
+			var source = names.Split(';',',').ToList<string>();
 			for (var i = source.Count - 1; i >= 0; i--)
 			{
 				if (source[i] == String.Empty)

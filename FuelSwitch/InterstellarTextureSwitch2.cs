@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using UnityEngine;
 
 namespace InterstellarFuelSwitch
@@ -36,8 +37,8 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool hasSwitchChooseOption = true;
 
-        [KSPField(isPersistant = true)]
-        public string selectedTextureURL = string.Empty;
+        //[KSPField(isPersistant = true)]
+        //public string selectedTextureURL = string.Empty;
         [KSPField(isPersistant = true)]
         public string selectedMapURL = string.Empty;
         [KSPField]
@@ -71,7 +72,8 @@ namespace InterstellarFuelSwitch
 
         private List<Transform> targetObjectTransforms = new List<Transform>();
         private List<List<Material>> targetMats = new List<List<Material>>();
-        private List<String> texList = new List<string>();
+        private List<List<String>> texList = new List<List<string>>();
+
         private List<String> mapList = new List<string>();
         private List<String> objectList = new List<string>();
         private List<String> textureDisplayList = new List<string>();
@@ -178,13 +180,15 @@ namespace InterstellarFuelSwitch
         private void applyTexToPart(bool calledByPlayer)
         {
             initializeData();
-            foreach (List<Material> matList in targetMats)
+
+            for (int objectIndex = 0; objectIndex < targetMats.Count; objectIndex++)
             {
-                foreach (Material mat in matList)
+                foreach (Material mat in targetMats[objectIndex])
                 {
-                    useTextureOrMap(mat);
+                    useTextureOrMap(mat, objectIndex);
                 }
             }
+
             if (useFuelSwitchModule)
             {
                 debug.debugMessage("calling on InterstellarFuelSwitch tank setup " + selectedTexture);
@@ -202,11 +206,11 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        public void useTextureOrMap(Material targetMat)
+        public void useTextureOrMap(Material targetMat, int objectIndex)
         {
             if (targetMat != null)
             {
-                useTexture(targetMat);
+                useTexture(targetMat, objectIndex);
 
                 useMap(targetMat);
             }
@@ -253,18 +257,21 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        private void useTexture(Material targetMat)
+        private void useTexture(Material targetMat, int objectIndex)
         {
             if (texList.Count <= selectedTexture) return;
 
-            if (GameDatabase.Instance.ExistsTexture(texList[selectedTexture]))
+            var texListGroupData = texList[selectedTexture];
+
+            String texture = texListGroupData[objectIndex];
+
+            if (GameDatabase.Instance.ExistsTexture(texture))
             {
-                debug.debugMessage("assigning texture: " + texList[selectedTexture]);
-                targetMat.mainTexture = GameDatabase.Instance.GetTexture(texList[selectedTexture], false);
-                selectedTextureURL = texList[selectedTexture];
+                debug.debugMessage("assigning texture: " + texture);
+                targetMat.mainTexture = GameDatabase.Instance.GetTexture(texture, false);
 
                 if (selectedTexture > textureDisplayList.Count - 1)
-                    currentTextureName = getTextureDisplayName(texList[selectedTexture]);
+                    currentTextureName = getTextureDisplayName(texture);
                 else
                     currentTextureName = textureDisplayList[selectedTexture];
             }
@@ -360,37 +367,49 @@ namespace InterstellarFuelSwitch
             if (initialized) return;
 
             debug = new InterstellarDebugMessages(debugMode, "InterstellarTextureSwitch2");
+
             // you can't have fuel switching without symmetry, it breaks the editor GUI.
-            if (useFuelSwitchModule) updateSymmetry = true;
+            if (useFuelSwitchModule) 
+                updateSymmetry = true;
 
             objectList = ParseTools.ParseNames(objectNames, true);
-            texList = ParseTools.ParseNames(textureNames, true, true, textureRootFolder);
             mapList = ParseTools.ParseNames(mapNames, true, true, textureRootFolder);
             textureDisplayList = ParseTools.ParseNames(textureDisplayNames);
             fuelTankSetupList = ParseTools.ParseIntegers(fuelTankSetups);
 
+            var textureNameGroups = textureNames.Split(';').ToArray();
+
+            for (int i = 0; i < textureNameGroups.Count(); i++)
+            {
+                var texListGroup = ParseTools.ParseNames(textureNameGroups[i], true, true, textureRootFolder);
+
+                texList.Add(texListGroup);
+            }
+
             debug.debugMessage("found " + texList.Count + " textures, using number " + selectedTexture + ", found " + objectList.Count + " objects, " + mapList.Count + " maps");
 
-            foreach (String targetObjectName in objectList)
+            for (int i = 0; i < objectList.Count(); i++)
             {
-                Transform[] targetObjectTransformArray = part.FindModelTransforms(targetObjectName);
+                Transform[] targetObjectTransformArray = part.FindModelTransforms(objectList[i]);
+
                 List<Material> matList = new List<Material>();
+
                 foreach (Transform t in targetObjectTransformArray)
                 {
+                    if (t == null)
+                        continue;
 
-                    if (t != null) 
+                    var renderer = t.gameObject.GetComponent<Renderer>();
+
+                    // check for if the object even has a mesh. otherwise part list loading crashes
+                    if (renderer != null)
                     {
-                        var renderer = t.gameObject.GetComponent<Renderer>();
-
-                        // check for if the object even has a mesh. otherwise part list loading crashes
-                        if (renderer != null)
-                        {
-                            Material targetMat = renderer.material;
-                            if (targetMat != null && !matList.Contains(targetMat))
-                                matList.Add(targetMat);
-                        }
+                        Material targetMat = renderer.material;
+                        if (targetMat != null && !matList.Contains(targetMat))
+                            matList.Add(targetMat);
                     }
                 }
+
                 targetMats.Add(matList);
             }
 
