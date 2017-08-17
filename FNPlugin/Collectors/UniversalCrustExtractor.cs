@@ -590,7 +590,7 @@ namespace FNPlugin.Collectors
         /// <returns>Double, signifying the amount of the current resource to collect.</returns>
         private double CalculateResourceAmountCollected(double minedAmount, double globalPercentage, double localAbundance, double deltaTime)
         {
-            double resourceAmount = minedAmount * globalPercentage * localAbundance * deltaTime;
+            double resourceAmount = minedAmount * localAbundance * deltaTime;
             return resourceAmount;
         }
 
