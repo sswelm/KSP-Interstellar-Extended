@@ -24,6 +24,7 @@ namespace OpenResourceSystem
         public double consumeFNResource(double power_fixed, String resourcename)
         {
             power_fixed = Math.Max(power_fixed, 0);
+            double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 
             ORSResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
@@ -32,9 +33,8 @@ namespace OpenResourceSystem
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
 
-            double power_taken_fixed = Math.Max(Math.Min(power_fixed, fnresource_supplied[resourcename] * TimeWarp.fixedDeltaTime), 0);
-            fnresource_supplied[resourcename] -= power_taken_fixed / TimeWarp.fixedDeltaTime;
-            
+            double power_taken_fixed = Math.Max(Math.Min(power_fixed, fnresource_supplied[resourcename] * fixedDeltaTime), 0);
+            fnresource_supplied[resourcename] -= power_taken_fixed / fixedDeltaTime;
             manager.powerDrawFixed(this, power_fixed, power_taken_fixed);
 
             return power_taken_fixed;
