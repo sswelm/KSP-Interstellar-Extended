@@ -215,8 +215,9 @@ namespace FNPlugin.Collectors
         {
             if (bIsEnabled)
             {
-                MineResources(false, TimeWarp.fixedDeltaTime);
-
+                double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);				
+			
+                MineResources(false, fixedDeltaTime);
                 // Save time data for offline mining
                 dLastActiveTime = Planetarium.GetUniversalTime();
             }
