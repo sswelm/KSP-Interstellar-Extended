@@ -155,14 +155,13 @@ namespace FNPlugin.Collectors
                     _moduleScienceExperiment.Actions["DeployAction"].active = true;
                 }
 
-                if (!autoWindowShown)
-                {
-                    if (_moduleScienceExperiment != null)
-                        _moduleScienceExperiment.DeployAction(new KSPActionParam(KSPActionGroup.None, KSPActionType.Activate));
-
-                    _render_window = true;
-                    autoWindowShown = true;
-                }
+                //if (!autoWindowShown)
+                //{
+                //    if (_moduleScienceExperiment != null)
+                //        _moduleScienceExperiment.DeployAction(new KSPActionParam(KSPActionGroup.None, KSPActionType.Activate));
+                //    _render_window = true;
+                //    autoWindowShown = true;
+                //}
 
                 if (effectiveness > 0)
                 {
