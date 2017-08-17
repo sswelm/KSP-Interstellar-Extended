@@ -371,9 +371,19 @@ namespace FNPlugin.Collectors
                 dNormalisedRecievedPowerMW = dPowerReceivedMW / deltaTime;
             }
 
-            //dLastPowerPercentage = (dPowerReceivedMW / dPowerRequirementsMW / deltaTime);
+            //return dNormalisedRecievedPowerMW >= dPowerRequirementsMW;
 
-            return dNormalisedRecievedPowerMW >= dPowerRequirementsMW;
+            // Workaround for some weird glitches where dNormalisedRecievedPowerMW gets slightly smaller than it should be during timewarping
+            double powerPercentage = dNormalisedRecievedPowerMW / dPowerRequirementsMW; 
+            
+            if ( powerPercentage >= 0.99 )
+            {
+                return true; 
+            }
+            else
+            {
+                return false; 
+            }
         }
 
         /// <summary>
