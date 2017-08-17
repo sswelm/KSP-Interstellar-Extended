@@ -155,14 +155,13 @@ namespace FNPlugin.Collectors
                     _moduleScienceExperiment.Actions["DeployAction"].active = true;
                 }
 
-                if (!autoWindowShown)
-                {
-                    if (_moduleScienceExperiment != null)
-                        _moduleScienceExperiment.DeployAction(new KSPActionParam(KSPActionGroup.None, KSPActionType.Activate));
-
-                    _render_window = true;
-                    autoWindowShown = true;
-                }
+                //if (!autoWindowShown)
+                //{
+                //    if (_moduleScienceExperiment != null)
+                //        _moduleScienceExperiment.DeployAction(new KSPActionParam(KSPActionGroup.None, KSPActionType.Activate));
+                //    _render_window = true;
+                //    autoWindowShown = true;
+                //}
 
                 if (effectiveness > 0)
                 {
@@ -216,8 +215,9 @@ namespace FNPlugin.Collectors
         {
             if (bIsEnabled)
             {
-                MineResources(false, TimeWarp.fixedDeltaTime);
-
+                double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);				
+			
+                MineResources(false, fixedDeltaTime);
                 // Save time data for offline mining
                 dLastActiveTime = Planetarium.GetUniversalTime();
             }
@@ -371,9 +371,19 @@ namespace FNPlugin.Collectors
                 dNormalisedRecievedPowerMW = dPowerReceivedMW / deltaTime;
             }
 
-            //dLastPowerPercentage = (dPowerReceivedMW / dPowerRequirementsMW / deltaTime);
+            //return dNormalisedRecievedPowerMW >= dPowerRequirementsMW;
 
-            return dNormalisedRecievedPowerMW >= dPowerRequirementsMW;
+            // Workaround for some weird glitches where dNormalisedRecievedPowerMW gets slightly smaller than it should be during timewarping
+            double powerPercentage = dNormalisedRecievedPowerMW / dPowerRequirementsMW; 
+            
+            if ( powerPercentage >= 0.99 )
+            {
+                return true; 
+            }
+            else
+            {
+                return false; 
+            }
         }
 
         /// <summary>
@@ -580,7 +590,7 @@ namespace FNPlugin.Collectors
         /// <returns>Double, signifying the amount of the current resource to collect.</returns>
         private double CalculateResourceAmountCollected(double minedAmount, double globalPercentage, double localAbundance, double deltaTime)
         {
-            double resourceAmount = minedAmount * globalPercentage * localAbundance * deltaTime;
+            double resourceAmount = minedAmount * localAbundance * deltaTime;
             return resourceAmount;
         }
 
