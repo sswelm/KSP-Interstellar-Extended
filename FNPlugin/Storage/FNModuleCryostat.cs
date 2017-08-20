@@ -5,7 +5,7 @@ namespace FNPlugin
 {
     class ModuleStorageCryostat: FNModuleCryostat {}
 
-    [KSPModule("Cyrostat")]
+    [KSPModule("Cryostat")]
     class FNModuleCryostat : FNResourceSuppliableModule
     {
         // Persistant

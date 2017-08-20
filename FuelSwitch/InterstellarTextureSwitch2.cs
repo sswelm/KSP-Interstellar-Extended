@@ -259,11 +259,13 @@ namespace InterstellarFuelSwitch
 
         private void useTexture(Material targetMat, int objectIndex)
         {
-            if (texList.Count <= selectedTexture) return;
+            if (texList.Count <= selectedTexture)
+                return;
 
             var texListGroupData = texList[selectedTexture];
 
-            String texture = texListGroupData[objectIndex];
+            var effectiveObjectIndex = texListGroupData.Count > objectIndex ? objectIndex : 0;
+            string texture = texListGroupData[effectiveObjectIndex];
 
             if (GameDatabase.Instance.ExistsTexture(texture))
             {
@@ -276,8 +278,7 @@ namespace InterstellarFuelSwitch
                     currentTextureName = textureDisplayList[selectedTexture];
             }
             else
-                debug.debugMessage("no such texture: " + texList[selectedTexture]);
-
+                debug.debugMessage("no such texture: " + texListGroupData[effectiveObjectIndex]);
         }
 
         public override string GetInfo()
