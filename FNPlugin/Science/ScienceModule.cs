@@ -291,7 +291,7 @@ namespace FNPlugin
         {
             base.OnUpdate();
             Events["BeginResearch"].active = isupgraded && !IsEnabled;
-            Events["ReprocessFuel"].active = isupgraded && !IsEnabled;
+            Events["ReprocessFuel"].active = !IsEnabled;
             Events["ActivateFactory"].active = isupgraded && !IsEnabled;
             Events["ActivateElectrolysis"].active = false;
             Events["ActivateCentrifuge"].active = isupgraded && !IsEnabled && vessel.Splashed;

@@ -22,15 +22,17 @@ namespace FNPlugin
         protected double solar_power = 0;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power Capacity", guiUnits = " MW", guiFormat = "F2")]
         protected double power_capacity = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit WaveLength", guiFormat = "F8", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit WaveLength m", guiFormat = "F8", guiUnits = " m")]
         public double wavelength = 0;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit WaveLength SI")]
+        public string wavelengthText;
         [KSPField(isPersistant = true)]
         public double atmosphericAbsorption = 0.1;
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Min Relay WaveLength", guiFormat = "F8", guiUnits = " m")]
         public double minimumRelayWavelenght;
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Max Relay WaveLength", guiFormat = "F8", guiUnits = " m")]
         public double maximumRelayWavelenght;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "WL Name")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Transmit WaveLength WL Name")]
         public string wavelengthName;
         [KSPField(isPersistant = true)]
         public double aperture = 1;
@@ -93,6 +95,8 @@ namespace FNPlugin
         public bool hasLinkedReceivers = false;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Can be active")]
         public bool canBeActive;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        protected int nearbyPartsCount;
 
         // Near Future Compatibility properties
         [KSPField(isPersistant = false)]
@@ -183,8 +187,21 @@ namespace FNPlugin
 
             // update wavelength
             this.wavelength = Wavelength;
+            this.wavelengthText = WavelenthToText(wavelength);
             this.wavelengthName = WavelengthName;
             atmosphericAbsorption = CombinedAtmosphericAbsorption;
+        }
+
+        private string WavelenthToText( double wavelength)
+        {
+            if (wavelength > 1.0e-3)
+                return (wavelength * 1.0e+3).ToString() + " mm";
+            else if (wavelength > 7.5e-7)
+                return (wavelength * 1.0e+6).ToString() + " µm";
+            else if (wavelength > 1.0e-9)
+                return (wavelength * 1.0e+9).ToString() + " nm";
+            else
+                return (wavelength * 1.0e+12).ToString() + " pm";
         }
 
         [KSPEvent(guiActive = true, guiName = "Deactivate Transmitter", active = false)]
@@ -244,6 +261,7 @@ namespace FNPlugin
         {
             // update stored variables
             this.wavelength = Wavelength;
+            this.wavelengthText = WavelenthToText(wavelength);
             this.wavelengthName = WavelengthName;
             this.atmosphericAbsorption = CombinedAtmosphericAbsorption;
 
@@ -369,13 +387,21 @@ namespace FNPlugin
 
                 if (beamGenerators.Count == 0)
                 {
-                    var attachedParts =  part.attachNodes
-                        .Where(m => m.attachedPart != null)
-                        .Select(m => m.attachedPart)
-                        .SelectMany(m => m.FindModulesImplementing<BeamGenerator>())
-                        .Where(m => (m.beamType & compatibleBeamTypes) == m.beamType);
+                    var attachedParts = part.attachNodes.Where(m => m.attachedPart != null).Select(m => m.attachedPart).ToList();
 
-                    beamGenerators.AddRange(attachedParts);
+                    var parentParts = attachedParts.Where(m => m.parent != null && m.parent != this.part).Select(m => m.parent).ToList();
+                    var indirectParts = attachedParts.SelectMany(m => m.attachNodes.Where(l => l.attachedPart != null && l.attachedPart != this.part).Select(l => l.attachedPart)).ToList();
+
+                    attachedParts.AddRange(indirectParts);
+                    attachedParts.AddRange(parentParts);
+
+                    var nearbyParts = attachedParts.Distinct().ToList();
+                    nearbyPartsCount = nearbyParts.Count();
+
+                    var nearbyGenerators = nearbyParts.Select(m => m.FindModuleImplementing<BeamGenerator>()).Where(l => l != null);
+                    var availableGenerators = nearbyGenerators.SelectMany(m => m.FindBeamGenerators(m.part)).Where(m => (m.beamType & compatibleBeamTypes) == m.beamType).Distinct();
+
+                    beamGenerators.AddRange(availableGenerators);
                 }
 
                 activeBeamGenerator = beamGenerators.FirstOrDefault();
@@ -500,6 +526,7 @@ namespace FNPlugin
             }
 
             wavelength = activeBeamGenerator.wavelength;
+            wavelengthText = WavelenthToText(wavelength);
             atmosphericAbsorptionPercentage = activeBeamGenerator.atmosphericAbsorptionPercentage;
             waterAbsorptionPercentage = activeBeamGenerator.waterAbsorptionPercentage * moistureModifier;
 

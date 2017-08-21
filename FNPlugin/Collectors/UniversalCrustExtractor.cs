@@ -24,6 +24,8 @@ namespace FNPlugin.Collectors
         // state of the extractor
         [KSPField(isPersistant = true, guiActive = true, guiName = "Drill Enabled")]
         public bool bIsEnabled = false;
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Deployed")]
+        public bool isDeployed;
 
         // previous data
         [KSPField(isPersistant = true)]
@@ -46,19 +48,27 @@ namespace FNPlugin.Collectors
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Waste Heat Modifier", guiFormat = "P1")]
         public double wasteHeatModifier = 0.25; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill reach", guiUnits = " m\xB3")]
-        public double drillReach = 5; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
+        public float drillReach = 5; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
+        [KSPField(isPersistant = false, guiActive = false)]
+        public string loopingAnimationName = "";
+        [KSPField(isPersistant = false, guiActive = false)]
+        public string deployAnimationName = "";
+        [KSPField(isPersistant = false, guiActive = false)]
+        public float animationState;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Reason Not Collecting")]
+        public string reasonNotCollecting;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Window shown")]
+        public bool autoWindowShown;
 
         // GUI elements declaration
         private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 4, 150);
         private int _window_ID;
         private bool _render_window;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Reason Not Collecting")]
-        public string reasonNotCollecting;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Window shown")]
-        public bool autoWindowShown;
+        private ModuleScienceExperiment _moduleScienceExperiment;
 
-        ModuleScienceExperiment _moduleScienceExperiment;
+        private Animation deployAnimation;
+        private Animation loopAnimation;
 
         private const int labelWidth = 200;
         private const int valueWidth = 100;
@@ -81,14 +91,45 @@ namespace FNPlugin.Collectors
         };
 
         // *** KSP Events ***
-        [KSPEvent(guiActive = true, guiName = "Activate Drill", active = false)]
+
+
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true,  guiName = "Deploy", active = true)]
+        public void DeployDrill()
+        {
+            isDeployed = true;
+            if (deployAnimation != null)
+            {
+                deployAnimation[deployAnimationName].speed = 1;
+                deployAnimation[deployAnimationName].normalizedTime = 0;
+                deployAnimation.Blend(deployAnimationName, part.mass);
+            }
+        }
+
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Retract", active = true)]
+        public void RetractDrill()
+        {
+            bIsEnabled = false;
+            isDeployed = false;
+            if (deployAnimation != null)
+            {
+                deployAnimation[deployAnimationName].speed = -1;
+                deployAnimation[deployAnimationName].normalizedTime = 1;
+                deployAnimation.Blend(deployAnimationName, part.mass);
+            }
+        }
+
+
+        // *** KSP Events ***
+        [KSPEvent(guiActive = true, guiName = "Activate Drill", active = true)]
         public void ActivateCollector()
         {
+            isDeployed = true;
             bIsEnabled = true;
             OnFixedUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Disable Drill", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Disable Drill", active = true)]
         public void DisableCollector()
         {
             bIsEnabled = false;
@@ -104,6 +145,25 @@ namespace FNPlugin.Collectors
         // *** END of KSP Events
 
         // *** KSP Actions ***
+
+        [KSPAction("Toggle Deployment")]
+        public void ToggleDeployAction(KSPActionParam param)
+        {
+            if (isDeployed)
+                RetractDrill();
+            else
+                DeployDrill();
+        }
+
+        [KSPAction("Toggle Drill")]
+        public void ToggleDrillAction(KSPActionParam param)
+        {
+            if (bIsEnabled)
+                DisableCollector();
+            else
+                ActivateCollector();
+        }
+
         [KSPAction("Activate Drill")]
         public void ActivateScoopAction(KSPActionParam param)
         {
@@ -120,6 +180,22 @@ namespace FNPlugin.Collectors
         public override void OnStart(PartModule.StartState state)
         {
             _moduleScienceExperiment = this.part.FindModuleImplementing<ModuleScienceExperiment>();
+
+            deployAnimation = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
+            loopAnimation = part.FindModelAnimators(loopingAnimationName).FirstOrDefault();
+
+            if (isDeployed)
+            {
+                deployAnimation[deployAnimationName].speed = 0;
+                deployAnimation[deployAnimationName].normalizedTime = 1;
+                deployAnimation.Blend(deployAnimationName, 1);
+            }
+            else
+            {
+                deployAnimation[deployAnimationName].speed = 0;
+                deployAnimation[deployAnimationName].normalizedTime = 0;
+                deployAnimation.Blend(deployAnimationName, 1);
+            }
 
             // if the setup went well, do the offline collecting dance
             if (StartupSetup(state))
@@ -145,6 +221,9 @@ namespace FNPlugin.Collectors
         public override void OnUpdate()
         {
             reasonNotCollecting = CheckIfCollectingPossible();
+
+            Events["DeployDrill"].active = !isDeployed;
+            Events["RetractDrill"].active = isDeployed;
 
             if (String.IsNullOrEmpty(reasonNotCollecting))
             {
@@ -188,6 +267,11 @@ namespace FNPlugin.Collectors
 
                 _render_window = false;
             }
+
+            //if (bIsEnabled && loopingAnimation != "")
+            //    PlayAnimation(loopingAnimation, false, false, true); //plays independently of other anims
+
+            base.OnUpdate();
         }
 
         private void UpdateResourceAbundances()
@@ -215,6 +299,8 @@ namespace FNPlugin.Collectors
         {
             if (bIsEnabled)
             {
+                UpdateLoopingAnimation();
+
                 double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);				
 			
                 MineResources(false, fixedDeltaTime);
@@ -307,17 +393,13 @@ namespace FNPlugin.Collectors
         /// <returns>Bool signifying whether the part is extended or not (if it's animation is played out).</returns>
         private bool IsDrillExtended()
         {
-            ModuleAnimationGroup thisPartsAnimGroup = this.part.FindModuleImplementing<ModuleAnimationGroup>();
+            return isDeployed;
+                //return deployAnimation.GetScalar == 1; 
 
-            if (thisPartsAnimGroup)
-                return thisPartsAnimGroup.isDeployed;
+            //if (_moduleAnimationGroup != null)
+            //    return _moduleAnimationGroup.isDeployed;
 
-            ModuleAnimateGeneric animateGeneric = this.part.FindModuleImplementing<ModuleAnimateGeneric>();
-
-            if (animateGeneric)
-                return animateGeneric.GetScalar == 1;
-
-            return false;
+            //return false;
         }
 
         /// <summary>
@@ -327,8 +409,8 @@ namespace FNPlugin.Collectors
         private bool CanReachTerrain()
         {
             Vector3d partPosition = this.part.transform.position; // find the position of the transform in 3d space
-            double scaleFactor = this.part.rescaleFactor; // what is the rescale factor of the drill?
-            float drillDistance = (float)(drillReach * scaleFactor); // adjust the distance for the ray with the rescale factor, needs to be a float for raycast.
+            var scaleFactor = this.part.rescaleFactor; // what is the rescale factor of the drill?
+            var drillDistance = drillReach * scaleFactor; // adjust the distance for the ray with the rescale factor, needs to be a float for raycast.
 
             RaycastHit hit = new RaycastHit(); // create a variable that stores info about hit colliders etc.
             LayerMask terrainMask = 32768; // layermask in unity, number 1 bitshifted to the left 15 times (1 << 15), (terrain = 15, the bitshift is there so that the mask bits are raised; this is a good reading about that: http://answers.unity3d.com/questions/8715/how-do-i-use-layermasks.html)
@@ -359,31 +441,22 @@ namespace FNPlugin.Collectors
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements;
 
             // calculate the provided power and consume it
-            double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * deltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
-            double dNormalisedRecievedPowerMW = dPowerReceivedMW / deltaTime;
+            double dNormalisedRecievedPowerMW = consumeFNResourcePerSecond(dPowerRequirementsMW, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
             // when the requirements are low enough, we can get the power needed from stock energy charge
             if (dPowerRequirementsMW < 5 && dNormalisedRecievedPowerMW <= dPowerRequirementsMW)
             {
                 double dRequiredKW = (dPowerRequirementsMW - dNormalisedRecievedPowerMW) * 1000;
-                double dReceivedKW = ORSHelper.fixedRequestResource(part, FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * deltaTime);
-                dPowerReceivedMW += (dReceivedKW / 1000);
-                dNormalisedRecievedPowerMW = dPowerReceivedMW / deltaTime;
+                double dReceivedKW = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * deltaTime) / deltaTime;
+                dNormalisedRecievedPowerMW += dReceivedKW / 1000;
             }
-
-            //return dNormalisedRecievedPowerMW >= dPowerRequirementsMW;
 
             // Workaround for some weird glitches where dNormalisedRecievedPowerMW gets slightly smaller than it should be during timewarping
             double powerPercentage = dNormalisedRecievedPowerMW / dPowerRequirementsMW; 
-            
             if ( powerPercentage >= 0.99 )
-            {
                 return true; 
-            }
             else
-            {
                 return false; 
-            }
         }
 
         /// <summary>
@@ -429,8 +502,7 @@ namespace FNPlugin.Collectors
                 var definition = PartResourceLibrary.Instance.GetDefinition(currentResource.ResourceName);
                 try
                 {
-                    abundance.GlobalWithVariance = 
-                        ResourceMap.Instance.GetAbundance(new AbundanceRequest()
+                    abundance.GlobalWithVariance =  GetAbundance(new AbundanceRequest()
                         {
                             ResourceType = HarvestTypes.Planetary,
                             ResourceName = currentResource.ResourceName,
@@ -438,8 +510,7 @@ namespace FNPlugin.Collectors
                             CheckForLock = false
                         });
 
-                    abundance.GlobalWithoutVariance =
-                            ResourceMap.Instance.GetAbundance(new AbundanceRequest()
+                    abundance.GlobalWithoutVariance = GetAbundance(new AbundanceRequest()
                             {
                                 ResourceType = HarvestTypes.Planetary,
                                 ResourceName = currentResource.ResourceName,
@@ -448,8 +519,7 @@ namespace FNPlugin.Collectors
                                 ExcludeVariance = true,
                             });
 
-                    abundance.Local = ResourceMap.Instance.GetAbundance(
-                        new AbundanceRequest()
+                    abundance.Local = GetAbundance(new AbundanceRequest()
                         {
                             ResourceType = HarvestTypes.Planetary,
                             ResourceName = currentResource.ResourceName,
@@ -462,8 +532,7 @@ namespace FNPlugin.Collectors
                     var biome_attribute = part.vessel.mainBody.BiomeMap.GetAtt(FlightGlobals.ship_latitude, FlightGlobals.ship_longitude);
                     if (biome_attribute != null)
                     {
-                        abundance.Biome = ResourceMap.Instance.GetAbundance(
-                        new AbundanceRequest()
+                        abundance.Biome = GetAbundance(new AbundanceRequest()
                         {
                             ResourceType = HarvestTypes.Planetary,
                             ResourceName = currentResource.ResourceName,
@@ -508,10 +577,26 @@ namespace FNPlugin.Collectors
             }
             catch (Exception)
             {
-                Console.WriteLine("[KSPI] UniversalCrustExtractor - Abundance request failed.");
+                Console.WriteLine("[KSPI] - UniversalCrustExtractor - Abundance request failed.");
                 return false; // if we got here, something went wrong, return false
             }
+
+            // correct for trace abundances
+            if (localAbundance < 1)
+                localAbundance = Math.Pow(localAbundance, 4); 
+
             return true; // if we got this far, everything went well, presumably
+        }
+
+        private double GetAbundance(AbundanceRequest request)
+        {
+            // retreive and convert to double
+            double abundance = (double)(decimal)ResourceMap.Instance.GetAbundance(request);
+
+            if (abundance < 1)
+                abundance = Math.Pow(abundance, 4);
+
+            return abundance;
         }
 
         /// <summary>
@@ -527,7 +612,7 @@ namespace FNPlugin.Collectors
             CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
             if (homeworld == null)
             {
-                Console.WriteLine("[KSPI] UniversalCrustExtractor. Homeworld not found, setting crust thickness to 0.");
+                Console.WriteLine("[KSPI] - UniversalCrustExtractor. Homeworld not found, setting crust thickness to 0.");
                 return false;
             }
             double homeplanetMass = homeworld.Mass; // This will usually be Kerbin, but players can always use custom planet packs with a custom homeplanet or resized systems
@@ -566,32 +651,8 @@ namespace FNPlugin.Collectors
         /// <returns>Bool, signifying if the calculation went well.</returns>
         private bool CalculatePseudoMinedAmount(double crustThickness, out double minedAmount)
         {
-            minedAmount = 0;
-
-            try
-            {
-                minedAmount = crustThickness * drillSize * effectiveness;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[KSPI] UniversalCrustExtractor. Mined amount calculation failed. Setting to 0. " + ex.Message );
-            }
-            return true;
-
-        }
-
-        /// <summary>
-        /// Calculates the amount of actual resource that will be collected.
-        /// </summary>
-        /// <param name="minedAmount">The amount of the crust pseudo-resource that has been "mined".</param>
-        /// <param name="globalPercentage">The percentage of the current resource in this planet's crust.</param>
-        /// <param name="localAbundance">The local abundance of the resource.</param>
-        /// <param name="deltaTime">The time since last Fixed Update (Unity).</param>
-        /// <returns>Double, signifying the amount of the current resource to collect.</returns>
-        private double CalculateResourceAmountCollected(double minedAmount, double globalPercentage, double localAbundance, double deltaTime)
-        {
-            double resourceAmount = minedAmount * localAbundance * deltaTime;
-            return resourceAmount;
+            minedAmount = crustThickness * drillSize * effectiveness;
+            return minedAmount > 0;
         }
 
         /// <summary>
@@ -599,19 +660,17 @@ namespace FNPlugin.Collectors
         /// </summary>
         /// <param name="resourceName"></param>
         /// <returns>Double, signifying the amount of spare room for the resource on the vessel.</returns>
-        private double CalculateSpareRoom(string resourceName)
+        private double CalculateSpareRoom(CrustalResource resource)
         {
-            double spareRoom = 0;
-            try
-            {
-                spareRoom = part.GetConnectedResources(resourceName).Sum(r => r.maxAmount - r.amount);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[KSPI] - UniversalCrustExtractor - error while calculating spare room for the current resource. " + ex.Message );
-                return 0;
-            }
-            return spareRoom;
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(resource.Definition.id, out currentAmount, out maxAmount);
+
+            resource.Amount = currentAmount;
+            resource.MaxAmount = maxAmount;
+            resource.SpareRoom = maxAmount - currentAmount;
+
+            return resource.SpareRoom;
         }
 
         /// <summary>
@@ -620,11 +679,9 @@ namespace FNPlugin.Collectors
         /// <param name="amount">The amount of resource to collect/add.</param>
         /// <param name="resourceName">The name of the current resource.</param>
         /// <param name="deltaTime">The time since last Fixed Update (Unity).</param>
-        private void AddResource(double amount, string resourceName)
+        private double AddResource(double amount, string resourceName)
         {
-            //amount = part.RequestResource(resourceName, -amount * deltaTime, ResourceFlowMode.ALL_VESSEL) / deltaTime;
-            // dResourceFlow = (float)ORSHelper.fixedRequestResource(part, strRegolithResourceName, -dResourceChange);
-            amount = ORSHelper.fixedRequestResource(part, resourceName, -amount, ResourceFlowMode.ALL_VESSEL);
+            return part.RequestResource(resourceName, -amount, ResourceFlowMode.ALL_VESSEL); 
         }
 
         private void StoreDataForOfflineMining(double amount)
@@ -695,17 +752,16 @@ namespace FNPlugin.Collectors
                         continue;
 
                     deltaTime = (deltaTime >= 1.0 ? deltaTime : 1.0);
-                    double amount = CalculateResourceAmountCollected(minedAmount, abundance.GlobalWithVariance, abundance.Local, deltaTime);
-                    double spareRoom = CalculateSpareRoom(resource.ResourceName);
+                    resource.Production = minedAmount * abundance.Local;
+                    CalculateSpareRoom(resource);
 
-                    if (spareRoom > 0) // if there's space, add the resource
-                        AddResource(amount, resource.ResourceName);
+                    if (resource.SpareRoom > 0) // if there's space, add the resource
+                        AddResource(resource.Production * deltaTime, resource.ResourceName);
                 }
             }
             else // this is offline collecting, so use the simplified version
             {
                 // these are helper variables for the message
-                double amount = 0;
                 double totalAmount = 0;
                 int numberOfResources = 0;
 
@@ -724,15 +780,17 @@ namespace FNPlugin.Collectors
                     if (abundance == null)
                         continue;
 
-                    amount = CalculateResourceAmountCollected(dLastPseudoMinedAmount, abundance.GlobalWithVariance, abundance.Local, deltaTime);
-                        double spareRoom = CalculateSpareRoom(resource.ResourceName);
-                        if ((spareRoom > 0) && (amount > 0))
-                        {
-                            AddResource(amount, resource.ResourceName);
-                            totalAmount += (amount > spareRoom) ? spareRoom : amount; // add the mined amount to the total for the message, but only the amount that actually got into the tanks
-                            numberOfResources++;
-                        }
-                       
+                    //amount = CalculateResourceAmountCollected(dLastPseudoMinedAmount, abundance.GlobalWithVariance, abundance.Local, deltaTime);
+                    resource.Production = dLastPseudoMinedAmount * abundance.Local;
+                    CalculateSpareRoom(resource);
+                    if ((resource.SpareRoom > 0) && (resource.Production > 0))
+                    {
+                        var additionFixed = resource.Production * deltaTime;
+                        AddResource(additionFixed, resource.ResourceName);
+                        totalAmount += (additionFixed > resource.SpareRoom) ? resource.SpareRoom : additionFixed; // add the mined amount to the total for the message, but only the amount that actually got into the tanks
+                        numberOfResources++;
+                    }
+
                 }
                 // inform the player about the offline processing
                 ScreenMessages.PostScreenMessage("Universal drill mined offline for " + deltaTime.ToString("0") + " seconds, drilling out "+ totalAmount.ToString("0.000") + " units of " + numberOfResources + " resources.", 10.0f, ScreenMessageStyle.LOWER_CENTER);
@@ -756,15 +814,12 @@ namespace FNPlugin.Collectors
 
             if (GUI.Button(new Rect(_window_position.width - 20, 2, 18, 18), "x"))
                 _render_window = false;
-               
-            
+
             GUILayout.BeginVertical();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Drill parameters:",_bold_label, GUILayout.Width(labelWidth));
             GUILayout.EndHorizontal();
-
-            
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Size: " + drillSize.ToString("#.#") + " m\xB3", _normal_label);
@@ -781,11 +836,16 @@ namespace FNPlugin.Collectors
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Name", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label("Global 1", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Global 2", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Biome ", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Local ", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Name", _bold_label, GUILayout.Width(valueWidth));
+            
+            //GUILayout.Label("Global 1", _bold_label, GUILayout.Width(valueWidth));
+            //GUILayout.Label("Global 2", _bold_label, GUILayout.Width(valueWidth));
+            //GUILayout.Label("Biome ", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Abundance", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Production", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Spare Room", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Stored", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Max Capacity", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GetResourceData();
@@ -802,22 +862,43 @@ namespace FNPlugin.Collectors
                         continue;
 
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(resource.DisplayName, _normal_label, GUILayout.Width(labelWidth));
-                    GUILayout.Label(abundance.GlobalWithVariance.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
-                    GUILayout.Label(abundance.GlobalWithoutVariance.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
-                    GUILayout.Label(abundance.Biome.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
-                    GUILayout.Label(abundance.Local.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
+                    GUILayout.Label(resource.DisplayName, _normal_label, GUILayout.Width(valueWidth));
+                    //GUILayout.Label(abundance.GlobalWithVariance.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
+                    //GUILayout.Label(abundance.GlobalWithoutVariance.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
+                    //GUILayout.Label(abundance.Biome.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
+                    GUILayout.Label(((float)abundance.Local).ToString() + "%", _normal_label, GUILayout.Width(valueWidth));
+
+                    if (resource.Definition != null && resource.MaxAmount > 0)
+                    {
+                        GUILayout.Label((resource.Production * resource.Definition.density * 3600).ToString("##.######") + " t/h", _normal_label, GUILayout.Width(valueWidth));
+                        GUILayout.Label((resource.SpareRoom * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                        GUILayout.Label((resource.Amount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                        GUILayout.Label((resource.MaxAmount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                    }
                     GUILayout.EndHorizontal();
                 }
             }
             //GUILayout.EndScrollView();
-             
-            
-
             GUILayout.EndVertical();
             GUI.DragWindow();
-
         }
 
+
+
+        
+        public void UpdateLoopingAnimation()
+        {
+            if (loopAnimation == null)
+                return;
+
+            if (animationState > 1)
+                animationState = 0;
+
+            animationState += 0.05f;
+
+            loopAnimation[loopingAnimationName].speed = 0;
+            loopAnimation[loopingAnimationName].normalizedTime = animationState;
+            loopAnimation.Blend(loopingAnimationName, 1);
+        }
     }
 }

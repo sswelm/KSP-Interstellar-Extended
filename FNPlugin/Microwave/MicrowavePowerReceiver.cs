@@ -876,55 +876,63 @@ namespace FNPlugin
 
         private void UpdateBuffers(double inputPower)
         {
-            if (wasteheatResource != null && TimeWarp.fixedDeltaTime != previousDeltaTime)
+            try
             {
-                var ratio = Math.Min(1, wasteheatResource.amount / wasteheatResource.maxAmount);
-                wasteheatResource.maxAmount = partBaseWasteheat * TimeWarp.fixedDeltaTime; ;
-                wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
-            }
 
-            if (inputPower > 0)
-            {
-                if (thermalResource != null)
+                if (wasteheatResource != null && TimeWarp.fixedDeltaTime != previousDeltaTime)
                 {
-                    var ratio = Math.Min(1, thermalResource.amount / thermalResource.maxAmount);
-                    thermalResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
-                    thermalResource.amount = thermalResource.maxAmount * ratio;
+                    var ratio = Math.Min(1, wasteheatResource.amount / wasteheatResource.maxAmount);
+                    wasteheatResource.maxAmount = partBaseWasteheat * TimeWarp.fixedDeltaTime; ;
+                    wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
                 }
 
-                if (megajouleResource != null)
+                if (inputPower > 0)
                 {
-                    var ratio = Math.Min(1, megajouleResource.amount / megajouleResource.maxAmount);
-                    megajouleResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
-                    megajouleResource.amount = megajouleResource.maxAmount * ratio;
+                    if (thermalResource != null)
+                    {
+                        var ratio = Math.Min(1, thermalResource.amount / thermalResource.maxAmount);
+                        thermalResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
+                        thermalResource.amount = thermalResource.maxAmount * ratio;
+                    }
+
+                    if (megajouleResource != null)
+                    {
+                        var ratio = Math.Min(1, megajouleResource.amount / megajouleResource.maxAmount);
+                        megajouleResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
+                        megajouleResource.amount = megajouleResource.maxAmount * ratio;
+                    }
+                    if (electricResource != null)
+                    {
+                        var ratio = Math.Min(1, electricResource.amount / electricResource.maxAmount);
+                        electricResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
+                        electricResource.amount = electricResource.maxAmount * ratio;
+                    }
                 }
-                if (electricResource != null)
+                else
                 {
-                    var ratio = Math.Min(1, electricResource.amount / electricResource.maxAmount);
-                    electricResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
-                    electricResource.amount = electricResource.maxAmount * ratio;
+                    if (thermalResource != null && thermalResource.maxAmount > 0.001)
+                    {
+                        var ratio = Math.Min(1, thermalResource.amount / thermalResource.maxAmount);
+                        thermalResource.maxAmount = Math.Min(StableMaximumReactorPower * TimeWarp.fixedDeltaTime, thermalResource.maxAmount * 0.99);
+                        thermalResource.amount = Math.Min(thermalResource.maxAmount, thermalResource.amount);
+                    }
+                    if (megajouleResource != null && megajouleResource.maxAmount > 0.001)
+                    {
+                        var ratio = Math.Min(1, megajouleResource.amount / megajouleResource.maxAmount);
+                        megajouleResource.maxAmount = Math.Min(StableMaximumReactorPower * TimeWarp.fixedDeltaTime, megajouleResource.maxAmount * 0.9);
+                        megajouleResource.amount = Math.Min(megajouleResource.maxAmount, megajouleResource.amount);
+                    }
+                    if (electricResource != null && electricResource.maxAmount > 0.001)
+                    {
+                        var ratio = Math.Min(1, electricResource.amount / electricResource.maxAmount);
+                        electricResource.maxAmount = Math.Min(StableMaximumReactorPower * TimeWarp.fixedDeltaTime, electricResource.maxAmount * 0.9);
+                        electricResource.amount = Math.Min(electricResource.maxAmount, electricResource.amount);
+                    }
                 }
-            }
-            else
+            }    
+            catch (Exception e)
             {
-                if (thermalResource.maxAmount > 0.001)
-                {
-                    var ratio = Math.Min(1, thermalResource.amount / thermalResource.maxAmount);
-                    thermalResource.maxAmount = Math.Min(StableMaximumReactorPower * TimeWarp.fixedDeltaTime, thermalResource.maxAmount * 0.99);
-                    thermalResource.amount = Math.Min(thermalResource.maxAmount, thermalResource.amount);
-                }
-                if (megajouleResource.maxAmount > 0.001)
-                {
-                    var ratio = Math.Min(1, megajouleResource.amount / megajouleResource.maxAmount);
-                    megajouleResource.maxAmount = Math.Min(StableMaximumReactorPower * TimeWarp.fixedDeltaTime, megajouleResource.maxAmount * 0.9);
-                    megajouleResource.amount = Math.Min(megajouleResource.maxAmount, megajouleResource.amount);
-                }
-                if (electricResource.maxAmount > 0.001)
-                {
-                    var ratio = Math.Min(1, electricResource.amount / electricResource.maxAmount);
-                    electricResource.maxAmount = Math.Min(StableMaximumReactorPower * TimeWarp.fixedDeltaTime, electricResource.maxAmount * 0.9);
-                    electricResource.amount = Math.Min(electricResource.maxAmount, electricResource.amount);
-                }
+                Debug.LogError("[KSPI] - MicrowavePowerReceiver.UpdateBuffers " + e.Message);
             }
             previousDeltaTime = TimeWarp.fixedDeltaTime;
         }
@@ -948,7 +956,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Reactor.OnEditorAttach " + e.Message);
+                Debug.LogError("[KSPI] - MicrowavePowerReceiver.OnEditorAttach " + e.Message);
             }
         }
 
@@ -1342,44 +1350,46 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(float fixedDeltaTime)
         {
+
+            total_conversion_waste_heat_production = 0;
+            currentIsThermalEnergyGenratorActive = 0;
+            storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
+
+            wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
+
+            CalculateThermalSolarPower();
+
+            if (initializationCountdown > 0)
+            {
+                initializationCountdown--;
+
+                part.temperature = storedTemp;
+                part.skinTemperature = storedTemp;
+            }
+            else
+                storedTemp = part.temperature;
+
+            if (receiverIsEnabled && radiatorMode)
+            {
+                if (fnRadiator != null)
+                {
+                    fnRadiator.canRadiateHeat = true;
+                    fnRadiator.radiatorIsEnabled = true;
+                }
+                UpdateBuffers(0);
+                return;
+            }
+            else
+            {
+                if (fnRadiator != null)
+                {
+                    fnRadiator.canRadiateHeat = false;
+                    fnRadiator.radiatorIsEnabled = false;
+                }
+            }
+
             try
             {
-                total_conversion_waste_heat_production = 0;
-                currentIsThermalEnergyGenratorActive = 0;
-                storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
-
-                wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
-
-                CalculateThermalSolarPower();
-
-                if (initializationCountdown > 0)
-                {
-                    initializationCountdown--;
-
-                    part.temperature = storedTemp;
-                    part.skinTemperature = storedTemp;
-                }
-                else
-                    storedTemp = part.temperature;
-
-                if (receiverIsEnabled && radiatorMode)
-                {
-                    if (fnRadiator != null)
-                    {
-                        fnRadiator.canRadiateHeat = true;
-                        fnRadiator.radiatorIsEnabled = true;
-                    }
-                    UpdateBuffers(0);
-                    return;
-                }
-                else
-                {
-                    if (fnRadiator != null)
-                    {
-                        fnRadiator.canRadiateHeat = false;
-                        fnRadiator.radiatorIsEnabled = false;
-                    }
-                }
 
                 if (receiverIsEnabled && !radiatorMode)
                 {
@@ -1610,7 +1620,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in OnFixedUpdateResourceSuppliable " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI] - Exception in MicrowavePowerReceiver.OnFixedUpdateResourceSuppliable " + e.Message + " at " + e.StackTrace);
             }
         }
 
