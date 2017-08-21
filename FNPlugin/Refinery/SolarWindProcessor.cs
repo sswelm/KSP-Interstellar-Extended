@@ -318,5 +318,9 @@ namespace FNPlugin.Refinery
             else
                 _status = "Insufficient Storage, try allowing overflow";
         }
+
+        public void PrintMissingResources() {
+            ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.SolarWind, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+        }
     }
 }

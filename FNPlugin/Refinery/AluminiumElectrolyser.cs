@@ -84,5 +84,12 @@ namespace FNPlugin.Refinery
             else
                 _status = "Insufficient Storage";
         }
+
+
+        public void PrintMissingResources()
+        {
+            ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Alumina, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+        }
+
     }
 }

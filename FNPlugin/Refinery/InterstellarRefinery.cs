@@ -303,10 +303,17 @@ namespace FNPlugin.Refinery
                     bool hasRequirement = act.HasActivityRequirements; // if the requirements for the activity are fulfilled
                     GUIStyle guistyle = hasRequirement ? _enabled_button : _disabled_button; // either draw the enabled, bold button, or the disabled one
 
-                    if (GUILayout.Button(act.ActivityName, guistyle, GUILayout.ExpandWidth(true)) && hasRequirement) // if user clicks the button and has requirements for the activity
+                    if (GUILayout.Button(act.ActivityName, guistyle, GUILayout.ExpandWidth(true))) // if user clicks the button and has requirements for the activity
                     {
-                        _current_activity = act; // the activity will be treated as the current activity
-                        refinery_is_enabled = true; // refinery is now on
+                        if(hasRequirement) { 
+                            _current_activity = act; // the activity will be treated as the current activity
+                            refinery_is_enabled = true; // refinery is now on
+                         }
+                        else
+                        {
+                            act.PrintMissingResources(); 
+                        }
+
                     }
                     GUILayout.EndHorizontal();
                 });
@@ -339,7 +346,7 @@ namespace FNPlugin.Refinery
                 _current_activity.UpdateGUI();
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Deactivate Proces", GUILayout.ExpandWidth(true)))
+                if (GUILayout.Button("Deactivate Process", GUILayout.ExpandWidth(true)))
                 {
                     refinery_is_enabled = false;
                     _current_activity = null;
