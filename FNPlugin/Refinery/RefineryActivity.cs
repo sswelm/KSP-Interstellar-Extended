@@ -68,5 +68,8 @@ namespace FNPlugin.Refinery
         void UpdateFrame(double rateMultiplier, double powerFraction,  double powerModidier, bool allowOverfow, double fixedDeltaTime);
 
         void UpdateGUI();
+
+        void PrintMissingResources();
+
     }
 }

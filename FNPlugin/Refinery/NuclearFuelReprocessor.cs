@@ -80,5 +80,10 @@ namespace FNPlugin.Refinery
         {
             return _remaining_to_reprocess;
         }
+
+        public void PrintMissingResources()
+        {
+                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Actinides, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+        }
     }
 }

@@ -113,5 +113,13 @@ namespace FNPlugin.Refinery
             else
                 _status = "Insufficient Storage";
         }
+
+        public void PrintMissingResources()
+        {
+            if (!HasAccessToHydrogen())
+                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Hydrogen, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+            if (!HasAccessToNitrogen())
+                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Nitrogen, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+        }
     }
 }

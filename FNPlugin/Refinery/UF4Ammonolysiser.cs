@@ -101,5 +101,13 @@ namespace FNPlugin.Refinery
 
             }
         }
+        public void PrintMissingResources()
+        {
+            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Ammonia, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+        }
+
     }
 }

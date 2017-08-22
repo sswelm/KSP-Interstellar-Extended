@@ -229,5 +229,13 @@ namespace FNPlugin.Refinery
                     _status = "Hydrogen Peroxide and Ammonia Deprived";
             }
         }
+
+        public void PrintMissingResources()
+        {
+            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.HydrogenPeroxide + " (Hydrogen Peroxide)", 3.0f, ScreenMessageStyle.UPPER_CENTER);
+            if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0))
+                ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Ammonia, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+        }
     }
 }
