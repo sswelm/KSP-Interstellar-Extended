@@ -27,19 +27,12 @@ namespace FNPlugin
         public override void OnStart(StartState state) 
         {
             if (state == StartState.Editor) return;
-            
-            //RenderingManager.AddToPostDrawQueue(0, OnGUI);
         }
 
         public override void OnUpdate() 
         {
             Events["showWindow"].active = !render_window;
             Events["hideWindow"].active = render_window;
-
-            if (!vessel.isActiveVessel || part == null)
-            {
-                //RenderingManager.RemoveFromPostDrawQueue(0, OnGUI);
-            }
         }
 
         private void OnGUI() 

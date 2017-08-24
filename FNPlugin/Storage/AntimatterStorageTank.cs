@@ -20,8 +20,6 @@ namespace FNPlugin
         public double chargeNeeded = 100;
         [KSPField(isPersistant = false)]
         public string resourceName = "Antimatter";
-        [KSPField(isPersistant = false)]
-        public string animationName;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Required Power")]
         public double effectivePowerNeeded;
@@ -122,7 +120,6 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
                 storedScalingfactor = factor.absolute.linear;
                 storedMassMultiplier = Math.Pow(storedScalingfactor, massExponent);
                 initialMass = part.prefabMass * storedMassMultiplier;
@@ -130,7 +127,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNGenerator.OnRescale " + e.Message);
+                Debug.LogError("[KSPI] - AntimatterStorageTank.OnRescale " + e.Message);
             }
         }
 
@@ -185,7 +182,7 @@ namespace FNPlugin
 
         public void doExplode(string reason = null)
         {
-            if (antimatterResource.amount <= 0.1f) return;
+            if (antimatterResource.amount <= 0.1) return;
 
             if (!string.IsNullOrEmpty(reason))
             {
@@ -224,12 +221,6 @@ namespace FNPlugin
             }
 
             deploymentAnimation = part.FindModuleImplementing<ModuleAnimateGeneric>();
-            //if (deploymentAnimation != null && deploymentAnimation.GetScalar == 0 &&  state == PartModule.StartState.Editor)
-            //{
-            //    deploymentAnimation.Toggle();
-            //}
-
-            //containerStates = SetUpAnimation(animationName, this.part);
 
             part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
 
@@ -575,24 +566,6 @@ namespace FNPlugin
                 return (mass * 1e-15).ToString("0.0000000") + " ng";
             else
                 return (mass * 1e-18).ToString("0.0000000") + " pg";
-        }
-
-        public static AnimationState[] SetUpAnimation(string animationName, Part part) 
-        {
-            if (String.IsNullOrEmpty(animationName))
-                return null;
-
-            var states = new List<AnimationState>();
-            foreach (var animation in part.FindModelAnimators(animationName))
-            {
-                var animationState = animation[animationName];
-                animationState.speed = 0;
-                animationState.enabled = true;
-                animationState.wrapMode = WrapMode.ClampForever;
-                animation.Blend(animationName);
-                states.Add(animationState);
-            }
-            return states.ToArray();
         }
     }
 

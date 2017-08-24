@@ -159,6 +159,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string bandWidthName;
 
+        [KSPField(isPersistant = false)]
+        public int connectStackdepth = 4;
+        [KSPField(isPersistant = false)]
+        public int connectParentdepth = 2;
+        [KSPField(isPersistant = false)]
+        public int connectSurfacedepth = 2;
+
         //GUI
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
         public float receiptPower = 100;
@@ -763,8 +770,6 @@ namespace FNPlugin
                 }
             }
 
-            Debug.Log("[KSPI] - 8 ");
-
             deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (deployableSolarPanel != null)
             {
@@ -797,7 +802,7 @@ namespace FNPlugin
 
             if (isThermalReceiverSlave)
             {
-                var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is MicrowavePowerReceiver && (MicrowavePowerReceiver)s != this , 2, 2, 2, true);
+                var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is MicrowavePowerReceiver && (MicrowavePowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
 
                 if (result == null || result.Source == null)
                     UnityEngine.Debug.LogWarning("[KSPI] - MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
@@ -1348,9 +1353,8 @@ namespace FNPlugin
             base.OnFixedUpdate();
         }
 
-        public override void OnFixedUpdateResourceSuppliable(float fixedDeltaTime)
+        public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-
             total_conversion_waste_heat_production = 0;
             currentIsThermalEnergyGenratorActive = 0;
             storedIsThermalEnergyGenratorActive = currentIsThermalEnergyGenratorActive;
@@ -1940,12 +1944,6 @@ namespace FNPlugin
                 }
 
                 bool hasLineOfSight = PluginHelper.HasLineOfSightWith(this.vessel, transmitter.Vessel);
-
-                if (!hasLineOfSight)
-                {
-                    //Debug.Log("[KSPI] - transmitter out of sight!");
-                }
-
                 if (hasLineOfSight)
                 {
                     //Debug.Log("[KSPI] - has line of sight with vessel " + transmitter.Vessel.name);

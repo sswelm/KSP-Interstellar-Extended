@@ -16,7 +16,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string AnimationName = "";
         [KSPField(isPersistant = false)]
-        public double efficency = 0.8;
+        public double efficiency = 0.8;
         [KSPField(isPersistant = false)]
         public int type = 16;
         [KSPField(isPersistant = false)]
@@ -29,6 +29,8 @@ namespace FNPlugin
         public string displayName = "";
         [KSPField(isPersistant = false)]
         public bool showConsumption = true;
+        [KSPField(isPersistant = false)]
+        public double powerMult = 1;
 
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "Full Thrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool fullThrustEnabled;
@@ -72,8 +74,8 @@ namespace FNPlugin
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Consumption")]
         public string electricalPowerConsumptionStr = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Efficency")]
-        public string efficencyStr = "";
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Efficiency")]
+        public string efficiencyStr = "";
 
         // internal
         private AnimationState[] rcsStates;
@@ -92,7 +94,7 @@ namespace FNPlugin
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
         private FNModuleRCSFX attachedModuleRCSFX;
-        private double efficencyModifier;
+        private double efficiencyModifier;
         private float currentMaxThrust;
         private float oldThrustLimiter;
         private bool oldPowerEnabled;
@@ -331,8 +333,8 @@ namespace FNPlugin
 
                 oldThrustLimiter = thrustLimiter;
                 oldPowerEnabled = powerEnabled;
-                efficencyModifier = g0 * 0.5 / 1000 / efficency;
-                efficencyStr = (efficency * 100).ToString() + "%";
+                efficiencyModifier = g0 * 0.5 / 1000 / efficiency;
+                efficiencyStr = (efficiency * 100).ToString() + "%";
 
                 if (!String.IsNullOrEmpty(AnimationName))
                     rcsStates = SetUpAnimation(AnimationName, this.part);
@@ -402,8 +404,8 @@ namespace FNPlugin
             if (delayedVerificationPropellant)
             {
                 // test is we got any megajoules
-                power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResource(0.1, FNResourceManager.FNRESOURCE_MEGAJOULES);
-                hasSufficientPower = power_recieved_f > 0.01;
+                power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResource(powerMult, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                hasSufficientPower = power_recieved_f > powerMult / 10;
 
                 delayedVerificationPropellant = false;
                 SetupPropellants(true, _propellants.Count);
@@ -471,9 +473,9 @@ namespace FNPlugin
 
             if (powerEnabled)
             {
-                power_requested_f = currentThrust * maxIsp * Current_propellant.IspMultiplier * efficencyModifier / currentThrustMultiplier;
+                power_requested_f = powerMult * currentThrust * maxIsp * Current_propellant.IspMultiplier * efficiencyModifier / currentThrustMultiplier;
 
-                var power_required_raw = (power_requested_f * TimeWarp.fixedDeltaTime);
+                var power_required_raw = power_requested_f * TimeWarp.fixedDeltaTime;
 
                 power_recieved_raw = CheatOptions.InfiniteElectricity 
                     ? power_requested_raw
@@ -485,7 +487,7 @@ namespace FNPlugin
 
                 power_recieved_f = power_recieved_raw / TimeWarp.fixedDeltaTime;
 
-                double heat_to_produce = power_recieved_f * (1 - efficency);
+                double heat_to_produce = power_recieved_f * (1 - efficiency);
 
                 heat_production_f = CheatOptions.IgnoreMaxTemperature 
                     ? heat_to_produce 
@@ -540,7 +542,6 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName() 
         {
-            //return part.partInfo.title;
             return part.partInfo.title + " (" + propNameStr + ")";
         }
     }

@@ -126,14 +126,14 @@ namespace InterstellarFuelSwitch
 
             foreach (var resource in primaryResources)
             {
-                if (resource.definition.density > 0 && resource.definition.volume > 0)
-                    resource.normalizedDensity = resource.definition.density / resource.definition.volume;
+                if (resource.definition.density > 0) 
+                    resource.normalizedDensity = resource.definition.density;
             }
 
             foreach (var resource in secondaryResources)
             {
-                if (resource.definition.density > 0 && resource.definition.volume > 0)
-                    resource.normalizedDensity = resource.definition.density / resource.definition.volume;
+                if (resource.definition.density > 0) 
+                    resource.normalizedDensity = resource.definition.density; 
             }
 
             if (primaryResources.Count == 1 && secondaryResources.Count == 1)

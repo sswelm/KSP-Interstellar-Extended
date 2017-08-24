@@ -150,7 +150,7 @@ namespace FNPlugin
             return 1;
         }
 
-        public override void OnFixedUpdateResourceSuppliable(float fixedDeltaTime)
+        public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
             try
             {

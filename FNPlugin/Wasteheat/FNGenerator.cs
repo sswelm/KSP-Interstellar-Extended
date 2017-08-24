@@ -797,7 +797,7 @@ namespace FNPlugin
             base.OnFixedUpdate();
         }
 
-        public override void OnFixedUpdateResourceSuppliable(float fixedDeltaTime)
+        public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
             try
             {
@@ -961,30 +961,29 @@ namespace FNPlugin
                 _powerState = PowerStates.powerOnline;
 
                 var megaWattBufferingBonus = attachedPowerSource.PowerBufferBonus * maxStableMegaWattPower;
-                requiredMegawattCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * maxStableMegaWattPower + megaWattBufferingBonus);
-                var previousMegawattCapacity = Math.Max(0.0001, previousDeltaTime * maxStableMegaWattPower + megaWattBufferingBonus);
+                requiredMegawattCapacity = Math.Max(0.0001, TimeWarp.fixedDeltaTime * (maxStableMegaWattPower + megaWattBufferingBonus));
+                var requiredElectricChargeCapacity = requiredMegawattCapacity * 50;
 
                 if (megajouleResource != null)
                 {
-                    var mageJouleRatio = megajouleResource.amount / megajouleResource.maxAmount;
+                    var megaJouleRatio = megajouleResource.amount / megajouleResource.maxAmount;
                     megajouleResource.maxAmount = requiredMegawattCapacity;
 
                     if (!generatorInit)
                         megajouleResource.amount = megajouleResource.maxAmount;
                     else
-                        megajouleResource.amount = Math.Max(0, Math.Min(requiredMegawattCapacity, mageJouleRatio * requiredMegawattCapacity));
+                        megajouleResource.amount = Math.Max(0, Math.Min(requiredMegawattCapacity, megaJouleRatio * requiredMegawattCapacity));
                 }
 
                 if (part.Resources.Contains(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE))
                 {
-                    PartResource electricChargeResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
                     var electricChargeRatio = electricChargeResource.amount / electricChargeResource.maxAmount;
-                    electricChargeResource.maxAmount = requiredMegawattCapacity;
+                    electricChargeResource.maxAmount = requiredElectricChargeCapacity;
 
                     if (!generatorInit)
                         electricChargeResource.amount = electricChargeResource.maxAmount;
                     else
-                        electricChargeResource.amount = Math.Max(0, Math.Min(requiredMegawattCapacity, electricChargeRatio * requiredMegawattCapacity));
+                        electricChargeResource.amount = Math.Max(0, Math.Min(requiredElectricChargeCapacity, electricChargeRatio * requiredElectricChargeCapacity));
                     
                 }
             }

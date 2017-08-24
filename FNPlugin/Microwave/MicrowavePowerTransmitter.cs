@@ -67,7 +67,6 @@ namespace FNPlugin
         public bool canTransmit = false;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Build in Relay")]
         public bool buildInRelay = false;
-
         [KSPField(isPersistant = false, guiActiveEditor = true)]
         public int compatibleBeamTypes = 1;
 
@@ -422,7 +421,7 @@ namespace FNPlugin
                 if (anim == null) 
                     return true;
 
-                var pressure = FlightGlobals.getStaticPressure(vessel.transform.position) / 100;
+                var pressure = part.atmDensity;      
                 var dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325.0;
 
                 if (dynamic_pressure <= 0) return true;
@@ -452,12 +451,22 @@ namespace FNPlugin
             bool receiver_on = part_receiver != null && part_receiver.isActive();
             canBeActive = CanBeActive;
 
-            if (anim != null && !canBeActive && IsEnabled)
+            if (anim != null && !canBeActive && IsEnabled && part.vessel.isActiveVessel && !CheatOptions.UnbreakableJoints)
             {
                 if (relay)
+                {
+                    var message = "Disabled relay because of static pressure atmosphere";
+                    ScreenMessages.PostScreenMessage(message, 5f, ScreenMessageStyle.UPPER_CENTER);
+                    Debug.Log("KSPI - " + message);
                     DeactivateRelay();
+                }
                 else
+                {
+                    var message = "Disabled transmitter because of static pressure atmosphere";
+                    ScreenMessages.PostScreenMessage(message, 5f, ScreenMessageStyle.UPPER_CENTER);
+                    Debug.Log("KSPI - " + message);
                     DeactivateTransmitter();
+                }
             }
 
             var canOperateInCurrentEnvironment = this.canFunctionOnSurface || vesselInSpace;
@@ -675,12 +684,10 @@ namespace FNPlugin
                 double cloud_variance;
                 if (body_name == "Kerbin")
                 {
-                    if (biome_desc == "Desert" || biome_desc == "Ice Caps")
-                        moistureModifier = 0.5;
+                    if (biome_desc == "Desert" || biome_desc == "Ice Caps" || biome_desc == "BadLands")
+                        moistureModifier = 0.4;
                     else if (biome_desc == " Water")
                         moistureModifier = 1;
-                    else if (biome_desc == "BadLands")
-                        moistureModifier = 0.3;
                     else
                         moistureModifier = 0.8;
 

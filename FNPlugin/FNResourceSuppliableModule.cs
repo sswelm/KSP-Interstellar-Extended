@@ -57,7 +57,7 @@ namespace FNPlugin
             return displayName;
         }   
      
-        public override void OnFixedUpdateResourceSuppliable(float fixedDeltaTime)
+        public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
             // Nothing yet but do not remove
         }

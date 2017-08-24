@@ -57,7 +57,7 @@ namespace OpenResourceSystem
 
         public long Counter { get; private set; }
 
-        public void UpdateResourceSuppliables(long  updateCounter, float fixedDeltaTime)
+        public void UpdateResourceSuppliables(long  updateCounter, double fixedDeltaTime)
         {
             try
             {

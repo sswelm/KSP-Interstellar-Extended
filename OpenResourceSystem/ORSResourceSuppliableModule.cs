@@ -294,7 +294,7 @@ namespace OpenResourceSystem
 
         protected double TimeWarpFixedDeltaTime
         {
-            get { return (double)(decimal)TimeWarp.fixedDeltaTime; }
+            get { return (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7); }
         }
 
         public override void OnFixedUpdate()
@@ -331,7 +331,7 @@ namespace OpenResourceSystem
                 }
 
                 if (priority_manager.ProcessingPart == this)
-                    priority_manager.UpdateResourceSuppliables(updateCounter, TimeWarp.fixedDeltaTime);
+                    priority_manager.UpdateResourceSuppliables(updateCounter, timeWarpFixedDeltaTime);
             }
             catch (Exception e)
             {
@@ -392,6 +392,6 @@ namespace OpenResourceSystem
             return SupplyPriorityManager.GetSupplyPriorityManagerForVessel(vessel);
         }
 
-        public abstract void OnFixedUpdateResourceSuppliable(float fixedDeltaTime);
+        public abstract void OnFixedUpdateResourceSuppliable(double fixedDeltaTime);
     }
 }
