@@ -141,8 +141,8 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool availableInEditor = true;
         [KSPField(guiActive = false)]
-        public bool displaySwitchButtons = false;
-        [KSPField]
+        //public bool displaySwitchButtons = false;
+        //[KSPField]
         public bool returnDryMass = false;
 
         [KSPField]
@@ -225,6 +225,7 @@ namespace InterstellarFuelSwitch
         InterstellarTextureSwitch2 textureSwitch;
         List<string> currentResources;
         List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
+        IFSmodularTank selectedTank;
         UIPartActionWindow tweakableUI;
         HashSet<string> activeResourceList = new HashSet<string>();
 
@@ -595,7 +596,7 @@ namespace InterstellarFuelSwitch
             try
             {
                 // find selected tank
-                IFSmodularTank selectedTank = null;
+                selectedTank = null;
 
                 if (!calledByPlayer && !String.IsNullOrEmpty(selectedTankSetupTxt))
                 {
@@ -880,33 +881,38 @@ namespace InterstellarFuelSwitch
         private void UpdateDryMass()
         {
             // update Dry Mass
-            dryMass = CalculateDryMass(selectedTankSetup);
+            dryMass = CalculateDryMass();
         }
 
-        private double CalculateDryMass(int tankSetupIndex)
+        private double CalculateDryMass()
         {
             double mass = basePartMass;
 
-            if (tankSetupIndex >= 0 && tankSetupIndex < _modularTankList.Count)
+            if (selectedTank == null && selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
             {
-                var currentTank = _modularTankList[tankSetupIndex];
+                selectedTank = _modularTankList[selectedTankSetup];
+            }
 
-                var totalTankResourceMassDivider = currentTank.resourceMassDivider + currentTank.resourceMassDividerAddition;
+            if (selectedTank != null)
+            {
+
+                var totalTankResourceMassDivider = selectedTank.resourceMassDivider + selectedTank.resourceMassDividerAddition;
 
                 if (overrideMassWithTankDividers && totalTankResourceMassDivider > 0)
-                    mass = currentTank.FullResourceMass / totalTankResourceMassDivider;
+                    mass = selectedTank.FullResourceMass / totalTankResourceMassDivider;
                 else
                 {
-                    mass += currentTank.tankMass;
+                    mass += selectedTank.tankMass;
 
                     // use baseResourceMassDivider if specified
                     if (baseResourceMassDivider > 0)
-                        mass += currentTank.FullResourceMass / baseResourceMassDivider;
+                        mass += selectedTank.FullResourceMass / baseResourceMassDivider;
 
                     // use resourceMassDivider if specified
                     if (totalTankResourceMassDivider > 0)
-                        mass += currentTank.FullResourceMass / totalTankResourceMassDivider;
+                        mass += selectedTank.FullResourceMass / totalTankResourceMassDivider;
                 }
+                //}
             }
 
             // prevent 0 mass
@@ -1012,7 +1018,7 @@ namespace InterstellarFuelSwitch
                 UpdateGuiResourceMass();
 
                 //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
-                var showSwitchButtons = displaySwitchButtons && availableInFlight && numberOfAvailableTanks > 1 && !part.Resources.Any(r => currentResources.Contains(r.resourceName) && r.amount > r.maxAmount / 1000);
+                var showSwitchButtons = availableInFlight && numberOfAvailableTanks > 1 && !part.Resources.Any(r => currentResources.Contains(r.resourceName) && r.amount > r.maxAmount / 1000);
 
                 _nextTankSetupEvent.guiActive = showSwitchButtons;
                 _previousTankSetupEvent.guiActive = showSwitchButtons;
@@ -1021,7 +1027,7 @@ namespace InterstellarFuelSwitch
             }
             else
             {
-                var showSwitchButtons = displaySwitchButtons && availableInEditor && numberOfAvailableTanks > 1 && _modularTankList[selectedTankSetup].Resources.Count == 1;
+                var showSwitchButtons = availableInEditor && numberOfAvailableTanks > 1 && _modularTankList[selectedTankSetup].Resources.Count == 1;
 
                 _nextTankSetupEvent.guiActiveEditor = showSwitchButtons;
                 _previousTankSetupEvent.guiActiveEditor = showSwitchButtons;

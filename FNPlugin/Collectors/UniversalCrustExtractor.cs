@@ -751,7 +751,7 @@ namespace FNPlugin.Collectors
                     if (abundance == null)
                         continue;
 
-                    deltaTime = (deltaTime >= 1.0 ? deltaTime : 1.0);
+                    //deltaTime = (deltaTime >= 1.0 ? deltaTime : 1.0);
                     resource.Production = minedAmount * abundance.Local;
                     CalculateSpareRoom(resource);
 

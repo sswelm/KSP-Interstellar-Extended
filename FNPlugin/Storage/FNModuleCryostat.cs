@@ -67,11 +67,13 @@ namespace FNPlugin
 
         PartResource _electricCharge_resource;
         PartResource _cryostat_resource;
+
         double recievedPowerKW;
         double previousRecievedPowerKW;
         double currentPowerReq;
         double previousPowerReq;
         int initializationCountdown;
+        bool requiresPower;
 
         float previousDeltaTime;
         double previousPowerUsage;        
@@ -98,6 +100,7 @@ namespace FNPlugin
             // compensate for stock solar initialisation heating bug
             part.temperature = storedTemp;
             initializationCountdown = 50;
+            requiresPower = powerReqKW > 0;
 
             if (state == StartState.Editor)
                 return;
@@ -137,19 +140,14 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            if (part.Resources.Contains(resourceName))
-                _cryostat_resource = part.Resources[resourceName];
-            else
-                _cryostat_resource = null;
+            _cryostat_resource = part.Resources[resourceName];
 
             if (_cryostat_resource != null)
             {
-                var requiresPower = powerReqKW > 0;
+                bool coolingIsRelevant = _cryostat_resource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
 
-                bool coolingIsRelevant = _cryostat_resource.amount > 0 && (boilOffRate > 0 || requiresPower);
-
-                Events["Activate"].active = isDisabled && requiresPower;
-                Events["Deactivate"].active = !isDisabled && requiresPower;
+                Events["Activate"].active = isDisabled;
+                Events["Deactivate"].active = !isDisabled;
                 Fields["powerStatusStr"].guiActive = showPower && requiresPower;
                 Fields["boiloffStr"].guiActive = showBoiloff && boiloff > 0.00001;
                 Fields["externalTemperature"].guiActive = showTemp && coolingIsRelevant;
@@ -157,7 +155,7 @@ namespace FNPlugin
                 if (!coolingIsRelevant)
                     return;
 
-                var atmosphereModifier = convectionMod == -1 ? 0 : convectionMod + (FlightGlobals.getStaticPressure(vessel.transform.position) / 100) / (convectionMod + 1);
+                var atmosphereModifier = convectionMod == -1 ? 0 : convectionMod + part.atmDensity / (convectionMod + 1);
 
                 externalTemperature = part.temperature;
                 if (Double.IsNaN(externalTemperature))
@@ -174,11 +172,7 @@ namespace FNPlugin
                 {
                     currentPowerReq = powerReqKW * 0.2 * environmentFactor * powerReqMult;
 
-                    powerStatusStr = currentPowerReq < 1.0e+3
-                        ? recievedPowerKW.ToString("0.00") + " KW / " + currentPowerReq.ToString("0.00") + " KW"
-                        : currentPowerReq < 1.0e+6
-                            ? (recievedPowerKW / 1.0e+3).ToString("0.000") + " MW / " + (currentPowerReq / 1.0e+3).ToString("0.000") + " MW"
-                            : (recievedPowerKW / 1.0e+6).ToString("0.000") + " GW / " + (currentPowerReq / 1.0e+6).ToString("0.000") + " GW";
+                    UpdatePowerStatusSting();
                 }
                 else
                     currentPowerReq = 0;
@@ -190,6 +184,15 @@ namespace FNPlugin
                 Fields["powerStatusStr"].guiActive = false;
                 Fields["boiloffStr"].guiActive = false;
             }
+        }
+
+        private string UpdatePowerStatusSting()
+        {
+            return powerStatusStr = currentPowerReq < 1.0e+3
+                                    ? recievedPowerKW.ToString("0.00") + " KW / " + currentPowerReq.ToString("0.00") + " KW"
+                                    : currentPowerReq < 1.0e+6
+                                        ? (recievedPowerKW / 1.0e+3).ToString("0.000") + " MW / " + (currentPowerReq / 1.0e+3).ToString("0.000") + " MW"
+                                        : (recievedPowerKW / 1.0e+6).ToString("0.000") + " GW / " + (currentPowerReq / 1.0e+6).ToString("0.000") + " GW";
         }
 
         // FixedUpdate is also called while not staged
