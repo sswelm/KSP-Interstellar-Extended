@@ -102,7 +102,7 @@ namespace InterstellarFuelSwitch
 
         public float PowerUsagePercentageRatio
         {
-            get { return 1 - (showPowerUsageFloatRange ? powerUsagePercentage / 100 : 1); }
+            get { return 1 - (showPowerUsageFloatRange  ? powerUsagePercentage / 100 : 1); }
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -110,8 +110,11 @@ namespace InterstellarFuelSwitch
             definitionPrimaryPowerResource = PartResourceLibrary.Instance.GetDefinition(primaryConversionEnergyResource);
             definitionSecondaryPowerResource = PartResourceLibrary.Instance.GetDefinition(secondaryConversionEnergResource);
 
+            Fields["powerUsagePercentage"].guiActiveEditor = showPowerUsageFloatRange;
+            Fields["powerUsagePercentage"].guiActive = showPowerUsageFloatRange;
+
             convertPercentageField = Fields["convertPercentage"];
-            var floatrange = convertPercentageField.uiControlFlight as UI_FloatRange;
+            var floatrange = convertPercentageField.uiControlFlight as UI_FloatRange;            
 
             primaryResources = primaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) } ).ToList();
             secondaryResources = secondaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) }).ToList();
@@ -174,6 +177,9 @@ namespace InterstellarFuelSwitch
                 secondarynormalizedDensity = secondary.normalizedDensity;
                 primarynormalizedDensity = primary.normalizedDensity;
             }
+
+            primaryResources.ForEach(m => m.transferRate = maxPowerPrimary / primaryConversionEnergyCost / 1000 / m.normalizedDensity);
+            secondaryResources.ForEach(m => m.transferRate = maxPowerSecondary / secondaryConversionEnergyCost / 1000 / m.normalizedDensity);
             
             // if slider text is missing, generate it
             if (string.IsNullOrEmpty(sliderText))
@@ -198,10 +204,6 @@ namespace InterstellarFuelSwitch
         {
             // exit if definition was not found
             if (hasNullDefinitions)
-                return;
-
-            // quit if any definition is missing
-            if (!primaryResources.All(m => m.definition != null))
             {
                 convertPercentageField.guiActive = false;
                 return;
@@ -224,11 +226,6 @@ namespace InterstellarFuelSwitch
                  convertPercentageField.guiActive = false;
                  return;
             }
-
-            //Fields["conversionRatio"].guiActive = conversionRatio != 0;
-            //Fields["transferRate"].guiActive = transferRate != 0;
-            //Fields["secondarynormalizedDensity"].guiActive = secondarynormalizedDensity != 0;
-            //Fields["primarynormalizedDensity"].guiActive = primarynormalizedDensity != 0;  
 
             if (HighLogic.LoadedSceneIsEditor)
                 return;
@@ -270,9 +267,6 @@ namespace InterstellarFuelSwitch
 
             if (convertPercentage == 0)
                 return;
-
-            primaryResources.ForEach(m => m.transferRate = maxPowerPrimary / primaryConversionEnergyCost / 1000 / m.normalizedDensity);
-            secondaryResources.ForEach(m => m.transferRate = maxPowerSecondary / secondaryConversionEnergyCost / 1000 / m.normalizedDensity);
 
             primaryResources.ForEach(m => m.amountRatio = m.currentAmount / m.maxAmount);
             secondaryResources.ForEach(m => m.amountRatio = m.currentAmount / m.maxAmount);

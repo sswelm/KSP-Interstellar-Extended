@@ -141,10 +141,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool availableInEditor = true;
         [KSPField(guiActive = false)]
-        //public bool displaySwitchButtons = false;
-        //[KSPField]
         public bool returnDryMass = false;
-
         [KSPField]
         public string inEditorSwitchingTechReq;
         [KSPField]
@@ -453,12 +450,10 @@ namespace InterstellarFuelSwitch
 
                 _nextTankSetupEvent = Events["nextTankSetupEvent"];
                 _nextTankSetupEvent.guiActive = hasGUI && availableInFlight;
-                _nextTankSetupEvent.guiActiveEditor = hasGUI && availableInEditor;
                 _nextTankSetupEvent.guiName = nextTankSetupText;
 
                 _previousTankSetupEvent = Events["previousTankSetupEvent"];
                 _previousTankSetupEvent.guiActive = hasGUI && availableInFlight;
-                _previousTankSetupEvent.guiActiveEditor = hasGUI && availableInEditor;
                 _previousTankSetupEvent.guiName = previousTankSetupText;
 
                 Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
@@ -485,7 +480,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next tank setup")]
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Next tank setup")]
         public void nextTankSetupEvent()
         {
             try
@@ -507,7 +502,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Previous tank setup")]
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Previous tank setup")]
         public void previousTankSetupEvent()
         {
             try
@@ -895,7 +890,6 @@ namespace InterstellarFuelSwitch
 
             if (selectedTank != null)
             {
-
                 var totalTankResourceMassDivider = selectedTank.resourceMassDivider + selectedTank.resourceMassDividerAddition;
 
                 if (overrideMassWithTankDividers && totalTankResourceMassDivider > 0)
@@ -912,7 +906,6 @@ namespace InterstellarFuelSwitch
                     if (totalTankResourceMassDivider > 0)
                         mass += selectedTank.FullResourceMass / totalTankResourceMassDivider;
                 }
-                //}
             }
 
             // prevent 0 mass
@@ -1000,12 +993,12 @@ namespace InterstellarFuelSwitch
 
         public override void OnUpdate()
         {
-            if (initializePartTemperature != -1 && initializePartTemperature > 0)
-            {
-                part.temperature = initializePartTemperature;
-                initializePartTemperature = -1;
-                traceBoiloff = true;
-            }
+            if (initializePartTemperature == -1 || initializePartTemperature <= 0)
+                return;
+
+            part.temperature = initializePartTemperature;
+            initializePartTemperature = -1;
+            traceBoiloff = true;
         }
 
         // Note: do note remove, it is called by KSP
@@ -1024,13 +1017,6 @@ namespace InterstellarFuelSwitch
                 _previousTankSetupEvent.guiActive = showSwitchButtons;
 
                 return;
-            }
-            else
-            {
-                var showSwitchButtons = availableInEditor && numberOfAvailableTanks > 1 && _modularTankList[selectedTankSetup].Resources.Count == 1;
-
-                _nextTankSetupEvent.guiActiveEditor = showSwitchButtons;
-                _previousTankSetupEvent.guiActiveEditor = showSwitchButtons;
             }
 
             // update Dry Mass

@@ -29,6 +29,8 @@ namespace FNPlugin
         public float megajouleRate;
         [KSPField(isPersistant = false)]
         public float upgradedMegajouleRate;
+        [KSPField(isPersistant = false)]
+        public double powerReqMult = 1; 
 
         [KSPField(isPersistant = true)]
         public bool IsEnabled = false;
@@ -44,6 +46,8 @@ namespace FNPlugin
         public bool coreInit = false;
 
         protected double science_rate_f;
+
+        private double effectivePowerRequirment; 
 
         private ConfigNode _experiment_node;
 
@@ -103,8 +107,12 @@ namespace FNPlugin
             else
                 computercoreType = originalName;
 
+            effectivePowerRequirment = (isupgraded ? upgradedMegajouleRate : megajouleRate) * powerReqMult;
+
             this.part.force_activate();
         }
+
+
 
         public override void OnUpdate()
         {
@@ -119,7 +127,7 @@ namespace FNPlugin
             Fields["nameStr"].guiActive = isupgraded;
             Fields["scienceRate"].guiActive = isupgraded;
 
-            float scienceratetmp = (float) (science_rate_f * GameConstants.KEBRIN_DAY_SECONDS) * PluginHelper.getScienceMultiplier(vessel);
+            double scienceratetmp =  science_rate_f * GameConstants.KEBRIN_DAY_SECONDS * PluginHelper.getScienceMultiplier(vessel);
             scienceRate = scienceratetmp.ToString("0.000") + "/Day";
 
             if (ResearchAndDevelopment.Instance != null)
@@ -131,20 +139,21 @@ namespace FNPlugin
             if (isupgraded)
             {
                 double power_returned = CheatOptions.InfiniteElectricity 
-                    ? upgradedMegajouleRate 
-                    : consumeFNResource(upgradedMegajouleRate * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                    ? upgradedMegajouleRate
+                    : consumeFNResourcePerSecond(effectivePowerRequirment, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                electrical_power_ratio = power_returned / upgradedMegajouleRate;
+                electrical_power_ratio = power_returned / effectivePowerRequirment;
                 double altitude_multiplier = vessel.altitude / vessel.mainBody.Radius;
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
 
                 var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
 
-                science_rate_f = (baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * power_returned / upgradedMegajouleRate / Math.Sqrt(altitude_multiplier));
+                science_rate_f = baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * power_returned / effectivePowerRequirment / Math.Sqrt(altitude_multiplier);
 
                 if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(science_rate_f) && !double.IsNaN(science_rate_f))
                     science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
             }
+
             //else
             //{
             //    if (moduleCommand != null)

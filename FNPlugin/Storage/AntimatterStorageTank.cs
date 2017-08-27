@@ -90,14 +90,13 @@ namespace FNPlugin
         
         float explosion_size = 5000;
         float cur_explosion_size = 0;
-        double minimimAnimatterAmount;
+        double minimimAnimatterAmount = 0;
 
         int startup_timeout = 200;
         int power_explode_counter = 0;
         int geeforce_explode_counter = 0;
         int temperature_explode_counter = 0;
 
-        //AnimationState[] containerStates;
         GameObject lightGameObject;
         PartResource antimatterResource;
         ModuleAnimateGeneric deploymentAnimation;
@@ -182,7 +181,7 @@ namespace FNPlugin
 
         public void doExplode(string reason = null)
         {
-            if (antimatterResource.amount <= 0.1) return;
+            if (antimatterResource == null || antimatterResource.amount <= 0.1) return;
 
             if (!string.IsNullOrEmpty(reason))
             {
@@ -224,15 +223,20 @@ namespace FNPlugin
 
             part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
 
-            antimatterResource = part.Resources[resourceName];
-
-            antimatterResource.isTweakable = true;
-
             antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
 
             antimatterDensity = (double)(decimal)antimatterDefinition.density;
 
-            minimimAnimatterAmount = 1e-13 /  antimatterDefinition.density * antimatterResource.maxAmount;
+            antimatterResource = part.Resources[resourceName];
+
+            if (antimatterResource != null)
+            {
+                antimatterResource.isTweakable = true;
+                minimimAnimatterAmount = 1e-13 / antimatterDefinition.density * antimatterResource.maxAmount;
+
+                // charge if there is any significant antimatter
+                should_charge = antimatterResource.amount > minimimAnimatterAmount;
+            }
 
             partMass = part.mass;
             initialMass = part.prefabMass * storedMassMultiplier;
@@ -248,9 +252,6 @@ namespace FNPlugin
             else
                 UpdateTargetMass();
 
-            // charge if there is any significant antimatter
-            should_charge = antimatterResource.amount > minimimAnimatterAmount;
-
             this.enabled = true;
 
             UpdateAttachedTanks();
@@ -258,6 +259,9 @@ namespace FNPlugin
 
         void OnJustAboutToBeDestroyed()
         {
+            if (antimatterResource == null)
+                return;
+
             if (!HighLogic.LoadedSceneIsFlight || antimatterResource.amount <= minimimAnimatterAmount || !FlightGlobals.VesselsLoaded.Contains(this.vessel)) return;
 
             if (part.temperature >= part.maxTemp)
@@ -308,6 +312,13 @@ namespace FNPlugin
 
         public void Update()
         {
+            antimatterResource = part.Resources[resourceName];
+
+            if (antimatterResource == null)
+                return;
+
+            minimimAnimatterAmount = 1e-13 / antimatterDefinition.density * antimatterResource.maxAmount;
+
             var newRatio = antimatterResource.amount / antimatterResource.maxAmount;
 
             // if closed and changed
@@ -377,6 +388,9 @@ namespace FNPlugin
 
             fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime,7);
 
+            if (antimatterResource == null)
+                return;
+
             MaintainContainment();
 
             ExplodeContainer();
@@ -392,8 +406,6 @@ namespace FNPlugin
 
         private void MaintainContainment()
         {
-            if (antimatterResource == null) return;
-
             if (chargestatus > 0 && (antimatterResource.amount > 0.00001 * antimatterResource.maxAmount))
                 chargestatus -= fixedDeltaTime;
 
@@ -496,6 +508,9 @@ namespace FNPlugin
 
         private void ExplodeContainer()
         {
+            if (antimatterResource == null)
+                return;
+
             if (!exploding || lightGameObject == null) return;
 
             explosion_size = Mathf.Sqrt((float)antimatterResource.amount) * 5;

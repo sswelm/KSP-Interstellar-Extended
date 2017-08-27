@@ -4,10 +4,14 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-//AnimatedContainer allows an animation to correspond with the percentage of a particular resource in a container.
+//Animated Container allows an animation to correspond with the percentage of a particular resource or all resources in a container.
 
-namespace InterstellarFuelSwitch
+namespace FNPlugin
 {
+    [KSPModule("Inflatable Storage Tank")]
+    public class InflatableStorageTank : AnimatedContainerContent { };
+
+    [KSPModule("Animated Container")]
     public class AnimatedContainerContent : PartModule
     {
         [KSPField(isPersistant = false)]
@@ -16,24 +20,47 @@ namespace InterstellarFuelSwitch
         public string resourceName;
         [KSPField(isPersistant = false)]
         public double animationExponent = 1;
+        [KSPField(isPersistant = false)]
+        public double maximumRatio = 1;
 
-        [KSPField(isPersistant = false, guiName = "Animation Ratio",  guiActiveEditor = true, guiActive = true, guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiName = "Animation Ratio", guiActiveEditor = false, guiActive = false, guiFormat = "F3")]
         public float animationRatio;
 
         private AnimationState[] containerStates;
-        private PartResource animatedResource;
-        
 
         public override void OnStart(PartModule.StartState state)
         {
-            containerStates = SetUpAnimation(animationName, this.part);
-
-            animatedResource = part.Resources[resourceName];
+            containerStates = SetUpAnimation(animationName, this.part);           
         }
 
         void Update()
         {
-            animationRatio = (float)Math.Round( Math.Pow(animatedResource.amount / animatedResource.maxAmount, animationExponent), 3);
+            double resourceRatio = -1;
+
+            if (!String.IsNullOrEmpty(resourceName))
+            {
+                PartResource animatedResource = part.Resources[resourceName];
+
+                if (animatedResource != null)
+                    resourceRatio = animatedResource.maxAmount > 0 ? animatedResource.amount / animatedResource.maxAmount : 0;
+            }
+
+            if (resourceRatio == -1)
+            {
+                var resourcesWithDensity = part.Resources.Where(m => m.info.density > 0).ToList();
+                if (resourcesWithDensity.Count == 0)
+                    resourcesWithDensity = part.Resources.ToList();
+
+                var sumMaxAmount = resourcesWithDensity.Sum(m => m.maxAmount);
+                var sumAmount = resourcesWithDensity.Sum(m => m.amount);
+                resourceRatio = sumMaxAmount > 0 ? sumAmount / sumMaxAmount : 0;
+            }
+
+            var multiplier = maximumRatio == 1 ? 1 : maximumRatio > 0 ? 1 / maximumRatio : 1;
+            var multipledRatio = multiplier == 1 ? resourceRatio : Math.Min(multiplier * resourceRatio, 1);
+            var manipulatedRatio = animationExponent == 1 ? multipledRatio : Math.Pow(multipledRatio, animationExponent);
+
+            animationRatio = (float)Math.Round(manipulatedRatio, 3);
 
             foreach (var cs in containerStates)
             {
@@ -41,7 +68,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
+        private static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
         {
             var states = new List<AnimationState>();
             foreach (var animation in part.FindModelAnimators(animationName))
