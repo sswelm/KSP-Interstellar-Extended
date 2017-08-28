@@ -38,7 +38,7 @@ namespace FNPlugin
 
         // GUI
         [KSPField(guiActive = true, guiName = "Solar Wind Concentration", guiUnits = " ions/m\xB3")]
-        protected string strSolarWindConc = "";
+        protected float solarWindConcentration;
         [KSPField(guiActive = true, guiName = "Distance from the sun")]
         protected string strStarDist = "";
         [KSPField(guiActive = true, guiName = "Status")]
@@ -167,7 +167,7 @@ namespace FNPlugin
 
 
             massConcentrationPerSquareMeterPerSecond = CalculateSolarWindConcentration(part.vessel.solarFlux);
-            strSolarWindConc = massConcentrationPerSquareMeterPerSecond.ToString("F2");
+            solarWindConcentration = (float)massConcentrationPerSquareMeterPerSecond;
             dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
             strMagnetoStrength = UpdateMagnetoStrengthInGUI();
         }
@@ -253,7 +253,7 @@ namespace FNPlugin
             {
                 ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
                 strStarDist = UpdateDistanceInGUI();
-                strSolarWindConc = "0";
+                solarWindConcentration = 0;
                 return bCanCollect;
             }
             else

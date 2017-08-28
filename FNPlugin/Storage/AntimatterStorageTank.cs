@@ -91,6 +91,7 @@ namespace FNPlugin
         float explosion_size = 5000;
         float cur_explosion_size = 0;
         double minimimAnimatterAmount = 0;
+        double antimatterDenityModifier;
 
         int startup_timeout = 200;
         int power_explode_counter = 0;
@@ -181,7 +182,14 @@ namespace FNPlugin
 
         public void doExplode(string reason = null)
         {
-            if (antimatterResource == null || antimatterResource.amount <= 0.1) return;
+            if (antimatterResource == null || antimatterResource.amount <= minimimAnimatterAmount) return;
+
+            if (antimatterResource.resourceName != resourceName)
+            {
+                ScreenMessages.PostScreenMessage("List all" + antimatterResource.info.displayName, 10.0f, ScreenMessageStyle.UPPER_CENTER);
+                antimatterResource.amount = 0;
+                return;
+            }
 
             if (!string.IsNullOrEmpty(reason))
             {
@@ -225,18 +233,23 @@ namespace FNPlugin
 
             antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
 
+            antimatterDenityModifier = 1e-13 / antimatterDefinition.density;
+
             antimatterDensity = (double)(decimal)antimatterDefinition.density;
 
             antimatterResource = part.Resources[resourceName];
 
-            if (antimatterResource != null)
+            if (antimatterResource == null)
             {
-                antimatterResource.isTweakable = true;
-                minimimAnimatterAmount = 1e-13 / antimatterDefinition.density * antimatterResource.maxAmount;
-
-                // charge if there is any significant antimatter
-                should_charge = antimatterResource.amount > minimimAnimatterAmount;
+                var alternativeResource = part.Resources.OrderBy(m => m.maxAmount).FirstOrDefault();
+                if (alternativeResource != null)
+                    antimatterResource = alternativeResource;
+                else
+                    return;
             }
+
+            // charge if there is any significant antimatter
+            should_charge = antimatterResource.amount > minimimAnimatterAmount;
 
             partMass = part.mass;
             initialMass = part.prefabMass * storedMassMultiplier;
@@ -259,7 +272,7 @@ namespace FNPlugin
 
         void OnJustAboutToBeDestroyed()
         {
-            if (antimatterResource == null)
+            if (antimatterResource == null || antimatterResource.resourceName != resourceName)
                 return;
 
             if (!HighLogic.LoadedSceneIsFlight || antimatterResource.amount <= minimimAnimatterAmount || !FlightGlobals.VesselsLoaded.Contains(this.vessel)) return;
@@ -312,12 +325,16 @@ namespace FNPlugin
 
         public void Update()
         {
+            Fields["TemperatureStr"].guiActive = canExplodeFromHeat;
+            Fields["GeeforceStr"].guiActive = canExplodeFromGeeForce;
+
             antimatterResource = part.Resources[resourceName];
-
             if (antimatterResource == null)
-                return;
-
-            minimimAnimatterAmount = 1e-13 / antimatterDefinition.density * antimatterResource.maxAmount;
+            {
+                antimatterResource = part.Resources.OrderByDescending(m => m.maxAmount).FirstOrDefault();
+                if (antimatterResource == null)
+                    return;
+            }
 
             var newRatio = antimatterResource.amount / antimatterResource.maxAmount;
 
@@ -344,20 +361,19 @@ namespace FNPlugin
                 return;
             }
 
-            Fields["TemperatureStr"].guiActive = canExplodeFromHeat;
-            Fields["GeeforceStr"].guiActive = canExplodeFromGeeForce;
-
-            Events["StartCharge"].active = antimatterResource.amount <= 0.1 && !should_charge;
-            Events["StopCharge"].active = antimatterResource.amount <= 0.1 && should_charge;
-
             chargeStatusStr = chargestatus.ToString("0.0") + " / " + maxCharge.ToString("0.0");
             TemperatureStr = part.temperature.ToString("0") + " / " + maxTemperature.ToString("0");
             GeeforceStr = part.vessel.geeForce.ToString("0.0") + " / " + maxGeeforce.ToString("0.0");
 
+            minimimAnimatterAmount = antimatterDenityModifier * antimatterResource.maxAmount;
+
+            Events["StartCharge"].active = antimatterResource.amount <= minimimAnimatterAmount && !should_charge;
+            Events["StopCharge"].active = antimatterResource.amount <= minimimAnimatterAmount && should_charge;
+
             if (maxCharge <= 60 && !charging && antimatterResource.amount > minimimAnimatterAmount)
                 ScreenMessages.PostScreenMessage("Warning!: Antimatter storage unpowered, tank explosion in: " + chargestatus.ToString("0") + "s", 0.5f, ScreenMessageStyle.UPPER_CENTER);
 
-            if (antimatterResource.amount > 0.1)
+            if (antimatterResource.amount > minimimAnimatterAmount)
             {
                 if (charging)
                     statusStr = "Charging.";
@@ -451,7 +467,7 @@ namespace FNPlugin
                 if (TimeWarp.CurrentRateIndex > 3 && (antimatterResource.amount > minimimAnimatterAmount))
                 {
                     TimeWarp.SetRate(3, true);
-                    ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while Antimatter Tank is Unpowered", 1, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while " + antimatterResource.resourceName + " Tank is Unpowered", 1, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
 
@@ -508,7 +524,7 @@ namespace FNPlugin
 
         private void ExplodeContainer()
         {
-            if (antimatterResource == null)
+            if (antimatterResource == null || antimatterResource.resourceName != resourceName)
                 return;
 
             if (!exploding || lightGameObject == null) return;
