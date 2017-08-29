@@ -132,7 +132,13 @@ namespace FNPlugin
 
         public double CurrentIspMultiplier
         {
-            get { return type == (int)ElectricEngineType.VASIMR ? Current_propellant.DecomposedIspMult : Current_propellant.IspMultiplier; }
+			get 
+			{ 
+				return type == (int)ElectricEngineType.VASIMR || type == (int)ElectricEngineType.ARCJET 
+				? Current_propellant.DecomposedIspMult 
+				: Current_propellant.IspMultiplier; 
+			}
+
         }
 
         public double MaxEffectivePower
@@ -488,7 +494,9 @@ namespace FNPlugin
             _electrical_consumption_f = power_received;
             _heat_production_f = heat_production;
 
-            var max_thrust_in_space = currentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier() * power_received / (_modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseISP * ThrottleModifiedIsp() * _g0 * ModifiedThrotte);
+	        var effectiveIsp = _modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseISP * ThrottleModifiedIsp();
+
+			var max_thrust_in_space = currentPropellantEfficiency * CurrentPropellantThrustMultiplier * ModifiedThrotte * GetPowerThrustModifier() * power_received / (effectiveIsp * _g0);
 
             _maxISP = _modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
             _max_fuel_flow_rate = _maxISP <= 0 ? 0 : max_thrust_in_space / _maxISP / PluginHelper.GravityConstant;
@@ -636,6 +644,7 @@ namespace FNPlugin
         {
             get { return type == (int)ElectricEngineType.ARCJET ? Current_propellant.ThrustMultiplier : 1; }
         }
+
         protected double CurrentPropellantEfficiency
         {
             get
@@ -654,7 +663,6 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-            //var powerThrustModifier = GetPowerThrustModifier();
             List<ElectricEnginePropellant> props = ElectricEnginePropellant.GetPropellantsEngineForType(type);
             string return_str = "Max Power Consumption: " + MaxPower.ToString("") + " MW\n";
             var thrust_per_mw = (2e6 * powerThrustMultiplier) / _g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;

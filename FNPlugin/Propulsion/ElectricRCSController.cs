@@ -94,7 +94,6 @@ namespace FNPlugin
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
         private FNModuleRCSFX attachedModuleRCSFX;
-        private double efficiencyModifier;
         private float currentMaxThrust;
         private float oldThrustLimiter;
         private bool oldPowerEnabled;
@@ -179,15 +178,21 @@ namespace FNPlugin
 
             if (PartResourceLibrary.Instance.GetDefinition(new_propellant.name) != null)
             {
-                currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
+                var effectiveIspMultiplier = type == 2 ? Current_propellant.DecomposedIspMult : Current_propellant.IspMultiplier;
 
                 var moduleConfig = new ConfigNode("MODULE");
                 moduleConfig.AddValue("name", "FNModuleRCSFX");
-                moduleConfig.AddValue("thrusterPower", ((thrustLimiter / 100) * currentThrustMultiplier * baseThrust / Current_propellant.IspMultiplier).ToString("0.000"));
+                moduleConfig.AddValue("thrusterPower", ((thrustLimiter / 100) * Current_propellant.ThrustMultiplier * baseThrust / effectiveIspMultiplier).ToString("0.000"));
                 moduleConfig.AddValue("resourceName", new_propellant.name);
                 moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
 
-                maxPropellantIsp = (float)((hasSufficientPower ? maxIsp : minIsp) * Current_propellant.IspMultiplier * currentThrustMultiplier);
+                currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
+
+                var effectiveThrustModifier = currentThrustMultiplier * (currentThrustMultiplier / Current_propellant.ThrustMultiplier);
+
+                var effectiveBaseIsp = hasSufficientPower ? maxIsp : minIsp;
+
+                maxPropellantIsp = (float)(effectiveBaseIsp * effectiveIspMultiplier * effectiveThrustModifier);
 
                 var atmosphereCurve = new ConfigNode("atmosphereCurve");
                 atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
@@ -333,7 +338,7 @@ namespace FNPlugin
 
                 oldThrustLimiter = thrustLimiter;
                 oldPowerEnabled = powerEnabled;
-                efficiencyModifier = g0 * 0.5 / 1000 / efficiency;
+                //efficiencyModifier = g0 * 0.5 / 1000 / efficiency;
                 efficiencyStr = (efficiency * 100).ToString() + "%";
 
                 if (!String.IsNullOrEmpty(AnimationName))
@@ -407,6 +412,10 @@ namespace FNPlugin
                 power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResource(powerMult, FNResourceManager.FNRESOURCE_MEGAJOULES);
                 hasSufficientPower = power_recieved_f > powerMult / 10;
 
+                // return test power
+                if (!CheatOptions.InfiniteElectricity && power_recieved_f > 0)
+                    part.RequestResource(definitionMegajoule.id, -power_recieved_f);
+
                 delayedVerificationPropellant = false;
                 SetupPropellants(true, _propellants.Count);
                 currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
@@ -457,10 +466,7 @@ namespace FNPlugin
 
             thrustForcesStr = String.Empty;
 
-            if (attachedModuleRCSFX != null)
-                currentThrust = attachedModuleRCSFX.curThrust;
-            else
-                currentThrust = attachedRCS.thrustForces.Sum(frc => frc);
+            currentThrust = attachedModuleRCSFX != null ? attachedModuleRCSFX.curThrust : attachedRCS.thrustForces.Sum(frc => frc);
 
             foreach (var force in attachedRCS.thrustForces)
             {
@@ -473,7 +479,7 @@ namespace FNPlugin
 
             if (powerEnabled)
             {
-                power_requested_f = powerMult * currentThrust * maxIsp * Current_propellant.IspMultiplier * efficiencyModifier / currentThrustMultiplier;
+                power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000;
 
                 var power_required_raw = power_requested_f * TimeWarp.fixedDeltaTime;
 
@@ -482,7 +488,6 @@ namespace FNPlugin
                     : consumeFNResource(power_required_raw, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var powerShortage = power_required_raw - power_recieved_raw;
-
                 power_recieved_raw += part.RequestResource(definitionMegajoule.id, powerShortage);
 
                 power_recieved_f = power_recieved_raw / TimeWarp.fixedDeltaTime;
@@ -502,7 +507,7 @@ namespace FNPlugin
                 insufficientPowerTimout = 0;
             }
 
-            if (hasSufficientPower && power_ratio < 0.9 && power_recieved_f < 0.01 )
+            if (hasSufficientPower && power_ratio <= 0.9 && power_recieved_f <= 0.01 )
             {
                 if (insufficientPowerTimout < 1)
                 {
@@ -519,10 +524,10 @@ namespace FNPlugin
                 SetupPropellants();
             }
 
-            if (hasSufficientPower)
-                power_recieved_raw -= power_requested_raw;
+            // return any unused power
+            if (!hasSufficientPower && power_recieved_raw > 0.01)
+                part.RequestResource(definitionMegajoule.id, -power_recieved_raw);
 
-            power_recieved_raw = 0;
         }
 
         public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
