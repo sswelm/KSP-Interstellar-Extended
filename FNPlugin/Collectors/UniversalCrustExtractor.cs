@@ -558,43 +558,43 @@ namespace FNPlugin.Collectors
             }
         }
 
-        /// <summary>
-        /// Gets the local abundance of the resource. Uses stock KSP behaviour. Returns true if data arrived okay.
-        /// </summary>
-        /// <param name="currentResource">The Crustal Resource we want the data for.</param>
-        /// <param name="localAbundance">The local abundance of the currentResource.</param>
-        /// <returns>True if the data was accessed without raising an exception. Also returns an output parameter.</returns>
-        private bool GetLocalAbundance(CrustalResource currentResource, out double localAbundance)
-        {
-            localAbundance = 0;
-            resourceRequest.ResourceName = currentResource.ResourceName;
-            resourceRequest.Latitude = vessel.latitude;
-            resourceRequest.Longitude = vessel.longitude;
-            resourceRequest.Altitude = vessel.altitude;
-            try
-            {
-                localAbundance = ResourceMap.Instance.GetAbundance(resourceRequest);
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("[KSPI] - UniversalCrustExtractor - Abundance request failed.");
-                return false; // if we got here, something went wrong, return false
-            }
+        ///// <summary>
+        ///// Gets the local abundance of the resource. Uses stock KSP behaviour. Returns true if data arrived okay.
+        ///// </summary>
+        ///// <param name="currentResource">The Crustal Resource we want the data for.</param>
+        ///// <param name="localAbundance">The local abundance of the currentResource.</param>
+        ///// <returns>True if the data was accessed without raising an exception. Also returns an output parameter.</returns>
+        //private bool GetLocalAbundance(CrustalResource currentResource, out double localAbundance)
+        //{
+        //    localAbundance = 0;
+        //    resourceRequest.ResourceName = currentResource.ResourceName;
+        //    resourceRequest.Latitude = vessel.latitude;
+        //    resourceRequest.Longitude = vessel.longitude;
+        //    resourceRequest.Altitude = vessel.altitude;
+        //    try
+        //    {
+        //        localAbundance = ResourceMap.Instance.GetAbundance(resourceRequest);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        Console.WriteLine("[KSPI] - UniversalCrustExtractor - Abundance request failed.");
+        //        return false; // if we got here, something went wrong, return false
+        //    }
 
-            // correct for trace abundances
-            if (localAbundance < 1)
-                localAbundance = Math.Pow(localAbundance, 4); 
+        //    // correct for trace abundances
+        //    if (localAbundance < 1)
+        //        localAbundance = Math.Pow(localAbundance, 3); 
 
-            return true; // if we got this far, everything went well, presumably
-        }
+        //    return true; // if we got this far, everything went well, presumably
+        //}
 
         private double GetAbundance(AbundanceRequest request)
         {
             // retreive and convert to double
-            double abundance = (double)(decimal)ResourceMap.Instance.GetAbundance(request);
+            double abundance = (double)(decimal)ResourceMap.Instance.GetAbundance(request) * 100;
 
             if (abundance < 1)
-                abundance = Math.Pow(abundance, 4);
+                abundance = Math.Pow(abundance, 3);
 
             return abundance;
         }
