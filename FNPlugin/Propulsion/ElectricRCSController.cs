@@ -32,17 +32,17 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double powerMult = 1;
 
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "Full Thrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Full Thrust", advancedTweakable = true), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool fullThrustEnabled;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "FT Threshold", guiUnits = "%"), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 0)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "FT Threshold", guiUnits = "%", advancedTweakable = true), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 0, affectSymCounterparts = UI_Scene.All)]
         public float fullThrustMinLimiter;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Use Throttle"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Use Throttle"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool useThrotleEnabled;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Use Lever"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Use Lever", advancedTweakable = true), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool useLeverEnabled;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "Precision"), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 5)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Precision", advancedTweakable = true), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 5, affectSymCounterparts = UI_Scene.All)]
         public float precisionFactorLimiter;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power", advancedTweakable = true), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool powerEnabled = true;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Propellant Name")]
         public string propNameStr = "";
@@ -52,12 +52,12 @@ namespace FNPlugin
         public double currentThrustMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Thrust / ISP Mult")]
         public string thrustIspMultiplier = "";
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter", advancedTweakable = true), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5, affectSymCounterparts = UI_Scene.All)]
         public float thrustLimiter = 100;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Base Thrust", guiUnits = " kN")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Base Thrust", guiUnits = " kN")]
         public float baseThrust = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Max Thrust")]
-        public string thrustStr;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Max Thrust", guiUnits = " kN")]
+        public float thrustStr;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Forces")]
         public string thrustForcesStr;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Current Total Thrust", guiUnits = " kN")]
@@ -86,15 +86,12 @@ namespace FNPlugin
 
         private double power_ratio = 1;
         private double power_requested_f = 0;
-        private double power_requested_raw = 0;
         private double power_recieved_f = 1;
-        private double power_recieved_raw = 0;
 
         private double heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
         private ModuleRCS attachedRCS;
         private FNModuleRCSFX attachedModuleRCSFX;
-        private float currentMaxThrust;
         private float oldThrustLimiter;
         private bool oldPowerEnabled;
         private int insufficientPowerTimout = 2;
@@ -180,19 +177,21 @@ namespace FNPlugin
             {
                 var effectiveIspMultiplier = type == 2 ? Current_propellant.DecomposedIspMult : Current_propellant.IspMultiplier;
 
+                //var effectiveThrust = (thrustLimiter / 100) * Current_propellant.ThrustMultiplier * baseThrust / effectiveIspMultiplier;
+
                 var moduleConfig = new ConfigNode("MODULE");
                 moduleConfig.AddValue("name", "FNModuleRCSFX");
-                moduleConfig.AddValue("thrusterPower", ((thrustLimiter / 100) * Current_propellant.ThrustMultiplier * baseThrust / effectiveIspMultiplier).ToString("0.000"));
+                moduleConfig.AddValue("thrusterPower", attachedRCS.thrusterPower.ToString("0.000"));
                 moduleConfig.AddValue("resourceName", new_propellant.name);
                 moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
 
                 currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
 
-                var effectiveThrustModifier = currentThrustMultiplier * (currentThrustMultiplier / Current_propellant.ThrustMultiplier);
+                //var effectiveThrustModifier = currentThrustMultiplier * (currentThrustMultiplier / Current_propellant.ThrustMultiplier);
 
                 var effectiveBaseIsp = hasSufficientPower ? maxIsp : minIsp;
 
-                maxPropellantIsp = (float)(effectiveBaseIsp * effectiveIspMultiplier * effectiveThrustModifier);
+                maxPropellantIsp = (float)(effectiveBaseIsp * effectiveIspMultiplier * currentThrustMultiplier);
 
                 var atmosphereCurve = new ConfigNode("atmosphereCurve");
                 atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
@@ -298,14 +297,11 @@ namespace FNPlugin
 
                 if (!isInitialised)
                 {
-                    if (attachedModuleRCSFX != null)
-                    {
-                        useLeverEnabled = attachedModuleRCSFX.useLever;
-                        precisionFactorLimiter = attachedModuleRCSFX.precisionFactor * 100;
-                        fullThrustMinLimiter = attachedModuleRCSFX.fullThrustMin * 100;
-                        fullThrustEnabled = attachedModuleRCSFX.fullThrust;
-                        useThrotleEnabled = attachedModuleRCSFX.useThrottle;
-                    }
+                    precisionFactorLimiter = attachedRCS.precisionFactor * 100;
+                    fullThrustMinLimiter = attachedRCS.fullThrustMin * 100;
+                    useThrotleEnabled = attachedRCS.useThrottle;
+                    fullThrustEnabled = attachedRCS.fullThrust;
+                     useLeverEnabled = attachedRCS.useLever;
                 }
 
                 if (attachedModuleRCSFX != null)
@@ -317,11 +313,13 @@ namespace FNPlugin
                     attachedModuleRCSFX.Fields["enableX"].guiActive = true;
                     attachedModuleRCSFX.Fields["enableY"].guiActive = true;
                     attachedModuleRCSFX.Fields["enableZ"].guiActive = true;
-                    attachedModuleRCSFX.fullThrust = fullThrustEnabled;
-                    attachedModuleRCSFX.fullThrustMin = fullThrustMinLimiter / 100;
-                    attachedModuleRCSFX.useLever = useLeverEnabled;
-                    attachedModuleRCSFX.precisionFactor = precisionFactorLimiter / 100;
                 }
+
+                attachedRCS.precisionFactor = precisionFactorLimiter / 100;
+                attachedRCS.fullThrustMin = fullThrustMinLimiter / 100;
+                attachedRCS.useThrottle = useThrotleEnabled;
+                attachedRCS.fullThrust = fullThrustEnabled;                
+                attachedRCS.useLever = useLeverEnabled;
 
                 // old legacy stuff
                 if (baseThrust == 0 && maxThrust > 0)
@@ -388,20 +386,17 @@ namespace FNPlugin
                 oldPowerEnabled = powerEnabled;
             }
 
-            if (attachedModuleRCSFX != null)
-            {
-                attachedModuleRCSFX.fullThrustMin = fullThrustMinLimiter;
-                attachedModuleRCSFX.fullThrust = fullThrustEnabled;
-                attachedModuleRCSFX.useThrottle = useThrotleEnabled;
-            }
+            attachedRCS.precisionFactor = precisionFactorLimiter / 100;
+            attachedRCS.fullThrustMin = fullThrustMinLimiter / 100;
+            attachedRCS.useThrottle = useThrotleEnabled;
+            attachedRCS.fullThrust = fullThrustEnabled;
+            attachedRCS.useLever = useLeverEnabled;
 
             propNameStr = Current_propellant.PropellantGUIName;
 
-            currentMaxThrust = (float)(baseThrust / Current_propellant.IspMultiplier * currentThrustMultiplier);
+            thrustStr = attachedRCS.thrusterPower;
 
-            thrustStr = attachedRCS.thrusterPower.ToString("0.000") + " / " + currentMaxThrust.ToString("0.000") + " kN";
-
-            thrustIspMultiplier = maxPropellantIsp + " / " + currentThrustMultiplier;
+            thrustIspMultiplier = maxPropellantIsp + "s / " + currentThrustMultiplier;
         }
 
         public override void OnUpdate() 
@@ -479,30 +474,23 @@ namespace FNPlugin
 
             if (powerEnabled)
             {
-                power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000;
+                power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000 / Current_propellant.ThrustMultiplier;
 
-                var power_required_raw = power_requested_f * TimeWarp.fixedDeltaTime;
-
-                power_recieved_raw = CheatOptions.InfiniteElectricity 
-                    ? power_requested_raw
-                    : consumeFNResource(power_required_raw, FNResourceManager.FNRESOURCE_MEGAJOULES);
-
-                var powerShortage = power_required_raw - power_recieved_raw;
-                power_recieved_raw += part.RequestResource(definitionMegajoule.id, powerShortage);
-
-                power_recieved_f = power_recieved_raw / TimeWarp.fixedDeltaTime;
+                power_recieved_f = CheatOptions.InfiniteElectricity
+                    ? power_requested_f
+                    : consumeFNResourcePerSecond(power_requested_f, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 double heat_to_produce = power_recieved_f * (1 - efficiency);
 
                 heat_production_f = CheatOptions.IgnoreMaxTemperature 
-                    ? heat_to_produce 
-                    : supplyFNResourceFixed(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+                    ? heat_to_produce
+                    : supplyFNResourcePerSecond(heat_to_produce, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
                 power_ratio = power_requested_f > 0 ? Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
             }
             else
             {
-                power_recieved_raw = 0;
+                //power_recieved_raw = 0;
                 power_ratio = 0;
                 insufficientPowerTimout = 0;
             }
@@ -525,8 +513,8 @@ namespace FNPlugin
             }
 
             // return any unused power
-            if (!hasSufficientPower && power_recieved_raw > 0.01)
-                part.RequestResource(definitionMegajoule.id, -power_recieved_raw);
+            if (!hasSufficientPower && power_recieved_f > 0)
+                part.RequestResource(definitionMegajoule.id, -power_recieved_f * TimeWarp.fixedDeltaTime);
 
         }
 

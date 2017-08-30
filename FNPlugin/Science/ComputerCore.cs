@@ -30,11 +30,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float upgradedMegajouleRate;
         [KSPField(isPersistant = false)]
-        public double powerReqMult = 1; 
+        public double powerReqMult = 1;
 
-        [KSPField(isPersistant = true)]
-        public bool IsEnabled = false;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool IsEnabled = true;
+        [KSPField(isPersistant = true, guiActiveEditor = true,  guiActive = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         public double electrical_power_ratio;
@@ -51,12 +51,14 @@ namespace FNPlugin
 
         private ConfigNode _experiment_node;
 
+        private ModuleDataTransmitter _moduleDataTransmitter;
+
         protected ModuleCommand moduleCommand;
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         public bool CanProvideTelescopeControl
         {
-            get { return isupgraded; }
+            get { return isupgraded && IsEnabled; }
         }
 
 
@@ -82,9 +84,13 @@ namespace FNPlugin
                 return;
             }
 
+            _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
             moduleCommand = part.FindModuleImplementing<ModuleCommand>();
 
-            if (isupgraded || !PluginHelper.TechnologyIsInUse)
+            Fields["IsEnabled"].guiActive = isupgraded;
+            Fields["IsEnabled"].guiActiveEditor = isupgraded;
+
+            if ((isupgraded || !PluginHelper.TechnologyIsInUse) && IsEnabled)
             {
                 upgradePartModule();
 
@@ -118,6 +124,11 @@ namespace FNPlugin
         {
             base.OnUpdate();
 
+            if (_moduleDataTransmitter != null)
+            {
+                _moduleDataTransmitter.antennaPower = IsEnabled ? 5000000000000000 : 500000;
+            }
+
             if (ResearchAndDevelopment.Instance != null)
                 Events["RetrofitCore"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost;
             else
@@ -136,7 +147,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            if (isupgraded)
+            if (isupgraded  && IsEnabled)
             {
                 double power_returned = CheatOptions.InfiniteElectricity 
                     ? upgradedMegajouleRate
@@ -152,6 +163,12 @@ namespace FNPlugin
 
                 if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(science_rate_f) && !double.IsNaN(science_rate_f))
                     science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
+            }
+            else
+            {
+                science_rate_f = 0;
+                electrical_power_ratio = 0;
+                science_to_add = 0;
             }
 
             //else
