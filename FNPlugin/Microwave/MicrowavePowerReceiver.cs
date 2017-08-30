@@ -458,6 +458,7 @@ namespace FNPlugin
         public double ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
         public double ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
+
         public double ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
 
         public double ChargedParticleEnergyEfficiency { get { return 0; } }
@@ -468,7 +469,7 @@ namespace FNPlugin
 
         public double CoreTemperature { get { return powerHeatBase; } }
 
-        public double HotBathTemperature { get { return CoreTemperature * 1.5; } }
+        public double HotBathTemperature { get { return CoreTemperature; } }
 
         public double StableMaximumReactorPower { get { return RawMaximumPower; } }
 

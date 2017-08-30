@@ -79,6 +79,10 @@ namespace FNPlugin
         public double efficiencyMk3 = 0;
         [KSPField(isPersistant = false)]
         public double efficiencyMk4 = 0;
+        [KSPField(isPersistant = false)]
+        public double efficiencyMk5 = 0;
+        [KSPField(isPersistant = false)]
+        public double efficiencyMk6 = 0;
 
         [KSPField(isPersistant = false)]
         public string Mk2TechReq = "";
@@ -86,6 +90,10 @@ namespace FNPlugin
         public string Mk3TechReq = "";
         [KSPField(isPersistant = false)]
         public string Mk4TechReq = "";
+        [KSPField(isPersistant = false)]
+        public string Mk5TechReq = "";
+        [KSPField(isPersistant = false)]
+        public string Mk6TechReq = "";
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Max Efficiency")]
         public double maxEfficiency = 0;
@@ -356,11 +364,11 @@ namespace FNPlugin
             String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES };
             this.resources_to_supply = resources_to_supply;
 
-			//if (state == PartModule.StartState.Docked)
-			//{
-			//	base.OnStart(state);
-			//	return;
-			//}
+            //if (state == PartModule.StartState.Docked)
+            //{
+            //	base.OnStart(state);
+            //	return;
+            //}
 
             previousDeltaTime = TimeWarp.fixedDeltaTime - 1.0e-6f;
             megajouleResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
@@ -467,15 +475,35 @@ namespace FNPlugin
                 efficiencyMk3 = efficiencyMk2;
             if (efficiencyMk4 == 0)
                 efficiencyMk4 = efficiencyMk3;
+            if (efficiencyMk5 == 0)
+                efficiencyMk5 = efficiencyMk4;
+            if (efficiencyMk6 == 0)
+                efficiencyMk6 = efficiencyMk5;
 
             if (String.IsNullOrEmpty(Mk2TechReq))
                 Mk2TechReq = upgradeTechReq;
 
+            int techLevel = 1;
+            if (PluginHelper.upgradeAvailable(Mk6TechReq))
+                techLevel++;
+            if (PluginHelper.upgradeAvailable(Mk5TechReq))
+                techLevel++;
             if (PluginHelper.upgradeAvailable(Mk4TechReq))
+                techLevel++;
+            if (PluginHelper.upgradeAvailable(Mk3TechReq))
+                techLevel++;
+            if (PluginHelper.upgradeAvailable(Mk2TechReq))
+                techLevel++;
+
+            if (techLevel == 6)
+                maxEfficiency = efficiencyMk6;
+            else if (techLevel == 5)
+                maxEfficiency = efficiencyMk5;
+            else if (techLevel == 4)
                 maxEfficiency = efficiencyMk4;
-            else if (PluginHelper.upgradeAvailable(Mk3TechReq))
+            else if (techLevel == 3)
                 maxEfficiency = efficiencyMk3;
-            else if (PluginHelper.upgradeAvailable(Mk2TechReq))
+            else if (techLevel == 2)
                 maxEfficiency = efficiencyMk2;
             else
                 maxEfficiency = efficiencyMk1;
