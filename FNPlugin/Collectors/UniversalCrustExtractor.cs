@@ -818,7 +818,7 @@ namespace FNPlugin.Collectors
             GUILayout.BeginVertical();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Drill parameters:",_bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Drill parameters:", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();

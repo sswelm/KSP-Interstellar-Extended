@@ -12,6 +12,14 @@ namespace FNPlugin
     {
         public Guid partId { get; set; }
         public double spotsize { get; set; }
+        public double receivedPower { get; set; }
+        public double distanceToSpot { get; set; }
+        public double aperture { get; set; }
+        public float wavelength { get; set; }
+
+        public Vessel receivingVessel { get; set; }
+
+        public Vessel sendingVessel { get; set; }
     }
 
     class SolarBeamedPowerReceiverDish : MicrowavePowerReceiver { } // receives less of a power cpacity nerve in NF mode
@@ -174,13 +182,13 @@ namespace FNPlugin
         public int directWavelengths;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Facing Factor", guiFormat = "F5")]
         public double effectivefacingFactor;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Spot Size(s)")]
-        public string effectiveSpotSize;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Distance Effectivity", guiFormat = "F4")]
+        //[KSPField(isPersistant = false, guiActive = false, guiName = "Spot Size(s)")]
+        //public string effectiveSpotSize;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Distance Effectivity", guiFormat = "F4")]
         public double effectiveDistanceFacingEfficiency;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Atmosphere Efficiency", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Atmosphere Efficiency", guiFormat = "F4")]
         public double effectiveAtmosphereEfficency;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Transmit Efficiency", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Transmit Efficiency", guiFormat = "F4")]
         public double effectiveTransmitterEfficency;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Core Temperature")]
@@ -263,6 +271,8 @@ namespace FNPlugin
         protected double connectedRecieversSum;
         protected int initializationCountdown;
 
+
+
         protected Dictionary<Vessel, double> received_power = new Dictionary<Vessel, double>();
         protected List<MicrowavePowerReceiver> thermalReceiverSlaves = new List<MicrowavePowerReceiver>();
 
@@ -274,6 +284,20 @@ namespace FNPlugin
 
         protected double storedIsThermalEnergyGenratorActive;
         protected double currentIsThermalEnergyGenratorActive;
+
+        protected GUIStyle bold_black_style;
+        protected GUIStyle text_black_style;
+
+        public float windowPositionX = 200;
+        public float windowPositionY = 100;
+
+        private const int labelWidth = 200;
+        private const int valueWidth = 100;
+
+        // GUI elements declaration
+        private Rect windowPosition;
+        private int windowID;
+        private bool _render_window;
 
         public Part Part { get { return this.part; } }
 
@@ -510,6 +534,12 @@ namespace FNPlugin
         public void ActivateReceiver()
         {
             ActivateRecieverState();
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Toggle Receiver Interface", active = true)]
+        public void ToggleWindow()
+        {
+            _render_window = !_render_window;
         }
 
         private void ActivateRecieverState(bool forced = false)
@@ -792,6 +822,11 @@ namespace FNPlugin
                 solarPowerMode = false;
 
             if (state == StartState.Editor) { return; }
+
+            // create the id for the GUI window
+
+            windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth + valueWidth * 5, 100);
+            windowID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
             localStar = GetCurrentStar();
 
@@ -1202,11 +1237,11 @@ namespace FNPlugin
             Fields["ThermalPower"].guiActive = isThermalReceiverSlave || thermalMode;
 
             Fields["efficiencyPercentage"].guiActive = receiverIsEnabled;
-            Fields["effectiveSpotSize"].guiActive = receiverIsEnabled;
+            //Fields["effectiveSpotSize"].guiActive = receiverIsEnabled;
             Fields["effectivefacingFactor"].guiActive = receiverIsEnabled;
             Fields["receiptPower"].guiActive = receiverIsEnabled;
-            Fields["effectiveDistanceFacingEfficiency"].guiActive = receiverIsEnabled;
-            Fields["effectiveAtmosphereEfficency"].guiActive = receiverIsEnabled;
+            //Fields["effectiveDistanceFacingEfficiency"].guiActive = receiverIsEnabled;
+            //Fields["effectiveAtmosphereEfficency"].guiActive = receiverIsEnabled;
             Fields["effectiveTransmitterEfficency"].guiActive = receiverIsEnabled;
             Fields["maxAvailablePowerFromSource"].guiActive = receiverIsEnabled;
             Fields["routeEfficiency"].guiActive = receiverIsEnabled;
@@ -1240,14 +1275,7 @@ namespace FNPlugin
             networkDepthString = networkDepth.ToString();
             toteff = efficiencyPercentage.ToString("0.00") + "%";
 
-            // display communication
-            if (_monitorDataStore.Any())
-            {
-                effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.spotsize.ToString("0.0000") + "m").ToArray());
-                //effectiveSpotSize = String.Join(" ", _monitorDataStore.Select(m => m.Value.partId.ToString()).ToArray());
-                //effectiveSpotSize = _monitorDataStore.Values.Count().ToString();
-                _monitorDataStore.Clear();
-            }
+
 
             //if (receiverIsEnabled && anim != null && (!waitForAnimationToComplete || (!anim.isPlaying && waitForAnimationToComplete)))
             //{
@@ -1346,6 +1374,82 @@ namespace FNPlugin
                 base.OnFixedUpdate();
         }
 
+        private void OnGUI()
+        {
+            if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
+                windowPosition = GUILayout.Window(windowID, windowPosition, DrawGui, "Universal Mining Interface");
+
+        }
+
+        private void DrawGui(int window)
+        {
+            windowPositionX = windowPosition.x;
+            windowPositionY = windowPosition.y;
+
+            InitializeStyles();
+
+            if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
+                _render_window = false;
+
+            GUILayout.BeginVertical();
+
+            PrintToGUILayout("Type", part.partInfo.title, bold_black_style, text_black_style);
+            PrintToGUILayout("Facing Efficiency", effectiveDistanceFacingEfficiency.ToString("0.0000"), bold_black_style, text_black_style);
+            PrintToGUILayout("Atmosphere Efficency", effectiveAtmosphereEfficency.ToString("0.0000"), bold_black_style, text_black_style);
+            PrintToGUILayout("Transmitter Efficency", effectiveTransmitterEfficency.ToString("0.0000"), bold_black_style, text_black_style); 
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Vessel", bold_black_style, GUILayout.Width(labelWidth));
+            GUILayout.Label("Distance", bold_black_style, GUILayout.Width(valueWidth));
+            GUILayout.Label("Aperture", bold_black_style, GUILayout.Width(valueWidth));
+            GUILayout.Label("Spotsize", bold_black_style, GUILayout.Width(valueWidth));
+            GUILayout.Label("Wavelength", bold_black_style, GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
+
+            foreach (var monitorData in _monitorDataStore.Where(m => m.Value.receivingVessel == this.vessel))
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(monitorData.Value.sendingVessel.name, text_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label((monitorData.Value.distanceToSpot).ToString("0") + " m", text_black_style, GUILayout.Width(valueWidth));
+                GUILayout.Label((monitorData.Value.aperture).ToString("##.######") + " m", text_black_style, GUILayout.Width(valueWidth));
+                GUILayout.Label((monitorData.Value.spotsize).ToString("##.######") + " m", text_black_style, GUILayout.Width(valueWidth));
+                GUILayout.Label((monitorData.Value.wavelength).ToString() + " m", text_black_style, GUILayout.Width(valueWidth));
+                GUILayout.EndHorizontal();
+            }
+
+            GUILayout.EndVertical();
+            GUI.DragWindow();
+        }
+
+        private void InitializeStyles()
+        {
+            if (bold_black_style == null)
+            {
+                bold_black_style = new GUIStyle(GUI.skin.label)
+                {
+                    fontStyle = FontStyle.Bold,
+                    font = PluginHelper.MainFont
+                };
+            }
+
+            if (text_black_style == null)
+            {
+                text_black_style = new GUIStyle(GUI.skin.label)
+                {
+                    fontStyle = FontStyle.Normal,
+                    font = PluginHelper.MainFont
+                };
+            }
+        }
+
+        protected void PrintToGUILayout(string label, string value, GUIStyle bold_style, GUIStyle text_style, int witdhLabel = 130, int witdhValue = 130)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(label, bold_style, GUILayout.Width(witdhLabel));
+            GUILayout.Label(value, text_style, GUILayout.Width(witdhValue));
+            GUILayout.EndHorizontal();
+        }
+
         /// <summary>
         /// FixedUpdate is only called when stage or force activated
         /// </summary>
@@ -1435,6 +1539,10 @@ namespace FNPlugin
                         powerInputMegajoules = 0;
                         powerInputMegajoulesMax = 0;
                         deactivate_timer = 0;
+
+                        // clear _monitorDataStore
+                        if (_monitorDataStore.Any())
+                            _monitorDataStore.Clear();
 
                         HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
 
@@ -1786,7 +1894,7 @@ namespace FNPlugin
             return Vector3d.Distance(PluginHelper.getVesselPos(v1), PluginHelper.getVesselPos(v2));
         }
 
-        protected double ComputeSpotSize(WaveLengthData waveLengthData, double distanceToSpot, double transmitterAperture)
+        protected double ComputeSpotSize(WaveLengthData waveLengthData, double distanceToSpot, double transmitterAperture, Vessel receivingVessel, Vessel sendingVessel)
         {
             if (transmitterAperture == 0)
                 transmitterAperture = 1;
@@ -1797,7 +1905,10 @@ namespace FNPlugin
             MonitorData monitordata;
             if (!_monitorDataStore.TryGetValue(waveLengthData.partId, out monitordata))
             {
-                monitordata = new MonitorData() { partId = waveLengthData.partId };
+                monitordata = new MonitorData() 
+                { 
+                    partId = waveLengthData.partId 
+                };
                 _monitorDataStore.Add(waveLengthData.partId, monitordata);
             }
 
@@ -1806,6 +1917,11 @@ namespace FNPlugin
                 : PluginHelper.NonMicrowaveApertureDiameterMult;
 
             monitordata.spotsize = (distanceToSpot * waveLengthData.wavelength) / (transmitterAperture * effectiveAperureBonus * apertureMultiplier);
+            monitordata.distanceToSpot = distanceToSpot;
+            monitordata.wavelength = (float)waveLengthData.wavelength;
+            monitordata.aperture = transmitterAperture;
+            monitordata.receivingVessel = receivingVessel;
+            monitordata.sendingVessel = sendingVessel;
 
             return monitordata.spotsize;
         }
@@ -1968,7 +2084,7 @@ namespace FNPlugin
 
                         directWavelengths++;
 
-                        double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture);
+                        double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture, this.vessel, transmitter.Vessel);
 
                         //Debug.Log("[KSP Interstellar]: GetConnectedTransmitters spotSize: " + spotsize + " facingFactor: " + facingFactor + " recieverDiameter: " + this.diameter);
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, this.diameter);
@@ -2020,7 +2136,7 @@ namespace FNPlugin
                         if (wavelenghtData.wavelength.NotWithin(this.maximumWavelength, this.minimumWavelength))
                             continue;
 
-                        double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, relay.Aperture);
+                        double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, relay.Aperture, this.vessel, relay.Vessel);
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, this.diameter);
 
                         double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, this.vessel, relay.Vessel);
@@ -2053,16 +2169,16 @@ namespace FNPlugin
 
                 for (int i = 0; i < relaysToCheck.Count; i++)
                 {
-                    var relay = relaysToCheck[i];
+                    var relayToCheck = relaysToCheck[i];
                     for (int j = i + 1; j < relaysToCheck.Count; j++)
                     {
-                        double visibilityAndDistance = ComputeVisibilityAndDistance(relay, relaysToCheck[j].Vessel);
+                        double visibilityAndDistance = ComputeVisibilityAndDistance(relayToCheck, relaysToCheck[j].Vessel);
                         relayToRelayDistances[i, j] = visibilityAndDistance;
                         relayToRelayDistances[j, i] = visibilityAndDistance;
                     }
                     for (int t = 0; t < transmittersToCheck.Count; t++)
                     {
-                        relayToTransmitterDistances[i, t] = ComputeVisibilityAndDistance(relay, transmittersToCheck[t].Vessel);
+                        relayToTransmitterDistances[i, t] = ComputeVisibilityAndDistance(relayToCheck, transmittersToCheck[t].Vessel);
                     }
                 }
 
@@ -2096,7 +2212,7 @@ namespace FNPlugin
                                 if (transmitterWavelenghtData.wavelength.NotWithin(relayPersistance.MaximumRelayWavelenght, relayPersistance.MinimumRelayWavelenght))
                                     continue;
 
-                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceInMeter, transmitterToCheck.Aperture);
+                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceInMeter, transmitterToCheck.Aperture, relayPersistance.Vessel, transmitterToCheck.Vessel);
                                 double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
 
                                 double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, relayAtmosphericPresure, transmitterWavelenghtData.atmosphericAbsorption, distanceInMeter, transmitterToCheck.Vessel, relayPersistance.Vessel);
@@ -2141,12 +2257,12 @@ namespace FNPlugin
                             var possibleWavelengths = new List<MicrowaveRoute>();
                             var relayToNextRelayDistance = relayRoute.Distance + distanceToNextRelay;
 
-                            foreach (var transmitterWavelenghtData in relayEntry.Key.SupportedTransmitWavelengths)
+                            foreach (var transmitterWavelenghtData in relayPersistance.SupportedTransmitWavelengths)
                             {
                                 if (transmitterWavelenghtData.wavelength.NotWithin(relayPersistance.MaximumRelayWavelenght, relayPersistance.MinimumRelayWavelenght))
                                     continue;
 
-                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, relayEntry.Key.Aperture);
+                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, relayPersistance.Aperture, nextRelay.Vessel, relayPersistance.Vessel);
                                 double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
                                 double efficiencyForRoute = efficiencyByThisRelay * relayRoute.Efficiency;
 
