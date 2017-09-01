@@ -287,19 +287,37 @@ namespace FNPlugin.Extensions
 
 		private static void AddRaresAndIsotopesToOceanComposition(List<OceanicResource> bodyOceanicComposition)
 		{
+			Debug.Log("[KSPI] - Checking for missing rare isotopes");
+
 			// add heavywater based on water abundance in ocean
 			if (bodyOceanicComposition.All(m => m.ResourceName != InterstellarResourcesConfiguration.Instance.HeavyWater) && bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water))
 			{
+				Debug.Log("[KSPI] - Added heavy water based on presence water in ocean");
 				var water = bodyOceanicComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water);
 				var heavywaterAbundance = water.ResourceAbundance / 6420;
 				bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.HeavyWater, heavywaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater"}));
 			}
+			else
+			{
+				if (bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water))
+					Debug.Log("[KSPI] - No heavy water added because no water found in Ocean");
+				else
+					Debug.Log("[KSPI] - No heavy water already present in Ocean");
+			}
 
 			if (bodyOceanicComposition.All(m => m.ResourceName != InterstellarResourcesConfiguration.Instance.Lithium6) && bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Lithium7))
 			{
+				Debug.Log("[KSPI] - Added lithium-6 based on presence Lithium in ocean");
 				var lithium = bodyOceanicComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Lithium7);
 				var heavywaterAbundance = lithium.ResourceAbundance * 0.0759;
 				bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.Lithium6, heavywaterAbundance, "Lithium-6", new[] { "Lithium6", "Lithium-6", "Li6", "Li-6" }));
+			}
+			else
+			{
+				if (bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Lithium7))
+					Debug.Log("[KSPI] - No Lithium-6 added because no Lithium found in Ocean");
+				else
+					Debug.Log("[KSPI] - No Lithium-6 slready present in Ocean");
 			}
 		}
 
