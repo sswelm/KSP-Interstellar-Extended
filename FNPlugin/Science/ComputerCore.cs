@@ -33,7 +33,9 @@ namespace FNPlugin
         public double powerReqMult = 1;
 
         [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool IsEnabled = true;
+        public bool IsEnabled = false;
+        [KSPField(isPersistant = true, guiName = "Powered", guiActive = true, guiActiveEditor = true)]
+        public bool IsPowered = false;
         [KSPField(isPersistant = true, guiActiveEditor = true,  guiActive = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
@@ -47,7 +49,7 @@ namespace FNPlugin
 
         protected double science_rate_f;
 
-        private double effectivePowerRequirment; 
+        private double effectivePowerRequirement; 
 
         private ConfigNode _experiment_node;
 
@@ -58,9 +60,8 @@ namespace FNPlugin
 
         public bool CanProvideTelescopeControl
         {
-            get { return isupgraded && IsEnabled; }
+            get { return isupgraded && IsEnabled && IsPowered; }
         }
-
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitCore()
@@ -74,6 +75,9 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES };
+            this.resources_to_supply = resources_to_supply;
+
             if (state == StartState.Editor)
             {
                 if (this.HasTechsRequiredToUpgrade())
@@ -83,6 +87,8 @@ namespace FNPlugin
                 }
                 return;
             }
+
+            this.part.force_activate();
 
             _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
             moduleCommand = part.FindModuleImplementing<ModuleCommand>();
@@ -113,9 +119,7 @@ namespace FNPlugin
             else
                 computercoreType = originalName;
 
-            effectivePowerRequirment = (isupgraded ? upgradedMegajouleRate : megajouleRate) * powerReqMult;
-
-            this.part.force_activate();
+            effectivePowerRequirement = (isupgraded ? upgradedMegajouleRate : megajouleRate) * powerReqMult;
         }
 
 
@@ -126,7 +130,7 @@ namespace FNPlugin
 
             if (_moduleDataTransmitter != null)
             {
-                _moduleDataTransmitter.antennaPower = IsEnabled ? 5000000000000000 : 500000;
+                _moduleDataTransmitter.antennaPower = IsEnabled && IsPowered ? 5000000000000000 : 50000;
             }
 
             if (ResearchAndDevelopment.Instance != null)
@@ -147,25 +151,38 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
+            base.OnFixedUpdate();
+
             if (isupgraded  && IsEnabled)
             {
                 double power_returned = CheatOptions.InfiniteElectricity 
                     ? upgradedMegajouleRate
-                    : consumeFNResourcePerSecond(effectivePowerRequirment, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(effectivePowerRequirement, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                electrical_power_ratio = power_returned / effectivePowerRequirment;
-                double altitude_multiplier = vessel.altitude / vessel.mainBody.Radius;
-                altitude_multiplier = Math.Max(altitude_multiplier, 1);
+                electrical_power_ratio = power_returned / effectivePowerRequirement;
+                IsPowered = electrical_power_ratio > 0.99;
 
-                var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
+                if (IsPowered)
+                {
+                    double altitude_multiplier = vessel.altitude / vessel.mainBody.Radius;
+                    altitude_multiplier = Math.Max(altitude_multiplier, 1);
 
-                science_rate_f = baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * power_returned / effectivePowerRequirment / Math.Sqrt(altitude_multiplier);
+                    var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
 
-                if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(science_rate_f) && !double.IsNaN(science_rate_f))
-                    science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
+                    science_rate_f = baseScienceRate * scienceMultiplier / GameConstants.KEBRIN_DAY_SECONDS * power_returned / effectivePowerRequirement / Math.Sqrt(altitude_multiplier);
+
+                    if (ResearchAndDevelopment.Instance != null && !double.IsInfinity(science_rate_f) && !double.IsNaN(science_rate_f))
+                        science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
+                }
+                else
+                {
+                    // return any unused power
+                    part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, -power_returned * TimeWarp.fixedDeltaTime);
+                }
             }
             else
             {
+                IsPowered = false;
                 science_rate_f = 0;
                 electrical_power_ratio = 0;
                 science_to_add = 0;
@@ -250,7 +267,7 @@ namespace FNPlugin
 
         public override int getPowerPriority()
         {
-            return 1;
+            return 2;
         }
 
         public override string GetInfo()

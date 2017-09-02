@@ -48,7 +48,7 @@ namespace FNPlugin
         public float moduleCost = 1;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public double storedMassMultiplier = 1;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Scaling Factor")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Scaling Factor")]
         public double storedScalingfactor = 1;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Fixed Delta Time")]
         public double fixedDeltaTime;
@@ -103,6 +103,11 @@ namespace FNPlugin
         ModuleAnimateGeneric deploymentAnimation;
         PartResourceDefinition antimatterDefinition;
         List<AntimatterStorageTank> attachedAntimatterTanks;
+
+        BaseField capacityStrField;
+        BaseField maxAmountStrField;
+        BaseField TemperatureStrField;
+        BaseField GeeforceStrField;
 
         [KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
         public void StartCharge()
@@ -254,6 +259,14 @@ namespace FNPlugin
             partMass = part.mass;
             initialMass = part.prefabMass * storedMassMultiplier;
 
+            Fields["partMass"].guiActive = calculatedMass;
+            Fields["partMass"].guiActiveEditor = calculatedMass;
+
+            capacityStrField = Fields["capacityStr"];
+            maxAmountStrField = Fields["maxAmountStr"];
+            TemperatureStrField = Fields["TemperatureStr"];
+            GeeforceStrField = Fields["GeeforceStr"];
+
             if (state == StartState.Editor)
             {
                 part.OnEditorAttach += OnEditorAttach;
@@ -325,8 +338,16 @@ namespace FNPlugin
 
         public void Update()
         {
-            Fields["TemperatureStr"].guiActive = canExplodeFromHeat;
-            Fields["GeeforceStr"].guiActive = canExplodeFromGeeForce;
+            var showAntimatterFields = antimatterResource != null && antimatterResource.resourceName == resourceName;
+
+            capacityStrField.guiActive = showAntimatterFields;
+            capacityStrField.guiActiveEditor = showAntimatterFields;
+            maxAmountStrField.guiActive = showAntimatterFields;
+            maxAmountStrField.guiActiveEditor = showAntimatterFields;
+            TemperatureStrField.guiActive = canExplodeFromHeat;
+            TemperatureStrField.guiActiveEditor = canExplodeFromHeat;
+            GeeforceStrField.guiActive = canExplodeFromGeeForce;
+            GeeforceStrField.guiActiveEditor = canExplodeFromGeeForce;
 
             antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null)
@@ -334,7 +355,7 @@ namespace FNPlugin
                 antimatterResource = part.Resources.OrderByDescending(m => m.maxAmount).FirstOrDefault();
                 if (antimatterResource == null)
                     return;
-            }
+            }          
 
             var newRatio = antimatterResource.amount / antimatterResource.maxAmount;
 
@@ -422,52 +443,56 @@ namespace FNPlugin
 
         private void MaintainContainment()
         {
-            if (chargestatus > 0 && (antimatterResource.amount > 0.00001 * antimatterResource.maxAmount))
+            if (chargestatus > 0 && (antimatterResource.amount > minimimAnimatterAmount * antimatterResource.maxAmount))
                 chargestatus -= fixedDeltaTime;
 
-            if (!should_charge && antimatterResource.amount <= 0.00001 * antimatterResource.maxAmount) return;
+            if (!should_charge && antimatterResource.amount <= minimimAnimatterAmount * antimatterResource.maxAmount) return;
 
             var powerModifier = canExplodeFromGeeForce 
                 ? (resourceRatio * (part.vessel.geeForce / 10) * 0.8) + ((part.temperature / 1000) * 0.2) 
                 :  Math.Pow(resourceRatio, 2);
 
             effectivePowerNeeded = chargeNeeded * powerModifier;
-            var mult = chargestatus >= maxCharge ? 0.5 : 1;
-            var powerRequest = mult * 2 * effectivePowerNeeded / 1000 * fixedDeltaTime;
 
-            // first try to accespower  megajoules
-            double charge_to_add = CheatOptions.InfiniteElectricity
-                ? powerRequest
-                : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000 / effectivePowerNeeded;
-
-            chargestatus += charge_to_add;
-
-            // alternatively  just look for any reserves of stored megajoules
-            if (charge_to_add == 0)
+            if (effectivePowerNeeded > 0)
             {
-                double more_charge_to_add = part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, powerRequest) * 1000 / effectivePowerNeeded;
+                var mult = chargestatus >= maxCharge ? 0.5 : 1;
+                var powerRequest = mult * 2 * effectivePowerNeeded / 1000 * fixedDeltaTime;
 
-                charge_to_add += more_charge_to_add;
-                chargestatus += more_charge_to_add;
-            }
+                // first try to accespower  megajoules
+                double charge_to_add = CheatOptions.InfiniteElectricity
+                    ? powerRequest
+                    : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000 / effectivePowerNeeded;
 
-            // if still not found any power attempt to find any electricc charge to survive
-            if (charge_to_add < fixedDeltaTime)
-            {
-                double more_charge_to_add = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2 * effectivePowerNeeded * fixedDeltaTime) / effectivePowerNeeded;
-                charge_to_add += more_charge_to_add;
-                chargestatus += more_charge_to_add;
-            }
+                chargestatus += charge_to_add;
 
-            if (charge_to_add >= fixedDeltaTime)
-                charging = true;
-            else
-            {
-                charging = false;
-                if (TimeWarp.CurrentRateIndex > 3 && (antimatterResource.amount > minimimAnimatterAmount))
+                // alternatively  just look for any reserves of stored megajoules
+                if (charge_to_add == 0 && effectivePowerNeeded > 0)
                 {
-                    TimeWarp.SetRate(3, true);
-                    ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while " + antimatterResource.resourceName + " Tank is Unpowered", 1, ScreenMessageStyle.UPPER_CENTER);
+                    double more_charge_to_add = part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, powerRequest) * 1000 / effectivePowerNeeded;
+
+                    charge_to_add += more_charge_to_add;
+                    chargestatus += more_charge_to_add;
+                }
+
+                // if still not found any power attempt to find any electricc charge to survive
+                if (charge_to_add < fixedDeltaTime && effectivePowerNeeded > 0)
+                {
+                    double more_charge_to_add = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2 * effectivePowerNeeded * fixedDeltaTime) / effectivePowerNeeded;
+                    charge_to_add += more_charge_to_add;
+                    chargestatus += more_charge_to_add;
+                }
+
+                if (charge_to_add >= fixedDeltaTime)
+                    charging = true;
+                else
+                {
+                    charging = false;
+                    if (TimeWarp.CurrentRateIndex > 3 && (antimatterResource.amount > minimimAnimatterAmount))
+                    {
+                        TimeWarp.SetRate(3, true);
+                        ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while " + antimatterResource.resourceName + " Tank is Unpowered", 1, ScreenMessageStyle.UPPER_CENTER);
+                    }
                 }
             }
 

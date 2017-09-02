@@ -821,6 +821,20 @@ namespace FNPlugin
             if (deployableSolarPanel == null)
                 solarPowerMode = false;
 
+            fnRadiator = part.FindModuleImplementing<FNRadiator>();
+            if (fnRadiator != null)
+            {
+                _activateReceiverBaseEvent.guiName = "Deploy";
+                _disableReceiverBaseEvent.guiName = "Retract";
+                fnRadiator.showControls = false;
+                fnRadiator.canRadiateHeat = radiatorMode;
+                fnRadiator.radiatorIsEnabled = radiatorMode;
+            }
+
+            var isInRatiatorMode = Fields["radiatorMode"];
+            isInRatiatorMode.guiActive = fnRadiator != null;
+            isInRatiatorMode.guiActiveEditor = fnRadiator != null;
+
             if (state == StartState.Editor) { return; }
 
             // create the id for the GUI window
@@ -845,19 +859,6 @@ namespace FNPlugin
                 else
                     ((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
             }
-
-            fnRadiator = part.FindModuleImplementing<FNRadiator>();
-            if (fnRadiator != null)
-            {
-                _activateReceiverBaseEvent.guiName = "Deploy";
-                _disableReceiverBaseEvent.guiName = "Retract";
-                fnRadiator.showControls = false;
-                fnRadiator.canRadiateHeat = radiatorMode;
-                fnRadiator.radiatorIsEnabled = radiatorMode;
-            }
-            var isInRatiatorMode = Fields["radiatorMode"];
-            isInRatiatorMode.guiActive = fnRadiator != null;
-            isInRatiatorMode.guiActiveEditor = fnRadiator != null;
 
             wasteheatResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
             megajouleResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];

@@ -455,24 +455,24 @@ namespace FNPlugin
         /// </summary>
         public void FixedUpdate()
         {
+            if (attachedRCS == null) return;
+
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
             currentThrust = 0;
 
-            if (attachedRCS == null) return;
+            currentThrust = attachedModuleRCSFX != null ? attachedModuleRCSFX.curThrust : attachedRCS.thrustForces.Sum(frc => frc);
 
             thrustForcesStr = String.Empty;
 
-            currentThrust = attachedModuleRCSFX != null ? attachedModuleRCSFX.curThrust : attachedRCS.thrustForces.Sum(frc => frc);
+            if (!vessel.ActionGroups[KSPActionGroup.RCS]) return;
 
             foreach (var force in attachedRCS.thrustForces)
             {
                 thrustForcesStr += force.ToString("0.00") + "kN ";
-            }
+            }           
 
-            if (!HighLogic.LoadedSceneIsFlight) return;
-
-            if (!vessel.ActionGroups[KSPActionGroup.RCS]) return;
-
-            if (powerEnabled)
+            if (powerEnabled && currentThrust > 0)
             {
                 power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000 / Current_propellant.ThrustMultiplier;
 
@@ -490,7 +490,7 @@ namespace FNPlugin
             }
             else
             {
-                //power_recieved_raw = 0;
+                power_recieved_f = 0;
                 power_ratio = 0;
                 insufficientPowerTimout = 0;
             }
@@ -515,7 +515,6 @@ namespace FNPlugin
             // return any unused power
             if (!hasSufficientPower && power_recieved_f > 0)
                 part.RequestResource(definitionMegajoule.id, -power_recieved_f * TimeWarp.fixedDeltaTime);
-
         }
 
         public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
@@ -536,6 +535,10 @@ namespace FNPlugin
         public override string getResourceManagerDisplayName() 
         {
             return part.partInfo.title + " (" + propNameStr + ")";
+        }
+        public override int getPowerPriority()
+        {
+            return 2;
         }
     }
 }
