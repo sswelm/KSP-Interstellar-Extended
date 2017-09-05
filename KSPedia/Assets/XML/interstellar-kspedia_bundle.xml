@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KSPBundleDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" UrlName="interstellar-kspedia" Name="interstellar-kspedia" CreatedTime="-8586969782969172797">
+  <Author>Joshua A. Horton</Author>
+  <Info>Beta version of a more user-friendly KSPedia for the KSPI-E mod.</Info>
+  <Assets>
+    <Asset Name="Energy Production" Path="Assets/Pages/Energy Production/Energy Production.prefab" Type="GameObject" Url="Pages/Energy Production/Energy Production" AutoLoad="false" />
+    <Asset Name="Megajoules" Path="Assets/Pages/Energy Production/Megajoules.prefab" Type="GameObject" Url="Pages/Energy Production/Megajoules" AutoLoad="false" />
+    <Asset Name="Reactor Efficiency" Path="Assets/Pages/Energy Production/Reactor Efficiency.prefab" Type="GameObject" Url="Pages/Energy Production/Reactor Efficiency" AutoLoad="false" />
+    <Asset Name="Solar Farming" Path="Assets/Pages/Energy Production/Solar Farming.prefab" Type="GameObject" Url="Pages/Energy Production/Solar Farming" AutoLoad="false" />
+    <Asset Name="KSPI_Splash" Path="Assets/Pages/KSPI_Splash.prefab" Type="GameObject" Url="Pages/KSPI_Splash" AutoLoad="false" />
+    <Asset Name="Overview" Path="Assets/Pages/Overview/Overview.prefab" Type="GameObject" Url="Pages/Overview/Overview" AutoLoad="false" />
+    <Asset Name="Resources" Path="Assets/Pages/Resources/Resources.prefab" Type="GameObject" Url="Pages/Resources/Resources" AutoLoad="false" />
+    <Asset Name="KSPI-E_Basic_Template" Path="Assets/Pages/Templates/KSPI-E_Basic_Template.prefab" Type="GameObject" Url="Pages/Templates/KSPI-E_Basic_Template" AutoLoad="false" />
+    <Asset Name="interstellar-kspedia_kspedia" Path="Assets/XML/interstellar-kspedia_kspedia.xml" Type="TextAsset" Url="XML/interstellar-kspedia_kspedia" AutoLoad="false" />
+  </Assets>
+  <Dependencies>
+    <Dependency>squadcore</Dependency>
+  </Dependencies>
+</KSPBundleDefinition>
