@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<KSPBundleDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" UrlName="interstellar-kspedia" Name="interstellar-kspedia" CreatedTime="-8586969159034743816">
+<KSPBundleDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" UrlName="interstellar-kspedia" Name="interstellar-kspedia" CreatedTime="-8586969007531034840">
   <Author>Joshua A. Horton</Author>
   <Info>Beta version of a more user-friendly KSPedia for the KSPI-E mod.</Info>
   <Assets>
+    <Asset Name="Beam Relays" Path="Assets/Pages/Beamed Power/Beam Relays.prefab" Type="GameObject" Url="Pages/Beamed Power/Beam Relays" AutoLoad="false" />
+    <Asset Name="Beamed Power Production" Path="Assets/Pages/Beamed Power/Beamed Power Production.prefab" Type="GameObject" Url="Pages/Beamed Power/Beamed Power Production" AutoLoad="false" />
+    <Asset Name="Beamed Power" Path="Assets/Pages/Beamed Power/Beamed Power.prefab" Type="GameObject" Url="Pages/Beamed Power/Beamed Power" AutoLoad="false" />
+    <Asset Name="Power Receivers" Path="Assets/Pages/Beamed Power/Power Receivers.prefab" Type="GameObject" Url="Pages/Beamed Power/Power Receivers" AutoLoad="false" />
+    <Asset Name="Transmitters" Path="Assets/Pages/Beamed Power/Transmitters.prefab" Type="GameObject" Url="Pages/Beamed Power/Transmitters" AutoLoad="false" />
     <Asset Name="ISP-and-thrust" Path="Assets/Pages/Charts/ISP-and-thrust.prefab" Type="GameObject" Url="Pages/Charts/ISP-and-thrust" AutoLoad="false" />
     <Asset Name="connecting-parts" Path="Assets/Pages/Charts/connecting-parts.prefab" Type="GameObject" Url="Pages/Charts/connecting-parts" AutoLoad="false" />
     <Asset Name="kspi-charts" Path="Assets/Pages/Charts/kspi-charts.prefab" Type="GameObject" Url="Pages/Charts/kspi-charts" AutoLoad="false" />
