@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<KSPedia xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="interstellar-kspedia" CreatedTime="-8586969159109779106">
+<KSPedia xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="interstellar-kspedia" CreatedTime="-8586969007703684203">
   <Categories>
     <Category Name="kspi-Overview">
       <Title>Interstellar Extended</Title>
@@ -18,6 +18,17 @@
           </Screens>
           <Subcategories />
         </Subcategory>
+        <Subcategory Name="Beamed Power">
+          <Title>Beamed Power</Title>
+          <TitleScreen>Beamed Power</TitleScreen>
+          <Screens>
+            <Screen>Beamed Power Production</Screen>
+            <Screen>Transmitters</Screen>
+            <Screen>Beam Relays</Screen>
+            <Screen>Power Receivers</Screen>
+          </Screens>
+          <Subcategories />
+        </Subcategory>
         <Subcategory Name="kspi-Charts">
           <Title>Charts</Title>
           <TitleScreen>kspi-charts</TitleScreen>
@@ -31,6 +42,37 @@
     </Category>
   </Categories>
   <Screens>
+    <Screen Name="Transmitters">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Beamed Power/Transmitters.prefab</AssetPath>
+      <Title>Transmitters</Title>
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>Transmitters</Text>
+        </Text>
+        <Text Name="Heading/Text">
+          <Text>Sending beamed power requires specialized transmitters, such as the large relay dish pictured below.
+
+Beam transmitters can also be used to send scientific data, while beam relays may also relay that data.</Text>
+        </Text>
+        <Text Name="Image/Heading (1)">
+          <Text>The Principles</Text>
+        </Text>
+        <Text Name="Image/Heading (1)/Text">
+          <Text>1.  The larger the transmitter's aperture, the less the beam suffers at long distances.
+
+2.  The shorter the wavelength, the less the beam diffuses, travelling further.
+
+3.  Transmitters do not have to manually aimed at receivers.
+
+4.  So long as the beam's spot size hasn't grown too large at a distance, it can be fully captured by a receiver.
+
+Spot size = distance * wavelength / aperture.</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
     <Screen Name="Solar Farming">
       <BundleName>interstellar-kspedia</BundleName>
       <AssetPath>Assets/Pages/Energy Production/Solar Farming.prefab</AssetPath>
@@ -99,6 +141,39 @@ If the ship cannot keep its temperature below the reactor's core temperature, th
         </Text>
         <Text Name="Reactor Data/Reactor/Power">
           <Text>The more heat a ship is able to effectively use and radiate away, the more MW the ship is able to produce as output.  Reactors with high core temperatures are less susceptible to losing efficiency from overheating but generally produce enough energy for the ship to overheat without many radiators.</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="Power Receivers">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Beamed Power/Power Receivers.prefab</AssetPath>
+      <Title>Transceivers</Title>
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>Receiving Beamed Power</Text>
+        </Text>
+        <Text Name="Heading/Text">
+          <Text>Properly configured rectennas or transceivers are necessary to receive beamed power.  Some receivers are capable of directly converting beamed power into electricity (with sufficient tech in Career mode), whlie others require a connected thermal converter or thermal engine to be of use.</Text>
+        </Text>
+        <Text Name="Image/Heading (1)">
+          <Text>The Principles</Text>
+        </Text>
+        <Text Name="Image/Heading (1)/Text">
+          <Text>1.  Unlike with relays and transmitters, the receiver must be pointed toward the beam source to receive power.
+
+2.  Transceivers may be "linked" into relays on the same ship or satellite.
+
+3.  Recievers and transceivers must be configured for the correct bandwidth.</Text>
+        </Text>
+        <Text Name="Image/Heading (2)">
+          <Text>Power for Propulsion</Text>
+        </Text>
+        <Text Name="Image/Heading (2)/Text">
+          <Text>For a low-cost liftoff with beamed power, configure a ship with an inlined thermal receiver connected to a thermal engine.
+
+If using Infernal Robotics, consider mounting circular rectenna receivers on IR mounts to facilitate receiving from any angle!</Text>
         </Text>
       </Text>
       <Tooltips />
@@ -254,6 +329,82 @@ Some engines can directly use thermal energy for propulsion if attached directly
       <Title>Connecting Parts</Title>
       <Background />
       <Text />
+      <Tooltips />
+    </Screen>
+    <Screen Name="Beamed Power Production">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Beamed Power/Beamed Power Production.prefab</AssetPath>
+      <Title>Producing Beams</Title>
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>Producing Beamed Power</Text>
+        </Text>
+        <Text Name="Heading/Text">
+          <Text>Sending beamed power takes two stages - beam generation and beam transmission - which are usually performed in separate parts.  One such part, the Diode Laser Array, is pictured below in 2 configurations.
+
+Choosing the right beam for the job is important for overall power efficiency!  Lower frequencies work better in atmospheres but worse at a distance than higher frequencies.</Text>
+        </Text>
+        <Text Name="Laser Array/Low-Wavelength">
+          <Text>Low-Wavelength Beams</Text>
+        </Text>
+        <Text Name="Laser Array/Low-Wavelength/Text">
+          <Text>Ultraviolet and X-ray transmissions pass poorly through atmospheres and have poor power efficiency.  However, they suffer far less at interplanetary distances than other beam types.</Text>
+        </Text>
+        <Text Name="Laser Array/High-wavelength">
+          <Text>High-Wavelength Beams</Text>
+        </Text>
+        <Text Name="Laser Array/High-wavelength/Text">
+          <Text>Microwave and infrared transmissions have high power efficiency and are generally able to pierce atmospheres.  They are also unlocked earlier in career mode.</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="Beamed Power">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Beamed Power/Beamed Power.prefab</AssetPath>
+      <Title>Beamed Power</Title>
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>Beamed Power</Text>
+        </Text>
+        <Text Name="Heading/Text">
+          <Text>Using beamed power allows for highly efficient flight through remote energy transmission.
+
+While not presently used within space programs, it has been the subject of much study and planning.</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="Beam Relays">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Beamed Power/Beam Relays.prefab</AssetPath>
+      <Title>Beam Relays</Title>
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>Beam Relays
+</Text>
+        </Text>
+        <Text Name="Heading/Text">
+          <Text>The one small problem working with beams in the vastness of space is that sometimes moons and planets get in the way.  That's where relays come in.
+
+Relays come in two different forms - relay dishes, which can double as communication relays, and mirrors, which don't operate with data but are generally lighter as a result.
+
+It is also possible to link a power receiver directly into a relay if the frequencies are compatible, increasing the power of the resulting beam.</Text>
+        </Text>
+        <Text Name="Image/Heading (1)">
+          <Text>The Principles</Text>
+        </Text>
+        <Text Name="Image/Heading (1)/Text">
+          <Text>1.  The relay needs to work for the correct transmission frequency.
+
+2.  Relays do not have to manually aimed at receivers if they are not receiving any of it.
+
+3.  Use of a relay does not reset a beam's travel distance.</Text>
+        </Text>
+      </Text>
       <Tooltips />
     </Screen>
   </Screens>
