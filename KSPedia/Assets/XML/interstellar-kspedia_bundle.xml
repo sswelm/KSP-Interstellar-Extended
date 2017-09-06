@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<KSPBundleDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" UrlName="interstellar-kspedia" Name="interstellar-kspedia" CreatedTime="-8586969782969172797">
+<KSPBundleDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" UrlName="interstellar-kspedia" Name="interstellar-kspedia" CreatedTime="-8586969159034743816">
   <Author>Joshua A. Horton</Author>
   <Info>Beta version of a more user-friendly KSPedia for the KSPI-E mod.</Info>
   <Assets>
+    <Asset Name="ISP-and-thrust" Path="Assets/Pages/Charts/ISP-and-thrust.prefab" Type="GameObject" Url="Pages/Charts/ISP-and-thrust" AutoLoad="false" />
+    <Asset Name="connecting-parts" Path="Assets/Pages/Charts/connecting-parts.prefab" Type="GameObject" Url="Pages/Charts/connecting-parts" AutoLoad="false" />
+    <Asset Name="kspi-charts" Path="Assets/Pages/Charts/kspi-charts.prefab" Type="GameObject" Url="Pages/Charts/kspi-charts" AutoLoad="false" />
     <Asset Name="Energy Production" Path="Assets/Pages/Energy Production/Energy Production.prefab" Type="GameObject" Url="Pages/Energy Production/Energy Production" AutoLoad="false" />
     <Asset Name="Megajoules" Path="Assets/Pages/Energy Production/Megajoules.prefab" Type="GameObject" Url="Pages/Energy Production/Megajoules" AutoLoad="false" />
     <Asset Name="Reactor Efficiency" Path="Assets/Pages/Energy Production/Reactor Efficiency.prefab" Type="GameObject" Url="Pages/Energy Production/Reactor Efficiency" AutoLoad="false" />
