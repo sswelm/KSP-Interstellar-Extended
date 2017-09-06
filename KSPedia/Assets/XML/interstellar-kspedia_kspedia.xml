@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KSPedia xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="interstellar-kspedia" CreatedTime="-8586969793381157346">
+  <Categories>
+    <Category Name="Overview">
+      <Title>Interstellar Extended</Title>
+      <TitleScreen>KSPI_Splash</TitleScreen>
+      <Screens>
+        <Screen>Overview</Screen>
+      </Screens>
+      <Subcategories>
+        <Subcategory Name="energy-production">
+          <Title>Energy Production</Title>
+          <TitleScreen>Energy Production</TitleScreen>
+          <Screens>
+            <Screen>Megajoules</Screen>
+            <Screen>Reactor Efficiency</Screen>
+            <Screen>Solar Farming</Screen>
+          </Screens>
+          <Subcategories />
+        </Subcategory>
+      </Subcategories>
+    </Category>
+  </Categories>
+  <Screens>
+    <Screen Name="Solar Farming">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Energy Production/Solar Farming.prefab</AssetPath>
+      <Title>Solar Farming</Title>
+      <Background />
+      <Text>
+        <Text Name="MJ Title">
+          <Text>Solar Farming</Text>
+        </Text>
+        <Text Name="MJ Title/Summary">
+          <Text>They say there's no such thing as a free lunch, but near the sun there's something pretty close:  solar energy farming.  </Text>
+        </Text>
+        <Text Name="Reactor Data/The Principles">
+          <Text>The Principles</Text>
+        </Text>
+        <Text Name="Reactor Data/The Principles/Power">
+          <Text>The closer an object is to the sun, the more compact the sun's rays are and the more dense the solar energy.  Halving the distance to the sun quadruples the amount of energy a solar panel can collect - doubled for both the length and the width of the panel.</Text>
+        </Text>
+        <Text Name="The Implications">
+          <Text>Implications</Text>
+        </Text>
+        <Text Name="The Implications/Power">
+          <Text>Build solar farms extra close to the sun for high yields and use beamed power relays to gain significant maintenance free energy elsewhere in Kerbin's solar system.  A farm in a one billion-meter orbit yields 169 times the solar power compared one to in orbit of Kerbin - over 1 MW of energy per Gigantor XL!  (Don't forget the radiators!)</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="Resources">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Resources/Resources.prefab</AssetPath>
+      <Title />
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>Resources
+</Text>
+        </Text>
+        <Text Name="Heading/Text">
+          <Text>KSPI-E provides numerous additional resources over the stock version of KSP, extending numerous gameplay systems and adding a few new systems of its own.</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="Reactor Efficiency">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Energy Production/Reactor Efficiency.prefab</AssetPath>
+      <Title>Reactor Efficiency</Title>
+      <Background />
+      <Text>
+        <Text Name="MJ Title">
+          <Text>Reactor Efficiency</Text>
+        </Text>
+        <Text Name="MJ Title/Summary">
+          <Text>Reactors require great care in order to be effective, as they can overheat and lose output efficiency.</Text>
+        </Text>
+        <Text Name="Reactor Data/Core Efficiency">
+          <Text>Core Temperature</Text>
+        </Text>
+        <Text Name="Reactor Data/Core Efficiency/Power">
+          <Text>The reactor seen here has a core temperature of 16000K, which is rather high.  As the reactor's heat is converted into power and propulsion, it continues to output more heat in order to reach this temperature.
+
+If the ship cannot keep its temperature below the reactor's core temperature, the reactor will overheat and no longer be able to produce energy.  Wernher would probably be more worried about the ship itself overheating with this particular reactor.</Text>
+        </Text>
+        <Text Name="Reactor Data/Reactor">
+          <Text>Efficiency</Text>
+        </Text>
+        <Text Name="Reactor Data/Reactor/Power">
+          <Text>The more heat a ship is able to effectively use and radiate away, the more MW the ship is able to produce as output.  Reactors with high core temperatures are less susceptible to losing efficiency from overheating but generally produce enough energy for the ship to overheat without many radiators.</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="Overview">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Overview/Overview.prefab</AssetPath>
+      <Title>Overview</Title>
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>KSP Interstellar - Extended:  An Overview
+</Text>
+        </Text>
+        <Text Name="Heading/Summary">
+          <Text>KSPI-E adds numerous additional techs, parts, and resources with a vision of providing a realistic road to the stars, beginning with technologies that could have been available in the 1970s/1980s up to techno- logies currently under real-world study and development.  Some of these may or may not remain in the realm of science fiction but are theoretically sound to the best of our current scientific knowledge.</Text>
+        </Text>
+        <Text Name="Image: Power/Sub-Heading">
+          <Text>Reactors!</Text>
+        </Text>
+        <Text Name="Image: Power/Sub-Heading/Power">
+          <Text>Why rely on solar power when you can go nuclear and further beyond?  Space is vast, and so are the power requirements involved.  When conventional fuels aren't dense enough for an efficient launch, thermal and electrical engines step up to the plate.  The heat from these reactors is equally useful for propulsion and for electricity, but the conversion rate isn't perfect and excess heat must be dealt with carefully.</Text>
+        </Text>
+        <Text Name="Image: Relays/Sub-Heading">
+          <Text>Relays!</Text>
+        </Text>
+        <Text Name="Image: Relays/Sub-Heading/Resources">
+          <Text>When even on-board reactors become impractical, there are yet more alternatives.  Relays can send energy among ships and stations, allowing centralized reactors and solar farms to remotely 'fuel' low-mass ships with extreme thrust-weight efficency.  Relays do have their limits however; the beamed energy must remain in focus to be received effectively, and the process of beaming power comes with its own costs.</Text>
+        </Text>
+        <Text Name="Image: ISRUs/Sub-Heading">
+          <Text>Resources!</Text>
+        </Text>
+        <Text Name="Image: ISRUs/Sub-Heading/Resources">
+          <Text>Ore is hardly the only useful thing available to a space program when travelling the cosmos.  Solar winds leave regolith deposits on airless worlds, and rare metals and metals are often ripe for the picking.  Uranium for fission and hydrogen for fusion can be found across the cosmos and harnessed.  Take care, however - many useful processes leave by-products that require special handling!</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="Megajoules">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Energy Production/Megajoules.prefab</AssetPath>
+      <Title>Megajoules</Title>
+      <Background />
+      <Text>
+        <Text Name="MJ Title">
+          <Text>Megajoules</Text>
+        </Text>
+        <Text Name="MJ Title/Summary">
+          <Text>Reactors produce energy measured in Megawatts (MW), one of which equals 1000 units (or, one Megajoule) of Electric Charge per second.  Large ones push into the Gigawatts range!
+
+Electrical Charge can be converted to Megajoules with Capacitors, and Megajoules automatically convert to Electric Charge whenever a vessel runs low on energy.</Text>
+        </Text>
+        <Text Name="Reactor Data/Power Production">
+          <Text>Power Production</Text>
+        </Text>
+        <Text Name="Reactor Data/Power Production/Power">
+          <Text>The reactor seen here produces 3.0 GJ (or, 3000 MJ) of energy per second for a Deuterium-Tritium reaction: 3.0 GW x 1.00 for the power multiplier.  20% of that is output as charged particles, and the rest is emitted as thermal heat energy.</Text>
+        </Text>
+        <Text Name="Reactor Data/Efficiency">
+          <Text>Efficiency</Text>
+        </Text>
+        <Text Name="Reactor Data/Efficiency/Power">
+          <Text>The max rate for charged particle conversion is around 90% while the max rate for thermal energy is about 64%.  Nearly 920 MJ of energy turns into waste heat if converting to MJ of electricity!</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="KSPI-E_Basic_Template">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Templates/KSPI-E_Basic_Template.prefab</AssetPath>
+      <Title />
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>This is a test KSPedia page!
+</Text>
+        </Text>
+        <Text Name="Heading/Text">
+          <Text>Hello World!</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="KSPI_Splash">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/KSPI_Splash.prefab</AssetPath>
+      <Title>Interstellar Extended</Title>
+      <Background />
+      <Text />
+      <Tooltips />
+    </Screen>
+    <Screen Name="Energy Production">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Energy Production/Energy Production.prefab</AssetPath>
+      <Title>Energy Production</Title>
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>Harnessing the Future</Text>
+        </Text>
+        <Text Name="Heading/Summary">
+          <Text>Fission, fusion, and antimatter reactors provide opportunities for immense power generation.</Text>
+        </Text>
+        <Text Name="Converter-Reactor Set/Charged Converter">
+          <Text>Charged Particle Converter</Text>
+        </Text>
+        <Text Name="Converter-Reactor Set/Charged Converter/Power">
+          <Text>Converts an adjacent reactor's charged particle output into electrical power with higher efficiency than is possible with heat.  Some engines can use charged particles for propulsion instead.</Text>
+        </Text>
+        <Text Name="Converter-Reactor Set/Reactor">
+          <Text>Reactors</Text>
+        </Text>
+        <Text Name="Converter-Reactor Set/Reactor/Power">
+          <Text>Power reactors operate by converting fuel into immense amounts of heat, with some also producing charged particles.</Text>
+        </Text>
+        <Text Name="Converter-Reactor Set/Thermal Converter">
+          <Text>Thermal Converter</Text>
+        </Text>
+        <Text Name="Converter-Reactor Set/Thermal Converter/Power">
+          <Text>Converts an adjacent reactor's heat output into electrical power.  The efficiency isn't perfect, so significant amounts of waste heat will be generated.  Make sure to bring some radiators!
+
+Some engines can directly use thermal energy for propulsion if attached directly to the reactor instead of a thermal converter.</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
+  </Screens>
+</KSPedia>
