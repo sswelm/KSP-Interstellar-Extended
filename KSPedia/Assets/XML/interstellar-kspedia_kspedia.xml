@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<KSPedia xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="interstellar-kspedia" CreatedTime="-8586969793381157346">
+<KSPedia xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="interstellar-kspedia" CreatedTime="-8586969159109779106">
   <Categories>
-    <Category Name="Overview">
+    <Category Name="kspi-Overview">
       <Title>Interstellar Extended</Title>
       <TitleScreen>KSPI_Splash</TitleScreen>
       <Screens>
@@ -15,6 +15,15 @@
             <Screen>Megajoules</Screen>
             <Screen>Reactor Efficiency</Screen>
             <Screen>Solar Farming</Screen>
+          </Screens>
+          <Subcategories />
+        </Subcategory>
+        <Subcategory Name="kspi-Charts">
+          <Title>Charts</Title>
+          <TitleScreen>kspi-charts</TitleScreen>
+          <Screens>
+            <Screen>ISP-and-thrust</Screen>
+            <Screen>connecting-parts</Screen>
           </Screens>
           <Subcategories />
         </Subcategory>
@@ -173,10 +182,33 @@ Electrical Charge can be converted to Megajoules with Capacitors, and Megajoules
       </Text>
       <Tooltips />
     </Screen>
+    <Screen Name="kspi-charts">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Charts/kspi-charts.prefab</AssetPath>
+      <Title>Charts</Title>
+      <Background />
+      <Text>
+        <Text Name="Heading">
+          <Text>Data Charts</Text>
+        </Text>
+        <Text Name="Heading/Text">
+          <Text>This section is devoted to data charts for KSP Interstellar Extended.</Text>
+        </Text>
+      </Text>
+      <Tooltips />
+    </Screen>
     <Screen Name="KSPI_Splash">
       <BundleName>interstellar-kspedia</BundleName>
       <AssetPath>Assets/Pages/KSPI_Splash.prefab</AssetPath>
       <Title>Interstellar Extended</Title>
+      <Background />
+      <Text />
+      <Tooltips />
+    </Screen>
+    <Screen Name="ISP-and-thrust">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Charts/ISP-and-thrust.prefab</AssetPath>
+      <Title>ISP and Thrust</Title>
       <Background />
       <Text />
       <Tooltips />
@@ -214,6 +246,14 @@ Electrical Charge can be converted to Megajoules with Capacitors, and Megajoules
 Some engines can directly use thermal energy for propulsion if attached directly to the reactor instead of a thermal converter.</Text>
         </Text>
       </Text>
+      <Tooltips />
+    </Screen>
+    <Screen Name="connecting-parts">
+      <BundleName>interstellar-kspedia</BundleName>
+      <AssetPath>Assets/Pages/Charts/connecting-parts.prefab</AssetPath>
+      <Title>Connecting Parts</Title>
+      <Background />
+      <Text />
       <Tooltips />
     </Screen>
   </Screens>
