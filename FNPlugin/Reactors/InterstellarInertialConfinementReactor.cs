@@ -285,11 +285,19 @@ namespace FNPlugin
             }
             else
             {
-                IsEnabled = false;
-                framesPlasmaRatioIsGood = 0;
+                if (framesPlasmaRatioIsGood > 10)
+                {
+                    framesPlasmaRatioIsGood -= 10;
+                    plasma_ratio = 1;
+                }
+                else
+                {
+                    IsEnabled = false;
+                    framesPlasmaRatioIsGood = 0;
 
-                if (plasma_ratio < 0.01)
-                    plasma_ratio = 0;
+                    if (plasma_ratio < 0.01)
+                        plasma_ratio = 0;
+                }
             }
         }
 

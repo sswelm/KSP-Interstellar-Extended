@@ -136,7 +136,7 @@ namespace OpenResourceSystem
             powerConsumption.Power_consume += power_cosumtion_per_second;         
         }
 
-        public void powerDrawPerSecond(ORSResourceSuppliable pm, double power_draw, double power_cosumtion)
+        public void powerDrawPerSecond(ORSResourceSuppliable pm, double power_draw, double draw_power_consumption)
         {
             PowerConsumption powerConsumption;
             if (!power_consumption.TryGetValue(pm, out powerConsumption))
@@ -145,7 +145,7 @@ namespace OpenResourceSystem
                 power_consumption.Add(pm, powerConsumption);
             }
             powerConsumption.Power_draw += power_draw;
-            powerConsumption.Power_consume += power_cosumtion;
+            powerConsumption.Power_consume += draw_power_consumption;
         }
 
         public double powerSupplyFixed(IORSResourceSupplier pm, double power) 
@@ -380,7 +380,7 @@ namespace OpenResourceSystem
             IsUpdatedAtLeastOnce = true;
             Counter = counter;
 
-             stored_supply = currentPowerSupply;
+            stored_supply = currentPowerSupply;
 			stored_stable_supply = stable_supply;
             stored_resource_demand = current_resource_demand;
 			stored_current_demand = current_resource_demand;

@@ -17,11 +17,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
         public string temperatureStr = "";
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
 		public double powerRequirement = 625;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
 		public double powerRequirementUpgraded = 1250;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
 		public double powerRequirementUpgraded2 = 2500;
 
         [KSPField(isPersistant = false)]
@@ -34,11 +34,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
 		public double killDivider = 50;
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
 		public double fusionWasteHeat = 625;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
 		public double fusionWasteHeatUpgraded = 2500;
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
 		public double fusionWasteHeatUpgraded2 = 10000;
 
         // Use for SETI Mode
@@ -46,6 +46,9 @@ namespace FNPlugin
 		public double wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
 		public double powerRequirementMultiplier = 1;
+
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false)]
+        public double powerMultiplier;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Fusion Ratio", guiFormat = "F2")]
         public double fusionRatio;
@@ -193,7 +196,9 @@ namespace FNPlugin
         }
         private double powerMult ()
         {
-            return (FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1) * (scale == 0 ? 1 : Math.Pow(scale, 2));
+            //powerMultiplier =(FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1) * (scale == 0 ? 1 : Math.Pow(scale, 2));
+            powerMultiplier = FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1;
+            return powerMultiplier;
         }
 
         public void FCUpdate()
@@ -464,12 +469,13 @@ namespace FNPlugin
                 var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 var effectivePowerThrotling = resourceBarRatio > FNResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 
+                var requestedPower = Math.Min(requestedPowerPerSecond, availablePower * effectivePowerThrotling);
+
                 double recievedPowerPerSecond = CheatOptions.InfiniteElectricity
                     ? requestedPowerPerSecond
-                    : consumeFNResourcePerSecond(effectivePowerThrotling * requestedPowerPerSecond, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(requestedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPowerPerSecond / requestedPowerPerSecond;
-                //fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;
                 fusionRatio = plasma_ratio;
 
                 laserWasteheat = recievedPowerPerSecond * (1 - LaserEfficiency);

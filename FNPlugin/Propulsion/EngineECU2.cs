@@ -47,21 +47,24 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
 		public float minThrottleRatioMk3 = 0.05f;
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
+        public double thrustmultiplier;
+
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
         public float maxThrust = 75;
         public double MaxThrust 
         { 
             get { return maxThrust * thrustMult(); } 
         }
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
         public float maxThrustUpgraded = 300;
         public double MaxThrustUpgraded 
         { 
             get { return maxThrustUpgraded * thrustMult(); } 
         }
 
-        [KSPField(isPersistant = false)]
+        [KSPField(isPersistant = false, guiActiveEditor = true)]
         public float maxThrustUpgraded2 = 1200;
         public double MaxThrustUpgraded2 
         { 
@@ -219,7 +222,9 @@ namespace FNPlugin
         }
         private double thrustMult()
         {
-            return (FuelConfigurations.Count > 0 ? ActiveConfiguration.thrustMult : 1) * (scale == 0 ? 1 : Math.Pow(scale, 2));
+            //thrustmultiplier = (FuelConfigurations.Count > 0 ? ActiveConfiguration.thrustMult : 1) * (scale == 0 ? 1 : Math.Pow(scale, 2));
+            thrustmultiplier = FuelConfigurations.Count > 0 ? ActiveConfiguration.thrustMult : 1;
+            return thrustmultiplier;
         }
     
 
@@ -626,21 +631,21 @@ namespace FNPlugin
             }
         }
 
-        public float T_thrustMult
-        {
-            get
-            {
-                return thrustMult * (float)(Math.Pow(Scale, 2) == 0 ? 1 : Math.Pow(Scale, 2));
-            }
-        }
+        //public float T_thrustMult
+        //{
+        //    get
+        //    {
+        //        return thrustMult * (float)(Math.Pow(Scale, 2) == 0 ? 1 : Math.Pow(Scale, 2));
+        //    }
+        //}
 
-        public float T_powerMult
-        {
-            get
-            {
-                return powerMult * (float)(Math.Pow(Scale, 2) == 0 ? 1 : Math.Pow(Scale, 2));
-            }
-        }
+        //public float T_powerMult
+        //{
+        //    get
+        //    {
+        //        return powerMult * (float)(Math.Pow(Scale, 2) == 0 ? 1 : Math.Pow(Scale, 2));
+        //    }
+        //}
 
         public float[] Ratios
         {
@@ -707,6 +712,7 @@ namespace FNPlugin
                 return akIgnoreThrust;
             }
         }
+
         private float[] VolumeTweaked(float[] akFloat)
         {
           //  Debug.Log("akFloat.length: " + akFloat.Length);
