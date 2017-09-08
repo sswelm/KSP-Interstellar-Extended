@@ -132,12 +132,12 @@ namespace FNPlugin
 
         public double CurrentIspMultiplier
         {
-			get 
-			{ 
-				return type == (int)ElectricEngineType.VASIMR || type == (int)ElectricEngineType.ARCJET 
-				? Current_propellant.DecomposedIspMult 
-				: Current_propellant.IspMultiplier; 
-			}
+            get 
+            { 
+                return type == (int)ElectricEngineType.VASIMR || type == (int)ElectricEngineType.ARCJET 
+                ? Current_propellant.DecomposedIspMult 
+                : Current_propellant.IspMultiplier; 
+            }
 
         }
 
@@ -230,14 +230,14 @@ namespace FNPlugin
                 vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
                 UpdateEngineTypeString();
 
-				// calculate WasteHeat Capacity
-				var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-				if (wasteheatPowerResource != null)
-				{
-					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-					wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-					wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-				}
+                // calculate WasteHeat Capacity
+                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (wasteheatPowerResource != null)
+                {
+                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
+                    wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
+                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+                }
 
                 // initialize propellant
                 _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
@@ -494,9 +494,9 @@ namespace FNPlugin
             _electrical_consumption_f = power_received;
             _heat_production_f = heat_production;
 
-	        var effectiveIsp = _modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseISP * ThrottleModifiedIsp();
+            var effectiveIsp = _modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseISP * ThrottleModifiedIsp();
 
-			var max_thrust_in_space = currentPropellantEfficiency * CurrentPropellantThrustMultiplier * ModifiedThrotte * GetPowerThrustModifier() * power_received / (effectiveIsp * _g0);
+            var max_thrust_in_space = currentPropellantEfficiency * CurrentPropellantThrustMultiplier * ModifiedThrotte * GetPowerThrustModifier() * power_received / (effectiveIsp * _g0);
 
             _maxISP = _modifiedEngineBaseISP * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
             _max_fuel_flow_rate = _maxISP <= 0 ? 0 : max_thrust_in_space / _maxISP / PluginHelper.GravityConstant;

@@ -18,11 +18,11 @@ namespace FNPlugin
         public string temperatureStr = "";
 
         [KSPField(isPersistant = false, guiActiveEditor = true)]
-		public double powerRequirement = 625;
+        public double powerRequirement = 625;
         [KSPField(isPersistant = false, guiActiveEditor = true)]
-		public double powerRequirementUpgraded = 1250;
+        public double powerRequirementUpgraded = 1250;
         [KSPField(isPersistant = false, guiActiveEditor = true)]
-		public double powerRequirementUpgraded2 = 2500;
+        public double powerRequirementUpgraded2 = 2500;
 
         [KSPField(isPersistant = false)]
         public bool selectableIsp = false;
@@ -30,22 +30,22 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double maxAtmosphereDensity = 0.001;
         [KSPField(isPersistant = false)]
-		public double leathalDistance = 2000;
+        public double leathalDistance = 2000;
         [KSPField(isPersistant = false)]
-		public double killDivider = 50;
+        public double killDivider = 50;
 
         [KSPField(isPersistant = false, guiActiveEditor = true)]
-		public double fusionWasteHeat = 625;
+        public double fusionWasteHeat = 625;
         [KSPField(isPersistant = false, guiActiveEditor = true)]
-		public double fusionWasteHeatUpgraded = 2500;
+        public double fusionWasteHeatUpgraded = 2500;
         [KSPField(isPersistant = false, guiActiveEditor = true)]
-		public double fusionWasteHeatUpgraded2 = 10000;
+        public double fusionWasteHeatUpgraded2 = 10000;
 
         // Use for SETI Mode
         [KSPField(isPersistant = false)]
-		public double wasteHeatMultiplier = 1;
+        public double wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
-		public double powerRequirementMultiplier = 1;
+        public double powerRequirementMultiplier = 1;
 
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false)]
         public double powerMultiplier;
@@ -307,14 +307,14 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-				// calculate WasteHeat Capacity
-				var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-				if (wasteheatPowerResource != null)
-				{
-					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-					wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-					wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-				}
+                // calculate WasteHeat Capacity
+                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (wasteheatPowerResource != null)
+                {
+                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
+                    wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
+                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+                }
 
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
@@ -464,8 +464,7 @@ namespace FNPlugin
                 enginePowerRequirement = CurrentPowerRequirement;
                 var requestedPowerPerSecond = enginePowerRequirement;
 
-                var reservedForHighPriorityPowerUsers = getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - reservedForHighPriorityPowerUsers, 0);
+                var availablePower = getAvailableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
                 var effectivePowerThrotling = resourceBarRatio > FNResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 

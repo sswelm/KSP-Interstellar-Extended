@@ -18,9 +18,9 @@ namespace FNPlugin
         protected int prop_type;
         protected double efficiency;
         protected double ispMultiplier;
-		protected double thrustMultiplier;
-		protected double decomposedIspMult;
-		protected double thrustMultiplierCold;
+        protected double thrustMultiplier;
+        protected double decomposedIspMult;
+        protected double thrustMultiplierCold;
         protected Propellant propellant;
         protected String propellantname;
         protected String propellantguiname;
@@ -37,11 +37,11 @@ namespace FNPlugin
 
         public double IspMultiplier { get { return ispMultiplier; } }
 
-		public double DecomposedIspMult { get { return decomposedIspMult; } }
+        public double DecomposedIspMult { get { return decomposedIspMult; } }
 
-		public double ThrustMultiplier { get { return thrustMultiplier; } }
+        public double ThrustMultiplier { get { return thrustMultiplier; } }
 
-		public double ThrustMultiplierCold { get { return thrustMultiplierCold; } }
+        public double ThrustMultiplierCold { get { return thrustMultiplierCold; } }
 
         public Propellant Propellant {  get { return propellant; } }
 
@@ -61,9 +61,9 @@ namespace FNPlugin
 
             propellantguiname = node.HasValue("guiName") ? node.GetValue("guiName") : propellantname;
             ispMultiplier = node.HasValue("ispMultiplier") ? Convert.ToSingle(node.GetValue("ispMultiplier")) : 1;
-			decomposedIspMult = node.HasValue("decomposedIspMult") ? Convert.ToDouble(node.GetValue("decomposedIspMult")) : ispMultiplier;
-			thrustMultiplier = node.HasValue("thrustMultiplier") ? Convert.ToDouble(node.GetValue("thrustMultiplier")) : 1;
-			thrustMultiplierCold = node.HasValue("thrustMultiplierCold") ? Convert.ToDouble(node.GetValue("thrustMultiplierCold")) : thrustMultiplier;
+            decomposedIspMult = node.HasValue("decomposedIspMult") ? Convert.ToDouble(node.GetValue("decomposedIspMult")) : ispMultiplier;
+            thrustMultiplier = node.HasValue("thrustMultiplier") ? Convert.ToDouble(node.GetValue("thrustMultiplier")) : 1;
+            thrustMultiplierCold = node.HasValue("thrustMultiplierCold") ? Convert.ToDouble(node.GetValue("thrustMultiplierCold")) : thrustMultiplier;
             wasteheatMultiplier = node.HasValue("wasteheatMultiplier") ? Convert.ToDouble(node.GetValue("wasteheatMultiplier")) : 1;
             efficiency = node.HasValue("efficiency") ? Convert.ToDouble(node.GetValue("efficiency")) : 1;
             prop_type = node.HasValue("type") ? Convert.ToInt32(node.GetValue("type")) : 1;

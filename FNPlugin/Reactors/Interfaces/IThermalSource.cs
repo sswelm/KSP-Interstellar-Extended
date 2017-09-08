@@ -83,7 +83,7 @@ namespace FNPlugin
 
         bool IsNuclear { get; }
 
-		void EnableIfPossible();
+        void EnableIfPossible();
 
         bool shouldScaleDownJetISP();
 
@@ -122,6 +122,6 @@ namespace FNPlugin
         void DisconnectWithEngine(IEngineNoozle engine);
 
         
-	}
+    }
 }
 

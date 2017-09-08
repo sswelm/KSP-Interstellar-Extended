@@ -165,6 +165,15 @@ namespace OpenResourceSystem
             return manager.CurrentHighPriorityResourceDemand;
         }
 
+        public double getAvailableResourceSupply(String resourcename)
+        {
+            ORSResourceManager manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            return Math.Max(manager.StableResourceSupply - manager.CurrentHighPriorityResourceDemand, 0);
+        }
+
         public double getResourceSupply(String resourcename)
         {
             ORSResourceManager manager = getManagerForVessel(resourcename);

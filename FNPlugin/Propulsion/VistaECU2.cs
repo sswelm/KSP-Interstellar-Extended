@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
-
-namespace FNPlugin
+﻿namespace FNPlugin
 {
 
     class VistaECU2 : FusionECU2, IUpgradeableModule

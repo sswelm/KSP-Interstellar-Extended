@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using KSP.UI.Screens;
-using UnityEngine.Events;
 
 namespace FNPlugin
 {
@@ -213,9 +212,6 @@ namespace FNPlugin
 
         private static double _maxPowerDrawForExoticMatterMult = 1;
         public static double MaxPowerDrawForExoticMatterMult { get { return _maxPowerDrawForExoticMatterMult; } }
-
-        //private static double _lfoFuelThrustModifier = GameConstants.LfoFuelThrustModifier;
-        //public static double LfoFuelThrustModifier { get { return _lfoFuelThrustModifier; } }
 
         private static double _electricEngineIspMult = 1;
         public static double ElectricEngineIspMult { get { return _electricEngineIspMult; } }

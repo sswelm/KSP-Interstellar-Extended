@@ -84,11 +84,11 @@ namespace FNPlugin
         //public const double LfoFuelThrustModifier = 2.2222;
         public const double IspCoreTemperatureMultiplier = 22.371670613;
         public const double BaseThrustPowerMultiplier = 2000;
-		public const double HighCoreTempThrustMultiplier = 1600;
+        public const double HighCoreTempThrustMultiplier = 1600;
 
         //public const float BaseMaxPowerDrawForExoticMatter = 1000;
         public const double MaxThermalNozzleIsp = 2997.13;
-		public const double EngineHeatProduction = 1000;
+        public const double EngineHeatProduction = 1000;
         public const double AirflowHeatMultiplier = 1;
 
         public const int defaultSupportedPropellantAtoms = 121;

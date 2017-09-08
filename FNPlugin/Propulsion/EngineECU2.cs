@@ -43,9 +43,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float minThrottleRatioMk1 = 0.2f;
         [KSPField(isPersistant = false)]
-		public float minThrottleRatioMk2 = 0.1f;
+        public float minThrottleRatioMk2 = 0.1f;
         [KSPField(isPersistant = false)]
-		public float minThrottleRatioMk3 = 0.05f;
+        public float minThrottleRatioMk3 = 0.05f;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true)]
         public double thrustmultiplier;
@@ -74,9 +74,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double efficiency = 0.19;
         [KSPField(isPersistant = false)]
-		public double efficiencyUpgraded = 0.38;
+        public double efficiencyUpgraded = 0.38;
         [KSPField(isPersistant = false)]
-		public double efficiencyUpgraded2 = 0.76;
+        public double efficiencyUpgraded2 = 0.76;
 
         [KSPField(isPersistant = false)]
         public bool isLoaded = false;

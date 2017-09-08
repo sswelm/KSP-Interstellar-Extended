@@ -39,21 +39,19 @@ namespace FNPlugin
 
         // protected fields
         protected double power_consumed;
-        protected bool fusion_alert = false;
+        protected bool fusion_alert;
         protected int shutdown_c = 0;
-        protected int jumpstartPowerTime = 0;
+        protected int jumpstartPowerTime;
 
-        protected BaseField powerPercentageField;
         protected BaseField isChargingField;
 
         public override double PlasmaModifier
         {
-            get { return (plasma_ratio >= 0.01 ? Math.Min(plasma_ratio, 1) : 0); }
+            get { return plasma_ratio; }
         }
 
         public override void OnStart(PartModule.StartState state)
         {
-            powerPercentageField = Fields["powerPercentage"];
             isChargingField = Fields["isChargingForJumpstart"];
 
             isChargingField.guiActiveEditor = false;
@@ -273,30 +271,33 @@ namespace FNPlugin
             }
 
 
-            if (plasma_ratio >= 0.99)
+            if (plasma_ratio > 0.999)
             {
                 plasma_ratio = 1;
                 isChargingForJumpstart = false;
                 IsEnabled = true;
                 if (framesPlasmaRatioIsGood < 100)
-                    framesPlasmaRatioIsGood++;
+                    framesPlasmaRatioIsGood += 1;
                 if (framesPlasmaRatioIsGood > 10)
                     accumulatedElectricChargeInMW = 0;
             }
             else
             {
-                if (framesPlasmaRatioIsGood > 10)
+                var treshhold = 10 * (1 - plasma_ratio);
+                if (framesPlasmaRatioIsGood >= treshhold)
                 {
-                    framesPlasmaRatioIsGood -= 10;
+                    framesPlasmaRatioIsGood -= treshhold;
                     plasma_ratio = 1;
                 }
                 else
                 {
-                    IsEnabled = false;
                     framesPlasmaRatioIsGood = 0;
 
-                    if (plasma_ratio < 0.01)
+                    if (plasma_ratio < 0.001)
+                    {
+                        part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, -powerReceived);
                         plasma_ratio = 0;
+                    }
                 }
             }
         }
@@ -359,7 +360,7 @@ namespace FNPlugin
             }
         }
 
-        private int framesPlasmaRatioIsGood;
+        private double framesPlasmaRatioIsGood;
 
         public override int getPowerPriority()
         {

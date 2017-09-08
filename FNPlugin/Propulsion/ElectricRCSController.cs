@@ -476,9 +476,15 @@ namespace FNPlugin
             {
                 power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000 / Current_propellant.ThrustMultiplier;
 
-                power_recieved_f = CheatOptions.InfiniteElectricity
-                    ? power_requested_f
-                    : consumeFNResourcePerSecond(power_requested_f, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                if (CheatOptions.InfiniteElectricity)
+                    power_recieved_f = power_requested_f;
+                else
+                {
+	                var avaialablePower = getAvailableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+					power_recieved_f = avaialablePower >= power_requested_f 
+						? consumeFNResourcePerSecond(power_requested_f, FNResourceManager.FNRESOURCE_MEGAJOULES) 
+						: 0;
+                }
 
                 double heat_to_produce = power_recieved_f * (1 - efficiency);
 
@@ -538,7 +544,7 @@ namespace FNPlugin
         }
         public override int getPowerPriority()
         {
-            return 2;
+            return 3;
         }
     }
 }

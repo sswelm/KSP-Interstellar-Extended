@@ -64,7 +64,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double heatConvectiveConstant = 1;
         [KSPField(isPersistant = false)]
-		public double emissiveConstant = 0.85;
+        public double emissiveConstant = 0.85;
         [KSPField(isPersistant = false)]
         public float thermalMassModifier = 1f;
         [KSPField(isPersistant = false)]
@@ -74,13 +74,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double engineHeatFuelThreshold = 0.001;
         [KSPField(isPersistant = false)]
-		public double skinMaxTemp = 2750;
+        public double skinMaxTemp = 2750;
         [KSPField(isPersistant = false)]
-		public double skinInternalConductionMult = 1;
+        public double skinInternalConductionMult = 1;
         [KSPField(isPersistant = false)]
-		public double skinThermalMassModifier = 1;
+        public double skinThermalMassModifier = 1;
         [KSPField(isPersistant = false)]
-		public double skinSkinConductionMult = 1;
+        public double skinSkinConductionMult = 1;
         [KSPField(isPersistant = false)]
         public string deployAnimationName = String.Empty;
         [KSPField(isPersistant = false)]
@@ -88,13 +88,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string emiAnimationName = String.Empty;
         [KSPField(isPersistant = false)]
-		public float pulseDuration = 0;
+        public float pulseDuration = 0;
         [KSPField(isPersistant = false)]
-		public float recoveryAnimationDivider = 1;
+        public float recoveryAnimationDivider = 1;
         [KSPField(isPersistant = false)]
         public double wasteheatEfficiencyLowTemperature = 0.99;
         [KSPField(isPersistant = false)]
-		public double wasteheatEfficiencyHighTemperature = 0.9;
+        public double wasteheatEfficiencyHighTemperature = 0.9;
         [KSPField(isPersistant = false)]
         public float upgradeCost;
         [KSPField(isPersistant = false)]
@@ -409,12 +409,6 @@ namespace FNPlugin
         {
             try
             {
-
-                // initialize resource manager
-                //String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER };
-                //this.resources_to_supply = resources_to_supply;
-                //base.OnStart(state);
-
                 // make sure thermal values are fixed and not screwed up by Deadly Reentry
                 part.maxTemp = maxTemp;
                 part.emissiveConstant = emissiveConstant;
@@ -438,14 +432,14 @@ namespace FNPlugin
 
                 Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
 
-				// calculate WasteHeat Capacity
-				var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
-				if (wasteheatPowerResource != null)
-				{
-					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-					wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-					wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-				}
+                // calculate WasteHeat Capacity
+                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                if (wasteheatPowerResource != null)
+                {
+                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
+                    wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
+                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+                }
 
                 engineType = originalName;
 
@@ -500,7 +494,7 @@ namespace FNPlugin
                 bool hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
                 bool hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
 
-				jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
+                jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
                 jetTechBonusCurveChange = jetTechBonus / 9.92992f;
                 jetTechBonusPercentage = jetTechBonus / 49.6496f;
 
@@ -760,7 +754,7 @@ namespace FNPlugin
 
                     // Still ignore propellants that don't exist or we cannot use due to the limmitations of the engine
                     if (
-						( (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
+                        ( (!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
                         || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                         || (_fuelRequiresUpgrade && !isupgraded)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
@@ -768,7 +762,7 @@ namespace FNPlugin
                         || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                         || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
                         || ((_propType & this.supportedPropellantTypes) != _propType)
-						)  && (switches <= propellantsConfignodes.Length || fuel_mode != 0) ) 
+                        )  && (switches <= propellantsConfignodes.Length || fuel_mode != 0) ) 
                     {
                         if (((_atomType & this.supportedPropellantAtoms) != _atomType))
                             UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant nozzle atom " + this.supportedPropellantAtoms + " != " + _atomType);
@@ -867,9 +861,9 @@ namespace FNPlugin
                 if (jetPerformanceProfile == 0)
                 {
                     atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, (float)PluginHelper.MaxThermalNozzleIsp));
-					atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-					atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-					atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4f / 5f, (float)PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4f / 5f, (float)PluginHelper.MaxThermalNozzleIsp));
 
                     velCurve.Add(0, 0.05f + jetTechBonusPercentage / 2);
                     velCurve.Add(2.5f - jetTechBonusCurveChange, 1);
@@ -878,10 +872,10 @@ namespace FNPlugin
                 }
                 else if (jetPerformanceProfile == 1)
                 {
-					atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5.0f / 4.0f, (float)PluginHelper.MaxThermalNozzleIsp));
-					atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-					atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-					atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5.0f / 4.0f, (float)PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
 
                     velCurve.Add(0f, 0.50f + jetTechBonusPercentage);
                     velCurve.Add(1f, 1.00f);
@@ -1302,17 +1296,17 @@ namespace FNPlugin
                     consumeFNResourcePerSecond(20 * resourceRatio * max_fuel_flow_rate, FNResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
-				// Calculate
+                // Calculate
                 pre_coolers_active = _vesselPrecoolers.Sum(prc => prc.ValidAttachedIntakes);
                 total_intakes = _vesselResourceIntakes.Count();
-				intakes_open = _vesselResourceIntakes.Where(mre => mre.intakeEnabled).Count();
+                intakes_open = _vesselResourceIntakes.Where(mre => mre.intakeEnabled).Count();
 
                 proportion = _currentpropellant_is_jet && intakes_open > 0
                     ? Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1)
                     : 0;
 
-				if (double.IsNaN(proportion) || double.IsInfinity(proportion))
-					proportion = 0;
+                if (double.IsNaN(proportion) || double.IsInfinity(proportion))
+                    proportion = 0;
 
                 airflowHeatModifier = proportion > 0
                     ? Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit * proportion), 0)
@@ -1325,7 +1319,7 @@ namespace FNPlugin
 
                 engineHeatProduction *= (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult);
 
-				myAttachedEngine.heatProduction = (float)engineHeatProduction;
+                myAttachedEngine.heatProduction = (float)engineHeatProduction;
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                 {
@@ -1463,7 +1457,7 @@ namespace FNPlugin
             }
         }
 
-		private double GetPowerThrustModifier()
+        private double GetPowerThrustModifier()
         {
             return GameConstants.BaseThrustPowerMultiplier * PluginHelper.GlobalThermalNozzlePowerMaxThrustMult * CurrentPowerThrustMultiplier;
         }

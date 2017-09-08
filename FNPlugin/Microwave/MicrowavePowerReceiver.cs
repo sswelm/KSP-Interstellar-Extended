@@ -145,13 +145,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double receiverFracionBonus = 0;
         [KSPField(isPersistant = false)]
-		public double wasteHeatMultiplier = 1;
+        public double wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]
-		public double apertureMultiplier = 1;
+        public double apertureMultiplier = 1;
         [KSPField(isPersistant = false)]
-		public double highSpeedAtmosphereFactor = 0;
+        public double highSpeedAtmosphereFactor = 0;
         [KSPField(isPersistant = false)]
-		public double atmosphereToleranceModifier = 1;
+        public double atmosphereToleranceModifier = 1;
         [KSPField(isPersistant = false)]
         public double thermalPropulsionEfficiency = 1;
         [KSPField(isPersistant = false)]
@@ -207,9 +207,9 @@ namespace FNPlugin
         public int slavesAmount;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
-		public double maximumPower = 0;
+        public double maximumPower = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
-		public double maximumElectricPower = 0;
+        public double maximumElectricPower = 0;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
         public double maximumThermalPower = 0;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Max Power Source", guiFormat = "F2", guiUnits = "MW")]
@@ -865,8 +865,8 @@ namespace FNPlugin
             thermalResource = part.Resources[FNResourceManager.FNRESOURCE_THERMALPOWER];
             electricResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
 
-			// calculate WasteHeat Capacity
-			partBaseWasteheat = part.mass * 2.0e+5 * wasteHeatMultiplier;
+            // calculate WasteHeat Capacity
+            partBaseWasteheat = part.mass * 2.0e+5 * wasteHeatMultiplier;
 
             // calculate Power Capacity buffer
             partBaseMegajoules = StableMaximumReactorPower * 0.05;
