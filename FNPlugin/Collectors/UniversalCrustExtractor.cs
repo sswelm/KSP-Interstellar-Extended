@@ -61,7 +61,7 @@ namespace FNPlugin.Collectors
         public bool autoWindowShown;
 
         // GUI elements declaration
-        private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 4, 150);
+        private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 5, 150);
         private int _window_ID;
         private bool _render_window;
 
@@ -307,6 +307,13 @@ namespace FNPlugin.Collectors
                 // Save time data for offline mining
                 dLastActiveTime = Planetarium.GetUniversalTime();
             }
+            else
+            {
+                foreach (CrustalResource resource in localResources)
+                {
+                    CalculateSpareRoom(resource);
+                }
+            }
         }
 
         private void OnGUI()
@@ -468,7 +475,7 @@ namespace FNPlugin.Collectors
         {
             try
             {
-                localResources = CrustalResourceHandler.GetCrustalCompositionForBody(FlightGlobals.currentMainBody);
+                localResources = CrustalResourceHandler.GetCrustalCompositionForBody(FlightGlobals.currentMainBody).OrderBy(m => m.ResourceName).ToList();
 
                 UpdateResourceAbundances();
             }
@@ -649,11 +656,11 @@ namespace FNPlugin.Collectors
         /// <param name="crustThickness">The thickness of the planet's crust.</param>
         /// <param name="minedAmount">The amount of the general crust pseudo-resource that has been "mined". Is used for further calculations.</param>
         /// <returns>Bool, signifying if the calculation went well.</returns>
-        private bool CalculatePseudoMinedAmount(double crustThickness, out double minedAmount)
-        {
-            minedAmount = crustThickness * drillSize * effectiveness;
-            return minedAmount > 0;
-        }
+        //private bool CalculatePseudoMinedAmount(double crustThickness, out double minedAmount)
+        //{
+        //    minedAmount = crustThickness * drillSize * effectiveness;
+        //    return minedAmount > 0;
+        //}
 
         /// <summary>
         /// Calculates the spare room for the current resource on the vessel.
@@ -727,7 +734,6 @@ namespace FNPlugin.Collectors
                 }
 
                 double crustThickness = 0;
-                double minedAmount = 0;
 
                 if (!CalculateCrustThickness(vessel.altitude, FlightGlobals.currentMainBody, out crustThickness)) // crust thickness calculation off, no mining
                 {
@@ -735,11 +741,8 @@ namespace FNPlugin.Collectors
                     return;
                 }
 
-                if (!CalculatePseudoMinedAmount(crustThickness, out minedAmount)) // mined amount calculation off, no mining
-                {
-                    DisableCollector();
-                    return;
-                }
+                double minedAmount = crustThickness * drillSize * effectiveness;
+                double minedAmountStock = 0.0005 * drillSize * effectiveness;
 
                 StoreDataForOfflineMining(minedAmount);
 
@@ -751,8 +754,11 @@ namespace FNPlugin.Collectors
                     if (abundance == null)
                         continue;
 
-                    //deltaTime = (deltaTime >= 1.0 ? deltaTime : 1.0);
-                    resource.Production = minedAmount * abundance.Local;
+                    if (resource.ResourceName == "Ore")
+                        resource.Production = minedAmountStock * abundance.Local;
+                    else
+                        resource.Production = minedAmount * abundance.Local;
+
                     CalculateSpareRoom(resource);
 
                     if (resource.SpareRoom > 0) // if there's space, add the resource
@@ -837,20 +843,15 @@ namespace FNPlugin.Collectors
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Name", _bold_label, GUILayout.Width(valueWidth));
-            
-            //GUILayout.Label("Global 1", _bold_label, GUILayout.Width(valueWidth));
-            //GUILayout.Label("Global 2", _bold_label, GUILayout.Width(valueWidth));
-            //GUILayout.Label("Biome ", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.Label("Abundance", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Production", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Production per second", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Production per hour", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.Label("Spare Room", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.Label("Stored", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.Label("Max Capacity", _bold_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GetResourceData();
-            
-            //GUILayout.BeginScrollView(scrollPosition, GUILayout.Width(labelWidth + valueWidth * 3), GUILayout.Height(200));
             
             if (localResources != null)
             {
@@ -863,18 +864,36 @@ namespace FNPlugin.Collectors
 
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(resource.DisplayName, _normal_label, GUILayout.Width(valueWidth));
-                    //GUILayout.Label(abundance.GlobalWithVariance.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
-                    //GUILayout.Label(abundance.GlobalWithoutVariance.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
-                    //GUILayout.Label(abundance.Biome.ToString("##.######"), _normal_label, GUILayout.Width(valueWidth));
-                    GUILayout.Label(((float)abundance.Local).ToString() + "%", _normal_label, GUILayout.Width(valueWidth));
+                    GUILayout.Label(abundance.Local.ToString("##.######") + "%", _normal_label, GUILayout.Width(valueWidth));
 
-                    if (resource.Definition != null && resource.MaxAmount > 0)
+                    if (resource.Definition != null)
                     {
-                        GUILayout.Label((resource.Production * resource.Definition.density * 3600).ToString("##.######") + " t/h", _normal_label, GUILayout.Width(valueWidth));
-                        GUILayout.Label((resource.SpareRoom * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
-                        GUILayout.Label((resource.Amount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
-                        GUILayout.Label((resource.MaxAmount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                        if (resource.MaxAmount > 0)
+                        {
+                            if (resource.SpareRoom > 0)
+                            {
+                                GUILayout.Label(resource.Production.ToString("##.######") + " U/s", _normal_label, GUILayout.Width(valueWidth));
+                                GUILayout.Label((resource.Production * resource.Definition.density * 3600).ToString("##.######") + " t/h", _normal_label, GUILayout.Width(valueWidth));
+                                GUILayout.Label((resource.SpareRoom * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                            }
+                            else
+                            {
+                                GUILayout.Label("", _normal_label, GUILayout.Width(valueWidth));
+                                GUILayout.Label("", _normal_label, GUILayout.Width(valueWidth));
+                                GUILayout.Label("full", _normal_label, GUILayout.Width(valueWidth));
+                            }
+
+                            GUILayout.Label((resource.Amount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                            GUILayout.Label((resource.MaxAmount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                        }
+                        else
+                        {
+                            GUILayout.Label("", _normal_label, GUILayout.Width(valueWidth));
+                            GUILayout.Label("", _normal_label, GUILayout.Width(valueWidth));
+                            GUILayout.Label("missing", _normal_label, GUILayout.Width(valueWidth));
+                        }
                     }
+                    
                     GUILayout.EndHorizontal();
                 }
             }
