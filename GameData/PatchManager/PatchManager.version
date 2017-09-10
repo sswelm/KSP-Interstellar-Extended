@@ -1,0 +1,15 @@
+{
+  "NAME": "PatchManager",
+  "URL": "https://raw.githubusercontent.com/linuxgurugamer/PatchManager/master/PatchManager.version",
+  "VERSION": {
+    "MAJOR": 0,
+    "MINOR": 0,
+    "PATCH": 7,
+    "BUILD": 1
+  },
+  "KSP_VERSION": {
+    "MAJOR": 1,
+    "MINOR": 3,
+    "PATCH": 0
+  }
+}
