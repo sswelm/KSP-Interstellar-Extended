@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using TweakScale;
+using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
@@ -66,7 +67,7 @@ namespace InterstellarFuelSwitch
         public string selectedTankSetupTxt;
         [KSPField(isPersistant = true)]
         public bool configLoaded = false;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiName = "Setup")]
+        [KSPField(isPersistant = true)]
         public string initialTankSetup;
 
         // Config properties
@@ -79,11 +80,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string bannedResourceNames = string.Empty;
         [KSPField]
-        public string nextTankSetupText = "Next tank setup";
-        [KSPField]
-        public string previousTankSetupText = "Previous tank setup";
-        [KSPField]
-        public string switcherDescription = "Tank";
+        public string switcherDescription = "#LOC_IFS_FuelSwitch_switcherDescription";  // Tank
         [KSPField]
         public string resourceNames = "ElectricCharge;LiquidFuel,Oxidizer;MonoPropellant";
         [KSPField]
@@ -94,12 +91,8 @@ namespace InterstellarFuelSwitch
         public string initialResourceAmounts = string.Empty;
         [KSPField]
         public bool ignoreInitialCost = false;
-
-
-
         [KSPField(guiActiveEditor = false)]
         public bool adaptiveTankSelection = false;
-
         [KSPField(guiActiveEditor = false)]
         public float basePartMass = 0;
         [KSPField(guiActiveEditor = false)]
@@ -108,7 +101,6 @@ namespace InterstellarFuelSwitch
         public string tankResourceMassDivider = string.Empty;
         [KSPField(guiActiveEditor = false)]
         public string tankResourceMassDividerAddition = string.Empty;
-
         [KSPField(guiActiveEditor = false)]
         public bool overrideMassWithTankDividers = false;
 
@@ -162,27 +154,23 @@ namespace InterstellarFuelSwitch
         public float massMultiplier;
 
         // Gui
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Tank")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_tankGuiName")] // Tank name
         public string tankGuiName = "";
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Dry/Wet Mass")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_maxWetDryMass")] // Dry/Wet Mass
         public string maxWetDryMass = "";
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Specific Heat")]
-        public string specificHeatStr = "";
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Absorbed")]
-        public string boiloffEnergy = "";
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Mass Ratio")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_massRatioStr")] // Mass Ratio
         public string massRatioStr = "";
 
         // Debug
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Dry mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField]
         public double dryMass = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Part mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField]
         public double currentPartMass;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Initial mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField]
         public double initialMass;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Delta mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField]
         public double moduleMassDelta;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Default mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField]
         public float defaultMass;
 
         [KSPField(isPersistant = true, guiActiveEditor = false)]
@@ -192,31 +180,30 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public float storedMassMultiplier = 1;
 
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Wet mass", guiUnits = " t", guiFormat = "F4")]
+        [KSPField]
         public double wetMass;
-        [KSPField(guiActiveEditor = false, guiActive = false)]
+        [KSPField]
         public string resourceAmountStr0 = "";
-        [KSPField(guiActiveEditor = false, guiActive = false)]
+        [KSPField]
         public string resourceAmountStr1 = "";
-        [KSPField(guiActiveEditor = false, guiActive = false)]
+        [KSPField]
         public string resourceAmountStr2 = "";
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Total mass", guiUnits = " t", guiFormat = "F4")]
-        public double totalMass;
-
-        [KSPField(guiActiveEditor = false, guiName = "Volume Exponent")]
+        [KSPField]
         public float volumeExponent = 3;
-        [KSPField(guiActiveEditor = false, guiName = "Mass Exponent")]
+        [KSPField]
         public float massExponent = 3;
         [KSPField(isPersistant = true)]
         public bool traceBoiloff;
 
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Wet cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F4")] // Total mass
+        public double totalMass;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_maxResourceCost", guiFormat = "F3", guiUnits = " Ѵ")]  // Max Wet cost
         public double maxResourceCost = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Dry Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_dryCost", guiFormat = "F3", guiUnits = " Ѵ")]           // Dry Tank cost
         public double dryCost = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Resource cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_resourceCost", guiFormat = "F3", guiUnits = " Ѵ")]      // Resource cost
         public double resourceCost = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Total Tank cost", guiFormat = "F3", guiUnits = " Ѵ")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiFormat = "F3", guiUnits = " Ѵ")]         // Total Tank cost
         public double totalCost = 0;
 
         InterstellarTextureSwitch2 textureSwitch;
@@ -326,7 +313,7 @@ namespace InterstellarFuelSwitch
                 AssignResourcesToPart(false);
 
                 _chooseField = Fields["selectedTankSetup"];
-                _chooseField.guiName = switcherDescription;
+                _chooseField.guiName = Localizer.Format(switcherDescription);
                 _chooseField.guiActiveEditor = hasSwitchChooseOption && availableInEditor && _modularTankList.Count > 1;
                 _chooseField.guiActive = hasSwitchChooseOption && availableInFlight && _modularTankList.Count > 1;
 
@@ -440,7 +427,7 @@ namespace InterstellarFuelSwitch
 
                 if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
                 {
-                    Debug.Log("InsterstellarFuelSwitch Verify Tank Tech Requirements ");
+                    Debug.Log("[IFS] - InsterstellarFuelSwitch Verify Tank Tech Requirements ");
                     foreach (var modularTank in _modularTankList)
                     {
                         modularTank.hasTech = hasTech(modularTank.techReq);
@@ -450,11 +437,11 @@ namespace InterstellarFuelSwitch
 
                 _nextTankSetupEvent = Events["nextTankSetupEvent"];
                 _nextTankSetupEvent.guiActive = hasGUI && availableInFlight;
-                _nextTankSetupEvent.guiName = nextTankSetupText;
+                //_nextTankSetupEvent.guiName = nextTankSetupText;
 
                 _previousTankSetupEvent = Events["previousTankSetupEvent"];
                 _previousTankSetupEvent.guiActive = hasGUI && availableInFlight;
-                _previousTankSetupEvent.guiName = previousTankSetupText;
+                //_previousTankSetupEvent.guiName = previousTankSetupText;
 
                 Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["resourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
@@ -467,7 +454,7 @@ namespace InterstellarFuelSwitch
                     if (textureSwitch == null)
                     {
                         useTextureSwitchModule = false;
-                        Debug.Log("no InterstellarTextureSwitch2 module found, despite useTextureSwitchModule being true");
+                        Debug.Log("[IFS] - no InterstellarTextureSwitch2 module found, despite useTextureSwitchModule being true");
                     }
                 }
 
@@ -480,7 +467,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Next tank setup")]
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_nextTankSetupText")]
         public void nextTankSetupEvent()
         {
             try
@@ -502,7 +489,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "Previous tank setup")]
+        [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_previousTankSetupText")]
         public void previousTankSetupEvent()
         {
             try
@@ -745,7 +732,7 @@ namespace InterstellarFuelSwitch
                 // add new or exisitng resources
                 if (finalResourceNodes.Count > 0)
                 {
-                    Debug.Log("InsterstellarFuelSwitch SetupTankInPart adding resources: " + ParseTools.Print(newResources));
+                    Debug.Log("[IFS] - InsterstellarFuelSwitch SetupTankInPart adding resources: " + ParseTools.Print(newResources));
                     foreach (var resourceNode in finalResourceNodes)
                     {
                         currentPart.AddResource(resourceNode);
