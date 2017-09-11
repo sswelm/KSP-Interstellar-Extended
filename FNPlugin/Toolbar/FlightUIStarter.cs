@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace FNPlugin
 {

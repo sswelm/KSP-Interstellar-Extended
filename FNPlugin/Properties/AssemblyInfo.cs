@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 
 [assembly: KSPAssembly("KSPInterstellar", 10, 3)]
-[assembly: KSPAssemblyDependency("OpenResourceSystem",1,1)]
+//[assembly: KSPAssemblyDependency("OpenResourceSystem",1,1)]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -34,5 +34,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.15.1.6")]
-[assembly: AssemblyFileVersion("1.15.1.6")]
+[assembly: AssemblyVersion("1.16.0.0")]
+[assembly: AssemblyFileVersion("1.16.0.0")]

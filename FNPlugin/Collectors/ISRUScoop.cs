@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Linq;
 
 
@@ -273,7 +272,7 @@ namespace FNPlugin
                 if (powerrequirementsMW < 2 && normalisedRevievedPowerMW <= powerrequirementsMW)
                 {
                     var requiredKW = (powerrequirementsMW - normalisedRevievedPowerMW) * 1000;
-                    var recievedKW = ORSHelper.fixedRequestResource(part, FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, requiredKW * TimeWarp.fixedDeltaTime);
+                    var recievedKW = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, requiredKW * TimeWarp.fixedDeltaTime);
                     powerreceivedMW += (recievedKW / 1000);
                 }
 
@@ -297,8 +296,7 @@ namespace FNPlugin
                 ScreenMessages.PostScreenMessage("Atmospheric Scoop collected " + resourceChange.ToString(numberformat) + " " + resourceStoragename, 10.0f, ScreenMessageStyle.LOWER_CENTER);
             }
 
-            //resflowf = (float)part.RequestResource(atmospheric_resource_name, -scoopedAtm * powerpcnt * TimeWarp.fixedDeltaTime);
-            resflowf = (float)ORSHelper.fixedRequestResource(part, resourceStoragename, -resourceChange);
+            resflowf = part.RequestResource(resourceStoragename, -resourceChange);
             resflowf = -resflowf / TimeWarp.fixedDeltaTime;
             UpdateResourceFlow();
         }

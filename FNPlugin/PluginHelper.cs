@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -78,7 +77,7 @@ namespace FNPlugin
 
             if (shouldReinitialise)
             {
-                ORSHelper.removeVesselFromCache(change.host);
+                //ORSHelper.removeVesselFromCache(change.host);
 
                 Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange reinitialising");
 

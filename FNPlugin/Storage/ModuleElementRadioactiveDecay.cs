@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 
 namespace FNPlugin 
 {
@@ -50,7 +49,7 @@ namespace FNPlugin
                 double n_change = n_0 - decay_resource.amount;
 
                 if (resourceDefinitionsContainDecayProduct)
-                    ORSHelper.fixedRequestResource(part, decayProduct, -n_change * density_rat);
+                    part.RequestResource(decayProduct, -n_change * density_rat);
             }
         }
 
@@ -69,7 +68,7 @@ namespace FNPlugin
             decay_resource.amount -= decay_amount;
 
             if (resourceDefinitionsContainDecayProduct)
-                ORSHelper.fixedRequestResource(part, decayProduct, -decay_amount * density_rat);
+                part.RequestResource(decayProduct, -decay_amount * density_rat);
         }
 
         public override string GetInfo()

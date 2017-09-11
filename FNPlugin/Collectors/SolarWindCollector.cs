@@ -1,4 +1,3 @@
-using OpenResourceSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -350,7 +349,7 @@ namespace FNPlugin
                 if (dPowerRequirementsMW < 2 && dNormalisedRevievedPowerMW <= dPowerRequirementsMW)
                 {
                     double dRequiredKW = (dPowerRequirementsMW - dNormalisedRevievedPowerMW) * 1000;
-                    double dReceivedKW = ORSHelper.fixedRequestResource(part, FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime);
+                    double dReceivedKW = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime);
                     dPowerReceivedMW += (dReceivedKW / 1000);
                 }
 
@@ -396,7 +395,7 @@ namespace FNPlugin
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
-            dResourceFlow = ORSHelper.fixedRequestResource(part, strSolarWindResourceName, -dResourceChange);
+            dResourceFlow = part.RequestResource(strSolarWindResourceName, -dResourceChange);
             dResourceFlow = -dResourceFlow / TimeWarp.fixedDeltaTime;
         }
 

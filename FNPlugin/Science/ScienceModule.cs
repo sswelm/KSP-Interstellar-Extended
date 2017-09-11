@@ -1,5 +1,4 @@
-﻿using OpenResourceSystem;
-using System;
+﻿using System;
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Refinery; 
@@ -500,7 +499,7 @@ namespace FNPlugin
                     electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult;
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
                     double deut_produced = global_rate_multipliers * GameConstants.deuterium_timescale * GameConstants.deuterium_abudance * 1000.0f;
-                    deut_rate_f = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                    deut_rate_f = -part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdDeuterium, -deut_produced * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
                 }
                 else
                 {
