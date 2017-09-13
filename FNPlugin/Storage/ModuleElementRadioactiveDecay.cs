@@ -40,7 +40,11 @@ namespace FNPlugin
 
             resourceDefinitionsContainDecayProduct = PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct);
             if (resourceDefinitionsContainDecayProduct)
-                density_rat = decay_resource.info.density / PartResourceLibrary.Instance.GetDefinition(decayProduct).density;
+            {
+                var decay_density = PartResourceLibrary.Instance.GetDefinition(decayProduct).density;
+                if (decay_density > 0 && decay_resource.info.density > 0)
+                    density_rat = decay_resource.info.density / PartResourceLibrary.Instance.GetDefinition(decayProduct).density;
+            }
 
             if (!CheatOptions.UnbreakableJoints && decay_resource != null && time_diff > 0)
             {
@@ -48,7 +52,7 @@ namespace FNPlugin
                 decay_resource.amount = n_0 * Math.Exp(-decayConstant * time_diff);
                 double n_change = n_0 - decay_resource.amount;
 
-                if (resourceDefinitionsContainDecayProduct)
+                if (resourceDefinitionsContainDecayProduct && n_change > 0)
                     part.RequestResource(decayProduct, -n_change * density_rat);
             }
         }
@@ -67,7 +71,7 @@ namespace FNPlugin
             double decay_amount = decayConstant * decay_resource.amount * TimeWarp.fixedDeltaTime;
             decay_resource.amount -= decay_amount;
 
-            if (resourceDefinitionsContainDecayProduct)
+            if (resourceDefinitionsContainDecayProduct && decay_amount > 0)
                 part.RequestResource(decayProduct, -decay_amount * density_rat);
         }
 
