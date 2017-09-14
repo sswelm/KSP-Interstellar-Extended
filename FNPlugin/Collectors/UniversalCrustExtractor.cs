@@ -10,9 +10,6 @@ namespace FNPlugin.Collectors
     class CrustalResourceAbundance
     {
         public CrustalResource Resource { get; set; }
-        public double GlobalWithVariance { get; set; }
-        public double GlobalWithoutVariance { get; set; }
-        public double Biome { get; set; }
         public double Local { get; set; }
     }
 
@@ -54,10 +51,8 @@ namespace FNPlugin.Collectors
         public string deployAnimationName = "";
         [KSPField(isPersistant = false, guiActive = false)]
         public float animationState;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Reason Not Collecting")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Reason Not Collecting")]
         public string reasonNotCollecting;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Window shown")]
-        public bool autoWindowShown;
 
         // GUI elements declaration
         private Rect _window_position = new Rect(50, 50, labelWidth + valueWidth * 5, 150);
@@ -233,14 +228,6 @@ namespace FNPlugin.Collectors
                     _moduleScienceExperiment.Actions["DeployAction"].active = true;
                 }
 
-                //if (!autoWindowShown)
-                //{
-                //    if (_moduleScienceExperiment != null)
-                //        _moduleScienceExperiment.DeployAction(new KSPActionParam(KSPActionGroup.None, KSPActionType.Activate));
-                //    _render_window = true;
-                //    autoWindowShown = true;
-                //}
-
                 if (effectiveness > 0)
                 {
                     Events["ActivateCollector"].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
@@ -285,9 +272,9 @@ namespace FNPlugin.Collectors
                 CrustalResourceAbundance existingAbundance;
                 if (CrustalResourceAbundanceDict.TryGetValue(resource.ResourceName, out existingAbundance))
                 {
-                    existingAbundance.GlobalWithVariance = currentAbundance.GlobalWithVariance;
+                    //existingAbundance.GlobalWithVariance = currentAbundance.GlobalWithVariance;
                     existingAbundance.Local = currentAbundance.Local;
-                    existingAbundance.Biome = currentAbundance.Biome;
+                    //existingAbundance.Biome = currentAbundance.Biome;
                 }
                 else
                     CrustalResourceAbundanceDict.Add(resource.ResourceName, currentAbundance);
@@ -371,22 +358,19 @@ namespace FNPlugin.Collectors
         /// <returns>Bool signifying whether yes, we can mine here, or not.</returns>
         private string CheckIfCollectingPossible()
         {
-            if (vessel.checkLanded() == false || vessel.checkSplashed() == true)
+            if (vessel.checkLanded() == false || vessel.checkSplashed())
             {
-                autoWindowShown = false;
                 return "Vessel is not landed properly.";
             }
 
             if (!IsDrillExtended())
             {
-                autoWindowShown = false;
-                return "The universal drill needs to be extended before it can be used.";
+                return "needs to be extended before it can be used.";
             }
 
             if (!CanReachTerrain())
             {
-                autoWindowShown = false;
-                return "The universal drill has trouble reaching the terrain, check the vessel situation and setup.";
+                return " trouble reaching the terrain.";
             }
 
             // cleared all the prerequisites
@@ -505,26 +489,8 @@ namespace FNPlugin.Collectors
 
             if (currentResource != null)
             {
-                var definition = PartResourceLibrary.Instance.GetDefinition(currentResource.ResourceName);
                 try
                 {
-                    abundance.GlobalWithVariance =  GetAbundance(new AbundanceRequest()
-                        {
-                            ResourceType = HarvestTypes.Planetary,
-                            ResourceName = currentResource.ResourceName,
-                            BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
-                            CheckForLock = false
-                        });
-
-                    abundance.GlobalWithoutVariance = GetAbundance(new AbundanceRequest()
-                            {
-                                ResourceType = HarvestTypes.Planetary,
-                                ResourceName = currentResource.ResourceName,
-                                BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
-                                CheckForLock = false, 
-                                ExcludeVariance = true,
-                            });
-
                     abundance.Local = GetAbundance(new AbundanceRequest()
                         {
                             ResourceType = HarvestTypes.Planetary,
@@ -534,19 +500,6 @@ namespace FNPlugin.Collectors
                             Longitude = FlightGlobals.ship_longitude,
                             CheckForLock = false
                         });
-
-                    var biome_attribute = part.vessel.mainBody.BiomeMap.GetAtt(FlightGlobals.ship_latitude, FlightGlobals.ship_longitude);
-                    if (biome_attribute != null)
-                    {
-                        abundance.Biome = GetAbundance(new AbundanceRequest()
-                        {
-                            ResourceType = HarvestTypes.Planetary,
-                            ResourceName = currentResource.ResourceName,
-                            BodyId = FlightGlobals.currentMainBody.flightGlobalsIndex,
-                            BiomeName = biome_attribute.name,
-                            CheckForLock = false
-                        });
-                    }
 
                 }
                 catch (Exception)
@@ -563,36 +516,6 @@ namespace FNPlugin.Collectors
                 return null; // resource was null, we want to know that we should disregard it, so return false
             }
         }
-
-        ///// <summary>
-        ///// Gets the local abundance of the resource. Uses stock KSP behaviour. Returns true if data arrived okay.
-        ///// </summary>
-        ///// <param name="currentResource">The Crustal Resource we want the data for.</param>
-        ///// <param name="localAbundance">The local abundance of the currentResource.</param>
-        ///// <returns>True if the data was accessed without raising an exception. Also returns an output parameter.</returns>
-        //private bool GetLocalAbundance(CrustalResource currentResource, out double localAbundance)
-        //{
-        //    localAbundance = 0;
-        //    resourceRequest.ResourceName = currentResource.ResourceName;
-        //    resourceRequest.Latitude = vessel.latitude;
-        //    resourceRequest.Longitude = vessel.longitude;
-        //    resourceRequest.Altitude = vessel.altitude;
-        //    try
-        //    {
-        //        localAbundance = ResourceMap.Instance.GetAbundance(resourceRequest);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        Console.WriteLine("[KSPI] - UniversalCrustExtractor - Abundance request failed.");
-        //        return false; // if we got here, something went wrong, return false
-        //    }
-
-        //    // correct for trace abundances
-        //    if (localAbundance < 1)
-        //        localAbundance = Math.Pow(localAbundance, 3); 
-
-        //    return true; // if we got this far, everything went well, presumably
-        //}
 
         private double GetAbundance(AbundanceRequest request)
         {
@@ -646,20 +569,6 @@ namespace FNPlugin.Collectors
             thickness = dAltModifier * (planetMass / homeplanetMass); // get a basic concentration. The more mass the current planet has, the more crustal resources to be found here
             return true;
         }
-
-        /// <summary>
-        /// Calculates the amount of the crust that has been "mined". The crust is just a pseudo-resource, that is not actually collected,
-        /// nor stored in the vessel. It is immediately ("on-pickup") converted to other resources that are defined for the current body.
-        /// Returns true if calculations went well.
-        /// </summary>
-        /// <param name="crustThickness">The thickness of the planet's crust.</param>
-        /// <param name="minedAmount">The amount of the general crust pseudo-resource that has been "mined". Is used for further calculations.</param>
-        /// <returns>Bool, signifying if the calculation went well.</returns>
-        //private bool CalculatePseudoMinedAmount(double crustThickness, out double minedAmount)
-        //{
-        //    minedAmount = crustThickness * drillSize * effectiveness;
-        //    return minedAmount > 0;
-        //}
 
         /// <summary>
         /// Calculates the spare room for the current resource on the vessel.
@@ -732,8 +641,7 @@ namespace FNPlugin.Collectors
                     return;
                 }
 
-                double crustThickness = 0;
-
+                double crustThickness;
                 if (!CalculateCrustThickness(vessel.altitude, FlightGlobals.currentMainBody, out crustThickness)) // crust thickness calculation off, no mining
                 {
                     DisableCollector();
@@ -896,7 +804,6 @@ namespace FNPlugin.Collectors
                     GUILayout.EndHorizontal();
                 }
             }
-            //GUILayout.EndScrollView();
             GUILayout.EndVertical();
             GUI.DragWindow();
         }
