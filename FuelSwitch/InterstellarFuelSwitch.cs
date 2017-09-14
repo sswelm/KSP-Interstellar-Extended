@@ -53,6 +53,7 @@ namespace InterstellarFuelSwitch
         public double FullResourceMass { get { return Resources.Sum(m => m.FullMass); } }
     }
 
+	[KSPModule("#LOC_IFS_FuelSwitch_moduleName")]
     public class InterstellarFuelSwitch : PartModule, IRescalable<InterstellarFuelSwitch>, IPartCostModifier, IPartMassModifier
     {
         // Persistants
@@ -1243,7 +1244,7 @@ namespace InterstellarFuelSwitch
 
             var info = new StringBuilder();
 
-            info.AppendLine("Fuel tank setups available:");
+            info.AppendLine(Localizer.Format("#LOC_IFS_FuelSwitch_GetInfo") + ":");
             info.AppendLine();
 
             foreach (var module in _modularTankList)

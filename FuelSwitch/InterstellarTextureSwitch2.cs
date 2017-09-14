@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
+	[KSPModule("#LOC_IFS_TextureSwitch_moduleName")]
     public class InterstellarTextureSwitch2 : PartModule
     {
         [KSPField]
@@ -22,10 +24,6 @@ namespace InterstellarFuelSwitch
         public string textureDisplayNames = "Default";
 
         [KSPField]
-        public string nextButtonText = "Next Texture";
-        [KSPField]
-        public string prevButtonText = "Previous Texture";
-        [KSPField]
         public string statusText = "Current Texture";
 
         [KSPField(isPersistant = true, guiActiveEditor = true)]
@@ -37,8 +35,6 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool hasSwitchChooseOption = true;
 
-        //[KSPField(isPersistant = true)]
-        //public string selectedTextureURL = string.Empty;
         [KSPField(isPersistant = true)]
         public string selectedMapURL = string.Empty;
         [KSPField]
@@ -109,7 +105,7 @@ namespace InterstellarFuelSwitch
             return childList;
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Next Texture")]
+		[KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_nextSetup")]
         public void nextTextureEvent()
         {
             selectedTexture++;
@@ -118,7 +114,7 @@ namespace InterstellarFuelSwitch
             useTextureAll(true);
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Previous Texture")]
+		[KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_previousSetup")]
         public void previousTextureEvent()
         {
             selectedTexture--;
@@ -329,12 +325,10 @@ namespace InterstellarFuelSwitch
             if (!repaintableEVA) Events["nextTextureEVAEvent"].guiActiveUnfocused = false;
 
             var nextTextureButton = Events["nextTextureEvent"];
-            nextTextureButton.guiName = nextButtonText;
             nextTextureButton.guiActive = switchableInFlight && showSwitchButtons;
             nextTextureButton.guiActiveEditor = showSwitchButtons;
 
             var prevTextureButton = Events["previousTextureEvent"];
-            prevTextureButton.guiName = prevButtonText;
             prevTextureButton.guiActive = switchableInFlight && showSwitchButtons;
             prevTextureButton.guiActiveEditor = showSwitchButtons;
 
@@ -349,7 +343,7 @@ namespace InterstellarFuelSwitch
             currentTextureField.guiActiveEditor = showCurrentTextureName;
 
             var chooseField = Fields["selectedTexture"];
-            chooseField.guiName = switcherDescription;
+			chooseField.guiName = Localizer.Format("#LOC_IFS_TextureSwitch_TextureName");
             chooseField.guiActiveEditor = hasSwitchChooseOption;
 
             var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;

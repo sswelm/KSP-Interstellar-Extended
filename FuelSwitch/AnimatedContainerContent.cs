@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 //Animated Container allows an animation to correspond with the percentage of a particular resource or all resources in a container.

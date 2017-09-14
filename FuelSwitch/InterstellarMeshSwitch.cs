@@ -3,19 +3,15 @@ using System.Text;
 using UnityEngine;
 using System;
 using System.Linq;
+using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
+	[KSPModule("#LOC_IFS_MeshSwitch_moduleName")]
     public class InterstellarMeshSwitch : PartModule 
     {
         [KSPField]
         public int moduleID = 0;
-        [KSPField]
-        public string buttonName = "Next part variant";
-        [KSPField]
-        public string previousButtonName = "Prev part variant";
-        [KSPField]
-        public string switcherDescription = "Mesh";
         [KSPField]
         public string tankSwitchNames = string.Empty;
         [KSPField]
@@ -57,13 +53,13 @@ namespace InterstellarFuelSwitch
         private InterstellarFuelSwitch fuelSwitch;
         private InterstellarDebugMessages debug;
 
-        private bool initialized = false;
+        private bool initialized;
 
 
-        [KSPField(guiActiveEditor = false, guiName = "Current Variant")]
+		[KSPField(guiActiveEditor = false, guiName = "#LOC_IFS_MeshSwitch_currentObjectName")]
         public string currentObjectName = string.Empty;
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "Next part variant")]
+		[KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "#LOC_IFS_MeshSwitch_nextSetup")]
         public void nextObjectEvent()
         {
             selectedObject++;
@@ -73,7 +69,7 @@ namespace InterstellarFuelSwitch
             switchToObject(selectedObject, true);            
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "Prev part variant")]
+		[KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "#LOC_IFS_MeshSwitch_previousetup")]
         public void previousObjectEvent()
         {
             selectedObject--;
@@ -213,15 +209,13 @@ namespace InterstellarFuelSwitch
             Fields["currentObjectName"].guiActiveEditor = showCurrentObjectName;
 
             var nextButton = Events["nextObjectEvent"];
-            nextButton.guiName = buttonName;
             nextButton.guiActiveEditor = showSwitchButtons;
 
             var prevButton = Events["previousObjectEvent"];
-            prevButton.guiName = previousButtonName;
             prevButton.guiActiveEditor = showSwitchButtons;
 
             var chooseField = Fields["selectedObject"];
-            chooseField.guiName = switcherDescription;
+			chooseField.guiName = Localizer.Format("#LOC_IFS_MeshSwitch_MeshName");
             chooseField.guiActiveEditor = hasSwitchChooseOption;
 
             var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;
@@ -297,14 +291,10 @@ namespace InterstellarFuelSwitch
         {
             if (showInfo)
             {
-                List<string> variantList;
-                if (objectDisplayNames.Length > 0)
-                    variantList = ParseTools.ParseNames(objectDisplayNames);
-                else
-                    variantList = ParseTools.ParseNames(objects);
+	            List<string> variantList = ParseTools.ParseNames(objectDisplayNames.Length > 0 ? objectDisplayNames : objects);
 
-                StringBuilder info = new StringBuilder();
-                info.AppendLine("Part variants available:");
+	            var info = new StringBuilder();
+                info.AppendLine(Localizer.Format("#LOC_IFS_MeshSwitch_GetInfo") + ":");
                 for (int i = 0; i < variantList.Count; i++)
                 {
                     info.AppendLine(variantList[i]);

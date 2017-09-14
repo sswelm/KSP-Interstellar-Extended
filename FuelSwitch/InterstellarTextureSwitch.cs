@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
@@ -35,6 +36,7 @@ namespace InterstellarFuelSwitch
         }
     }
 
+	[KSPModule("#LOC_IFS_TextureSwitch_moduleName")]
     public class InterstellarTextureSwitch : PartModule
     {
         [KSPField]
@@ -109,7 +111,7 @@ namespace InterstellarFuelSwitch
             return childList;
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Next Texture")]
+		[KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_nextSetup")]
         public void nextTextureEvent()
         {
             selectedTexture++;
@@ -118,7 +120,7 @@ namespace InterstellarFuelSwitch
             useTextureAll();
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Previous Texture")]
+		[KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_previousSetup")]
         public void previousTextureEvent()
         {
             selectedTexture--;
@@ -177,8 +179,8 @@ namespace InterstellarFuelSwitch
 
         public override string GetInfo()
         {
-            StringBuilder info = new StringBuilder();
-            info.AppendLine("Alternate textures available:");
+            var info = new StringBuilder();
+            info.AppendLine(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfo") + ":");
             if (texList.Count == 0)
             {
                 if (!texListDictionary.TryGetValue(uniqueModuleID, out texList))
