@@ -1046,7 +1046,7 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSP Interstellar] - Setup Receiver BrandWidth Configurations for " + part.partInfo.title);
+                Debug.Log("[KSPI] - Setup Receiver BrandWidth Configurations for " + part.partInfo.title);
 
                 var bandWidthNameField = Fields["bandWidthName"];
                 bandWidthNameField.guiActiveEditor = !canSwitchBandwidthInEditor;
@@ -1352,8 +1352,8 @@ namespace FNPlugin
             double atmosphericDistance;
             if (recieverVessel.mainBody == transmitterVessel.mainBody)
             {
-                var recieverAltitudeModifier = recieverVessel.altitude > atmosphereDepthInMeter ? atmosphereDepthInMeter / recieverVessel.altitude : 1;
-                var transmitterAltitudeModifier = transmitterVessel.altitude > atmosphereDepthInMeter ? atmosphereDepthInMeter / transmitterVessel.altitude : 1;
+                var recieverAltitudeModifier = atmosphereDepthInMeter > 0 && recieverVessel.altitude > atmosphereDepthInMeter ? atmosphereDepthInMeter / recieverVessel.altitude : 1;
+                var transmitterAltitudeModifier = atmosphereDepthInMeter > 0 && transmitterVessel.altitude > atmosphereDepthInMeter ? atmosphereDepthInMeter / transmitterVessel.altitude : 1;
                 atmosphericDistance = transmitterAltitudeModifier * recieverAltitudeModifier * distanceInMeter;
             }
             else
@@ -1602,7 +1602,7 @@ namespace FNPlugin
                             total_conversion_waste_heat_production += satPower * (1 - efficiency_fraction);
 
                             // register amount of raw power recieved
-                            received_power[transmitterPersistance.Vessel] = efficiency_fraction > 0 ? satPower / efficiency_fraction : satPower;
+                            received_power[transmitterPersistance.Vessel] = satPower > 0 && efficiency_fraction > 0 ? satPower / efficiency_fraction : satPower;
 
                             // convert raw power into effecive power
                             total_beamed_power += satPower;
@@ -1645,29 +1645,45 @@ namespace FNPlugin
 
                     if (isThermalReceiverSlave || thermalMode)
                     {
-                        slavesAmount = thermalReceiverSlaves.Count;
-
-                        // first do solar power
-                        supplyFNResourcePerSecondWithMax(solarInputMegajoules, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_THERMALPOWER);
-                        double supplied_beamed_thermal_per_second = supplyFNResourcePerSecondWithMax(total_beamed_power, total_beamed_power_max, FNResourceManager.FNRESOURCE_THERMALPOWER);
-
-                        if (!CheatOptions.IgnoreMaxTemperature)
+                        if (solarInputMegajoules > 0)
                         {
-                            // thermal power does not have conversion wasteheat, only distritribution wasteheat
-                            supplyFNResourcePerSecondWithMax(supplied_beamed_thermal_per_second, total_beamed_power_max, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                            supplyFNResourcePerSecondWithMax(solarInputMegajoules, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                            var provided_solar_thermal_per_second = supplyFNResourcePerSecondWithMax(solarInputMegajoules, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_THERMALPOWER);
+
+                            if (!CheatOptions.IgnoreMaxTemperature)
+                                supplyFNResourcePerSecondWithMax(provided_solar_thermal_per_second, solarInputMegajoulesMax, FNResourceManager.FNRESOURCE_WASTEHEAT);
                         }
 
-                        var cur_thermal_power_per_second = solarInputMegajoules + total_beamed_power;
+                        if (total_beamed_power > 0)
+                        {
+                            var provided_beamed_thermal_per_second = managedRequestedPowerSupplyPerSecondMinimumRatio(total_beamed_power, total_beamed_power_max, 0, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                            var effective_used_beamed_power_ratio = provided_beamed_thermal_per_second / total_beamed_power;
 
-                        var total_thermal_power = isThermalReceiver
-                            ? cur_thermal_power_per_second + thermalReceiverSlaves.Sum(m => m.ThermalPower)
-                            : cur_thermal_power_per_second;
+                            // modify received power
+                            if (effective_used_beamed_power_ratio > 0)
+                            {
+                                foreach (var keyvalue in received_power)
+                                    received_power[keyvalue.Key] = keyvalue.Value * effective_used_beamed_power_ratio;
+                            }
+
+                            if (!CheatOptions.IgnoreMaxTemperature)
+                                supplyFNResourcePerSecondWithMax(provided_beamed_thermal_per_second, total_beamed_power_max, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        }
+
+                        double cur_thermal_power_per_second = solarInputMegajoules + total_beamed_power;
+                        double total_thermal_power;
+                        if (isThermalReceiver)
+                        {
+                            slavesAmount = thermalReceiverSlaves.Count;
+                            total_thermal_power = cur_thermal_power_per_second + thermalReceiverSlaves.Sum(m => m.ThermalPower);
+                        }
+                        else
+                            total_thermal_power = cur_thermal_power_per_second;
+
 
                         if (animT != null)
                         {
                             var maximumRecievePower = MaximumRecievePower;
-                            animT[animTName].normalizedTime = maximumRecievePower > 0 ? (float)Math.Min(total_thermal_power / maximumRecievePower, 1) : 0;
+                            animT[animTName].normalizedTime = total_thermal_power > 0 && maximumRecievePower > 0 ? (float)Math.Min(total_thermal_power / maximumRecievePower, 1) : 0;
                             animT.Sample();
                         }
 
@@ -1682,13 +1698,13 @@ namespace FNPlugin
 
                         // convert the received beamed energy  into effective electric power
                         effectiveBeamedPowerElectricEfficiency = wasteheatElectricConversionEfficiency * electricMaxEfficiency;
-                        var avaialbleElectricBeamedPower = total_beamed_power * effectiveBeamedPowerElectricEfficiency;
-                        var suppliedBeamedPower = supplyManagedFNResourcePerSecond(avaialbleElectricBeamedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                        var availableElectricBeamedPower = total_beamed_power * effectiveBeamedPowerElectricEfficiency;
+                        var suppliedBeamedPower = supplyManagedFNResourcePerSecond(availableElectricBeamedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
                         // only generate wasteheat from beamed power when actualy using the energy
                         if (!CheatOptions.IgnoreMaxTemperature)
                         {
-                            var supplyRatio = suppliedBeamedPower > 0 ? suppliedBeamedPower / avaialbleElectricBeamedPower : 0;
+                            var supplyRatio = suppliedBeamedPower > 0 && availableElectricBeamedPower > 0 ? suppliedBeamedPower / availableElectricBeamedPower : 0;
                             supplyFNResourcePerSecond(total_beamed_wasteheat * supplyRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
                         }
 
@@ -1931,7 +1947,7 @@ namespace FNPlugin
         {
             //Debug.Log("[KSP Interstellar]: ComputeDistanceFacingEfficiency spotSize: " + spotSize + " facingFactor: " + facingFactor + " recieverDiameter: " + recieverDiameter);
 
-            if (spotSizeDiameter == 0)
+            if (spotSizeDiameter == 0 || Double.IsPositiveInfinity(spotSizeDiameter) || Double.IsNaN(spotSizeDiameter))
                 return 0;
 
             if (spotSizeDiameter < 0)
