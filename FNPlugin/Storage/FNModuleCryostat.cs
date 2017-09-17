@@ -19,8 +19,6 @@ namespace FNPlugin
         public string resourceName = "";
         [KSPField(isPersistant = false)]
         public string resourceGUIName = "";
-        [KSPField(isPersistant = false)]
-        public double resourceRatioExp = 0.5;
         [KSPField(isPersistant = false, guiActive = false)]
         public double boilOffRate = 0;
         [KSPField(isPersistant = false, guiActive = false)]
@@ -99,7 +97,7 @@ namespace FNPlugin
 
             // compensate for stock solar initialisation heating bug
             part.temperature = storedTemp;
-            initializationCountdown = 50;
+            initializationCountdown = 100;
             requiresPower = powerReqKW > 0;
 
             if (state == StartState.Editor)
@@ -124,14 +122,10 @@ namespace FNPlugin
             if (_electricCharge_resource != null && currentPowerUsage > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime || previousPowerUsage != currentPowerUsage)
             {
                 double requiredCapacity = 2 * currentPowerUsage * TimeWarp.fixedDeltaTime;
-                double previousCapacity = 2 * currentPowerUsage * previousDeltaTime;
-                double bufferRatio = (_electricCharge_resource.amount / _electricCharge_resource.maxAmount);
+                double bufferRatio = _electricCharge_resource.maxAmount > 0 ? _electricCharge_resource.amount / _electricCharge_resource.maxAmount : 0;
 
                 _electricCharge_resource.maxAmount = requiredCapacity;
-
-                _electricCharge_resource.amount = TimeWarp.fixedDeltaTime > previousDeltaTime
-                    ? Math.Max(0, Math.Min(requiredCapacity, _electricCharge_resource.amount + requiredCapacity - previousCapacity))
-                    : Math.Max(0, Math.Min(requiredCapacity, bufferRatio * requiredCapacity));
+                _electricCharge_resource.amount =  bufferRatio * requiredCapacity;
             }
 
             previousPowerUsage = currentPowerUsage;
@@ -212,12 +206,12 @@ namespace FNPlugin
 
             if (!isDisabled && currentPowerReq > 0)
             {
-                UpdateElectricChargeBuffer(Math.Max(currentPowerReq, 0.01 * powerReqKW));
+                UpdateElectricChargeBuffer(Math.Max(currentPowerReq, 0.1 * powerReqKW));
 
                 var fixedPowerReqKW = currentPowerReq * TimeWarp.fixedDeltaTime;
 
                 double fixedRecievedChargeKW = CheatOptions.InfiniteElectricity 
-                    ? fixedPowerReqKW / 1000 
+                    ? fixedPowerReqKW
                     : consumeFNResource(fixedPowerReqKW / 1000, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
 
                 if (fixedRecievedChargeKW <= fixedPowerReqKW)
@@ -234,7 +228,7 @@ namespace FNPlugin
             else
                 recievedPowerKW = 0;
 
-            bool hasExtraBoiloff = powerReqKW > 0 && recievedPowerKW < currentPowerReq && previousRecievedPowerKW < previousPowerReq;
+            bool hasExtraBoiloff = initializationCountdown == 0 && powerReqKW > 0 && recievedPowerKW < currentPowerReq && previousRecievedPowerKW < previousPowerReq;
 
             var boiloffReducuction = !hasExtraBoiloff
                     ? boilOffRate
@@ -247,7 +241,7 @@ namespace FNPlugin
             if (boiloff > 0.0000000001)
             {
                 _cryostat_resource.amount = Math.Max(0, _cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
-                boiloffStr = boiloff.ToString("0.000000") + " L/s " + _cryostat_resource.resourceName;
+                boiloffStr = boiloff.ToString("0.0000000") + " L/s " + _cryostat_resource.resourceName;
 
                 if (hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
                 {
