@@ -171,8 +171,6 @@ namespace FNPlugin
             chooseOptionEditor.options = names;
             chooseOptionFlight.options = names;
 
-            //  UpdateFromGUI(chooseField, selectedFuel);
-
             // connect on change event
             if (chooseField.guiActive) chooseOptionFlight.onFieldChanged = UpdateFlightGUI;
             if (chooseField.guiActiveEditor) chooseOptionEditor.onFieldChanged = UpdateEditorGUI;

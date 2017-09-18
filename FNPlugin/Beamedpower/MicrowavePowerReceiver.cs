@@ -244,6 +244,27 @@ namespace FNPlugin
         protected double total_beamed_power_max = 0;
         protected double total_beamed_wasteheat = 0;
 
+        protected BaseField beamedpowerField;
+        protected BaseField powerInputMegajoulesField;
+        protected BaseField linkedForRelayField;
+        protected BaseField diameterField;
+        protected BaseField slavesAmountField;
+        protected BaseField ThermalPowerField;
+        protected BaseField efficiencyPercentageField;
+        protected BaseField effectivefacingFactorField;
+        protected BaseField receiptPowerField;
+        protected BaseField effectiveTransmitterEfficencyField;
+        protected BaseField maxAvailablePowerFromSourceField;
+        protected BaseField routeEfficiencyField;
+        protected BaseField currentPowerUsageByOtherRecieversField;
+        protected BaseField selectedBandwidthConfigurationField;
+        protected BaseField maximumWavelengthField;
+        protected BaseField minimumWavelengthField;
+        protected BaseField remainingPowerFromSourceField;
+        protected BaseField solarFacingFactorField;
+        protected BaseField solarFluxField;
+        protected BaseField toteffField;
+
         protected BaseField _radiusField;
         protected BaseField _coreTempereratureField;
         protected BaseField _field_kerbalism_output;
@@ -257,7 +278,7 @@ namespace FNPlugin
         protected ModuleDeployableRadiator deployableRadiator;
         protected ModuleDeployableAntenna deployableAntenna;
 
-        protected ModuleActiveRadiator activeRadiator;
+        //protected ModuleActiveRadiator activeRadiator;
         protected FNRadiator fnRadiator;
         protected PartModule warpfixer;
         
@@ -881,7 +902,7 @@ namespace FNPlugin
                 has_transmitter = true;
             }
 
-            activeRadiator = part.FindModuleImplementing<ModuleActiveRadiator>();
+            //activeRadiator = part.FindModuleImplementing<ModuleActiveRadiator>();
             deployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
             if (deployableRadiator != null)
             {
@@ -1048,23 +1069,44 @@ namespace FNPlugin
             {
                 Debug.Log("[KSPI] - Setup Receiver BrandWidth Configurations for " + part.partInfo.title);
 
+                currentPowerUsageByOtherRecieversField = Fields["currentPowerUsageByOtherRecievers"];
+                effectiveTransmitterEfficencyField = Fields["effectiveTransmitterEfficency"];
+                maxAvailablePowerFromSourceField = Fields["maxAvailablePowerFromSource"];
+                remainingPowerFromSourceField = Fields["remainingPowerFromSource"];
+                effectivefacingFactorField = Fields["effectivefacingFactor"];
+                powerInputMegajoulesField = Fields["powerInputMegajoules"];
+                efficiencyPercentageField = Fields["efficiencyPercentage"];
+                maximumWavelengthField = Fields["maximumWavelength"];
+                minimumWavelengthField = Fields["minimumWavelength"];
+                solarFacingFactorField = Fields["solarFacingFactor"];
+                routeEfficiencyField = Fields["routeEfficiency"];
+                linkedForRelayField = Fields["linkedForRelay"];
+                slavesAmountField = Fields["slavesAmount"];
+                ThermalPowerField = Fields["ThermalPower"];
+                receiptPowerField = Fields["receiptPower"];
+                beamedpowerField = Fields["beamedpower"];
+                solarFluxField = Fields["solarFlux"];
+                diameterField = Fields["diameter"];
+                toteffField = Fields["toteff"];
+                
+
                 var bandWidthNameField = Fields["bandWidthName"];
                 bandWidthNameField.guiActiveEditor = !canSwitchBandwidthInEditor;
                 bandWidthNameField.guiActive = !canSwitchBandwidthInFlight && canSwitchBandwidthInEditor;
 
-                var chooseField = Fields["selectedBandwidthConfiguration"];
-                chooseField.guiActiveEditor = canSwitchBandwidthInEditor;
-                chooseField.guiActive = canSwitchBandwidthInFlight;
+                selectedBandwidthConfigurationField = Fields["selectedBandwidthConfiguration"];
+                selectedBandwidthConfigurationField.guiActiveEditor = canSwitchBandwidthInEditor;
+                selectedBandwidthConfigurationField.guiActive = canSwitchBandwidthInFlight;
 
                 var names = BandwidthConverters.Select(m => m.bandwidthName).ToArray();
 
-                var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
+                var chooseOptionEditor = selectedBandwidthConfigurationField.uiControlEditor as UI_ChooseOption;
                 chooseOptionEditor.options = names;
 
-                var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
+                var chooseOptionFlight = selectedBandwidthConfigurationField.uiControlFlight as UI_ChooseOption;
                 chooseOptionFlight.options = names;
 
-                UpdateFromGUI(chooseField, selectedBandwidthConfiguration);
+                UpdateFromGUI(selectedBandwidthConfigurationField, selectedBandwidthConfiguration);
 
                 // connect on change event
                 chooseOptionEditor.onFieldChanged = UpdateFromGUI;
@@ -1218,45 +1260,41 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            bool transmitter_on = has_transmitter && part_transmitter.isActive();
+            bool transmitterOn = has_transmitter && part_transmitter.isActive();
             bool canBeActive = CanBeActiveInAtmosphere;
 
-            _linkReceiverBaseEvent.active = canLinkup && !linkedForRelay && !receiverIsEnabled && !transmitter_on && canBeActive;
+            _linkReceiverBaseEvent.active = canLinkup && !linkedForRelay && !receiverIsEnabled && !transmitterOn && canBeActive;
             _unlinkReceiverBaseEvent.active = linkedForRelay;
             
-            _activateReceiverBaseEvent.active = !linkedForRelay && !receiverIsEnabled && !transmitter_on && canBeActive;
+            _activateReceiverBaseEvent.active = !linkedForRelay && !receiverIsEnabled && !transmitterOn && canBeActive;
             _disableReceiverBaseEvent.active = receiverIsEnabled;
 
-            var isNotRelayingOrTransmitting = !linkedForRelay && !transmitter_on;
+            var isNotRelayingOrTransmitting = !linkedForRelay && !transmitterOn;
 
-            Fields["beamedpower"].guiActive = isNotRelayingOrTransmitting;
-            Fields["powerInputMegajoules"].guiActive = isNotRelayingOrTransmitting;
-            Fields["linkedForRelay"].guiActive = isNotRelayingOrTransmitting;
-            Fields["diameter"].guiActive = isNotRelayingOrTransmitting;
+            beamedpowerField.guiActive = isNotRelayingOrTransmitting;
+            powerInputMegajoulesField.guiActive = isNotRelayingOrTransmitting;
+            linkedForRelayField.guiActive = isNotRelayingOrTransmitting;
+            diameterField.guiActive = isNotRelayingOrTransmitting;
 
-            Fields["slavesAmount"].guiActive = thermalMode;
-            Fields["ThermalPower"].guiActive = isThermalReceiverSlave || thermalMode;
+            slavesAmountField.guiActive = thermalMode;
+            ThermalPowerField.guiActive = isThermalReceiverSlave || thermalMode;
 
-            Fields["efficiencyPercentage"].guiActive = receiverIsEnabled;
-            //Fields["effectiveSpotSize"].guiActive = receiverIsEnabled;
-            Fields["effectivefacingFactor"].guiActive = receiverIsEnabled;
-            Fields["receiptPower"].guiActive = receiverIsEnabled;
-            //Fields["effectiveDistanceFacingEfficiency"].guiActive = receiverIsEnabled;
-            //Fields["effectiveAtmosphereEfficency"].guiActive = receiverIsEnabled;
-            Fields["effectiveTransmitterEfficency"].guiActive = receiverIsEnabled;
-            Fields["maxAvailablePowerFromSource"].guiActive = receiverIsEnabled;
-            Fields["routeEfficiency"].guiActive = receiverIsEnabled;
-            Fields["currentPowerUsageByOtherRecievers"].guiActive = receiverIsEnabled;
-            Fields["remainingPowerFromSource"].guiActive = receiverIsEnabled;          
-            Fields["minimumWavelength"].guiActive = receiverIsEnabled;
-            Fields["maximumWavelength"].guiActive = receiverIsEnabled;
+            efficiencyPercentageField.guiActive = receiverIsEnabled;
+            effectivefacingFactorField.guiActive = receiverIsEnabled;
+            receiptPowerField.guiActive = receiverIsEnabled;
+            effectiveTransmitterEfficencyField.guiActive = receiverIsEnabled;
+            maxAvailablePowerFromSourceField.guiActive = receiverIsEnabled;
+            routeEfficiencyField.guiActive = receiverIsEnabled;
+            currentPowerUsageByOtherRecieversField.guiActive = receiverIsEnabled;
+            remainingPowerFromSourceField.guiActive = receiverIsEnabled;
+            minimumWavelengthField.guiActive = receiverIsEnabled;
+            maximumWavelengthField.guiActive = receiverIsEnabled;
 
-            Fields["selectedBandwidthConfiguration"].guiActive = canSwitchBandwidthInFlight && receiverIsEnabled;
+            solarFacingFactorField.guiActive = solarReceptionSurfaceArea > 0;
+            solarFluxField.guiActive = solarReceptionSurfaceArea > 0;
+            toteffField.guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
 
-            Fields["solarFacingFactor"].guiActive = solarReceptionSurfaceArea > 0;
-            Fields["solarFlux"].guiActive = solarReceptionSurfaceArea > 0;
-
-            Fields["toteff"].guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
+            selectedBandwidthConfigurationField.guiActive = (CheatOptions.NonStrictAttachmentOrientation || canSwitchBandwidthInFlight) && receiverIsEnabled; ;
 
             if (IsThermalSource)
                 coreTempererature = CoreTemperature.ToString("0.0") + " K";

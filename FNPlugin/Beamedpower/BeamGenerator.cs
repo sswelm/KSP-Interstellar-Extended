@@ -21,12 +21,11 @@ namespace FNPlugin.Microwave
         [KSPField(isPersistant = false)]
         public bool isLoaded = false;
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Generator Type")]
+        [KSPField(guiActiveEditor = true, guiName = "Generator Type")]
         public string beamTypeName = "";
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false)]
+        [KSPField(guiActiveEditor = true, guiActive = false)]
         public int beamType = 1;
-
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Wavelength Name")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Wavelength Name")]
         public string beamWaveName = "";
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Wavelength in meter", guiFormat = "F9", guiUnits = " m")]
         public double wavelength;
@@ -40,11 +39,11 @@ namespace FNPlugin.Microwave
         public double efficiencyPercentage = 90;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public float storedMassMultiplier;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Initial Mass", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Initial Mass", guiUnits = " t")]
         public float initialMass;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
         public double targetMass = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
         public float partMass;
         [KSPField(isPersistant = true)]
         public double maximumPower;
@@ -55,6 +54,7 @@ namespace FNPlugin.Microwave
         public bool fixedMass = false;
 
         private BeamConfiguration activeConfiguration;
+        private BaseField chooseField;
 
         public BeamConfiguration ActiveConfiguration
         {
@@ -135,22 +135,33 @@ namespace FNPlugin.Microwave
         {
             Debug.Log("[KSPI] - Setup Transmit Beams Configurations for " + part.partInfo.title);
 
-            var chooseField = Fields["selectedBeamConfiguration"];
-            chooseField.guiActive = canSwitchWavelengthInFlight && BeamConfigurations.Count > 1;
+            chooseField = Fields["selectedBeamConfiguration"];
+            chooseField.guiActive = CheatOptions.NonStrictAttachmentOrientation || (canSwitchWavelengthInFlight && BeamConfigurations.Count > 1);
 
             var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
             var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
 
             var names = BeamConfigurations.Select(m => m.beamWaveName).ToArray();
-
             chooseOptionEditor.options = names;
             chooseOptionFlight.options = names;
+
+            if (wavelength != 0)
+            {
+                activeConfiguration = BeamConfigurations.SingleOrDefault(m => m.wavelength == wavelength);
+                if (activeConfiguration != null)
+                    selectedBeamConfiguration = BeamConfigurations.IndexOf(activeConfiguration);
+            }
 
             UpdateFromGUI(chooseField, selectedBeamConfiguration);
 
             // connect on change event
             chooseOptionEditor.onFieldChanged = UpdateFromGUI;
             chooseOptionFlight.onFieldChanged = UpdateFromGUI;
+        }
+
+        public override void OnUpdate()
+        {
+            chooseField.guiActive = CheatOptions.NonStrictAttachmentOrientation || (canSwitchWavelengthInFlight && BeamConfigurations.Count > 1);
         }
 
         private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
