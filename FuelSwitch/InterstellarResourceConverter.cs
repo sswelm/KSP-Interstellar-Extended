@@ -21,9 +21,9 @@ namespace InterstellarFuelSwitch
     class InterstellarResourceConverter : PartModule
     {
         // persistant control
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Convert", guiUnits = "%"), UI_FloatRange()]
+		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_ResourceConverter_ConvertPercentage", guiUnits = "%"), UI_FloatRange()]
         public float convertPercentage = 0;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Power Usage", guiUnits = "%"), UI_FloatRange(minValue = 0,  maxValue = 100, stepIncrement = 1 )]
+		[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_ResourceConverter_PowerPercentage", guiUnits = "%"), UI_FloatRange(minValue = 0, maxValue = 100, stepIncrement = 1)]
         public float powerUsagePercentage = 0;
 
         // configs
@@ -45,8 +45,6 @@ namespace InterstellarFuelSwitch
         public string primaryResourceNames = string.Empty;
         [KSPField]
         public string secondaryResourceNames = string.Empty;
-        [KSPField]
-        public string primaryMolarMasses = string.Empty;
         [KSPField]
         public double primaryConversionEnergyCost = 500;
         [KSPField]
@@ -78,15 +76,15 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool secondaryConversionCostPower = true;
 
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "TransferRate", guiFormat= "F3")]
+        [KSPField]
         public double transferRate = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Conversion Ratio", guiFormat = "F3")]
+        [KSPField]
         public double conversionRatio = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Sec Norm Density", guiFormat = "F6")]
+        [KSPField]
         public double secondarynormalizedDensity;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Pri Norm Density", guiFormat = "F6")]
+        [KSPField]
         public double primarynormalizedDensity;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested Power", guiFormat = "F6")]
+        [KSPField]
         public double requestedPower;
 
         PartResourceDefinition definitionPrimaryPowerResource;
@@ -114,7 +112,6 @@ namespace InterstellarFuelSwitch
             Fields["powerUsagePercentage"].guiActive = showPowerUsageFloatRange;
 
             convertPercentageField = Fields["convertPercentage"];
-            var floatrange = convertPercentageField.uiControlFlight as UI_FloatRange;            
 
             primaryResources = primaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) } ).ToList();
             secondaryResources = secondaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) }).ToList();
