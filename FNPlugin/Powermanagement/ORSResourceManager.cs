@@ -260,49 +260,50 @@ namespace FNPlugin
 
         public double getNeededPowerSupplyPerSecondWithMinimumRatio(double power, double ratio_min)
         {
-            var maximum_available_power_per_second = power;
-            var minimum_power_per_second = maximum_available_power_per_second * ratio_min;
-
-            var needed_power_per_second = Math.Min(maximum_available_power_per_second, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
+            var minimum_power_per_second = power * ratio_min;
+            var needed_power_per_second = Math.Min(power, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
 
             return needed_power_per_second;
         }
 
-        public double managedRequestedPowerSupplyPerSecondMinimumRatio(IORSResourceSupplier pm, double requested_power,  double maximum_power, double ratio_min)
+        public PowerGenerated managedRequestedPowerSupplyPerSecondMinimumRatio(IORSResourceSupplier pm, double available_power, double maximum_power, double ratio_min)
         {
             var minimum_power_per_second = maximum_power * ratio_min;
-
-            var currentUnfilledResourceDemand = GetCurrentUnfilledResourceDemand();
-            var required_power = requested_power > currentUnfilledResourceDemand 
-                ? requested_power 
-                : Math.Min(requested_power, currentUnfilledResourceDemand);
-
-            var provided_demand_power_per_second = Math.Max(minimum_power_per_second, required_power);
-            var managed_supply_per_second = Math.Max(minimum_power_per_second, Math.Min(requested_power, GetRequiredResourceDemand()));
+            var provided_demand_power_per_second = Math.Max(minimum_power_per_second, Math.Max(available_power, GetCurrentUnfilledResourceDemand()));
+            var managed_supply_per_second = Math.Max(minimum_power_per_second, Math.Min(available_power, GetRequiredResourceDemand()));
 
             currentPowerSupply += managed_supply_per_second;
             stable_supply += maximum_power;
 
+            var addedPower = new PowerGenerated
+            {
+                currentSupply = managed_supply_per_second,
+                currentProvided = provided_demand_power_per_second,
+                maximumSupply = maximum_power,
+                minimumSupply = minimum_power_per_second
+            };
+
             PowerGenerated powerGenerated;
             if (!power_produced.TryGetValue(pm, out powerGenerated))
             {
-                powerGenerated = new PowerGenerated();
-                power_produced.Add(pm, powerGenerated);
+                power_produced.Add(pm, addedPower);
+            }
+            else
+            {
+                powerGenerated.currentSupply += addedPower.currentSupply;
+                powerGenerated.currentProvided += addedPower.currentProvided;
+                powerGenerated.maximumSupply += addedPower.maximumSupply;
+                powerGenerated.minimumSupply += addedPower.minimumSupply;
             }
 
-            powerGenerated.currentSupply += managed_supply_per_second;
-            powerGenerated.currentProvided += provided_demand_power_per_second;
-            powerGenerated.maximumSupply += maximum_power;
-            powerGenerated.minimumSupply += minimum_power_per_second;
-
-            return provided_demand_power_per_second;
+            return addedPower; 
         }
 
         public double managedPowerSupplyPerSecondWithMinimumRatio(IORSResourceSupplier pm, double maximum_power, double ratio_min)
         {
             var minimum_power_per_second = maximum_power * ratio_min;
 
-            var provided_demand_power_per_second = Math.Min(maximum_power, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
+            var provided_demand_power_per_second = Math.Min(maximum_power, Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second));
             var required_power_per_second = Math.Max(GetRequiredResourceDemand(), minimum_power_per_second);
             var managed_supply_per_second = Math.Min(maximum_power, required_power_per_second);
 

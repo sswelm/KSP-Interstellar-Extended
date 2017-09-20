@@ -25,7 +25,8 @@ namespace FNPlugin
         public const double baseUraniumAmmonolysisRate = 0.0002383381;   
         public const double microwave_angle = 3.64773814E-10;
         public const double microwave_dish_efficiency = 0.85;
-        public const double microwave_alpha = 0.00399201596806387225548902195609;                                           
+        public const double microwave_alpha = 0.00399201596806387225548902195609;
+	    public const double microwave_beta = 1 - microwave_alpha;
         public const double stefan_const = 5.67036713e-8;  // Stefan-Botzman const for watts / m2
         public const double rad_const_h = 1000;
         public const double atmospheric_non_precooled_limit = 740;

@@ -128,15 +128,27 @@ namespace FNPlugin
             return manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
-        public double managedRequestedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ORSResourceManager manager = null)
+		public double managedProvidedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ORSResourceManager manager = null)
         {
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
-            return manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
+            var result = manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
+
+	        return result.currentProvided;
         }
+
+		public PowerGenerated managedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ORSResourceManager manager = null)
+		{
+			if (manager == null)
+				manager = getManagerForVessel(resourcename);
+			if (manager == null)
+				return null;
+
+			return manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
+		}
 
         public double getCurrentResourceDemand(String resourcename)
         {
