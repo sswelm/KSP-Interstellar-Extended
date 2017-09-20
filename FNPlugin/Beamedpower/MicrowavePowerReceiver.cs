@@ -1429,7 +1429,7 @@ namespace FNPlugin
         private void OnGUI()
         {
             if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
-                windowPosition = GUILayout.Window(windowID, windowPosition, DrawGui, "Universal Mining Interface");
+                windowPosition = GUILayout.Window(windowID, windowPosition, DrawGui, "Power Receiver Interface");
 
         }
 
@@ -1445,10 +1445,10 @@ namespace FNPlugin
 
             GUILayout.BeginVertical();
 
-            PrintToGUILayout("Type", part.partInfo.title, bold_black_style, text_black_style);
-            PrintToGUILayout("Total Current Received Power", total_beamed_power.ToString("0.0000") + " MW", bold_black_style, text_black_style, 250);
-            PrintToGUILayout("Total Maximum Received Power", total_beamed_power_max.ToString("0.0000") + " MW", bold_black_style, text_black_style, 250);
-            PrintToGUILayout("Total Wasteheat Production", total_beamed_wasteheat.ToString("0.0000") + " MW", bold_black_style, text_black_style, 250);
+            PrintToGUILayout("Type", part.partInfo.title, bold_black_style, text_black_style, 200);
+            PrintToGUILayout("Total Current Received Power", total_beamed_power.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
+            PrintToGUILayout("Total Maximum Received Power", total_beamed_power_max.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
+            PrintToGUILayout("Total Wasteheat Production", total_beamed_wasteheat.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Vessel", bold_black_style, GUILayout.Width(labelWidth));
@@ -1474,7 +1474,7 @@ namespace FNPlugin
                 GUILayout.Label((receivedPowerData.Route.FacingFactor * 100).ToString("##.###") + " %", text_black_style, GUILayout.Width(shortValueWidth));
                 GUILayout.Label((receivedPowerData.Route.Distance).ToString("0") + " m", text_black_style, GUILayout.Width(valueWidth));
                 GUILayout.Label((receivedPowerData.Route.Spotsize).ToString("##.######") + " m", text_black_style, GUILayout.Width(valueWidth));
-                GUILayout.Label((receivedPowerData.Route.WaveLength).ToString() + " m", text_black_style, GUILayout.Width(valueWidth));
+                GUILayout.Label(WavelengthToText(receivedPowerData.Route.WaveLength), text_black_style, GUILayout.Width(valueWidth));
                 GUILayout.Label((receivedPowerData.UsedNetworkPower).ToString("##.######") + " MW", text_black_style, GUILayout.Width(valueWidth));
                 GUILayout.Label((receivedPowerData.Route.Efficiency * 100).ToString("##.######") + "%", text_black_style, GUILayout.Width(valueWidth));
                 GUILayout.Label((receivedPowerData.ReceiverEfficiency).ToString("##.######") + " %", text_black_style, GUILayout.Width(valueWidth));
@@ -2431,6 +2431,18 @@ namespace FNPlugin
         public override int getPowerPriority()
         {
             return 1;
+        }
+
+        private string WavelengthToText(double wavelength)
+        {
+            if (wavelength > 1.0e-3)
+                return (wavelength * 1.0e+3).ToString() + " mm";
+            else if (wavelength > 7.5e-7)
+                return (wavelength * 1.0e+6).ToString() + " µm";
+            else if (wavelength > 1.0e-9)
+                return (wavelength * 1.0e+9).ToString() + " nm";
+            else
+                return (wavelength * 1.0e+12).ToString() + " pm";
         }
     }
 }
