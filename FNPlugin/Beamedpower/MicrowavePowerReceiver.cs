@@ -850,7 +850,7 @@ namespace FNPlugin
 
             // create the id for the GUI window
 
-            windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 2 + valueWidth * 9 + shortValueWidth * 2, 100);
+            windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 2 + valueWidth * 7 + shortValueWidth * 4, 100);
             windowID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
             localStar = GetCurrentStar();
@@ -1418,9 +1418,9 @@ namespace FNPlugin
             GUILayout.Label("Aperture", bold_black_style, GUILayout.Width(shortValueWidth));
             GUILayout.Label("Facing", bold_black_style, GUILayout.Width(shortValueWidth));
             GUILayout.Label("Transmit Power", bold_black_style, GUILayout.Width(valueWidth));
-            GUILayout.Label("Distance", bold_black_style, GUILayout.Width(valueWidth));
+			GUILayout.Label("Distance", bold_black_style, GUILayout.Width(shortValueWidth));
             GUILayout.Label("Spotsize", bold_black_style, GUILayout.Width(valueWidth));
-            GUILayout.Label("Wavelength", bold_black_style, GUILayout.Width(valueWidth));
+			GUILayout.Label("Wavelength", bold_black_style, GUILayout.Width(shortValueWidth));
             GUILayout.Label("Network Power Usage", bold_black_style, GUILayout.Width(valueWidth));
             GUILayout.Label("Network Efficiency", bold_black_style, GUILayout.Width(valueWidth));
             GUILayout.Label("Receiver Efficiency", bold_black_style, GUILayout.Width(valueWidth));
@@ -1429,17 +1429,19 @@ namespace FNPlugin
             GUILayout.Label("Last Relay", bold_black_style, GUILayout.Width(labelWidth));
             GUILayout.EndHorizontal();
 
+            var mergedRevievedData = thermalReceiverSlaves.SelectMany(m => m.received_power.Values).Concat(received_power.Values).OrderBy(m => m.Transmitter);
+
             //foreach (var monitorData in _monitorDataStore.Where(m => m.Value.receivingVessel == this.vessel))
-            foreach (ReceivedPowerData receivedPowerData in received_power.Values)
+            foreach (ReceivedPowerData receivedPowerData in mergedRevievedData)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, text_black_style, GUILayout.Width(labelWidth));
                 GUILayout.Label((receivedPowerData.Transmitter.Aperture).ToString("##.######") + " m", text_black_style, GUILayout.Width(shortValueWidth));
                 GUILayout.Label((receivedPowerData.Route.FacingFactor * 100).ToString("##.###") + " %", text_black_style, GUILayout.Width(shortValueWidth));
                 GUILayout.Label((receivedPowerData.TransmitPower).ToString("##.######") + " MW", text_black_style, GUILayout.Width(valueWidth));
-                GUILayout.Label((receivedPowerData.Route.Distance).ToString("0") + " m", text_black_style, GUILayout.Width(valueWidth));
+                GUILayout.Label(DistanceToText(receivedPowerData.Route.Distance), text_black_style, GUILayout.Width(shortValueWidth));
                 GUILayout.Label((receivedPowerData.Route.Spotsize).ToString("##.######") + " m", text_black_style, GUILayout.Width(valueWidth));
-                GUILayout.Label(WavelengthToText(receivedPowerData.Route.WaveLength), text_black_style, GUILayout.Width(valueWidth));
+				GUILayout.Label(WavelengthToText(receivedPowerData.Route.WaveLength), text_black_style, GUILayout.Width(shortValueWidth));
                 GUILayout.Label((receivedPowerData.UsedNetworkPower).ToString("##.######") + " MW", text_black_style, GUILayout.Width(valueWidth));
                 GUILayout.Label((receivedPowerData.Route.Efficiency * 100).ToString("##.######") + "%", text_black_style, GUILayout.Width(valueWidth));
                 GUILayout.Label((receivedPowerData.ReceiverEfficiency).ToString("##.######") + " %", text_black_style, GUILayout.Width(valueWidth));
@@ -2403,13 +2405,27 @@ namespace FNPlugin
         private string WavelengthToText(double wavelength)
         {
             if (wavelength > 1.0e-3)
-                return (wavelength * 1.0e+3).ToString() + " mm";
+                return (wavelength * 1.0e+3) + " mm";
             else if (wavelength > 7.5e-7)
-                return (wavelength * 1.0e+6).ToString() + " µm";
+                return (wavelength * 1.0e+6)+ " µm";
             else if (wavelength > 1.0e-9)
-                return (wavelength * 1.0e+9).ToString() + " nm";
+                return (wavelength * 1.0e+9) + " nm";
             else
-                return (wavelength * 1.0e+12).ToString() + " pm";
+                return (wavelength * 1.0e+12)+ " pm";
+        }
+
+        private string DistanceToText(double distance)
+        {
+            if (distance >= 1.0e-13)
+                return (distance / 1.0e+12).ToString("0.000") + " Tm";
+            else if (distance >= 1.0e-10)
+                return (distance / 1.0e+9).ToString("0.000") + " Gm";
+            else if (distance >= 1.0e-7)
+                return (distance / 1.0e+6).ToString("0.000") + " Mm";
+            else if (distance >= 1.0e-4)
+                return (distance / 1.0e+3).ToString("0.000") + " km";
+            else
+                return distance.ToString("0") + " m";
         }
     }
 }
