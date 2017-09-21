@@ -2396,13 +2396,13 @@ namespace FNPlugin
 
 		private string DistanceToText(double distance)
 		{
-			if (distance >= 1.0e-13)
+			if (distance >= 1.0e+13)
 				return (distance / 1.0e+12).ToString("0.000") + " Tm";
-			else if (distance >= 1.0e-10)
+			else if (distance >= 1.0e+10)
 				return (distance / 1.0e+9).ToString("0.000") + " Gm";
-			else if (distance >= 1.0e-7)
+			else if (distance >= 1.0e+7)
 				return (distance / 1.0e+6).ToString("0.000") + " Mm";
-			else if (distance >= 1.0e-4)
+			else if (distance >= 1.0e+4)
 				return (distance / 1.0e+3).ToString("0.000") + " km";
 			else
 				return distance.ToString("0") + " m";
