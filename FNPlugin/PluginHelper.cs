@@ -167,11 +167,11 @@ namespace FNPlugin
         private static int _secondsInDay = GameConstants.KEBRIN_DAY_SECONDS;
         public static int SecondsInDay { get { return _secondsInDay; } }
 
+        private static double _spotsizeMult = 1.22;
+        public static double SpotsizeMult { get { return _spotsizeMult; } }
+
         private static double _microwaveApertureDiameterMult = 10;
         public static double MicrowaveApertureDiameterMult { get { return _microwaveApertureDiameterMult; } }
-
-        private static double _nonMicrowaveApertureDiameterMult = 1;
-        public static double NonMicrowaveApertureDiameterMult { get { return _nonMicrowaveApertureDiameterMult; } }
 
         private static double _speedOfLight = 29979245.8;
         public static double SpeedOfLight { get { return GameConstants.speedOfLight * _speedOfLightMult; } } 
@@ -816,10 +816,10 @@ namespace FNPlugin
                         _microwaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("MicrowaveApertureDiameterMult"));
                         Debug.Log("[KSPI] Microwave Aperture Diameter Multiplier set to: " + PluginHelper.MicrowaveApertureDiameterMult.ToString());
                     }
-                    if (plugin_settings.HasValue("NonMicrowaveApertureDiameterMult"))
+                    if (plugin_settings.HasValue("SpotsizeMult"))
                     {
-                        _nonMicrowaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("NonMicrowaveApertureDiameterMult"));
-                        Debug.Log("[KSPI] Non Microwave Aperture Diameter Multiplier set to: " + PluginHelper.NonMicrowaveApertureDiameterMult.ToString());
+                        _spotsizeMult = double.Parse(plugin_settings.GetValue("SpotsizeMult"));
+                        Debug.Log("[KSPI] Spotsize Multiplier set to: " + PluginHelper.SpotsizeMult.ToString());
                     }
 
                     if (plugin_settings.HasValue("SpeedOfLightMult"))

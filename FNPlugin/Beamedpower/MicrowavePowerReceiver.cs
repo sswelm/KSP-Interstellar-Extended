@@ -1972,11 +1972,11 @@ namespace FNPlugin
 			if (waveLengthData.wavelength == 0)
 				waveLengthData.wavelength = 1;
 
-			var effectiveAperureBonus = waveLengthData.wavelength >= 0.001 
-				? PluginHelper.MicrowaveApertureDiameterMult 
-				: PluginHelper.NonMicrowaveApertureDiameterMult;
+			var effectiveAperureBonus = waveLengthData.wavelength >= 0.001
+				? PluginHelper.MicrowaveApertureDiameterMult * apertureMultiplier
+				: apertureMultiplier;
 
-			var spotsize = (distanceToSpot * waveLengthData.wavelength) / (transmitterAperture * effectiveAperureBonus * apertureMultiplier);
+			var spotsize = (PluginHelper.SpotsizeMult * distanceToSpot * waveLengthData.wavelength) / (transmitterAperture * effectiveAperureBonus);
 
 			return spotsize;
 		}
