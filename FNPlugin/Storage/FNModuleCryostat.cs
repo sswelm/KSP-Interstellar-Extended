@@ -9,8 +9,8 @@ namespace FNPlugin
     class FNModuleCryostat : FNResourceSuppliableModule
     {
         // Persistant
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Cooling"), UI_Toggle(disabledText = "On", enabledText = "Off")]
-        public bool isDisabled = true;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "Cooling"), UI_Toggle(disabledText = "On", enabledText = "Off")]
+        public bool isDisabled = false;
         [KSPField(isPersistant = true)]
         public double storedTemp = 0;
 
@@ -83,6 +83,11 @@ namespace FNPlugin
             initializationCountdown = 100;
             requiresPower = powerReqKW > 0;
 
+            isDisabledField = Fields["isDisabled"];
+            boiloffStrField = Fields["boiloffStr"];
+            powerStatusStrField = Fields["powerStatusStr"];
+            externalTemperatureField = Fields["externalTemperature"];
+
             if (state == StartState.Editor)
                 return;
 
@@ -98,11 +103,6 @@ namespace FNPlugin
 
             // store reference to local electric charge buffer
             _electricCharge_resource = part.Resources[InterstellarResourcesConfiguration.Instance.ElectricCharge];
-
-            isDisabledField = Fields["isDisabled"];
-            boiloffStrField = Fields["boiloffStr"];
-            powerStatusStrField = Fields["powerStatusStr"];
-            externalTemperatureField = Fields["externalTemperature"];
         }
 
         private void UpdateElectricChargeBuffer(double currentPowerUsage)
@@ -120,12 +120,20 @@ namespace FNPlugin
             previousDeltaTime = TimeWarp.fixedDeltaTime;
         }
 
-        public override void OnUpdate()
+        public void Update()
         {
             _cryostat_resource = part.Resources[resourceName];
 
             if (_cryostat_resource != null)
             {
+                if (HighLogic.LoadedSceneIsEditor)
+                {
+                    isDisabledField.guiActiveEditor = true;
+                    return;
+                }
+
+                isDisabledField.guiActive = true;
+
                 bool coolingIsRelevant = _cryostat_resource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
 
                 powerStatusStrField.guiActive = showPower && requiresPower;
@@ -161,9 +169,13 @@ namespace FNPlugin
             }
             else
             {
-                isDisabledField.guiActive = true;
-                powerStatusStrField.guiActive = false;
                 boiloffStrField.guiActive = false;
+                powerStatusStrField.guiActive = false;
+
+                if (HighLogic.LoadedSceneIsEditor)
+                    isDisabledField.guiActiveEditor = false;
+                else
+                    isDisabledField.guiActive = false; 
             }
         }
 

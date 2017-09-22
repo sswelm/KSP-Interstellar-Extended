@@ -89,6 +89,7 @@ namespace FNPlugin.Microwave
             return indirectBeamGenerators;
         }
 
+        // Note: do note remove, it is called by KSP
         public void Update()
         {
             partMass = part.mass;
