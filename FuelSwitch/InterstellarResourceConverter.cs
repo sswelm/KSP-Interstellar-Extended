@@ -13,7 +13,7 @@ namespace InterstellarFuelSwitch
         public double retrieveAmount;
         public double transferRate = 1;
         public double normalizedDensity;
-        public double conversionRatio = 1;
+        public double conversionRatio;
     }
 
     class InterstellarEquilibrium : InterstellarResourceConverter  { }
@@ -21,9 +21,9 @@ namespace InterstellarFuelSwitch
     class InterstellarResourceConverter : PartModule
     {
         // persistant control
-		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_ResourceConverter_ConvertPercentage", guiUnits = "%"), UI_FloatRange()]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_ResourceConverter_ConvertPercentage", guiUnits = "%"), UI_FloatRange()]
         public float convertPercentage = 0;
-		[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_ResourceConverter_PowerPercentage", guiUnits = "%"), UI_FloatRange(minValue = 0, maxValue = 100, stepIncrement = 1)]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_ResourceConverter_PowerPercentage", guiUnits = "%"), UI_FloatRange(minValue = 0, maxValue = 100, stepIncrement = 1)]
         public float powerUsagePercentage = 0;
 
         // configs
@@ -81,9 +81,9 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public double conversionRatio = 0;
         [KSPField]
-        public double secondarynormalizedDensity;
+        public double primaryNormalizedDensity = 0.001;
         [KSPField]
-        public double primarynormalizedDensity;
+        public double secondaryNormalizedDensity = 0.001;
         [KSPField]
         public double requestedPower;
 
@@ -141,15 +141,6 @@ namespace InterstellarFuelSwitch
                 var primary = primaryResources.First();
                 var secondary = secondaryResources.First();
 
-                if (primary.normalizedDensity == 0 && secondary.normalizedDensity > 0)
-                {
-                    primary.normalizedDensity = secondary.normalizedDensity;
-                }
-                else if (secondary.normalizedDensity == 0 && primary.normalizedDensity > 0)
-                {
-                    secondary.normalizedDensity = primary.normalizedDensity;
-                }
-
                 if (primary.normalizedDensity > 0 && secondary.normalizedDensity > 0)
                 {
                     secondary.conversionRatio = primary.normalizedDensity / secondary.normalizedDensity;
@@ -160,19 +151,30 @@ namespace InterstellarFuelSwitch
                     secondary.conversionRatio = primary.definition.unitCost / secondary.definition.unitCost;
                     primary.conversionRatio = secondary.definition.unitCost / primary.definition.unitCost;
                 }
+				else if (primary.definition.volume > 0 && secondary.definition.volume > 0)
+				{
+					secondary.conversionRatio = primary.definition.volume / secondary.definition.volume;
+					primary.conversionRatio = secondary.definition.volume / primary.definition.volume;
+				}
 
-                if (primary.conversionRatio == 0)
-                    primary.conversionRatio = 1;
-                if (secondary.conversionRatio == 0)
-                    secondary.conversionRatio = 1;
+				if (primary.normalizedDensity == 0)
+					primary.normalizedDensity = primaryNormalizedDensity;
+				if (secondary.normalizedDensity == 0)
+					secondary.normalizedDensity = secondaryNormalizedDensity;
 
-                if (primary.normalizedDensity == 0)
-                    primary.normalizedDensity = 0.001;
-                if (secondary.normalizedDensity == 0)
-                    secondary.normalizedDensity = 0.001;
-
-                secondarynormalizedDensity = secondary.normalizedDensity;
-                primarynormalizedDensity = primary.normalizedDensity;
+				if (secondary.conversionRatio  == 0 && secondary.conversionRatio == 0)
+				{
+					if (primary.normalizedDensity > 0 && secondary.normalizedDensity > 0)
+					{
+						secondary.conversionRatio = primary.normalizedDensity/secondary.normalizedDensity;
+						primary.conversionRatio = secondary.normalizedDensity/primary.normalizedDensity;
+					}
+					else
+					{
+						secondary.conversionRatio = 1;
+						primary.conversionRatio = 1;
+					}
+				}
             }
 
             primaryResources.ForEach(m => m.transferRate = maxPowerPrimary / primaryConversionEnergyCost / 1000 / m.normalizedDensity);
