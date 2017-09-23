@@ -66,6 +66,13 @@ namespace FNPlugin
 		public bool radiatorMode = false;
 		[KSPField(isPersistant = true, guiActive = true, guiName = "Power Mode"), UI_Toggle(disabledText = "Beamed Power", enabledText = "Solar Only")]
 		public bool solarPowerMode = true;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Reciever Interface"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown")]
+        private bool showWindow;
+
+        [KSPField(isPersistant = true)]
+        public float windowPositionX = 200;
+        [KSPField(isPersistant = true)]
+        public float windowPositionY = 100;
 
 		[KSPField(isPersistant = true, guiActive = false, guiName = "Receive Efficiency", guiUnits = "%", guiFormat = "F0")]
 		public double efficiencyPercentage = GameConstants.microwave_dish_efficiency;
@@ -75,16 +82,16 @@ namespace FNPlugin
 		public bool forceActivateAtStartup = false;
 
 		//Persistent False
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public bool autoDeploy = true; 
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public int supportedPropellantAtoms = 121;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public int supportedPropellantTypes = 127;
 
 		[KSPField(isPersistant = false, guiActive = false, guiName = "Electric Wasteheat Exponent")]
 		public double electricWasteheatExponent = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double electricMaxEfficiency = 1;
 
 		[KSPField(isPersistant = false, guiActive = false, guiName = "Wasteheat Ratio", guiFormat = "F6")]
@@ -96,33 +103,33 @@ namespace FNPlugin
 		[KSPField(isPersistant = false, guiActive = false, guiName = "Solar Electric Efficiency", guiFormat = "F6")]
 		public double effectiveSolarThermalElectricEfficiency;
 
-		[KSPField(isPersistant = false, guiActive = false, guiName = "instance ID")]
+		[KSPField]
 		public int instanceId;
-		[KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+		[KSPField]
 		public double facingThreshold = 0;
-		[KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+		[KSPField]
 		public double facingSurfaceExponent = 1;
-		[KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+		[KSPField]
 		public double facingEfficiencyExponent = 0.1;
-		[KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+		[KSPField]
 		public double spotsizeNormalizationExponent = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public bool canLinkup = true;
 
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Solar Efficiency", guiFormat = "F4")]
+		[KSPField]
 		public double solarReceptionEfficiency = 0;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Solar Efficiency", guiFormat = "F4")]
+		[KSPField]
 		public double solarElectricEfficiency = 0.33;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Solar Surface Area", guiFormat = "F2")]
+		[KSPField]
 		public double solarReceptionSurfaceArea = 0;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "SolarFacing Exponent", guiFormat = "F2")]
+		[KSPField]
 		public double solarFacingExponent = 1;
 
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public string animName;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public string animTName;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public string animGenericName;
 
 		[KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Receiver Diameter", guiUnits = " m")]
@@ -299,17 +306,17 @@ namespace FNPlugin
 		protected GUIStyle bold_black_style;
 		protected GUIStyle text_black_style;
 
-		public float windowPositionX = 200;
-		public float windowPositionY = 100;
+
 
 		private const int labelWidth = 200;
-		private const int valueWidth = 100;
-		private const int shortValueWidth = 50;
+		private const int valueWidthWide = 100;
+		private const int ValueWidthNormal = 60;
+        private const int ValueWidthShort = 30;
 
 		// GUI elements declaration
 		private Rect windowPosition;
 		private int windowID;
-		private bool _render_window;
+		
 
 		public Part Part { get { return this.part; } }
 
@@ -546,11 +553,11 @@ namespace FNPlugin
 			ActivateRecieverState();
 		}
 
-		[KSPEvent(guiActive = true, guiName = "Toggle Receiver Interface", active = true)]
-		public void ToggleWindow()
-		{
-			_render_window = !_render_window;
-		}
+        [KSPAction("Toggle Receiver Interface")]
+        public void ToggleWindow()
+        {
+            showWindow = !showWindow;
+        }        
 
 		private void ActivateRecieverState(bool forced = false)
 		{
@@ -834,8 +841,17 @@ namespace FNPlugin
 			fnRadiator = part.FindModuleImplementing<FNRadiator>();
 			if (fnRadiator != null)
 			{
-				_activateReceiverBaseEvent.guiName = "Deploy";
-				_disableReceiverBaseEvent.guiName = "Retract";
+                if (fnRadiator.isDeployable)
+                {
+                    _activateReceiverBaseEvent.guiName = "Deploy";
+                    _disableReceiverBaseEvent.guiName = "Retract";
+                }
+                else
+                {
+                    _activateReceiverBaseEvent.guiName = "Enable";
+                    _disableReceiverBaseEvent.guiName = "Disable";
+                }
+
 				fnRadiator.showControls = false;
 				fnRadiator.canRadiateHeat = radiatorMode;
 				fnRadiator.radiatorIsEnabled = radiatorMode;
@@ -847,9 +863,9 @@ namespace FNPlugin
 
 			if (state == StartState.Editor) { return; }
 
-			// create the id for the GUI window
+			windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 2 + valueWidthWide * 1 + ValueWidthNormal * 8, 100);
 
-			windowPosition = new Rect(windowPositionX, windowPositionY, labelWidth * 3 + valueWidth * 6 + shortValueWidth * 5, 100);
+            // create the id for the GUI window
 			windowID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
 			localStar = GetCurrentStar();
@@ -1390,7 +1406,7 @@ namespace FNPlugin
 
 		private void OnGUI()
 		{
-			if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
+			if (this.vessel == FlightGlobals.ActiveVessel && showWindow)
 				windowPosition = GUILayout.Window(windowID, windowPosition, DrawGui, "Power Receiver Interface");
 
 		}
@@ -1403,11 +1419,11 @@ namespace FNPlugin
 			InitializeStyles();
 
 			if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
-				_render_window = false;
+				showWindow = false;
 
 			GUILayout.BeginVertical();
 
-			PrintToGUILayout("Type", part.partInfo.title, bold_black_style, text_black_style, 200);
+			PrintToGUILayout("Type", part.partInfo.title, bold_black_style, text_black_style, 200, 400);
 			PrintToGUILayout("Total Current Received Power", total_beamed_power.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
 			PrintToGUILayout("Total Maximum Received Power", total_beamed_power_max.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
 			PrintToGUILayout("Total Wasteheat Production", total_beamed_wasteheat.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
@@ -1415,44 +1431,82 @@ namespace FNPlugin
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Transmitter", bold_black_style, GUILayout.Width(labelWidth));
 			GUILayout.Label("Receiver Part", bold_black_style, GUILayout.Width(labelWidth));
-			GUILayout.Label("Aperture", bold_black_style, GUILayout.Width(shortValueWidth));
-			GUILayout.Label("Facing", bold_black_style, GUILayout.Width(shortValueWidth));
-			GUILayout.Label("Transmit Power", bold_black_style, GUILayout.Width(valueWidth));
-			GUILayout.Label("Distance", bold_black_style, GUILayout.Width(shortValueWidth));
-			GUILayout.Label("Spotsize", bold_black_style, GUILayout.Width(shortValueWidth));
-			GUILayout.Label("Wavelength", bold_black_style, GUILayout.Width(shortValueWidth));
-			GUILayout.Label("Network Power Usage", bold_black_style, GUILayout.Width(valueWidth));
-			GUILayout.Label("Network Efficiency", bold_black_style, GUILayout.Width(valueWidth));
-			GUILayout.Label("Receiver Efficiency", bold_black_style, GUILayout.Width(valueWidth));
-			GUILayout.Label("Received Power", bold_black_style, GUILayout.Width(valueWidth));
-			GUILayout.Label("Relay Count", bold_black_style, GUILayout.Width(valueWidth));
-			GUILayout.Label("Last Relay", bold_black_style, GUILayout.Width(labelWidth));
+			GUILayout.Label("Aperture", bold_black_style, GUILayout.Width(ValueWidthNormal));
+			GUILayout.Label("Facing", bold_black_style, GUILayout.Width(ValueWidthNormal));
+			GUILayout.Label("Transmit Power", bold_black_style, GUILayout.Width(valueWidthWide));
+			GUILayout.Label("Distance", bold_black_style, GUILayout.Width(ValueWidthNormal));
+			GUILayout.Label("Spotsize", bold_black_style, GUILayout.Width(ValueWidthNormal));
+			GUILayout.Label("Wavelength", bold_black_style, GUILayout.Width(ValueWidthNormal));
+			//GUILayout.Label("Network Power Usage", bold_black_style, GUILayout.Width(valueWidth));
+            GUILayout.Label("Network Efficiency", bold_black_style, GUILayout.Width(ValueWidthNormal));
+            GUILayout.Label("Receiver Efficiency", bold_black_style, GUILayout.Width(ValueWidthNormal));
+            GUILayout.Label("Received Power", bold_black_style, GUILayout.Width(ValueWidthNormal));
+
 			GUILayout.EndHorizontal();
 
-			var mergedRevievedData = thermalReceiverSlaves.SelectMany(m => m.received_power.Values).Concat(received_power.Values).OrderBy(m => m.Transmitter);
+			//var revievedData = thermalReceiverSlaves.SelectMany(m => m.received_power.Values).Concat(received_power.Values).OrderBy(m => m.Transmitter);
+            var revievedData = received_power.Values;
 
-			foreach (ReceivedPowerData receivedPowerData in mergedRevievedData)
+			foreach (ReceivedPowerData receivedPowerData in revievedData)
 			{
 				GUILayout.BeginHorizontal();
 				GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, text_black_style, GUILayout.Width(labelWidth));
 				GUILayout.Label(receivedPowerData.Receiver.part.partInfo.title, text_black_style, GUILayout.Width(labelWidth));
-				GUILayout.Label((receivedPowerData.Transmitter.Aperture).ToString("##.######") + " m", text_black_style, GUILayout.Width(shortValueWidth));
-				GUILayout.Label((receivedPowerData.Route.FacingFactor * 100).ToString("##.###") + " %", text_black_style, GUILayout.Width(shortValueWidth));
-				GUILayout.Label((receivedPowerData.TransmitPower).ToString("##.######") + " MW", text_black_style, GUILayout.Width(valueWidth));
-				GUILayout.Label(DistanceToText(receivedPowerData.Route.Distance), text_black_style, GUILayout.Width(shortValueWidth));
-				GUILayout.Label((receivedPowerData.Route.Spotsize).ToString("##.######") + " m", text_black_style, GUILayout.Width(shortValueWidth));
-				GUILayout.Label(WavelengthToText(receivedPowerData.Route.WaveLength), text_black_style, GUILayout.Width(shortValueWidth));
-				GUILayout.Label((receivedPowerData.UsedNetworkPower).ToString("##.######") + " MW", text_black_style, GUILayout.Width(valueWidth));
-				GUILayout.Label((receivedPowerData.Route.Efficiency * 100).ToString("##.######") + "%", text_black_style, GUILayout.Width(valueWidth));
-				GUILayout.Label((receivedPowerData.ReceiverEfficiency).ToString("##.######") + " %", text_black_style, GUILayout.Width(valueWidth));
-				GUILayout.Label((receivedPowerData.CurrentRecievedPower).ToString("##.######") + " MW", text_black_style, GUILayout.Width(valueWidth));
-				GUILayout.Label(receivedPowerData.Relays.Count.ToString(), text_black_style, GUILayout.Width(valueWidth));
-
-				var relayName = receivedPowerData.Relays.Count > 1 ? receivedPowerData.Relays.First().Vessel.name : "";
-				GUILayout.Label(relayName, text_black_style, GUILayout.Width(labelWidth));
+				GUILayout.Label((receivedPowerData.Transmitter.Aperture).ToString("##.######") + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
+				GUILayout.Label((receivedPowerData.Route.FacingFactor * 100).ToString("##.###") + " %", text_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(PowerToText(receivedPowerData.TransmitPower), text_black_style, GUILayout.Width(valueWidthWide));
+				GUILayout.Label(DistanceToText(receivedPowerData.Route.Distance), text_black_style, GUILayout.Width(ValueWidthNormal));
+				GUILayout.Label(SpotsizeToText(receivedPowerData.Route.Spotsize), text_black_style, GUILayout.Width(ValueWidthNormal));
+				GUILayout.Label(WavelengthToText(receivedPowerData.Route.WaveLength), text_black_style, GUILayout.Width(ValueWidthNormal));
+				//GUILayout.Label((receivedPowerData.UsedNetworkPower).ToString("##.######") + " MW", text_black_style, GUILayout.Width(valueWidth));
+                GUILayout.Label((receivedPowerData.Route.Efficiency * 100).ToString("##.##") + "%", text_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label((receivedPowerData.ReceiverEfficiency).ToString("##.#") + " %", text_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(PowerToText(receivedPowerData.CurrentRecievedPower), text_black_style, GUILayout.Width(ValueWidthNormal));
 
 				GUILayout.EndHorizontal();
 			}
+
+            if (revievedData.Any(m => m.Relays.Count > 0))
+            {
+                PrintToGUILayout("Relays", "", bold_black_style, text_black_style, 200);
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Transmitter", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Receiver Part", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Relay Count", bold_black_style, GUILayout.Width(valueWidthWide));
+                GUILayout.Label("Relay 1", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Relay 2", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Relay 3", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.EndHorizontal();
+
+                foreach (ReceivedPowerData receivedPowerData in revievedData)
+                {
+                    if (receivedPowerData.Relays.Count > 0)
+                    {
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, text_black_style, GUILayout.Width(labelWidth));
+                        GUILayout.Label(receivedPowerData.Receiver.part.partInfo.title, text_black_style, GUILayout.Width(labelWidth));
+                        GUILayout.Label(receivedPowerData.Relays.Count.ToString(), text_black_style, GUILayout.Width(valueWidthWide));
+
+                        if (receivedPowerData.Relays.Count > 0)
+                            GUILayout.Label(receivedPowerData.Relays[0].Vessel.name + " (" + receivedPowerData.Relays[0].PowerCapacity + " MW)", text_black_style, GUILayout.Width(labelWidth));
+                        else
+                            GUILayout.Label("", text_black_style, GUILayout.Width(labelWidth));
+
+                        if (receivedPowerData.Relays.Count > 1)
+                            GUILayout.Label(receivedPowerData.Relays[1].Vessel.name, text_black_style, GUILayout.Width(labelWidth));
+                        else
+                            GUILayout.Label("", text_black_style, GUILayout.Width(labelWidth));
+
+                        if (receivedPowerData.Relays.Count > 2)
+                            GUILayout.Label(receivedPowerData.Relays[2].Vessel.name, text_black_style, GUILayout.Width(labelWidth));
+                        else
+                            GUILayout.Label("", text_black_style, GUILayout.Width(labelWidth));
+
+                        GUILayout.EndHorizontal();
+                    }
+                }
+            }
 
 			GUILayout.EndVertical();
 			GUI.DragWindow();
@@ -1582,17 +1636,16 @@ namespace FNPlugin
 						if (total_beamed_power > 0)
 						{
 							var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_power, total_beamed_power_max, 0, FNResourceManager.FNRESOURCE_THERMALPOWER);
-							var effective_used_beamed_power_ratio = powerGeneratedResult.currentSupply / total_beamed_power;
-
-							// modify received power
-							if (effective_used_beamed_power_ratio > 0)
-							{
-								foreach (var keyvalue in received_power)
-								{
-									var receivedPowerData = received_power[keyvalue.Key];
-									receivedPowerData.UsedNetworkPower *= effective_used_beamed_power_ratio;
-								}
-							}
+							//var effective_used_beamed_power_ratio = powerGeneratedResult.currentSupply / total_beamed_power;
+                            //// modify received power
+                            //if (effective_used_beamed_power_ratio > 0)
+                            //{
+                            //    foreach (var keyvalue in received_power)
+                            //    {
+                            //        var receivedPowerData = received_power[keyvalue.Key];
+                            //        receivedPowerData.UsedNetworkPower *= effective_used_beamed_power_ratio;
+                            //    }
+                            //}
 
 							if (!CheatOptions.IgnoreMaxTemperature)
 								supplyFNResourcePerSecondWithMax(powerGeneratedResult.currentSupply, total_beamed_power_max, FNResourceManager.FNRESOURCE_WASTEHEAT);
@@ -2109,7 +2162,7 @@ namespace FNPlugin
 				//ignore if no power or transmitter is on the same vessel
 				if (transmitter.Vessel == vessel)
 				{
-					Debug.Log("[KSPI] - Transmitter vessel is equal to receiver vessel");
+					//Debug.Log("[KSPI] - Transmitter vessel is equal to receiver vessel");
 					continue;
 				}
 
@@ -2407,5 +2460,23 @@ namespace FNPlugin
 			else
 				return distance.ToString("0") + " m";
 		}
+
+        private string SpotsizeToText(double spotsize)
+        {
+            if (spotsize < 0.01)
+                return (spotsize * 1.0e+3).ToString("0.000") + " mm";
+            else
+                return spotsize.ToString("0.000") + " m";
+        }
+
+        private string PowerToText(double power)
+        {
+            if (power >= 1000)
+                return (power / 1000).ToString("0.0") + " GW";
+            if (power >= 1)
+                return power.ToString("0.0") + " MW";
+            else
+                return (power * 1000).ToString("0.0") + " kW";
+        }
 	}
 }
