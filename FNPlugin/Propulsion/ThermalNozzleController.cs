@@ -224,7 +224,12 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Available C Power ", guiUnits = " MJ")]
         protected double availableChargedPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
-        double airflowHeatModifier;
+        protected double airflowHeatModifier;
+
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Supply", guiFormat = "F3")]
+        protected double effectiveThermalPower;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Supply", guiFormat = "F3")]
+        protected double effectiveChargedPower;
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
         int pre_coolers_active;
@@ -994,8 +999,8 @@ namespace FNPlugin
 
                 ConfigEffects();
 
-                var effectiveThermalPower = getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER);
-                var effectiveChargedPower = getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                effectiveThermalPower = getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER);
+                effectiveChargedPower = getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                 currentMaxThermalPower = Math.Min(effectiveThermalPower, AttachedReactor.MaximumThermalPower * AttachedReactor.ThermalPropulsionEfficiency * myAttachedEngine.currentThrottle);
                 currentMaxChargedPower = Math.Min(effectiveChargedPower, AttachedReactor.MaximumChargedPower * AttachedReactor.ThermalPropulsionEfficiency * myAttachedEngine.currentThrottle);
