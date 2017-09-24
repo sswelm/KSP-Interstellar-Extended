@@ -76,6 +76,15 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public double chargedThrottleRatio;
 
+        [KSPField(isPersistant = true)]
+        public double storedIsThermalEnergyGeneratorEfficiency;
+        [KSPField(isPersistant = true)]
+        public double storedIsChargedEnergyGeneratorEfficiency;
+        [KSPField(isPersistant = true)]
+        public double storedGeneratorThermalEnergyRequestRatio;
+        [KSPField(isPersistant = true)]
+        public double storedGeneratorChargedEnergyRequestRatio;
+
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 1)]
         public float electricPowerPriority = 2;
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Reactor_powerPercentage"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 10)]
@@ -283,6 +292,9 @@ namespace FNPlugin
         [KSPField]
         public bool shouldApplyBalance;
 
+
+
+
         // GUI strings
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_coreTemperature")]
         public string coretempStr = String.Empty;
@@ -379,15 +391,13 @@ namespace FNPlugin
         protected double partBaseWasteheat;
         protected double tritiumBreedingMassAdjustment;
         protected double heliumBreedingMassAdjustment;
-        protected double storedIsThermalEnergyGeneratorEfficiency;
-        protected double storedIsChargedEnergyGeneratorEfficiency;
+
+
+
         protected double currentIsThermalEnergyGeneratorEfficiency;
         protected double currentIsChargedEnergyGenratorEfficiency;
 
-        [KSPField(isPersistant = true)]
-        protected double storedGeneratorThermalEnergyRequestRatio;
-        [KSPField(isPersistant = true)]
-        protected double storedGeneratorChargedEnergyRequestRatio;
+
 
         protected double currentGeneratorThermalEnergyRequestRatio;
         protected double currentGeneratorChargedEnergyRequestRatio;

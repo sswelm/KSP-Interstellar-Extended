@@ -83,18 +83,18 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Transmission Efficiency", guiUnits = "%")]
         public double transmissionEfficiencyPercentage;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Reactor Power Transmission"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission Strength"), UI_FloatRange(stepIncrement = 1f/3f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
         public string beamedpower;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Solar Power", guiFormat = "F2")]
         protected double displayed_solar_power = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Has Linked Receivers")]
+        [KSPField]
         public bool hasLinkedReceivers = false;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Can be active")]
+        [KSPField]
         public bool canBeActive;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        [KSPField]
         protected int nearbyPartsCount;
 
         // Near Future Compatibility properties
