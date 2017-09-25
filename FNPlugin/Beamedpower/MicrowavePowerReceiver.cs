@@ -1798,6 +1798,11 @@ namespace FNPlugin
 
                 HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
 
+                foreach (var beamedPowerData in received_power.Values)
+                {
+                    v.IsAlive = false;
+                }
+
                 int activeSatsIncr = 0;
 
                 //loop all connected beamed power transmitters
@@ -1901,7 +1906,7 @@ namespace FNPlugin
             }
 
             //remove dead entries
-            var dead_entries = received_power.Where(m => !m.Value.IsAlive);
+            var dead_entries = received_power.Where(m => !m.Value.IsAlive).ToList();
             foreach(var entry in dead_entries)
             {
                 received_power.Remove(entry.Key);
