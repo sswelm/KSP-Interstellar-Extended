@@ -84,6 +84,13 @@ namespace FNPlugin
 		[KSPField(isPersistant = true)]
 		public bool forceActivateAtStartup = false;
 
+        [KSPField(isPersistant = true)]
+        protected double total_beamed_power = 0;
+        [KSPField(isPersistant = true)]
+        protected double total_beamed_power_max = 0;
+        [KSPField(isPersistant = true)]
+        protected double total_beamed_wasteheat = 0;
+
 		//Persistent False
 		[KSPField]
 		public bool autoDeploy = true; 
@@ -261,14 +268,9 @@ namespace FNPlugin
         [KSPField]
         protected double currentGeneratorThermalEnergyRequestRatio;
 
-
-
-
 		protected double previousDeltaTime;
 		protected double previousInputMegajoules = 0;
-		protected double total_beamed_power = 0;
-		protected double total_beamed_power_max = 0;
-		protected double total_beamed_wasteheat = 0;
+
 
 		protected BaseField beamedpowerField;
 		protected BaseField powerInputMegajoulesField;
@@ -1331,10 +1333,7 @@ namespace FNPlugin
 			networkDepthString = networkDepth.ToString();
 			toteff = efficiencyPercentage.ToString("0.00") + "%";
 
-            //if (wasteheatRatio < 0.95 || isThermalReceiver)
-            //{
-            //    CalculateInputPower();
-            //}
+            CalculateInputPower();
 
 
 			//if (receiverIsEnabled && anim != null && (!waitForAnimationToComplete || (!anim.isPlaying && waitForAnimationToComplete)))
@@ -1588,8 +1587,6 @@ namespace FNPlugin
 		{
             powerCapacityEfficiency = PowerCapacityEfficiency;
 
-			total_conversion_waste_heat_production = 0;
-
             StoreGeneratorRequests();
 
 			wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
@@ -1616,6 +1613,7 @@ namespace FNPlugin
 				UpdateBuffers(0);
 				return;
 			}
+
 			if (fnRadiator != null)
 			{
 				fnRadiator.canRadiateHeat = false;
@@ -1635,8 +1633,6 @@ namespace FNPlugin
 						UpdateBuffers(0);
 						return;
 					}
-
-                    CalculateInputPower();
 
 					// add energy from solar panel to power management and subtract generated power
 					ProcesSolarCellEnergy();
@@ -1770,6 +1766,9 @@ namespace FNPlugin
 
 		private void CalculateInputPower()
 		{
+            total_conversion_waste_heat_production = 0;
+            if (wasteheatRatio >= 0.95 && !isThermalReceiver) return;
+
             if (solarPowerMode)
             {
                 total_beamed_power = 0;
@@ -1783,7 +1782,7 @@ namespace FNPlugin
                 powerInputMegajoules = solarInputMegajoules;
                 powerInputMegajoulesMax = solarInputMegajoulesMax;
             }
-            else if (!solarPowerMode && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
+            else if (!solarPowerMode) // && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
             {
                 // reset all output variables at start of loop
                 total_beamed_power = 0;
@@ -1800,7 +1799,7 @@ namespace FNPlugin
 
                 foreach (var beamedPowerData in received_power.Values)
                 {
-                    v.IsAlive = false;
+                    beamedPowerData.IsAlive = false;
                 }
 
                 int activeSatsIncr = 0;
@@ -2092,31 +2091,12 @@ namespace FNPlugin
 
 		protected double ComputeDistanceFacingEfficiency(double spotSizeDiameter, double facingFactor, double recieverDiameter)
 		{
-			//Debug.Log("[KSP Interstellar]: ComputeDistanceFacingEfficiency spotSize: " + spotSize + " facingFactor: " + facingFactor + " recieverDiameter: " + recieverDiameter);
-
-			if (spotSizeDiameter == 0 || Double.IsPositiveInfinity(spotSizeDiameter) || Double.IsNaN(spotSizeDiameter))
-				return 0;
-
-			if (spotSizeDiameter < 0)
-			{
-				Debug.LogWarning("[KSPI] - ComputeDistanceFacingEfficiency spotSizeDiameter < 0");
-				return 0;
-			}
-
-			if (facingFactor == 0)
-				return 0;
-
-			if (facingFactor < 0)
-			{
-				Debug.LogWarning("[KSPI] - ComputeDistanceFacingEfficiency facingFactor <= 0");
-				return 0;
-			}
-
-			if (recieverDiameter <= 0)
-			{
-				Debug.LogWarning("[KSPI] - ComputeDistanceFacingEfficiency recieverDiameter <= 0");
-				return 0;
-			}
+			if (spotSizeDiameter <= 0 
+                || Double.IsPositiveInfinity(spotSizeDiameter) 
+                || Double.IsNaN(spotSizeDiameter)
+                || facingFactor <= 0
+                || recieverDiameter <= 0)
+		    return 0;
 
 			effectiveDistanceFacingEfficiency = Math.Pow(facingFactor, facingEfficiencyExponent) * Math.Pow(Math.Min(1, recieverDiameter * facingFactor / spotSizeDiameter), spotsizeNormalizationExponent);
 
@@ -2225,22 +2205,19 @@ namespace FNPlugin
 				bool hasLineOfSight = PluginHelper.HasLineOfSightWith(this.vessel, transmitter.Vessel);
 				if (hasLineOfSight)
 				{
-					//Debug.Log("[KSPI] - has line of sight with vessel " + transmitter.Vessel.name);
+                    double facingFactor = ComputeFacingFactor(transmitter.Vessel);
+                    if (facingFactor <= 0)
+                        continue;
+
 					var possibleWavelengths = new List<MicrowaveRoute>();
 					double distanceInMeter = ComputeDistance(this.vessel, transmitter.Vessel);
-					double facingFactor = ComputeFacingFactor(transmitter.Vessel);
-
-					//Debug.Log("[KSP Interstellar]: Has line of sight with Transmitters vessel " + transmitter.Vessel.id + " Facing factor " + facingFactor + " at distance " + distanceInMeter);
 
 					double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.transform.position) / 100;
 
 					foreach (WaveLengthData wavelenghtData in transmitter.SupportedTransmitWavelengths)
 					{
 						if (wavelenghtData.wavelength.NotWithin(this.maximumWavelength, this.minimumWavelength))
-						{
-							//Debug.Log("[KSP Interstellar]: GetConnectedTransmitters: transmit wavelength " + wavelenghtData.wavelength + " is not within " + this.maximumWavelength + " and " + this.minimumWavelength);
 							continue;
-						}
 
 						double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture, this.vessel, transmitter.Vessel);
 
@@ -2279,13 +2256,14 @@ namespace FNPlugin
 
 				if (PluginHelper.HasLineOfSightWith(this.vessel, relay.Vessel))
 				{
-					var possibleWavelengths = new List<MicrowaveRoute>();
+                    double facingFactor = ComputeFacingFactor(relay.Vessel);
+                    if (facingFactor <= 0)
+                        continue;
+
 					double distanceInMeter = ComputeDistance(this.vessel, relay.Vessel);
-					double facingFactor = ComputeFacingFactor(relay.Vessel);
-
-					//Debug.Log("[KSP Interstellar]: GetConnected Relays: " + facingFactor);
-
 					double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.transform.position) / 100;
+
+                    var possibleWavelengths = new List<MicrowaveRoute>();
 
 					foreach (var wavelenghtData in relay.SupportedTransmitWavelengths)
 					{
@@ -2404,8 +2382,7 @@ namespace FNPlugin
 						for (int r = 0; r < relaysToCheck.Count; r++)
 						{
 							var nextRelay = relaysToCheck[r];
-							if (nextRelay == relayPersistance)
-								continue;
+							if (nextRelay == relayPersistance) continue;
 
 							double distanceToNextRelay = relayToRelayDistances[relayEntry.Value, r];
 							if (distanceToNextRelay <= 0) continue;
