@@ -142,6 +142,7 @@ namespace FNPlugin.Refinery
         {
             _part = part;
             _vessel = part.vessel;
+            _intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>();
 
             // get the name of all relevant resources
             _atmosphere_resource_name = InterstellarResourcesConfiguration._INTAKEATMOSPHERE;
@@ -228,8 +229,7 @@ namespace FNPlugin.Refinery
         protected double _spareRoomKryptonMass;
         protected double _spareRoomSodiumMass;
 
-        List<AtmosphericIntake> intakesList; // create a new list for keeping track of atmo intakes
-        double tempAir;
+        List<AtmosphericIntake> _intakesList; // create a new list for keeping track of atmo intakes
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
@@ -243,9 +243,9 @@ namespace FNPlugin.Refinery
          */
         public double GetTotalAirScoopedPerSecond()
         {
-            intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>(); // add any atmo intake part on the vessel to our list
-            tempAir = 0; // reset tempAir before we go into the list
-            foreach (AtmosphericIntake intake in intakesList) // go through the list
+             // add any atmo intake part on the vessel to our list
+            double tempAir = 0; // reset tempAir before we go into the list
+            foreach (AtmosphericIntake intake in _intakesList) // go through the list
             {
                 // add the current intake's finalAir to our tempAir. When done with the foreach cycle, we will have the total amount of air these intakes collect per cycle
                 tempAir += intake.FinalAir;
@@ -256,8 +256,6 @@ namespace FNPlugin.Refinery
         public void ExtractAir(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double fixedDeltaTime, bool offlineCollecting)
         {
             _effectiveMaxPower = productionModifier * PowerRequirements;
-
-            //_current_power = PowerRequirements * rateMultiplier;
             _current_power = _effectiveMaxPower * powerFraction;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
 
@@ -353,6 +351,8 @@ namespace FNPlugin.Refinery
                 */
                 if (FlightGlobals.currentMainBody.flightGlobalsIndex != lastBodyID) // did we change a SOI since last time? If yes, get new percentages. Should work the first time as well, since lastBodyID starts as -1, while bodies in the list start at 0
                 {
+                    Debug.Log("[KSPI] - looking up Atmosphere contents for " + FlightGlobals.currentMainBody.name);
+
                     // remember, all these are persistent. Once we get them, we won't need to calculate them again until we change SOI
                     _ammoniaPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _ammonia_resource_name);
                     _argonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody.flightGlobalsIndex, _argon_resource_name);
@@ -570,7 +570,7 @@ namespace FNPlugin.Refinery
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Deuterium Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomDeuteriumMass.ToString("0.0000") + " mT / " + _maxCapacityHydrogenMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label(_spareRoomDeuteriumMass.ToString("0.0000") + " mT / " + _maxCapacityDeuteriumMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
