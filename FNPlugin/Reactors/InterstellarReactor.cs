@@ -87,7 +87,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 1)]
         public float electricPowerPriority = 2;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Reactor_powerPercentage"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 10)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_powerPercentage"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 10)]
         public float powerPercentage = 100;
 
         [KSPField]
@@ -207,15 +207,15 @@ namespace FNPlugin
         [KSPField]
         public float upgradeCost;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_Reactor_connectionRadius")]
-        public double radius;
+        public double radius = 2.5;
         [KSPField]
         public double minimumThrottle = 0;
         [KSPField]
         public bool canShutdown = true;
         [KSPField]
-        public bool consumeGlobal;
+        public bool consumeGlobal = false;
         [KSPField]
-        public int reactorType;
+        public int reactorType = 0;
         [KSPField]
         public double fuelEfficiency = 1;
         [KSPField]

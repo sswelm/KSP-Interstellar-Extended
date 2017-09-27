@@ -11,25 +11,27 @@ namespace FNPlugin
     {
         void Start()
         {
-            GameEvents.onVesselGoOffRails.Add(OnVesselGoOffRails);
-            GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
-            GameEvents.onSetSpeedMode.Add(OnSetSpeedModeChange);
-            GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
-            GameEvents.onVesselLoaded.Add(OnVesselLoaded);
-            GameEvents.OnTechnologyResearched.Add(OnTechnologyResearched);
+            //GameEvents.onVesselGoOffRails.Add(OnVesselGoOffRails);
+            //GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
+            //GameEvents.onSetSpeedMode.Add(OnSetSpeedModeChange);
+            //GameEvents.onVesselLoaded.Add(OnVesselLoaded);
+            //GameEvents.OnTechnologyResearched.Add(OnTechnologyResearched);
+
             GameEvents.onGameStateSaved.Add(onGameStateSaved);
+            GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
 
             Debug.Log("[KSP Interstellar] GameEventSubscriber Initialised");
         }
         void OnDestroy()
         {
-            GameEvents.onVesselGoOffRails.Remove(OnVesselGoOffRails);
-            GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
-            GameEvents.onSetSpeedMode.Remove(OnSetSpeedModeChange);
-            GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
-            GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
-            GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
+            //GameEvents.onVesselGoOffRails.Remove(OnVesselGoOffRails);
+            //GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
+            //GameEvents.onSetSpeedMode.Remove(OnSetSpeedModeChange);
+            //GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
+            //GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
+
             GameEvents.onGameStateSaved.Remove(onGameStateSaved);
+            GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
 
             Debug.Log("[KSP Interstellar] GameEventSubscriber Deinitialised");
         }
@@ -40,40 +42,34 @@ namespace FNPlugin
             PluginHelper.LoadSaveFile();
         }
 
-        void OnVesselLoaded(Vessel vessel)
-        {
-            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselLoaded");
-        }
+        //void OnVesselLoaded(Vessel vessel)
+        //{
+        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselLoaded");
+        //}
 
-        void OnTechnologyResearched(GameEvents.HostTargetAction<RDTech, RDTech.OperationResult> change)
-        {
-            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnTechnologyResearched");
-        }
+        //void OnTechnologyResearched(GameEvents.HostTargetAction<RDTech, RDTech.OperationResult> change)
+        //{
+        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnTechnologyResearched");
+        //}
 
-        void OnSetSpeedModeChange(FlightGlobals.SpeedDisplayModes evt)
-        {
-            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnSetSpeedModeChange");
-        }
+        //void OnSetSpeedModeChange(FlightGlobals.SpeedDisplayModes evt)
+        //{
+        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnSetSpeedModeChange");
+        //}
 
-        void OnVesselGoOnRails(Vessel vessel)
-        {
-            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOnRails");
-        }
+        //void OnVesselGoOnRails(Vessel vessel)
+        //{
+        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOnRails");
+        //}
 
-        void OnVesselGoOffRails(Vessel vessel)
-        {
-            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOffRails");
-        }
+        //void OnVesselGoOffRails(Vessel vessel)
+        //{
+        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOffRails");
+        //}
 
         void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
         {
-            bool shouldReinitialise = false;
-
-            if (change.from == Vessel.Situations.DOCKED)
-                shouldReinitialise = true;
-
-            if (change.to == Vessel.Situations.DOCKED)
-                shouldReinitialise = true;
+            bool shouldReinitialise = (change.from == Vessel.Situations.DOCKED || change.to == Vessel.Situations.DOCKED);
 
             if (shouldReinitialise)
             {
