@@ -7,8 +7,8 @@ namespace FNPlugin
 {
     public class AtmosphericResourceHandler 
     {
-        protected static Dictionary<int, Dictionary<string, AtmosphericResource>> atmospheric_resource_by_body_id = new Dictionary<int, Dictionary<string, AtmosphericResource>>();
-        protected static Dictionary<string, Dictionary<string, AtmosphericResource>> atmospheric_resource_by_body_name = new Dictionary<string, Dictionary<string, AtmosphericResource>>();
+        private static Dictionary<int, Dictionary<string, AtmosphericResource>> atmospheric_resource_by_body_id = new Dictionary<int, Dictionary<string, AtmosphericResource>>();
+        private static Dictionary<string, Dictionary<string, AtmosphericResource>> atmospheric_resource_by_body_name = new Dictionary<string, Dictionary<string, AtmosphericResource>>();
 
         public static double getAtmosphericResourceContent(int refBody, string resourcename) 
         {
@@ -35,7 +35,7 @@ namespace FNPlugin
             return bodyAtmosphericComposition.Count > resource ? bodyAtmosphericComposition.Values.ToList()[resource].DisplayName : null;
         }
 
-        public static Dictionary<string, AtmosphericResource> GetAtmosphericCompositionForBody(string celestrialBodyName)
+        private static Dictionary<string, AtmosphericResource> GetAtmosphericCompositionForBody(string celestrialBodyName)
         {
             Dictionary<string, AtmosphericResource> bodyAtmosphericComposition;
 
@@ -63,9 +63,9 @@ namespace FNPlugin
         {
             var atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
 
-            Debug.Log("[KSPI] Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
+            Debug.Log("[KSPI] - Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
             
-            Debug.Log("[KSPI] - searching for atmosphere definition data for " + celestrialBodyName);
+            Debug.Log("[KSPI] - Searching for atmosphere definition data for " + celestrialBodyName);
             var atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
             if (atmospheric_resource_list.Any())
             {
@@ -149,6 +149,8 @@ namespace FNPlugin
                 // add to database for future reference
                 atmospheric_resource_by_body_id.Add(refBody, bodyAtmosphericComposition);
                 atmospheric_resource_by_body_name.Add(celestialBody.name, bodyAtmosphericComposition);
+
+                Debug.Log("[KSPI] - Succesfully Finished loading atmospheric composition");
             }
             catch (Exception ex)
             {
@@ -158,7 +160,7 @@ namespace FNPlugin
             return bodyAtmosphericComposition;
         }
 
-        public static Dictionary<string, AtmosphericResource> GenerateCompositionFromCelestialBody(CelestialBody celestialBody)
+        private static Dictionary<string, AtmosphericResource> GenerateCompositionFromCelestialBody(CelestialBody celestialBody)
         {
             try
             {
@@ -300,10 +302,9 @@ namespace FNPlugin
             bodyComposition.Add(resource.ResourceName, resource);
         }
 
-        private static void AddRaresAndIsotopesToAdmosphereComposition(Dictionary<string, AtmosphericResource> bodyAtmosphericComposition, CelestialBody celestialBody)
+        private static void AddRaresAndIsotopesToAdmosphereComposition(IDictionary<string, AtmosphericResource> bodyAtmosphericComposition, CelestialBody celestialBody)
         {
             // add heavywater based on water abundance in atmosphere
-
             AtmosphericResource water;
             if (!bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_HEAVYWATER) && bodyAtmosphericComposition.TryGetValue(InterstellarResourcesConfiguration._LIQUID_WATER, out water))
             {
@@ -315,7 +316,7 @@ namespace FNPlugin
             if (!bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_HELIUM_4))
             {
                 const double helium4Abundance = 5.2e-6;
-                Debug.Log("[KSPI] - added helum-4 to atmosphere with abundance " + helium4Abundance);
+                Debug.Log("[KSPI] - Added helum-4 to atmosphere with abundance " + helium4Abundance);
                 bodyAtmosphericComposition.Add(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, helium4Abundance, "Helium-4"));
             }
             else
@@ -330,11 +331,11 @@ namespace FNPlugin
                     ? helium.ResourceAbundance * 0.001
                     : helium.ResourceAbundance * 1.38e-6;
 
-                Debug.Log("[KSPI] - added helum-3 to atmosphere eith abundance " + helium3Abundance);
+                Debug.Log("[KSPI] - Added helium-3 to atmosphere eith abundance " + helium3Abundance);
                 bodyAtmosphericComposition.Add(InterstellarResourcesConfiguration._LIQUID_HELIUM_3, new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_3, helium3Abundance, "Helium-3"));
             }
             else if (bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_HELIUM_3))
-                Debug.Log("[KSPI] - helium-3 is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_HELIUM_3].ResourceAbundance);
+                Debug.Log("[KSPI] - Helium-3 is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_HELIUM_3].ResourceAbundance);
             else
                 Debug.Log("[KSPI] - No Helium is present in atmosphere specification, helium-4 will not be added");
 
@@ -342,13 +343,12 @@ namespace FNPlugin
             AtmosphericResource hydrogen;
             if (!bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM) && bodyAtmosphericComposition.TryGetValue(InterstellarResourcesConfiguration._LIQUID_HYDROGEN, out hydrogen))
             {
-                //var hydrogen = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_HYDROGEN);
                 var deuteriumAbundance = hydrogen.ResourceAbundance / 6420;
-                Debug.Log("[KSPI] - added deuterium to atmosphere with abundance " + deuteriumAbundance);
+                Debug.Log("[KSPI] - Added deuterium to atmosphere with abundance " + deuteriumAbundance);
                 bodyAtmosphericComposition.Add(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM, new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM, deuteriumAbundance, "Deuterium"));
             }
             else if (bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM))
-                Debug.Log("[KSPI] - deuterium is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_DEUTERIUM].ResourceAbundance);
+                Debug.Log("[KSPI] - Deuterium is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_DEUTERIUM].ResourceAbundance);
             else 
                 Debug.Log("[KSPI] - No Hydrogen is present in atmosphere specification, deuterium will not be added");
 
@@ -356,20 +356,19 @@ namespace FNPlugin
             AtmosphericResource nitrogen;
             if (!bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_NITROGEN_15) && bodyAtmosphericComposition.TryGetValue(InterstellarResourcesConfiguration._LIQUID_NITROGEN, out nitrogen))
             {
-                //var nitrogen = bodyAtmosphericComposition.FirstOrDefault(m => m.ResourceName == InterstellarResourcesConfiguration._LIQUID_NITROGEN);
                 var nitrogen15Abundance = nitrogen.ResourceAbundance * 0.00364;
-                Debug.Log("[KSPI] - added nitrogen-15 to atmosphere with abundance " + nitrogen15Abundance);
+                Debug.Log("[KSPI] - Added nitrogen-15 to atmosphere with abundance " + nitrogen15Abundance);
                 bodyAtmosphericComposition.Add(InterstellarResourcesConfiguration._LIQUID_NITROGEN_15, new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_NITROGEN_15, nitrogen15Abundance, "Nitrogen-15"));
             }
             else if (bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_NITROGEN_15))
-                Debug.Log("[KSPI] - nitrogen-15 is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_NITROGEN_15].ResourceAbundance);
+                Debug.Log("[KSPI] - Nitrogen-15 is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_NITROGEN_15].ResourceAbundance);
             else
                 Debug.Log("[KSPI] - No Nitrogen is present in atmosphere specification, nitrogen-15 will not be added");
         }
 
 
 
-        private static void AddResource(string outputResourname, string displayname, int refBody, Dictionary<string, AtmosphericResource> bodyComposition, string[] variants)
+        private static void AddResource(string outputResourname, string displayname, int refBody, IDictionary<string, AtmosphericResource> bodyComposition, string[] variants)
         {
             var abundances = new[] { GetAbundance(outputResourname, refBody) }.Concat(variants.Select(m => GetAbundance(m, refBody)));
 
@@ -379,13 +378,13 @@ namespace FNPlugin
             AtmosphericResource existingResource;
             if (bodyComposition.TryGetValue(outputResourname, out existingResource))
             {
-                Debug.Log("[KSPI] - replaced resource " + outputResourname + " with stock defined abundance " + resource.ResourceAbundance);
+                Debug.Log("[KSPI] - Replaced resource " + outputResourname + " with stock defined abundance " + resource.ResourceAbundance);
                 bodyComposition.Remove(existingResource.ResourceName);
             }
             bodyComposition.Add(resource.ResourceName, resource);
         }
 
-        private static void AddResource(int refBody, Dictionary<string, AtmosphericResource> bodyComposition, string outputResourname, string inputResource1, string inputResource2, string inputResource3, string displayname)
+        private static void AddResource(int refBody, IDictionary<string, AtmosphericResource> bodyComposition, string outputResourname, string inputResource1, string inputResource2, string inputResource3, string displayname)
         {
             var abundances = new[] { GetAbundance(inputResource1, refBody), GetAbundance(inputResource2, refBody), GetAbundance(inputResource2, refBody) };
 
@@ -416,6 +415,5 @@ namespace FNPlugin
                 CheckForLock = false
             };
         }
-
     }
 }
