@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Reflection;
 using UnityEngine;
-using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -15,14 +13,14 @@ namespace FNPlugin
             return part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == resourcename));
         }
 
-        public static void GetResourceMass(this Part part, PartResourceDefinition definition, out double currentMass, out double maximumMass) 
+        public static void GetResourceMass(this Part part, PartResourceDefinition definition,  out double spareRoomMass, out double maximumMass) 
         {
             double currentAmount;
             double maxAmount;
             part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
 
-            currentMass = currentAmount * definition.density;
             maximumMass = maxAmount * definition.density;
+			spareRoomMass = (maxAmount - currentAmount) * definition.density;
         }
 
         public static double GetResourceSpareCapacity(this Part part, String resourcename)
