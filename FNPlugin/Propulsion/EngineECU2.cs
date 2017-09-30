@@ -143,7 +143,7 @@ namespace FNPlugin
         }
         private void InitializeFuelSelector()
         {
-            Debug.Log("[KSP Interstellar] Setup Fuels Configurations for " + part.partInfo.title);
+            Debug.Log("[KSPI] - Setup Fuels Configurations for " + part.partInfo.title);
 
             var chooseField = Fields["selectedFuel"];
             var chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
@@ -355,23 +355,23 @@ namespace FNPlugin
 
         private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
         {
-            Debug.Log("[KSP Interstellar] UpdateFromGUI is called with " + selectedFuel);
+            Debug.Log("[KSPI] - UpdateFromGUI is called with " + selectedFuel);
 
             if (!FuelConfigurations.Any())
             {
-                Debug.Log("[KSP Interstellar] UpdateFromGUI no FuelConfigurations found");
+                Debug.Log("[KSPI] - UpdateFromGUI no FuelConfigurations found");
                 return;
             }
 
             if (selectedFuel < FuelConfigurations.Count)
             {
-                Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " < orderedFuelGenerators.Count");
+                Debug.Log("[KSPI] - UpdateFromGUI " + selectedFuel + " < orderedFuelGenerators.Count");
               //  FuelConfigurations[selectedFuel].Factor = ActiveConfiguration.Factor;
                 activeConfiguration = FuelConfigurations[selectedFuel];
             }
             else
             {
-                Debug.Log("[KSP Interstellar] UpdateFromGUI " + selectedFuel + " >= orderedFuelGenerators.Count");
+                Debug.Log("[KSPI] - UpdateFromGUI " + selectedFuel + " >= orderedFuelGenerators.Count");
                 selectedFuel = FuelConfigurations.Count - 1;
               //  FuelConfigurations[selectedFuel].Factor = ActiveConfiguration.Factor;
                 activeConfiguration = FuelConfigurations.Last();
@@ -379,7 +379,7 @@ namespace FNPlugin
 
             if (activeConfiguration == null)
             {
-                Debug.Log("[KSP Interstellar] UpdateFromGUI no activeConfiguration found");
+                Debug.Log("[KSPI] - UpdateFromGUI no activeConfiguration found");
                 return;
             }
         }
@@ -390,7 +390,7 @@ namespace FNPlugin
 
             //   var currentmaxIsp = maxIsp != 0 ? maxIsp : 1;
 
-            //Debug.Log("[KSP Interstellar] UpdateFromGUI initialize initial fuel configuration with maxIsp target " + currentmaxIsp);
+            //Debug.Log("[KSPI] - UpdateFromGUI initialize initial fuel configuration with maxIsp target " + currentmaxIsp);
 
             // find maxIsp closes to target maxIsp
             activeConfiguration = FuelConfigurations.FirstOrDefault();

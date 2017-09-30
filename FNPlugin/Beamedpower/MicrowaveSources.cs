@@ -20,7 +20,7 @@ namespace FNPlugin
         {
             DontDestroyOnLoad(this.gameObject);
             instance = this;
-            Debug.Log("[KSP Interstellar]: MicrowaveSources initialized");
+            Debug.Log("[KSPI] - MicrowaveSources initialized");
         }
 
         int unloaded_counter = -1;

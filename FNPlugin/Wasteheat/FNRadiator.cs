@@ -128,6 +128,8 @@ namespace FNPlugin
         public bool isAutomated = true;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Pivot"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool pivotEnabled = true;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Prevent Shielded Deploy"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
+        public bool preventShieldedDeploy = true;
 
         [KSPField(isPersistant = false)]
         public bool showColorHeat = true;
@@ -405,7 +407,7 @@ namespace FNPlugin
         {
             Debug.Log("[KSPI] - Deploy Called ");
 
-            if (part.ShieldedFromAirstream)
+            if (preventShieldedDeploy && part.ShieldedFromAirstream)
                 return;
 
             if (_moduleDeployableRadiator != null)
@@ -513,6 +515,10 @@ namespace FNPlugin
             radiatorIsEnabledField = Fields["radiatorIsEnabled"];
             isAutomatedField = Fields["isAutomated"];
             pivotEnabledField = Fields["pivotEnabled"];
+
+            var preventDeplyField = Fields["preventShieldedDeploy"];
+            preventDeplyField.guiActive = isDeployable;
+            preventDeplyField.guiActiveEditor = isDeployable;
 
             Actions["DeployRadiatorAction"].guiName = Events["DeployRadiator"].guiName = "Deploy Radiator";
             Actions["ToggleRadiatorAction"].guiName = String.Format("Toggle Radiator");
@@ -850,7 +856,7 @@ namespace FNPlugin
                     part.decouple(1);
                 }
             }
-            else if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls && !part.ShieldedFromAirstream)
+            else if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls && (!preventShieldedDeploy || !part.ShieldedFromAirstream))
             {
                 Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
                 Deploy();

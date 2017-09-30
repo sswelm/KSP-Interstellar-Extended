@@ -188,7 +188,7 @@ namespace FNPlugin.Microwave
 
             if (activeConfiguration == null)
             {
-                Debug.Log("[KSP Interstellar] UpdateFromGUI no activeConfiguration found");
+                Debug.Log("[KSPI] - UpdateFromGUI no activeConfiguration found");
                 return;
             }
 

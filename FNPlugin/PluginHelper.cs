@@ -20,7 +20,7 @@ namespace FNPlugin
             GameEvents.onGameStateSaved.Add(onGameStateSaved);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
 
-            Debug.Log("[KSP Interstellar] GameEventSubscriber Initialised");
+            Debug.Log("[KSPI] - GameEventSubscriber Initialised");
         }
         void OnDestroy()
         {
@@ -33,38 +33,38 @@ namespace FNPlugin
             GameEvents.onGameStateSaved.Remove(onGameStateSaved);
             GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
 
-            Debug.Log("[KSP Interstellar] GameEventSubscriber Deinitialised");
+            Debug.Log("[KSPI] - GameEventSubscriber Deinitialised");
         }
 
         void onGameStateSaved(Game game)
         {
-            Debug.Log("[KSP Interstellar] GameEventSubscriber - detected onGameStateSaved");
+            Debug.Log("[KSP] - GameEventSubscriber - detected onGameStateSaved");
             PluginHelper.LoadSaveFile();
         }
 
         //void OnVesselLoaded(Vessel vessel)
         //{
-        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselLoaded");
+        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnVesselLoaded");
         //}
 
         //void OnTechnologyResearched(GameEvents.HostTargetAction<RDTech, RDTech.OperationResult> change)
         //{
-        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnTechnologyResearched");
+        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnTechnologyResearched");
         //}
 
         //void OnSetSpeedModeChange(FlightGlobals.SpeedDisplayModes evt)
         //{
-        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnSetSpeedModeChange");
+        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnSetSpeedModeChange");
         //}
 
         //void OnVesselGoOnRails(Vessel vessel)
         //{
-        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOnRails");
+        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnVesselGoOnRails");
         //}
 
         //void OnVesselGoOffRails(Vessel vessel)
         //{
-        //    Debug.Log("[KSP Interstellar] GameEventSubscriber - detected OnVesselGoOffRails");
+        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnVesselGoOffRails");
         //}
 
         void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
@@ -75,7 +75,7 @@ namespace FNPlugin
             {
                 //ORSHelper.removeVesselFromCache(change.host);
 
-                Debug.Log("[KSP Interstellar] GameEventSubscriber - OnVesselSituationChange reinitialising");
+                Debug.Log("[KSPI] - GameEventSubscriber - OnVesselSituationChange reinitialising");
 
                 //var generators = change.host.FindPartModulesImplementing<FNGenerator>();
                 //generators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
@@ -88,7 +88,7 @@ namespace FNPlugin
 
         //void OnVesselChange(Vessel v)
         //{
-        //    Debug.Log("[KSP Interstellar] OnVesselChange is called");
+        //    Debug.Log("[KSPI] - OnVesselChange is called");
         //}
     }
 
@@ -762,7 +762,7 @@ namespace FNPlugin
                         for (int i = 0; i < totalValues; i += 2)
                             PartTechUpgrades.Add(splitValues[i], splitValues[i + 1]);
 
-                        Debug.Log("[KSP Interstellar] Part Tech Upgrades set to: " + rawstring);
+                        Debug.Log("[KSPI] Part Tech Upgrades set to: " + rawstring);
                     }
                     if (plugin_settings.HasValue("OrsResourceMappings"))
                     {

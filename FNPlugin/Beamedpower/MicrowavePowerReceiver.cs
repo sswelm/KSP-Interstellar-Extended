@@ -70,7 +70,7 @@ namespace FNPlugin
 		[KSPField(isPersistant = true, guiActive = true, guiName = "Power Mode"), UI_Toggle(disabledText = "Beamed Power", enabledText = "Solar Only")]
 		public bool solarPowerMode = true;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Reciever Interface"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown")]
-        private bool showWindow;
+        public bool showWindow;
 
         [KSPField(isPersistant = true)]
         public float windowPositionX = 200;
@@ -325,15 +325,12 @@ namespace FNPlugin
 
 		private const int labelWidth = 200;
 		private const int valueWidthWide = 100;
-		private const int ValueWidthNormal = 60;
+		private const int ValueWidthNormal = 65;
         private const int ValueWidthShort = 30;
 
 		// GUI elements declaration
 		private Rect windowPosition;
-		private int windowID;
-
-
-		
+		private int windowID;		
 
 		public Part Part { get { return this.part; } }
 
@@ -1184,12 +1181,12 @@ namespace FNPlugin
 		{
 			try
 			{
-				Debug.Log("[KSP Interstellar] UpdateFromGUI is called with selectedBandwidth " + selectedBandwidthConfiguration);
+				Debug.Log("[KSPI] - UpdateFromGUI is called with selectedBandwidth " + selectedBandwidthConfiguration);
 
 				if (!BandwidthConverters.Any())
 					return;
 
-				Debug.Log("[KSP Interstellar] UpdateFromGUI found " + BandwidthConverters.Count + " BandwidthConverters");
+				Debug.Log("[KSPI] - UpdateFromGUI found " + BandwidthConverters.Count + " BandwidthConverters");
 
 				if (isLoaded == false)
 					LoadInitialConfiguration();
@@ -1197,12 +1194,12 @@ namespace FNPlugin
 				{
 					if (selectedBandwidthConfiguration < BandwidthConverters.Count)
 					{
-						Debug.Log("[KSP Interstellar] UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
+						Debug.Log("[KSPI] - UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
 						activeBandwidthConfiguration = BandwidthConverters[selectedBandwidthConfiguration];
 					}
 					else
 					{
-						Debug.Log("[KSP Interstellar] UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
+						Debug.Log("[KSPI] - UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
 						selectedBandwidthConfiguration = BandwidthConverters.Count - 1;
 						activeBandwidthConfiguration = BandwidthConverters.Last();
 					}
@@ -1210,7 +1207,7 @@ namespace FNPlugin
 
 				if (activeBandwidthConfiguration == null)
 				{
-					Debug.LogWarning("[KSP Interstellar] UpdateFromGUI failed to find BandwidthConfiguration");
+					Debug.LogWarning("[KSPI] - UpdateFromGUI failed to find BandwidthConfiguration");
 					return;
 				}
 
@@ -1391,8 +1388,6 @@ namespace FNPlugin
 			}
 		}
 
-		uint counter = 0;       // OnFixedUpdate cycle counter
-
 		private double GetAtmosphericEfficiency(Vessel v)
 		{
 			return Math.Exp(-(FlightGlobals.getStaticPressure(v.transform.position) / 100) / 5);
@@ -1437,7 +1432,6 @@ namespace FNPlugin
 		{
 			if (this.vessel == FlightGlobals.ActiveVessel && showWindow)
 				windowPosition = GUILayout.Window(windowID, windowPosition, DrawGui, "Power Receiver Interface");
-
 		}
 
 		private void DrawGui(int window)
@@ -2166,8 +2160,6 @@ namespace FNPlugin
 
 			var localfacingFactor = CanBeActiveInAtmosphere ? facingFactor : highSpeedAtmosphereFactor * facingFactor;
 
-			//Debug.Log("[KSP Interstellar]: ComputeFacingFactor: " + localfacingFactor);
-
 			return localfacingFactor;
 		}
 
@@ -2221,7 +2213,6 @@ namespace FNPlugin
 
 						double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture, this.vessel, transmitter.Vessel);
 
-						//Debug.Log("[KSP Interstellar]: GetConnectedTransmitters spotSize: " + spotsize + " facingFactor: " + facingFactor + " recieverDiameter: " + this.diameter);
 						double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, this.diameter);
 						double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, this.vessel, transmitter.Vessel);
 						double transmitterEfficency = distanceFacingEfficiency * atmosphereEfficency;
@@ -2456,7 +2447,6 @@ namespace FNPlugin
 				}
 
 				resultDictionary.Add(vesselPersistance, new KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>(microwaveRoute, relays.ToList()));
-				//Debug.Log("[KSP Interstellar]:   Add to Result Dictionary Transmitter power: " + transmitterEntry.Key.NuclearPower + " with route efficiency " + transmitterEntry.Value.Efficiency);
 			}
 
 			return resultDictionary;

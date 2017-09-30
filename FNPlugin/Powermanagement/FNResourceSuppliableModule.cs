@@ -29,7 +29,8 @@ namespace FNPlugin
             UnityEngine.Debug.LogWarning("[KSPI] - detecting supplyable part " + part.partInfo.title + " is being destroyed");
 
             var priority_manager = getSupplyPriorityManager(this.vessel);
-            priority_manager.Unregister(this);
+            if (priority_manager != null)
+                priority_manager.Unregister(this);
         }
 
         protected override ORSResourceManager createResourceManagerForResource(string resourcename)

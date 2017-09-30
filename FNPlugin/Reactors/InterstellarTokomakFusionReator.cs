@@ -116,7 +116,6 @@ namespace FNPlugin
                 }
             }
 
-            // call Interstellar Reactor Onstart
             base.OnStart(state);
         }
 

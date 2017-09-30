@@ -310,7 +310,9 @@ namespace FNPlugin
                 }
             }
 
-            getSupplyPriorityManager(this.vessel).Register(this);
+            var priorityManager = getSupplyPriorityManager(this.vessel);
+            if (priorityManager != null)
+                priorityManager.Register(this);
         }
 
         protected double TimeWarpFixedDeltaTime
@@ -346,12 +348,12 @@ namespace FNPlugin
                 }
 
                 var priority_manager = getSupplyPriorityManager(this.vessel);
-                if (priority_manager.ProcessingPart == null || priority_manager.ProcessingPart.vessel != this.vessel ||  priority_manager.Counter < updateCounter)
+                if (priority_manager != null && priority_manager.ProcessingPart == null || priority_manager.ProcessingPart.vessel != this.vessel || priority_manager.Counter < updateCounter)
                 {
                     priority_manager.UpdatePartModule(this);
                 }
 
-                if (priority_manager.ProcessingPart == this)
+                if (priority_manager != null && priority_manager.ProcessingPart == this)
                     priority_manager.UpdateResourceSuppliables(updateCounter, timeWarpFixedDeltaTime);
             }
             catch (Exception e)

@@ -12,6 +12,9 @@ namespace FNPlugin
 
         public static SupplyPriorityManager GetSupplyPriorityManagerForVessel(Vessel vessel) 
         {
+            if (vessel == null)
+                return null;
+
             SupplyPriorityManager manager;
 
             if (!supply_priority_managers.TryGetValue(vessel, out manager))

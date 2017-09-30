@@ -7,6 +7,8 @@ namespace FNPlugin.Refinery
 {
     class AtmosphericExtractor : RefineryActivityBase, IRefineryActivity
     {
+        new private const int valueWidth = 100;
+
         // persistant
         [KSPField(isPersistant = true)]
         protected int lastBodyID = -1; // ID of the last body. Allows us to skip some expensive calls
@@ -122,9 +124,6 @@ namespace FNPlugin.Refinery
         public RefineryType RefineryType { get { return RefineryType.cryogenics; } }
 
         public String ActivityName { get { return "Atmospheric Extraction"; } }
-
-
-        private double _effectiveMaxPower;
 
         public bool HasActivityRequirements
         {
@@ -495,242 +494,51 @@ namespace FNPlugin.Refinery
             GUILayout.Label(_availableAtmosphereMass.ToString("0.0000") + " mT / " + _maxCapacityAtmosphereMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
-            if (_hydrogenPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Hydrogen Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomHydrogenMass.ToString("0.0000") + " mT / " + _maxCapacityHydrogenMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Name", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Abundance", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Production per second", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Production per hour", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Spare Room", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Stored", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Max Capacity", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
 
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Hydrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_hydrogenPercentage * 100) + "% " + (_hydrogen_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_deuteriumPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Deuterium Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomDeuteriumMass.ToString("0.0000") + " mT / " + _maxCapacityDeuteriumMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Deuterium Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_deuteriumPercentage * 100) + "% " + (_deuterium_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_helium3Percentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Helium-3 Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomHelium3Mass.ToString("0.0000") + " mT / " + _maxCapacityHelium3Mass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Helium-3 Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_helium3Percentage * 100) + "% " + (_helium3_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_helium4Percentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Helium-4 Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomHelium4Mass.ToString("0.0000") + " mT / " + _maxCapacityHelium4Mass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Helium-4 Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_helium4Percentage * 100) + "% " + (_helium4_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_nitrogenPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Nitrogen Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomNitrogenMass.ToString("0.0000") + " mT / " + _maxCapacityNitrogenMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Nitrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_nitrogenPercentage * 100) + "% " + (_nitrogen_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_nitrogen15Percentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Nitrogen-15 Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomNitrogen15Mass.ToString("0.0000") + " mT / " + _maxCapacityNitrogen15Mass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Nitrogen-15 Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_nitrogen15Percentage * 100) + "% " + (_nitrogen15_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_oxygenPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Oxygen Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomOxygenMass.ToString("0.0000") + " mT / " + _maxCapacityOxygenMass.ToString("0.0000") + " mT", _value_label,GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_oxygenPercentage * 100) + "% " + (_oxygen_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_argonPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Argon Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomArgonMass.ToString("0.0000") + " mT / " + _maxCapacityArgonMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Argon Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_argonPercentage * 100) + "% " + (_argon_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_neonPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Neon Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomNeonMass.ToString("0.0000") + " mT / " + _maxCapacityNeonMass.ToString("0.0000") + " mT", _value_label,  GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Neon Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_neonPercentage * 100) + "% " + (_neon_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_kryptonPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Krypton Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomKryptonMass.ToString("0.0000") + " mT / " + _maxCapacityKryptonMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Krypton Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_kryptonPercentage * 100) + "% " + (_krypton_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_ammoniaPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Ammonia Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomAmmoniaMass.ToString("0.0000") + " mT / " + _maxCapacityAmmoniaMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Ammonia Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_ammoniaPercentage * 100) + "% " + (_ammonia_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_waterPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Water Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomWaterMass.ToString("0.0000") + " mT / " + _maxCapacityWaterMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Water Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_waterPercentage * 100) + "% " + (_water_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_heavywaterPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Heavy Water Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomHeavyWaterMass.ToString("0.0000") + " mT / " + _maxCapacityHeavyWaterMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Heavy Water Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_heavywaterPercentage * 100) + "% " + (_heavywater_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_monoxidePercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Carbon Monoxide Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomMonoxideMass.ToString("0.0000") + " mT / " + _maxCapacityMonoxideMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Carbon Monoxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_monoxidePercentage * 100) + "% " + (_monoxide_production_rate * GameConstants.HOUR_SECONDS).ToString("0.0000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_dioxidePercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Carbon Dioxide Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomDioxideMass.ToString("0.0000") + " mT / " + _maxCapacityDioxideMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Carbon Dioxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_dioxidePercentage * 100) + "% " + (_dioxide_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_methanePercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Methane Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomMethaneMass.ToString("0.0000") + " mT / " + _maxCapacityMethaneMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Methane Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_methanePercentage * 100) + "% " + (_methane_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_xenonPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Xenon Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomXenonMass.ToString("0.0000") + " mT / " + _maxCapacityXenonMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Xenon Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_xenonPercentage * 100) + "% " + (_xenon_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
-            if (_sodiumPercentage > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Sodium Storage", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label(_spareRoomSodiumMass.ToString("0.0000") + " mT / " + _maxCapacitySodiumMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Sodium Production Rate", _bold_label, GUILayout.Width(labelWidth));
-                GUILayout.Label((float)(_sodiumPercentage * 100) + "% " + (_sodium_production_rate * GameConstants.HOUR_SECONDS).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-                GUILayout.EndHorizontal();
-            }
-
+            DisplayResourceExtraction("Hydrogen", _hydrogenPercentage, _hydrogen_production_rate, _spareRoomHydrogenMass, _maxCapacityHydrogenMass);
+            DisplayResourceExtraction("Deuterium", _deuteriumPercentage, _deuterium_production_rate, _spareRoomDeuteriumMass, _maxCapacityDeuteriumMass);
+            DisplayResourceExtraction("Helium-3", _helium3Percentage, _helium3_production_rate, _spareRoomHelium3Mass, _maxCapacityHelium3Mass);
+            DisplayResourceExtraction("Helium", _helium4Percentage, _helium4_production_rate, _spareRoomHelium4Mass, _maxCapacityHelium4Mass);
+            DisplayResourceExtraction("Nitrogen", _nitrogenPercentage, _nitrogen_production_rate, _spareRoomNitrogenMass, _maxCapacityNitrogenMass);
+            DisplayResourceExtraction("Nitrogen-15", _nitrogen15Percentage, _nitrogen15_production_rate, _spareRoomNitrogen15Mass, _maxCapacityNitrogen15Mass);
+            DisplayResourceExtraction("Oxygen", _oxygenPercentage, _oxygen_production_rate, _spareRoomOxygenMass, _maxCapacityOxygenMass);
+            DisplayResourceExtraction("Argon", _oxygenPercentage, _argon_production_rate, _spareRoomArgonMass, _maxCapacityArgonMass);
+            DisplayResourceExtraction("Neon", _oxygenPercentage, _neon_production_rate, _spareRoomNeonMass, _maxCapacityNeonMass);
+            DisplayResourceExtraction("Krypton", _kryptonPercentage, _krypton_production_rate, _spareRoomKryptonMass, _maxCapacityKryptonMass);
+            DisplayResourceExtraction("Ammonia", _ammoniaPercentage, _ammonia_production_rate, _spareRoomAmmoniaMass, _maxCapacityAmmoniaMass);
+            DisplayResourceExtraction("Water", _waterPercentage, _water_production_rate, _spareRoomWaterMass, _maxCapacityWaterMass);
+            DisplayResourceExtraction("Heavy Water", _heavywaterPercentage, _heavywater_production_rate, _spareRoomHeavyWaterMass, _maxCapacityHeavyWaterMass);
+            DisplayResourceExtraction("Carbon Monoxide", _monoxidePercentage, _monoxide_production_rate, _spareRoomMonoxideMass, _maxCapacityMonoxideMass);
+            DisplayResourceExtraction("Carbon Dioxide", _dioxidePercentage, _dioxide_production_rate, _spareRoomDioxideMass, _maxCapacityDioxideMass);
+            DisplayResourceExtraction("Methane", _methanePercentage, _methane_production_rate, _spareRoomMethaneMass, _maxCapacityMethaneMass);
+            DisplayResourceExtraction("Xenon", _xenonPercentage, _xenon_production_rate, _spareRoomXenonMass, _maxCapacityXenonMass);
+            DisplayResourceExtraction("Sodium", _sodiumPercentage, _sodium_production_rate, _spareRoomSodiumMass, _maxCapacitySodiumMass);
         }
+
+        private void DisplayResourceExtraction(string resourceName,  double percentage, double productionRate, double spareRoom, double maximumCapacity)
+        {
+            if (percentage <= 0)
+                return;
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(resourceName, _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((percentage * 100).ToString("##.######") + "%", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(productionRate.ToString("##.######") + " U/s", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((productionRate * GameConstants.HOUR_SECONDS).ToString("##.######") + " U/h", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((maximumCapacity - spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((maximumCapacity).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.EndHorizontal();
+        } 
 
         private void UpdateStatusMessage()
         {
@@ -742,7 +550,8 @@ namespace FNPlugin.Refinery
                 _status = "Insufficient Storage, try allowing overflow";
         }
 
-        public void PrintMissingResources() {
+        public void PrintMissingResources() 
+        {
             ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration._INTAKEATMOSPHERE, 3.0f, ScreenMessageStyle.UPPER_CENTER);
         }
     }
