@@ -534,9 +534,18 @@ namespace FNPlugin.Refinery
             GUILayout.Label((percentage * 100).ToString("##.######") + "%", _value_label, GUILayout.Width(valueWidth));
             GUILayout.Label(productionRate.ToString("##.######") + " U/s", _value_label, GUILayout.Width(valueWidth));
             GUILayout.Label((productionRate * GameConstants.HOUR_SECONDS).ToString("##.######") + " U/h", _value_label, GUILayout.Width(valueWidth));
-            GUILayout.Label((spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
-            GUILayout.Label((maximumCapacity - spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
-            GUILayout.Label((maximumCapacity).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+            if (spareRoom > 0)
+            {
+                GUILayout.Label((spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label((maximumCapacity - spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label((maximumCapacity).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+            }
+            else
+            {
+                GUILayout.Label("", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label("", _value_label, GUILayout.Width(valueWidth));
+                GUILayout.Label("", _value_label, GUILayout.Width(valueWidth));
+            }
             GUILayout.EndHorizontal();
         } 
 
