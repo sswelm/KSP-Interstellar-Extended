@@ -1,5 +1,4 @@
-﻿
-namespace FNPlugin
+﻿namespace FNPlugin
 {
     [KSPModule("Antimatter Reactor")]
     class FNAntimatterReactor : InterstellarReactor, IChargedParticleSource
