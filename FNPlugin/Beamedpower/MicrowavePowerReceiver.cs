@@ -16,9 +16,7 @@ namespace FNPlugin
 		public double distanceToSpot { get; set; }
 		public double aperture { get; set; }
 		public float wavelength { get; set; }
-
 		public Vessel receivingVessel { get; set; }
-
 		public Vessel sendingVessel { get; set; }
 	}
 
@@ -34,7 +32,6 @@ namespace FNPlugin
 		public double TransmitPower { get; set; }
 		public double ReceiverEfficiency { get; set; }
         public double PowerUsageOthers { get; set; }
-
 		public MicrowaveRoute Route { get; set; }
 		public IList<VesselRelayPersistence> Relays { get; set; }
 		public VesselMicrowavePersistence Transmitter { get; set; }
@@ -1448,14 +1445,13 @@ namespace FNPlugin
 
 			PrintToGUILayout("Type", part.partInfo.title, bold_black_style, text_black_style, 200, 400);
             PrintToGUILayout("Power Capacity Efficiency", (powerCapacityEfficiency * 100).ToString("0.0") + "%", bold_black_style, text_black_style, 200, 400);
-
 			PrintToGUILayout("Total Current Received Power", total_beamed_power.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
 			PrintToGUILayout("Total Maximum Received Power", total_beamed_power_max.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
 			PrintToGUILayout("Total Wasteheat Production", total_beamed_wasteheat.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Transmitter", bold_black_style, GUILayout.Width(labelWidth));
-			GUILayout.Label("Receiver Part", bold_black_style, GUILayout.Width(labelWidth));
+			GUILayout.Label("Location", bold_black_style, GUILayout.Width(labelWidth));
 			GUILayout.Label("Aperture", bold_black_style, GUILayout.Width(ValueWidthNormal));
 			GUILayout.Label("Facing", bold_black_style, GUILayout.Width(ValueWidthNormal));
 			GUILayout.Label("Transmit Power", bold_black_style, GUILayout.Width(valueWidthWide));
@@ -1467,17 +1463,13 @@ namespace FNPlugin
             GUILayout.Label("Consumed Power", bold_black_style, GUILayout.Width(ValueWidthNormal));
             GUILayout.Label("Network Efficiency", bold_black_style, GUILayout.Width(ValueWidthNormal));
             GUILayout.Label("Receiver Efficiency", bold_black_style, GUILayout.Width(ValueWidthNormal));
-
 			GUILayout.EndHorizontal();
 
-			//var revievedData = thermalReceiverSlaves.SelectMany(m => m.received_power.Values).Concat(received_power.Values).OrderBy(m => m.Transmitter);
-            var revievedData = received_power.Values;
-
-			foreach (ReceivedPowerData receivedPowerData in revievedData)
+            foreach (ReceivedPowerData receivedPowerData in received_power.Values)
 			{
 				GUILayout.BeginHorizontal();
 				GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, text_black_style, GUILayout.Width(labelWidth));
-				GUILayout.Label(receivedPowerData.Receiver.part.partInfo.title, text_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label(receivedPowerData.Transmitter.Vessel.mainBody.name + " @ " + DistanceToText(receivedPowerData.Transmitter.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
 				GUILayout.Label((receivedPowerData.Transmitter.Aperture).ToString("##.######") + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
 				GUILayout.Label((receivedPowerData.Route.FacingFactor * 100).ToString("##.###") + " %", text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label(PowerToText(receivedPowerData.TransmitPower), text_black_style, GUILayout.Width(valueWidthWide));
@@ -1489,11 +1481,10 @@ namespace FNPlugin
                 GUILayout.Label(PowerToText(receivedPowerData.ConsumedPower), text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label((receivedPowerData.Route.Efficiency * 100).ToString("##.##") + "%", text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label((receivedPowerData.ReceiverEfficiency).ToString("##.#") + " %", text_black_style, GUILayout.Width(ValueWidthNormal));
-
 				GUILayout.EndHorizontal();
 			}
 
-            if (revievedData.Any(m => m.Relays.Count > 0))
+            if (received_power.Values.Any(m => m.Relays.Count > 0))
             {
                 PrintToGUILayout("Relays", "", bold_black_style, text_black_style, 200);
 
@@ -1506,7 +1497,7 @@ namespace FNPlugin
                 GUILayout.Label("Relay 3", bold_black_style, GUILayout.Width(labelWidth));
                 GUILayout.EndHorizontal();
 
-                foreach (ReceivedPowerData receivedPowerData in revievedData)
+                foreach (ReceivedPowerData receivedPowerData in received_power.Values)
                 {
                     if (receivedPowerData.Relays.Count > 0)
                     {
@@ -2473,23 +2464,25 @@ namespace FNPlugin
 		private string DistanceToText(double distance)
 		{
 			if (distance >= 1.0e+13)
-				return (distance / 1.0e+12).ToString("0.000") + " Tm";
+				return (distance / 1.0e+12).ToString("0.00") + " Tm";
 			else if (distance >= 1.0e+10)
-				return (distance / 1.0e+9).ToString("0.000") + " Gm";
+				return (distance / 1.0e+9).ToString("0.00") + " Gm";
 			else if (distance >= 1.0e+7)
-				return (distance / 1.0e+6).ToString("0.000") + " Mm";
+				return (distance / 1.0e+6).ToString("0.00") + " Mm";
 			else if (distance >= 1.0e+4)
-				return (distance / 1.0e+3).ToString("0.000") + " km";
+				return (distance / 1.0e+3).ToString("0.00") + " km";
 			else
 				return distance.ToString("0") + " m";
 		}
 
         private string SpotsizeToText(double spotsize)
         {
-            if (spotsize < 0.01)
-                return (spotsize * 1.0e+3).ToString("0.000") + " mm";
+            if (spotsize > 1.0e+3)
+                return (spotsize * 1.0e-3).ToString("0.000") + " km";
+            else if (spotsize > 1)
+                return spotsize.ToString("0.00") + " m";
             else
-                return spotsize.ToString("0.000") + " m";
+                return (spotsize * 1.0e+3).ToString("0") + " mm";
         }
 
         private string PowerToText(double power)

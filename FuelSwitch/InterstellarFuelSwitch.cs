@@ -164,9 +164,9 @@ namespace InterstellarFuelSwitch
 
         // Debug
         [KSPField]
-        public double dryMass = 0;
+        public double dryMass;
         [KSPField]
-        public double currentPartMass;
+        public double wetMass;
         [KSPField]
         public double initialMass;
         [KSPField]
@@ -182,8 +182,6 @@ namespace InterstellarFuelSwitch
         public float storedMassMultiplier = 1;
 
         [KSPField]
-        public double wetMass;
-        [KSPField]
         public string resourceAmountStr0 = "";
         [KSPField]
         public string resourceAmountStr1 = "";
@@ -193,8 +191,6 @@ namespace InterstellarFuelSwitch
         public float volumeExponent = 3;
         [KSPField]
         public float massExponent = 3;
-        [KSPField(isPersistant = true)]
-        public bool traceBoiloff;
 
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F4")] // Total mass
         public double totalMass;
@@ -215,8 +211,15 @@ namespace InterstellarFuelSwitch
         HashSet<string> activeResourceList = new HashSet<string>();
 
         bool initialized = false;
-        double initializePartTemperature = -1;
         int numberOfAvailableTanks = 0;
+
+        double _maxResourceMassAmount0;
+        double _maxResourceMassAmount1;
+        double _maxResourceMassAmount2;
+
+        double _partResourceMaxAmountFraction0;
+        double _partResourceMaxAmountFraction1;
+        double _partResourceMaxAmountFraction2;
 
         PartResource _partResource0;
         PartResource _partResource1;
@@ -438,11 +441,9 @@ namespace InterstellarFuelSwitch
 
                 _nextTankSetupEvent = Events["nextTankSetupEvent"];
                 _nextTankSetupEvent.guiActive = hasGUI && availableInFlight;
-                //_nextTankSetupEvent.guiName = nextTankSetupText;
 
                 _previousTankSetupEvent = Events["previousTankSetupEvent"];
                 _previousTankSetupEvent.guiActive = hasGUI && availableInFlight;
-                //_previousTankSetupEvent.guiName = previousTankSetupText;
 
                 Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["resourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
@@ -524,9 +525,9 @@ namespace InterstellarFuelSwitch
                 UpdateTexture(calledByPlayer);
 
                 // update Dry Mass
+                dryMass = 0;
                 UpdateDryMass();
                 UpdateGuiResourceMass();
-                UpdateMassRatio();
                 UpdateCost();
 
                 if (HighLogic.LoadedSceneIsEditor && affectSymCounterparts)
@@ -773,6 +774,10 @@ namespace InterstellarFuelSwitch
             _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources[newResources[0]];
             _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources[newResources[1]];
             _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources[newResources[2]];
+
+            _partResourceMaxAmountFraction0 = _partResource0 == null ? 0 : _partResource0.maxAmount / 1000;
+            _partResourceMaxAmountFraction1 = _partResource1 == null ? 0 : _partResource1.maxAmount / 1000;
+            _partResourceMaxAmountFraction2 = _partResource2 == null ? 0 : _partResource2.maxAmount / 1000;
         }
 
         private double UpdateCost(float defaultCost = 0)
@@ -863,19 +868,23 @@ namespace InterstellarFuelSwitch
 
         private void UpdateDryMass()
         {
-            // update Dry Mass
-            dryMass = CalculateDryMass();
+            if (dryMass == 0 || HighLogic.LoadedSceneIsEditor)
+            {
+                // update Dry Mass
+                dryMass = CalculateDryMass();
+
+                UpdateMassRatio();
+            }
         }
 
         private double CalculateDryMass()
         {
-            double mass = basePartMass;
-
             if (selectedTank == null && selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
             {
                 selectedTank = _modularTankList[selectedTankSetup];
             }
 
+            double mass = basePartMass;
             if (selectedTank != null)
             {
                 var totalTankResourceMassDivider = selectedTank.resourceMassDivider + selectedTank.resourceMassDividerAddition;
@@ -934,11 +943,11 @@ namespace InterstellarFuelSwitch
 
         private void UpdateMassRatio()
         {
-            var maxResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.maxAmount;
-            var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
-            var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource2.maxAmount;
+            _maxResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.maxAmount;
+            _maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
+            _maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource1.maxAmount;
 
-            wetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
+            wetMass = _maxResourceMassAmount0 + _maxResourceMassAmount1 + _maxResourceMassAmount2;
 
             if (wetMass > 0 && dryMass > 0)
                 massRatioStr = ToRoundedString(1 / (dryMass / wetMass));
@@ -979,27 +988,18 @@ namespace InterstellarFuelSwitch
                 return value.ToString("0.000000");
         }
 
-        public override void OnUpdate()
-        {
-            if (initializePartTemperature == -1 || initializePartTemperature <= 0)
-                return;
-
-            part.temperature = initializePartTemperature;
-            initializePartTemperature = -1;
-            traceBoiloff = true;
-        }
-
         // Note: do note remove, it is called by KSP
         public void Update()
         {
-            currentPartMass = part.mass;
-
             if (HighLogic.LoadedSceneIsFlight)
             {
                 UpdateGuiResourceMass();
 
-                //There were some issues with resources slowly trickling in, so I changed this to 0.1% instead of empty.
-                var showSwitchButtons = availableInFlight && numberOfAvailableTanks > 1 && !part.Resources.Any(r => currentResources.Contains(r.resourceName) && r.amount > r.maxAmount / 1000);
+                // show if any tank resources below 1/1000
+                var showSwitchButtons = availableInFlight && numberOfAvailableTanks > 1 
+                    && (_partResource0 == null || _partResource0.amount < _partResourceMaxAmountFraction0)
+                    && (_partResource1 == null || _partResource1.amount < _partResourceMaxAmountFraction1) 
+                    && (_partResource2 == null || _partResource2.amount < _partResourceMaxAmountFraction2);
 
                 _nextTankSetupEvent.guiActive = showSwitchButtons;
                 _previousTankSetupEvent.guiActive = showSwitchButtons;
@@ -1010,7 +1010,6 @@ namespace InterstellarFuelSwitch
             // update Dry Mass
             UpdateDryMass();
             UpdateGuiResourceMass();
-            UpdateMassRatio();
             UpdateCost();
 
             configuredAmounts = String.Empty;;
@@ -1221,10 +1220,6 @@ namespace InterstellarFuelSwitch
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
             this.defaultMass = defaultMass;
-
-            UpdateDryMass();
-            UpdateGuiResourceMass();
-            UpdateMassRatio();
 
             if (returnDryMass)
             {
