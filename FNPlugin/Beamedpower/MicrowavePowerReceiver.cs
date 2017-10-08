@@ -29,9 +29,12 @@ namespace FNPlugin
         public double ConsumedPower { get; set; }
         public bool IsAlive { get; set; }
 		public double NetworkPower { get; set; }
+        public double NetworkCapacity { get; set; }
 		public double TransmitPower { get; set; }
 		public double ReceiverEfficiency { get; set; }
         public double PowerUsageOthers { get; set; }
+        public double RemainingPower { get; set; }
+        public string Wavelengths { get; set; }
 		public MicrowaveRoute Route { get; set; }
 		public IList<VesselRelayPersistence> Relays { get; set; }
 		public VesselMicrowavePersistence Transmitter { get; set; }
@@ -74,8 +77,8 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public float windowPositionY = 100;
 
-		[KSPField(isPersistant = true, guiActive = false, guiName = "Receive Efficiency", guiUnits = "%", guiFormat = "F0")]
-		public double efficiencyPercentage = GameConstants.microwave_dish_efficiency;
+		//[KSPField(isPersistant = true, guiActive = false, guiName = "Receive Efficiency", guiUnits = "%", guiFormat = "F0")]
+		//public double efficiencyPercentage = GameConstants.microwave_dish_efficiency;
 		[KSPField(isPersistant = true, guiActive = false, guiName = "Target Wavelength", guiFormat = "F5")]
 		public double targetWavelength = 0;
 		[KSPField(isPersistant = true)]
@@ -217,8 +220,8 @@ namespace FNPlugin
 		public string connectedrelays;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Network Depth")]
 		public string networkDepthString;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Recieve Efficiency")]
-		public string toteff;
+		//[KSPField(isPersistant = false, guiActive = true, guiName = "Recieve Efficiency")]
+		//public string toteff;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Connected Slaves")]
 		public int slavesAmount;
 		[KSPField(isPersistant = false, guiActive = true, guiName = "Slaves Power", guiUnits = " MW", guiFormat = "F2")]
@@ -281,7 +284,7 @@ namespace FNPlugin
 		protected BaseField minimumWavelengthField;
 		protected BaseField solarFacingFactorField;
 		protected BaseField solarFluxField;
-		protected BaseField toteffField;
+		//protected BaseField toteffField;
 
 		protected BaseField _radiusField;
 		protected BaseField _coreTempereratureField;
@@ -1107,7 +1110,7 @@ namespace FNPlugin
 				beamedpowerField = Fields["beamedpower"];
 				solarFluxField = Fields["solarFlux"];
 				diameterField = Fields["diameter"];
-				toteffField = Fields["toteff"];
+				//toteffField = Fields["toteff"];
 				
 
 				var bandWidthNameField = Fields["bandWidthName"];
@@ -1280,7 +1283,7 @@ namespace FNPlugin
 
 		public override void OnUpdate()
 		{
-			bool transmitterOn = has_transmitter && part_transmitter.isActive();
+            bool transmitterOn = has_transmitter && (part_transmitter.IsEnabled || part_transmitter.relay);
 			bool canBeActive = CanBeActiveInAtmosphere;
 
 			_linkReceiverBaseEvent.active = canLinkup && !linkedForRelay && !receiverIsEnabled && !transmitterOn && canBeActive;
@@ -1305,7 +1308,7 @@ namespace FNPlugin
 
 			solarFacingFactorField.guiActive = solarReceptionSurfaceArea > 0;
 			solarFluxField.guiActive = solarReceptionSurfaceArea > 0;
-			toteffField.guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
+			//toteffField.guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
 
 			selectedBandwidthConfigurationField.guiActive = (CheatOptions.NonStrictAttachmentOrientation || canSwitchBandwidthInFlight) && receiverIsEnabled; ;
 
@@ -1325,7 +1328,7 @@ namespace FNPlugin
 			connectedsats = string.Format("{0}/{1}", connectedsatsi, MicrowaveSources.instance.globalTransmitters.Count);
 			connectedrelays = string.Format("{0}/{1}", connectedrelaysi, MicrowaveSources.instance.globalRelays.Count);
 			networkDepthString = networkDepth.ToString();
-			toteff = efficiencyPercentage.ToString("0.00") + "%";
+			//toteff = efficiencyPercentage.ToString("0.00") + "%";
 
             CalculateInputPower();
 
@@ -1475,7 +1478,7 @@ namespace FNPlugin
                 GUILayout.Label(PowerToText(receivedPowerData.TransmitPower), text_black_style, GUILayout.Width(valueWidthWide));
 				GUILayout.Label(DistanceToText(receivedPowerData.Route.Distance), text_black_style, GUILayout.Width(ValueWidthNormal));
 				GUILayout.Label(SpotsizeToText(receivedPowerData.Route.Spotsize), text_black_style, GUILayout.Width(ValueWidthNormal));
-				GUILayout.Label(WavelengthToText(receivedPowerData.Route.WaveLength), text_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label(receivedPowerData.Wavelengths, text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label(PowerToText(receivedPowerData.NetworkPower), text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label(PowerToText(receivedPowerData.AvailablePower), text_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label(PowerToText(receivedPowerData.ConsumedPower), text_black_style, GUILayout.Width(ValueWidthNormal));
@@ -1719,8 +1722,8 @@ namespace FNPlugin
 					solarInputMegajoulesMax = 0;
 
 					solarFacingFactor = 0;
-					connectedsatsi = 0;
-					connectedrelaysi = 0;
+					//connectedsatsi = 0;
+					//connectedrelaysi = 0;
 					ThermalPower = 0;
 
 					UpdateBuffers(0);
@@ -1807,77 +1810,103 @@ namespace FNPlugin
                     // first reset owm recieved power to get correct amount recieved by others
                     beamedPowerData.IsAlive = true;
                     beamedPowerData.AvailablePower = 0;
+                    beamedPowerData.NetworkPower = 0;
+                    beamedPowerData.Wavelengths = string.Empty;
 
                     KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>> keyvaluepair = connectedTransmitterEntry.Value;
                     beamedPowerData.Route = keyvaluepair.Key;
                     beamedPowerData.Relays = keyvaluepair.Value;
 
-                    // calculate maximum power avialable from beamed power network
-                    beamedPowerData.PowerUsageOthers = getEnumeratedPowerFromSatelliteForAllLoadedVessels(beamedPowerData.Transmitter);
-
                     // convert initial beamed power from source into MegaWatt
                     beamedPowerData.TransmitPower = beamedPowerData.Transmitter.getAvailablePower() / 1000;
 
-                    // subtract any power already recieved by other recievers
-                    var remainingPowerFromSource = Math.Max(0,
-                        (beamedPowerData.TransmitPower * beamedPowerData.Route.Efficiency) - beamedPowerData.PowerUsageOthers);
+                    beamedPowerData.NetworkCapacity = beamedPowerData.Relays != null && beamedPowerData.Relays.Count > 0
+                        ? Math.Min(beamedPowerData.TransmitPower, beamedPowerData.Relays.Min(m => m.PowerCapacity))
+                        : beamedPowerData.TransmitPower;
 
-                    // take into account maximum route capacity
-                    beamedPowerData.NetworkPower = beamedPowerData.Relays != null && beamedPowerData.Relays.Count > 0
-                        ? Math.Min(remainingPowerFromSource, beamedPowerData.Relays.Min(m => m.PowerCapacity))
-                        : remainingPowerFromSource;
+                    // calculate maximum power avialable from beamed power network
+                    beamedPowerData.PowerUsageOthers = getEnumeratedPowerFromSatelliteForAllLoadedVessels(beamedPowerData.Transmitter);
 
-                    // determine allowed power
-                    var maximumRecievePower = MaximumRecievePower;
-                    var currentRecievalPower = maximumRecievePower * Math.Min(powerCapacityEfficiency, PowerRatio);
-                    var maximumRecievalPower = maximumRecievePower * powerCapacityEfficiency;
+                    // add to available network power
+                    beamedPowerData.NetworkPower = Math.Max(0, beamedPowerData.NetworkCapacity - beamedPowerData.PowerUsageOthers);
 
-                    // select active or compatible brandWith Converter
-                    var selectedBrandWith = canSwitchBandwidthInEditor
-                        ? activeBandwidthConfiguration
-                        : BandwidthConverters.FirstOrDefault(
-                            m => beamedPowerData.Route.WaveLength >= minimumWavelength && beamedPowerData.Route.WaveLength <= m.maximumWavelength);
+                    // initialize remaining power
+                    beamedPowerData.RemainingPower = beamedPowerData.NetworkPower;
 
-                    // get effective beamtoPower efficiency
-                    if (selectedBrandWith != null)
-                        efficiencyPercentage = thermalMode
+                    foreach (WaveLengthData powerBeam in beamedPowerData.Transmitter.SupportedTransmitWavelengths)
+                    {
+                        // select active or compatible brandWith Converter
+                        var selectedBrandWith = canSwitchBandwidthInEditor
+                            ? activeBandwidthConfiguration 
+                            : BandwidthConverters.FirstOrDefault(m => (powerBeam.wavelength >= m.minimumWavelength && powerBeam.wavelength <= m.maximumWavelength));
+
+                        // skip if no compatible receiver brandwith found
+                        if (selectedBrandWith == null)
+                            continue;
+
+                        // subtract any power already recieved by other recievers
+                        var remainingPowerInBeam = Math.Min(beamedPowerData.RemainingPower, ((powerBeam.nuclearPower + powerBeam.solarPower) * beamedPowerData.Route.Efficiency / 1000));
+
+                        // skip if no power remaining
+                        if (remainingPowerInBeam <= 0)
+                            continue;
+
+                        // construct displayed wavelength
+                        if (beamedPowerData.Wavelengths.Length > 0)
+                            beamedPowerData.Wavelengths += ",";
+                        beamedPowerData.Wavelengths += WavelengthToText(powerBeam.wavelength);
+
+                        // take into account maximum route capacity
+                        var beamNetworkPower = beamedPowerData.Relays != null && beamedPowerData.Relays.Count > 0
+                            ? Math.Min(remainingPowerInBeam, beamedPowerData.Relays.Min(m => m.PowerCapacity))
+                            : remainingPowerInBeam;
+
+                        // substract from remaining power 
+                        beamedPowerData.RemainingPower = Math.Max(0, beamedPowerData.RemainingPower - beamNetworkPower);
+
+                        // determine allowed power
+                        var maximumRecievePower = MaximumRecievePower;
+                        var currentRecievalPower = maximumRecievePower * Math.Min(powerCapacityEfficiency, PowerRatio);
+                        var maximumRecievalPower = maximumRecievePower * powerCapacityEfficiency;
+
+                        // get effective beamtoPower efficiency
+                        var efficiencyPercentage = thermalMode
                             ? selectedBrandWith.MaxThermalEfficiencyPercentage
                             : selectedBrandWith.MaxElectricEfficiencyPercentage;
-                    else
-                        efficiencyPercentage = 0;
 
-                    // convert to fraction
-                    var efficiency_fraction = efficiencyPercentage / 100;
+                        // convert to fraction
+                        var efficiency_fraction = efficiencyPercentage / 100;
 
-                    // limit by amount of beampower the reciever is able to process
-                    double satPower = Math.Min(currentRecievalPower, beamedPowerData.NetworkPower * efficiency_fraction);
-                    double satPowerMax = Math.Min(maximumRecievalPower, beamedPowerData.NetworkPower * efficiency_fraction);
-                    double satWasteheat = Math.Min(currentRecievalPower, beamedPowerData.NetworkPower * (1 - efficiency_fraction));
+                        // limit by amount of beampower the reciever is able to process
+                        double satPower = Math.Min(currentRecievalPower, beamNetworkPower * efficiency_fraction);
+                        double satPowerMax = Math.Min(maximumRecievalPower, beamNetworkPower * efficiency_fraction);
+                        double satWasteheat = Math.Min(currentRecievalPower, beamNetworkPower * (1 - efficiency_fraction));
 
-                    // generate conversion wasteheat
-                    total_conversion_waste_heat_production += satPower * (1 - efficiency_fraction);
+                        // generate conversion wasteheat
+                        total_conversion_waste_heat_production += satPower * (1 - efficiency_fraction);
 
-                    // register amount of raw power recieved
-                    beamedPowerData.CurrentRecievedPower = satPower;
-                    beamedPowerData.MaximumReceivedPower = satPowerMax;
-                    beamedPowerData.ReceiverEfficiency = efficiencyPercentage;
-                    beamedPowerData.AvailablePower = satPower > 0 && efficiency_fraction > 0 ? satPower / efficiency_fraction : 0;
+                        // register amount of raw power recieved
+                        beamedPowerData.CurrentRecievedPower = satPower;
+                        beamedPowerData.MaximumReceivedPower = satPowerMax;
+                        beamedPowerData.ReceiverEfficiency = efficiencyPercentage;
+                        beamedPowerData.AvailablePower = satPower > 0 && efficiency_fraction > 0 ? satPower / efficiency_fraction : 0;
 
-                    // convert raw power into effecive power
-                    total_beamed_power += satPower;
-                    total_beamed_power_max += satPowerMax;
-                    total_beamed_wasteheat += satWasteheat;
+                        // convert raw power into effecive power
+                        total_beamed_power += satPower;
+                        total_beamed_power_max += satPowerMax;
+                        total_beamed_wasteheat += satWasteheat;
 
-                    if (satPower > 0)
-                    {
-                        activeSatsIncr++;
-                        if (beamedPowerData.Relays != null)
+                        if (satPower > 0)
                         {
-                            foreach (var relay in beamedPowerData.Relays)
+                            activeSatsIncr++;
+                            if (beamedPowerData.Relays != null)
                             {
-                                usedRelays.Add(relay);
+                                foreach (var relay in beamedPowerData.Relays)
+                                {
+                                    usedRelays.Add(relay);
+                                }
+                                networkDepth = Math.Max(networkDepth, beamedPowerData.Relays.Count);
                             }
-                            networkDepth = Math.Max(networkDepth, beamedPowerData.Relays.Count);
                         }
                     }
                 }
@@ -2208,7 +2237,7 @@ namespace FNPlugin
 						double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, this.vessel, transmitter.Vessel);
 						double transmitterEfficency = distanceFacingEfficiency * atmosphereEfficency;
 
-						possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData.wavelength)); 
+						possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData)); 
 					}
 
 					var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : 
@@ -2249,8 +2278,8 @@ namespace FNPlugin
 
 					foreach (var wavelenghtData in relay.SupportedTransmitWavelengths)
 					{
-						if (wavelenghtData.wavelength.NotWithin(this.maximumWavelength, this.minimumWavelength))
-							continue;
+                        if (wavelenghtData.maxWavelength < this.minimumWavelength || wavelenghtData.minWavelength > this.maximumWavelength)
+                            continue;
 
 						double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, relay.Aperture, this.vessel, relay.Vessel);
 						double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, this.diameter);
@@ -2258,7 +2287,7 @@ namespace FNPlugin
 						double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, this.vessel, relay.Vessel);
 						double transmitterEfficency = distanceFacingEfficiency * atmosphereEfficency;
 
-						possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData.wavelength));
+						possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
 					}
 
 					var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null :
@@ -2335,7 +2364,7 @@ namespace FNPlugin
 								double efficiencyTransmitterToRelay = distanceFacingEfficiency * atmosphereEfficency;
 								double efficiencyForRoute = efficiencyTransmitterToRelay * relayRoute.Efficiency;
 
-								possibleWavelengths.Add(new MicrowaveRoute(efficiencyForRoute, newDistance, relayRouteFacingFactor, spotsize, transmitterWavelenghtData.wavelength, relayPersistance));
+								possibleWavelengths.Add(new MicrowaveRoute(efficiencyForRoute, newDistance, relayRouteFacingFactor, spotsize, transmitterWavelenghtData, relayPersistance));
 							}
 
 							 var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null :
@@ -2374,14 +2403,14 @@ namespace FNPlugin
 
 							foreach (var transmitterWavelenghtData in relayPersistance.SupportedTransmitWavelengths)
 							{
-								if (transmitterWavelenghtData.wavelength.NotWithin(relayPersistance.MaximumRelayWavelenght, relayPersistance.MinimumRelayWavelenght))
-									continue;
+                                if (transmitterWavelenghtData.maxWavelength < relayPersistance.MaximumRelayWavelenght || transmitterWavelenghtData.minWavelength > relayPersistance.MinimumRelayWavelenght)
+                                    continue;
 
 								double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, relayPersistance.Aperture, nextRelay.Vessel, relayPersistance.Vessel);
 								double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
 								double efficiencyForRoute = efficiencyByThisRelay * relayRoute.Efficiency;
 
-								possibleWavelengths.Add(new MicrowaveRoute(efficiencyForRoute, relayToNextRelayDistance, relayRouteFacingFactor, spotsize, transmitterWavelenghtData.wavelength, relayPersistance));
+								possibleWavelengths.Add(new MicrowaveRoute(efficiencyForRoute, relayToNextRelayDistance, relayRouteFacingFactor, spotsize, transmitterWavelenghtData, relayPersistance));
 							}
 
 							var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null :

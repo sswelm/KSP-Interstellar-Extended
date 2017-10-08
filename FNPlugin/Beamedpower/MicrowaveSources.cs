@@ -98,9 +98,7 @@ namespace FNPlugin
                 {
                     // add if vessel can act as a transmitter or relay
                     var transmitterPower = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel(vessel);
-
-                    var hasAnyPower = transmitterPower.getAvailablePower() > 0.001;
-                    if (transmitterPower.IsActive && hasAnyPower)
+                    if (transmitterPower != null && transmitterPower.IsActive && transmitterPower.getAvailablePower() > 0.001)
                     {
                         if (!globalTransmitters.ContainsKey(vessel))
                         {
@@ -109,21 +107,11 @@ namespace FNPlugin
                         globalTransmitters[vessel] = transmitterPower;
                     }
                     else
-                    {
-                        if (globalTransmitters.Remove(vessel))
-                        {
-                            if (!transmitterPower.IsActive && !hasAnyPower)
-                                Debug.Log("[KSPI] - Unregisted loaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active and has no power!");
-                            else if (!transmitterPower.IsActive)
-                                Debug.Log("[KSPI] - Unregisted loaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active!");
-                            else if (!hasAnyPower)
-                                Debug.Log("[KSPI] - Unregisted loaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is has no power!");
-                        }
-                    }
+                        globalTransmitters.Remove(vessel);
 
-                    // obly add if vessel can act as a relay
+                    // only add if vessel can act as a relay otherwise remove
                     var relayPower = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel(vessel);
-                    if (relayPower.IsActive)
+                    if (relayPower != null && relayPower.IsActive)
                         globalRelays[vessel] = relayPower;
                     else
                         globalRelays.Remove(vessel);
