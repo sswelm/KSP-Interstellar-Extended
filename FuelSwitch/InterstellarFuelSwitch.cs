@@ -317,6 +317,8 @@ namespace InterstellarFuelSwitch
                 AssignResourcesToPart(false);
 
                 _chooseField = Fields["selectedTankSetup"];
+
+                var chooseField = Fields["selectedObject"];
                 _chooseField.guiName = Localizer.Format(switcherDescription);
                 _chooseField.guiActiveEditor = hasSwitchChooseOption && availableInEditor && _modularTankList.Count > 1;
                 _chooseField.guiActive = hasSwitchChooseOption && availableInFlight && _modularTankList.Count > 1;
