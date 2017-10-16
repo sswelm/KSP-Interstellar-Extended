@@ -134,6 +134,7 @@
     <Compile Include="Reactors\Interfaces\IElectricPowerSource.cs" />
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />
     <Compile Include="Collectors\AntimatterCollector.cs" />
+    <Compile Include="Refinery\AntimatterFactory.cs" />
     <Compile Include="Refinery\AtmosphericExtractor.cs" />
     <Compile Include="Refinery\RefineryActivity.cs" />
     <Compile Include="Refinery\PartialOxidationMethane.cs" />
@@ -141,7 +142,7 @@
     <Compile Include="Refinery\RegolithProcessor.cs" />
     <Compile Include="Refinery\SeawaterExtractor.cs" />
     <Compile Include="Refinery\SolarWindProcessor.cs" />
-    <Compile Include="Refinery\AntimatterFactory.cs" />
+    <Compile Include="Refinery\AntimatterGenerator.cs" />
     <Compile Include="Collectors\AtmosphericIntake.cs" />
     <Compile Include="Refinery\AnthraquinoneProcessor.cs" />
     <Compile Include="Refinery\AmmoniaElectrolyzer.cs" />

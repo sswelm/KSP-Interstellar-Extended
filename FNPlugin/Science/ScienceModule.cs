@@ -13,7 +13,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public int active_mode = 0;
         [KSPField(isPersistant = true)]
-        public float last_active_time;
+        public double last_active_time;
         [KSPField(isPersistant = true)]
         public double electrical_power_ratio;
         [KSPField(isPersistant = true)]
@@ -70,7 +70,7 @@ namespace FNPlugin
         protected Animation anim;
         protected Animation anim2;
         protected NuclearFuelReprocessor reprocessor;
-        protected AntimatterFactory anti_factory;
+        protected AntimatterGenerator antimatterGenerator;
         protected bool hasrequiredupgrade = false;
 
         
@@ -212,7 +212,7 @@ namespace FNPlugin
             Events["BeginResearch"].guiName = beginResearchName;
 
             reprocessor = new NuclearFuelReprocessor(part);
-            anti_factory = new AntimatterFactory(part);
+            antimatterGenerator = new AntimatterGenerator(part, 1, PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter));
 
             part.force_activate();
 
@@ -259,7 +259,7 @@ namespace FNPlugin
                     var kerbalResearchSkillFactor = part.protoModuleCrew.Sum(proto_crew_member => GetKerbalScienceFactor(proto_crew_member) / 2f);
 
                     double science_to_increment = kerbalResearchSkillFactor * GameConstants.baseScienceRate * time_diff
-                        / PluginHelper.SecondsInDay * electrical_power_ratio * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel)   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex, vessel.LandedOrSplashed) 
+                        / PluginHelper.SecondsInDay * electrical_power_ratio * global_rate_multipliers * PluginHelper.getScienceMultiplier(vessel)   
                         / (Math.Sqrt(altitude_multiplier));
 
                     science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
@@ -267,21 +267,12 @@ namespace FNPlugin
 
                 }
                 else if (active_mode == 2) // Antimatter persistence
-                { 
-                    double time_diff = Planetarium.GetUniversalTime() - last_active_time;
+                {
+                    var deltaTime = Planetarium.GetUniversalTime() - last_active_time;
 
-                    //List<PartResource> antimatter_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Antimatter).ToList();
-                    //float currentAntimatter_missing = (float) antimatter_resources.Sum(ar => ar.maxAmount-ar.amount);
-                    var antimaterResourceDefinition =  PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter);
-                    double amount;
-                    double maxAmount;
-                    part.GetConnectedResourceTotals(antimaterResourceDefinition.id, out amount, out maxAmount);
-                    var currentAntimatter_missing = maxAmount - amount;
+                    var electrical_power_provided_in_Megajoules = electrical_power_ratio * global_rate_multipliers * powerReqMult * PluginHelper.BaseAMFPowerConsumption * deltaTime;
 
-                    var total_electrical_power_provided = (electrical_power_ratio * (PluginHelper.BaseAMFPowerConsumption + PluginHelper.BasePowerConsumption) * 1E6);
-                    var antimatter_mass = total_electrical_power_provided / GameConstants.speedOfLight / GameConstants.speedOfLight * 1E6 / 20000d;
-                    var antimatter_peristence_to_add = -Math.Min(currentAntimatter_missing, antimatter_mass * time_diff);
-                    part.RequestResource(InterstellarResourcesConfiguration.Instance.Antimatter, antimatter_peristence_to_add);
+                    antimatterGenerator.Produce(electrical_power_provided_in_Megajoules);
                 }
             }
         }
@@ -335,7 +326,7 @@ namespace FNPlugin
                     Fields["antimatterRate"].guiActive = true;
                     Fields["antimatterProductionEfficiency"].guiActive = true;
                     powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseAMFPowerConsumption).ToString("0.00") + "MW";
-                    antimatterProductionEfficiency = (anti_factory.getAntimatterProductionEfficiency() * 100).ToString("0.0000") + "%";
+                    antimatterProductionEfficiency = (antimatterGenerator.Efficiency * 100).ToString("0.0000") + "%";
                     double antimatter_rate_per_day = antimatter_rate_f * PluginHelper.SecondsInDay;
                     
                     if (antimatter_rate_per_day > 0.1) 
@@ -446,7 +437,6 @@ namespace FNPlugin
 
                 if (ResearchAndDevelopment.Instance != null && !double.IsNaN(science_rate_f) && !double.IsInfinity(science_rate_f))
                 {
-                    //ResearchAndDevelopment.Instance.Science = ResearchAndDevelopment.Instance.Science + science_rate_f * TimeWarp.fixedDeltaTime;
                     science_to_add += science_rate_f * TimeWarp.fixedDeltaTime;
                 }
             }
@@ -471,16 +461,15 @@ namespace FNPlugin
             }
             else if (active_mode == 2) //Antimatter
             { 
-                var powerRequest = powerReqMult * PluginHelper.BaseAMFPowerConsumption * TimeWarp.fixedDeltaTime;
+                var powerRequestInMegajoules = powerReqMult * PluginHelper.BaseAMFPowerConsumption * TimeWarp.fixedDeltaTime;
 
-                double electrical_power_provided = CheatOptions.InfiniteElectricity 
-                    ? powerRequest 
-                    : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var energy_provided_in_megajoules = CheatOptions.InfiniteElectricity 
+                    ? powerRequestInMegajoules 
+                    : consumeFNResource(powerRequestInMegajoules, FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseAMFPowerConsumption / powerReqMult;
-                global_rate_multipliers = crew_capacity_ratio * electrical_power_ratio;
-                anti_factory.produceAntimatterFrame(global_rate_multipliers);
-                antimatter_rate_f = anti_factory.getAntimatterProductionRate();
+                electrical_power_ratio = powerRequestInMegajoules > 0 ? energy_provided_in_megajoules / powerRequestInMegajoules : 0;
+                antimatterGenerator.Produce(energy_provided_in_megajoules * global_rate_multipliers);
+                antimatter_rate_f = antimatterGenerator.ProductionRate;
             }
             else if (active_mode == 3)
             {
@@ -517,7 +506,7 @@ namespace FNPlugin
                 reprocessing_rate_f = 0;
             }
 
-            last_active_time = (float)Planetarium.GetUniversalTime();
+            last_active_time = Planetarium.GetUniversalTime();
         }
 
         protected override bool generateScienceData()

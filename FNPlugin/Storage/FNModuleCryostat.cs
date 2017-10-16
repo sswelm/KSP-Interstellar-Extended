@@ -9,40 +9,42 @@ namespace FNPlugin
     class FNModuleCryostat : FNResourceSuppliableModule
     {
         // Persistant
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "Cooling"), UI_Toggle(disabledText = "On", enabledText = "Off")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Cooling"), UI_Toggle(disabledText = "On", enabledText = "Off")]
         public bool isDisabled = false;
         [KSPField(isPersistant = true)]
         public double storedTemp = 0;
 
         // Confiration
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string resourceName = "";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string resourceGUIName = "";
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField]
         public double boilOffRate = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField]
         public double powerReqKW = 0;
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField]
         public double powerReqMult = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double boilOffMultiplier = 0;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double boilOffBase = 10000;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double boilOffAddition = 0;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double boilOffTemp = 20.271;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double convectionMod = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool showPower = true;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool showBoiloff = true;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool showTemp = true;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool warningShown;
+        [KSPField]
+        public int initializationCountdown = 1000;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = false, guiName = "Power")]
@@ -68,11 +70,10 @@ namespace FNPlugin
         private double previousRecievedPowerKW;
         private double currentPowerReq;
         private double previousPowerReq;
-        private int initializationCountdown;
-        private bool requiresPower;
-
-        private float previousDeltaTime;
         private double previousPowerUsage;
+       
+        private bool requiresPower;
+        private float previousDeltaTime;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -80,7 +81,6 @@ namespace FNPlugin
 
             // compensate for stock solar initialisation heating issies
             part.temperature = storedTemp;
-            initializationCountdown = 100;
             requiresPower = powerReqKW > 0;
 
             isDisabledField = Fields["isDisabled"];
@@ -191,7 +191,7 @@ namespace FNPlugin
         // FixedUpdate is also called while not staged
         public void FixedUpdate()
         {
-            if (_cryostat_resource == null)
+            if (_cryostat_resource == null || double.IsPositiveInfinity(currentPowerReq))
             {
                 boiloff = 0;
                 return;
@@ -203,8 +203,12 @@ namespace FNPlugin
                 part.skinTemperature = storedTemp;
                 initializationCountdown--;
             }
+            else
+            {
+                storedTemp = part.temperature;
+            }
 
-            if (!isDisabled && currentPowerReq > 0)
+            if (!isDisabled &&  currentPowerReq > 0)
             {
                 UpdateElectricChargeBuffer(Math.Max(currentPowerReq, 0.1 * powerReqKW));
 
@@ -225,15 +229,11 @@ namespace FNPlugin
             else
                 recievedPowerKW = 0;
 
-            bool hasExtraBoiloff = initializationCountdown == 0 && powerReqKW > 0 && recievedPowerKW < currentPowerReq && previousRecievedPowerKW < previousPowerReq;
+            bool hasExtraBoiloff = initializationCountdown == 0 && powerReqKW > 0 && currentPowerReq > 0 && recievedPowerKW < currentPowerReq && previousRecievedPowerKW < previousPowerReq;
 
-            var boiloffReducuction = !hasExtraBoiloff
-                    ? boilOffRate
-                    : (boilOffRate + (boilOffAddition * (1 - recievedPowerKW / currentPowerReq)));
+            var boiloffReducuction = !hasExtraBoiloff ? boilOffRate : boilOffRate + (boilOffAddition * (1 - recievedPowerKW / currentPowerReq));
 
-            boiloff = CheatOptions.IgnoreMaxTemperature ||  boiloffReducuction <= 0 
-                ? 0
-                : boiloffReducuction * environmentBoiloff;
+            boiloff = CheatOptions.IgnoreMaxTemperature ||  boiloffReducuction <= 0 ? 0 : boiloffReducuction * environmentBoiloff;
 
             if (boiloff > 0.0000000001)
             {

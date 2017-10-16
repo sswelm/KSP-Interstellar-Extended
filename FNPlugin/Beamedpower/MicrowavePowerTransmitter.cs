@@ -126,7 +126,7 @@ namespace FNPlugin
 
         protected ModuleAnimateGeneric genericAnimation;
 
-        const double oneThird = 1d / 3d;
+        
 
         public bool CanMove { get { return true; } }
 
@@ -599,13 +599,10 @@ namespace FNPlugin
                 }
                 else
                 {
-                    var reservedForHighPriorityPowerUsers = getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES);
-
-                    var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - reservedForHighPriorityPowerUsers, 0);
-
+                    var availablePower = getAvailableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES); 
                     var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
 
-                    var effectiveResourceThrotling = resourceBarRatio > oneThird ? 1 : resourceBarRatio * 3;
+                    var effectiveResourceThrotling = resourceBarRatio > ORSResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 
                     requestedPower = Math.Min(power_capacity, effectiveResourceThrotling * availablePower * reactorPowerTransmissionRatio);
                 }

@@ -31,7 +31,7 @@ namespace InterstellarFuelSwitch
         public int selectedTexture = 0;
 
         [KSPField]
-        public string switcherDescription = "Texture";
+        public string switcherDescription = "#LOC_IFS_TextureSwitch_TextureName";
         [KSPField]
         public bool hasSwitchChooseOption = true;
 
@@ -343,7 +343,7 @@ namespace InterstellarFuelSwitch
             currentTextureField.guiActiveEditor = showCurrentTextureName;
 
             var chooseField = Fields["selectedTexture"];
-			chooseField.guiName = Localizer.Format("#LOC_IFS_TextureSwitch_TextureName");
+            chooseField.guiName = Localizer.Format(switcherDescription);
             chooseField.guiActiveEditor = hasSwitchChooseOption;
 
             var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;

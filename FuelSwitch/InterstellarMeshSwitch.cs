@@ -13,6 +13,8 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public int moduleID = 0;
         [KSPField]
+        public string switcherDescription = "#LOC_IFS_MeshSwitch_MeshName";
+        [KSPField]
         public string tankSwitchNames = string.Empty;
         [KSPField]
         public string objectDisplayNames = string.Empty;
@@ -215,7 +217,7 @@ namespace InterstellarFuelSwitch
             prevButton.guiActiveEditor = showSwitchButtons;
 
             var chooseField = Fields["selectedObject"];
-			chooseField.guiName = Localizer.Format("#LOC_IFS_MeshSwitch_MeshName");
+            chooseField.guiName = Localizer.Format(switcherDescription);
             chooseField.guiActiveEditor = hasSwitchChooseOption;
 
             var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;
