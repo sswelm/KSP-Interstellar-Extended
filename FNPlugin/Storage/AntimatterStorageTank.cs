@@ -84,6 +84,7 @@ namespace FNPlugin
         //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiUnits = "%", guiName = "Anti Hydrogen"), UI_FloatRange(stepIncrement = 0.1f, maxValue = 100f, minValue = 0f)]
         //public float resourceFloatRange = 0;
 
+        bool showAntimatterFields;
         bool charging = false;
         bool should_charge = false;
         float explosion_time = 0.35f;
@@ -91,7 +92,7 @@ namespace FNPlugin
         float explosion_size = 5000;
         float cur_explosion_size = 0;
         double minimimAnimatterAmount = 0;
-        double antimatterDenityModifier;
+        double antimatterDensityModifier;
 
         int startup_timeout = 200;
         int power_explode_counter = 0;
@@ -238,7 +239,7 @@ namespace FNPlugin
 
             antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
 
-            antimatterDenityModifier = 1e-13 / antimatterDefinition.density;
+            antimatterDensityModifier = 1e-17 / antimatterDefinition.density;
 
             antimatterDensity = (double)(decimal)antimatterDefinition.density;
 
@@ -338,24 +339,29 @@ namespace FNPlugin
 
         public void Update()
         {
-            var showAntimatterFields = antimatterResource != null && antimatterResource.resourceName == resourceName;
+            antimatterResource = part.Resources[resourceName];
 
-            capacityStrField.guiActive = showAntimatterFields;
-            capacityStrField.guiActiveEditor = showAntimatterFields;
-            maxAmountStrField.guiActive = showAntimatterFields;
-            maxAmountStrField.guiActiveEditor = showAntimatterFields;
+            showAntimatterFields = antimatterResource != null && antimatterResource.resourceName == resourceName;
+
             TemperatureStrField.guiActive = canExplodeFromHeat;
             TemperatureStrField.guiActiveEditor = canExplodeFromHeat;
             GeeforceStrField.guiActive = canExplodeFromGeeForce;
             GeeforceStrField.guiActiveEditor = canExplodeFromGeeForce;
 
-            antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null)
             {
                 antimatterResource = part.Resources.OrderByDescending(m => m.maxAmount).FirstOrDefault();
                 if (antimatterResource == null)
                     return;
-            }          
+            }
+
+            capacityStrField.guiActive = showAntimatterFields;
+            capacityStrField.guiActiveEditor = showAntimatterFields;
+            maxAmountStrField.guiActive = showAntimatterFields;
+            maxAmountStrField.guiActiveEditor = showAntimatterFields;
+
+            UpdateAmounts();
+            UpdateTargetMass();
 
             var newRatio = antimatterResource.amount / antimatterResource.maxAmount;
 
@@ -367,9 +373,6 @@ namespace FNPlugin
             }
 
             resourceRatio = newRatio;
-
-            UpdateAmounts();
-            UpdateTargetMass();
             partMass = part.mass;
             partCost = part.partInfo.cost;
 
@@ -386,7 +389,7 @@ namespace FNPlugin
             TemperatureStr = part.temperature.ToString("0") + " / " + maxTemperature.ToString("0");
             GeeforceStr = part.vessel.geeForce.ToString("0.0") + " / " + maxGeeforce.ToString("0.0");
 
-            minimimAnimatterAmount = antimatterDenityModifier * antimatterResource.maxAmount;
+            minimimAnimatterAmount = antimatterDensityModifier * antimatterResource.maxAmount;
 
             Events["StartCharge"].active = antimatterResource.amount <= minimimAnimatterAmount && !should_charge;
             Events["StopCharge"].active = antimatterResource.amount <= minimimAnimatterAmount && should_charge;
@@ -409,7 +412,7 @@ namespace FNPlugin
                     statusStr = "No Power Required.";
             }
 
-            UpdateAmounts();
+            //UpdateAmounts();
         }
 
         private void UpdateAmounts()
@@ -443,10 +446,10 @@ namespace FNPlugin
 
         private void MaintainContainment()
         {
-            if (chargestatus > 0 && (antimatterResource.amount > minimimAnimatterAmount * antimatterResource.maxAmount))
+            if (chargestatus > 0 && antimatterResource.amount > minimimAnimatterAmount)
                 chargestatus -= fixedDeltaTime;
 
-            if (!should_charge && antimatterResource.amount <= minimimAnimatterAmount * antimatterResource.maxAmount) return;
+            if (!should_charge && antimatterResource.amount <= minimimAnimatterAmount) return;
 
             var powerModifier = canExplodeFromGeeForce 
                 ? (resourceRatio * (part.vessel.geeForce / 10) * 0.8) + ((part.temperature / 1000) * 0.2) 
@@ -617,11 +620,11 @@ namespace FNPlugin
             else if (mass >= 1e-9)
                 return (mass / 1e-9).ToString("0.0000000") + " mg";
             else if (mass >= 1e-12)
-                return (mass * 1e-12).ToString("0.000000") + " ug";
-            else if (mass > 1e-15)
-                return (mass * 1e-15).ToString("0.0000000") + " ng";
+                return (mass / 1e-12).ToString("0.000000") + " ug";
+            else if (mass >= 1e-15)
+                return (mass / 1e-15).ToString("0.0000000") + " ng";
             else
-                return (mass * 1e-18).ToString("0.0000000") + " pg";
+                return (mass / 1e-18).ToString("0.0000000") + " pg";
         }
     }
 

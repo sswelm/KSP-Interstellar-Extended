@@ -40,7 +40,7 @@
 
             double antimatter_units = energy_provided_in_megajoules * 1E6 / GameConstants.lightSpeedSquared / 2000 / _antimatterDefinition.density * _efficiency;
 
-            _current_rate = -_part.RequestResource(_antimatterDefinition.id, -antimatter_units);
+            _current_rate = -_part.RequestResource(_antimatterDefinition.id, -antimatter_units, ResourceFlowMode.STAGE_PRIORITY_FLOW);
         }        
     }
 }
