@@ -15,6 +15,8 @@ namespace FNPlugin
         [KSPField(guiActiveEditor = true)]
         protected string secondaryInputResource = FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE;
         [KSPField]
+        protected double primaryInputMultiplier = 1;
+        [KSPField]
         protected double secondaryInputMultiplier = 1000;
         [KSPField]
 
@@ -236,18 +238,18 @@ namespace FNPlugin
             double primaryPowerReceived = 0;
             double secondaryPowerReceived = 0;
 
-
-            if (!CheatOptions.InfiniteElectricity && powerRequested != 0)
+            var primaryPowerRequest = powerRequested * primaryInputMultiplier;
+            if (!CheatOptions.InfiniteElectricity && primaryPowerRequest != 0)
             {
                 if (usePowerManagerForPrimaryInputPower)
-                    primaryPowerReceived = consumeFNResource(powerRequested, primaryInputResource);
+                    primaryPowerReceived = consumeFNResource(primaryPowerRequest, primaryInputResource);
                 else
-                    primaryPowerReceived = part.RequestResource(primaryInputResource, powerRequested, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                    primaryPowerReceived = part.RequestResource(primaryInputResource, primaryPowerRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
             }
             else
-                primaryPowerReceived = powerRequested;
+                primaryPowerReceived = primaryPowerRequest;
 
-            powerReceived = primaryPowerReceived;
+            powerReceived = primaryPowerReceived / primaryInputMultiplier;
 
 
             var powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1; 
@@ -391,12 +393,16 @@ namespace FNPlugin
             // first try to charge from Megajoule Storage
             if (neededPower > 0)
             {
+                var primaryPowerRequest = neededPower * primaryInputMultiplier;
+
                 // verify we amount of power collected exceeds treshhold
-                var returnedMegaJoulePower = CheatOptions.InfiniteElectricity
+                var returnedPrimaryPower = CheatOptions.InfiniteElectricity
                     ? neededPower
                     : usePowerManagerForPrimaryInputPower
-                        ? consumeFNResource(neededPower, primaryInputResource) 
-                        : part.RequestResource(primaryInputResource, neededPower);
+                        ? consumeFNResource(primaryPowerRequest, primaryInputResource)
+                        : part.RequestResource(primaryInputResource, primaryPowerRequest);
+
+                var returnedMegaJoulePower = returnedPrimaryPower / primaryInputMultiplier;
 
                 if (startupMinimumChargePercentage == 0 || returnedMegaJoulePower / TimeWarp.fixedDeltaTime > (startupMinimumChargePercentage * StartupPower))
                 {
