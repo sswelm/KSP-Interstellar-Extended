@@ -91,16 +91,24 @@ namespace FNPlugin
         {
             get
             {
-                if (CurrentGenerationType == GenerationType.Mk5)
-                    return fusionEnergyGainFactorMk5;
-                else if (CurrentGenerationType == GenerationType.Mk4)
-                    return fusionEnergyGainFactorMk4;
-                else if (CurrentGenerationType == GenerationType.Mk3)
-                    return fusionEnergyGainFactorMk3;
-                else if (CurrentGenerationType == GenerationType.Mk2)
-                    return fusionEnergyGainFactorMk2;
-                else
-                    return fusionEnergyGainFactorMk1;
+	            switch (CurrentGenerationType)
+	            {
+		            case GenerationType.Mk5:
+			            return fusionEnergyGainFactorMk5;
+			            break;
+		            case GenerationType.Mk4:
+			            return fusionEnergyGainFactorMk4;
+			            break;
+		            case GenerationType.Mk3:
+			            return fusionEnergyGainFactorMk3;
+			            break;
+		            case GenerationType.Mk2:
+			            return fusionEnergyGainFactorMk2;
+			            break;
+		            default:
+			            return fusionEnergyGainFactorMk1;
+			            break;
+	            }
             }
         }
 
