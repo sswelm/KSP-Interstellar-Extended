@@ -1423,7 +1423,7 @@ namespace FNPlugin
 
         public override int getPowerPriority()
         {
-            return 1;
+            return 5;
         }
 
         public static ConfigNode[] getPropellants(bool isJet)

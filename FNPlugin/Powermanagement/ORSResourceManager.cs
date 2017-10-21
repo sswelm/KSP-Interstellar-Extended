@@ -269,8 +269,9 @@ namespace FNPlugin
         public PowerGenerated managedRequestedPowerSupplyPerSecondMinimumRatio(IORSResourceSupplier pm, double available_power, double maximum_power, double ratio_min)
         {
             var minimum_power_per_second = maximum_power * ratio_min;
-            var provided_demand_power_per_second = Math.Max(minimum_power_per_second, Math.Max(available_power, GetCurrentUnfilledResourceDemand()));
-            var managed_supply_per_second = Math.Max(minimum_power_per_second, Math.Min(available_power, GetRequiredResourceDemand()));
+
+            var provided_demand_power_per_second = Math.Min(maximum_power, Math.Max(minimum_power_per_second, Math.Max(available_power, GetCurrentUnfilledResourceDemand())));
+            var managed_supply_per_second = Math.Min(maximum_power, Math.Max(minimum_power_per_second, Math.Min(available_power, GetRequiredResourceDemand())));
 
             currentPowerSupply += managed_supply_per_second;
             stable_supply += maximum_power;

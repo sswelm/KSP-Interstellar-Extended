@@ -1313,8 +1313,8 @@ namespace FNPlugin
                 var thermal_generator_ratio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
                 var charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
 
-                maximum_thermal_request_ratio = Math.Max(thermal_propulsion_ratio, thermal_generator_ratio);
-                maximum_charged_request_ratio = Math.Max(charged_propulsion_ratio, charged_generator_ratio);
+                maximum_thermal_request_ratio = Math.Min(thermal_propulsion_ratio + thermal_generator_ratio, 1);
+                maximum_charged_request_ratio = Math.Min(charged_propulsion_ratio + charged_generator_ratio, 1);
                 maximum_reactor_request_ratio = Math.Max(maximum_thermal_request_ratio, maximum_charged_request_ratio);
 
                 var power_access_modifier = Math.Max(

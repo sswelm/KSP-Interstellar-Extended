@@ -45,6 +45,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
         public double minimumThrottlePercentage;
 
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Max Secondary Power Usage"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 1)]
+        public float maxSecondaryPowerUsage = 90;
+
         // UI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
@@ -255,29 +258,38 @@ namespace FNPlugin
             var powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1; 
 
             // retreive any shortage from buffer
-            if (secondaryInputResourceDefinition != null && !CheatOptions.InfiniteElectricity && IsEnabled && powerReceived < powerRequested)
+            if (secondaryInputMultiplier > 0 && secondaryInputResourceDefinition != null && !CheatOptions.InfiniteElectricity && IsEnabled && powerReceived < powerRequested)
             {
                 // retreive megawatt ratio
                 var powerShortage = (1 - powerRequirmentMetRatio) * powerRequested;
 
-                double currentSecondaryPowerAvailable;
+                double currentSecondaryRatio;
+                double currentSecondaryCapacity;
 
                 if (usePowerManagerForSecondaryInputPower)
-                    currentSecondaryPowerAvailable = getResourceAvailability(secondaryInputResource);
+                {
+                    currentSecondaryRatio = getResourceBarRatio(secondaryInputResource);
+                    currentSecondaryCapacity = getTotalResourceCapacity(secondaryInputResource);
+                }
                 else
                 {
-                    double maxamount;
-                    part.GetConnectedResourceTotals(secondaryInputResourceDefinition.id, out currentSecondaryPowerAvailable, out maxamount);
+                    double currentAmount;
+                    part.GetConnectedResourceTotals(secondaryInputResourceDefinition.id, out currentAmount, out currentSecondaryCapacity);
+                    currentSecondaryRatio = currentSecondaryCapacity > 0 ? currentAmount / currentSecondaryCapacity : 0;
                 }
 
-                currentSecondaryPowerAvailable /= secondaryInputMultiplier; 
+                var secondaryPowerMaxRatio = maxSecondaryPowerUsage / 100;
 
                 // only use buffer if we have sufficient in storage
-                if (currentSecondaryPowerAvailable > powerShortage)
+                if (currentSecondaryRatio > secondaryPowerMaxRatio)
                 {
-                    secondaryPowerReceived = part.RequestResource(secondaryInputResource, (1 - powerRequirmentMetRatio) * powerRequested * secondaryInputMultiplier);
+                    var maxAvailableSecondaryPower = secondaryPowerMaxRatio * currentSecondaryCapacity;  
 
-                    powerReceived += secondaryPowerReceived;
+                    var requestedSecondaryPower = Math.Min(currentSecondaryCapacity, (1 - powerRequirmentMetRatio) * powerRequested * secondaryInputMultiplier);
+
+                    secondaryPowerReceived = part.RequestResource(secondaryInputResource, requestedSecondaryPower);
+
+                    powerReceived += secondaryPowerReceived / secondaryInputMultiplier;
 
                     powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1;
                 }
@@ -320,7 +332,6 @@ namespace FNPlugin
                 plasma_ratio = Math.Round(StartupPower > 0 ? power_consumed / StartupPower : 1, 4);
                 allowJumpStart = plasma_ratio >= 1;
             }
-
 
             if (plasma_ratio > 0.999)
             {

@@ -141,6 +141,10 @@ namespace FNPlugin
         public float initialMass;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Delta Mass", guiUnits = " t")]
         public float moduleMassDelta;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Megajoule Bar Ratio")]
+        public double megajouleBarRatio;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Megajoule Percentage", guiUnits = "%", guiFormat = "F4")]
+        public double megajoulePecentage;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = false, guiName = "Raw Thermal Power", guiUnits = " MW", guiFormat = "F3")]
@@ -179,6 +183,8 @@ namespace FNPlugin
         public double heat_exchanger_thrust_divisor;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Requested Power", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_power_per_second;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Received Power", guiUnits = " MJ", guiFormat = "F3")]
+        public double received_power_per_second;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Cold Bath Temp", guiUnits = "K", guiFormat = "F3")]
         public double coldBathTemp = 500;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Hot Bath Temp", guiUnits = "K", guiFormat = "F3")]
@@ -900,6 +906,8 @@ namespace FNPlugin
 
                         var effective_input_power_per_second = thermal_power_received * _totalEff;
 
+                        received_power_per_second = effective_input_power_per_second;
+
                         if (!CheatOptions.IgnoreMaxTemperature)
                             consumeFNResourcePerSecond(effective_input_power_per_second, FNResourceManager.FNRESOURCE_WASTEHEAT);
 
@@ -925,7 +933,7 @@ namespace FNPlugin
                         var chargedPowerRequestRatio = Math.Min(1, maximum_charged_power > 0 ? requested_power_per_second / maximum_charged_power : 0);
                         attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio, ElectricGeneratorType.charged_particle);
 
-                        double received_power_per_second = consumeFNResourcePerSecond(requested_power_per_second, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                        received_power_per_second = consumeFNResourcePerSecond(requested_power_per_second, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                         var effective_input_power_per_second = received_power_per_second * _totalEff;
 
@@ -1028,10 +1036,13 @@ namespace FNPlugin
 
         private double CalculateElectricalPowerCurrentlyNeeded()
         {
+            megajouleBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+            megajoulePecentage = megajouleBarRatio * 100;
+
             if (isLimitedByMinThrotle)
                 return attachedPowerSource.MinimumPower;
 
-            var powerBufferRatio = Math.Min(1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES), 1);
+            var powerBufferRatio = Math.Min(1 - megajouleBarRatio, 1);
 
             double exponent;
             if (TimeWarp.fixedDeltaTime > 10000)
