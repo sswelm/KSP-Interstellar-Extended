@@ -8,7 +8,7 @@ using TweakScale;
 
 namespace FNPlugin
 {
-    class ThermalNozzleController : FNResourceSuppliableModule, IEngineNoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
+    class ThermalNozzleController : ResourceSuppliableModule, IEngineNoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -438,7 +438,7 @@ namespace FNPlugin
                 Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
 
                 // calculate WasteHeat Capacity
-                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
                 if (wasteheatPowerResource != null)
                 {
                     var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
@@ -999,14 +999,14 @@ namespace FNPlugin
 
                 ConfigEffects();
 
-                effectiveThermalPower = getResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER);
-                effectiveChargedPower = getResourceSupply(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                effectiveThermalPower = getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER);
+                effectiveChargedPower = getResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                 currentMaxThermalPower = Math.Min(effectiveThermalPower, AttachedReactor.MaximumThermalPower * AttachedReactor.ThermalPropulsionEfficiency * myAttachedEngine.currentThrottle);
                 currentMaxChargedPower = Math.Min(effectiveChargedPower, AttachedReactor.MaximumChargedPower * AttachedReactor.ThermalPropulsionEfficiency * myAttachedEngine.currentThrottle);
 
-                thermalRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_THERMALPOWER);
-                chargedParticleRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                thermalRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_THERMALPOWER);
+                chargedParticleRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                 availableThermalPower = currentMaxThermalPower * (thermalRatio > 0.5 ? 1 : thermalRatio * 2);
                 availableChargedPower = currentMaxChargedPower * (chargedParticleRatio > 0.5 ? 1 : chargedParticleRatio * 2);
@@ -1168,12 +1168,12 @@ namespace FNPlugin
 
                 thrust_modifiers = AttachedReactor.GetFractionThermalReciever(id);
                 requested_thermal_power = availableThermalPower * thrust_modifiers;
-                power_received = consumeFNResourcePerSecond(requested_thermal_power, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                power_received = consumeFNResourcePerSecond(requested_thermal_power, ResourceManager.FNRESOURCE_THERMALPOWER);
 
                 if (currentMaxChargedPower > 0)
                 {
                     requested_charge_particles = availableChargedPower * thrust_modifiers;
-                    double charged_power_received_per_second = consumeFNResourcePerSecond(requested_charge_particles, FNResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    double charged_power_received_per_second = consumeFNResourcePerSecond(requested_charge_particles, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                     power_received += charged_power_received_per_second;
                 }
@@ -1193,7 +1193,7 @@ namespace FNPlugin
                         ? wasteheatEfficiencyHighTemperature
                         : wasteheatEfficiencyLowTemperature;
 
-                    consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * power_received, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // calculate max thrust
@@ -1296,9 +1296,9 @@ namespace FNPlugin
 
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
-                    var resourceRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    var resourceRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    consumeFNResourcePerSecond(20 * resourceRatio * max_fuel_flow_rate, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(20 * resourceRatio * max_fuel_flow_rate, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // Calculate

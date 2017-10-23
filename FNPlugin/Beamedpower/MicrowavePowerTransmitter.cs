@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class MicrowavePowerTransmitter : FNResourceSuppliableModule, IScalarModule
+    class MicrowavePowerTransmitter : ResourceSuppliableModule, IScalarModule
     {
         //Persistent 
         [KSPField(isPersistant = true)]
@@ -599,10 +599,10 @@ namespace FNPlugin
                 }
                 else
                 {
-                    var availablePower = getAvailableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES); 
-                    var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES); 
+                    var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                    var effectiveResourceThrotling = resourceBarRatio > ORSResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
+                    var effectiveResourceThrotling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 
                     requestedPower = Math.Min(power_capacity, effectiveResourceThrotling * availablePower * reactorPowerTransmissionRatio);
                 }
@@ -611,18 +611,18 @@ namespace FNPlugin
 
                 var receivedPowerFixedDelta = CheatOptions.InfiniteElectricity 
                     ? fixedRequestedPower
-                    : consumeFNResource(fixedRequestedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResource(fixedRequestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 nuclear_power += 1000 * reactorPowerTransmissionRatio * transmissionEfficiencyRatio * receivedPowerFixedDelta / TimeWarp.fixedDeltaTime;
 
                 // generate wasteheat for converting electric power to beamed power
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourceFixed(receivedPowerFixedDelta * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(receivedPowerFixedDelta * transmissionWasteRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {
-                    var multiplier = panel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES ? 1000 
-                        : panel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE ? 1 : 0;
+                    var multiplier = panel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES ? 1000 
+                        : panel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE ? 1 : 0;
 
                     var currentPower = panel._flowRate * multiplier;
 
@@ -639,7 +639,7 @@ namespace FNPlugin
 
                     //double output = panel.flowRate;
 
-                    //double spower = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, transmissionEfficiencyRatio * output * TimeWarp.fixedDeltaTime * solarPowertransmissionRatio);
+                    //double spower = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, transmissionEfficiencyRatio * output * TimeWarp.fixedDeltaTime * solarPowertransmissionRatio);
 
                     //displayed_solar_power += spower / TimeWarp.fixedDeltaTime;
 
@@ -653,7 +653,7 @@ namespace FNPlugin
                     //solar_power += effectiveSolarPower;
 
                     //// solar power converted to beamed power also generates wasteheat
-                    ////supplyFNResource(effectiveSolarPower * TimeWarp.fixedDeltaTime * transmissionWasteRatio, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    ////supplyFNResource(effectiveSolarPower * TimeWarp.fixedDeltaTime * transmissionWasteRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
             }
 

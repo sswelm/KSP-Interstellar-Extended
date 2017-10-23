@@ -423,7 +423,7 @@ namespace FNPlugin
 
                 double electrical_power_provided = CheatOptions.InfiniteElectricity
                     ? powerRequest
-                    : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult;
                 global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;
@@ -446,7 +446,7 @@ namespace FNPlugin
 
                 double electrical_power_provided = CheatOptions.InfiniteElectricity 
                     ? powerRequest
-                    : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES);
                 
                 electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BasePowerConsumption / powerReqMult;
 
@@ -464,8 +464,8 @@ namespace FNPlugin
                 var powerRequestInMegajoules = powerReqMult * PluginHelper.BaseAMFPowerConsumption * TimeWarp.fixedDeltaTime;
 
                 var energy_provided_in_megajoules = CheatOptions.InfiniteElectricity 
-                    ? powerRequestInMegajoules 
-                    : consumeFNResource(powerRequestInMegajoules, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    ? powerRequestInMegajoules
+                    : consumeFNResource(powerRequestInMegajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 electrical_power_ratio = powerRequestInMegajoules > 0 ? energy_provided_in_megajoules / powerRequestInMegajoules : 0;
                 antimatterGenerator.Produce(energy_provided_in_megajoules * global_rate_multipliers);
@@ -482,8 +482,8 @@ namespace FNPlugin
                     var powerRequest = powerReqMult * PluginHelper.BaseCentriPowerConsumption * TimeWarp.fixedDeltaTime;
 
                     double electrical_power_provided = CheatOptions.InfiniteElectricity 
-                        ? powerRequest 
-                        : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                        ? powerRequest
+                        : consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES);
                     
                     electrical_power_ratio = electrical_power_provided / TimeWarp.fixedDeltaTime / PluginHelper.BaseCentriPowerConsumption / powerReqMult;
                     global_rate_multipliers = global_rate_multipliers * electrical_power_ratio;

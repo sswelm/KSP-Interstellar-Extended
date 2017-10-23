@@ -10,7 +10,7 @@ namespace FNPlugin
 
     enum GenerationType { Mk1 = 0, Mk2 = 1, Mk3 = 2, Mk4 = 3, Mk5 = 4 }
 
-    abstract class EngineECU2 : FNResourceSuppliableModule, IRescalable<EngineECU2>
+    abstract class EngineECU2 : ResourceSuppliableModule, IRescalable<EngineECU2>
     {
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Fuel Config")]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.All, scene = UI_Scene.All, suppressEditorShipModified = true)]

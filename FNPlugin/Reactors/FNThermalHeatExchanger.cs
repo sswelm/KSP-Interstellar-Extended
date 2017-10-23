@@ -5,7 +5,7 @@ using FNPlugin.Propulsion;
 
 namespace FNPlugin
 {
-    class FNThermalHeatExchanger : FNResourceSuppliableModule, IPowerSource
+    class FNThermalHeatExchanger : ResourceSuppliableModule, IPowerSource
     {
         //Persistent True
         [KSPField(isPersistant = true)]
@@ -206,7 +206,7 @@ namespace FNPlugin
         public void setupThermalPower()
         {
             activeExchangers = FNThermalHeatExchanger.getActiveExchangersForVessel(vessel);
-            _thermalpower = (float)getStableResourceSupply(FNResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
+            _thermalpower = (float)getStableResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) / activeExchangers;
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -215,7 +215,7 @@ namespace FNPlugin
             Actions["DeactivateHeatExchangerAction"].guiName = Events["DeactivateHeatExchanger"].guiName = String.Format("Deactivate Heat Exchanger");
             Actions["ToggleHeatExchangerAction"].guiName = String.Format("Toggle Heat Exchanger");
 
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_THERMALPOWER };
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_THERMALPOWER };
             this.resources_to_supply = resources_to_supply;
 
             base.OnStart(state);

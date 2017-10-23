@@ -47,7 +47,7 @@ namespace FNPlugin
 	class MicrowavePowerReceiverDish: MicrowavePowerReceiver  {} // tweakscales with exponent 2.25
 
 	[KSPModule("Beamed Power Receiver")]
-	class MicrowavePowerReceiver : FNResourceSuppliableModule, IPowerSource, IElectricPowerGeneratorSource // tweakscales with exponent 2.5
+    class MicrowavePowerReceiver : ResourceSuppliableModule, IPowerSource, IElectricPowerGeneratorSource // tweakscales with exponent 2.5
 	{
 		//Persistent True
 		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Bandwidth")]
@@ -356,7 +356,7 @@ namespace FNPlugin
                         ? 1 
                         : CheatOptions.IgnoreMaxTemperature 
 						    ? 1 
-						    : (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) 
+						    : (1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT)) 
 					: 1; 
 			}
 		}
@@ -766,7 +766,7 @@ namespace FNPlugin
 
 		public override void OnStart(PartModule.StartState state)
 		{
-			String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES, FNResourceManager.FNRESOURCE_WASTEHEAT, FNResourceManager.FNRESOURCE_THERMALPOWER };
+			String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_THERMALPOWER };
 
 			this.resources_to_supply = resources_to_supply;
 			base.OnStart(state);
@@ -911,10 +911,10 @@ namespace FNPlugin
 					((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
 			}
 
-			wasteheatResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
-			megajouleResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
-			thermalResource = part.Resources[FNResourceManager.FNRESOURCE_THERMALPOWER];
-			electricResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
+			wasteheatResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
+			megajouleResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
+			thermalResource = part.Resources[ResourceManager.FNRESOURCE_THERMALPOWER];
+			electricResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
 
 			// calculate WasteHeat Capacity
 			partBaseWasteheat = part.mass * 2.0e+5 * wasteHeatMultiplier;
@@ -1577,7 +1577,7 @@ namespace FNPlugin
 
             StoreGeneratorRequests();
 
-			wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT));
+			wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT));
 
 			CalculateThermalSolarPower();
 
@@ -1644,13 +1644,13 @@ namespace FNPlugin
                             var thermalThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
                             var minimumRatio = Math.Max(storedGeneratorThermalEnergyRequestRatio, thermalThrottleRatio);
 
-                            var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided, minimumRatio, FNResourceManager.FNRESOURCE_THERMALPOWER);
+                            var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided, minimumRatio, ResourceManager.FNRESOURCE_THERMALPOWER);
 
                             if (!CheatOptions.IgnoreMaxTemperature)
                             {
                                 var supply_ratio = powerGeneratedResult.currentSupply / total_thermal_power_provided;
                                 var final_thermal_wasteheat = powerGeneratedResult.currentSupply + supply_ratio * total_conversion_waste_heat_production;
-                                supplyFNResourcePerSecondWithMax(final_thermal_wasteheat, total_beamed_power_max, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                                supplyFNResourcePerSecondWithMax(final_thermal_wasteheat, total_beamed_power_max, ResourceManager.FNRESOURCE_WASTEHEAT);
                             }
 
                             thermal_power_ratio = total_thermal_power_available > 0 ? powerGeneratedResult.currentSupply / total_thermal_power_available : 0;
@@ -1691,14 +1691,14 @@ namespace FNPlugin
 
                         if (total_beamed_electric_power_provided > 0)
                         {
-                            var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_electric_power_provided, total_beamed_electric_power_provided, 0, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                            var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_electric_power_provided, total_beamed_electric_power_provided, 0, ResourceManager.FNRESOURCE_MEGAJOULES);
                             var supply_ratio = powerGeneratedResult.currentSupply / total_beamed_electric_power_provided;
 
                             // only generate wasteheat from beamed power when actualy using the energy
                             if (!CheatOptions.IgnoreMaxTemperature)
                             {
                                 var solarWasteheat = solarInputMegajoules * (1 - effectiveSolarThermalElectricEfficiency);
-                                supplyFNResourcePerSecond(supply_ratio * total_conversion_waste_heat_production + supply_ratio * solarWasteheat, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                                supplyFNResourcePerSecond(supply_ratio * total_conversion_waste_heat_production + supply_ratio * solarWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
                             }
 
                             foreach (var item in received_power)
@@ -1950,7 +1950,7 @@ namespace FNPlugin
 			if (alternatorRatio == 0)
 				return;
 			
-			supplyFNResourceFixed(alternatorRatio * powerInputMegajoules * TimeWarp.fixedDeltaTime / 1000, FNResourceManager.FNRESOURCE_MEGAJOULES);
+			supplyFNResourceFixed(alternatorRatio * powerInputMegajoules * TimeWarp.fixedDeltaTime / 1000, ResourceManager.FNRESOURCE_MEGAJOULES);
 		}
 
 		private void ProcesSolarCellEnergy()
@@ -1982,18 +1982,18 @@ namespace FNPlugin
 			// extract power otherwise we end up with double power
 			var power_reduction = deployableSolarPanel.flowRate > 0 ? deployableSolarPanel.flowRate : kerbalismPowerOutput;
 
-			if (deployableSolarPanel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+			if (deployableSolarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
 			{
-				part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, power_reduction * TimeWarp.fixedDeltaTime);
+				part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, power_reduction * TimeWarp.fixedDeltaTime);
 
 				if (stabalizedFlowRate > 0)
 					stabalizedFlowRate /= 1000;
 				if (maxSupply > 0)
 					maxSupply /= 1000;
 			}
-			else if (deployableSolarPanel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES)
+			else if (deployableSolarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
 			{
-				part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, power_reduction * TimeWarp.fixedDeltaTime);
+				part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, power_reduction * TimeWarp.fixedDeltaTime);
 			}
 			else
 			{
@@ -2002,7 +2002,7 @@ namespace FNPlugin
 			}
 
 			if (stabalizedFlowRate > 0)
-				supplyFNResourcePerSecondWithMax(stabalizedFlowRate, maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES);
+				supplyFNResourcePerSecondWithMax(stabalizedFlowRate, maxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
 		}
 
 		public double MaxStableMegaWattPower

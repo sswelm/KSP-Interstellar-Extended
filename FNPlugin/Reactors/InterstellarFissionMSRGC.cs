@@ -274,8 +274,6 @@ namespace FNPlugin
                 actinides.amount = new_actinides_amount;
 
                 double depleted_fuels_request = actinides_change * 0.2;
-
-                //depleted_fuels_change = -ORSHelper.fixedRequestResource(part, InterstellarResourcesConfiguration.Instance.DepletedFuel, -depleted_fuels_change);
                 double depleted_fuels_produced = -Part.RequestResource(depletedFuelDefinition.id, -depleted_fuels_request, ResourceFlowMode.STAGE_PRIORITY_FLOW);
 
                 // first try to replace depletedfuel with enriched uranium

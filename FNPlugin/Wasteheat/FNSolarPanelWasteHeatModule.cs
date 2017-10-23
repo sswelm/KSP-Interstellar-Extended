@@ -12,7 +12,7 @@ namespace FNPlugin
     }
 
     [KSPModule("Solar Panel Adapter")]
-	class FNSolarPanelWasteHeatModule : FNResourceSuppliableModule 
+    class FNSolarPanelWasteHeatModule : ResourceSuppliableModule 
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true,  guiName = "Solar current power", guiUnits = " MW", guiFormat="F5")]
         public double megaJouleSolarPowerSupply;
@@ -59,7 +59,7 @@ namespace FNPlugin
 
                 part.force_activate();
 
-                String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES };
+                String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
                 this.resources_to_supply = resources_to_supply;
                 base.OnStart(state);
 
@@ -69,21 +69,21 @@ namespace FNPlugin
 
                 if (solarPanel == null) return;
 
-                if (solarPanel.resourceName == FNResourceManager.FNRESOURCE_MEGAJOULES)
+                if (solarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
                 {
                     outputType = resourceType.megajoule;
 
-                    megajoulePartResource = part.Resources[FNResourceManager.FNRESOURCE_MEGAJOULES];
+                    megajoulePartResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
                     if (megajoulePartResource != null)
                     {
                         fixedMegajouleBufferSize = megajoulePartResource.maxAmount * 50;
                     }
                 }
-                else if (solarPanel.resourceName == FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+                else if (solarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                 {
                     outputType = resourceType.electricCharge;
 
-                    electricChargePartResource = part.Resources[FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
+                    electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
                     if (electricChargePartResource != null)
                     {
                         fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
@@ -208,7 +208,7 @@ namespace FNPlugin
                 solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate / 1000;
                 solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply / 1000;
 
-                megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solar_maxSupply, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solar_maxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
             }
             catch (Exception e)
             {

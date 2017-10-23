@@ -308,7 +308,7 @@ namespace FNPlugin
                 DetermineTechLevel();
 
                 // calculate WasteHeat Capacity
-                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
                 if (wasteheatPowerResource != null)
                 {
                     var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
@@ -464,15 +464,15 @@ namespace FNPlugin
                 enginePowerRequirement = CurrentPowerRequirement;
                 var requestedPowerPerSecond = enginePowerRequirement;
 
-                var availablePower = getAvailableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
-                var effectivePowerThrotling = resourceBarRatio > FNResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
+                var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+                var effectivePowerThrotling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 
                 var requestedPower = Math.Min(requestedPowerPerSecond, availablePower * effectivePowerThrotling);
 
                 double recievedPowerPerSecond = CheatOptions.InfiniteElectricity
                     ? requestedPowerPerSecond
-                    : consumeFNResourcePerSecond(requestedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPowerPerSecond / requestedPowerPerSecond;
                 fusionRatio = plasma_ratio;
@@ -481,13 +481,13 @@ namespace FNPlugin
 
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourcePerSecond(laserWasteheat, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(laserWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
                 var rateMultplier = MinIsp / SelectedIsp;
                 var neutronbsorbionBonus = 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp)));
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;
-                supplyFNResourcePerSecond(absorbedWasteheat, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourcePerSecond(absorbedWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
                 SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)standard_deuterium_rate / rateMultplier);

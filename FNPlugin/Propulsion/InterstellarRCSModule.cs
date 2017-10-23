@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class InterstellarRCSModule : FNResourceSuppliableModule 
+    class InterstellarRCSModule : ResourceSuppliableModule 
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode;
@@ -198,7 +198,7 @@ namespace FNPlugin
             if (String.IsNullOrEmpty(displayName))
                 displayName = part.partInfo.title;
 
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_WASTEHEAT };
             this.resources_to_supply = resources_to_supply;
 
             attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
@@ -303,13 +303,13 @@ namespace FNPlugin
 
                 power_recieved_f = CheatOptions.InfiniteElectricity 
                     ? power_requested_f 
-                    : consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                    : consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
                 double heat_to_produce = power_recieved_f * (1 - efficency);
 
                 heat_production_f = CheatOptions.IgnoreMaxTemperature 
                     ? heat_to_produce 
-                    : supplyFNResourceFixed(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+                    : supplyFNResourceFixed(heat_to_produce * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
                 power_ratio = power_requested_f > 0 ? Math.Min(power_recieved_f / power_requested_f, 1) : 1;
             }

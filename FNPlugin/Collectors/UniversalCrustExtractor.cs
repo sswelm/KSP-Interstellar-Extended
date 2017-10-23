@@ -13,7 +13,7 @@ namespace FNPlugin.Collectors
         public double Local { get; set; }
     }
 
-    class UniversalCrustExtractor : FNResourceSuppliableModule
+    class UniversalCrustExtractor : ResourceSuppliableModule
     {
         List<CrustalResource> localResources; // list of resources
 
@@ -431,13 +431,13 @@ namespace FNPlugin.Collectors
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements;
 
             // calculate the provided power and consume it
-            double dNormalisedRecievedPowerMW = consumeFNResourcePerSecond(dPowerRequirementsMW, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            double dNormalisedRecievedPowerMW = consumeFNResourcePerSecond(dPowerRequirementsMW, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             // when the requirements are low enough, we can get the power needed from stock energy charge
             if (dPowerRequirementsMW < 5 && dNormalisedRecievedPowerMW <= dPowerRequirementsMW)
             {
                 double dRequiredKW = (dPowerRequirementsMW - dNormalisedRecievedPowerMW) * 1000;
-                double dReceivedKW = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * deltaTime) / deltaTime;
+                double dReceivedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * deltaTime) / deltaTime;
                 dNormalisedRecievedPowerMW += dReceivedKW / 1000;
             }
 

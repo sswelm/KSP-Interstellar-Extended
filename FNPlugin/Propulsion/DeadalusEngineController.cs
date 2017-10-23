@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class FusionEngineController : DaedalusEngineController { } 
+    class FusionEngineController : DaedalusEngineController { }
 
-	class DaedalusEngineController : FNResourceSuppliableModule, IUpgradeableModule 
+    class DaedalusEngineController : ResourceSuppliableModule, IUpgradeableModule 
 	{
 		// Persistant
 		[KSPField(isPersistant = true)]
@@ -537,7 +537,7 @@ namespace FNPlugin
 
 			var recievedPower = CheatOptions.InfiniteElectricity 
 				? requestedPower 
-				: consumeFNResource(requestedPower, FNResourceManager.FNRESOURCE_MEGAJOULES);
+				: consumeFNResource(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
 			var plasma_ratio = powerRequirementFixed > 0 ? recievedPower / powerRequirementFixed : 0;
 			var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.01 ? plasma_ratio : 0;
@@ -548,10 +548,10 @@ namespace FNPlugin
 			if (!CheatOptions.IgnoreMaxTemperature)
 			{
 				// Lasers produce Wasteheat
-				supplyFNResourceFixed(recievedPower * (1 - Efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
+				supplyFNResourceFixed(recievedPower * (1 - Efficiency), ResourceManager.FNRESOURCE_WASTEHEAT);
 
 				// The Aborbed wasteheat from Fusion
-				supplyFNResourceFixed(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+				supplyFNResourceFixed(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT);
 			}
 
 			fusionPercentage = fusionRatio * 100d;

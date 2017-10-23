@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-	class VistaEngineController : FNResourceSuppliableModule, IUpgradeableModule 
+    class VistaEngineController : ResourceSuppliableModule, IUpgradeableModule 
     {
         // Persistant
 		[KSPField(isPersistant = true)]
@@ -146,7 +146,7 @@ namespace FNPlugin
                 hasrequiredupgrade = true;
 
 			// calculate WasteHeat Capacity
-			var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+			var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
 			if (wasteheatPowerResource != null)
 			{
 				var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
@@ -246,7 +246,7 @@ namespace FNPlugin
                 // Calculate Fusion Ratio
                 var recievedPower = CheatOptions.InfiniteElectricity  
                     ? powerRequirement * TimeWarp.fixedDeltaTime 
-                    : consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResource(powerRequirement * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPower / (powerRequirement * TimeWarp.fixedDeltaTime);
                 var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? Math.Pow(plasma_ratio, 6.0) : 0;
@@ -254,10 +254,10 @@ namespace FNPlugin
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
                     // Lasers produce Wasteheat
-                    supplyFNResourceFixed(recievedPower * (1 - efficiency), FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(recievedPower * (1 - efficiency), ResourceManager.FNRESOURCE_WASTEHEAT);
 
                     // The Aborbed wasteheat from Fusion
-                    supplyFNResourceFixed(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // change ratio propellants Hydrogen/Fusion

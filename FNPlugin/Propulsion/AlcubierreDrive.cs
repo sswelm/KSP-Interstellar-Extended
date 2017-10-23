@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class AlcubierreDrive : FNResourceSuppliableModule
+    class AlcubierreDrive : ResourceSuppliableModule
     {
         // persistant
         [KSPField(isPersistant = true)]
@@ -255,7 +255,7 @@ namespace FNPlugin
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warpfactor);
 
-            if (!CheatOptions.InfiniteElectricity && currentPowerRequirementForWarp > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES))
+            if (!CheatOptions.InfiniteElectricity && currentPowerRequirementForWarp > getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES))
             {
                 var message = "Warp power requirement is higher that maximum power supply!";
                 Debug.Log("[KSPI] - " + message);
@@ -294,7 +294,7 @@ namespace FNPlugin
 
             double power_returned = CheatOptions.InfiniteElectricity 
                 ? currentPowerRequirementForWarp 
-                : consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                : consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
             if (power_returned < 0.99 * currentPowerRequirementForWarp)
             {
@@ -627,7 +627,7 @@ namespace FNPlugin
 
             exoticResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.ExoticMatter);
 
-            wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+            wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
             exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
 
             speedOfLight = PluginHelper.SpeedOfLight;
@@ -1057,15 +1057,15 @@ namespace FNPlugin
             {
                 double powerDraw = CheatOptions.InfiniteElectricity 
                     ? (maxExoticMatter - currentExoticMatter) / 0.001
-                    : Math.Max(minPowerRequirementForLightSpeed, Math.Min((maxExoticMatter - currentExoticMatter) / 0.001, getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES)));
+                    : Math.Max(minPowerRequirementForLightSpeed, Math.Min((maxExoticMatter - currentExoticMatter) / 0.001, getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES)));
 
-                var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var effectiveResourceThrotling = resourceBarRatio > 0.5 ? 1 : resourceBarRatio * 2;
 
                 double power_returned = CheatOptions.InfiniteElectricity 
                     ? powerDraw
-                    : consumeFNResourcePerSecond(effectiveResourceThrotling * powerDraw, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(effectiveResourceThrotling * powerDraw, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 if (power_returned < 0.99 * minPowerRequirementForLightSpeed)
                     insufficientPowerTimeout--;
@@ -1120,7 +1120,7 @@ namespace FNPlugin
                 supplyFNResourcePerSecond(power_returned * 
                     (isupgraded 
                         ? wasteheatRatioUpgraded 
-                        : wasteheatRatio), FNResourceManager.FNRESOURCE_WASTEHEAT);
+                        : wasteheatRatio), ResourceManager.FNRESOURCE_WASTEHEAT);
         }
 
         private void UpdateWateheatBuffer(double maxWasteheatRatio = 1)
@@ -1158,7 +1158,7 @@ namespace FNPlugin
 
             double available_power = CheatOptions.InfiniteElectricity 
                 ? currentPowerRequirementForWarp
-                : getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                : getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
             double power_returned;
 
@@ -1166,7 +1166,7 @@ namespace FNPlugin
                 power_returned = currentPowerRequirementForWarp;
             else
             {
-                power_returned = consumeFNResourcePerSecond(currentPowerRequirementForWarp, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                power_returned = consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceManager.FNRESOURCE_MEGAJOULES);
                 ProduceWasteheat(power_returned);
             }
 

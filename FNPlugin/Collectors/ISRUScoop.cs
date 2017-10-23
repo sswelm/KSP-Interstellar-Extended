@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace FNPlugin 
 {
-    class ISRUScoop : FNResourceSuppliableModule 
+    class ISRUScoop : ResourceSuppliableModule 
     {
         // persistants
         [KSPField(isPersistant = true)]
@@ -264,7 +264,7 @@ namespace FNPlugin
                 // calculate available power
                 double powerreceivedMW =  CheatOptions.InfiniteElectricity 
                     ? powerRequest 
-                    : Math.Max(consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                    : Math.Max(consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES), 0);
 
                 double normalisedRevievedPowerMW = powerreceivedMW / TimeWarp.fixedDeltaTime;
 
@@ -272,7 +272,7 @@ namespace FNPlugin
                 if (powerrequirementsMW < 2 && normalisedRevievedPowerMW <= powerrequirementsMW)
                 {
                     var requiredKW = (powerrequirementsMW - normalisedRevievedPowerMW) * 1000;
-                    var recievedKW = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, requiredKW * TimeWarp.fixedDeltaTime);
+                    var recievedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, requiredKW * TimeWarp.fixedDeltaTime);
                     powerreceivedMW += (recievedKW / 1000);
                 }
 

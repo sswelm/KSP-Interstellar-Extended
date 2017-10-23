@@ -29,7 +29,7 @@ namespace FNPlugin
 		protected override double NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
     }
 
-    abstract class FusionEngineControllerBase : FNResourceSuppliableModule, IUpgradeableModule 
+    abstract class FusionEngineControllerBase : ResourceSuppliableModule, IUpgradeableModule 
     {
         // Persistant
 		[KSPField(isPersistant = true)]
@@ -277,7 +277,7 @@ namespace FNPlugin
                 DetermineTechLevel();
 
 				// calculate WasteHeat Capacity
-				var wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+				var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
 				if (wasteheatPowerResource != null)
 				{
 					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
@@ -373,7 +373,7 @@ namespace FNPlugin
 
                 var recievedPowerFixed = CheatOptions.InfiniteElectricity  
                     ? requestedPowerFixed 
-                    : consumeFNResource(requestedPowerFixed, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResource(requestedPowerFixed, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPowerFixed / requestedPowerFixed;
                 fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? Math.Pow(plasma_ratio, 6) : 0;
@@ -389,8 +389,8 @@ namespace FNPlugin
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
-                    supplyFNResourceFixed(laserWasteheatFixed, FNResourceManager.FNRESOURCE_WASTEHEAT);
-                    supplyFNResourceFixed(absorbedWasteheat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(laserWasteheatFixed, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(absorbedWasteheat * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // change ratio propellants Hydrogen/Fusion

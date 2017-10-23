@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class ElectricEngineControllerFX : FNResourceSuppliableModule, IUpgradeableModule
+    class ElectricEngineControllerFX : ResourceSuppliableModule, IUpgradeableModule
     {
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -152,7 +152,7 @@ namespace FNPlugin
                 return HighLogic.LoadedSceneIsFlight 
                 ? CheatOptions.IgnoreMaxTemperature 
                     ? 1 
-                    : (1 - getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT)) 
+                    : (1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT)) 
                 : 1; 
             }
         }
@@ -215,7 +215,7 @@ namespace FNPlugin
             try
             {
                 // initialise resources
-                this.resources_to_supply = new string[] { FNResourceManager.FNRESOURCE_WASTEHEAT };
+                this.resources_to_supply = new string[] { ResourceManager.FNRESOURCE_WASTEHEAT };
                 base.OnStart(state);
                 AttachToEngine();
 
@@ -231,7 +231,7 @@ namespace FNPlugin
                 UpdateEngineTypeString();
 
                 // calculate WasteHeat Capacity
-                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
                 if (wasteheatPowerResource != null)
                 {
                     var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
@@ -470,8 +470,8 @@ namespace FNPlugin
             }
             else
             {
-                var availablePower = Math.Max(getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
-                var megaJoulesBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
+                var availablePower = Math.Max(getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var effectiveResourceThrotling = megaJoulesBarRatio > oneThird ? 1 : megaJoulesBarRatio * 3;
 
@@ -481,14 +481,14 @@ namespace FNPlugin
 
             var power_received = CheatOptions.InfiniteElectricity 
                 ? power_request 
-                : consumeFNResource(power_request * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                : consumeFNResource(power_request * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
             // produce waste heat
             var heat_to_produce = power_received * (1 - currentPropellantEfficiency) * Current_propellant.WasteHeatMultiplier;
 
             var heat_production = CheatOptions.IgnoreMaxTemperature 
                 ? heat_to_produce 
-                : supplyFNResourceFixed(heat_to_produce * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+                : supplyFNResourceFixed(heat_to_produce * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
 
             // update GUI Values
             _electrical_consumption_f = power_received;

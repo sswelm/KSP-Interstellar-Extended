@@ -85,7 +85,7 @@ namespace FNPlugin
         public void Update()
         {
             Counter = UpdatingRadiator.updateCounter;
-            WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(FNResourceManager.FNRESOURCE_WASTEHEAT);
+            WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
             var efficiency = 1 - Math.Pow(1 - WasteHeatRatio, 400);
 
             if (Double.IsNaN(WasteHeatRatio))
@@ -115,7 +115,7 @@ namespace FNPlugin
     class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
-    class FNRadiator : FNResourceSuppliableModule	
+    class FNRadiator : ResourceSuppliableModule	
     {
         // persitant
         [KSPField(isPersistant = true, guiActive = true, guiName = "Radiator Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts= UI_Scene.All)]
@@ -249,7 +249,7 @@ namespace FNPlugin
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
         private PartResource wasteheatPowerResource;
-        private ORSResourceManager wasteheatManager;
+        private ResourceManager wasteheatManager;
 
         private Queue<double> temperatureQueue = new Queue<double>(10);
 
@@ -486,7 +486,7 @@ namespace FNPlugin
 
         public override void OnStart(StartState state)
         {
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_WASTEHEAT };
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_WASTEHEAT };
             this.resources_to_supply = resources_to_supply;
 
             base.OnStart(state);
@@ -528,7 +528,7 @@ namespace FNPlugin
 
             // calculate WasteHeat Capacity
             partBaseWasteheat = part.mass * 1e+6 * wasteHeatMultiplier;
-            wasteheatPowerResource = part.Resources[FNResourceManager.FNRESOURCE_WASTEHEAT];
+            wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
 
             var myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine == null)
@@ -731,7 +731,7 @@ namespace FNPlugin
 
                 var external_temperature = FlightGlobals.getExternalTemperature(part.transform.position);
 
-                wasteheatManager = getManagerForVessel(FNResourceManager.FNRESOURCE_WASTEHEAT);
+                wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // get resource bar ratio at start of frame
                 wasteheatRatio = wasteheatManager.ResourceBarRatio;
@@ -869,7 +869,7 @@ namespace FNPlugin
             {
                 var consumedWasteheat = CheatOptions.IgnoreMaxTemperature || wasteheatToConsume == 0
                     ? wasteheatToConsume 
-                    : consumeFNResourcePerSecond(wasteheatToConsume, FNResourceManager.FNRESOURCE_WASTEHEAT, wasteheatManager);
+                    : consumeFNResourcePerSecond(wasteheatToConsume, ResourceManager.FNRESOURCE_WASTEHEAT, wasteheatManager);
 
                 if (Double.IsNaN(consumedWasteheat))
                     return 0;

@@ -5,7 +5,7 @@ using KSP.UI.Screens.Flight.Dialogs;
 
 namespace FNPlugin
 {
-    class ModuleModableScienceGenerator : FNResourceSuppliableModule, IScienceDataContainer
+    class ModuleModableScienceGenerator : ResourceSuppliableModule, IScienceDataContainer
     {
         [KSPField(isPersistant = false)]
         public bool canDeploy = false;

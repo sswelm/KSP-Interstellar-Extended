@@ -11,9 +11,9 @@ namespace FNPlugin
 
         // settings
         [KSPField(guiActiveEditor = true)]
-        protected string primaryInputResource = FNResourceManager.FNRESOURCE_MEGAJOULES;
+        protected string primaryInputResource = ResourceManager.FNRESOURCE_MEGAJOULES;
         [KSPField(guiActiveEditor = true)]
-        protected string secondaryInputResource = FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE;
+        protected string secondaryInputResource = ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE;
         [KSPField]
         protected double primaryInputMultiplier = 1;
         [KSPField]
@@ -160,7 +160,7 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            if (!CheatOptions.InfiniteElectricity && !isChargingForJumpstart && !isSwappingFuelMode && getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert)
+            if (!CheatOptions.InfiniteElectricity && !isChargingForJumpstart && !isSwappingFuelMode && getCurrentResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert)
             {
                 ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 10.0f, ScreenMessageStyle.UPPER_CENTER);
                 fusion_alert = true;

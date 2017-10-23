@@ -304,7 +304,7 @@ namespace FNPlugin.Refinery
                 _spareRoomNeonMass > 0 || _spareRoomWaterMass > 0 || _spareRoomHeavyWaterMass > 0 || _spareRoomOxygenMass > 0 || 
                 _spareRoomXenonMass > 0 || _spareRoomDeuteriumMass > 0 || _spareRoomKryptonMass > 0 || _spareRoomSodiumMass > 0 ||  _spareRoomAmmoniaMass > 0)) 
             {
-                /* Now to get the actual percentages from ORSAtmosphericResourceHandler Freethinker extended.
+                /* Now to get the actual percentages from AtmosphericResourceHandler Freethinker extended.
                  * Calls getAtmosphericResourceContent which calls getAtmosphericCompositionForBody which (if there's no definition, i.e. we're using a custom solar system
                  * with weird and fantastic new planets) in turn calls the new GenerateCompositionFromCelestialBody function Freethinker created, which creates a composition
                  * for the upper-level functions based on the planet's size and temperatures. So even though this is calling one method, it's actually going through two or three
