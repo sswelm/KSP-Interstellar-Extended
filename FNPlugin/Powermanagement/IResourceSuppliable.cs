@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FNPlugin 
 {
-    public interface ORSResourceSuppliable 
+    public interface IResourceSuppliable 
     {
         void receiveFNResource(double power_supplied, String resourcename);
         double consumeFNResource(double power_to_consume, String resourcename);

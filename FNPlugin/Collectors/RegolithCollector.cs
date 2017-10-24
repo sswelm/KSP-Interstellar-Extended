@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace FNPlugin.Collectors
 {
-    class RegolithCollector : FNResourceSuppliableModule
+    class RegolithCollector : ResourceSuppliableModule
     {
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -380,14 +380,14 @@ namespace FNPlugin.Collectors
             if (dConcentrationRegolith > 0 && (dRegolithSpareCapacity > 0))
             {
                 // calculate available power
-                double dPowerReceivedMW = Math.Max((double)consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                double dPowerReceivedMW = Math.Max((double)consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES), 0);
                 double dNormalisedRevievedPowerMW = dPowerReceivedMW / TimeWarp.fixedDeltaTime;
 
                 // if power requirement sufficiently low, retreive power from KW source
                 if (dPowerRequirementsMW < 2 && dNormalisedRevievedPowerMW <= dPowerRequirementsMW)
                 {
                     double dRequiredKW = (dPowerRequirementsMW - dNormalisedRevievedPowerMW) * 1000;
-                    double dReceivedKW = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime);
+                    double dReceivedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime);
                     dPowerReceivedMW += (dReceivedKW / 1000);
                 }
 
@@ -425,7 +425,6 @@ namespace FNPlugin.Collectors
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
-            //dResourceFlow = (float)ORSHelper.fixedRequestResource(part, strRegolithResourceName, -dResourceChange);
             dResourceFlow = part.RequestResource(strRegolithResourceName, -dResourceChange);
 
             dResourceFlow = -dResourceFlow / TimeWarp.fixedDeltaTime;
@@ -439,7 +438,7 @@ namespace FNPlugin.Collectors
             if (!CheatOptions.IgnoreMaxTemperature) // is this player not using no-heat cheat mode?
             {
                 dTotalWasteHeatProduction = dPowerRequirementsMW * wasteHeatModifier; // calculate amount of heat to be produced
-                supplyFNResourceFixed(dTotalWasteHeatProduction * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT); // push the heat onto them
+                supplyFNResourceFixed(dTotalWasteHeatProduction * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT); // push the heat onto them
             }
             
         }

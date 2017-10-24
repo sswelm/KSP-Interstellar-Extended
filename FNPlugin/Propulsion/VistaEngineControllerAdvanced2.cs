@@ -74,7 +74,7 @@ namespace FNPlugin
     //    protected override float NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
     //}
 
-    abstract class FusionEngineControllerBase2 : FNResourceSuppliableModule, IUpgradeableModule
+    abstract class FusionEngineControllerBase2 : ResourceSuppliableModule, IUpgradeableModule
     {
         // Persistant
         [KSPField(isPersistant = true)]
@@ -376,7 +376,7 @@ namespace FNPlugin
                 DetermineTechLevel();
 
 				// calculate WasteHeat Capacity
-				var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == FNResourceManager.FNRESOURCE_WASTEHEAT);
+				var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
 				if (wasteheatPowerResource != null)
 				{
 					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
@@ -512,7 +512,7 @@ namespace FNPlugin
 
                 var recievedPowerFixed = CheatOptions.InfiniteElectricity 
                     ? requestedPowerFixed 
-                    : consumeFNResource(requestedPowerFixed, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResource(requestedPowerFixed, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPowerFixed / requestedPowerFixed;
                 fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;
@@ -522,13 +522,13 @@ namespace FNPlugin
 
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourceFixed(laserWasteheatFixed, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourceFixed(laserWasteheatFixed, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
                 var rateMultplier = MinIsp / SelectedIsp;
                 var neutronbsorbionBonus = 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp)));
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;
-                supplyFNResourceFixed(absorbedWasteheat * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourceFixed(absorbedWasteheat * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;

@@ -8,7 +8,7 @@ using TweakScale;
 namespace FNPlugin
 {
     [KSPModule("Antimatter Storage")]
-    class AntimatterStorageTank : FNResourceSuppliableModule, IPartMassModifier, IRescalable<FNGenerator> , IPartCostModifier
+    class AntimatterStorageTank : ResourceSuppliableModule, IPartMassModifier, IRescalable<FNGenerator>, IPartCostModifier
     {
         [KSPField(isPersistant = true)]
         public double chargestatus = 1000;
@@ -465,14 +465,14 @@ namespace FNPlugin
                 // first try to accespower  megajoules
                 double charge_to_add = CheatOptions.InfiniteElectricity
                     ? powerRequest
-                    : consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000 / effectivePowerNeeded;
+                    : consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES) * 1000 / effectivePowerNeeded;
 
                 chargestatus += charge_to_add;
 
                 // alternatively  just look for any reserves of stored megajoules
                 if (charge_to_add == 0 && effectivePowerNeeded > 0)
                 {
-                    double more_charge_to_add = part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, powerRequest) * 1000 / effectivePowerNeeded;
+                    double more_charge_to_add = part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, powerRequest) * 1000 / effectivePowerNeeded;
 
                     charge_to_add += more_charge_to_add;
                     chargestatus += more_charge_to_add;
@@ -481,7 +481,7 @@ namespace FNPlugin
                 // if still not found any power attempt to find any electricc charge to survive
                 if (charge_to_add < fixedDeltaTime && effectivePowerNeeded > 0)
                 {
-                    double more_charge_to_add = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2 * effectivePowerNeeded * fixedDeltaTime) / effectivePowerNeeded;
+                    double more_charge_to_add = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2 * effectivePowerNeeded * fixedDeltaTime) / effectivePowerNeeded;
                     charge_to_add += more_charge_to_add;
                     chargestatus += more_charge_to_add;
                 }

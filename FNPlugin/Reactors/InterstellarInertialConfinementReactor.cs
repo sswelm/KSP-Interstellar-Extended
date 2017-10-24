@@ -8,9 +8,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public double accumulatedElectricChargeInMW;
         [KSPField(guiActiveEditor = true)]
-        public string primaryInputResource = FNResourceManager.FNRESOURCE_MEGAJOULES;
+        protected string primaryInputResource = ResourceManager.FNRESOURCE_MEGAJOULES;
         [KSPField(guiActiveEditor = true)]
-        public string secondaryInputResource = FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE;
+        protected string secondaryInputResource = ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE;
         [KSPField]
         public double primaryInputMultiplier = 1;
         [KSPField]
@@ -39,6 +39,10 @@ namespace FNPlugin
         public bool isChargingForJumpstart;
         [KSPField(guiActive = true, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
         public double minimumThrottlePercentage;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Max Secondary Power Usage"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 1)]
+        public float maxSecondaryPowerUsage = 90;
+
+        // UI
         [KSPField(guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
         [KSPField(guiActive = true, guiName = "Power Requirment")]
@@ -47,7 +51,6 @@ namespace FNPlugin
 
         protected double power_consumed;
         protected bool fusion_alert;
-        protected int shutdown_c = 0;
         protected int jumpstartPowerTime;
         protected double framesPlasmaRatioIsGood;
 
@@ -151,7 +154,7 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            if (!CheatOptions.InfiniteElectricity && !isChargingForJumpstart && !isSwappingFuelMode && getCurrentResourceDemand(FNResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert)
+            if (!CheatOptions.InfiniteElectricity && !isChargingForJumpstart && !isSwappingFuelMode && getCurrentResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert)
             {
                 ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 10.0f, ScreenMessageStyle.UPPER_CENTER);
                 fusion_alert = true;
@@ -250,24 +253,33 @@ namespace FNPlugin
                 // retreive megawatt ratio
                 var powerShortage = (1 - powerRequirmentMetRatio) * powerRequested;
 
-                double currentSecondaryPowerAvailable;
+                double currentSecondaryRatio;
+                double currentSecondaryCapacity;
 
                 if (usePowerManagerForSecondaryInputPower)
-                    currentSecondaryPowerAvailable = getResourceAvailability(secondaryInputResource);
+                {
+                    currentSecondaryRatio = getResourceBarRatio(secondaryInputResource);
+                    currentSecondaryCapacity = getTotalResourceCapacity(secondaryInputResource);
+                }
                 else
                 {
-                    double maxamount;
-                    part.GetConnectedResourceTotals(secondaryInputResourceDefinition.id, out currentSecondaryPowerAvailable, out maxamount);
+                    double currentAmount;
+                    part.GetConnectedResourceTotals(secondaryInputResourceDefinition.id, out currentAmount, out currentSecondaryCapacity);
+                    currentSecondaryRatio = currentSecondaryCapacity > 0 ? currentAmount / currentSecondaryCapacity : 0;
                 }
 
-                currentSecondaryPowerAvailable = currentSecondaryPowerAvailable / secondaryInputMultiplier; 
+                var secondaryPowerMaxRatio = maxSecondaryPowerUsage / 100;
 
                 // only use buffer if we have sufficient in storage
-                if (currentSecondaryPowerAvailable > powerShortage)
+                if (currentSecondaryRatio > secondaryPowerMaxRatio)
                 {
-                    secondaryPowerReceived = part.RequestResource(secondaryInputResource, (1 - powerRequirmentMetRatio) * powerRequested * secondaryInputMultiplier);
+                    var maxAvailableSecondaryPower = secondaryPowerMaxRatio * currentSecondaryCapacity;  
 
-                    powerReceived += secondaryPowerReceived;
+                    var requestedSecondaryPower = Math.Min(currentSecondaryCapacity, (1 - powerRequirmentMetRatio) * powerRequested * secondaryInputMultiplier);
+
+                    secondaryPowerReceived = part.RequestResource(secondaryInputResource, requestedSecondaryPower);
+
+                    powerReceived += secondaryPowerReceived / secondaryInputMultiplier;
 
                     powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1;
                 }
@@ -309,7 +321,6 @@ namespace FNPlugin
                 plasma_ratio = Math.Round(StartupPower > 0 ? power_consumed / StartupPower : 1, 4);
                 allowJumpStart = plasma_ratio >= 1;
             }
-
 
             if (plasma_ratio > 0.999)
             {

@@ -2,7 +2,7 @@
 namespace FNPlugin.Refinery
 {
 	[KSPModule("Power Supply")]
-	class InterstellarPowerSupply : FNResourceSuppliableModule, IPowerSupply
+    class InterstellarPowerSupply : ResourceSuppliableModule, IPowerSupply
 	{
 		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Proces")]
 		public string displayName = "";
@@ -20,12 +20,12 @@ namespace FNPlugin.Refinery
 
 		public double ConsumeMegajoulesFixed(double powerRequest)
 		{
-			return consumeFNResource(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            return consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES);
 		}
 
 		public double ConsumeMegajoulesPerSecond(double powerRequest)
 		{
-			return consumeFNResourcePerSecond(powerRequest, FNResourceManager.FNRESOURCE_MEGAJOULES);
+            return consumeFNResourcePerSecond(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES);
 		}
 
 		public override string getResourceManagerDisplayName()

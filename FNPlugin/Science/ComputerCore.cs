@@ -75,7 +75,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            String[] resources_to_supply = { FNResourceManager.FNRESOURCE_MEGAJOULES };
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;
 
             if (state == StartState.Editor)
@@ -157,7 +157,7 @@ namespace FNPlugin
             {
                 double power_returned = CheatOptions.InfiniteElectricity 
                     ? upgradedMegajouleRate
-                    : consumeFNResourcePerSecond(effectivePowerRequirement, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                    : consumeFNResourcePerSecond(effectivePowerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 electrical_power_ratio = power_returned / effectivePowerRequirement;
                 IsPowered = electrical_power_ratio > 0.99;
@@ -177,7 +177,7 @@ namespace FNPlugin
                 else
                 {
                     // return any unused power
-                    part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, -power_returned * TimeWarp.fixedDeltaTime);
+                    part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, -power_returned * TimeWarp.fixedDeltaTime);
                 }
             }
             else
@@ -193,7 +193,7 @@ namespace FNPlugin
             //    if (moduleCommand != null)
             //    {
             //        var fixedNeededPower = megajouleRate * TimeWarp.fixedDeltaTime;
-            //        float power_returned = consumeFNResource(fixedNeededPower, FNResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+            //        float power_returned = consumeFNResource(fixedNeededPower, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
             //        var electrical_power_ratio = Math.Round(power_returned / megajouleRate, 1);
             //        moduleCommand.enabled = electrical_power_ratio == 1;
             //    }

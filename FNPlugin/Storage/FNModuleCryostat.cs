@@ -6,7 +6,7 @@ namespace FNPlugin
     class ModuleStorageCryostat: FNModuleCryostat {}
 
     [KSPModule("Cryostat")]
-    class FNModuleCryostat : FNResourceSuppliableModule
+    class FNModuleCryostat : ResourceSuppliableModule
     {
         // Persistant
         [KSPField(isPersistant = true, guiActive = true, guiName = "Cooling"), UI_Toggle(disabledText = "On", enabledText = "Off")]
@@ -216,13 +216,13 @@ namespace FNPlugin
 
                 var fixedRecievedChargeKW = CheatOptions.InfiniteElectricity 
                     ? fixedPowerReqKW
-                    : consumeFNResource(fixedPowerReqKW / 1000, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
+                    : consumeFNResource(fixedPowerReqKW / 1000, ResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
 
                 if (fixedRecievedChargeKW <= fixedPowerReqKW)
-                    fixedRecievedChargeKW += part.RequestResource(FNResourceManager.FNRESOURCE_MEGAJOULES, (fixedPowerReqKW - fixedRecievedChargeKW) / 1000) * 1000;
+                    fixedRecievedChargeKW += part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, (fixedPowerReqKW - fixedRecievedChargeKW) / 1000) * 1000;
 
                 if (currentPowerReq < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
-                    fixedRecievedChargeKW += part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
+                    fixedRecievedChargeKW += part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
 
                 recievedPowerKW = fixedRecievedChargeKW / TimeWarp.fixedDeltaTime;
             }

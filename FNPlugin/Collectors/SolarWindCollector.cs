@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class SolarWindCollector : FNResourceSuppliableModule
+    class SolarWindCollector : ResourceSuppliableModule
     {
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -342,14 +342,14 @@ namespace FNPlugin
             if (massConcentrationPerSquareMeterPerSecond > 0 && (dSolarWindSpareCapacity > 0))
             {
                 // calculate available power
-                double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, FNResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES), 0);
                 double dNormalisedRevievedPowerMW = dPowerReceivedMW / TimeWarp.fixedDeltaTime;
 
                 // if power requirement sufficiently low, retreive power from KW source
                 if (dPowerRequirementsMW < 2 && dNormalisedRevievedPowerMW <= dPowerRequirementsMW)
                 {
                     double dRequiredKW = (dPowerRequirementsMW - dNormalisedRevievedPowerMW) * 1000;
-                    double dReceivedKW = part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime);
+                    double dReceivedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime);
                     dPowerReceivedMW += (dReceivedKW / 1000);
                 }
 

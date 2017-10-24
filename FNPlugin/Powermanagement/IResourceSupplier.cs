@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FNPlugin 
 {
-    public interface IORSResourceSupplier 
+    public interface IResourceSupplier 
     {
         string getResourceManagerDisplayName();
 

@@ -2,7 +2,7 @@
 
 namespace FNPlugin 
 {
-    class AntimatterCollector : FNResourceSuppliableModule    
+    class AntimatterCollector : ResourceSuppliableModule    
     {
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Collecting"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool active = true;
@@ -70,10 +70,10 @@ namespace FNPlugin
             // first attemp to get power more megajoule network
             var fixedRecievedChargeKW = CheatOptions.InfiniteElectricity
                 ? fixedPowerReqKW
-                : consumeFNResource(fixedPowerReqKW / 1000, FNResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
+                : consumeFNResource(fixedPowerReqKW / 1000, ResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
             // alternativly attempt to use electric charge
             if (fixedRecievedChargeKW <= fixedPowerReqKW)
-                fixedRecievedChargeKW += part.RequestResource(FNResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
+                fixedRecievedChargeKW += part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
             var powerRatio = fixedPowerReqKW > 0 ? fixedRecievedChargeKW / fixedPowerReqKW : 0;
             
             var effectiveFlux = powerRatio * flux;

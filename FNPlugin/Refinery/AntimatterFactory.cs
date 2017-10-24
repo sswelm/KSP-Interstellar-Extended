@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FNPlugin.Refinery
 {
-    class AntimatterFactory : FNResourceSuppliableModule
+    class AntimatterFactory : ResourceSuppliableModule
     {
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "Producing"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool isActive = false;
@@ -83,15 +83,15 @@ namespace FNPlugin.Refinery
             if (!isActive)
                 return;
 
-            var availablePower = getAvailableResourceSupply(FNResourceManager.FNRESOURCE_MEGAJOULES);
-            var resourceBarRatio = getResourceBarRatio(FNResourceManager.FNRESOURCE_MEGAJOULES);
-            var effectiveResourceThrotling = resourceBarRatio > ORSResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
+            var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var effectiveResourceThrotling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 
             var energy_requested_in_megajoules = Math.Min(powerCapacity, TimeWarp.fixedDeltaTime * effectiveResourceThrotling * availablePower * powerPercentage / 100d);
 
             var energy_provided_in_megajoules = CheatOptions.InfiniteElectricity
                 ? energy_requested_in_megajoules
-                : consumeFNResource(energy_requested_in_megajoules, FNResourceManager.FNRESOURCE_MEGAJOULES);
+                : consumeFNResource(energy_requested_in_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             electrical_power_ratio = energy_requested_in_megajoules > 0 ? energy_provided_in_megajoules / energy_requested_in_megajoules : 0; 
 

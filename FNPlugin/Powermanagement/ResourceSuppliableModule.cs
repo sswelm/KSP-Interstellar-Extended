@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace FNPlugin
 {
-    public abstract class ORSResourceSuppliableModule : PartModule, ORSResourceSuppliable, IORSResourceSupplier
+    abstract class ResourceSuppliableModule : PartModule, IResourceSuppliable, IResourceSupplier
     {
         [KSPField(isPersistant = false, guiActive = false, guiName = "Update Counter")]
         public long updateCounter = 0;
 
+        protected List<Part> similarParts;
+        protected int partNrInList;
         protected Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
         protected String[] resources_to_supply;
         protected double timeWarpFixedDeltaTime;
@@ -26,7 +29,7 @@ namespace FNPlugin
             power_fixed = Math.Max(power_fixed, 0);
             double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -40,7 +43,7 @@ namespace FNPlugin
             return power_taken_fixed;
         }
 
-        public double consumeFNResourcePerSecond(double power_per_second, String resourcename, ORSResourceManager manager = null)
+        public double consumeFNResourcePerSecond(double power_per_second, String resourcename, ResourceManager manager = null)
         {
             power_per_second = Math.Max(power_per_second, 0);
 
@@ -62,7 +65,7 @@ namespace FNPlugin
 
         public double supplyFNResourceFixed(double supply, String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -71,7 +74,7 @@ namespace FNPlugin
 
         public double supplyFNResourcePerSecond(double supply, String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -80,7 +83,7 @@ namespace FNPlugin
 
         public double supplyFNResourceFixedWithMax(double supply, double maxsupply, String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -89,7 +92,7 @@ namespace FNPlugin
 
         public double supplyFNResourcePerSecondWithMax(double supply, double maxsupply, String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -98,14 +101,14 @@ namespace FNPlugin
 
         public double supplyManagedFNResourcePerSecond(double supply, String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
             return manager.managedPowerSupplyPerSecond(this, Math.Max(supply, 0));
         }
 
-        public double getNeededPowerSupplyPerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ORSResourceManager manager = null)
+        public double getNeededPowerSupplyPerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ResourceManager manager = null)
         {
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
@@ -118,7 +121,7 @@ namespace FNPlugin
             return manager.getNeededPowerSupplyPerSecondWithMinimumRatio(Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
-        public double supplyManagedFNResourcePerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ORSResourceManager manager = null)
+        public double supplyManagedFNResourcePerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ResourceManager manager = null)
         {
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
@@ -128,7 +131,7 @@ namespace FNPlugin
             return manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
-		public double managedProvidedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ORSResourceManager manager = null)
+		public double managedProvidedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
         {
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
@@ -140,7 +143,7 @@ namespace FNPlugin
 	        return result.currentProvided;
         }
 
-		public PowerGenerated managedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ORSResourceManager manager = null)
+		public PowerGenerated managedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
 		{
 			if (manager == null)
 				manager = getManagerForVessel(resourcename);
@@ -152,7 +155,7 @@ namespace FNPlugin
 
         public double getCurrentResourceDemand(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -161,7 +164,7 @@ namespace FNPlugin
 
         public double getStableResourceSupply(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -170,7 +173,7 @@ namespace FNPlugin
 
         public double getCurrentHighPriorityResourceDemand(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -179,7 +182,7 @@ namespace FNPlugin
 
         public double getAvailableResourceSupply(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -188,7 +191,7 @@ namespace FNPlugin
 
         public double getResourceSupply(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -197,7 +200,7 @@ namespace FNPlugin
 
         public double GetOverproduction(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -206,7 +209,7 @@ namespace FNPlugin
 
         public double getDemandStableSupply(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -215,7 +218,7 @@ namespace FNPlugin
 
         public double getResourceDemand(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -224,7 +227,7 @@ namespace FNPlugin
 
         public double GetRequiredResourceDemand(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -233,7 +236,7 @@ namespace FNPlugin
 
         public double GetCurrentUnfilledResourceDemand(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -242,7 +245,7 @@ namespace FNPlugin
 
         public double GetPowerSupply(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -251,7 +254,7 @@ namespace FNPlugin
 
         public double GetCurrentResourceDemand(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -260,7 +263,7 @@ namespace FNPlugin
 
         public double getResourceBarRatio(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -269,7 +272,7 @@ namespace FNPlugin
 
         public double getSpareResourceCapacity(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -278,7 +281,7 @@ namespace FNPlugin
 
         public double getResourceAvailability(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -287,7 +290,7 @@ namespace FNPlugin
 
         public double getTotalResourceCapacity(String resourcename)
         {
-            ORSResourceManager manager = getManagerForVessel(resourcename);
+            ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
@@ -298,9 +301,18 @@ namespace FNPlugin
         {
             if (state == StartState.Editor || resources_to_supply == null) return;
 
+            part.OnJustAboutToBeDestroyed -= OnJustAboutToBeDestroyed;
+            part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
+
+            if (vessel != null && vessel.parts != null)
+            {
+                similarParts = vessel.parts.Where(m => m.partInfo.title == this.part.partInfo.title).ToList();
+                partNrInList = 1 + similarParts.IndexOf(this.part);
+            }
+
             foreach (String resourcename in resources_to_supply)
             {
-                ORSResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+                ResourceManager manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
                 if (manager == null)
                 {
@@ -315,6 +327,17 @@ namespace FNPlugin
                 priorityManager.Register(this);
         }
 
+        private void OnJustAboutToBeDestroyed()
+        {
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
+            UnityEngine.Debug.LogWarning("[KSPI] - detecting supplyable part " + part.partInfo.title + " is being destroyed");
+
+            var priority_manager = getSupplyPriorityManager(this.vessel);
+            if (priority_manager != null)
+                priority_manager.Unregister(this);
+        }
+
         protected double TimeWarpFixedDeltaTime
         {
             get { return (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7); }
@@ -324,42 +347,40 @@ namespace FNPlugin
         {
             timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
 
-            try
+            updateCounter++;
+
+            if (resources_to_supply == null) return;
+
+            foreach (String resourcename in resources_to_supply)
             {
-                updateCounter++;
+                var overmanager = getOvermanagerForResource(resourcename);
 
-                if (resources_to_supply == null) return;
+                ResourceManager resource_manager =  overmanager != null ? overmanager.getManagerForVessel(vessel) : null;
 
-                foreach (String resourcename in resources_to_supply)
+                if (resource_manager == null)
                 {
-                    ORSResourceManager resource_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+                    resource_manager = createResourceManagerForResource(resourcename);
+                    Debug.Log("[KSPI] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
+                }
 
-                    if (resource_manager == null)
-                    {
-                        resource_manager = createResourceManagerForResource(resourcename);
-                        Debug.Log("[KSPI] Creating Resource Manager for Vessel " + vessel.GetName() + " (" + resourcename + ")");
-                    }
-
-                    if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || resource_manager.Counter < updateCounter )
+                if (resource_manager != null)
+                {
+                    if (resource_manager.PartModule == null || resource_manager.PartModule.vessel != this.vessel || resource_manager.Counter < updateCounter)
                         resource_manager.UpdatePartModule(this);
 
                     if (resource_manager.PartModule == this)
                         resource_manager.update(updateCounter);
                 }
-
-                var priority_manager = getSupplyPriorityManager(this.vessel);
-                if (priority_manager != null && priority_manager.ProcessingPart == null || priority_manager.ProcessingPart.vessel != this.vessel || priority_manager.Counter < updateCounter)
-                {
-                    priority_manager.UpdatePartModule(this);
-                }
-
-                if (priority_manager != null && priority_manager.ProcessingPart == this)
-                    priority_manager.UpdateResourceSuppliables(updateCounter, timeWarpFixedDeltaTime);
             }
-            catch (Exception e)
+
+            var priority_manager = getSupplyPriorityManager(this.vessel);
+            if (priority_manager != null)
             {
-                Debug.LogError("[KSPI] - Exception in ORSResourceSuppliableModule.OnFixedUpdate " + e.Message);
-                throw;
+                if (priority_manager.ProcessingPart == null || priority_manager.ProcessingPart.vessel != this.vessel || priority_manager.Counter < updateCounter)
+                    priority_manager.UpdatePartModule(this);
+
+                if (priority_manager.ProcessingPart == this)
+                    priority_manager.UpdateResourceSuppliables(updateCounter, timeWarpFixedDeltaTime);
             }
         }
 
@@ -367,7 +388,7 @@ namespace FNPlugin
         {
             foreach (String resourcename in resources_to_supply)
             {
-                ORSResourceManager resource_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+                ResourceManager resource_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
 
                 if (resource_manager != null && resource_manager.PartModule == this)
                     resource_manager.UpdatePartModule(null);
@@ -376,7 +397,11 @@ namespace FNPlugin
 
         public virtual string getResourceManagerDisplayName()
         {
-            return ClassName;
+            string displayName = part.partInfo.title;
+            if (similarParts != null && similarParts.Count > 1)
+                displayName += " " + partNrInList;
+
+            return displayName;
         }
 
         public virtual int getPowerPriority()
@@ -384,22 +409,22 @@ namespace FNPlugin
             return 2;
         }
 
-        protected virtual ORSResourceManager createResourceManagerForResource(string resourcename)
+        protected virtual ResourceManager createResourceManagerForResource(string resourcename)
         {
             return getOvermanagerForResource(resourcename).createManagerForVessel(this);
         }
 
-        protected virtual ORSResourceOvermanager getOvermanagerForResource(string resourcename)
+        protected virtual ResourceOvermanager getOvermanagerForResource(string resourcename)
         {
-            return ORSResourceOvermanager.getResourceOvermanagerForResource(resourcename);
+            return ResourceOvermanager.getResourceOvermanagerForResource(resourcename);
         }
 
-        protected virtual ORSResourceManager getManagerForVessel(string resourcename)
+        protected virtual ResourceManager getManagerForVessel(string resourcename)
         {
             return getManagerForVessel(resourcename, vessel);
         }
 
-        protected virtual ORSResourceManager getManagerForVessel(string resourcename, Vessel vessel)
+        protected virtual ResourceManager getManagerForVessel(string resourcename, Vessel vessel)
         {
             var overmanager = getOvermanagerForResource(resourcename);
             if (overmanager == null)
@@ -415,6 +440,9 @@ namespace FNPlugin
             return SupplyPriorityManager.GetSupplyPriorityManagerForVessel(vessel);
         }
 
-        public abstract void OnFixedUpdateResourceSuppliable(double fixedDeltaTime);
+        public virtual void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
+        {
+
+        }
     }
 }

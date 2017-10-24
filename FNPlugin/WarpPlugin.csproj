@@ -25,48 +25,10 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release KSP 0.90|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>.\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release KSP 0.25|AnyCPU'">
-    <OutputPath>bin\Release KSP 0.25\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug KSP 0.90|AnyCPU'">
-    <OutputPath>..\..\..\..\..\Games\Kerbal Space Program 0.90\GameData\WarpPlugin\Plugins\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <Optimize>false</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release KSP 1.0|AnyCPU'">
-    <OutputPath>bin\Release KSP 1.0\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
     <Prefer32Bit>false</Prefer32Bit>
+    <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
@@ -112,11 +74,11 @@
     <Compile Include="Beamedpower\BeamGenerator.cs" />
     <Compile Include="Beamedpower\BandwidthConverter.cs" />
     <Compile Include="IUpgradeableModule.cs" />
-    <Compile Include="Powermanagement\ORSResourceManager.cs" />
-    <Compile Include="Powermanagement\ORSResourceOvermanager.cs" />
-    <Compile Include="Powermanagement\ORSResourceSuppliable.cs" />
-    <Compile Include="Powermanagement\ORSResourceSuppliableModule.cs" />
-    <Compile Include="Powermanagement\ORSResourceSupplier.cs" />
+    <Compile Include="Powermanagement\ResourceManager.cs" />
+    <Compile Include="Powermanagement\ResourceOvermanager.cs" />
+    <Compile Include="Powermanagement\IResourceSuppliable.cs" />
+    <Compile Include="Powermanagement\ResourceSuppliableModule.cs" />
+    <Compile Include="Powermanagement\IResourceSupplier.cs" />
     <Compile Include="Powermanagement\SupplyPriorityManager.cs" />
     <Compile Include="Propulsion\AlcubierreDrive.cs" />
     <Compile Include="Propulsion\EngineECU2.cs" />
@@ -175,7 +137,6 @@
     <Compile Include="Wasteheat\FNModulePreecooler.cs" />
     <Compile Include="Science\DTMagnetometer.cs" />
     <Compile Include="Reactors\FNAntimatterReactor.cs" />
-    <Compile Include="Powermanagement\FNResourceOvermanager.cs" />
     <Compile Include="Science\FNSeismicProbe.cs" />
     <Compile Include="Reactors\FNThermalHeatExchanger.cs" />
     <Compile Include="Refinery\InterstellarRefinery.cs" />
@@ -187,8 +148,6 @@
     <Compile Include="Reactors\InterstellarReactor.cs" />
     <Compile Include="Reactors\InterstellarTokomakFusionReator.cs" />
     <Compile Include="Collectors\ISRUScoop.cs" />
-    <Compile Include="Wasteheat\FNResourceManager.cs" />
-    <Compile Include="Powermanagement\FNResourceSuppliableModule.cs" />
     <Compile Include="Beamedpower\MicrowavePowerReceiver.cs" />
     <Compile Include="Beamedpower\MicrowavePowerTransmitter.cs" />
     <Compile Include="Beamedpower\MicrowaveRoute.cs" />

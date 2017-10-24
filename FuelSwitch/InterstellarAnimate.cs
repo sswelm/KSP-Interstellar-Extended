@@ -164,7 +164,7 @@ namespace InterstellarFuelSwitch
 			}
 			catch(Exception ex)
 			{
-                Debug.LogError("[ORS] - InterstellarAnimate in OnLoad: " + ex.Message);
+                Debug.LogError("[KSPI] - InterstellarAnimate in OnLoad: " + ex.Message);
 				animationState = SSTUAnimState.RETRACTED;
 			}
 			updateGuiLabels();
