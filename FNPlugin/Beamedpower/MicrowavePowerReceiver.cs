@@ -1949,8 +1949,8 @@ namespace FNPlugin
 		{
 			if (alternatorRatio == 0)
 				return;
-			
-			supplyFNResourceFixed(alternatorRatio * powerInputMegajoules * TimeWarp.fixedDeltaTime / 1000, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+			supplyFNResourcePerSecond(alternatorRatio * powerInputMegajoules / 1000, ResourceManager.FNRESOURCE_MEGAJOULES);
 		}
 
 		private void ProcesSolarCellEnergy()

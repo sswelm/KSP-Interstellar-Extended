@@ -5,7 +5,7 @@ namespace FNPlugin
     [KSPModule("Inertial Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor
     {
-		// Configs
+        // Configs
         [KSPField(guiActiveEditor = true)]
         protected string primaryInputResource = ResourceManager.FNRESOURCE_MEGAJOULES;
         [KSPField(guiActiveEditor = true)]
@@ -31,9 +31,9 @@ namespace FNPlugin
         [KSPField]
         public float startupMinimumChargePercentage = 0;
 
-		// Persistant
-		[KSPField(isPersistant = true)]
-		public double accumulatedElectricChargeInMW;
+        // Persistant
+        [KSPField(isPersistant = true)]
+        public double accumulatedElectricChargeInMW;
         [KSPField(guiActiveEditor = true, guiName = "Power Affects Maintenance")]
         public bool powerControlAffectsMaintenance = false;
         [KSPField(isPersistant = true, guiName = "Startup"), UI_Toggle(disabledText = "Off", enabledText = "Charging")]
@@ -42,8 +42,8 @@ namespace FNPlugin
         public float maxSecondaryPowerUsage = 90;
 
         // UI Display
-		[KSPField(guiActive = true, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
-		public double minimumThrottlePercentage;
+        [KSPField(guiActive = true, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
+        public double minimumThrottlePercentage;
         [KSPField(guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
         [KSPField(guiActive = true, guiName = "Power Requirment")]
@@ -267,7 +267,7 @@ namespace FNPlugin
                     currentSecondaryRatio = currentSecondaryCapacity > 0 ? currentSecondaryAmount / currentSecondaryCapacity : 0;
                 }
 
-                var secondaryPowerMaxRatio = maxSecondaryPowerUsage / 100d;
+                var secondaryPowerMaxRatio = ((double)(decimal)maxSecondaryPowerUsage) / 100d;
 
                 // only use buffer if we have sufficient in storage
                 if (currentSecondaryRatio > secondaryPowerMaxRatio)
@@ -363,7 +363,7 @@ namespace FNPlugin
             {
                 if (!initialized || shutdownAnimation == null || loopingAnimation.IsMoving()) return;
 
-                if (animationStarted == 0)
+                if (!(animationStarted >= 0))
                 {
                     animationStarted = Planetarium.GetUniversalTime();
                     shutdownAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));

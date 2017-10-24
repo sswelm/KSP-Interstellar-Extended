@@ -280,8 +280,8 @@ namespace FNPlugin
         {
             powerEnabled = !powerEnabled;
 
-            power_recieved_f = powerEnabled ? CheatOptions.InfiniteElectricity ? 1 : consumeFNResource(0.1, ResourceManager.FNRESOURCE_MEGAJOULES) : 0;
-            hasSufficientPower = power_recieved_f > 0.01;
+            power_recieved_f = powerEnabled ? CheatOptions.InfiniteElectricity ? 1 : consumeFNResourcePerSecond(0.1, ResourceManager.FNRESOURCE_MEGAJOULES) : 0;
+            hasSufficientPower = power_recieved_f >= 0.09;
             SetupPropellants();
             currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
         }
@@ -404,8 +404,8 @@ namespace FNPlugin
             if (delayedVerificationPropellant)
             {
                 // test is we got any megajoules
-                power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResource(powerMult, ResourceManager.FNRESOURCE_MEGAJOULES);
-                hasSufficientPower = power_recieved_f > powerMult / 10;
+                power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResourcePerSecond(powerMult, ResourceManager.FNRESOURCE_MEGAJOULES);
+                hasSufficientPower = power_recieved_f > powerMult * 0.99;
 
                 // return test power
                 if (!CheatOptions.InfiniteElectricity && power_recieved_f > 0)
@@ -480,10 +480,10 @@ namespace FNPlugin
                     power_recieved_f = power_requested_f;
                 else
                 {
-	                var avaialablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-					power_recieved_f = avaialablePower >= power_requested_f 
-						? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES) 
-						: 0;
+                    var avaialablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    power_recieved_f = avaialablePower >= power_requested_f 
+                        ? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES) 
+                        : 0;
                 }
 
                 double heat_to_produce = power_recieved_f * (1 - efficiency);

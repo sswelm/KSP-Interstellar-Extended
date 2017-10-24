@@ -220,23 +220,20 @@ namespace FNPlugin.Refinery
 
             currentPowerReq = powerReqMult * _current_activity.PowerRequirements * baseProduction;
 
-            var totalPowerRequiredThisFrame = currentPowerReq * TimeWarp.fixedDeltaTime;
+			var powerRequest = currentPowerReq * (powerPercentage / 100);
 
-            var powerRequest = totalPowerRequiredThisFrame * (powerPercentage / 100);
-
-            var fixedConsumedPowerMW = CheatOptions.InfiniteElectricity
+			consumedPowerMW = CheatOptions.InfiniteElectricity
                 ? powerRequest
-				: powerSupply.ConsumeMegajoulesFixed(powerRequest);
+				: powerSupply.ConsumeMegajoulesPerSecond(powerRequest);
 
-            consumedPowerMW = fixedConsumedPowerMW / TimeWarp.fixedDeltaTime;
 
-            var shortage = Math.Max(totalPowerRequiredThisFrame - fixedConsumedPowerMW, 0);
+			var shortage = Math.Max(currentPowerReq - consumedPowerMW, 0);
 
-            var recievedElectricCharge = part.RequestResource("ElectricCharge", shortage * 1000);
+            var recievedElectricCharge = part.RequestResource("ElectricCharge", shortage * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
 
-            fixedConsumedPowerMW += recievedElectricCharge / 1000;
+			consumedPowerMW += recievedElectricCharge / 1000;
 
-            var power_ratio = totalPowerRequiredThisFrame > 0 ? fixedConsumedPowerMW / totalPowerRequiredThisFrame : 0;
+			var power_ratio = currentPowerReq > 0 ? consumedPowerMW / currentPowerReq : 0;
 
             utilisationPercentage = power_ratio * 100;
 

@@ -20,8 +20,6 @@ namespace FNPlugin
         public double minimumSupply { get; set; }
     }
 
-
-
     public class ResourceManager 
     {
         public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
@@ -31,8 +29,8 @@ namespace FNPlugin
         public const string FNRESOURCE_WASTEHEAT = "WasteHeat";
 
         public const double ONE_THIRD = 1.0 / 3.0;
-        public const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
-        public const int FNRESOURCE_FLOWTYPE_EVEN = 1;
+        private const int FNRESOURCE_FLOWTYPE_SMALLEST_FIRST = 0;
+        private const int FNRESOURCE_FLOWTYPE_EVEN = 1;
                
         Vessel my_vessel;
         Part my_part;
@@ -143,10 +141,10 @@ namespace FNPlugin
             this.resource_name = resource_name;
 
             resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
-            electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
-            megajouleResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceManager.FNRESOURCE_MEGAJOULES); 
-            thermalpowerResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceManager.FNRESOURCE_THERMALPOWER);
-            chargedpowerResourceDefinition = PartResourceLibrary.Instance.GetDefinition(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+            electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(STOCK_RESOURCE_ELECTRICCHARGE);
+            megajouleResourceDefinition = PartResourceLibrary.Instance.GetDefinition(FNRESOURCE_MEGAJOULES); 
+            thermalpowerResourceDefinition = PartResourceLibrary.Instance.GetDefinition(FNRESOURCE_THERMALPOWER);
+            chargedpowerResourceDefinition = PartResourceLibrary.Instance.GetDefinition(FNRESOURCE_CHARGED_PARTICLES);
 
             producesWasteHeat = resourceDefinition.id == thermalpowerResourceDefinition.id || resourceDefinition.id == chargedpowerResourceDefinition.id;
 

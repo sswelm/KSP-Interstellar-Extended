@@ -263,8 +263,8 @@ namespace FNPlugin
 
                 // calculate available power
                 double powerreceivedMW =  CheatOptions.InfiniteElectricity 
-                    ? powerRequest 
-                    : Math.Max(consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES), 0);
+                    ? powerRequest
+                    : Math.Max(consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES, TimeWarp.fixedDeltaTime), 0);
 
                 double normalisedRevievedPowerMW = powerreceivedMW / TimeWarp.fixedDeltaTime;
 

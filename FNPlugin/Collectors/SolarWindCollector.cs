@@ -292,11 +292,11 @@ namespace FNPlugin
         // calculates solar wind concentration
         private static double CalculateSolarWindConcentration(double flux)
         {
-            double dAvgKerbinSolarFlux = 1409.285; // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
-            double dAvgSolarWindPerCubM = 6000; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
+            var dAvgKerbinSolarFlux = 1409.285; // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
+            var dAvgSolarWindPerCubM = 6000; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
 
-            double solarWindSpeed = 500000; // Average Solar win speed 500 km/s
-            double avogadroConstant = 6.022140857e+23; // number of atmons 
+            var solarWindSpeed = 500000; // Average Solar win speed 500 km/s
+            var avogadroConstant = 6.022140857e+23; // number of atmons 
 
             double dConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed / avogadroConstant;
             return dConcentration;
@@ -305,21 +305,18 @@ namespace FNPlugin
         // calculates the distance to sun
         private static double CalculateDistanceToSun(Vector3d vesselPosition, Vector3d sunPosition)
         {
-            double dDistance = Vector3d.Distance(vesselPosition, sunPosition);
-            return dDistance;
+            return Vector3d.Distance(vesselPosition, sunPosition);
         }
 
         // helper function for readying the distance for the GUI
         private string UpdateDistanceInGUI()
         {
-            string distance = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F0") + " km";
-            return distance;
+            return ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) / 1000).ToString("F0") + " km";
         }
 
         private string UpdateMagnetoStrengthInGUI()
         {
-            string magneto = (GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))* 100).ToString("F1");
-            return magneto;
+            return (GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))* 100).ToString("F1");
         }
 
         // the main collecting function
@@ -327,8 +324,8 @@ namespace FNPlugin
         {
             massConcentrationPerSquareMeterPerSecond = CalculateSolarWindConcentration(part.vessel.solarFlux);
 
-            string strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
-            double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
+            var strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
+            var dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
 
             // checks for free space in solar wind 'tanks'
             dSolarWindSpareCapacity = part.GetResourceSpareCapacity(strSolarWindResourceName);
@@ -342,18 +339,17 @@ namespace FNPlugin
             if (massConcentrationPerSquareMeterPerSecond > 0 && (dSolarWindSpareCapacity > 0))
             {
                 // calculate available power
-                double dPowerReceivedMW = Math.Max(consumeFNResource(dPowerRequirementsMW * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES), 0);
-                double dNormalisedRevievedPowerMW = dPowerReceivedMW / TimeWarp.fixedDeltaTime;
+                var dNormalisedRevievedPowerMW = Math.Max(consumeFNResourcePerSecond(dPowerRequirementsMW, ResourceManager.FNRESOURCE_MEGAJOULES), 0);
 
                 // if power requirement sufficiently low, retreive power from KW source
                 if (dPowerRequirementsMW < 2 && dNormalisedRevievedPowerMW <= dPowerRequirementsMW)
                 {
-                    double dRequiredKW = (dPowerRequirementsMW - dNormalisedRevievedPowerMW) * 1000;
-                    double dReceivedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime);
-                    dPowerReceivedMW += (dReceivedKW / 1000);
+                    var dRequiredKW = (dPowerRequirementsMW - dNormalisedRevievedPowerMW) * 1000;
+                    var dReceivedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, dRequiredKW * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                    dNormalisedRevievedPowerMW += (dReceivedKW / 1000);
                 }
 
-                dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : (dPowerReceivedMW / dPowerRequirementsMW / TimeWarp.fixedDeltaTime);
+                dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : (dNormalisedRevievedPowerMW / dPowerRequirementsMW);
 
                 // show in GUI
                 strCollectingStatus = "Collecting solar wind";
@@ -395,8 +391,7 @@ namespace FNPlugin
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
-            dResourceFlow = part.RequestResource(strSolarWindResourceName, -dResourceChange);
-            dResourceFlow = -dResourceFlow / TimeWarp.fixedDeltaTime;
+            dResourceFlow = -part.RequestResource(strSolarWindResourceName, -dResourceChange) / TimeWarp.fixedDeltaTime;
         }
 
     }

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
 
 namespace FNPlugin 
 {
@@ -25,9 +22,7 @@ namespace FNPlugin
             return fnro;
         }
 
-        public ResourceOvermanager() {}
-
-        public ResourceOvermanager(String name) 
+	    public ResourceOvermanager(String name) 
         {
             managers = new Dictionary<Vessel, ResourceManager>();
             this.resource_name = name;

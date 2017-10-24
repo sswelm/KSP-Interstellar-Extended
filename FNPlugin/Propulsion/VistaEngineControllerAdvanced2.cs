@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin
@@ -19,10 +18,11 @@ namespace FNPlugin
         public float localIsp = defaultMinIsp + (stepNumb * defaultSteps);
 
         // settings
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double neutronAbsorptionFractionAtMinIsp = 0.5;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double maxThrustEfficiencyByIspPower = 2;
+
         public float minIsp = 15500;
         public FloatCurve atmophereCurve;
 
@@ -48,7 +48,7 @@ namespace FNPlugin
         protected override float MinIsp { get { return minIsp; } set { if (value <= 10) { minIsp = value + .01f;  } else { minIsp = value; } } }
         protected override float MaxIsp { get { return minIsp / maxMin; } }
         protected override float MaxMin { get { return maxMin; } }
-		protected override double MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
+        protected override double MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
         protected override double NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
     }
 
@@ -119,9 +119,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double efficiency = 0.19f;
         [KSPField(isPersistant = false)]
-		public double efficiencyUpgraded = 0.38;
+        public double efficiencyUpgraded = 0.38;
         [KSPField(isPersistant = false)]
-		public double efficiencyUpgraded2 = 0.76;
+        public double efficiencyUpgraded2 = 0.76;
 
         [KSPField(isPersistant = false)]
         public float fusionWasteHeat = 625;
@@ -175,7 +175,7 @@ namespace FNPlugin
         protected abstract float MaxIsp { get; }
         protected abstract float MaxMin { get; }
         protected abstract double MaxThrustEfficiencyByIspPower { get; }
-		protected abstract double NeutronAbsorptionFractionAtMinIsp { get; }
+        protected abstract double NeutronAbsorptionFractionAtMinIsp { get; }
         protected abstract FloatCurve OrigFloatCurve { get; set; }
 
 
@@ -375,14 +375,14 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-				// calculate WasteHeat Capacity
-				var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
-				if (wasteheatPowerResource != null)
-				{
-					var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-					wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-					wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-				}
+                // calculate WasteHeat Capacity
+                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
+                if (wasteheatPowerResource != null)
+                {
+                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
+                    wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
+                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+                }
 
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
@@ -508,27 +508,25 @@ namespace FNPlugin
             {
                 // Calculate Fusion Ratio
                 enginePowerRequirement = CurrentPowerRequirement;
-                var requestedPowerFixed = enginePowerRequirement * TimeWarp.fixedDeltaTime;
 
-                var recievedPowerFixed = CheatOptions.InfiniteElectricity 
-                    ? requestedPowerFixed 
-                    : consumeFNResource(requestedPowerFixed, ResourceManager.FNRESOURCE_MEGAJOULES);
+                var recievedPowerFixed = CheatOptions.InfiniteElectricity
+                    ? enginePowerRequirement
+                    : consumeFNResourcePerSecond(enginePowerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                var plasma_ratio = recievedPowerFixed / requestedPowerFixed;
+                var plasma_ratio = recievedPowerFixed / enginePowerRequirement;
                 fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75f ? Mathf.Pow((float)plasma_ratio, 6) : 0;
 
-                var laserWasteheatFixed = recievedPowerFixed * (1 - LaserEfficiency);
-                laserWasteheat = laserWasteheatFixed / TimeWarp.fixedDeltaTime;
+                laserWasteheat = recievedPowerFixed * (1 - LaserEfficiency);
 
                 // Lasers produce Wasteheat
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourceFixed(laserWasteheatFixed, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(enginePowerRequirement, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
                 var rateMultplier = MinIsp / SelectedIsp;
                 var neutronbsorbionBonus = 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp)));
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;
-                supplyFNResourceFixed(absorbedWasteheat * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourcePerSecond(absorbedWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)standard_deuterium_rate / rateMultplier;
@@ -540,11 +538,10 @@ namespace FNPlugin
 
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
-				maximumThrust = (float)MaximumThrust;
+                maximumThrust = (float)MaximumThrust;
 
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
-				curEngineT.maxThrust = maximumThrust;
-
+                curEngineT.maxThrust = maximumThrust;
                 
 
                 if (!curEngineT.getFlameoutState && plasma_ratio < 0.75 && recievedPowerFixed > 0)

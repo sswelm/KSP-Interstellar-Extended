@@ -293,8 +293,8 @@ namespace FNPlugin
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(new_warp_speed);
 
             double power_returned = CheatOptions.InfiniteElectricity 
-                ? currentPowerRequirementForWarp 
-                : consumeFNResource(currentPowerRequirementForWarp * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                ? currentPowerRequirementForWarp
+                : consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             if (power_returned < 0.99 * currentPowerRequirementForWarp)
             {

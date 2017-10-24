@@ -480,15 +480,15 @@ namespace FNPlugin
             }
 
             var power_received = CheatOptions.InfiniteElectricity 
-                ? power_request 
-                : consumeFNResource(power_request * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                ? power_request
+                : consumeFNResourcePerSecond(power_request, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             // produce waste heat
             var heat_to_produce = power_received * (1 - currentPropellantEfficiency) * Current_propellant.WasteHeatMultiplier;
 
             var heat_production = CheatOptions.IgnoreMaxTemperature 
-                ? heat_to_produce 
-                : supplyFNResourceFixed(heat_to_produce * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+                ? heat_to_produce
+                : supplyFNResourcePerSecond(heat_to_produce, ResourceManager.FNRESOURCE_WASTEHEAT);
 
             // update GUI Values
             _electrical_consumption_f = power_received;

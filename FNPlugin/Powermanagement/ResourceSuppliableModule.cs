@@ -24,18 +24,18 @@ namespace FNPlugin
                 fnresource_supplied.Add(resourcename, power);
         }
 
-        public double consumeFNResource(double power_fixed, String resourcename)
+        public double consumeFNResource(double power_fixed, String resourcename, double fixedDeltaTime = 0)
         {
             power_fixed = Math.Max(power_fixed, 0);
-            double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 
-            ResourceManager manager = getManagerForVessel(resourcename);
+            var manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
 
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
 
+            fixedDeltaTime = fixedDeltaTime > 0 ? fixedDeltaTime : (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
             double power_taken_fixed = Math.Max(Math.Min(power_fixed, fnresource_supplied[resourcename] * fixedDeltaTime), 0);
             fnresource_supplied[resourcename] -= power_taken_fixed / fixedDeltaTime;
             manager.powerDrawFixed(this, power_fixed, power_taken_fixed);
@@ -131,7 +131,7 @@ namespace FNPlugin
             return manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
-		public double managedProvidedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
+        public double managedProvidedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
         {
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
@@ -140,18 +140,18 @@ namespace FNPlugin
 
             var result = manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
 
-	        return result.currentProvided;
+            return result.currentProvided;
         }
 
-		public PowerGenerated managedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
-		{
-			if (manager == null)
-				manager = getManagerForVessel(resourcename);
-			if (manager == null)
-				return null;
+        public PowerGenerated managedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
+        {
+            if (manager == null)
+                manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return null;
 
-			return manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
-		}
+            return manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
+        }
 
         public double getCurrentResourceDemand(String resourcename)
         {

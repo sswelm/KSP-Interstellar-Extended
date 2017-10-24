@@ -18,9 +18,9 @@ namespace FNPlugin.Refinery
 			displayName = part.partInfo.title;
 		}
 
-		public double ConsumeMegajoulesFixed(double powerRequest)
+		public double ConsumeMegajoulesFixed(double powerRequest, double fixedDeltaTime)
 		{
-            return consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES);
+			return consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES, fixedDeltaTime);
 		}
 
 		public double ConsumeMegajoulesPerSecond(double powerRequest)

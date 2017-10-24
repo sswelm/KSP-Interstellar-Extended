@@ -302,14 +302,14 @@ namespace FNPlugin
                 power_requested_f = currentThrust * currentIsp * efficencyModifier / currentThrustMultiplier;
 
                 power_recieved_f = CheatOptions.InfiniteElectricity 
-                    ? power_requested_f 
-                    : consumeFNResource(power_requested_f * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
+                    ? power_requested_f
+                    : consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 double heat_to_produce = power_recieved_f * (1 - efficency);
 
                 heat_production_f = CheatOptions.IgnoreMaxTemperature 
-                    ? heat_to_produce 
-                    : supplyFNResourceFixed(heat_to_produce * TimeWarp.fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT) / TimeWarp.fixedDeltaTime;
+                    ? heat_to_produce
+                    : supplyFNResourcePerSecond(heat_to_produce, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 power_ratio = power_requested_f > 0 ? Math.Min(power_recieved_f / power_requested_f, 1) : 1;
             }

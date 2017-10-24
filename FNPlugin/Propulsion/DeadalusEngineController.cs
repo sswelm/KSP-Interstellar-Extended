@@ -171,7 +171,7 @@ namespace FNPlugin
 		public float MaximumThrust { get { return isupgraded ? maxThrustUpgraded : maxThrust; } }
 		public float FusionWasteHeat { get { return isupgraded ? fusionWasteHeatUpgraded : fusionWasteHeat; } }
 
-		public double PowerRequirement
+		public double EffectivePowerRequirement
 		{
 			get
 			{
@@ -236,7 +236,7 @@ namespace FNPlugin
 			{
                 if (HighLogic.LoadedSceneIsEditor)
                 {
-                    powerUsage = (PowerRequirement / 1000d).ToString("0.000") + " GW";
+                    powerUsage = (EffectivePowerRequirement / 1000d).ToString("0.000") + " GW";
                     return;
                 }
 
@@ -421,7 +421,7 @@ namespace FNPlugin
 				{
 					UpdateAtmosphericCurve();
 
-					fusionRatio = ProcessPowerAndWasteHeat(throttle, TimeWarp.fixedDeltaTime);
+					fusionRatio = ProcessPowerAndWasteHeat(throttle);
 
 					// Update FuelFlow
 					effectiveThrust = timeDilation * timeDilation * MaximumThrust * fusionRatio;
@@ -446,8 +446,8 @@ namespace FNPlugin
 					fusionRatio = CheatOptions.InfiniteElectricity 
 						? 1 
 						: maximizeThrust 
-							? ProcessPowerAndWasteHeat(1, TimeWarp.fixedDeltaTime) 
-							: ProcessPowerAndWasteHeat(storedThrotle, TimeWarp.fixedDeltaTime);
+							? ProcessPowerAndWasteHeat(1) 
+							: ProcessPowerAndWasteHeat(storedThrotle);
 
 					if (TimeWarp.fixedDeltaTime > 20)
 					{
@@ -465,7 +465,7 @@ namespace FNPlugin
 				}
 				else
 				{
-                    powerUsage = "0.000 GW / " + (PowerRequirement / 1000d).ToString("0.000") + " GW";
+                    powerUsage = "0.000 GW / " + (EffectivePowerRequirement / 1000d).ToString("0.000") + " GW";
 
 					if (!(percentageFuelRemaining > (100 - fuelLimit) || lightSpeedRatio > speedLimit))
 					{
@@ -486,7 +486,6 @@ namespace FNPlugin
 				}
 
 				stopWatch.Stop();
-				//onFixedUpdateBenchmark = stopWatch.ElapsedTicks * (1d / Stopwatch.Frequency) * 1000d;
 			}
 			catch (Exception e)
 			{
@@ -529,29 +528,30 @@ namespace FNPlugin
 				vessel.orbit.Perturb(deltaVV, modifiedUniversalTime);
 		}
 
-		private double ProcessPowerAndWasteHeat(float throtle, float fixedDeltaTime)
+		private double ProcessPowerAndWasteHeat(float throtle)
 		{
 			// Calculate Fusion Ratio
-			var powerRequirementFixed = PowerRequirement * fixedDeltaTime;
-			var requestedPower = (curEngineT.thrustPercentage / 100d) * throtle * powerRequirementFixed;
+			var effectivePowerRequirement = EffectivePowerRequirement;
+			var thrustPercentage = (double)(decimal)curEngineT.thrustPercentage;
+			var requestedPower = (thrustPercentage / 100d) * throtle * effectivePowerRequirement;
 
 			var recievedPower = CheatOptions.InfiniteElectricity 
-				? requestedPower 
-				: consumeFNResource(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+				? requestedPower
+				: consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-			var plasma_ratio = powerRequirementFixed > 0 ? recievedPower / powerRequirementFixed : 0;
+			var plasma_ratio = effectivePowerRequirement > 0 ? recievedPower / effectivePowerRequirement : 0;
 			var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.01 ? plasma_ratio : 0;
 
-            powerUsage = (recievedPower / fixedDeltaTime / 1000d).ToString("0.000") + " GW / " + (PowerRequirement / 1000d).ToString("0.000") + " GW";
+			powerUsage = (recievedPower / 1000d).ToString("0.000") + " GW / " + (effectivePowerRequirement / 1000d).ToString("0.000") + " GW";
 
 
 			if (!CheatOptions.IgnoreMaxTemperature)
 			{
 				// Lasers produce Wasteheat
-				supplyFNResourceFixed(recievedPower * (1 - Efficiency), ResourceManager.FNRESOURCE_WASTEHEAT);
+				supplyFNResourcePerSecond(recievedPower * (1 - Efficiency), ResourceManager.FNRESOURCE_WASTEHEAT);
 
 				// The Aborbed wasteheat from Fusion
-				supplyFNResourceFixed(FusionWasteHeat * wasteHeatMultiplier * fusionRatio * fixedDeltaTime, ResourceManager.FNRESOURCE_WASTEHEAT);
+				supplyFNResourcePerSecond(FusionWasteHeat * wasteHeatMultiplier * fusionRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
 			}
 
 			fusionPercentage = fusionRatio * 100d;

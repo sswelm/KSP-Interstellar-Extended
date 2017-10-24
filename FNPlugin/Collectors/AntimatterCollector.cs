@@ -70,7 +70,7 @@ namespace FNPlugin
             // first attemp to get power more megajoule network
             var fixedRecievedChargeKW = CheatOptions.InfiniteElectricity
                 ? fixedPowerReqKW
-                : consumeFNResource(fixedPowerReqKW / 1000, ResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
+                : consumeFNResource(fixedPowerReqKW / 1000, ResourceManager.FNRESOURCE_MEGAJOULES, TimeWarp.fixedDeltaTime) * 1000;
             // alternativly attempt to use electric charge
             if (fixedRecievedChargeKW <= fixedPowerReqKW)
                 fixedRecievedChargeKW += part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);

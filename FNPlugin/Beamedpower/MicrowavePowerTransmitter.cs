@@ -607,17 +607,15 @@ namespace FNPlugin
                     requestedPower = Math.Min(power_capacity, effectiveResourceThrotling * availablePower * reactorPowerTransmissionRatio);
                 }
 
-                var fixedRequestedPower = requestedPower * TimeWarp.fixedDeltaTime;
-
-                var receivedPowerFixedDelta = CheatOptions.InfiniteElectricity 
-                    ? fixedRequestedPower
-                    : consumeFNResource(fixedRequestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                var receivedPowerFixedDelta = CheatOptions.InfiniteElectricity
+                    ? requestedPower
+                    : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 nuclear_power += 1000 * reactorPowerTransmissionRatio * transmissionEfficiencyRatio * receivedPowerFixedDelta / TimeWarp.fixedDeltaTime;
 
                 // generate wasteheat for converting electric power to beamed power
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourceFixed(receivedPowerFixedDelta * transmissionWasteRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(receivedPowerFixedDelta * transmissionWasteRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 foreach (ModuleDeployableSolarPanel panel in panels)
                 {

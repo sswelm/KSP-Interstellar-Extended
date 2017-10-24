@@ -16,7 +16,6 @@ namespace FNPlugin.Refinery
         public double last_active_time = 0;
         [KSPField(isPersistant = true, guiName = "Power Percentage")]
         public double electrical_power_ratio;
-
         [KSPField(guiActive = true, guiName = "Production Rate")]
         public string productionRateTxt;
 
@@ -87,17 +86,17 @@ namespace FNPlugin.Refinery
             var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
             var effectiveResourceThrotling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 
-            var energy_requested_in_megajoules = Math.Min(powerCapacity, TimeWarp.fixedDeltaTime * effectiveResourceThrotling * availablePower * powerPercentage / 100d);
+            var energy_requested_in_megajoules = Math.Min(powerCapacity, effectiveResourceThrotling * availablePower * powerPercentage / 100d);
 
             var energy_provided_in_megajoules = CheatOptions.InfiniteElectricity
                 ? energy_requested_in_megajoules
-                : consumeFNResource(energy_requested_in_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
+                : consumeFNResourcePerSecond(energy_requested_in_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             electrical_power_ratio = energy_requested_in_megajoules > 0 ? energy_provided_in_megajoules / energy_requested_in_megajoules : 0; 
 
             _generator.Produce(energy_provided_in_megajoules);
 
-            productionRate = _generator.ProductionRate / TimeWarp.fixedDeltaTime;
+            productionRate = _generator.ProductionRate;
         }
     }
 }

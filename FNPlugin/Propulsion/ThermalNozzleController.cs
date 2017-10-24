@@ -1199,10 +1199,12 @@ namespace FNPlugin
                 // calculate max thrust
                 heatExchangerThrustDivisor = GetHeatExchangerThrustDivisor();
 
+                var thrustPercentage = (double)(decimal) myAttachedEngine.thrustPercentage;
+
                 if (availableThermalPower > 0 && _maxISP > 0)
                 {
                     var ispRatio = _currentpropellant_is_jet ? current_isp / _maxISP : 1;
-                    var thrustLimit = myAttachedEngine.thrustPercentage / 100;
+                    var thrustLimit = thrustPercentage / 100d;
                     engineMaxThrust = Math.Max(thrustLimit * GetPowerThrustModifier() * GetHeatThrustModifier() * power_received / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.001f);
                     calculatedMaxThrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio;
                 }
@@ -1212,9 +1214,7 @@ namespace FNPlugin
                     calculatedMaxThrust = 0;
                 }
 
-                max_thrust_in_space = myAttachedEngine.thrustPercentage > 0
-                    ? engineMaxThrust / myAttachedEngine.thrustPercentage * 100
-                    : 0;
+                max_thrust_in_space = thrustPercentage > 0 ? engineMaxThrust / thrustPercentage * 100 : 0;
 
                 max_thrust_in_current_atmosphere = max_thrust_in_space;
 
