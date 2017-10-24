@@ -16,7 +16,6 @@ namespace FNPlugin
         [KSPField]
         public double secondaryInputMultiplier = 1000;
         [KSPField]
-
         public bool canJumpstart = true;
         [KSPField]
         public bool usePowerManagerForPrimaryInputPower = true;
@@ -250,22 +249,20 @@ namespace FNPlugin
             // retreive any shortage from secondary buffer
             if (secondaryInputMultiplier > 0 && secondaryInputResourceDefinition != null && !CheatOptions.InfiniteElectricity && IsEnabled && powerReceived < powerRequested)
             {
-                // retreive megawatt ratio
-                var powerShortage = (1 - powerRequirmentMetRatio) * powerRequested;
-
                 double currentSecondaryRatio;
                 double currentSecondaryCapacity;
+                double currentSecondaryAmount;
 
                 if (usePowerManagerForSecondaryInputPower)
                 {
                     currentSecondaryRatio = getResourceBarRatio(secondaryInputResource);
                     currentSecondaryCapacity = getTotalResourceCapacity(secondaryInputResource);
+                    currentSecondaryAmount = currentSecondaryCapacity * currentSecondaryRatio;
                 }
                 else
                 {
-                    double currentAmount;
-                    part.GetConnectedResourceTotals(secondaryInputResourceDefinition.id, out currentAmount, out currentSecondaryCapacity);
-                    currentSecondaryRatio = currentSecondaryCapacity > 0 ? currentAmount / currentSecondaryCapacity : 0;
+                    part.GetConnectedResourceTotals(secondaryInputResourceDefinition.id, out currentSecondaryAmount, out currentSecondaryCapacity);
+                    currentSecondaryRatio = currentSecondaryCapacity > 0 ? currentSecondaryAmount / currentSecondaryCapacity : 0;
                 }
 
                 var secondaryPowerMaxRatio = maxSecondaryPowerUsage / 100;
@@ -273,13 +270,16 @@ namespace FNPlugin
                 // only use buffer if we have sufficient in storage
                 if (currentSecondaryRatio > secondaryPowerMaxRatio)
                 {
-                    var maxAvailableSecondaryPower = secondaryPowerMaxRatio * currentSecondaryCapacity;  
+                    // retreive megawatt ratio
+                    var powerShortage = (1 - powerRequirmentMetRatio) * powerRequested;
 
-                    var requestedSecondaryPower = Math.Min(currentSecondaryCapacity, (1 - powerRequirmentMetRatio) * powerRequested * secondaryInputMultiplier);
+                    var maxSecondaryConsumption = currentSecondaryAmount - (secondaryPowerMaxRatio * currentSecondaryCapacity);
+
+                    var requestedSecondaryPower = Math.Min(maxSecondaryConsumption, powerShortage * secondaryInputMultiplier * timeWarpFixedDeltaTime);
 
                     secondaryPowerReceived = part.RequestResource(secondaryInputResource, requestedSecondaryPower);
 
-                    powerReceived += secondaryPowerReceived / secondaryInputMultiplier;
+                    powerReceived += secondaryPowerReceived / secondaryInputMultiplier / timeWarpFixedDeltaTime;
 
                     powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1;
                 }
@@ -404,7 +404,7 @@ namespace FNPlugin
 
                 var returnedMegaJoulePower = returnedPrimaryPower / primaryInputMultiplier;
 
-                if (startupMinimumChargePercentage <= 0 || returnedMegaJoulePower / TimeWarp.fixedDeltaTime > (startupMinimumChargePercentage * StartupPower))
+                if (startupMinimumChargePercentage <= 0 || returnedMegaJoulePower / timeWarpFixedDeltaTime > (startupMinimumChargePercentage * StartupPower))
                 {
                     accumulatedElectricChargeInMW += returnedMegaJoulePower;
                 }
@@ -412,7 +412,7 @@ namespace FNPlugin
 
             // secondry try to charge from secondary Power Storage
             neededPower = StartupPower - accumulatedElectricChargeInMW;
-			if (secondaryInputMultiplier > 0 && neededPower > 0 && startupMinimumChargePercentage <= 0)
+            if (secondaryInputMultiplier > 0 && neededPower > 0 && startupMinimumChargePercentage <= 0)
             {
                 var requestedSecondaryPower = neededPower * secondaryInputMultiplier;
 
