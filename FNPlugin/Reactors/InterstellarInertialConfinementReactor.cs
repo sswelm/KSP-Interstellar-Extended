@@ -5,8 +5,7 @@ namespace FNPlugin
     [KSPModule("Inertial Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor
     {
-        [KSPField(isPersistant = true)]
-        public double accumulatedElectricChargeInMW;
+		// Configs
         [KSPField(guiActiveEditor = true)]
         protected string primaryInputResource = ResourceManager.FNRESOURCE_MEGAJOULES;
         [KSPField(guiActiveEditor = true)]
@@ -32,16 +31,19 @@ namespace FNPlugin
         [KSPField]
         public float startupMinimumChargePercentage = 0;
 
+		// Persistant
+		[KSPField(isPersistant = true)]
+		public double accumulatedElectricChargeInMW;
         [KSPField(guiActiveEditor = true, guiName = "Power Affects Maintenance")]
         public bool powerControlAffectsMaintenance = false;
         [KSPField(isPersistant = true, guiName = "Startup"), UI_Toggle(disabledText = "Off", enabledText = "Charging")]
         public bool isChargingForJumpstart;
-        [KSPField(guiActive = true, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
-        public double minimumThrottlePercentage;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Max Secondary Power Usage"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 1)]
         public float maxSecondaryPowerUsage = 90;
 
-        // UI
+        // UI Display
+		[KSPField(guiActive = true, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
+		public double minimumThrottlePercentage;
         [KSPField(guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
         [KSPField(guiActive = true, guiName = "Power Requirment")]
@@ -265,22 +267,17 @@ namespace FNPlugin
                     currentSecondaryRatio = currentSecondaryCapacity > 0 ? currentSecondaryAmount / currentSecondaryCapacity : 0;
                 }
 
-                var secondaryPowerMaxRatio = maxSecondaryPowerUsage / 100;
+                var secondaryPowerMaxRatio = maxSecondaryPowerUsage / 100d;
 
                 // only use buffer if we have sufficient in storage
                 if (currentSecondaryRatio > secondaryPowerMaxRatio)
                 {
                     // retreive megawatt ratio
                     var powerShortage = (1 - powerRequirmentMetRatio) * powerRequested;
-
                     var maxSecondaryConsumption = currentSecondaryAmount - (secondaryPowerMaxRatio * currentSecondaryCapacity);
-
                     var requestedSecondaryPower = Math.Min(maxSecondaryConsumption, powerShortage * secondaryInputMultiplier * timeWarpFixedDeltaTime);
-
                     secondaryPowerReceived = part.RequestResource(secondaryInputResource, requestedSecondaryPower);
-
                     powerReceived += secondaryPowerReceived / secondaryInputMultiplier / timeWarpFixedDeltaTime;
-
                     powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1;
                 }
             }
