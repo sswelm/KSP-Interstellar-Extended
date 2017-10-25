@@ -44,7 +44,7 @@ namespace FNPlugin
 
 		public double MinimumChargdIspMult { get { return 1; } }
 
-        public override double StableMaximumReactorPower { get { return IsEnabled && plasma_ratio >= 1 ? RawPowerOutput : 0; } }
+        public override double StableMaximumReactorPower { get { return base.StableMaximumReactorPower * LithiumModifier; } }
 
         public virtual double PlasmaModifier
         {
@@ -59,10 +59,11 @@ namespace FNPlugin
         {
             get
             {
-                lithium_modifier = CheatOptions.InfinitePropellant ? 1
-                    : powerIsAffectedByLithium && totalAmountLithium > 0
+                lithium_modifier = CheatOptions.InfinitePropellant || !powerIsAffectedByLithium ? 1
+                    : totalAmountLithium > 0
                         ? Math.Sqrt(totalAmountLithium / totalMaxAmountLithium)
                         : 0.001;
+
 
                 return lithium_modifier;
             }

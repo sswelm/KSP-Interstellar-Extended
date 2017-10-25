@@ -32,6 +32,8 @@ namespace FNPlugin
         public float startupMinimumChargePercentage = 0;
 
         // Persistant
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Auto Throttle"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool autoThrottle = true;
         [KSPField(isPersistant = true)]
         public double accumulatedElectricChargeInMW;
         [KSPField(guiActiveEditor = true, guiName = "Power Affects Maintenance")]
@@ -230,7 +232,8 @@ namespace FNPlugin
             ProcessCharging();
 
             // determine amount of power needed
-            var powerRequested = LaserPowerRequirements * TimeWarp.fixedDeltaTime * Math.Max(reactor_power_ratio, 0.00001);
+            var currentPrimaryBufferRequirement =  autoThrottle ? Math.Max(1 - getResourceBarRatio(primaryInputResource), 0.00001) : 1;
+            var powerRequested = LaserPowerRequirements * Math.Max(reactor_power_ratio, currentPrimaryBufferRequirement);
 
             double primaryPowerReceived = 0;
             double secondaryPowerReceived = 0;
@@ -238,9 +241,9 @@ namespace FNPlugin
             var primaryPowerRequest = powerRequested * primaryInputMultiplier;
             if (!CheatOptions.InfiniteElectricity && primaryPowerRequest != 0)
             {
-                primaryPowerReceived = usePowerManagerForPrimaryInputPower 
-                    ? consumeFNResource(primaryPowerRequest, primaryInputResource) 
-                    : part.RequestResource(primaryInputResource, primaryPowerRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                primaryPowerReceived = usePowerManagerForPrimaryInputPower
+                    ? consumeFNResourcePerSecond(primaryPowerRequest, primaryInputResource)
+                    : part.RequestResource(primaryInputResource, primaryPowerRequest * TimeWarp.fixedDeltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW) / TimeWarp.fixedDeltaTime;
             }
             else
                 primaryPowerReceived = primaryPowerRequest;
@@ -337,17 +340,19 @@ namespace FNPlugin
                     framesPlasmaRatioIsGood -= treshhold;
                     plasma_ratio = 1;
                 }
-                else
-                {
-                    framesPlasmaRatioIsGood = 0;
-                    plasma_ratio = 0;
+                //else
+                //{
 
-                    if (primaryPowerReceived > 0)
-                        part.RequestResource(primaryInputResource, -primaryPowerReceived);
 
-                    if (secondaryPowerReceived > 0)
-                        part.RequestResource(secondaryInputResource, -secondaryPowerReceived);
-                }
+                //    framesPlasmaRatioIsGood = 0;
+                //    plasma_ratio = 0;
+
+                //    if (primaryPowerReceived > 0)
+                //        part.RequestResource(primaryInputResource, -primaryPowerReceived);
+
+                //    if (secondaryPowerReceived > 0)
+                //        part.RequestResource(secondaryInputResource, -secondaryPowerReceived);
+                //}
             }
         }
 

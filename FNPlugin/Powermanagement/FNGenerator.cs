@@ -117,7 +117,7 @@ namespace FNPlugin
         public bool fullPowerBuffer = false;
         [KSPField(isPersistant = false)]
         public bool showSpecialisedUI = true;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Stable Power")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Max Stable Reactor Power")]
         public double maxStableMegaWattPower;
 
         /// <summary>
@@ -988,12 +988,16 @@ namespace FNPlugin
             if (!maintainsMegaWattPowerBuffer)
                 return;
 
+            maxStableMegaWattPower = MaxStableMegaWattPower;
+
             if (maxStableMegaWattPower != _previousMaxStableMegaWattPower)
                 _powerState = PowerStates.powerChange;
             _previousMaxStableMegaWattPower = maxStableMegaWattPower;
 
-            if (maxStableMegaWattPower > 0 && (TimeWarp.fixedDeltaTime != previousDeltaTime || _powerState != PowerStates.powerOnline))
-            {
+            if (maxStableMegaWattPower > 0)
+            { 
+            //if (maxStableMegaWattPower > 0 && (TimeWarp.fixedDeltaTime != previousDeltaTime || _powerState != PowerStates.powerOnline))
+            //{
                 _powerState = PowerStates.powerOnline;
 
                 var megaWattBufferingBonus = attachedPowerSource.PowerBufferBonus * maxStableMegaWattPower;
@@ -1002,7 +1006,7 @@ namespace FNPlugin
 
                 if (megajouleResource != null)
                 {
-                    var megaJouleRatio = megajouleResource.amount / megajouleResource.maxAmount;
+                    var megaJouleRatio = megajouleResource.maxAmount > 0 ? megajouleResource.amount / megajouleResource.maxAmount : 0;
                     megajouleResource.maxAmount = requiredMegawattCapacity;
 
                     if (!generatorInit)
@@ -1011,9 +1015,9 @@ namespace FNPlugin
                         megajouleResource.amount = Math.Max(0, Math.Min(requiredMegawattCapacity, megaJouleRatio * requiredMegawattCapacity));
                 }
 
-                if (part.Resources.Contains(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE))
+                if (electricChargeResource != null)
                 {
-                    var electricChargeRatio = electricChargeResource.amount / electricChargeResource.maxAmount;
+                    var electricChargeRatio = electricChargeResource.maxAmount > 0 ? electricChargeResource.amount / electricChargeResource.maxAmount : 0;
                     electricChargeResource.maxAmount = requiredElectricChargeCapacity;
 
                     if (!generatorInit)

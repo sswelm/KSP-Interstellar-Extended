@@ -770,7 +770,7 @@ namespace FNPlugin
 
         public virtual double MaximumPower { get { return MaximumThermalPower + MaximumChargedPower; } }
 
-        public virtual double StableMaximumReactorPower { get { return IsEnabled ? RawPowerOutput : 0; } }
+        public virtual double StableMaximumReactorPower { get { return IsEnabled ? NormalisedMaximumPower : 0; } }
 
         public IElectricPowerGeneratorSource ConnectedThermalElectricGenerator { get; set; }
 
