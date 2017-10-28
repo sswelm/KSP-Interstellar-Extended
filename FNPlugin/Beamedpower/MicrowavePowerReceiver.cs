@@ -433,13 +433,13 @@ namespace FNPlugin
 
 		public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
-        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, ElectricGeneratorType generatorType)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio)
         {
             currentIsThermalEnergyGeneratorEfficiency = efficency;
             currentGeneratorThermalEnergyRequestRatio = power_ratio;
         }
 
-		public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio, ElectricGeneratorType generatorType) { }
+		public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio) { }
 
 		public bool IsThermalSource
 		{

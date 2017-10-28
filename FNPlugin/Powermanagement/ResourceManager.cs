@@ -434,10 +434,10 @@ namespace FNPlugin
             double maxResouceAmount;
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out availableResourceAmount, out maxResouceAmount);
 
-            if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount)) 
-                resource_bar_ratio = availableResourceAmount / maxResouceAmount;
-            else 
-                resource_bar_ratio = 0.0001;
+            //if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount)) 
+            //    resource_bar_ratio = availableResourceAmount / maxResouceAmount;
+            //else 
+            //    resource_bar_ratio = 0.0001;
 
             double missingResourceAmount = maxResouceAmount - availableResourceAmount;
             currentPowerSupply += availableResourceAmount;
@@ -628,7 +628,14 @@ namespace FNPlugin
             else
                 internl_power_extract_fixed = Math.Max(internl_power_extract_fixed, -missingResourceAmount);
 
-            my_part.RequestResource(this.resource_name, internl_power_extract_fixed);
+            my_part.RequestResource(resourceDefinition.id, internl_power_extract_fixed);
+
+            my_part.GetConnectedResourceTotals(resourceDefinition.id, out availableResourceAmount, out maxResouceAmount);
+
+            if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount))
+                resource_bar_ratio = availableResourceAmount / maxResouceAmount;
+            else
+                resource_bar_ratio = 0.0001;
 
             //calculate total input and output
             //var total_current_supplied = power_produced.Sum(m => m.Value.currentSupply);

@@ -392,22 +392,20 @@ namespace FNPlugin
         protected double tritiumBreedingMassAdjustment;
         protected double heliumBreedingMassAdjustment;
 
-
-
         protected double currentIsThermalEnergyGeneratorEfficiency;
         protected double currentIsChargedEnergyGenratorEfficiency;
-
-
 
         protected double currentGeneratorThermalEnergyRequestRatio;
         protected double currentGeneratorChargedEnergyRequestRatio;
 
+        protected bool isConnectedToThermalGenerator;
         protected bool isFixedUpdatedCalled;
+
         protected AnimationState[] pulseAnimation;
         protected ModuleAnimateGeneric startupAnimation;
         protected ModuleAnimateGeneric shutdownAnimation;
         protected ModuleAnimateGeneric loopingAnimation;
-        protected ElectricGeneratorType _firstGeneratorType;
+        
 
         public List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
 
@@ -537,29 +535,22 @@ namespace FNPlugin
         public double EfficencyConnectedChargedEnergyGenerator { get { return storedIsChargedEnergyGeneratorEfficiency; } }
 
 
-        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, ElectricGeneratorType generatorType)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio)
         {
             currentIsThermalEnergyGeneratorEfficiency = efficency;
             currentGeneratorThermalEnergyRequestRatio = power_ratio;
-
-            // initialise firstGeneratorType if needed 
-            if (_firstGeneratorType == ElectricGeneratorType.unknown)
-                _firstGeneratorType = generatorType;
+            isConnectedToThermalGenerator = true;
         }
 
-        public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio,ElectricGeneratorType generatorType)
+        public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio)
         {
             currentIsChargedEnergyGenratorEfficiency = efficency;
             currentGeneratorChargedEnergyRequestRatio = power_ratio;
-
-            // initialise firstGeneratorType if needed 
-            if (_firstGeneratorType == ElectricGeneratorType.unknown)
-                _firstGeneratorType = generatorType;
         }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType)
         {
-            shouldApplyBalance = generatorType == _firstGeneratorType && storedIsThermalEnergyGeneratorEfficiency > 0 && storedIsChargedEnergyGeneratorEfficiency > 0;
+            shouldApplyBalance = isConnectedToThermalGenerator && generatorType == ElectricGeneratorType.thermal && storedIsThermalEnergyGeneratorEfficiency > 0 && storedIsChargedEnergyGeneratorEfficiency > 0;
 
             return shouldApplyBalance;
         }
@@ -944,7 +935,6 @@ namespace FNPlugin
             UpdateReactorCharacteristics();
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
-            _firstGeneratorType = ElectricGeneratorType.unknown;
             previousDeltaTime = TimeWarp.fixedDeltaTime - 1.0e-6f;
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
             staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
@@ -1891,7 +1881,10 @@ namespace FNPlugin
                 UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability product null");
 
             if (product.Definition == null)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability product definition null");
                 return 0;
+            }
 
             if (!product.ProduceGlobal)
             {

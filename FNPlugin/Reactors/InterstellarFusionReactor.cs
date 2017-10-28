@@ -228,7 +228,7 @@ namespace FNPlugin
 
         protected override void setDefaultFuelMode()
         {
-            if (string.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
+            if (!string.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
                 CurrentFuelMode = fuel_modes.First(m => m.ModeGUIName == fuel_mode_name);
             else if (fuelmode_index >= 0 && fuel_modes.Any(m => m.Index == fuelmode_index))
                 CurrentFuelMode = fuel_modes.First(m => m.Index == fuelmode_index);

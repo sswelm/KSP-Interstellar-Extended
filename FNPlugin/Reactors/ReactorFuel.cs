@@ -107,7 +107,7 @@ namespace FNPlugin
             _fuel_name = node.GetValue("name");
             _resource_name = node.HasValue("resource") ? node.GetValue("resource") : _fuel_name;
             _unit = node.GetValue("Unit");
-            _produceGlobal = node.HasValue("produceGlobal") ? Boolean.Parse(node.GetValue("produceGlobal")) : false;
+            _produceGlobal = node.HasValue("produceGlobal") ? Boolean.Parse(node.GetValue("produceGlobal")) : true;
             _tons_product_usage_per_mw = Convert.ToDouble(node.GetValue("ProductionPerMW"));
 
             Definition = PartResourceLibrary.Instance.GetDefinition(_fuel_name);
