@@ -29,11 +29,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Plasma Ratio")]
-        public double plasma_ratio = 1.0;
+        public double plasma_ratio = 1;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Modifier", guiFormat = "F6")]
-        public double plasma_modifier = 1.0;
+        public double plasma_modifier = 1;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Lithium Modifier", guiFormat = "F6")]
-        public double lithium_modifier = 1.0;
+        public double lithium_modifier = 1;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
 
@@ -71,7 +71,7 @@ namespace FNPlugin
 
         public override double MaximumThermalPower
         {
-            get { return Math.Max(base.MaximumThermalPower * PlasmaModifier * LithiumModifier, 0.000000001f); }
+            get { return Math.Max(base.MaximumThermalPower * PlasmaModifier * LithiumModifier, 0); }
         }
 
         public override double MaximumChargedPower

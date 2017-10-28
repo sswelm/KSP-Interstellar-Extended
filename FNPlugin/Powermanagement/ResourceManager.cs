@@ -74,7 +74,8 @@ namespace FNPlugin
 
         Rect windowPosition = new Rect(50, 50, 300, 100);
         int windowID = 36549835;
-        double resource_bar_ratio = 0;
+        double resource_bar_ratio_begin = 0;
+        double resource_bar_ratio_end = 0;
 
         const double passive_temp_p4 = 2947.295521;
         const int labelWidth = 240;
@@ -367,7 +368,8 @@ namespace FNPlugin
         public double CurrentHighPriorityResourceDemand { get { return stored_current_hp_demand; } }
         public double PowerSupply { get { return currentPowerSupply; } }
         public double CurrentRresourceDemand { get { return current_resource_demand; } }
-        public double ResourceBarRatio { get {  return resource_bar_ratio; } }
+        public double ResourceBarRatioBegin { get {  return resource_bar_ratio_begin; } }
+        public double ResourceBarRatioEnd { get { return resource_bar_ratio_end; } }
         public Vessel Vessel { get { return my_vessel; } }
         public PartModule PartModule { get { return my_partmodule; } }
 
@@ -434,10 +436,10 @@ namespace FNPlugin
             double maxResouceAmount;
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out availableResourceAmount, out maxResouceAmount);
 
-            //if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount)) 
-            //    resource_bar_ratio = availableResourceAmount / maxResouceAmount;
-            //else 
-            //    resource_bar_ratio = 0.0001;
+            if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount))
+                resource_bar_ratio_end = availableResourceAmount / maxResouceAmount;
+            else
+                resource_bar_ratio_end = 0.0001;
 
             double missingResourceAmount = maxResouceAmount - availableResourceAmount;
             currentPowerSupply += availableResourceAmount;
@@ -633,9 +635,9 @@ namespace FNPlugin
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out availableResourceAmount, out maxResouceAmount);
 
             if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount))
-                resource_bar_ratio = availableResourceAmount / maxResouceAmount;
+                resource_bar_ratio_begin = availableResourceAmount / maxResouceAmount;
             else
-                resource_bar_ratio = 0.0001;
+                resource_bar_ratio_begin = 0.0001;
 
             //calculate total input and output
             //var total_current_supplied = power_produced.Sum(m => m.Value.currentSupply);

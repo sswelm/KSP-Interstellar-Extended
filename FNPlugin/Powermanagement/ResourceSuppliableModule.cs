@@ -267,7 +267,16 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.ResourceBarRatio;
+            return manager.ResourceBarRatioBegin;
+        }
+
+        public double getResourceBarRatioEnd(String resourcename)
+        {
+            ResourceManager manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            return manager.ResourceBarRatioEnd;
         }
 
         public double getSpareResourceCapacity(String resourcename)

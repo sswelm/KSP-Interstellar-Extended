@@ -7,9 +7,9 @@ namespace FNPlugin
     {
         // Configs
         [KSPField(guiActiveEditor = true)]
-        protected string primaryInputResource = ResourceManager.FNRESOURCE_MEGAJOULES;
+        public string primaryInputResource = ResourceManager.FNRESOURCE_MEGAJOULES;
         [KSPField(guiActiveEditor = true)]
-        protected string secondaryInputResource = ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE;
+        public string secondaryInputResource = ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE;
         [KSPField]
         public double primaryInputMultiplier = 1;
         [KSPField]
@@ -32,7 +32,7 @@ namespace FNPlugin
         public float startupMinimumChargePercentage = 0;
 
         // Persistant
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Auto Throttle"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Throttling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool autoThrottle = true;
         [KSPField(isPersistant = true)]
         public double accumulatedElectricChargeInMW;
@@ -51,7 +51,7 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Power Requirment")]
         public double currentLaserPowerRequirements = 0;
 
-
+        protected double primaryPowerRequest;
         protected double power_consumed;
         protected bool fusion_alert;
         protected int jumpstartPowerTime;
@@ -232,18 +232,22 @@ namespace FNPlugin
             ProcessCharging();
 
             // determine amount of power needed
-            var currentPrimaryBufferRequirement =  autoThrottle ? Math.Max(1 - getResourceBarRatio(primaryInputResource), 0.00001) : 1;
-            var powerRequested = LaserPowerRequirements * Math.Max(reactor_power_ratio, currentPrimaryBufferRequirement);
+            //var currentMegajoulesBufferRequirement = autoThrottle ? Math.Max(Math.Pow(1 - getResourceBarRatioEnd(ResourceManager.FNRESOURCE_MEGAJOULES), 2), 0.00001) : 1;
+            //var powerRequested = LaserPowerRequirements * Math.Max(reactor_power_ratio, currentMegajoulesBufferRequirement);
+
+            var required_reactor_ratio = reactor_power_ratio >= 0.000005 ? reactor_power_ratio : 0;
+
+            var powerRequested = LaserPowerRequirements * timeWarpFixedDeltaTime * Math.Max(required_reactor_ratio, 0.00000);
 
             double primaryPowerReceived = 0;
             double secondaryPowerReceived = 0;
 
-            var primaryPowerRequest = powerRequested * primaryInputMultiplier;
+            primaryPowerRequest = powerRequested * primaryInputMultiplier;
             if (!CheatOptions.InfiniteElectricity && primaryPowerRequest != 0)
             {
                 primaryPowerReceived = usePowerManagerForPrimaryInputPower
                     ? consumeFNResourcePerSecond(primaryPowerRequest, primaryInputResource)
-                    : part.RequestResource(primaryInputResource, primaryPowerRequest * TimeWarp.fixedDeltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW) / TimeWarp.fixedDeltaTime;
+                    : part.RequestResource(primaryInputResource, primaryPowerRequest * timeWarpFixedDeltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW) / timeWarpFixedDeltaTime;
             }
             else
                 primaryPowerReceived = primaryPowerRequest;
@@ -289,7 +293,7 @@ namespace FNPlugin
             power_consumed = LaserPowerRequirements * powerRequirmentMetRatio;
 
             // verify if we need startup with accumulated power
-            if (canJumpstart && TimeWarp.fixedDeltaTime <= 0.1 && accumulatedElectricChargeInMW > 0 && power_consumed < StartupPower && (accumulatedElectricChargeInMW + power_consumed) >= StartupPower)
+            if (canJumpstart && timeWarpFixedDeltaTime <= 0.1 && accumulatedElectricChargeInMW > 0 && power_consumed < StartupPower && (accumulatedElectricChargeInMW + power_consumed) >= StartupPower)
             {
                 var shortage = StartupPower - power_consumed;
                 if (shortage <= accumulatedElectricChargeInMW)
@@ -340,19 +344,6 @@ namespace FNPlugin
                     framesPlasmaRatioIsGood -= treshhold;
                     plasma_ratio = 1;
                 }
-                //else
-                //{
-
-
-                //    framesPlasmaRatioIsGood = 0;
-                //    plasma_ratio = 0;
-
-                //    if (primaryPowerReceived > 0)
-                //        part.RequestResource(primaryInputResource, -primaryPowerReceived);
-
-                //    if (secondaryPowerReceived > 0)
-                //        part.RequestResource(secondaryInputResource, -secondaryPowerReceived);
-                //}
             }
         }
 

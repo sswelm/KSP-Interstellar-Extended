@@ -734,7 +734,7 @@ namespace FNPlugin
                 wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // get resource bar ratio at start of frame
-                wasteheatRatio = wasteheatManager.ResourceBarRatio;
+                wasteheatRatio = wasteheatManager.ResourceBarRatioBegin;
 
                 if (Double.IsNaN(wasteheatRatio))
                 {
