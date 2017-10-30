@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
@@ -13,30 +11,27 @@ namespace FNPlugin.Refinery
         const double hydrogenMassByFraction = (2 * protiumAtomicMass) / (oxygenAtomicMass + (2 * protiumAtomicMass)); // 0.1119067
         const double oxygenMassByFraction = 1 - hydrogenMassByFraction;
         
-        protected double _water_consumption_rate;
-        protected double _hydrogen_production_rate;
-        protected double _oxygen_production_rate;
-        protected double _fixedMaxConsumptionWaterRate;
-        protected double _consumptionStorageRatio;
+        double _water_consumption_rate;
+        double _hydrogen_production_rate;
+        double _oxygen_production_rate;
+        double _fixedMaxConsumptionWaterRate;
+        double _consumptionStorageRatio;
 
-        protected double _water_density;
-        protected double _oxygen_density;
-        protected double _hydrogen_density;
+        double _water_density;
+        double _oxygen_density;
+        double _hydrogen_density;
 
-        protected double _availableWaterMass;
-        protected double _spareRoomOxygenMass;
-        protected double _spareRoomHydrogenMass;
+        double _availableWaterMass;
+        double _spareRoomOxygenMass;
+        double _spareRoomHydrogenMass;
 
-        protected double _maxCapacityWaterMass;
-        protected double _maxCapacityHydrogenMass;
-        protected double _maxCapacityOxygenMass;
+        double _maxCapacityWaterMass;
+        double _maxCapacityHydrogenMass;
+        double _maxCapacityOxygenMass;
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 
         public String ActivityName { get { return "Water Electrolysis"; } }
-
-
-        private double _effectiveMaxPower;
 
         public bool HasActivityRequirements {  get  {  return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Water).Any(rs => rs.amount > 0);  } }
 

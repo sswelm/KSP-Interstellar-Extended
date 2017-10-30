@@ -1,33 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
     class SolarWindProcessor : RefineryActivityBase, IRefineryActivity
     {
-        protected double _fixedConsumptionRate;
+        double _fixedConsumptionRate;
 
-        protected double _solar_wind_density;
-        protected double _hydrogen_density;
-        protected double _deuterium_density;
-        protected double _liquid_helium3_density;
-        protected double _liquid_helium4_density;
-        protected double _monoxide_density;
-        protected double _nitrogen_density;
-        protected double _neon_density;
+        double _solar_wind_density;
+        double _hydrogen_density;
+        double _deuterium_density;
+        double _liquid_helium3_density;
+        double _liquid_helium4_density;
+        double _monoxide_density;
+        double _nitrogen_density;
+        double _neon_density;
 
-        protected double _solar_wind_consumption_rate;
+        double _solar_wind_consumption_rate;
 
-        protected double _hydrogen_production_rate;
-        protected double _deuterium_production_rate;
-        protected double _liquid_helium3_production_rate;
-        protected double _liquid_helium4_production_rate;
-        protected double _monoxide_production_rate;
-        protected double _nitrogen_production_rate;
-        protected double _neon_production_rate;
+        double _hydrogen_production_rate;
+        double _deuterium_production_rate;
+        double _liquid_helium3_production_rate;
+        double _liquid_helium4_production_rate;
+        double _monoxide_production_rate;
+        double _nitrogen_production_rate;
+        double _neon_production_rate;
+
+
+        string _solar_wind_resource_name;
+        string _hydrogen_resource_name;
+        string _deuterium_resource_name;
+        string _liquid_helium3_resource_name;
+        string _liquid_helium4_resource_name;
+        string _monoxide_resource_name;
+        string _nitrogen_resource_name;
+        string _neon_resource_name;
 
         public RefineryType RefineryType { get { return RefineryType.cryogenics; } }
 
@@ -44,14 +52,6 @@ namespace FNPlugin.Refinery
 
         public String Status { get { return String.Copy(_status); } }
 
-        protected string _solar_wind_resource_name;
-        protected string _hydrogen_resource_name;
-        protected string _deuterium_resource_name;
-        protected string _liquid_helium3_resource_name;
-        protected string _liquid_helium4_resource_name;
-        protected string _monoxide_resource_name;
-        protected string _nitrogen_resource_name;
-        protected string _neon_resource_name;
 
         public SolarWindProcessor(Part part)
         {

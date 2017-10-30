@@ -1,26 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
     class MethanePyrolysis : RefineryActivityBase, IRefineryActivity
     {
-        protected double _fixedConsumptionRate;
-        protected double _consumptionStorageRatio;
+        double _fixedConsumptionRate;
+        double _consumptionStorageRatio;
 
-        protected double _monoxide_density;
-        protected double _methane_density;
-        protected double _hydrogen_density;
-        protected double _oxygen_density;
+        double _monoxide_density;
+        double _methane_density;
+        double _hydrogen_density;
+        double _oxygen_density;
         
-        protected double _methane_consumption_rate;
-        protected double _oxygen_consumption_rate;
+        double _methane_consumption_rate;
+        double _oxygen_consumption_rate;
 
-        protected double _hydrogen_production_rate;
-        protected double _monoxide_production_rate;
+        double _hydrogen_production_rate;
+        double _monoxide_production_rate;
+
+        string _monoxide_resource_name;
+        string _methane_resource_name;
+        string _hydrogen_resource_name;
+        string _oxygen_resource_name;
        
         public RefineryType RefineryType { get { return RefineryType.heating; } }
 
@@ -38,10 +41,7 @@ namespace FNPlugin.Refinery
 
         public String Status { get { return String.Copy(_status); } }
 
-        protected string _monoxide_resource_name;
-        protected string _methane_resource_name;
-        protected string _hydrogen_resource_name;
-        protected string _oxygen_resource_name;
+
 
         public MethanePyrolysis(Part part) 
         {

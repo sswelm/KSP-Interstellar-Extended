@@ -1,38 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
     class AnthraquinoneProcessor : RefineryActivityBase, IRefineryActivity
     {
-        protected double _fixedConsumptionRate;
-        protected double _consumptionRate;
+        double _fixedConsumptionRate;
+        double _consumptionRate;
 
-		protected double _hydrogen_density;
-		protected double _oxygen_density;
-        protected double _hydrogen_peroxide_density;
+		double _hydrogen_density;
+		double _oxygen_density;
+        double _hydrogen_peroxide_density;
 
-        private string _oxygenResourceName;
-        private string _hydrogenResourceName;
-        private string _hydrogenPeroxideResourceName;
+        string _oxygenResourceName;
+        string _hydrogenResourceName;
+        string _hydrogenPeroxideResourceName;
 
-        protected double _maxCapacityOxygenMass;
-        protected double _maxCapacityHydrogenMass;
-        protected double _maxCapacityPeroxideMass;
+        double _maxCapacityOxygenMass;
+        double _maxCapacityHydrogenMass;
+        double _maxCapacityPeroxideMass;
 
-        private double _availableOxygenMass;
-        private double _availableHydrogenMass;
-        private double _spareRoomHydrogenPeroxideMass;
+        double _availableOxygenMass;
+        double _availableHydrogenMass;
+        double _spareRoomHydrogenPeroxideMass;
 
-		protected double _hydrogen_consumption_rate;
-		protected double _oxygen_consumption_rate;
-        protected double _hydrogen_peroxide_production_rate;
+		double _hydrogen_consumption_rate;
+		double _oxygen_consumption_rate;
+        double _hydrogen_peroxide_production_rate;
 
-		protected double _hydrogenMassByFraction = (1.0079 * 2)/ 34.01468;
-        protected double _oxygenMassByFraction = 1 - ((1.0079 * 2) / 34.01468);
+		double _hydrogenMassByFraction = (1.0079 * 2)/ 34.01468;
+        double _oxygenMassByFraction = 1 - ((1.0079 * 2) / 34.01468);
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 

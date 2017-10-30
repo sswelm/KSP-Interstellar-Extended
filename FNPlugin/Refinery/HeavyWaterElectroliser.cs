@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
@@ -13,23 +11,23 @@ namespace FNPlugin.Refinery
         const double deuteuriuumMassByFraction = (2 * deuteriumAtomicMass) / (oxygenAtomicMass + (2 * deuteriumAtomicMass)); // 0.201136
         const double oxygenMassByFraction = 1 - deuteuriuumMassByFraction;
         
-        protected double _heavy_water_consumption_rate;
-        protected double _deuterium_production_rate;
-        protected double _oxygen_production_rate;
-         protected double _fixedMaxConsumptionWaterRate;
-        protected double _consumptionStorageRatio;
+        double _heavy_water_consumption_rate;
+        double _deuterium_production_rate;
+        double _oxygen_production_rate;
+        double _fixedMaxConsumptionWaterRate;
+        double _consumptionStorageRatio;
 
-        protected double _heavy_water_density;
-        protected double _oxygen_density;
-        protected double _deuterium_density;
+        double _heavy_water_density;
+        double _oxygen_density;
+        double _deuterium_density;
 
-        protected double _availableHeavyWaterMass;
-        protected double _spareRoomOxygenMass;
-        protected double _spareRoomDeuteriumMass;
+        double _availableHeavyWaterMass;
+        double _spareRoomOxygenMass;
+        double _spareRoomDeuteriumMass;
 
-        protected double _maxCapacityHeavyWaterMass;
-        protected double _maxCapacityDeuteriumMass;
-        protected double _maxCapacityOxygenMass;
+        double _maxCapacityHeavyWaterMass;
+        double _maxCapacityDeuteriumMass;
+        double _maxCapacityOxygenMass;
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 

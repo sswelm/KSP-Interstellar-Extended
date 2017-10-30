@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
@@ -11,28 +9,28 @@ namespace FNPlugin.Refinery
         const double carbonMonoxideMassByFraction = 28.010 / (28.010 + 15.999);
         const double oxygenMassByFraction = 1 - carbonMonoxideMassByFraction;
 
-        protected double _fixedMaxConsumptionDioxideRate;
-        protected double _consumptionStorageRatio;
+        double _fixedMaxConsumptionDioxideRate;
+        double _consumptionStorageRatio;
 
-        protected double _dioxide_consumption_rate;
-        protected double _monoxide_production_rate;
-        protected double _oxygen_production_rate;
+        double _dioxide_consumption_rate;
+        double _monoxide_production_rate;
+        double _oxygen_production_rate;
 
-        protected string _dioxideResourceName;
-        protected string _oxygenResourceName;
-        protected string _monoxideResourceName;
+        string _dioxideResourceName;
+        string _oxygenResourceName;
+        string _monoxideResourceName;
 
-        protected double _dioxide_density;
-        protected double _oxygen_density;
-        protected double _monoxide_density;
+        double _dioxide_density;
+        double _oxygen_density;
+        double _monoxide_density;
 
-        protected double _availableDioxideMass;
-        protected double _spareRoomOxygenMass;
-        protected double _spareRoomMonoxideMass;
+        double _availableDioxideMass;
+        double _spareRoomOxygenMass;
+        double _spareRoomMonoxideMass;
 
-        protected double _maxCapacityDioxideMass;
-        protected double _maxCapacityMonoxideMass;
-        protected double _maxCapacityOxygenMass;
+        double _maxCapacityDioxideMass;
+        double _maxCapacityMonoxideMass;
+        double _maxCapacityOxygenMass;
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 

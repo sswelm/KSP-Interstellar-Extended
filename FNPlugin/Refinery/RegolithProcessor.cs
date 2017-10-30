@@ -1,40 +1,51 @@
-﻿using System;
+﻿using FNPlugin.Collectors;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using FNPlugin.Collectors;
 
 namespace FNPlugin.Refinery
 {
 	class RegolithProcessor : RefineryActivityBase, IRefineryActivity
 	{
-		protected double dFixedDeltaTime;
-		protected double dFixedConsumptionRate;
-		protected double dConsumptionStorageRatio;
+		double dFixedDeltaTime;
+		double dFixedConsumptionRate;
+		double dConsumptionStorageRatio;
 
-		protected double dRegolithDensity;
-		protected double dHydrogenDensity;
-		protected double dDeuteriumDensity;
-		protected double dLiquidHelium3Density;
-		protected double dLiquidHelium4Density;
-		protected double dMonoxideDensity;
-		protected double dDioxideDensity;
-		protected double dMethaneDensity;
-		protected double dNitrogenDensity;
-		protected double dWaterDensity;
+		double dRegolithDensity;
+		double dHydrogenDensity;
+		double dDeuteriumDensity;
+		double dLiquidHelium3Density;
+		double dLiquidHelium4Density;
+		double dMonoxideDensity;
+		double dDioxideDensity;
+		double dMethaneDensity;
+		double dNitrogenDensity;
+		double dWaterDensity;
 
-		protected double fixed_regolithConsumptionRate;
-		protected double regolithConsumptionRate;
+		double fixed_regolithConsumptionRate;
+		double regolithConsumptionRate;
 
-		protected double dHydrogenProductionRate;
-		protected double dDeuteriumProductionRate;
-		protected double dLiquidHelium3ProductionRate;
-		protected double dLiquidHelium4ProductionRate;
-		protected double dMonoxideProductionRate;
-		protected double dDioxideProductionRate;
-		protected double dMethaneProductionRate;
-		protected double dNitrogenProductionRate;
-		protected double dWaterProductionRate;
+		double dHydrogenProductionRate;
+		double dDeuteriumProductionRate;
+		double dLiquidHelium3ProductionRate;
+		double dLiquidHelium4ProductionRate;
+		double dMonoxideProductionRate;
+		double dDioxideProductionRate;
+		double dMethaneProductionRate;
+		double dNitrogenProductionRate;
+		double dWaterProductionRate;
+
+		string strRegolithResourceName;
+		string strHydrogenResourceName;
+		string stDeuteriumResourceName;
+		string strLiquidHelium3ResourceName;
+		string strLiquidHelium4ResourceName;
+		string strMonoxideResourceName;
+		string strDioxideResourceName;
+		string strMethaneResourceName;
+		string strNitrogenResourceName;
+		string strWaterResourceName;
 
 		public RefineryType RefineryType { get { return RefineryType.heating; } }
 
@@ -52,16 +63,7 @@ namespace FNPlugin.Refinery
 
 		public String Status { get { return String.Copy(_status); } }
 
-		protected string strRegolithResourceName;
-		protected string strHydrogenResourceName;
-		protected string stDeuteriumResourceName;
-		protected string strLiquidHelium3ResourceName;
-		protected string strLiquidHelium4ResourceName;
-		protected string strMonoxideResourceName;
-		protected string strDioxideResourceName;
-		protected string strMethaneResourceName;
-		protected string strNitrogenResourceName;
-		protected string strWaterResourceName;
+
 
         protected PartResourceDefinition deuteriumDefinition;
 

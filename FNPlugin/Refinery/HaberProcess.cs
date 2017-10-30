@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
     class HaberProcess : RefineryActivityBase, IRefineryActivity
     {
-        protected double _hydrogen_density;
-        protected double _nitrogen_density;
-        protected double _ammonia_density;
+        double _hydrogen_density;
+        double _nitrogen_density;
+        double _ammonia_density;
 
-        protected double _hydrogen_consumption_rate;
-        protected double _ammonia_production_rate;
-        protected double _nitrogen_consumption_rate;
+        double _hydrogen_consumption_rate;
+        double _ammonia_production_rate;
+        double _nitrogen_consumption_rate;
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 

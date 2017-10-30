@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
     class AluminiumElectrolyser : RefineryActivityBase, IRefineryActivity
     {
-        protected double _alumina_density;
-        protected double _aluminium_density;
-        protected double _oxygen_density;
+        double _alumina_density;
+        double _aluminium_density;
+        double _oxygen_density;
 
-        protected double _alumina_consumption_rate;
-        protected double _aluminium_production_rate;
-        protected double _oxygen_production_rate;
+        double _alumina_consumption_rate;
+        double _aluminium_production_rate;
+        double _oxygen_production_rate;
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 

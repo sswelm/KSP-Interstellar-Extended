@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
@@ -14,33 +12,33 @@ namespace FNPlugin.Refinery
         const double hydrogenMassByFraction = (2 * 1.008) / (44.01 + (2 * 1.008));
         const double dioxideMassByFraction = 1 - hydrogenMassByFraction;
        
-        protected double _fixedConsumptionRate;
-        protected double _consumptionStorageRatio;
+        double _fixedConsumptionRate;
+        double _consumptionStorageRatio;
 
-        protected double _water_consumption_rate;
-        protected double _monoxide_consumption_rate;
-        protected double _hydrogen_production_rate;
-        protected double _dioxide_production_rate;
+        double _water_consumption_rate;
+        double _monoxide_consumption_rate;
+        double _hydrogen_production_rate;
+        double _dioxide_production_rate;
 
-        protected string _waterResourceName;
-        protected string _monoxideResourceName;
-        protected string _dioxideResourceName;
-        protected string _hydrogenResourceName;
+        string _waterResourceName;
+        string _monoxideResourceName;
+        string _dioxideResourceName;
+        string _hydrogenResourceName;
 
-        protected double _water_density;
-        protected double _dioxide_density;
-        protected double _hydrogen_density;
-        protected double _monoxide_density;
+        double _water_density;
+        double _dioxide_density;
+        double _hydrogen_density;
+        double _monoxide_density;
 
-        protected double _availableWaterMass;
-        protected double _availableMonoxideMass;
-        protected double _spareRoomDioxideMass;
-        protected double _spareRoomHydrogenMass;
+        double _availableWaterMass;
+        double _availableMonoxideMass;
+        double _spareRoomDioxideMass;
+        double _spareRoomHydrogenMass;
 
-        protected double _maxCapacityWaterMass;
-        protected double _maxCapacityDioxideMass;
-        protected double _maxCapacityMonoxideMass;
-        protected double _maxCapacityHydrogenMass;
+        double _maxCapacityWaterMass;
+        double _maxCapacityDioxideMass;
+        double _maxCapacityMonoxideMass;
+        double _maxCapacityHydrogenMass;
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 

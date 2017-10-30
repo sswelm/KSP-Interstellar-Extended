@@ -6,14 +6,14 @@ namespace FNPlugin.Refinery
 {
     class AmmoniaElectrolyzer : RefineryActivityBase, IRefineryActivity
     {
-        protected double _current_mass_rate;
-        protected double _ammonia_density;
-        protected double _nitrogen_density;
-        protected double _hydrogen_density;
+        double _current_mass_rate;
+        double _ammonia_density;
+        double _nitrogen_density;
+        double _hydrogen_density;
 
-        protected double _ammonia_consumption_mass_rate;
-        protected double _hydrogen_production_mass_rate;
-        protected double _nitrogen_production_mass_rate;
+        double _ammonia_consumption_mass_rate;
+        double _hydrogen_production_mass_rate;
+        double _nitrogen_production_mass_rate;
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; ; } }
 

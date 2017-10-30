@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
     class UF4Ammonolysiser : RefineryActivityBase, IRefineryActivity
     {
-        protected double _ammonia_density;
-        protected double _uranium_tetraflouride_density;
-        protected double _uranium_nitride_density;
+        double _ammonia_density;
+        double _uranium_tetraflouride_density;
+        double _uranium_nitride_density;
 
-        protected double _ammonia_consumption_rate;
-        protected double _uranium_tetraflouride_consumption_rate;
-        protected double _uranium_nitride_production_rate;
+        double _ammonia_consumption_rate;
+        double _uranium_tetraflouride_consumption_rate;
+        double _uranium_nitride_production_rate;
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 

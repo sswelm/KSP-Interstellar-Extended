@@ -1,25 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace FNPlugin.Refinery
 {
     class SabatierReactor : RefineryActivityBase, IRefineryActivity
     {
-        protected double _fixedConsumptionRate;
+        double _fixedConsumptionRate;
 
-        protected double _carbondioxide_density;
-        protected double _methane_density;
-        protected double _hydrogen_density;
-        protected double _oxygen_density;
+        double _carbondioxide_density;
+        double _methane_density;
+        double _hydrogen_density;
+        double _oxygen_density;
         
-        protected double _hydrogen_consumption_rate;
-        protected double _carbondioxide_consumption_rate;
+        double _hydrogen_consumption_rate;
+        double _carbondioxide_consumption_rate;
 
-        protected double _methane_production_rate;
-        protected double _oxygen_production_rate;
+        double _methane_production_rate;
+        double _oxygen_production_rate;
+
+        string _carbondioxide_resource_name;
+        string _methane_resource_name;
+        string _hydrogen_resource_name;
+        string _oxygen_resource_name;
+
+        double _maxCapacityCarbondioxideMass;
+        double _maxCapacityHydrogenMass;
+        double _maxCapacityMethaneMass;
+        double _maxCapacityOxygenMass;
+
+        double _availableCarbondioxideMass;
+        double _availableHydrogenMass;
+        double _spareRoomMethaneMass;
+        double _spareRoomOxygenMass;
+
+        double _carbonDioxideMassByFraction = 44.01 / (44.01 + (8 * 1.008));
+        double _hydrogenMassByFraction = (8 * 1.008) / (44.01 + (8 * 1.008));
+        double _oxygenMassByFraction = 32.0 / 52.0;
+        double _methaneMassByFraction = 20.0 / 52.0;
+
+        private double fixed_combined_consumption_rate;
+        private double combined_consumption_rate;
      
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
@@ -37,10 +58,7 @@ namespace FNPlugin.Refinery
 
         public String Status { get { return String.Copy(_status); } }
 
-        protected string _carbondioxide_resource_name;
-        protected string _methane_resource_name;
-        protected string _hydrogen_resource_name;
-        protected string _oxygen_resource_name;
+
 
         public SabatierReactor(Part part) 
         {
@@ -58,23 +76,7 @@ namespace FNPlugin.Refinery
             _oxygen_density = PartResourceLibrary.Instance.GetDefinition(_oxygen_resource_name).density;
         }
 
-        protected double _maxCapacityCarbondioxideMass;
-        protected double _maxCapacityHydrogenMass;
-        protected double _maxCapacityMethaneMass;
-        protected double _maxCapacityOxygenMass;
 
-        protected double _availableCarbondioxideMass;
-        protected double _availableHydrogenMass;
-        protected double _spareRoomMethaneMass;
-        protected double _spareRoomOxygenMass;
-
-        protected double _carbonDioxideMassByFraction = 44.01 / (44.01 + (8 * 1.008));
-        protected double _hydrogenMassByFraction = (8 * 1.008) / (44.01 + (8 * 1.008));
-        protected double _oxygenMassByFraction = 32.0 / 52.0;
-        protected double _methaneMassByFraction = 20.0 / 52.0;
-
-        private double fixed_combined_consumption_rate;
-        private double combined_consumption_rate;
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {

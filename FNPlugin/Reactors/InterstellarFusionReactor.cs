@@ -18,13 +18,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double fusionEnergyGainFactorMk1 = 10;
         [KSPField(isPersistant = false)]
-		public double fusionEnergyGainFactorMk2 = 20;
+        public double fusionEnergyGainFactorMk2 = 20;
         [KSPField(isPersistant = false)]
-		public double fusionEnergyGainFactorMk3 = 40;
+        public double fusionEnergyGainFactorMk3 = 40;
         [KSPField(isPersistant = false)]
-		public double fusionEnergyGainFactorMk4 = 80;
+        public double fusionEnergyGainFactorMk4 = 80;
         [KSPField(isPersistant = false)]
-		public double fusionEnergyGainFactorMk5 = 120;
+        public double fusionEnergyGainFactorMk5 = 120;
 
         [KSPField(isPersistant = false, guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
@@ -42,7 +42,7 @@ namespace FNPlugin
 
         public double MaximumChargedIspMult { get { return 100; } }
 
-		public double MinimumChargdIspMult { get { return 1; } }
+        public double MinimumChargdIspMult { get { return 1; } }
 
         public override double StableMaximumReactorPower { get { return base.StableMaximumReactorPower * LithiumModifier; } }
 
@@ -92,24 +92,19 @@ namespace FNPlugin
         {
             get
             {
-	            switch (CurrentGenerationType)
-	            {
-		            case GenerationType.Mk5:
-			            return fusionEnergyGainFactorMk5;
-			            break;
-		            case GenerationType.Mk4:
-			            return fusionEnergyGainFactorMk4;
-			            break;
-		            case GenerationType.Mk3:
-			            return fusionEnergyGainFactorMk3;
-			            break;
-		            case GenerationType.Mk2:
-			            return fusionEnergyGainFactorMk2;
-			            break;
-		            default:
-			            return fusionEnergyGainFactorMk1;
-			            break;
-	            }
+                switch (CurrentGenerationType)
+                {
+                    case GenerationType.Mk5:
+                        return fusionEnergyGainFactorMk5;
+                    case GenerationType.Mk4:
+                        return fusionEnergyGainFactorMk4;
+                    case GenerationType.Mk3:
+                        return fusionEnergyGainFactorMk3;
+                    case GenerationType.Mk2:
+                        return fusionEnergyGainFactorMk2;
+                    default:
+                        return fusionEnergyGainFactorMk1;
+                }
             }
         }
 
