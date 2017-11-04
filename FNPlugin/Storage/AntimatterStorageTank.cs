@@ -411,8 +411,6 @@ namespace FNPlugin
                 else
                     statusStr = "No Power Required.";
             }
-
-            //UpdateAmounts();
         }
 
         private void UpdateAmounts()

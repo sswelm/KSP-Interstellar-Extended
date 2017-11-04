@@ -327,7 +327,7 @@ namespace FNPlugin
         public double maximumThermalPowerEffective = 0;
         [KSPField]
         public double geeForceModifier;
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         public double ongoing_total_power_generated;
         [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_Reactor_thermalPower", guiFormat = "F6")]
         protected double ongoing_thermal_power_generated;
@@ -1633,9 +1633,9 @@ namespace FNPlugin
             return MaximumPower;
         }
 
-        public double GetRadius()
+        public double Radius
         {
-            return radius;
+            get { return radius; }
         }
 
         public virtual bool shouldScaleDownJetISP()

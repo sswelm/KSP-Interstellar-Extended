@@ -1515,13 +1515,13 @@ namespace FNPlugin
         private double storedFractionThermalReciever;
         private double GetHeatExchangerThrustDivisor()
         {
-            if (AttachedReactor == null || AttachedReactor.GetRadius() == 0 || radius == 0) return 0;
+            if (AttachedReactor == null || AttachedReactor.Radius == 0 || radius == 0) return 0;
 
             if (_myAttachedReactor.GetFractionThermalReciever(id) == 0) return storedFractionThermalReciever;
 
             storedFractionThermalReciever = _myAttachedReactor.GetFractionThermalReciever(id);
 
-            var fractionalReactorRadius = Math.Sqrt(Math.Pow(AttachedReactor.GetRadius(), 2) * storedFractionThermalReciever);
+            var fractionalReactorRadius = Math.Sqrt(Math.Pow(AttachedReactor.Radius, 2) * storedFractionThermalReciever);
 
             // scale down thrust if it's attached to the wrong sized reactor
             double heat_exchanger_thrust_divisor = radius > fractionalReactorRadius

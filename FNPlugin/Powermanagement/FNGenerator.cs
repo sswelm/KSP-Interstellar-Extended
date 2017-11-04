@@ -749,15 +749,15 @@ namespace FNPlugin
         {
             if (attachedPowerSource == null) return;
 
-            if (attachedPowerSource.GetRadius() <= 0 || radius <= 0)
+            if (attachedPowerSource.Radius <= 0 || radius <= 0)
             {
                 heat_exchanger_thrust_divisor = 1;
                 return;
             }
 
-            heat_exchanger_thrust_divisor = radius > attachedPowerSource.GetRadius()
-                ? attachedPowerSource.GetRadius() * attachedPowerSource.GetRadius() / radius / radius
-                : radius * radius / attachedPowerSource.GetRadius() / attachedPowerSource.GetRadius();
+            heat_exchanger_thrust_divisor = radius > attachedPowerSource.Radius
+                ? attachedPowerSource.Radius * attachedPowerSource.Radius / radius / radius
+                : radius * radius / attachedPowerSource.Radius / attachedPowerSource.Radius;
         }
 
         public void UpdateGeneratorPower()
@@ -766,9 +766,14 @@ namespace FNPlugin
 
             if (!chargedParticleMode) // thermal mode
             {
-                hotBathTemp = isMHD && attachedPowerSource.SupportMHD && !applies_balance
-                    ? Math.Pow(1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT), 2) * attachedPowerSource.CoreTemperature
-                    : attachedPowerSource.HotBathTemperature;
+                var plasmaTemperature = Math.Pow(1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT), 2) * attachedPowerSource.CoreTemperature;
+
+                hotBathTemp = applies_balance || !isMHD
+                    ? attachedPowerSource.HotBathTemperature 
+                    : attachedPowerSource.SupportMHD 
+                        ? plasmaTemperature
+                        : plasmaTemperature * attachedPowerSource.ChargedPowerRatio + (1 - attachedPowerSource.ChargedPowerRatio) * attachedPowerSource.HotBathTemperature; 
+
 
                 averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel) * 0.75);
 

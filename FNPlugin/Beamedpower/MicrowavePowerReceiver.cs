@@ -2020,9 +2020,9 @@ namespace FNPlugin
 			return ThermalPower;
 		}
 
-		public double GetRadius()
+		public double Radius
 		{
-			return radius;
+            get { return radius; }
 		}
 
 		public bool isActive()

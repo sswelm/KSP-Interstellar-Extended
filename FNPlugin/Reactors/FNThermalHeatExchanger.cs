@@ -253,9 +253,9 @@ namespace FNPlugin
             return _thermalpower;
         }
 
-        public double GetRadius()
+        public double Radius
         {
-            return radius;
+            get { return radius; }
         }
 
         public bool isActive()

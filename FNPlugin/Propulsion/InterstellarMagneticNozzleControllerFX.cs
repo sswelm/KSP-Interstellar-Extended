@@ -107,9 +107,9 @@ namespace FNPlugin
 
             throtleExponent = Math.Abs(Math.Log10(_attached_reactor.MinimumChargdIspMult / _attached_reactor.MaximumChargedIspMult));
 
-            exchanger_thrust_divisor = radius > _attached_reactor.GetRadius()
-                ? _attached_reactor.GetRadius() * _attached_reactor.GetRadius() / radius / radius
-                : radius * radius / _attached_reactor.GetRadius() / _attached_reactor.GetRadius();
+            exchanger_thrust_divisor = radius > _attached_reactor.Radius
+                ? _attached_reactor.Radius * _attached_reactor.Radius / radius / radius
+                : radius * radius / _attached_reactor.Radius / _attached_reactor.Radius;
 		}
 
         private IChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)

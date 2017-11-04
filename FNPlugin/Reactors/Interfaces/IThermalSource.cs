@@ -79,7 +79,7 @@ namespace FNPlugin
 
         bool IsVolatileSource { get; }
 
-        double GetRadius();
+        double Radius {get; }
 
         bool IsNuclear { get; }
 
