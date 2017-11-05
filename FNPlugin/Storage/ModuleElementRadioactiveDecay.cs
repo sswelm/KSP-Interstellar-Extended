@@ -7,11 +7,11 @@ namespace FNPlugin
     {
         // Persistent False
         [KSPField(isPersistant = false)]
-        public double decayConstant;
+        public double decayConstant = 0;
         [KSPField(isPersistant = false)]
-        public string resourceName;
+        public string resourceName = "";
         [KSPField(isPersistant = false)]
-        public string decayProduct;
+        public string decayProduct = "";
         [KSPField(isPersistant = false)]
         public double convFactor = 1;
 

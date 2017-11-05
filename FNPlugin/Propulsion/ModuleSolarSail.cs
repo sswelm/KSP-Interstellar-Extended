@@ -5,7 +5,8 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
-    class ModuleSolarSail : PartModule {
+    class ModuleSolarSail : PartModule 
+    {
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool IsEnabled = false;
@@ -14,9 +15,9 @@ namespace FNPlugin {
         [KSPField]
         public float reflectedPhotonRatio = 1;
         [KSPField]
-        public float surfaceArea; // Surface area of the panel.
+        public float surfaceArea = 1; // Surface area of the panel.
         [KSPField]
-        public string animName;
+        public string animName = "";
 
         // GUI
         [KSPField(guiActive = true, guiName = "Force")]

@@ -8,7 +8,7 @@ namespace FNPlugin
 		[KSPField(isPersistant = true)]
 		bool IsEnabled;
 		[KSPField(isPersistant = false)]
-		public string animName;
+		public string animName = "";
         [KSPField(isPersistant = false, guiActive = true, guiName = "|B|")]
         public string Bmag;
         [KSPField(isPersistant = false, guiActive = true, guiName = "B_r")]
@@ -18,8 +18,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Antimatter Flux")]
         public string ParticleFlux;
 
-
-        private bool init = false;
 		protected Animation anim;
 
 		[KSPEvent(guiActive = true, guiName = "Activate Magnetometer", active = true)]

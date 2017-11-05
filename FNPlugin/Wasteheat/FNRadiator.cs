@@ -169,11 +169,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Converction Bonus")]
         public float convectiveBonus = 1;
         [KSPField(isPersistant = false)]
-        public string animName;
+        public string animName = "";
         [KSPField(isPersistant = false)]
-        public string thermalAnim;
+        public string thermalAnim = "";
         [KSPField(isPersistant = false)]
-        public string originalName;
+        public string originalName = "";
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
         [KSPField(isPersistant = false)]
@@ -197,7 +197,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double effectiveRadiativeArea = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
-        public double areaMultiplier = 2.5;
+        public double areaMultiplier = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double effectiveRadiatorArea;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
@@ -297,7 +297,7 @@ namespace FNPlugin
         {
             get 
             {
-                effectiveRadiativeArea = areaMultiplier * radiatorArea;
+                effectiveRadiativeArea = PluginHelper.RadiatorAreaMultiplier * areaMultiplier * radiatorArea;
 
                 return hasSurfaceAreaUpgradeTechReq 
                     ? effectiveRadiativeArea * surfaceAreaUpgradeMult 

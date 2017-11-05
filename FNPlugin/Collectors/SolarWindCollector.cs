@@ -20,23 +20,30 @@ namespace FNPlugin
         public double dLastSolarConcentration;
         [KSPField(isPersistant = true)]
         protected bool bIsExtended = false;
-
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Ionization"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        protected bool bIonizing = false;
 
         // Part properties
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Surface area", guiUnits = " m\xB2")]
         public double surfaceArea = 0; // Surface area of the panel.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Collector effectiveness", guiFormat = "P1")]
         public double effectiveness = 1; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Magnetic Power Requirements", guiUnits = " MW")]
         public double mwRequirements = 1; // MW requirements of the collector panel.
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Ionisation Power Requirements", guiUnits = " MW")]
+        public double ionRequirements = 100; // MW requirements of the collector panel.
         [KSPField(isPersistant = false)]
-        public string animName;
+        public string animName = "";
         [KSPField(isPersistant = false)]
-        public double cheatMultipler = 1000; 
+        public string ionAnimName = "";
+        [KSPField(isPersistant = false)]
+        public double solarCheatMultiplier = 1000;  // Amount of boosted Solar wind activity
+        [KSPField(isPersistant = false)]
+        public double collectMultiplier = 1; 
 
 
         // GUI
-        [KSPField(guiActive = true, guiName = "Solar Wind Concentration", guiUnits = " ions/m\xB3")]
+        [KSPField(guiActive = true, guiName = "Solar Wind Concentration", guiUnits = " mol/m\xB3")]
         protected float solarWindConcentration;
         [KSPField(guiActive = true, guiName = "Distance from the sun")]
         protected string strStarDist = "";
@@ -53,6 +60,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Activate Collector", active = true)]
         public void ActivateCollector()
         {
+            this.part.force_activate();
             bIsEnabled = true;
             OnUpdate();
             if (IsCollectLegal() == true)
@@ -95,29 +103,35 @@ namespace FNPlugin
                 ActivateCollector();
         }
 
-        const double dKerbinDistance = 13599840256; // distance of Kerbin from Sun/Kerbol in meters (i.e. AU)
+        double molarMassConcentrationPerSquareMeterPerSecond = 0;
+        double dSolarWindSpareCapacity;
+        double dSolarWindDensity;
+        bool bPreviousIonizingState;
+        double dMagnetoSphereStrengthRatio = 0;
+        double dShieldedEffectiveness = 0;
+        string strSolarWindResourceName;
 
-        protected double dDistanceFromStar = 0; // distance of the current vessel from the system's star
-        protected double massConcentrationPerSquareMeterPerSecond = 0;
-        protected double dSolarWindSpareCapacity;
-        protected double dSolarWindDensity;
-        protected Animation anim;
-        protected bool bChangeState = false;
-        protected double dMagnetoSphereStrengthRatio = 0;
-        protected double dShieldedEffectiveness = 0;
-
-        protected CelestialBody localStar;
+        Animation deployAnimation;
+        Animation ionisationAnimation;
+        CelestialBody localStar;
 
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return; // collecting won't work in editor
 
-            this.part.force_activate();
+            //this.part.force_activate();
 
             localStar = GetCurrentStar();
 
+            // get resource name solar wind
+            strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
+
+            // gets density of the solar wind resource
+            dSolarWindDensity = PartResourceLibrary.Instance.GetDefinition(strSolarWindResourceName).density;
+
             // get the part's animation
-            anim = part.FindModelAnimators(animName).FirstOrDefault();
+            deployAnimation = part.FindModelAnimators(animName).FirstOrDefault();
+            ionisationAnimation = part.FindModelAnimators(ionAnimName).FirstOrDefault();
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
             List<ModuleAnimateGeneric> MAGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
@@ -144,10 +158,17 @@ namespace FNPlugin
             }
 
             // if the part should be extended (from last time), go to the extended animation
-            if (bIsExtended == true && anim != null)
+            if (bIsExtended && deployAnimation != null)
             {
-                anim[animName].normalizedTime = 1;
+                deployAnimation[animName].normalizedTime = 1;
             }
+
+            //if (bIonizing && ionisationAnimation != null)
+            //{
+            //    ionisationAnimation[ionAnimName].normalizedTime = 1;
+            //    ionisationAnimation.Sample();
+            //}
+            //bPreviousIonizingState = bIonizing;
 
             // calculate time difference since last time the vessel was active
             double dTimeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
@@ -164,15 +185,23 @@ namespace FNPlugin
 
             Fields["strReceivedPower"].guiActive = bIsEnabled;
 
+            UpdateIonisationAnimation();
 
-            massConcentrationPerSquareMeterPerSecond = CalculateSolarWindConcentration(part.vessel.solarFlux);
-            solarWindConcentration = (float)massConcentrationPerSquareMeterPerSecond;
+            var dSolarWindConcentration = CalculateSolarwindIonConcentration(part.vessel.solarFlux, solarCheatMultiplier);
+            solarWindConcentration = (float)dSolarWindConcentration;
+            var InterstellarHydrogenConcentration = CalculateInterstellarIonConcentration(part.vessel.speed);
+
+            molarMassConcentrationPerSquareMeterPerSecond = dSolarWindConcentration + InterstellarHydrogenConcentration;
+
             dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
             strMagnetoStrength = UpdateMagnetoStrengthInGUI();
         }
 
-        public override void OnFixedUpdate()
+        public void FixedUpdate()
         {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+
             if (FlightGlobals.fetch != null)
             {
                 if (!bIsEnabled)
@@ -201,7 +230,7 @@ namespace FNPlugin
                 dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
 
                 // store current solar wind concentration in case vessel is unloaded
-                dLastSolarConcentration = CalculateSolarWindConcentration(part.vessel.solarFlux);
+                dLastSolarConcentration = molarMassConcentrationPerSquareMeterPerSecond; //CalculateSolarWindConcentration(part.vessel.solarFlux);
             }
         }
 
@@ -259,47 +288,83 @@ namespace FNPlugin
                 return bCanCollect = true;
         }
 
+        private void UpdateIonisationAnimation()
+        {
+            if (bIonizing == bPreviousIonizingState)
+                return;
+
+            if (bPreviousIonizingState)
+            {
+                bPreviousIonizingState = false;
+                if (ionisationAnimation != null)
+                {
+                    ionisationAnimation[ionAnimName].speed = -1; // speed of 1 is normal playback, -1 is reverse playback (so in this case we go from the end of animation backwards)
+                    ionisationAnimation[ionAnimName].normalizedTime = 1; // normalizedTime at 1 is the end of the animation
+                    ionisationAnimation.Blend(ionAnimName, part.mass);
+                }
+            }
+            else
+            {
+                bPreviousIonizingState = true;
+                // if folded, plays the part extending animation
+                if (ionisationAnimation != null)
+                {
+                    ionisationAnimation[ionAnimName].speed = 1;
+                    ionisationAnimation[ionAnimName].normalizedTime = 0; // normalizedTime at 0 is the start of the animation
+                    ionisationAnimation.Blend(ionAnimName, part.mass);
+                }
+            }
+        }
+
         private void UpdatePartAnimation()
         {
-            // if folded, plays the part extending animation
-            if (!bIsExtended)
-            {
-                if (anim != null)
-                {
-                    anim[animName].speed = 1;
-                    anim[animName].normalizedTime = 0; // normalizedTime at 0 is the start of the animation
-                    anim.Blend(animName, part.mass);
-                }
-                bIsExtended = true;
-                return;
-            }
-
             // if extended, plays the part folding animation
             if (bIsExtended)
             {
-                if (anim != null)
+                if (deployAnimation != null)
                 {
-                    anim[animName].speed = -1; // speed of 1 is normal playback, -1 is reverse playback (so in this case we go from the end of animation backwards)
-                    anim[animName].normalizedTime = 1; // normalizedTime at 1 is the end of the animation
-                    anim.Blend(animName, part.mass);
+                    deployAnimation[animName].speed = -1; // speed of 1 is normal playback, -1 is reverse playback (so in this case we go from the end of animation backwards)
+                    deployAnimation[animName].normalizedTime = 1; // normalizedTime at 1 is the end of the animation
+                    deployAnimation.Blend(animName, part.mass);
                 }
                 bIsExtended = false;
-                return;
             }
-            return;
+            else
+            {
+                // if folded, plays the part extending animation
+                if (deployAnimation != null)
+                {
+                    deployAnimation[animName].speed = 1;
+                    deployAnimation[animName].normalizedTime = 0; // normalizedTime at 0 is the start of the animation
+                    deployAnimation.Blend(animName, part.mass);
+                }
+                bIsExtended = true;
+            }
         }
 
         // calculates solar wind concentration
-        private static double CalculateSolarWindConcentration(double flux)
+        private static double CalculateSolarwindIonConcentration(double flux, double solarCheatMultiplier)
         {
             var dAvgKerbinSolarFlux = 1409.285; // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
-            var dAvgSolarWindPerCubM = 6000; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
+            var dAvgSolarWindPerCubM = 6 * 1000000; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
+            
 
             var solarWindSpeed = 500000; // Average Solar win speed 500 km/s
-            var avogadroConstant = 6.022140857e+23; // number of atmons 
+            var avogadroConstant = 6.022140857e+23; // number of atoms in 1 mol 
 
-            double dConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed / avogadroConstant;
-            return dConcentration;
+            double dMolalSolarConcentration = (flux / dAvgKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed * solarCheatMultiplier / avogadroConstant;
+
+            return dMolalSolarConcentration; // in mol / m2 / sec
+        }
+
+        private static double CalculateInterstellarIonConcentration(double vesselSpeed)
+        {
+            var dAverageInterstellarHydrogenPerCubM = 1 * 1000000;
+            var avogadroConstant = 6.022140857e+23; // number of atoms in 1 mol
+
+            var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * vesselSpeed / avogadroConstant;
+
+            return interstellarHydrogenConcentration; // in mol / m2 / sec
         }
 
         // calculates the distance to sun
@@ -322,21 +387,17 @@ namespace FNPlugin
         // the main collecting function
         private void CollectSolarWind(double deltaTimeInSeconds, bool offlineCollecting)
         {
-            massConcentrationPerSquareMeterPerSecond = CalculateSolarWindConcentration(part.vessel.solarFlux);
+            var ionizationPowerCost = bIonizing ? ionRequirements : 0;
 
-            var strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
-            var dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
+            var dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * (mwRequirements + ionizationPowerCost); // change the mwRequirements number in part config to change the power consumption
 
             // checks for free space in solar wind 'tanks'
             dSolarWindSpareCapacity = part.GetResourceSpareCapacity(strSolarWindResourceName);
 
-            // gets density of the solar wind resource
-            dSolarWindDensity = PartResourceLibrary.Instance.GetDefinition(strSolarWindResourceName).density;
-
             if (offlineCollecting)
-                massConcentrationPerSquareMeterPerSecond = dLastSolarConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the function at line 328
+                molarMassConcentrationPerSquareMeterPerSecond = dLastSolarConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the function at line 328
 
-            if (massConcentrationPerSquareMeterPerSecond > 0 && (dSolarWindSpareCapacity > 0))
+            if (molarMassConcentrationPerSquareMeterPerSecond > 0 && (dSolarWindSpareCapacity > 0))
             {
                 // calculate available power
                 var dNormalisedRevievedPowerMW = Math.Max(consumeFNResourcePerSecond(dPowerRequirementsMW, ResourceManager.FNRESOURCE_MEGAJOULES), 0);
@@ -380,7 +441,7 @@ namespace FNPlugin
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            double dResourceChange = (massConcentrationPerSquareMeterPerSecond * cheatMultipler * surfaceArea / dSolarWindDensity) * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * deltaTimeInSeconds;
+            double dResourceChange = (molarMassConcentrationPerSquareMeterPerSecond / 1000000 * collectMultiplier * surfaceArea / dSolarWindDensity) * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * deltaTimeInSeconds;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)

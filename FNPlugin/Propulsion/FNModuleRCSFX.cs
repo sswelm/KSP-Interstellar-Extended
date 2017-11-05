@@ -25,7 +25,7 @@ namespace FNPlugin
         public bool useEffects = false;
 
         [KSPField]
-        string flameoutEffectName = "";
+        public string flameoutEffectName = "";
 
         public bool rcs_active;
 

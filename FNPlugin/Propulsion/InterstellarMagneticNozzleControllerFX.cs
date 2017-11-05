@@ -9,9 +9,9 @@ namespace FNPlugin
     {
 		//Persistent False
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = "m")]
-		public float radius;
+		public float radius = 2.5f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = " t")]
-        public float partMass;
+        public float partMass = 1;
         [KSPField(isPersistant = false)]
         public double powerThrustMultiplier = 1.0;
         [KSPField(isPersistant = false)]

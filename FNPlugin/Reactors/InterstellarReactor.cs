@@ -190,22 +190,22 @@ namespace FNPlugin
         [KSPField]
         public double upgradedReactorTemp = 0;
         [KSPField]
-        public string animName;
+        public string animName = "";
         [KSPField(isPersistant = false)]
-        public string loopingAnimationName;
+        public string loopingAnimationName = "";
         [KSPField]
-        public string startupAnimationName;
+        public string startupAnimationName = "";
         [KSPField]
-        public string shutdownAnimationName;
+        public string shutdownAnimationName = "";
         [KSPField]
         public double reactorSpeedMult = 1;
 
         [KSPField]
-        public string upgradedName;
+        public string upgradedName = "";
         [KSPField]
-        public string originalName;
+        public string originalName = "";
         [KSPField]
-        public float upgradeCost;
+        public float upgradeCost = 0;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_Reactor_connectionRadius")]
         public double radius = 2.5;
         [KSPField]

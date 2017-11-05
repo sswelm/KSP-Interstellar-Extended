@@ -23,17 +23,17 @@ namespace FNPlugin
         public double engineIsp;
 
         [KSPField(isPersistant = false)]
-        public string upgradeTechReq;
+        public string upgradeTechReq = "";
         [KSPField(isPersistant = false)]
-        public string gearsTechReq;
+        public string gearsTechReq = "";
         [KSPField(isPersistant = false)]
         public double powerReqMult = 1; 
         [KSPField(isPersistant = false)]
         public int type;
         [KSPField(isPersistant = false)]
-        public int upgradedtype;
+        public int upgradedtype = 0;
         [KSPField(isPersistant = false)]
-        public float baseISP;
+        public float baseISP = 1000;
         [KSPField(isPersistant = false)]
         public float ispGears = 3;
         [KSPField(isPersistant = false)]
@@ -43,11 +43,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiName = "Power Thrust Multiplier")]
         public double powerThrustMultiplier = 1.0;
         [KSPField(isPersistant = false)]
-        public float upgradeCost;
+        public float upgradeCost = 0;
         [KSPField(isPersistant = false)]
-        public string originalName;
+        public string originalName = "";
         [KSPField(isPersistant = false)]
-        public string upgradedName;
+        public string upgradedName = "";
         [KSPField(isPersistant = false)]
         public double wasteHeatMultiplier = 1;
         [KSPField(isPersistant = false)]

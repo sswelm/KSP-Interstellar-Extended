@@ -96,13 +96,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double wasteheatEfficiencyHighTemperature = 0.9;
         [KSPField(isPersistant = false)]
-        public float upgradeCost;
+        public float upgradeCost = 1;
         [KSPField(isPersistant = false)]
-        public string originalName;
+        public string originalName = "";
         [KSPField(isPersistant = false)]
-        public string upgradedName;
+        public string upgradedName = "";
         [KSPField(isPersistant = false)]
-        public string upgradeTechReq;
+        public string upgradeTechReq = "";
         [KSPField(isPersistant = false)]
         public string EffectNameJet = String.Empty;
         [KSPField(isPersistant = false)]

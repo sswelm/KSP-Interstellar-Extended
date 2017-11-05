@@ -136,11 +136,11 @@ namespace FNPlugin
 		public double solarFacingExponent = 1;
 
 		[KSPField]
-		public string animName;
+		public string animName= "";
 		[KSPField]
-		public string animTName;
+		public string animTName = "";
 		[KSPField]
-		public string animGenericName;
+		public string animGenericName = "";
 
 		[KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Receiver Diameter", guiUnits = " m")]
 		public float diameter = 1;

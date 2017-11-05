@@ -20,15 +20,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string upgradeTechReq = null;
         [KSPField(isPersistant = false)]
-        public string upgradedName;
+        public string upgradedName = "";
         [KSPField(isPersistant = false)]
-        public string originalName;
+        public string originalName = "";
         [KSPField(isPersistant = false)]
         public float upgradeCost = 100;
         [KSPField(isPersistant = false)]
-        public float megajouleRate;
+        public float megajouleRate = 1;
         [KSPField(isPersistant = false)]
-        public float upgradedMegajouleRate;
+        public float upgradedMegajouleRate = 10;
         [KSPField(isPersistant = false)]
         public double powerReqMult = 1;
 

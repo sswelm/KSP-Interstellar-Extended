@@ -27,15 +27,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public string AnimationName = String.Empty;
         [KSPField(isPersistant = false)]
-        public string upgradedName;
+        public string upgradedName = "";
         [KSPField(isPersistant = false)]
-        public string originalName;
+        public string originalName = "";
         [KSPField(isPersistant = false)]
-        public float effectSize1;
+        public float effectSize1 = 0;
         [KSPField(isPersistant = false)]
-        public float effectSize2;
+        public float effectSize2 = 0;
         [KSPField(isPersistant = false)]
-        public string upgradeTechReq;
+        public string upgradeTechReq = "";
         [KSPField(isPersistant = false)]
         public double powerRequirementMultiplier = 1;
 

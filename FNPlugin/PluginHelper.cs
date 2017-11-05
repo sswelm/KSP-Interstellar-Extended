@@ -315,6 +315,11 @@ namespace FNPlugin
         private static string _jetUpgradeTech5 = String.Empty;
         public static string JetUpgradeTech5 { get { return _jetUpgradeTech5; } private set { _jetUpgradeTech5 = value; } }
 
+        // RadiatorAreaMultiplier
+
+        private static double _radiatorAreaMultiplier = 2;
+        public static double RadiatorAreaMultiplier { get { return _radiatorAreaMultiplier; } private set { _radiatorAreaMultiplier = value; } }
+
         // Radiator Upgrade Techs
 
         private static string _radiatorUpgradeTech1 = String.Empty;
@@ -1012,6 +1017,13 @@ namespace FNPlugin
                     {
                         PluginHelper.JetUpgradeTech5 = plugin_settings.GetValue("JetUpgradeTech5");
                         Debug.Log("[KSPI] JetUpgradeTech5 " + PluginHelper.JetUpgradeTech5);
+                    }
+
+                    // Radiator
+                    if (plugin_settings.HasValue("RadiatorAreaMultiplier"))
+                    {
+                        PluginHelper.RadiatorAreaMultiplier = double.Parse(plugin_settings.GetValue("RadiatorAreaMultiplier"));
+                        Debug.Log("[KSPI] RadiatorAreaMultiplier " + PluginHelper.RadiatorAreaMultiplier);
                     }
 
                     // Radiator Upgrade Tech

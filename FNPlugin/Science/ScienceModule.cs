@@ -42,9 +42,9 @@ namespace FNPlugin
 
         // persistant false
         [KSPField(isPersistant = false)]
-        public string animName1;
+        public string animName1 = "";
         [KSPField(isPersistant = false)]
-        public string animName2;
+        public string animName2 = "";
         [KSPField(isPersistant = false)]
         public string upgradeTechReq = null;
         [KSPField(isPersistant = false)]

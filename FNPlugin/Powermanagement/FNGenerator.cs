@@ -57,9 +57,9 @@ namespace FNPlugin
         public bool calculatedMass = false;
 
         [KSPField(isPersistant = false)]
-        public string upgradedName;
+        public string upgradedName = "";
         [KSPField(isPersistant = false)]
-        public string originalName;
+        public string originalName = "";
 
         [KSPField(isPersistant = false)]
         public double pCarnotEff = 0.32;
@@ -99,15 +99,15 @@ namespace FNPlugin
         public double maxEfficiency = 0;
 
         [KSPField(isPersistant = false)]
-        public string animName;
+        public string animName = "";
         [KSPField(isPersistant = false)]
-        public string upgradeTechReq;
+        public string upgradeTechReq = "";
         [KSPField(isPersistant = false)]
-        public float upgradeCost;
+        public float upgradeCost = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius")]
-        public double radius;
+        public double radius = 2.5;
         [KSPField(isPersistant = false)]
-        public string altUpgradedName;
+        public string altUpgradedName = "";
         [KSPField(isPersistant = false)]
         public double wasteHeatMultiplier = 1;
 
@@ -176,7 +176,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
         public string OverallEfficiency;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Upgrade Cost")]
-        public string upgradeCostStr;
+        public string upgradeCostStr = "";
         [KSPField(isPersistant = false, guiActive = false, guiName = "Required Capacity", guiUnits = " MW_e")]
         public double requiredMegawattCapacity;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Heat Exchange Divisor")]
@@ -766,13 +766,15 @@ namespace FNPlugin
 
             if (!chargedParticleMode) // thermal mode
             {
+                var chargedPowerModifier = Math.Pow(attachedPowerSource.ChargedPowerRatio, 2);
+
                 var plasmaTemperature = Math.Pow(1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT), 2) * attachedPowerSource.CoreTemperature;
 
                 hotBathTemp = applies_balance || !isMHD
                     ? attachedPowerSource.HotBathTemperature 
                     : attachedPowerSource.SupportMHD 
                         ? plasmaTemperature
-                        : plasmaTemperature * attachedPowerSource.ChargedPowerRatio + (1 - attachedPowerSource.ChargedPowerRatio) * attachedPowerSource.HotBathTemperature; 
+                        : plasmaTemperature * chargedPowerModifier + (1 - chargedPowerModifier) * attachedPowerSource.HotBathTemperature; 
 
 
                 averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel) * 0.75);

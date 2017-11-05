@@ -13,7 +13,7 @@ namespace FNPlugin
 
         //Persistent False
         [KSPField(isPersistant = false)]
-		public double radius;
+		public double radius = 2.5;
         [KSPField(isPersistant = false)]
         public double heatTransportationEfficiency = 0.7f;
         [KSPField(isPersistant = false)]
