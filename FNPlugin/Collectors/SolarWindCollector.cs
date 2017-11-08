@@ -163,13 +163,6 @@ namespace FNPlugin
                 deployAnimation[animName].normalizedTime = 1;
             }
 
-            //if (bIonizing && ionisationAnimation != null)
-            //{
-            //    ionisationAnimation[ionAnimName].normalizedTime = 1;
-            //    ionisationAnimation.Sample();
-            //}
-            //bPreviousIonizingState = bIonizing;
-
             // calculate time difference since last time the vessel was active
             double dTimeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
 

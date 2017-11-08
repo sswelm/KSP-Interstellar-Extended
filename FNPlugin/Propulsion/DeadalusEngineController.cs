@@ -1,8 +1,8 @@
 using FNPlugin.Extensions;
+using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEngine;
 
 namespace FNPlugin
 {
@@ -12,111 +12,102 @@ namespace FNPlugin
 	{
 		// Persistant
 		[KSPField(isPersistant = true)]
-		bool IsEnabled;
-		[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Upgraded")]
+        public bool IsEnabled;
+		[KSPField(isPersistant = true)]
 		public bool isupgraded = false;
 		[KSPField(isPersistant = true)]
-		bool rad_safety_features = true;
+        public bool rad_safety_features = true;
 
 		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Lightspeed Limiter", guiUnits = "c"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 1, minValue = 0.005f)]
 		public float speedLimit = 1;
 		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Fuel Limiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
 		public float fuelLimit = 100;
-
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Vessel Time", guiFormat = "F1", guiUnits = " s")]
+        public double vesselLifetime;
 		[KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Maximise Thrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
 		public bool maximizeThrust = true;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Power Usage")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Initial Speed")]
+        public double initialSpeed;
+
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Power Usage")]
         public string powerUsage;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Fusion Fuel")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Fusion Fuel")]
         public string fusionFuel = "FusionPellets";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
+        [KSPField(guiActive = true, guiName = "Temperature")]
         public string temperatureStr = "";
-
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Light Speed", guiFormat = "F1" , guiUnits = " m/s")]
+		[KSPField(guiActive = true, guiName = "Light Speed", guiFormat = "F1" , guiUnits = " m/s")]
 		public double speedOfLight;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Vessel Speed", guiFormat = "F9", guiUnits = "c")]
+		[KSPField(guiActive = true, guiName = "Vessel Speed", guiFormat = "F9", guiUnits = "c")]
 		public double lightSpeedRatio = 0;
-		[KSPField(isPersistant = true, guiActive = false, guiName = "Initial Speed")]
-		public double initialSpeed;
-
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Relativity", guiFormat = "F10")]
+		[KSPField(guiActive = false, guiName = "Relativity", guiFormat = "F10")]
 		public double relativity;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Time Dilation", guiFormat = "F10")]
+		[KSPField(guiActive = true, guiName = "Time Dilation", guiFormat = "F10")]
 		public double timeDilation;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Mission Time" , guiFormat = "F1", guiUnits = " s")]
+		[KSPField(guiActive = true, guiName = "Mission Time" , guiFormat = "F1", guiUnits = " s")]
 		public double missionTime ;
-		[KSPField(isPersistant = true, guiActive = true, guiName = "Vessel Time", guiFormat = "F1", guiUnits = " s")]
-		public double vesselLifetime;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Radiation Hazard To")]
+
+		[KSPField(guiActive = true, guiName = "Radiation Hazard To")]
 		public string radhazardstr = "";
-
-		[KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Engine Mass", guiUnits = " t")]
+		[KSPField(guiActiveEditor = true, guiName = "Engine Mass", guiUnits = " t")]
 		public float partMass = 1;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Fusion Ratio", guiFormat = "F6")]
+		[KSPField(guiActive = false, guiName = "Fusion Ratio", guiFormat = "F6")]
 		public double fusionRatio = 0;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Recieved Ratio", guiFormat = "F6")]
+		[KSPField(guiActive = false, guiName = "Recieved Ratio", guiFormat = "F6")]
 		public double recievedRatio = 0;
-
-
-		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Fuel Amount")]
-		public string fussionPelletsAmounts;
-
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Fusion", guiFormat = "F2", guiUnits = "%")]
+		[KSPField(guiActive = false, guiActiveEditor = false, guiName = "Fuel Amount")]
+		public string fusionFuelAmounts;
+		[KSPField(guiActive = false, guiName = "Fusion", guiFormat = "F2", guiUnits = "%")]
 		public double fusionPercentage = 0;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Max Fuel Flow", guiFormat = "F8", guiUnits = " U")]
+		[KSPField(guiActive = true, guiName = "Max Fuel Flow", guiFormat = "F8", guiUnits = " U")]
 		public double calculatedFuelflow = 0;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Fuel Usage", guiFormat = "F2", guiUnits = " L/day")]
+		[KSPField(guiActive = false, guiName = "Fuel Usage", guiFormat = "F2", guiUnits = " L/day")]
 		public double fusionFuelUsageDay = 0;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Stored Throtle")]
+		[KSPField(guiActive = false, guiName = "Stored Throtle")]
 		public float storedThrotle = 0;
-
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Max Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
+		[KSPField(guiActive = true, guiName = "Max Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
 		public double effectiveThrust = 0;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Max Effective Isp", guiFormat = "F2", guiUnits = "s")]
+		[KSPField(guiActive = true, guiName = "Max Effective Isp", guiFormat = "F2", guiUnits = "s")]
 		public double effectiveIsp = 0;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Fuel Remaining", guiFormat = "F3", guiUnits = "%")]
+		[KSPField(guiActive = false, guiName = "Fuel Remaining", guiFormat = "F3", guiUnits = "%")]
 		private double percentageFuelRemaining;
 
-        //[KSPField(isPersistant = false, guiActive = false, guiName = "Benchmark", guiFormat = "F3", guiUnits = " ms")]
-        //public double onFixedUpdateBenchmark;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double universalTime;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float fixedDeltaTime;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float powerRequirement = 2500;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float maxThrust = 300;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float maxThrustUpgraded = 1200;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float maxAtmosphereDensity = 0;
-
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double efficiency = 0.25;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double efficiencyUpgraded = 0.5;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float leathalDistance = 2000;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float killDivider = 50;
-
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float fusionWasteHeat = 2500;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float fusionWasteHeatUpgraded = 10000;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float wasteHeatMultiplier = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float powerRequirementMultiplier = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float maxTemp = 3200;
-
-		[KSPField(isPersistant = false)]
+        [KSPField]
+        public int powerPriority = 4;
+		[KSPField]
 		public float upgradeCost = 100;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public string originalName = "Prototype Deadalus IC Fusion Engine";
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public string upgradedName = "Deadalus IC Fusion Engine";
 
 		// Gui
@@ -125,22 +116,17 @@ namespace FNPlugin
 		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName= "upgrade tech")]
 		public string upgradeTechReq = null;
 
-		protected bool hasrequiredupgrade = false;
-		protected bool radhazard = false;
-		private bool warpToReal = false;
-
-		protected float engineIsp = 0;
-		protected double standard_tritium_rate = 0;
-		protected ModuleEngines curEngineT;
-
-		private BaseEvent deactivateRadSafetyEvent;
-		private BaseEvent activateRadSafetyEvent;
-		private BaseEvent retrofitEngineEvent;
-		private BaseField radhazardstrField;
-
-		private PartResourceDefinition fussionFuelResourceDefinition;
-
-		private Stopwatch stopWatch;
+		bool hasrequiredupgrade = false;
+		bool radhazard = false;
+		bool warpToReal = false;
+		float engineIsp = 0;
+		ModuleEngines curEngineT;
+		BaseEvent deactivateRadSafetyEvent;
+		BaseEvent activateRadSafetyEvent;
+		BaseEvent retrofitEngineEvent;
+		BaseField radhazardstrField;
+		PartResourceDefinition fusionFuelResourceDefinition;
+		Stopwatch stopWatch;
 
 		[KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
 		public void DeactivateRadSafety() 
@@ -193,7 +179,7 @@ namespace FNPlugin
 			{
 				stopWatch = new Stopwatch();
 				speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
-                fussionFuelResourceDefinition = PartResourceLibrary.Instance.GetDefinition(fusionFuel);
+                fusionFuelResourceDefinition = PartResourceLibrary.Instance.GetDefinition(fusionFuel);
 
 				part.maxTemp = maxTemp;
 				part.thermalMass = 1;
@@ -240,12 +226,12 @@ namespace FNPlugin
                     return;
                 }
 
-				double fussionPelletsCurrentAmount;
-				double fussionPelletsMaxAmount;
-				part.GetConnectedResourceTotals(fussionFuelResourceDefinition.id, out fussionPelletsCurrentAmount, out fussionPelletsMaxAmount);
+				double fusionFuelCurrentAmount;
+				double fusionFuelMaxAmount;
+				part.GetConnectedResourceTotals(fusionFuelResourceDefinition.id, out fusionFuelCurrentAmount, out fusionFuelMaxAmount);
 
-				percentageFuelRemaining = fussionPelletsCurrentAmount / fussionPelletsMaxAmount * 100;
-				fussionPelletsAmounts = percentageFuelRemaining.ToString("0.0000") + "% " + fussionPelletsMaxAmount.ToString("0") + " L";
+				percentageFuelRemaining = fusionFuelCurrentAmount / fusionFuelMaxAmount * 100;
+				fusionFuelAmounts = percentageFuelRemaining.ToString("0.0000") + "% " + fusionFuelMaxAmount.ToString("0") + " L";
 			}
 			catch (Exception e)
 			{
@@ -430,8 +416,8 @@ namespace FNPlugin
 					curEngineT.maxThrust = (float)effectiveThrust;
 
 					// calculate day usage
-					var demandedMass = calculatedFuelflow / fussionFuelResourceDefinition.density;
-					var fusionFuelRequestAmount = demandedMass / fussionFuelResourceDefinition.density;
+					var demandedMass = calculatedFuelflow / fusionFuelResourceDefinition.density;
+					var fusionFuelRequestAmount = demandedMass / fusionFuelResourceDefinition.density;
 					fusionFuelUsageDay = fusionFuelRequestAmount / fixedDeltaTime * PluginHelper.SecondsInDay;
 
 					if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
@@ -509,14 +495,14 @@ namespace FNPlugin
 			double demandMass;
 			CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, thrustUV, out demandMass);
 
-			var fusionFuelRequestAmount = demandMass / fussionFuelResourceDefinition.density;
+			var fusionFuelRequestAmount = demandMass / fusionFuelResourceDefinition.density;
 			fusionFuelUsageDay = fusionFuelRequestAmount / modifiedFixedDeltaTime * PluginHelper.SecondsInDay;
 
 			if (CheatOptions.InfinitePropellant)
 				recievedRatio = 1;
 			else
 			{
-				var recievedFusionFuel = part.RequestResource(fussionFuelResourceDefinition.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+				var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
 				recievedRatio = fusionFuelRequestAmount > 0 ? recievedFusionFuel/ fusionFuelRequestAmount : 0;
 			}
 
@@ -628,7 +614,7 @@ namespace FNPlugin
 
 		public override int getPowerPriority() 
 		{
-			return 2;
+            return powerPriority;
 		}
 	}
 }

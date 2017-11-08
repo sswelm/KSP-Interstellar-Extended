@@ -228,12 +228,10 @@ namespace FNPlugin
         public double wasteHeatMultiplier = 1;
         [KSPField]
         public double hotBathTemperature = 0;
-
         [KSPField]
         public double alternatorPowerKW = 0;
         [KSPField]
         public bool hasAlternator = false;
-
         [KSPField]
         public double thermalPropulsionEfficiency = 1;
         [KSPField]
@@ -291,9 +289,10 @@ namespace FNPlugin
         public string upgradeTechReq = String.Empty;
         [KSPField]
         public bool shouldApplyBalance;
-
-
-
+        [KSPField]
+        public double tritium_molar_mass_ratio = 3.0160 / 7.0183;
+        [KSPField]
+        public double helium_molar_mass_ratio = 4.0023 / 7.0183;
 
         // GUI strings
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_coreTemperature")]
@@ -334,80 +333,67 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_Reactor_chargedPower ", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
 
-        // value types
+        // shared variabels
+        protected bool decay_ongoing = false;
         protected bool initialized = false;
         protected double animationStarted = 0;
-        protected bool hasrequiredupgrade = false;
-        protected int deactivate_timer = 0;
-        protected List<ReactorFuelType> fuel_modes;
-
-        protected List<ReactorFuelMode> current_fuel_variants_sorted;
-        protected ReactorFuelMode current_fuel_variant;
-
         protected double powerPcnt;
-        protected double lithium_consumed_per_second;
-        protected double tritium_produced_per_second;
-        protected double helium_produced_per_second;
-        protected long update_count;
-        protected long last_draw_update;
-        protected double staticBreedRate;
-
         protected double totalAmountLithium = 0;
-        protected double totalMaxAmountLithium = 0;
-        protected double balanced_thermal_power_received_fixed = 0;
-        protected double balanced_charged_power_received_fixed = 0;
-
-        protected Queue<double> averageGeeForce = new Queue<double>();
+        protected double totalMaxAmountLithium = 0;  
 
         protected GUIStyle bold_style;
         protected GUIStyle text_style;
-
-        protected int nrAvailableUpgradeTechs;
-        protected bool decay_ongoing = false;
-        protected Rect windowPosition;
-        protected int windowID = 90175467;
-        protected bool render_window = false;
-
-        protected float previousDeltaTime;
-        protected bool? hasBimodelUpgradeTechReq;
-        protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
-
-        protected PartResourceDefinition lithium6_def;
-        protected PartResourceDefinition tritium_def;
-        protected PartResourceDefinition helium_def;
-
-        protected PartResource thermalPowerResource = null;
-        protected PartResource chargedPowerResource = null;
-        protected PartResource wasteheatPowerResource = null;
-
-        // reference types
-        protected Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
-        protected Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
-        protected double connectedRecieversSum;
-        protected double tritium_molar_mass_ratio = 3.0160 / 7.0183;
-        protected double helium_molar_mass_ratio = 4.0023 / 7.0183;
-        protected double partBaseWasteheat;
-        protected double tritiumBreedingMassAdjustment;
-        protected double heliumBreedingMassAdjustment;
-
-        protected double currentIsThermalEnergyGeneratorEfficiency;
-        protected double currentIsChargedEnergyGenratorEfficiency;
-
-        protected double currentGeneratorThermalEnergyRequestRatio;
-        protected double currentGeneratorChargedEnergyRequestRatio;
-
-        protected bool isConnectedToThermalGenerator;
-        protected bool isFixedUpdatedCalled;
-
+        protected List<ReactorFuelType> fuel_modes;
+        protected List<ReactorFuelMode> current_fuel_variants_sorted;
+        protected ReactorFuelMode current_fuel_variant;
         protected AnimationState[] pulseAnimation;
         protected ModuleAnimateGeneric startupAnimation;
         protected ModuleAnimateGeneric shutdownAnimation;
         protected ModuleAnimateGeneric loopingAnimation;
+
+        Rect windowPosition;
+        ReactorFuelType current_fuel_mode;
+        PartResourceDefinition lithium6_def;
+        PartResourceDefinition tritium_def;
+        PartResourceDefinition helium_def;
+        PartResource thermalPowerResource = null;
+        PartResource chargedPowerResource = null;
+        PartResource wasteheatPowerResource = null;
+
+        List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
+        List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
+        Queue<double> averageGeeForce = new Queue<double>();
+        Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
+        Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
+
+        double connectedRecieversSum;
+        double partBaseWasteheat;
+        double tritiumBreedingMassAdjustment;
+        double heliumBreedingMassAdjustment;
+        double staticBreedRate;
+        double currentIsThermalEnergyGeneratorEfficiency;
+        double currentIsChargedEnergyGenratorEfficiency;
+        double currentGeneratorThermalEnergyRequestRatio;
+        double currentGeneratorChargedEnergyRequestRatio;
+        double lithium_consumed_per_second;
+        double tritium_produced_per_second;
+        double helium_produced_per_second;
+
+        float previousDeltaTime;
+
+        long update_count;
+        long last_draw_update;       
+
+        int windowID = 90175467;
+        int nrAvailableUpgradeTechs;
+        int deactivate_timer = 0;
+
+        bool? hasBimodelUpgradeTechReq;
+        bool isConnectedToThermalGenerator;
+        bool isFixedUpdatedCalled;
+        bool render_window = false;
+
         
-
-        public List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
-
-        private ReactorFuelType current_fuel_mode;
 
         protected PartResource partResourceLithium6;
 
@@ -424,10 +410,7 @@ namespace FNPlugin
             }
         }
 
-        public double PowerRatio
-        {
-            get { return (double)(decimal)(powerPercentage / 100); }
-        }
+        public double PowerRatio  { get { return (double)(decimal)(powerPercentage / 100); } }
 
         public bool SupportMHD { get { return supportMHD; } }
 
@@ -435,17 +418,9 @@ namespace FNPlugin
 
         public int ProviderPowerPriority { get { return (int)electricPowerPriority; } }
 
-        private double _requestedThermalHeat;
-        public double RequestedThermalHeat
-        {
-            get { return _requestedThermalHeat; }
-            set { _requestedThermalHeat = value; }
-        }
+        public double RequestedThermalHeat { get;  set; }
 
-        public double RawTotalPowerProduced 
-        {
-            get { return ongoing_total_power_generated; }
-        }
+        public double RawTotalPowerProduced  { get { return ongoing_total_power_generated; } }
 
         public double UseProductForPropulsion(double ratio, double consumedAmount)
         {
@@ -1349,7 +1324,7 @@ namespace FNPlugin
 
                 var total_power_received_fixed = ongoing_total_power_generated * timeWarpFixedDeltaTime;
 
-                if (!CheatOptions.UnbreakableJoints)
+                if (!CheatOptions.UnbreakableJoints && CurrentFuelMode.NeutronsRatio > 0 && CurrentFuelMode.NeutronsRatio > 0)
                     neutronEmbrittlementDamage += ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
                 
                 if (!CheatOptions.IgnoreMaxTemperature)
@@ -1447,8 +1422,11 @@ namespace FNPlugin
                 return;
             }
 
-            Debug.Log("[KSPI] - sorting fuelmodes for alternative fuel type " + alternativeFuelTypeName);
+            Debug.Log("[KSPI] - searching fuelmodes for alternative for fuel type " + alternativeFuelTypeName);
             var alternative_fuel_variants_sorted = alternativeFuelType.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult);
+
+            if (alternative_fuel_variants_sorted == null)
+                return;
 
             var alternative_fuel_variant = alternative_fuel_variants_sorted.FirstOrDefault();
             if (alternative_fuel_variant == null)
@@ -2058,6 +2036,9 @@ namespace FNPlugin
 
                     foreach (var fuel in current_fuel_variant.ReactorFuels)
                     {
+                        if (fuel == null)
+                            continue;
+
                         var resourceVariantsDefinitions = CurrentFuelMode.ResourceGroups.First(m => m.name == fuel.FuelName).resourceVariantsMetaData;
 
                         var availableRessources = resourceVariantsDefinitions
@@ -2069,7 +2050,7 @@ namespace FNPlugin
 
                         PrintToGUILayout(fuel.FuelName + " Reserves", PluginHelper.formatMassStr(availabilityInTon) + " (" + availableRessources.Count + " variants)", bold_style, text_style);
 
-                        var fuel_use_per_day = 1000 * ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                        var fuel_use_per_day = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
                         var kg_fuel_use_per_day = fuel_use_per_day * 1000;
 
                         PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.formatMassStr(fuel_use_per_day) + "/ day", bold_style, text_style);
@@ -2103,6 +2084,9 @@ namespace FNPlugin
 
                         foreach (var product in current_fuel_variant.ReactorProducts)
                         {
+                            if (product == null)
+                                continue;
+
                             double availabilityInTon = GetProductAvailability(product) * product.DensityInTon;
                             double maxAvailabilityInTon = GetMaxProductAvailability(product) * product.DensityInTon;
 
