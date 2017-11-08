@@ -51,16 +51,15 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Power Requirment")]
         public double currentLaserPowerRequirements = 0;
 
-        protected double primaryPowerRequest;
-        protected double power_consumed;
-        protected bool fusion_alert;
-        protected int jumpstartPowerTime;
-        protected double framesPlasmaRatioIsGood;
+        double primaryPowerRequest;
+        double power_consumed;
+        bool fusion_alert;
+        int jumpstartPowerTime;
+        double framesPlasmaRatioIsGood;
 
-        protected BaseField isChargingField;
-        protected BaseField accumulatedChargeStrField;
-
-        private PartResourceDefinition secondaryInputResourceDefinition;
+        BaseField isChargingField;
+        BaseField accumulatedChargeStrField;
+        PartResourceDefinition secondaryInputResourceDefinition;
 
         public override double PlasmaModifier
         {
@@ -232,18 +231,13 @@ namespace FNPlugin
             ProcessCharging();
 
             // determine amount of power needed
-            //var currentMegajoulesBufferRequirement = autoThrottle ? Math.Max(Math.Pow(1 - getResourceBarRatioEnd(ResourceManager.FNRESOURCE_MEGAJOULES), 2), 0.00001) : 1;
-            //var powerRequested = LaserPowerRequirements * Math.Max(reactor_power_ratio, currentMegajoulesBufferRequirement);
-
             var required_reactor_ratio = reactor_power_ratio >= 0.000005 ? reactor_power_ratio : 0;
+            var powerRequested = LaserPowerRequirements * Math.Max(required_reactor_ratio, 0);
 
-            var powerRequested = LaserPowerRequirements * timeWarpFixedDeltaTime * Math.Max(required_reactor_ratio, 0.00000);
-
-            double primaryPowerReceived = 0;
-            double secondaryPowerReceived = 0;
+            double primaryPowerReceived;
 
             primaryPowerRequest = powerRequested * primaryInputMultiplier;
-            if (!CheatOptions.InfiniteElectricity && primaryPowerRequest != 0)
+            if (!CheatOptions.InfiniteElectricity && primaryPowerRequest > 0)
             {
                 primaryPowerReceived = usePowerManagerForPrimaryInputPower
                     ? consumeFNResourcePerSecond(primaryPowerRequest, primaryInputResource)
@@ -283,7 +277,7 @@ namespace FNPlugin
                     var powerShortage = (1 - powerRequirmentMetRatio) * powerRequested;
                     var maxSecondaryConsumption = currentSecondaryAmount - (secondaryPowerMaxRatio * currentSecondaryCapacity);
                     var requestedSecondaryPower = Math.Min(maxSecondaryConsumption, powerShortage * secondaryInputMultiplier * timeWarpFixedDeltaTime);
-                    secondaryPowerReceived = part.RequestResource(secondaryInputResource, requestedSecondaryPower);
+                    var secondaryPowerReceived = part.RequestResource(secondaryInputResource, requestedSecondaryPower);
                     powerReceived += secondaryPowerReceived / secondaryInputMultiplier / timeWarpFixedDeltaTime;
                     powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1;
                 }

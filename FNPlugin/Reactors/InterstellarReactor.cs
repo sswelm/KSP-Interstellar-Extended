@@ -1929,18 +1929,10 @@ namespace FNPlugin
                 windowPositionY = windowPosition.y;
 
                 if (bold_style == null)
-                {
-                    bold_style = new GUIStyle(GUI.skin.label);
-                    bold_style.fontStyle = FontStyle.Bold;
-                    bold_style.font = PluginHelper.MainFont;
-                }
+                    bold_style = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold, font = PluginHelper.MainFont};
 
                 if (text_style == null)
-                {
-                    text_style = new GUIStyle(GUI.skin.label);
-                    text_style.fontStyle = FontStyle.Normal;
-                    text_style.font = PluginHelper.MainFont;
-                }
+                    text_style = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Normal,font = PluginHelper.MainFont};
 
                 if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
                     render_window = false;
@@ -1952,7 +1944,7 @@ namespace FNPlugin
                 GUILayout.EndHorizontal();
 
                 PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000000") + "%", bold_style, text_style);
-                PrintToGUILayout("Radius", radius.ToString() + "m", bold_style, text_style);
+                PrintToGUILayout("Radius", radius + "m", bold_style, text_style);
                 PrintToGUILayout("Core Temperature", coretempStr, bold_style, text_style);
                 PrintToGUILayout("Status", statusStr, bold_style, text_style);
                 PrintToGUILayout("Fuel Mode", fuelModeStr, bold_style, text_style);
