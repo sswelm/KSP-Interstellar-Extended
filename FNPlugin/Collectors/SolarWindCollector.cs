@@ -39,12 +39,20 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double solarCheatMultiplier = 1000;  // Amount of boosted Solar wind activity
         [KSPField(isPersistant = false)]
+        public double interstellarCheatMultiplier = 100000;  // Amount of boosted Interstellar hydrogen activity
+        [KSPField(isPersistant = false)]
         public double collectMultiplier = 1; 
 
 
         // GUI
-        [KSPField(guiActive = true, guiName = "Solar Wind Concentration", guiUnits = " mol/m\xB3")]
-        protected float solarWindConcentration;
+        [KSPField(guiActive = true, guiName = "Solar Wind", guiUnits = " mol/m\xB2")]
+        protected float solarWindCollected;
+        [KSPField(guiActive = true, guiName = "Interstellar Hydrogen", guiUnits = " mol/m\xB2")]
+        protected float interstellarHydrogenCollected;
+        [KSPField(guiActive = true, guiName = "Orbital Speed", guiUnits = " m/s", guiFormat = "F2")]
+        protected double orbitalSpeed;
+
+
         [KSPField(guiActive = true, guiName = "Distance from the sun")]
         protected string strStarDist = "";
         [KSPField(guiActive = true, guiName = "Status")]
@@ -181,10 +189,12 @@ namespace FNPlugin
             UpdateIonisationAnimation();
 
             var dSolarWindConcentration = CalculateSolarwindIonConcentration(part.vessel.solarFlux, solarCheatMultiplier);
-            solarWindConcentration = (float)dSolarWindConcentration;
-            var InterstellarHydrogenConcentration = CalculateInterstellarIonConcentration(part.vessel.speed);
+            solarWindCollected = (float)dSolarWindConcentration;
 
-            molarMassConcentrationPerSquareMeterPerSecond = dSolarWindConcentration + InterstellarHydrogenConcentration;
+            orbitalSpeed = part.vessel.obt_speed;
+            var dInterstellarHydrogenConcentration = CalculateInterstellarIonConcentration(orbitalSpeed, interstellarCheatMultiplier);
+            interstellarHydrogenCollected = (float)dInterstellarHydrogenConcentration;
+            molarMassConcentrationPerSquareMeterPerSecond = dSolarWindConcentration + dInterstellarHydrogenConcentration;
 
             dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
             strMagnetoStrength = UpdateMagnetoStrengthInGUI();
@@ -274,7 +284,7 @@ namespace FNPlugin
             {
                 ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
                 strStarDist = UpdateDistanceInGUI();
-                solarWindConcentration = 0;
+                solarWindCollected = 0;
                 return bCanCollect;
             }
             else
@@ -350,12 +360,12 @@ namespace FNPlugin
             return dMolalSolarConcentration; // in mol / m2 / sec
         }
 
-        private static double CalculateInterstellarIonConcentration(double vesselSpeed)
+        private static double CalculateInterstellarIonConcentration(double vesselSpeed, double interstellarCheatMultiplier)
         {
             var dAverageInterstellarHydrogenPerCubM = 1 * 1000000;
             var avogadroConstant = 6.022140857e+23; // number of atoms in 1 mol
 
-            var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * vesselSpeed / avogadroConstant;
+            var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * interstellarCheatMultiplier * vesselSpeed / avogadroConstant;
 
             return interstellarHydrogenConcentration; // in mol / m2 / sec
         }
