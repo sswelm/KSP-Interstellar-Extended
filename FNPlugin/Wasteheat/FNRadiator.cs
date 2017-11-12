@@ -226,11 +226,15 @@ namespace FNPlugin
         public float atmosphereToleranceModifier = 1;
 
         const String kspShader = "KSP/Emissive/Bumped Specular";
+        const int RADIATOR_DELAY = 20;
+        const int FRAME_DELAY = 9;
+        const int DEPLOYMENT_DELAY = 6;
         
         private double radiatedThermalPower;
         private double convectedThermalPower;
         private bool active;
         private long update_count;
+        private int radiator_deploy_delay;
         private int explode_counter;
 
         private BaseEvent deployRadiatorEvent;
@@ -250,6 +254,7 @@ namespace FNPlugin
         private ModuleActiveRadiator _moduleActiveRadiator;
         private PartResource wasteheatPowerResource;
         private ResourceManager wasteheatManager;
+        private ModuleDeployablePart.DeployState radiatorState;
 
         private Queue<double> temperatureQueue = new Queue<double>(10);
 
@@ -405,10 +410,15 @@ namespace FNPlugin
 
         private void Deploy()
         {
-            Debug.Log("[KSPI] - Deploy Called ");
+            if (radiator_deploy_delay == 0)
+                Debug.Log("[KSPI] - Deploy Called ");
 
-            if (preventShieldedDeploy && part.ShieldedFromAirstream)
+            if (preventShieldedDeploy && (part.ShieldedFromAirstream || radiator_deploy_delay < RADIATOR_DELAY)) {
+                radiator_deploy_delay++;
                 return;
+            }
+
+            radiator_deploy_delay = 0;
 
             if (_moduleDeployableRadiator != null)
                 _moduleDeployableRadiator.Extend();
@@ -495,6 +505,7 @@ namespace FNPlugin
             convectedThermalPower = 0;
             CurrentRadiatorTemperature = 0;
             update_count = 0;
+            radiator_deploy_delay = 0;
             explode_counter = 0;
 
             DetermineGenerationType();
@@ -562,6 +573,7 @@ namespace FNPlugin
             {
                 _moduleActiveRadiator.Events["Activate"].guiActive = false;
                 _moduleActiveRadiator.Events["Shutdown"].guiActive = false;
+                radiatorState = _moduleDeployableRadiator.deployState;
             }
 
             BaseField radiatorfield = Fields["radiatorIsEnabled"];
@@ -664,10 +676,19 @@ namespace FNPlugin
         {
             update_count++;
 
-            if (update_count < 9)
+            if (update_count < FRAME_DELAY)
                 return;
 
             update_count = 0;
+
+            if  (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
+                                                       _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDED)) {
+                if (radiatorState != _moduleDeployableRadiator.deployState) {
+                    part.SendMessage("GeometryPartModuleRebuildMeshData");
+                    Debug.Log("[KSPI] - Updating geometry mesh due to radiator deployment.");
+                }
+                radiatorState = _moduleDeployableRadiator.deployState;
+            }
 
             thermalPowerConvStrField.guiActive = convectedThermalPower > 0;
 
@@ -808,14 +829,14 @@ namespace FNPlugin
 
                     convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(conv_power_dissip) : 0;
 
-                    if (update_count == 6)
+                    if (update_count == DEPLOYMENT_DELAY)
                         DeployMentControl(dynamic_pressure);
                 }
                 else
                 {
                     convectedThermalPower = 0;
 
-                    if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls && update_count == 6)
+                    if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls && update_count == DEPLOYMENT_DELAY)
                     {
                         Debug.Log("[KSPI] - FixedUpdate Automated Deplotment ");
                         Deploy();
@@ -858,7 +879,9 @@ namespace FNPlugin
             }
             else if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls && (!preventShieldedDeploy || !part.ShieldedFromAirstream))
             {
-                Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
+                // Suppress message spam on repeated deploy attempts due to radiator delay
+                if (radiator_deploy_delay == 0)
+                    Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
                 Deploy();
             }
         }
