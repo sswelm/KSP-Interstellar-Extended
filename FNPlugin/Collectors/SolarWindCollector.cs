@@ -761,38 +761,38 @@ namespace FNPlugin
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            double dSolarWindResourceChange = solarwindMolarMassConcentrationPerSquareMeterPerSecond * 1.9 / 1000000 * production / dSolarWindDensity;
+            double dSolarWindResourceChange = solarwindMolarMassConcentrationPerSquareMeterPerSecond * 1.9 / 1e-6 * production / dSolarWindDensity;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
             {
                 string strNumberFormat = dSolarWindResourceChange > 100 ? "0" : "0.00";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage("We collected " + dSolarWindResourceChange.ToString(strNumberFormat) + " units of " + strSolarWindResourceName, 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("We collected " + dSolarWindResourceChange.ToString(strNumberFormat) + " units of " + strSolarWindResourceName, 10, ScreenMessageStyle.LOWER_CENTER);
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
             dWindResourceFlow = -part.RequestResource(strSolarWindResourceName, -dSolarWindResourceChange);
 
-            double dHydrogenResourceChange = hydrogenMolarMassConcentrationPerSquareMeterPerSecond / 1000000 * production / dHydrogenDensity;
+            double dHydrogenResourceChange = hydrogenMolarMassConcentrationPerSquareMeterPerSecond / 1e-6 * production / dHydrogenDensity;
 
             if (offlineCollecting)
             {
                 string strNumberFormat = dHydrogenResourceChange > 100 ? "0" : "0.00";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage("We collected " + dHydrogenResourceChange.ToString(strNumberFormat) + " units of " + strHydrogenResourceName, 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("We collected " + dHydrogenResourceChange.ToString(strNumberFormat) + " units of " + strHydrogenResourceName, 10, ScreenMessageStyle.LOWER_CENTER);
             }
 
             dHydrogenResourceFlow = -part.RequestResource(strSolarWindResourceName, -dHydrogenResourceChange);
 
 
-            var atmosphericDensityKgPerSquareMeter = hydrogenMolarMassConcentrationPerSquareMeterPerSecond / 1000;
+            var atmosphericDensityKgPerSquareMeter = hydrogenMolarMassConcentrationPerSquareMeterPerSecond * 1e-3;
 
             atmosphericDragInNewton = 0.5 * effectiveSurfaceArea * atmosphericDensityKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
 
             if (!this.vessel.packed)
             {
-                part.Rigidbody.AddForce(part.vessel.velocityD.normalized * -(float)atmosphericDragInNewton * TimeWarp.fixedDeltaTime, ForceMode.Force);
+                part.Rigidbody.AddForce(part.vessel.velocityD.normalized * -(float)atmosphericDragInNewton * 1e-3, ForceMode.Force);
             }
         }
 
