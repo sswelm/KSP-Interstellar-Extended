@@ -5,39 +5,39 @@ namespace FNPlugin
 {
     class AtmosphericIntake : PartModule
     {
-        [KSPField(isPersistant = false, guiName = "Intake Speed", guiActive = false, guiFormat = "F3")]
+        [KSPField]
         protected double _intake_speed;
-        [KSPField(isPersistant = false, guiName = "Atmosphere Flow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]
+        [KSPField(guiName = "Atmosphere Flow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]
         public double airFlow;
-        [KSPField(isPersistant = false, guiName = "Atmosphere Speed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]
+        [KSPField(guiName = "Atmosphere Speed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]
         public double airSpeed;
-        [KSPField(isPersistant = false, guiName = "Air This Update", guiActive = true, guiFormat ="F6")]
+        [KSPField(guiName = "Air This Update", guiActive = true, guiFormat ="F6")]
         public double airThisUpdate;
-        [KSPField(isPersistant = false, guiName = "Intake Ratio",  guiActive = true, guiFormat = "F3")]
+        [KSPField(guiName = "Intake Ratio",  guiActive = true, guiFormat = "F3")]
         public float intakeAngle = 0;
-        [KSPField(isPersistant = false, guiName = "aoaThreshold",  guiActive = true, guiActiveEditor = false)]
+        [KSPField(guiName = "aoaThreshold",  guiActive = true, guiActiveEditor = false)]
         public double aoaThreshold = 0.1;
-        [KSPField(isPersistant = false, guiName = "Area", guiActiveEditor = true, guiActive = false)]
+        [KSPField(guiName = "Area", guiActiveEditor = true, guiActive = false)]
         public double area = 0.01;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string intakeTransformName;
-        [KSPField(isPersistant = false, guiName = "maxIntakeSpeed", guiActive = true, guiActiveEditor = false)]
+        [KSPField(guiName = "maxIntakeSpeed", guiActive = true, guiActiveEditor = false)]
         public double maxIntakeSpeed = 100;
-        [KSPField(isPersistant = false, guiName = "unitScalar", guiActive = true, guiActiveEditor = false)]
+        [KSPField(guiName = "unitScalar", guiActive = true, guiActiveEditor = false)]
         public double unitScalar = 0.2;
-        [KSPField(isPersistant = false, guiName = "storesResource", guiActive = true, guiActiveEditor = true)]
+        [KSPField(guiName = "storesResource", guiActive = true, guiActiveEditor = true)]
         public bool storesResource = false;
-        [KSPField(isPersistant = false, guiName = "Intake Exposure",guiActive = true, guiActiveEditor = false )]
+        [KSPField(guiName = "Intake Exposure",guiActive = true, guiActiveEditor = false )]
         public double intakeExposure = 0;
-        [KSPField(isPersistant = false, guiName = "Trace atmo. density", guiActive = true, guiFormat = "F3", guiActiveEditor = false)]
+        [KSPField(guiName = "Trace atmo. density", guiActive = true, guiFormat = "F3", guiActiveEditor = false)]
         public double upperAtmoDensity;
-        [KSPField(isPersistant = false, guiName = "Air Density", guiActive = true,   guiFormat = "F3")]
+        [KSPField(guiName = "Air Density", guiActive = true,   guiFormat = "F3")]
         public double airDensity;
-        [KSPField(isPersistant = false, guiName = "Tech Bonus", guiActive = true,  guiFormat = "F3")]
+        [KSPField(guiName = "Tech Bonus", guiActive = true,  guiFormat = "F3")]
         public double jetTechBonusPercentage;
-        [KSPField(isPersistant = false, guiName = "Upper Atmo Fraction", guiActive = true,  guiFormat = "F3")]
+        [KSPField(guiName = "Upper Atmo Fraction", guiActive = true,  guiFormat = "F3")]
         public double upperAtmoFraction;
-        [KSPField(isPersistant = false, guiActive = true)]
+        [KSPField(guiActive = false)]
         public bool foundModuleResourceIntake;
 
         // persistents
@@ -153,8 +153,12 @@ namespace FNPlugin
                 ? vessel.GetSrfVelocity() 
                 : vessel.GetObtVelocity();
 
+            var vesselSpeed = vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.ESCAPING 
+                ? vessel.obt_speed 
+                : vessel.speed;
+
             intakeAngle = Mathf.Clamp(Vector3.Dot(vesselFlyingVector.normalized, part.transform.up.normalized), 0, 1);
-            airSpeed = intakeAngle * vessel.speed + _intake_speed;
+            airSpeed = intakeAngle * vesselSpeed + _intake_speed;
             intakeExposure = (airSpeed * unitScalar) + _intake_speed;
             intakeExposure *= area * unitScalar * jetTechBonusPercentage;
             airFlow = vessel.atmDensity * intakeExposure / _resourceAtmosphere.density;

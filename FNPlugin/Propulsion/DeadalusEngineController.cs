@@ -18,7 +18,7 @@ namespace FNPlugin
 		[KSPField(isPersistant = true)]
         public bool rad_safety_features = true;
 
-		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Lightspeed Limiter", guiUnits = "c"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 1, minValue = 0.005f)]
+		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Lightspeed Limiter", guiUnits = "c"), UI_FloatRange(stepIncrement = 1/3f, maxValue = 1, minValue = 1/3f)]
 		public float speedLimit = 1;
 		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Fuel Limiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
 		public float fuelLimit = 100;
