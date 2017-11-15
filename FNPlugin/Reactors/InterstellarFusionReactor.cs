@@ -37,9 +37,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
 
-        //public float
-        protected PartResource lithiumPartResource = null;
-
         public double MaximumChargedIspMult { get { return 100; } }
 
         public double MinimumChargdIspMult { get { return 1; } }
@@ -110,8 +107,6 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            lithiumPartResource = part.Resources.FirstOrDefault(r => r.resourceName == InterstellarResourcesConfiguration.Instance.Lithium7);
-
             base.OnStart(state);
         }
 
@@ -159,6 +154,26 @@ namespace FNPlugin
             isSwappingFuelMode = true;
         }
 
+        private void SwitchToPreviousFuelMode(int initial_fuel_mode)
+        {
+            if (fuel_modes == null || fuel_modes.Count == 0)
+                return;
+
+            fuel_mode--;
+            if (fuel_mode < 0)
+                fuel_mode = fuel_modes.Count - 1;
+
+            CurrentFuelMode = fuel_modes[fuel_mode];
+            fuel_mode_name = CurrentFuelMode.ModeGUIName;
+
+            UpdateFuelMode();
+
+            if (!FullFuelRequirments() && fuel_mode != initial_fuel_mode)
+                SwitchToPreviousFuelMode(initial_fuel_mode);
+
+            isSwappingFuelMode = true;
+        }
+
         private bool FullFuelRequirments()
         {
             return HasAllFuels() && FuelRequiresLab(CurrentFuelMode.RequiresLab);
@@ -182,25 +197,7 @@ namespace FNPlugin
             return hasAllFuels;
         }
 
-        private void SwitchToPreviousFuelMode(int initial_fuel_mode)
-        {
-            if (fuel_modes == null || fuel_modes.Count == 0)
-                return;
 
-            fuel_mode--;
-            if (fuel_mode < 0)
-                fuel_mode = fuel_modes.Count - 1;
-
-            CurrentFuelMode = fuel_modes[fuel_mode];
-            fuel_mode_name = CurrentFuelMode.ModeGUIName;
-
-            UpdateFuelMode();
-
-            if (!FullFuelRequirments() && fuel_mode != initial_fuel_mode)
-                SwitchToPreviousFuelMode(initial_fuel_mode);
-
-            isSwappingFuelMode = true;
-        }
 
         protected override void WindowReactorSpecificOverride()
         {
@@ -223,6 +220,9 @@ namespace FNPlugin
 
         protected override void setDefaultFuelMode()
         {
+            if (fuel_modes == null)
+                return;
+
             if (!string.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
                 CurrentFuelMode = fuel_modes.First(m => m.ModeGUIName == fuel_mode_name);
             else if (fuelmode_index >= 0 && fuel_modes.Any(m => m.Index == fuelmode_index))

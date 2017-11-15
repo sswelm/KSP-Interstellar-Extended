@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FNPlugin 
 {
-    public class PowerConsumption
+    public class PowerDistribution
     {
         public double Power_draw { get; set; }
         public double Power_consume { get; set; }
@@ -18,6 +18,24 @@ namespace FNPlugin
         public double currentProvided { get; set; }
         public double maximumSupply { get; set; }
         public double minimumSupply { get; set; }
+    }
+
+    public class PowerProduction
+    {
+        public string component { get; set; }
+
+        public double averageSupply { get; set; }
+
+        public double maximumSupply { get; set; }
+    }
+
+    public class PowerConsumption
+    {
+        public string component { get; set; }
+
+        public double sum { get; set; }
+
+        public int priority { get; set; }
     }
 
     public class ResourceManager 
@@ -42,7 +60,7 @@ namespace FNPlugin
         PartResourceDefinition thermalpowerResourceDefinition;
         PartResourceDefinition chargedpowerResourceDefinition;
 
-        Dictionary<IResourceSuppliable, PowerConsumption> power_consumption;
+        Dictionary<IResourceSuppliable, PowerDistribution> power_consumption;
         Dictionary<IResourceSupplier, PowerGenerated> power_produced;
         Dictionary<IResourceSupplier, Queue<double>> power_produced_history = new Dictionary<IResourceSupplier, Queue<double>>() ;
 
@@ -66,7 +84,7 @@ namespace FNPlugin
         double internl_power_extract_fixed = 0;
 
         int flow_type = 0;
-        List<KeyValuePair<IResourceSuppliable, PowerConsumption>> power_draw_list_archive;
+        List<KeyValuePair<IResourceSuppliable, PowerDistribution>> power_draw_list_archive;
         List<KeyValuePair<IResourceSupplier, PowerGenerated>> power_supply_list_archive;
 
         bool render_window = false;
@@ -136,7 +154,7 @@ namespace FNPlugin
 
             windowID = new System.Random(resource_name.GetHashCode()).Next(int.MinValue, int.MaxValue);
 
-            power_consumption = new Dictionary<IResourceSuppliable, PowerConsumption>();
+            power_consumption = new Dictionary<IResourceSuppliable, PowerDistribution>();
             power_produced = new Dictionary<IResourceSupplier, PowerGenerated>();
 
             this.resource_name = resource_name;
@@ -160,27 +178,27 @@ namespace FNPlugin
             var timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
             var power_draw_per_second = power_draw / timeWarpFixedDeltaTime;
             var power_cosumtion_per_second = power_cosumtion / timeWarpFixedDeltaTime;
-            
-            PowerConsumption powerConsumption;
-            if (!power_consumption.TryGetValue(pm, out powerConsumption))
+
+            PowerDistribution powerDistribution;
+            if (!power_consumption.TryGetValue(pm, out powerDistribution))
             {
-                powerConsumption = new PowerConsumption();
-                power_consumption.Add(pm, powerConsumption);
+                powerDistribution = new PowerDistribution();
+                power_consumption.Add(pm, powerDistribution);
             }
-            powerConsumption.Power_draw += power_draw_per_second;
-            powerConsumption.Power_consume += power_cosumtion_per_second;         
+            powerDistribution.Power_draw += power_draw_per_second;
+            powerDistribution.Power_consume += power_cosumtion_per_second;         
         }
 
         public void powerDrawPerSecond(IResourceSuppliable pm, double power_draw, double draw_power_consumption)
         {
-            PowerConsumption powerConsumption;
-            if (!power_consumption.TryGetValue(pm, out powerConsumption))
+            PowerDistribution powerDistribution;
+            if (!power_consumption.TryGetValue(pm, out powerDistribution))
             {
-                powerConsumption = new PowerConsumption();
-                power_consumption.Add(pm, powerConsumption);
+                powerDistribution = new PowerDistribution();
+                power_consumption.Add(pm, powerDistribution);
             }
-            powerConsumption.Power_draw += power_draw;
-            powerConsumption.Power_consume += draw_power_consumption;
+            powerDistribution.Power_draw += power_draw;
+            powerDistribution.Power_consume += draw_power_consumption;
         }
 
         public double powerSupplyFixed(IResourceSupplier pm, double power) 
@@ -498,13 +516,13 @@ namespace FNPlugin
                     m.Value.averageSupply = queue.Average();
                 });
 
-            List<KeyValuePair<IResourceSuppliable, PowerConsumption>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_draw).ToList();
+            List<KeyValuePair<IResourceSuppliable, PowerDistribution>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_draw).ToList();
 
             power_draw_list_archive = power_draw_items.ToList();
             power_draw_list_archive.Reverse();
             
             // check priority 1 parts like reactors
-            foreach (KeyValuePair<IResourceSuppliable, PowerConsumption> power_kvp in power_draw_items) 
+            foreach (KeyValuePair<IResourceSuppliable, PowerDistribution> power_kvp in power_draw_items) 
             {
                 IResourceSuppliable resourceSuppliable = power_kvp.Key;
 
@@ -528,7 +546,7 @@ namespace FNPlugin
             }
 
             // check priority 2 parts like reactors
-            foreach (KeyValuePair<IResourceSuppliable, PowerConsumption> power_kvp in power_draw_items) 
+            foreach (KeyValuePair<IResourceSuppliable, PowerDistribution> power_kvp in power_draw_items) 
             {
                 IResourceSuppliable resourceSuppliable = power_kvp.Key;
                 
@@ -551,7 +569,7 @@ namespace FNPlugin
             }
 
             // check priority 3 parts like engines and nuclear reactors
-            foreach (KeyValuePair<IResourceSuppliable, PowerConsumption> power_kvp in power_draw_items) 
+            foreach (KeyValuePair<IResourceSuppliable, PowerDistribution> power_kvp in power_draw_items) 
             {
                 IResourceSuppliable resourceSuppliable = power_kvp.Key;
 
@@ -574,7 +592,7 @@ namespace FNPlugin
             }
 
             // check priority 4 parts like antimatter reactors, engines and transmitters
-            foreach (KeyValuePair<IResourceSuppliable, PowerConsumption> power_kvp in power_draw_items)
+            foreach (KeyValuePair<IResourceSuppliable, PowerDistribution> power_kvp in power_draw_items)
             {
                 IResourceSuppliable resourceSuppliable = power_kvp.Key;
 
@@ -597,7 +615,7 @@ namespace FNPlugin
             }
 
             // check priority 5 parts and higher
-            foreach (KeyValuePair<IResourceSuppliable, PowerConsumption> power_kvp in power_draw_items)
+            foreach (KeyValuePair<IResourceSuppliable, PowerDistribution> power_kvp in power_draw_items)
             {
                 IResourceSuppliable resourceSuppliable = power_kvp.Key;
 
@@ -623,7 +641,19 @@ namespace FNPlugin
             currentPowerSupply -= Math.Max(availableResourceAmount, 0.0);
             internl_power_extract_fixed = -currentPowerSupply * timeWarpFixedDeltaTime;
 
-            pluginSpecificImpl();
+            // passive dissip of waste heat - a little bit of this
+            double vessel_mass = my_vessel.GetTotalMass();
+            double passive_dissip = 2947.295521 * GameConstants.stefan_const * vessel_mass * 2;
+            internl_power_extract_fixed += passive_dissip * TimeWarp.fixedDeltaTime;
+
+            if (my_vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(my_vessel.mainBody))
+            {
+                // passive convection - a lot of this
+                double pressure = FlightGlobals.getStaticPressure(my_vessel.transform.position) / 100;
+                double delta_temp = 20;
+                double conv_power_dissip = pressure * delta_temp * vessel_mass * 2.0 * GameConstants.rad_const_h / 1e6 * TimeWarp.fixedDeltaTime;
+                internl_power_extract_fixed += conv_power_dissip;
+            }
 
             if (internl_power_extract_fixed > 0) 
                 internl_power_extract_fixed = Math.Min(internl_power_extract_fixed, availableResourceAmount);
@@ -720,27 +750,7 @@ namespace FNPlugin
                 }
             }
         }
-
-        protected void pluginSpecificImpl() 
-        {
-            if (String.Equals(this.resource_name, ResourceManager.FNRESOURCE_WASTEHEAT) && !PluginHelper.IsThermalDissipationDisabled) 
-            {   
-                // passive dissip of waste heat - a little bit of this
-                double vessel_mass = my_vessel.GetTotalMass();
-                double passive_dissip = 2947.295521 * GameConstants.stefan_const * vessel_mass * 2;
-                internl_power_extract_fixed += passive_dissip * TimeWarp.fixedDeltaTime;
-
-                if (my_vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(my_vessel.mainBody)) 
-                { 
-                    // passive convection - a lot of this
-                    double pressure = FlightGlobals.getStaticPressure(my_vessel.transform.position) / 100;
-                    double delta_temp = 20;
-                    double conv_power_dissip = pressure * delta_temp * vessel_mass * 2.0 * GameConstants.rad_const_h / 1e6 * TimeWarp.fixedDeltaTime;
-                    internl_power_extract_fixed += conv_power_dissip;
-                }
-            }
-        }
-                
+               
         protected void doWindow(int windowID) 
         {
             if (left_bold_label == null)
@@ -851,25 +861,32 @@ namespace FNPlugin
 
                 var groupedPowerSupply = power_supply_list_archive.GroupBy(m => m.Key.getResourceManagerDisplayName());
 
+                List<PowerProduction> sumarizedList = new List<PowerProduction>();
+                
                 foreach (var group in groupedPowerSupply)
                 {
-                    var sumOfCurrentSupply = group.Sum(m => m.Value.averageSupply);
-                    var sumOfMaximumSupply = group.Sum(m => m.Value.maximumSupply);
+                    var sumOfCurrentAverageSupply = group.Sum(m => m.Value.averageSupply);
 
                     // skip anything with less then 0.00 KW
-                    if (sumOfCurrentSupply < 0.00005)
+                    if (sumOfCurrentAverageSupply < 0.00005)
                         continue;
 
-                    GUILayout.BeginHorizontal();
+                    var sumOfMaximumSupply = group.Sum(m => m.Value.maximumSupply);
 
                     string name = group.Key;
                     var count = group.Count();
                     if (count > 1)
                         name = count + " " + name;
 
-                    GUILayout.Label(name, left_aligned_label, GUILayout.ExpandWidth(true));
-                    GUILayout.Label(getPowerFormatString(sumOfCurrentSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
-                    GUILayout.Label(getPowerFormatString(sumOfMaximumSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
+                    sumarizedList.Add(new PowerProduction() { component = name,   averageSupply = sumOfCurrentAverageSupply, maximumSupply = sumOfMaximumSupply });
+                }
+
+                foreach ( var production in sumarizedList.OrderByDescending(m => m.averageSupply))
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label(production.component, left_aligned_label, GUILayout.ExpandWidth(true));
+                    GUILayout.Label(getPowerFormatString(production.averageSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
+                    GUILayout.Label(getPowerFormatString(production.maximumSupply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
                     GUILayout.EndHorizontal();
                 }
             }
@@ -883,6 +900,8 @@ namespace FNPlugin
                 GUILayout.Label("Rank", right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(priorityWidth));
                 GUILayout.EndHorizontal();
 
+                List<PowerConsumption> sumarizedList = new List<PowerConsumption>();
+
                 var groupedPowerDraws = power_draw_list_archive.GroupBy(m => m.Key.getResourceManagerDisplayName());
 
                 foreach (var group in groupedPowerDraws)
@@ -891,8 +910,6 @@ namespace FNPlugin
                     var sumOfPowerConsume = group.Sum(m => m.Value.Power_consume);
                     var sumOfConsumePercentage = sumOfPowerDraw > 0 ? sumOfPowerConsume / sumOfPowerDraw * 100 : 0;
 
-                    GUILayout.BeginHorizontal();
-
                     string name = group.Key;
                     var count = group.Count();
                     if (count > 1)
@@ -900,10 +917,15 @@ namespace FNPlugin
                     if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && sumOfConsumePercentage < 99.5)
                         name = name + " " + sumOfConsumePercentage.ToString("0") + "%";
 
-                    GUILayout.Label(name, left_aligned_label, GUILayout.ExpandWidth(true));
+                    sumarizedList.Add(new PowerConsumption() { component = name, sum = sumOfPowerDraw, priority = group.First().Key.getPowerPriority() });
+                }
 
-                    GUILayout.Label(getPowerFormatString(sumOfPowerDraw), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
-                    GUILayout.Label(group.First().Key.getPowerPriority().ToString(), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(priorityWidth));
+                foreach (var consumption in sumarizedList.OrderByDescending(m => m.sum))
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label(consumption.component, left_aligned_label, GUILayout.ExpandWidth(true));
+                    GUILayout.Label(getPowerFormatString(consumption.sum), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
+                    GUILayout.Label(consumption.priority.ToString(), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(priorityWidth));
                     GUILayout.EndHorizontal();
                 }
             }

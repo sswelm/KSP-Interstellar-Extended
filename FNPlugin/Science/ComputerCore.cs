@@ -130,7 +130,7 @@ namespace FNPlugin
 
             if (_moduleDataTransmitter != null)
             {
-                _moduleDataTransmitter.antennaPower = IsEnabled && IsPowered ? 5000000000000000 : 50000;
+                _moduleDataTransmitter.antennaPower = IsEnabled && IsPowered ? 5e+17 : 50000;
             }
 
             if (ResearchAndDevelopment.Instance != null)
