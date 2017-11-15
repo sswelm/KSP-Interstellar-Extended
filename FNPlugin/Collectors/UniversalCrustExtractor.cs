@@ -70,6 +70,8 @@ namespace FNPlugin.Collectors
         private GUIStyle _bold_label;
         private GUIStyle _normal_label;
 
+        private KSPParticleEmitter[] particleEmitters;
+
         Dictionary<string, CrustalResourceAbundance> CrustalResourceAbundanceDict = new Dictionary<string, CrustalResourceAbundance>();
 
         private AbundanceRequest resourceRequest = new AbundanceRequest // create a new request object that we'll reuse to get the current stock-system resource concentration
@@ -88,7 +90,7 @@ namespace FNPlugin.Collectors
 
 
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true,  guiName = "Deploy", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true,  guiName = "Deploy Drill", active = true)]
         public void DeployDrill()
         {
             isDeployed = true;
@@ -100,11 +102,19 @@ namespace FNPlugin.Collectors
             }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Retract", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Retract Drill", active = true)]
         public void RetractDrill()
         {
             bIsEnabled = false;
             isDeployed = false;
+
+            animationState = 0;
+            if (loopAnimation != null) {
+                loopAnimation[loopingAnimationName].speed = -1;
+                loopAnimation[loopingAnimationName].normalizedTime = 0;
+                loopAnimation.Blend(loopingAnimationName, 1);
+            }
+
             if (deployAnimation != null)
             {
                 deployAnimation[deployAnimationName].speed = -1;
@@ -178,6 +188,8 @@ namespace FNPlugin.Collectors
             deployAnimation = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
             loopAnimation = part.FindModelAnimators(loopingAnimationName).FirstOrDefault();
 
+            particleEmitters = part.GetComponentsInChildren<KSPParticleEmitter>();
+
             if (isDeployed)
             {
                 deployAnimation[deployAnimationName].speed = 0;
@@ -216,8 +228,8 @@ namespace FNPlugin.Collectors
         {
             reasonNotCollecting = CheckIfCollectingPossible();
 
-            Events["DeployDrill"].active = !isDeployed;
-            Events["RetractDrill"].active = isDeployed;
+            Events["DeployDrill"].active = !isDeployed && !deployAnimation.IsPlaying(deployAnimationName);
+            Events["RetractDrill"].active = isDeployed && !deployAnimation.IsPlaying(deployAnimationName);
 
             if (String.IsNullOrEmpty(reasonNotCollecting))
             {
@@ -285,6 +297,7 @@ namespace FNPlugin.Collectors
         {
             if (bIsEnabled)
             {
+                ToggleEmmitters(true);
                 UpdateLoopingAnimation();
 
                 double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);				
@@ -295,6 +308,7 @@ namespace FNPlugin.Collectors
             }
             else
             {
+                ToggleEmmitters(false);
                 foreach (CrustalResource resource in localResources)
                 {
                     CalculateSpareRoom(resource);
@@ -383,7 +397,7 @@ namespace FNPlugin.Collectors
         /// <returns>Bool signifying whether the part is extended or not (if it's animation is played out).</returns>
         private bool IsDrillExtended()
         {
-            return isDeployed;
+            return isDeployed && !deployAnimation.IsPlaying(deployAnimationName);
                 //return deployAnimation.GetScalar == 1; 
 
             //if (_moduleAnimationGroup != null)
@@ -808,9 +822,16 @@ namespace FNPlugin.Collectors
             GUI.DragWindow();
         }
 
+        private void ToggleEmmitters(bool state)
+        {
+            for (int i = 0; i < particleEmitters.Length; ++i)
+            {
+                var e = particleEmitters[i];
+                e.emit = state;
+                e.enabled = state;
+            }
+        }
 
-
-        
         public void UpdateLoopingAnimation()
         {
             if (loopAnimation == null)
