@@ -252,7 +252,8 @@ namespace FNPlugin
                 particlesAtmosphereCurbeM.Add(85, 1.71e+20f);
                 particlesAtmosphereCurbeM.Add(90, 7.12e+19f);
                 particlesAtmosphereCurbeM.Add(95, 2.92e+19f);
-                particlesAtmosphereCurbeM.Add(100,  1.19e+19f);
+                particlesAtmosphereCurbeM.Add(100, 1.19e+19f);
+                particlesAtmosphereCurbeM.Add(110, 2.45e+18f);
                 particlesAtmosphereCurbeM.Add(120,  5.11e+17f);
                 particlesAtmosphereCurbeM.Add(140,  9.32e+16f);
                 particlesAtmosphereCurbeM.Add(160,  3.16e+16f);
@@ -264,11 +265,12 @@ namespace FNPlugin
                 particlesAtmosphereCurbeM.Add(600,  4.89e+12f);
                 particlesAtmosphereCurbeM.Add(700,  1.14e+12f);
                 particlesAtmosphereCurbeM.Add(800,  5.86e+11f);
+                particlesAtmosphereCurbeM.Add(100,  1.19e+19f);
                 particlesAtmosphereCurbeM.Add(1000, 2.06e+11f);
-                particlesAtmosphereCurbeM.Add(2000, 1.03e+11f);
-                particlesAtmosphereCurbeM.Add(4000, 5.16e+10f);
-                particlesAtmosphereCurbeM.Add(8000, 2.58e+10f);
-                particlesAtmosphereCurbeM.Add(16000, 0);
+                particlesAtmosphereCurbeM.Add(2000, 1.03e+9f);
+                particlesAtmosphereCurbeM.Add(4000, 5.2e+6f);
+                particlesAtmosphereCurbeM.Add(8000, 2.6e+4f);
+                particlesAtmosphereCurbeM.Add(10000, 0);
             }
 
             if (particlesHydrogenCubeM == null)
@@ -362,10 +364,10 @@ namespace FNPlugin
                 particlesHydrogenCubeM.Add(900, 8.562e+10f);
                 particlesHydrogenCubeM.Add(950, 8.182e+10f);
                 particlesHydrogenCubeM.Add(1000, 7.824e+10f);
-                particlesHydrogenCubeM.Add(2000, 3.912e+10f);
-                particlesHydrogenCubeM.Add(4000, 1.956e+10f);
-                particlesHydrogenCubeM.Add(8000, 9.780e+9f);
-                particlesHydrogenCubeM.Add(16000, 0);
+                particlesHydrogenCubeM.Add(2000, 3.912e+8f);
+                particlesHydrogenCubeM.Add(4000, 1.956e+6f);
+                particlesHydrogenCubeM.Add(8000, 9.780e+3f);
+                particlesHydrogenCubeM.Add(10000, 0);
             }
 
             if ( hydrogenIonsCubeCM == null)
@@ -405,10 +407,10 @@ namespace FNPlugin
                 hydrogenIonsCubeCM.Add(1170, 7.57e+9f);
                 hydrogenIonsCubeCM.Add(1190, 7.21e+9f);
                 hydrogenIonsCubeCM.Add(1240, 6.46e+9f);
-                hydrogenIonsCubeCM.Add(2000, 3.8e+9f);
-                hydrogenIonsCubeCM.Add(4000, 1.9e+9f);
-                hydrogenIonsCubeCM.Add(8000, 9.5e+8f);
-                hydrogenIonsCubeCM.Add(16000, 0);
+                hydrogenIonsCubeCM.Add(2000, 3.8e+7f);
+                hydrogenIonsCubeCM.Add(4000, 1.9e+5f);
+                hydrogenIonsCubeCM.Add(8000, 9.5e+2f);
+                hydrogenIonsCubeCM.Add(10000, 0);
             }
         }
 
