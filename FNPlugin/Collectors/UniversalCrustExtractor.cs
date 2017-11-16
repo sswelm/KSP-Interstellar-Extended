@@ -98,7 +98,7 @@ namespace FNPlugin.Collectors
             {
                 deployAnimation[deployAnimationName].speed = 1;
                 deployAnimation[deployAnimationName].normalizedTime = 0;
-                deployAnimation.Blend(deployAnimationName, part.mass);
+                deployAnimation.Blend(deployAnimationName);
             }
         }
 
@@ -112,14 +112,14 @@ namespace FNPlugin.Collectors
             if (loopAnimation != null) {
                 loopAnimation[loopingAnimationName].speed = -1;
                 loopAnimation[loopingAnimationName].normalizedTime = 0;
-                loopAnimation.Blend(loopingAnimationName, 1);
+                loopAnimation.Blend(loopingAnimationName);
             }
 
             if (deployAnimation != null)
             {
                 deployAnimation[deployAnimationName].speed = -1;
                 deployAnimation[deployAnimationName].normalizedTime = 1;
-                deployAnimation.Blend(deployAnimationName, part.mass);
+                deployAnimation.Blend(deployAnimationName);
             }
         }
 
@@ -192,15 +192,15 @@ namespace FNPlugin.Collectors
 
             if (isDeployed)
             {
-                deployAnimation[deployAnimationName].speed = 0;
+                deployAnimation[deployAnimationName].speed = 1;
                 deployAnimation[deployAnimationName].normalizedTime = 1;
-                deployAnimation.Blend(deployAnimationName, 1);
+                deployAnimation.Blend(deployAnimationName);
             }
             else
             {
-                deployAnimation[deployAnimationName].speed = 0;
+                deployAnimation[deployAnimationName].speed = -1;
                 deployAnimation[deployAnimationName].normalizedTime = 0;
-                deployAnimation.Blend(deployAnimationName, 1);
+                deployAnimation.Blend(deployAnimationName);
             }
 
             // if the setup went well, do the offline collecting dance
