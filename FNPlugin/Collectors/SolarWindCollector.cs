@@ -61,7 +61,7 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Ionized Atmospheric H", guiUnits = " mol/m\xB2")]
         protected float fIonizedHydrogenConcentration;
 
-        [KSPField(guiActive = true, guiName = "Atmospheric Drag", guiFormat="F4", guiUnits= " N")]
+        [KSPField(guiActive = true, guiName = "Atmospheric Drag", guiFormat="F2", guiUnits= " N")]
         protected double atmosphericDragInNewton;
 
         [KSPField(guiActive = false, guiName = "Distance from the sun")]

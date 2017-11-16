@@ -189,13 +189,13 @@ namespace FNPlugin
         public double coldBathTemp = 500;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Hot Bath Temp", guiUnits = "K", guiFormat = "F3")]
         public double hotBathTemp = 300;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Spare Fill Cap", guiUnits = " MW", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Spare Fill Cap", guiUnits = " MW", guiFormat = "F3")]
         public double possibleSpareResourceCapacityFilling;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Current Demand", guiUnits = " MW", guiFormat = "F3")]
         public double currentUnfilledResourceDemand;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power Needed", guiUnits = " MW", guiFormat = "F3")]
         public double electrical_power_currently_needed;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Applies Balance")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Applies Balance")]
         public bool applies_balance;
 
         // Internal
