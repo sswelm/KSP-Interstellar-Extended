@@ -1731,7 +1731,7 @@ namespace FNPlugin
                     && PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
                     && ReactorTechLevel >= fm.TechLevel
                     && (fm.Aneutronic || canUseNeutronicFuels)
-                    && maxGammaRayPower >= fm.GammaRayPower
+                    && maxGammaRayPower >= fm.GammaRayEnergy
                     ).ToList();
 
             for (int i = 0; i < filteredFuelModes.Count; i++)

@@ -60,7 +60,7 @@ namespace FNPlugin
             TechRequirement = first.TechRequirement;
             SupportedReactorTypes = first.SupportedReactorTypes;
             Aneutronic = first.Aneutronic;
-            GammaRayPower = first.GammaRayPower;
+            GammaRayEnergy = first.GammaRayEnergy;
             RequiresLab = first.RequiresLab;
             RequiresUpgrade = first.RequiresUpgrade;
             ChargedPowerRatio = first.ChargedPowerRatio;
@@ -77,7 +77,7 @@ namespace FNPlugin
         public string ModeGUIName { get; private set; }
         public string TechRequirement { get; private set; }
         public bool Aneutronic { get; private set; }
-        public double GammaRayPower { get; private set; }        
+        public double GammaRayEnergy { get; private set; }        
         public bool RequiresLab { get; private set; }
         public bool RequiresUpgrade { get; private set; }
         public float ChargedPowerRatio { get; private set; }
@@ -130,7 +130,7 @@ namespace FNPlugin
         protected bool _requires_upgrade;
         protected int _techLevel;
         protected bool _aneutronic;
-        protected double _gammaraypower;
+        protected double _gammaRayEnergy;
 
         protected string _alternativeFuelType1;
         protected string _alternativeFuelType2;
@@ -166,7 +166,7 @@ namespace FNPlugin
             _requires_upgrade = node.HasValue("RequiresUpgrade") ? Boolean.Parse(node.GetValue("RequiresUpgrade")) : false;
             _techLevel = node.HasValue("TechLevel") ? Int32.Parse(node.GetValue("TechLevel")) : 0;
             _aneutronic = node.HasValue("Aneutronic") ? Boolean.Parse(node.GetValue("Aneutronic")) : false;
-            _gammaraypower = node.HasValue("GammaRayPower ") ? Double.Parse(node.GetValue("GammaRayPower ")) : 0;
+            _gammaRayEnergy = node.HasValue("GammaRayEnergy") ? Double.Parse(node.GetValue("GammaRayEnerhy")) : 0;
 
 
             ConfigNode[] fuel_nodes = node.GetNodes("FUEL");
@@ -201,7 +201,7 @@ namespace FNPlugin
 
         public bool Aneutronic { get { return _aneutronic; } }
 
-        public double GammaRayPower { get { return _gammaraypower; } }
+        public double GammaRayEnergy { get { return _gammaRayEnergy; } }
 
         public bool RequiresLab { get { return _requires_lab; } }
 
