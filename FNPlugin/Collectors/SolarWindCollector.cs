@@ -78,6 +78,7 @@ namespace FNPlugin
         double dWindResourceFlow = 0;
         double dHydrogenResourceFlow = 0;
 
+        static FloatCurve massDensityAtmosphereCubeCM;
         static FloatCurve particlesAtmosphereCurbeM;
         static FloatCurve particlesHydrogenCubeM;
         static FloatCurve hydrogenIonsCubeCM;
@@ -211,6 +212,69 @@ namespace FNPlugin
 
         private static void InitializeAtmosphereParticles()
         {
+            if (massDensityAtmosphereCubeCM == null)
+            {
+                massDensityAtmosphereCubeCM = new FloatCurve();
+                particlesAtmosphereCurbeM.Add(000, 1.340E-03f);
+                particlesAtmosphereCurbeM.Add(001, 1.195E-03f);
+                particlesAtmosphereCurbeM.Add(002, 1.072E-03f);
+                particlesAtmosphereCurbeM.Add(003, 9.649E-04f);
+                particlesAtmosphereCurbeM.Add(004, 8.681E-04f);
+                particlesAtmosphereCurbeM.Add(005, 7.790E-04f);
+                particlesAtmosphereCurbeM.Add(006, 6.959E-04f);
+                particlesAtmosphereCurbeM.Add(007, 6.179E-04f);
+                particlesAtmosphereCurbeM.Add(008, 5.446E-04f);
+                particlesAtmosphereCurbeM.Add(009, 4.762E-04f);
+                particlesAtmosphereCurbeM.Add(010, 4.128E-04f);
+                particlesAtmosphereCurbeM.Add(012, 3.035E-04f);
+                particlesAtmosphereCurbeM.Add(014, 2.203E-04f);
+                particlesAtmosphereCurbeM.Add(016, 1.605E-04f);
+                particlesAtmosphereCurbeM.Add(018, 1.175E-04f);
+                particlesAtmosphereCurbeM.Add(020, 8.573E-05f);
+                particlesAtmosphereCurbeM.Add(030, 1.611E-05f);
+                particlesAtmosphereCurbeM.Add(040, 3.262E-06f);
+                particlesAtmosphereCurbeM.Add(050, 8.602E-07f);
+                particlesAtmosphereCurbeM.Add(060, 2.394E-07f);
+                particlesAtmosphereCurbeM.Add(070, 6.017E-08f);
+                particlesAtmosphereCurbeM.Add(080, 1.439E-08f);
+                particlesAtmosphereCurbeM.Add(090, 3.080E-09f);
+                particlesAtmosphereCurbeM.Add(100, 5.357E-10f);
+                particlesAtmosphereCurbeM.Add(110, 8.711E-11f);
+                particlesAtmosphereCurbeM.Add(120, 1.844E-11f);
+                particlesAtmosphereCurbeM.Add(130, 7.383E-12f);
+                particlesAtmosphereCurbeM.Add(140, 3.781E-12f);
+                particlesAtmosphereCurbeM.Add(150, 2.185E-12f);
+                particlesAtmosphereCurbeM.Add(160, 1.364E-12f);
+                particlesAtmosphereCurbeM.Add(170, 8.974E-13f);
+                particlesAtmosphereCurbeM.Add(180, 6.145E-13f);
+                particlesAtmosphereCurbeM.Add(190, 4.333E-13f);
+                particlesAtmosphereCurbeM.Add(200, 3.127E-13f);
+                particlesAtmosphereCurbeM.Add(210, 2.300E-13f);
+                particlesAtmosphereCurbeM.Add(220, 1.718E-13f);
+                particlesAtmosphereCurbeM.Add(230, 1.300E-13f);
+                particlesAtmosphereCurbeM.Add(240, 9.954E-14f);
+                particlesAtmosphereCurbeM.Add(250, 7.698E-14f);
+                particlesAtmosphereCurbeM.Add(300, 2.397E-14f);
+                particlesAtmosphereCurbeM.Add(350, 8.594E-15f);
+                particlesAtmosphereCurbeM.Add(400, 3.377E-15f);
+                particlesAtmosphereCurbeM.Add(450, 1.412E-15f);
+                particlesAtmosphereCurbeM.Add(500, 6.205E-16f);
+                particlesAtmosphereCurbeM.Add(550, 2.854E-16f);
+                particlesAtmosphereCurbeM.Add(600, 1.385E-16f);
+                particlesAtmosphereCurbeM.Add(650, 7.176E-17f);
+                particlesAtmosphereCurbeM.Add(700, 4.031E-17f);
+                particlesAtmosphereCurbeM.Add(750, 2.477E-17f);
+                particlesAtmosphereCurbeM.Add(800, 1.660E-17f);
+                particlesAtmosphereCurbeM.Add(850, 1.197E-17f);
+                particlesAtmosphereCurbeM.Add(900, 9.114E-18f);
+                particlesAtmosphereCurbeM.Add(950, 7.211E-18f);
+                particlesAtmosphereCurbeM.Add(1000, 5.849E-18f);
+                particlesAtmosphereCurbeM.Add(2000, 2.9245E-20f);
+                particlesAtmosphereCurbeM.Add(4000, 1.46225E-22f);
+                particlesAtmosphereCurbeM.Add(8000, 7.31125E-25f);
+                particlesAtmosphereCurbeM.Add(10000, 0);
+            }
+
             if (particlesAtmosphereCurbeM == null)
             {
                 particlesAtmosphereCurbeM = new FloatCurve();
