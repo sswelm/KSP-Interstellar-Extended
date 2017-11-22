@@ -55,6 +55,7 @@ namespace FNPlugin
         PartModule my_partmodule;
 
         PartResourceDefinition resourceDefinition;
+        PartResourceDefinition wasteheatResourceDefinition;
         PartResourceDefinition electricResourceDefinition;
         PartResourceDefinition megajouleResourceDefinition;
         PartResourceDefinition thermalpowerResourceDefinition;
@@ -160,6 +161,7 @@ namespace FNPlugin
             this.resource_name = resource_name;
 
             resourceDefinition = PartResourceLibrary.Instance.GetDefinition(resource_name);
+            wasteheatResourceDefinition = PartResourceLibrary.Instance.GetDefinition(FNRESOURCE_WASTEHEAT); 
             electricResourceDefinition = PartResourceLibrary.Instance.GetDefinition(STOCK_RESOURCE_ELECTRICCHARGE);
             megajouleResourceDefinition = PartResourceLibrary.Instance.GetDefinition(FNRESOURCE_MEGAJOULES); 
             thermalpowerResourceDefinition = PartResourceLibrary.Instance.GetDefinition(FNRESOURCE_THERMALPOWER);
@@ -667,7 +669,7 @@ namespace FNPlugin
             if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount))
                 resource_bar_ratio_begin = availableResourceAmount / maxResouceAmount;
             else
-                resource_bar_ratio_begin = 0.0001;
+                resource_bar_ratio_begin = resourceDefinition.id == wasteheatResourceDefinition.id ? 0.999 : 0;
 
             //calculate total input and output
             //var total_current_supplied = power_produced.Sum(m => m.Value.currentSupply);

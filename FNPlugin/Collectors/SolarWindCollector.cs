@@ -50,19 +50,36 @@ namespace FNPlugin
         public double collectMultiplier = 1;
 
         // GUI
+        [KSPField(guiActive = true, guiName = "Effective Surface Area", guiFormat = "F0", guiUnits = " m\xB2")]
+        protected double effectiveSurfaceArea;
         [KSPField(guiActive = true, guiName = "Solar Wind Ions", guiUnits = " mol/m\xB2")]
         protected float fSolarWindConcentration;
-        [KSPField(guiActive = true, guiName = "Interstellar Hydrogen", guiUnits = " mol/m\xB2")]
+        [KSPField(guiActive = true, guiName = "Interstellar Hydrogen", guiUnits = " mol/m\xB3")]
         protected float fInterstellarHydrogenConcentration;
-        [KSPField(guiActive = true, guiName = "Atmosphere Particles", guiUnits = " mol/m\xB2")]
+        [KSPField(guiActive = true, guiName = "Atmosphere Particles", guiUnits = " mol/m\xB3")]
         protected float fAtmosphereConcentration;
-        [KSPField(guiActive = true, guiName = "Neutral Atmospheric H", guiUnits = " mol/m\xB2")]
+        [KSPField(guiActive = true, guiName = "Neutral Atmospheric H", guiUnits = " mol/m\xB3")]
         protected float fNeutralHydrogenConcentration;
-        [KSPField(guiActive = true, guiName = "Ionized Atmospheric H", guiUnits = " mol/m\xB2")]
+        [KSPField(guiActive = true, guiName = "Ionized Atmospheric H", guiUnits = " mol/m\xB3")]
         protected float fIonizedHydrogenConcentration;
 
-        [KSPField(guiActive = true, guiName = "Atmospheric Drag", guiFormat="F4", guiUnits= " N")]
-        protected double atmosphericDragInNewton;
+        [KSPField(guiActive = true, guiName = "Atmospheric Density", guiUnits = " kg/m\xB3")]
+        protected float fAtmosphericKgPerSquareMeter;
+        [KSPField(guiActive = true, guiName = "Interstellar Density", guiUnits = " kg/m\xB3")]
+        protected float fInterstellarKgPerSquareMeter;
+
+        [KSPField(guiActive = true, guiName = "Atmospheric Drag", guiUnits = " N/m\xB2")]
+        protected float fAtmosphericDragInNewton;
+        [KSPField(guiActive = true, guiName = "Interstellar Drag", guiUnits = " N/m\xB2")]
+        protected float fInterstellarDustDragInNewton;
+
+
+        [KSPField(guiActive = true, guiName = "Ionised Vessel Drag", guiFormat = "F4", guiUnits = " kN/m\xB2")]
+        protected double ionizedVesselDragInKiloNewton;
+        [KSPField(guiActive = true, guiName = "Current Vessel Drag", guiFormat = "F4", guiUnits = " kN/m\xB2")]
+        protected double currentVesselDragInKiloNewton;
+
+
 
         [KSPField(guiActive = false, guiName = "Distance from the sun")]
         protected string strStarDist = "";
@@ -78,6 +95,7 @@ namespace FNPlugin
         double dWindResourceFlow = 0;
         double dHydrogenResourceFlow = 0;
 
+        static FloatCurve massDensityAtmosphereCubeCM;
         static FloatCurve particlesAtmosphereCurbeM;
         static FloatCurve particlesHydrogenCubeM;
         static FloatCurve hydrogenIonsCubeCM;
@@ -127,7 +145,9 @@ namespace FNPlugin
                 ActivateCollector();
         }
 
-        double solarwindMolarMassConcentrationPerSquareMeterPerSecond = 0;
+        double startSolarWindPerSquareMeterPerSecond = 0;
+        double interstellarSolarWindMolePerCubeMeter = 0;
+        double combinedSolarDustMolarMassConcentrationPerSquareMeterPerSecond = 0;
         double hydrogenMolarMassConcentrationPerSquareMeterPerSecond = 0;
         double dSolarWindSpareCapacity;
         double dHydrogenSpareCapacity;
@@ -211,6 +231,77 @@ namespace FNPlugin
 
         private static void InitializeAtmosphereParticles()
         {
+            if (massDensityAtmosphereCubeCM == null)
+            {
+                massDensityAtmosphereCubeCM = new FloatCurve();
+                massDensityAtmosphereCubeCM.Add(000, 1.340E-03f);
+                massDensityAtmosphereCubeCM.Add(001, 1.195E-03f);
+                massDensityAtmosphereCubeCM.Add(002, 1.072E-03f);
+                massDensityAtmosphereCubeCM.Add(003, 9.649E-04f);
+                massDensityAtmosphereCubeCM.Add(004, 8.681E-04f);
+                massDensityAtmosphereCubeCM.Add(005, 7.790E-04f);
+                massDensityAtmosphereCubeCM.Add(006, 6.959E-04f);
+                massDensityAtmosphereCubeCM.Add(007, 6.179E-04f);
+                massDensityAtmosphereCubeCM.Add(008, 5.446E-04f);
+                massDensityAtmosphereCubeCM.Add(009, 4.762E-04f);
+                massDensityAtmosphereCubeCM.Add(010, 4.128E-04f);
+                massDensityAtmosphereCubeCM.Add(012, 3.035E-04f);
+                massDensityAtmosphereCubeCM.Add(014, 2.203E-04f);
+                massDensityAtmosphereCubeCM.Add(016, 1.605E-04f);
+                massDensityAtmosphereCubeCM.Add(018, 1.175E-04f);
+                massDensityAtmosphereCubeCM.Add(020, 8.573E-05f);
+                massDensityAtmosphereCubeCM.Add(030, 1.611E-05f);
+                massDensityAtmosphereCubeCM.Add(040, 3.262E-06f);
+                massDensityAtmosphereCubeCM.Add(050, 8.602E-07f);
+                massDensityAtmosphereCubeCM.Add(060, 2.394E-07f);
+                massDensityAtmosphereCubeCM.Add(070, 6.017E-08f);
+                massDensityAtmosphereCubeCM.Add(080, 1.439E-08f);
+                massDensityAtmosphereCubeCM.Add(090, 3.080E-09f);
+                massDensityAtmosphereCubeCM.Add(100, 5.357E-10f);
+                massDensityAtmosphereCubeCM.Add(110, 8.711E-11f);
+                massDensityAtmosphereCubeCM.Add(120, 1.844E-11f);
+                massDensityAtmosphereCubeCM.Add(130, 7.383E-12f);
+                massDensityAtmosphereCubeCM.Add(140, 3.781E-12f);
+                massDensityAtmosphereCubeCM.Add(150, 2.185E-12f);
+                massDensityAtmosphereCubeCM.Add(160, 1.364E-12f);
+                massDensityAtmosphereCubeCM.Add(170, 8.974E-13f);
+                massDensityAtmosphereCubeCM.Add(180, 6.145E-13f);
+                massDensityAtmosphereCubeCM.Add(190, 4.333E-13f);
+                massDensityAtmosphereCubeCM.Add(200, 3.127E-13f);
+                massDensityAtmosphereCubeCM.Add(210, 2.300E-13f);
+                massDensityAtmosphereCubeCM.Add(220, 1.718E-13f);
+                massDensityAtmosphereCubeCM.Add(230, 1.300E-13f);
+                massDensityAtmosphereCubeCM.Add(240, 9.954E-14f);
+                massDensityAtmosphereCubeCM.Add(250, 7.698E-14f);
+                massDensityAtmosphereCubeCM.Add(260, 6.007E-14f);
+                massDensityAtmosphereCubeCM.Add(270, 4.725E-14f);
+                massDensityAtmosphereCubeCM.Add(280, 3.744E-14f);
+                massDensityAtmosphereCubeCM.Add(290, 2.987E-14f);
+                massDensityAtmosphereCubeCM.Add(300, 2.397E-14f);
+                massDensityAtmosphereCubeCM.Add(310, 1.934E-14f);
+                massDensityAtmosphereCubeCM.Add(320, 1.569E-14f);
+                massDensityAtmosphereCubeCM.Add(330, 1.278E-14f);
+                massDensityAtmosphereCubeCM.Add(340, 1.046E-14f);
+                massDensityAtmosphereCubeCM.Add(350, 8.594E-15f);
+                massDensityAtmosphereCubeCM.Add(400, 3.377E-15f);
+                massDensityAtmosphereCubeCM.Add(450, 1.412E-15f);
+                massDensityAtmosphereCubeCM.Add(500, 6.205E-16f);
+                massDensityAtmosphereCubeCM.Add(550, 2.854E-16f);
+                massDensityAtmosphereCubeCM.Add(600, 1.385E-16f);
+                massDensityAtmosphereCubeCM.Add(650, 7.176E-17f);
+                massDensityAtmosphereCubeCM.Add(700, 4.031E-17f);
+                massDensityAtmosphereCubeCM.Add(750, 2.477E-17f);
+                massDensityAtmosphereCubeCM.Add(800, 1.660E-17f);
+                massDensityAtmosphereCubeCM.Add(850, 1.197E-17f);
+                massDensityAtmosphereCubeCM.Add(900, 9.114E-18f);
+                massDensityAtmosphereCubeCM.Add(950, 7.211E-18f);
+                massDensityAtmosphereCubeCM.Add(1000, 5.849E-18f);
+                massDensityAtmosphereCubeCM.Add(2000, 2.9245E-20f);
+                massDensityAtmosphereCubeCM.Add(4000, 1.46225E-22f);
+                massDensityAtmosphereCubeCM.Add(8000, 7.31125E-25f);
+                massDensityAtmosphereCubeCM.Add(10000, 0);
+            }
+
             if (particlesAtmosphereCurbeM == null)
             {
                 particlesAtmosphereCurbeM = new FloatCurve();
@@ -252,7 +343,8 @@ namespace FNPlugin
                 particlesAtmosphereCurbeM.Add(85, 1.71e+20f);
                 particlesAtmosphereCurbeM.Add(90, 7.12e+19f);
                 particlesAtmosphereCurbeM.Add(95, 2.92e+19f);
-                particlesAtmosphereCurbeM.Add(100,  1.19e+19f);
+                particlesAtmosphereCurbeM.Add(100, 1.19e+19f);
+                particlesAtmosphereCurbeM.Add(110, 2.45e+18f);
                 particlesAtmosphereCurbeM.Add(120,  5.11e+17f);
                 particlesAtmosphereCurbeM.Add(140,  9.32e+16f);
                 particlesAtmosphereCurbeM.Add(160,  3.16e+16f);
@@ -264,11 +356,12 @@ namespace FNPlugin
                 particlesAtmosphereCurbeM.Add(600,  4.89e+12f);
                 particlesAtmosphereCurbeM.Add(700,  1.14e+12f);
                 particlesAtmosphereCurbeM.Add(800,  5.86e+11f);
+                particlesAtmosphereCurbeM.Add(100,  1.19e+19f);
                 particlesAtmosphereCurbeM.Add(1000, 2.06e+11f);
-                particlesAtmosphereCurbeM.Add(2000, 1.03e+11f);
-                particlesAtmosphereCurbeM.Add(4000, 5.16e+10f);
-                particlesAtmosphereCurbeM.Add(8000, 2.58e+10f);
-                particlesAtmosphereCurbeM.Add(16000, 0);
+                particlesAtmosphereCurbeM.Add(2000, 1.03e+9f);
+                particlesAtmosphereCurbeM.Add(4000, 5.2e+6f);
+                particlesAtmosphereCurbeM.Add(8000, 2.6e+4f);
+                particlesAtmosphereCurbeM.Add(10000, 0);
             }
 
             if (particlesHydrogenCubeM == null)
@@ -362,10 +455,10 @@ namespace FNPlugin
                 particlesHydrogenCubeM.Add(900, 8.562e+10f);
                 particlesHydrogenCubeM.Add(950, 8.182e+10f);
                 particlesHydrogenCubeM.Add(1000, 7.824e+10f);
-                particlesHydrogenCubeM.Add(2000, 3.912e+10f);
-                particlesHydrogenCubeM.Add(4000, 1.956e+10f);
-                particlesHydrogenCubeM.Add(8000, 9.780e+9f);
-                particlesHydrogenCubeM.Add(16000, 0);
+                particlesHydrogenCubeM.Add(2000, 3.912e+8f);
+                particlesHydrogenCubeM.Add(4000, 1.956e+6f);
+                particlesHydrogenCubeM.Add(8000, 9.780e+3f);
+                particlesHydrogenCubeM.Add(10000, 0);
             }
 
             if ( hydrogenIonsCubeCM == null)
@@ -405,10 +498,10 @@ namespace FNPlugin
                 hydrogenIonsCubeCM.Add(1170, 7.57e+9f);
                 hydrogenIonsCubeCM.Add(1190, 7.21e+9f);
                 hydrogenIonsCubeCM.Add(1240, 6.46e+9f);
-                hydrogenIonsCubeCM.Add(2000, 3.8e+9f);
-                hydrogenIonsCubeCM.Add(4000, 1.9e+9f);
-                hydrogenIonsCubeCM.Add(8000, 9.5e+8f);
-                hydrogenIonsCubeCM.Add(16000, 0);
+                hydrogenIonsCubeCM.Add(2000, 3.8e+7f);
+                hydrogenIonsCubeCM.Add(4000, 1.9e+5f);
+                hydrogenIonsCubeCM.Add(8000, 9.5e+2f);
+                hydrogenIonsCubeCM.Add(10000, 0);
             }
         }
 
@@ -420,17 +513,17 @@ namespace FNPlugin
 
             Fields["strReceivedPower"].guiActive = bIsEnabled;           
 
-            var dSolarWindConcentration = CalculateSolarwindIonConcentration(part.vessel.solarFlux, solarCheatMultiplier);
-            var dInterstellarHydrogenConcentration = CalculateInterstellarIonConcentration(vessel.obt_speed, interstellarCheatMultiplier);
-            solarwindMolarMassConcentrationPerSquareMeterPerSecond = dSolarWindConcentration + (bIonizing ? dInterstellarHydrogenConcentration : 0);
+            startSolarWindPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(part.vessel.solarFlux, solarCheatMultiplier);
+            interstellarSolarWindMolePerCubeMeter = CalculateInterstellarIonConcentration(interstellarCheatMultiplier);
+            combinedSolarDustMolarMassConcentrationPerSquareMeterPerSecond = startSolarWindPerSquareMeterPerSecond + (bIonizing ? interstellarSolarWindMolePerCubeMeter * vessel.obt_speed : 0);
 
             var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
             var dAtmosphericHydrogenConcentration = CalculateCurrentHydrogenConcentration(vessel);
             var dIonizedHydrogenConcentration = CalculateCurrentHydrogenIonsConcentration(vessel);
             hydrogenMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dAtmosphericHydrogenConcentration : dIonizedHydrogenConcentration;
 
-            fSolarWindConcentration = (float)dSolarWindConcentration;
-            fInterstellarHydrogenConcentration = (float)dInterstellarHydrogenConcentration;
+            fSolarWindConcentration = (float)startSolarWindPerSquareMeterPerSecond;
+            fInterstellarHydrogenConcentration = (float)interstellarSolarWindMolePerCubeMeter;
             fAtmosphereConcentration = (float)dAtmosphereConcentration;
             fNeutralHydrogenConcentration = (float)dAtmosphericHydrogenConcentration;
             fIonizedHydrogenConcentration = (float)dIonizedHydrogenConcentration;
@@ -474,7 +567,7 @@ namespace FNPlugin
                 dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
 
                 // store current solar wind concentration in case vessel is unloaded
-                dLastSolarConcentration = solarwindMolarMassConcentrationPerSquareMeterPerSecond; //CalculateSolarWindConcentration(part.vessel.solarFlux);
+                dLastSolarConcentration = combinedSolarDustMolarMassConcentrationPerSquareMeterPerSecond; //CalculateSolarWindConcentration(part.vessel.solarFlux);
                 dLastHydrogenConcentration = hydrogenMolarMassConcentrationPerSquareMeterPerSecond;
             }
         }
@@ -621,12 +714,12 @@ namespace FNPlugin
             return dMolalSolarConcentration; // in mol / m2 / sec
         }
 
-        private static double CalculateInterstellarIonConcentration(double vesselSpeed, double interstellarCheatMultiplier)
+        private static double CalculateInterstellarIonConcentration(double interstellarCheatMultiplier)
         {
             const double  dAverageInterstellarHydrogenPerCubM = 1 * 1000000;
             const double avogadroConstant = 6.022140857e+23; // number of atoms in 1 mol
 
-            var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * interstellarCheatMultiplier * vesselSpeed / avogadroConstant;
+            var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * interstellarCheatMultiplier / avogadroConstant;
 
             return interstellarHydrogenConcentration; // in mol / m2 / sec
         }
@@ -708,11 +801,11 @@ namespace FNPlugin
 
             if (offlineCollecting)
             {
-                solarwindMolarMassConcentrationPerSquareMeterPerSecond = dLastSolarConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the function at line 328
+                combinedSolarDustMolarMassConcentrationPerSquareMeterPerSecond = dLastSolarConcentration; // if resolving offline collection, pass the saved value, because OnStart doesn't resolve the function at line 328
                 hydrogenMolarMassConcentrationPerSquareMeterPerSecond = dLastHydrogenConcentration;
             }
 
-            if ((solarwindMolarMassConcentrationPerSquareMeterPerSecond > 0 || hydrogenMolarMassConcentrationPerSquareMeterPerSecond > 0) && (dSolarWindSpareCapacity > 0 || dHydrogenSpareCapacity > 0))
+            if ((combinedSolarDustMolarMassConcentrationPerSquareMeterPerSecond > 0 || hydrogenMolarMassConcentrationPerSquareMeterPerSecond > 0) && (dSolarWindSpareCapacity > 0 || dHydrogenSpareCapacity > 0))
             {
                 // calculate available power
                 var dNormalisedRevievedPowerMW = Math.Max(consumeFNResourcePerSecond(dPowerRequirementsMW, ResourceManager.FNRESOURCE_MEGAJOULES), 0);
@@ -754,14 +847,15 @@ namespace FNPlugin
             else
                 dShieldedEffectiveness = (1 - dMagnetoSphereStrengthRatio);
 
-            var effectiveSurfaceArea = surfaceArea + (magneticArea * powerPercentage / 100);
+            effectiveSurfaceArea = surfaceArea + (magneticArea * powerPercentage / 100);
+            //effectiveSurfaceArea = 10 + (magneticArea * powerPercentage / 100);
 
-            var production = collectMultiplier * effectiveSurfaceArea * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * deltaTimeInSeconds;
+            var productionModifiers = collectMultiplier * effectiveSurfaceArea * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * deltaTimeInSeconds;
 
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            double dSolarWindResourceChange = solarwindMolarMassConcentrationPerSquareMeterPerSecond * 1.9 / 1e-6 * production / dSolarWindDensity;
+            double dSolarWindResourceChange = combinedSolarDustMolarMassConcentrationPerSquareMeterPerSecond * 1.9 / 1e-6 * productionModifiers / dSolarWindDensity;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
@@ -774,7 +868,7 @@ namespace FNPlugin
             // this is the second important bit - do the actual change of the resource amount in the vessel
             dWindResourceFlow = -part.RequestResource(strSolarWindResourceName, -dSolarWindResourceChange);
 
-            double dHydrogenResourceChange = hydrogenMolarMassConcentrationPerSquareMeterPerSecond / 1e-6 * production / dHydrogenDensity;
+            double dHydrogenResourceChange = hydrogenMolarMassConcentrationPerSquareMeterPerSecond / 1e-6 * productionModifiers / dHydrogenDensity;
 
             if (offlineCollecting)
             {
@@ -785,15 +879,33 @@ namespace FNPlugin
 
             dHydrogenResourceFlow = -part.RequestResource(strSolarWindResourceName, -dHydrogenResourceChange);
 
+            var atmosphericKgPerSquareMeter = GetAtmosphericDensityKgPerCubicMeter();
+            var interstellarDustKgPerSquareMeter = interstellarSolarWindMolePerCubeMeter * 1e+3 * 1.9;
+            fAtmosphericKgPerSquareMeter = (float)atmosphericKgPerSquareMeter;
+            fInterstellarKgPerSquareMeter = (float)interstellarDustKgPerSquareMeter;
 
-            var atmosphericDensityKgPerSquareMeter = hydrogenMolarMassConcentrationPerSquareMeterPerSecond * 1e-3;
+            var atmosphericDragInNewton = 0.5 * vessel.obt_speed * vessel.obt_speed * atmosphericKgPerSquareMeter;
+            fAtmosphericDragInNewton = (float)atmosphericDragInNewton;
+            var interstellarDustDragInNewton = 0.5 * vessel.obt_speed * vessel.obt_speed * interstellarDustKgPerSquareMeter;
+            fInterstellarDustDragInNewton = (float)interstellarDustDragInNewton;
 
-            atmosphericDragInNewton = 0.5 * effectiveSurfaceArea * atmosphericDensityKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
+            ionizedVesselDragInKiloNewton = 1e-3 * effectiveSurfaceArea * (atmosphericDragInNewton + interstellarDustDragInNewton);
+            currentVesselDragInKiloNewton = ionizedVesselDragInKiloNewton * (bIonizing ? 1 : 0.001);
 
             if (!this.vessel.packed)
             {
-                part.Rigidbody.AddForce(part.vessel.velocityD.normalized * -(float)atmosphericDragInNewton * 1e-3, ForceMode.Force);
+                part.Rigidbody.AddForce(part.vessel.velocityD.normalized * -(float)currentVesselDragInKiloNewton, ForceMode.Force);
             }
+        }
+
+        private double GetAtmosphericDensityKgPerCubicMeter()
+        {
+            if (!vessel.mainBody.atmosphere)
+                return 0;
+
+            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
+            var atmosphericDensityKgPerSquareMeter = Math.Max(0, massDensityAtmosphereCubeCM.Evaluate((float)comparibleEarthAltitudeInKm)) * 1e+3;
+            return atmosphericDensityKgPerSquareMeter;
         }
 
     }

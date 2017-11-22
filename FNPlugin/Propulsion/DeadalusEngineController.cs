@@ -22,7 +22,7 @@ namespace FNPlugin
 		public float speedLimit = 1;
 		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Fuel Limiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
 		public float fuelLimit = 100;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Vessel Time", guiFormat = "F1", guiUnits = " s")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Vessel Time", guiFormat = "F1", guiUnits = " s")]
         public double vesselLifetime;
 		[KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Maximise Thrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
 		public bool maximizeThrust = true;
@@ -43,7 +43,7 @@ namespace FNPlugin
 		public double relativity;
 		[KSPField(guiActive = true, guiName = "Time Dilation", guiFormat = "F10")]
 		public double timeDilation;
-		[KSPField(guiActive = true, guiName = "Mission Time" , guiFormat = "F1", guiUnits = " s")]
+		[KSPField(guiActive = false, guiName = "Mission Time" , guiFormat = "F1", guiUnits = " s")]
 		public double missionTime ;
 
 		[KSPField(guiActive = true, guiName = "Radiation Hazard To")]

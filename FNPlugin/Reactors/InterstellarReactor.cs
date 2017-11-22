@@ -240,7 +240,8 @@ namespace FNPlugin
         public double chargedParticleEnergyEfficiency = 1;
         [KSPField]
         public double chargedParticlePropulsionEfficiency = 1;
-
+        [KSPField]
+        public double maxGammaRayPower = 0;
         [KSPField]
         public bool hasBuoyancyEffects = false;
         [KSPField]
@@ -269,6 +270,8 @@ namespace FNPlugin
         public bool fastNeutrons = true;
         [KSPField]
         public bool canUseNeutronicFuels = true;
+        [KSPField]
+        public bool canUseGammaRayFuels = true;
 
         [KSPField]
         public string bimodelUpgradeTechReq = String.Empty;
@@ -1728,6 +1731,7 @@ namespace FNPlugin
                     && PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
                     && ReactorTechLevel >= fm.TechLevel
                     && (fm.Aneutronic || canUseNeutronicFuels)
+                    && maxGammaRayPower >= fm.GammaRayEnergy
                     ).ToList();
 
             for (int i = 0; i < filteredFuelModes.Count; i++)
