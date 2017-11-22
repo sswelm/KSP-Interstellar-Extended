@@ -77,8 +77,8 @@ namespace FNPlugin
             
             if (state == StartState.Editor) return;
 
-            _attached_engine = this.part.FindModuleImplementing<ModuleEnginesFX>();
-            _attached_warpable_engine = _attached_engine as ModuleEnginesWarp;
+            _attached_warpable_engine = this.part.FindModuleImplementing<ModuleEnginesWarp>();
+            _attached_engine = _attached_warpable_engine;
 
             if (_attached_engine != null)
                 _attached_engine.Fields["finalThrust"].guiFormat = "F5";
@@ -131,6 +131,9 @@ namespace FNPlugin
 
         private IChargedParticleSource FindChargedParticleSource(Part currentpart, int stackdepth, int parentdepth)
         {
+            if (currentpart == null)
+                return null;
+
             if (stackdepth == 0)
                 return currentpart.FindModulesImplementing<IChargedParticleSource>().FirstOrDefault();
 

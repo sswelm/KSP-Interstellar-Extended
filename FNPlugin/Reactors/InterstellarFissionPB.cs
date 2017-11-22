@@ -1,10 +1,10 @@
 ﻿using System;
-
+using UnityEngine;
 
 namespace FNPlugin
 {
     [KSPModule("Fission Reactor")]
-    class InterstellarFissionPBDP : InterstellarReactor, IChargedParticleSource
+    class InterstellarFissionPB : InterstellarReactor
     {
         // Persistant False
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Heat Throttling")]
@@ -40,12 +40,6 @@ namespace FNPlugin
         {
             IsEnabled = false;
         }
-
-        public double MaximumChargedIspMult { get { return (float)maximumChargedIspMult; } }
-
-		public double MinimumChargdIspMult { get { return (float)minimumChargdIspMult; } }
-
-        public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 
         public override bool IsFuelNeutronRich { get { return CurrentFuelMode != null && !CurrentFuelMode.Aneutronic; } }
 
@@ -101,11 +95,6 @@ namespace FNPlugin
             Events["ManualRestart"].active = Events["ManualRestart"].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
             Events["ManualShutdown"].active = Events["ManualShutdown"].guiActiveUnfocused = IsEnabled;
             base.OnUpdate();
-        }
-
-        public override void OnFixedUpdate()
-        {
-            base.OnFixedUpdate();
         }
 
         public override bool shouldScaleDownJetISP()
