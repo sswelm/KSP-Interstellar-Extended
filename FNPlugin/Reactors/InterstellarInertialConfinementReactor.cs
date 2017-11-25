@@ -37,7 +37,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public double accumulatedElectricChargeInMW;
         [KSPField(guiActiveEditor = true, guiName = "Power Affects Maintenance")]
-        public bool powerControlAffectsMaintenance = false;
+        public bool powerControlAffectsMaintenance = true;
         [KSPField(isPersistant = true, guiName = "Startup"), UI_Toggle(disabledText = "Off", enabledText = "Charging")]
         public bool isChargingForJumpstart;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Max Secondary Power Usage"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 1)]

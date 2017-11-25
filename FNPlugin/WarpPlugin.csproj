@@ -94,6 +94,8 @@
     <Compile Include="Propulsion\DeadalusEngineController.cs" />
     <Compile Include="Propulsion\VistaEngineControllerAdvanced2.cs" />
     <Compile Include="Reactors\Interfaces\IElectricPowerSource.cs" />
+    <Compile Include="Reactors\InterstellarFissionDP.cs" />
+    <Compile Include="Reactors\InterstellarFissionPB.cs" />
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />
     <Compile Include="Collectors\AntimatterCollector.cs" />
     <Compile Include="Refinery\AntimatterFactory.cs" />
@@ -123,7 +125,6 @@
     <Compile Include="Reactors\InterstellarCatalysedFissionFusion.cs" />
     <Compile Include="Extensions\InterstellarCelestialBodyExtensions.cs" />
     <Compile Include="Reactors\InterstellarFissionMSRGC.cs" />
-    <Compile Include="Reactors\InterstellarFissionPBDP.cs" />
     <Compile Include="Reactors\InterstellarFusionReactor.cs" />
     <Compile Include="Reactors\InterstellarInertialConfinementReactor.cs" />
     <Compile Include="Propulsion\ElectricEngineControllerFX.cs" />
