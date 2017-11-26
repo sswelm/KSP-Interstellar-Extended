@@ -87,9 +87,10 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 1)]
         public float electricPowerPriority = 2;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_powerPercentage"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 10)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_powerPercentage"), UI_FloatRange(stepIncrement = 1/3f, maxValue = 100, minValue = 10)]
         public float powerPercentage = 100;
-
+        [KSPField]
+        public float minimumPowerPercentage = 10;
         [KSPField]
         public string upgradeTechReqMk2 = null;
         [KSPField]
@@ -914,6 +915,11 @@ namespace FNPlugin
             previousDeltaTime = TimeWarp.fixedDeltaTime - 1.0e-6f;
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
             staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
+
+            var powerPercentageField = Fields["powerPercentage"];
+            UI_FloatRange[] powerPercentageFloatRange = { powerPercentageField.uiControlFlight as UI_FloatRange, powerPercentageField.uiControlEditor as UI_FloatRange };
+            powerPercentageFloatRange[0].minValue = minimumPowerPercentage;
+            powerPercentageFloatRange[1].minValue = minimumPowerPercentage;
 
             if (!part.Resources.Contains(ResourceManager.FNRESOURCE_THERMALPOWER))
             {

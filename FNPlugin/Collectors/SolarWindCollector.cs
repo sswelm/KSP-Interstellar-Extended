@@ -25,7 +25,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiName = "Ionizing"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         protected bool bIonizing = false;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
-        protected float powerPercentage = 100;      
+        protected float powerPercentage = 100;
+
+
 
         // Part properties
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Surface area", guiUnits = " m\xB2")]
@@ -77,15 +79,17 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Interstellar Drag", guiUnits = " N/m\xB2")]
         protected float fInterstellarDustDragInNewton;
 
-        [KSPField(guiActive = true, guiName = "Max Orbital Drag", guiFormat = "F4", guiUnits = " kN")]
-        protected double maxOrbitalVesselDragInNewton;
-        [KSPField(guiActive = true, guiName = "Effective Orbital Drag", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "Max Orbital Drag", guiUnits = " N")]
+        protected float fMaxOrbitalVesselDragInNewton;
+        [KSPField(guiActive = true, guiName = "Current Orbital Drag", guiUnits = " N")]
         protected float fEffectiveOrbitalVesselDragInNewton;
         [KSPField(guiActive = true, guiName = "Solarwind Force on Vessel", guiUnits = " N")]
         protected float fSolarWindVesselForceInNewton;
 
-        [KSPField(guiActive = true, guiName = "Solarwind Modifier")]
-        protected double solarwindProductionModifiers;
+        [KSPField(guiActive = true, guiName = "Solarwind Facing Factor", guiFormat = "F3")]
+        public double solarWindFactor = 0;
+        [KSPField(guiActive = true, guiName = "Solarwind Collection Modifier", guiFormat = "F3")]
+        protected double solarwindProductionModifiers = 0;
         [KSPField(guiActive = true, guiName = "SolarWind Mass Collected", guiUnits = " g/s")]
         protected float fSolarWindCollectedGramPerSecond;
         [KSPField(guiActive = true, guiName = "Interstellar Mass Collected", guiUnits = " g/s")]
@@ -160,7 +164,6 @@ namespace FNPlugin
 
         double solarWindMolesPerSquareMeterPerSecond = 0;
         double interstellarDustMolesPerSquareMeter = 0;
-        //double combinedSolarDustMolarMassConcentrationPerSquareMeterPerSecond = 0;
         double hydrogenMolarMassConcentrationPerSquareMeterPerSecond = 0;
         double dSolarWindSpareCapacity;
         double dHydrogenSpareCapacity;
@@ -176,8 +179,6 @@ namespace FNPlugin
         Animation deployAnimation;
         Animation ionisationAnimation;
         CelestialBody localStar;
-        //Collider vesselCollider;
-        //Rigidbody vesselRegitBody;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -867,18 +868,22 @@ namespace FNPlugin
             effectiveSurfaceAreaInSquareMeter = surfaceArea + (magneticArea * powerPercentage / 100);
             //effectiveSurfaceArea = 10 + (magneticArea * powerPercentage / 100);
 
-            solarwindProductionModifiers = collectMultiplier * effectiveness * dShieldedEffectiveness * dLastPowerPercentage;
+            Vector3d solarDirectionVector = localStar.transform.position - vessel.transform.position;
 
-            var dSolarWindGramCollectedPerSecond = solarWindMolesPerSquareMeterPerSecond * solarwindProductionModifiers * effectiveSurfaceAreaInSquareMeter * 1.9;
-            fSolarWindCollectedGramPerSecond = (float)dSolarWindGramCollectedPerSecond;
+            solarWindFactor =  Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector.normalized));
 
-            var dInterstellarGramCollectedPerSecond = interstellarDustMolesPerSquareMeter * effectiveSurfaceAreaInSquareMeter * 1.9;
-            fInterstellarIonsCollectedGramPerSecond = (float)dInterstellarGramCollectedPerSecond;
+            solarwindProductionModifiers = collectMultiplier * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * solarWindFactor;
+
+            var solarWindGramCollectedPerSecond = solarWindMolesPerSquareMeterPerSecond * solarwindProductionModifiers * effectiveSurfaceAreaInSquareMeter * 1.9;
+            fSolarWindCollectedGramPerSecond = (float)solarWindGramCollectedPerSecond;
+
+            var interstellarGramCollectedPerSecond = interstellarDustMolesPerSquareMeter * effectiveSurfaceAreaInSquareMeter * 1.9;
+            fInterstellarIonsCollectedGramPerSecond = (float)interstellarGramCollectedPerSecond;
 
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            double dSolarDustResourceChange = (dSolarWindGramCollectedPerSecond + dInterstellarGramCollectedPerSecond) * deltaTimeInSeconds / 1e-6 / dSolarWindDensity;
+            double dSolarDustResourceChange = (solarWindGramCollectedPerSecond + interstellarGramCollectedPerSecond) * deltaTimeInSeconds * 1e-6 / dSolarWindDensity;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
@@ -919,13 +924,14 @@ namespace FNPlugin
              var interstellarDustDragInNewton = vessel.obt_speed * interstellarDustKgPerSquareMeter;
             fInterstellarDustDragInNewton = (float)interstellarDustDragInNewton;
 
-            maxOrbitalVesselDragInNewton = effectiveSurfaceAreaInSquareMeter * (atmosphericDragInNewton + interstellarDustDragInNewton);
-            fEffectiveOrbitalVesselDragInNewton = (float)maxOrbitalVesselDragInNewton * (bIonizing ? 1 : 0.001f);
+            var maxOrbitalVesselDragInNewton = effectiveSurfaceAreaInSquareMeter * (atmosphericDragInNewton + interstellarDustDragInNewton);
+            fMaxOrbitalVesselDragInNewton = (float)maxOrbitalVesselDragInNewton;
+            fEffectiveOrbitalVesselDragInNewton = fMaxOrbitalVesselDragInNewton * (bIonizing ? 1 : 0.001f);
 
             var solarwindDragInNewtonPerSquareMeter = solarWindSpeed * solarDustKgPerSquareMeter;
             fSolarWindDragInNewtonPerSquareMeter = (float)solarwindDragInNewtonPerSquareMeter;
             fSolarWindVesselForceInNewton = (float)(solarwindDragInNewtonPerSquareMeter * effectiveSurfaceAreaInSquareMeter);
-            Vector3d solarDirectionVector = localStar.transform.position - vessel.transform.position;
+            
 
             if (!this.vessel.packed)
             {
