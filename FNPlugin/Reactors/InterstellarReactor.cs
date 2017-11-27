@@ -1996,7 +1996,7 @@ namespace FNPlugin
                         var lithium_lifetime_remaining_days = Math.Floor(lithium_lifetime_years_remainder_in_days);
                         var lithium_lifetime_remaining_days_remainer = lithium_lifetime_years_remainder_in_days % 1;
 
-                        var lithium_lifetime_remaining_hours = lithium_lifetime_remaining_days_remainer * PluginHelper.SecondsInDay / GameConstants.HOUR_SECONDS;
+                        var lithium_lifetime_remaining_hours = lithium_lifetime_remaining_days_remainer * PluginHelper.SecondsInDay / GameConstants.SECONDS_IN_HOUR;
 
                         if (lithium_lifetime_years < 1e9)
                         {
@@ -2052,10 +2052,11 @@ namespace FNPlugin
 
                         PrintToGUILayout(fuel.FuelName + " Reserves", PluginHelper.formatMassStr(availabilityInTon) + " (" + availableRessources.Count + " variants)", bold_style, text_style);
 
-                        var fuel_use_per_day = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
-                        var kg_fuel_use_per_day = fuel_use_per_day * 1000;
+                        var ton_fuel_use_per_hour = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInHour;
+                        var kg_fuel_use_per_hour = ton_fuel_use_per_hour * 1000;
+                        var kg_fuel_use_per_day = kg_fuel_use_per_hour * PluginHelper.HoursInDay;
 
-                        PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.formatMassStr(fuel_use_per_day) + "/ day", bold_style, text_style);
+                        PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.formatMassStr(ton_fuel_use_per_hour) + "/ hour", bold_style, text_style);
 
                         if (kg_fuel_use_per_day > 0)
                         {

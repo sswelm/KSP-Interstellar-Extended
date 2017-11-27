@@ -235,7 +235,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Solar Wind Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((((float)_solar_wind_consumption_rate * GameConstants.HOUR_SECONDS).ToString()) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((((float)_solar_wind_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString()) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -245,7 +245,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hydrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((float)_hydrogen_production_rate * GameConstants.HOUR_SECONDS).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((float)_hydrogen_production_rate * GameConstants.SECONDS_IN_HOUR).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -255,7 +255,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deuterium Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((float)_deuterium_production_rate * GameConstants.HOUR_SECONDS).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((float)_deuterium_production_rate * GameConstants.SECONDS_IN_HOUR).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -265,7 +265,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Helium-3 Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((float)_liquid_helium3_production_rate * GameConstants.HOUR_SECONDS).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((float)_liquid_helium3_production_rate * GameConstants.SECONDS_IN_HOUR).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -275,7 +275,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Helium-4 Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((float)_liquid_helium4_production_rate * GameConstants.HOUR_SECONDS).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((float)_liquid_helium4_production_rate * GameConstants.SECONDS_IN_HOUR).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -285,7 +285,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Carbon Monoxide Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((float)_monoxide_production_rate * GameConstants.HOUR_SECONDS).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((float)_monoxide_production_rate * GameConstants.SECONDS_IN_HOUR).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -295,7 +295,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Nitrogen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((float)_nitrogen_production_rate * GameConstants.HOUR_SECONDS).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((float)_nitrogen_production_rate * GameConstants.SECONDS_IN_HOUR).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -305,7 +305,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Neon Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((float)_neon_production_rate * GameConstants.HOUR_SECONDS).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((float)_neon_production_rate * GameConstants.SECONDS_IN_HOUR).ToString() + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }
 

@@ -51,8 +51,9 @@ namespace FNPlugin
         public const double EngineHeatProduction = 1000;
         public const double AirflowHeatMultiplier = 1;
 
-        public const int KEBRIN_DAY_SECONDS = 21600;
-        public const int HOUR_SECONDS = 3600;
+        public const int KEBRIN_HOURS_DAY = 8;
+        public const int SECONDS_IN_HOUR = 3600;
+        public const int KEBRIN_DAY_SECONDS = SECONDS_IN_HOUR * KEBRIN_HOURS_DAY;
         public const int defaultSupportedPropellantAtoms = 121;
         public const int defaultSupportedPropellantTypes = 127;
     }

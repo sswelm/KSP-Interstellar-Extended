@@ -162,6 +162,8 @@ namespace FNPlugin
 
         private static int _secondsInDay = GameConstants.KEBRIN_DAY_SECONDS;
         public static int SecondsInDay { get { return _secondsInDay; } }
+        public static int HoursInDay { get { return GameConstants.KEBRIN_HOURS_DAY; } }
+        public static int SecondsInHour { get { return GameConstants.SECONDS_IN_HOUR; } }
 
         private static double _spotsizeMult = 1.22;
         public static double SpotsizeMult { get { return _spotsizeMult; } }

@@ -486,7 +486,7 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Intake Atmo. Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_atmosphere_consumption_rate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((_atmosphere_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -533,7 +533,7 @@ namespace FNPlugin.Refinery
             GUILayout.Label(resourceName, _value_label, GUILayout.Width(valueWidth));
             GUILayout.Label((percentage * 100).ToString("##.######") + "%", _value_label, GUILayout.Width(valueWidth));
             GUILayout.Label(productionRate.ToString("##.######") + " U/s", _value_label, GUILayout.Width(valueWidth));
-            GUILayout.Label((productionRate * GameConstants.HOUR_SECONDS).ToString("##.######") + " U/h", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label((productionRate * GameConstants.SECONDS_IN_HOUR).ToString("##.######") + " U/h", _value_label, GUILayout.Width(valueWidth));
             if (spareRoom > 0)
             {
                 GUILayout.Label((spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));

@@ -30,7 +30,7 @@ namespace FNPlugin
 
 
         // Part properties
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Surface area", guiUnits = " m\xB2")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Surface area", guiUnits = " km\xB2")]
         public double surfaceArea = 0; // Surface area of the panel.
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Magnetic area", guiUnits = " m\xB2")]
         public double magneticArea = 0; // Surface area of the panel.
@@ -52,8 +52,10 @@ namespace FNPlugin
         public double collectMultiplier = 1;
 
         // GUI
-        [KSPField(guiActive = true, guiName = "Effective Surface Area", guiFormat = "F0", guiUnits = " m\xB2")]
-        protected double effectiveSurfaceAreaInSquareMeter;
+        [KSPField(guiActive = true, guiName = "Effective Surface Area", guiFormat = "F3", guiUnits = " km\xB2")]
+        protected double effectiveSurfaceAreaInSquareKiloMeter;
+        [KSPField(guiActive = true, guiName = "Effective Diamter", guiFormat = "F3", guiUnits = " km")]
+        protected double effectiveDiamterInKilometer;
         [KSPField(guiActive = true, guiName = "Solar Wind Ions", guiUnits = " mol/m\xB2/sec")]
         protected float fSolarWindConcentration;
         [KSPField(guiActive = true, guiName = "Interstellar Particles", guiUnits = " mol/m\xB3")]
@@ -85,13 +87,14 @@ namespace FNPlugin
         protected float fEffectiveOrbitalVesselDragInNewton;
         [KSPField(guiActive = true, guiName = "Solarwind Force on Vessel", guiUnits = " N")]
         protected float fSolarWindVesselForceInNewton;
-
+        [KSPField(guiActive = true, guiName = "Magneto Sphere Strength Ratio", guiFormat = "F3")]
+        protected double magnetoSphereStrengthRatio;
         [KSPField(guiActive = true, guiName = "Solarwind Facing Factor", guiFormat = "F3")]
-        public double solarWindFactor = 0;
+        protected double solarWindFactor = 0;
         [KSPField(guiActive = true, guiName = "Solarwind Collection Modifier", guiFormat = "F3")]
         protected double solarwindProductionModifiers = 0;
-        [KSPField(guiActive = true, guiName = "SolarWind Mass Collected", guiUnits = " g/s")]
-        protected float fSolarWindCollectedGramPerSecond;
+        [KSPField(guiActive = true, guiName = "SolarWind Mass Collected", guiUnits = " g/h")]
+        protected float fSolarWindCollectedGramPerHour;
         [KSPField(guiActive = true, guiName = "Interstellar Mass Collected", guiUnits = " g/s")]
         protected float fInterstellarIonsCollectedGramPerSecond;
         [KSPField(guiActive = true, guiName = "Atmospheric Mass Collected", guiUnits = " g/s")]
@@ -108,8 +111,10 @@ namespace FNPlugin
 
         // internals
         float newNormalTime;
+        double effectiveSurfaceAreaInSquareMeter;
         double dWindResourceFlow = 0;
         double dHydrogenResourceFlow = 0;
+
         const double solarWindSpeed = 500000; // Average Solar win speed 500 km/s
 
         static FloatCurve massDensityAtmosphereCubeCM;
@@ -169,7 +174,6 @@ namespace FNPlugin
         double dHydrogenSpareCapacity;
         double dSolarWindDensity;
         double dHydrogenDensity;
-        double dMagnetoSphereStrengthRatio = 0;
         double dShieldedEffectiveness = 0;
         float previousPowerPercentage;
         bool previosIonisationState = false;
@@ -546,7 +550,7 @@ namespace FNPlugin
             fNeutralHydrogenConcentration = (float)dAtmosphericHydrogenConcentration;
             fIonizedHydrogenConcentration = (float)dIonizedHydrogenConcentration;
 
-            dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
+            magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
             strMagnetoStrength = UpdateMagnetoStrengthInGUI();
         }
 
@@ -615,17 +619,11 @@ namespace FNPlugin
         */
         private static double GetMagnetosphereRatio(double altitude, double maxatmoaltitude)
         {
-            double dRatio; // helper double for this function
-
             // atmospheric check for the sake of GUI
             if (altitude <= maxatmoaltitude)
-            {
-                dRatio = 1;
-                return dRatio;
-            }
+                return 1;
             else
-                dRatio = (altitude < (maxatmoaltitude * 10)) ? maxatmoaltitude / altitude : 0;
-            return dRatio;
+                return (altitude < (maxatmoaltitude * 10)) ? maxatmoaltitude / altitude : 0;
         }
 
         // checks if the vessel is not in atmosphere and if it can therefore collect solar wind. Could incorporate other checks if needed.
@@ -854,19 +852,20 @@ namespace FNPlugin
                 : (dLastPowerPercentage * dPowerRequirementsMW).ToString("0.0") + " MW / " + dPowerRequirementsMW.ToString("0.0") + " MW";
 
             // get the shielding effect provided by the magnetosphere
-            dMagnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
+            magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
 
             // if online collecting, get the old values instead (simplification for the time being)
             if (offlineCollecting)
-                dMagnetoSphereStrengthRatio = dLastMagnetoStrength;
+                magnetoSphereStrengthRatio = dLastMagnetoStrength;
 
-            if (dMagnetoSphereStrengthRatio == 0)
+            if (magnetoSphereStrengthRatio == 0)
                 dShieldedEffectiveness = 1;
             else
-                dShieldedEffectiveness = (1 - dMagnetoSphereStrengthRatio);
+                dShieldedEffectiveness = (1 - magnetoSphereStrengthRatio);
 
             effectiveSurfaceAreaInSquareMeter = surfaceArea + (magneticArea * powerPercentage / 100);
-            //effectiveSurfaceArea = 10 + (magneticArea * powerPercentage / 100);
+            effectiveSurfaceAreaInSquareKiloMeter = effectiveSurfaceAreaInSquareMeter / (1000 * 1000);
+            effectiveDiamterInKilometer = 2 * Math.Sqrt(effectiveSurfaceAreaInSquareKiloMeter / Math.PI);
 
             Vector3d solarDirectionVector = localStar.transform.position - vessel.transform.position;
 
@@ -875,7 +874,7 @@ namespace FNPlugin
             solarwindProductionModifiers = collectMultiplier * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * solarWindFactor;
 
             var solarWindGramCollectedPerSecond = solarWindMolesPerSquareMeterPerSecond * solarwindProductionModifiers * effectiveSurfaceAreaInSquareMeter * 1.9;
-            fSolarWindCollectedGramPerSecond = (float)solarWindGramCollectedPerSecond;
+            fSolarWindCollectedGramPerHour = (float)solarWindGramCollectedPerSecond * 60 * 60;
 
             var interstellarGramCollectedPerSecond = interstellarDustMolesPerSquareMeter * effectiveSurfaceAreaInSquareMeter * 1.9;
             fInterstellarIonsCollectedGramPerSecond = (float)interstellarGramCollectedPerSecond;
@@ -888,7 +887,7 @@ namespace FNPlugin
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
             {
-                string strNumberFormat = dSolarDustResourceChange > 100 ? "0" : "0.00";
+                string strNumberFormat = dSolarDustResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
                 ScreenMessages.PostScreenMessage("We collected " + dSolarDustResourceChange.ToString(strNumberFormat) + " units of " + strSolarWindResourceName, 10, ScreenMessageStyle.LOWER_CENTER);
             }
@@ -899,11 +898,11 @@ namespace FNPlugin
             var dAtmosphereGascollectedPerSecond = hydrogenMolarMassConcentrationPerSquareMeterPerSecond * effectiveSurfaceAreaInSquareMeter;
             fAtmosphereGascollectedGramPerSecond = (float)dAtmosphereGascollectedPerSecond;
 
-            double dHydrogenResourceChange = fAtmosphereGascollectedGramPerSecond / 1e-6 / dHydrogenDensity;
+            double dHydrogenResourceChange = fAtmosphereGascollectedGramPerSecond * 1e-6 / dHydrogenDensity;
 
             if (offlineCollecting)
             {
-                string strNumberFormat = dHydrogenResourceChange > 100 ? "0" : "0.00";
+                string strNumberFormat = dHydrogenResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
                 ScreenMessages.PostScreenMessage("We collected " + dHydrogenResourceChange.ToString(strNumberFormat) + " units of " + strHydrogenResourceName, 10, ScreenMessageStyle.LOWER_CENTER);
             }

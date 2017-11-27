@@ -301,7 +301,7 @@ namespace FNPlugin.Refinery
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Regolith Consumption", _bold_label, GUILayout.Width(labelWidth));
-			GUILayout.Label(((regolithConsumptionRate * GameConstants.HOUR_SECONDS).ToString("0.000000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+			GUILayout.Label(((regolithConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.000000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
 			GUILayout.EndHorizontal();
 
 			GUILayout.BeginHorizontal();
@@ -337,7 +337,7 @@ namespace FNPlugin.Refinery
             GUILayout.Label(resourceName, _value_label, GUILayout.Width(labelWidth));
             GUILayout.Label(spareRoom.ToString("0.000000") + " mT", maxCapacity > 0 && spareRoom == 0 ? _value_label_red : _value_label, GUILayout.Width(labelWidth));
             GUILayout.Label(maxCapacity.ToString("0.000000") + " mT", maxCapacity == 0 ? _value_label_red : _value_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((productionRate * GameConstants.HOUR_SECONDS).ToString("0.000000") + " mT/hour", productionRate > 0 ? _value_label_green : _value_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((productionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.000000") + " mT/hour", productionRate > 0 ? _value_label_green : _value_label, GUILayout.Width(labelWidth));
             GUILayout.EndHorizontal();
         }
 

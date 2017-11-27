@@ -200,12 +200,12 @@ namespace FNPlugin.Refinery
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Intake Lqd Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_intakeLqdConsumptionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((_intakeLqdConsumptionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((currentResourceProductionRate * GameConstants.HOUR_SECONDS).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(((currentResourceProductionRate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             foreach (var resource in localResources)
@@ -228,7 +228,7 @@ namespace FNPlugin.Refinery
                     resourcePercentageUI = 0;
                 }
 
-                var productionRateLabel = (((_intakeLqdConsumptionRate * resourcePercentageUI) * TimeWarp.fixedDeltaTime / resourceDensityUI) * GameConstants.HOUR_SECONDS).ToString("0.0000"); // dirty calculation of the production rate cast to string and made hourly
+                var productionRateLabel = (((_intakeLqdConsumptionRate * resourcePercentageUI) * TimeWarp.fixedDeltaTime / resourceDensityUI) * GameConstants.SECONDS_IN_HOUR).ToString("0.0000"); // dirty calculation of the production rate cast to string and made hourly
 
                 if (resourcePercentageUI > 0) // if the percentage is zero, there's no processing going on, so we don't really need to print it here
                 {
