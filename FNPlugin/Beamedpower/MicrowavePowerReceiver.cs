@@ -1391,7 +1391,7 @@ namespace FNPlugin
 			return Math.Exp(-(FlightGlobals.getStaticPressure(v.transform.position) / 100) / 5);
 		}
 
-		private double GetAtmosphericEfficiency(double transmitterPresure, double recieverPressure, double waveLengthAbsorbtion, Vessel recieverVessel, Vessel transmitterVessel) 
+		private double GetAtmosphericEfficiency(double transmitterPresure, double recieverPressure, double waveLengthAbsorbtion, double distanceInMeter, Vessel recieverVessel, Vessel transmitterVessel) 
 		{
 			// if both in space, efficiency is 100%
 			if (transmitterPresure == 0 && recieverPressure == 0)
@@ -1399,21 +1399,20 @@ namespace FNPlugin
 
 			var atmosphereDepthInMeter = Math.Max(transmitterVessel.mainBody.atmosphereDepth, recieverVessel.mainBody.atmosphereDepth);
 
-			// calculate the weighted distance a signal has to travel through the atmosphere
+			// calculate the weighted distance a signal
 			double atmosphericDistance;
 			if (recieverVessel.mainBody == transmitterVessel.mainBody)
 			{
-				var recieverAltitudeModifier = recieverVessel.mainBody.atmosphereDepth > 0 && recieverVessel.altitude < recieverVessel.mainBody.atmosphereDepth
-					? Math.Max(0, 1 - recieverVessel.altitude / recieverVessel.mainBody.atmosphereDepth) 
+				var recieverAltitudeModifier = atmosphereDepthInMeter > 0 && recieverVessel.altitude > atmosphereDepthInMeter 
+					? atmosphereDepthInMeter / recieverVessel.altitude 
 					: 1;
-				var transmitterAltitudeModifier = transmitterVessel.mainBody.atmosphereDepth > 0 && transmitterVessel.altitude < transmitterVessel.mainBody.atmosphereDepth
-					? Math.Max(0, 1 - transmitterVessel.altitude / transmitterVessel.mainBody.atmosphereDepth) 
+				var transmitterAltitudeModifier = atmosphereDepthInMeter > 0 && transmitterVessel.altitude > atmosphereDepthInMeter 
+					? atmosphereDepthInMeter / transmitterVessel.altitude 
 					: 1;
-				atmosphericDistance = transmitterAltitudeModifier * recieverAltitudeModifier * atmosphereDepthInMeter;
+				atmosphericDistance = transmitterAltitudeModifier * recieverAltitudeModifier * distanceInMeter;
 			}
 			else
 			{
-				// use fixed atmospheric distance when not in the same SOI
 				var altitudeModifier = transmitterPresure > 0 && recieverPressure > 0 && transmitterVessel.mainBody.atmosphereDepth > 0 && recieverVessel.mainBody.atmosphereDepth > 0
 					? Math.Max(0, 1 - transmitterVessel.altitude / transmitterVessel.mainBody.atmosphereDepth) 
 					+ Math.Max(0, 1 - recieverVessel.altitude / recieverVessel.mainBody.atmosphereDepth)
@@ -2238,7 +2237,7 @@ namespace FNPlugin
 						var spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture, this.vessel, transmitter.Vessel);
 
 						double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, this.diameter);
-						double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, this.vessel, transmitter.Vessel);
+						double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, this.vessel, transmitter.Vessel);
 						double transmitterEfficency = distanceFacingEfficiency * atmosphereEfficency;
 
 						possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData)); 
@@ -2288,7 +2287,7 @@ namespace FNPlugin
 						double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, relay.Aperture, this.vessel, relay.Vessel);
 						double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, this.diameter);
 
-						double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, this.vessel, relay.Vessel);
+						double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, this.vessel, relay.Vessel);
 						double transmitterEfficency = distanceFacingEfficiency * atmosphereEfficency;
 
 						possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
@@ -2364,7 +2363,7 @@ namespace FNPlugin
 								double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceInMeter, transmitterToCheck.Aperture, relayPersistance.Vessel, transmitterToCheck.Vessel);
 								double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
 
-								double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, relayAtmosphericPresure, transmitterWavelenghtData.atmosphericAbsorption, transmitterToCheck.Vessel, relayPersistance.Vessel);
+								double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, relayAtmosphericPresure, transmitterWavelenghtData.atmosphericAbsorption, distanceInMeter, transmitterToCheck.Vessel, relayPersistance.Vessel);
 								double efficiencyTransmitterToRelay = distanceFacingEfficiency * atmosphereEfficency;
 								double efficiencyForRoute = efficiencyTransmitterToRelay * relayRoute.Efficiency;
 
