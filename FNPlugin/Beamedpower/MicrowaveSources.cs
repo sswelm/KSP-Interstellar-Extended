@@ -61,7 +61,7 @@ namespace FNPlugin
                     // add if vessel can act as a transmitter or relay
                     var trans_pers = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForProtoVessel(vessel);
 
-                    var hasAnyPower = trans_pers.getAvailablePower() > 0.001;
+                    var hasAnyPower = trans_pers.getAvailablePowerInKW() > 0.001;
                     if (trans_pers.IsActive && hasAnyPower)
                     {
                         if (!globalTransmitters.ContainsKey(vessel))
@@ -98,7 +98,7 @@ namespace FNPlugin
                 {
                     // add if vessel can act as a transmitter or relay
                     var transmitterPower = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel(vessel);
-                    if (transmitterPower != null && transmitterPower.IsActive && transmitterPower.getAvailablePower() > 0.001)
+                    if (transmitterPower != null && transmitterPower.IsActive && transmitterPower.getAvailablePowerInKW() > 0.001)
                     {
                         if (!globalTransmitters.ContainsKey(vessel))
                         {

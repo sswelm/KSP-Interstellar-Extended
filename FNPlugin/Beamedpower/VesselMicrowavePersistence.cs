@@ -19,7 +19,7 @@ namespace FNPlugin
             SupportedTransmitWavelengths = new List<WaveLengthData>();
         }
 
-        public double getAvailablePower()
+        public double getAvailablePowerInKW()
         {
             double power = 0;
             if (solar_power > 0.001 && PluginHelper.lineOfSightToSun(vessel))
@@ -36,6 +36,11 @@ namespace FNPlugin
 
             return finalpower;
         }
+
+	    public double getAvailablePowerInMW()
+	    {
+		    return getAvailablePowerInKW()/1000;
+	    }
 
         public Vessel Vessel
         {

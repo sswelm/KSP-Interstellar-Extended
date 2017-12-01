@@ -628,13 +628,13 @@ namespace FNPlugin
          * altitude - so the ratio slowly lowers the higher the vessel is. Once above 10 times the max atmo altitude, 
          * it returns 0 (we consider this to be the end of the magnetosphere's reach). The atmospheric check is there to make the GUI less messy.
         */
-        private static double GetMagnetosphereRatio(double altitude, double maxatmoaltitude)
+        private static double GetMagnetosphereRatio(double altitude, double maxAltitude)
         {
             // atmospheric check for the sake of GUI
-            if (altitude <= maxatmoaltitude)
+            if (altitude <= maxAltitude)
                 return 1;
             else
-                return (altitude < (maxatmoaltitude * 10)) ? maxatmoaltitude / altitude : 0;
+                return (altitude < (maxAltitude * 10)) ? maxAltitude / altitude : 0;
         }
 
         // checks if the vessel is not in atmosphere and if it can therefore collect solar wind. Could incorporate other checks if needed.
