@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -942,21 +943,34 @@ namespace FNPlugin
 
             var maxOrbitalVesselDragInNewton = effectiveSurfaceAreaInSquareMeter * (atmosphericDragInNewton + interstellarDustDragInNewton);
             fMaxOrbitalVesselDragInNewton = (float)maxOrbitalVesselDragInNewton;
-            fEffectiveOrbitalVesselDragInNewton = fMaxOrbitalVesselDragInNewton * (bIonizing ? 1 : 0.001f);
+            var dEffectiveOrbitalVesselDragInNewton = maxOrbitalVesselDragInNewton * (bIonizing ? 1 : 0.001);
+            fEffectiveOrbitalVesselDragInNewton = (float)dEffectiveOrbitalVesselDragInNewton;
 
             var solarwindDragInNewtonPerSquareMeter = solarWindSpeed * solarDustKgPerSquareMeter;
             fSolarWindDragInNewtonPerSquareMeter = (float)solarwindDragInNewtonPerSquareMeter;
-            fSolarWindVesselForceInNewton = (float)(solarwindDragInNewtonPerSquareMeter * effectiveSurfaceAreaInSquareMeter);
-            
+            var dSolarWindVesselForceInNewton = solarwindDragInNewtonPerSquareMeter * effectiveSurfaceAreaInSquareMeter;
+            fSolarWindVesselForceInNewton = (float)dSolarWindVesselForceInNewton;
 
-            if (!this.vessel.packed)
+            if (this.vessel.packed)
+            {
+                var totalVesselMassInKg = part.vessel.GetTotalMass() * 1000;
+                if (totalVesselMassInKg > 0)
+                {
+                    var orbitalDragDeltaVV = TimeWarp.fixedDeltaTime * part.vessel.obt_velocity.normalized * -dEffectiveOrbitalVesselDragInNewton / totalVesselMassInKg;
+                    vessel.orbit.Perturb(orbitalDragDeltaVV, Planetarium.GetUniversalTime());
+
+                    var solarPushDeltaVV = TimeWarp.fixedDeltaTime * solarDirectionVector.normalized * -fSolarWindVesselForceInNewton / totalVesselMassInKg;
+                    vessel.orbit.Perturb(solarPushDeltaVV, Planetarium.GetUniversalTime());
+                }
+            }
+            else
             {
                 //part.Rigidbody.AddForce(part.vessel.velocityD.normalized * -(float)effectiveOrbitalVesselDragInKiloNewton, ForceMode.Force);
                 var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
-                vesselRegitBody.AddForce(part.vessel.velocityD.normalized * -(float)fEffectiveOrbitalVesselDragInNewton * 1e-3, ForceMode.Force);
+                vesselRegitBody.AddForce(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3, ForceMode.Force);
                 //vesselRegitBody.AddForceAtPosition(part.vessel.velocityD.normalized * -(float)effectiveOrbitalVesselDragInKiloNewton, vesselRegitBody.centerOfMass, ForceMode.Force);
 
-                vesselRegitBody.AddForce(solarDirectionVector.normalized * -fSolarWindVesselForceInNewton * 1e-3, ForceMode.Force);
+                vesselRegitBody.AddForce(solarDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3, ForceMode.Force);
             }
         }
 

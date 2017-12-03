@@ -487,13 +487,13 @@ namespace FNPlugin
 			curEngineT.atmosphereCurve = newAtmosphereCurve;
 		}
 
-		private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustUV, float vesselMass)
+		private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, float vesselMass)
 		{
 			var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust;
 			var timeDialationEngineIsp = timeDilation * engineIsp;
 
 			double demandMass;
-			CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, thrustUV, out demandMass);
+            thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, out demandMass);
 
 			var fusionFuelRequestAmount = demandMass / fusionFuelResourceDefinition.density;
 			fusionFuelUsageDay = fusionFuelRequestAmount / modifiedFixedDeltaTime * PluginHelper.SecondsInDay;
@@ -508,7 +508,7 @@ namespace FNPlugin
 
 			effectiveThrust = timeDilationMaximumThrust * recievedRatio;
 
-			var deltaVV = CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveThrust, timeDialationEngineIsp, thrustUV, out demandMass);
+			var deltaVV = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveThrust, timeDialationEngineIsp, out demandMass);
 
 			if (recievedRatio > 0.01)
 				vessel.orbit.Perturb(deltaVV, modifiedUniversalTime);
@@ -519,7 +519,7 @@ namespace FNPlugin
 			// Calculate Fusion Ratio
 			var effectivePowerRequirement = EffectivePowerRequirement;
 			var thrustPercentage = (double)(decimal)curEngineT.thrustPercentage;
-			var requestedPower = (thrustPercentage / 100d) * throtle * effectivePowerRequirement;
+			var requestedPower = (thrustPercentage * 0.01) * throtle * effectivePowerRequirement;
 
 			var recievedPower = CheatOptions.InfiniteElectricity 
 				? requestedPower
@@ -528,7 +528,7 @@ namespace FNPlugin
 			var plasma_ratio = effectivePowerRequirement > 0 ? recievedPower / effectivePowerRequirement : 0;
 			var fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.01 ? plasma_ratio : 0;
 
-			powerUsage = (recievedPower / 1000d).ToString("0.000") + " GW / " + (effectivePowerRequirement / 1000d).ToString("0.000") + " GW";
+			powerUsage = (recievedPower / 1000d).ToString("0.000") + " GW / " + (effectivePowerRequirement * 0.001).ToString("0.000") + " GW";
 
 
 			if (!CheatOptions.IgnoreMaxTemperature)
@@ -543,26 +543,6 @@ namespace FNPlugin
 			fusionPercentage = fusionRatio * 100d;
 
 			return fusionRatio;
-		}
-
-		// Calculate DeltaV vector and update resource demand from mass (demandMass)
-		public static Vector3d CalculateDeltaVV(float totalMass, float deltaTime, double thrust, double isp, Vector3d thrustUV, out double demandMass)
-		{
-			// Mass flow rate
-			var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
-			// Change in mass over time interval dT
-			var dm = massFlowRate * deltaTime;
-			// Resource demand from propellants with mass
-			demandMass = dm;
-			// Mass at end of time interval dT
-			var finalMass = totalMass - dm;
-			// deltaV amount
-			var deltaV = finalMass > 0 && totalMass > 0 
-				? isp * GameConstants.STANDARD_GRAVITY * Math.Log(totalMass / finalMass) 
-				: 0;
-
-			// Return deltaV vector
-			return deltaV * thrustUV;
 		}
 
 		private void KillKerbalsWithRadiation(float throttle)

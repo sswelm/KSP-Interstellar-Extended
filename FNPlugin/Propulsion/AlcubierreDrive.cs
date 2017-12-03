@@ -10,7 +10,7 @@ namespace FNPlugin
         // persistant
         [KSPField(isPersistant = true)]
         public bool IsEnabled = false;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false)]
+        [KSPField(isPersistant = true)]
         public bool IsCharging = false;
         [KSPField(isPersistant = true)]
         private double existing_warp_speed;
@@ -65,8 +65,10 @@ namespace FNPlugin
         public int currentRateIndex;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Warp engine mass", guiUnits = " t")]
         public float partMass = 0;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Warp Strength", guiFormat = "F1", guiUnits = " t")]
+        public float warpStrength = 1;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Total Warp Power", guiFormat = "F1", guiUnits = " t")]
-        public float sumOfAlcubierreDrives;
+        public float totalWarpPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Vessel Total Mass", guiFormat = "F4", guiUnits = " t")]
         public float vesselTotalMass;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Warp to Mass Ratio", guiFormat = "F4")]
@@ -660,6 +662,8 @@ namespace FNPlugin
 
             try
             {
+
+
                 Events["StartCharging"].active = !IsSlave;
                 Events["StopCharging"].active = !IsSlave;
                 Events["ActivateWarpDrive"].active = !IsSlave;
@@ -677,7 +681,7 @@ namespace FNPlugin
                 
                 Fields["minPowerRequirementForLightSpeed"].guiActive = !IsSlave;
                 Fields["currentPowerRequirementForWarp"].guiActive = !IsSlave;
-                Fields["sumOfAlcubierreDrives"].guiActive = !IsSlave;
+                Fields["totalWarpPower"].guiActive = !IsSlave;
                 Fields["powerRequirementForMaximumAllowedLightSpeed"].guiActive = !IsSlave;
 
                 Actions["StartChargingAction"].guiName = Events["StartCharging"].guiName = String.Format("Start Charging");
@@ -843,10 +847,11 @@ namespace FNPlugin
             if (!HighLogic.LoadedSceneIsEditor) return;
 
             float massOfAlcubiereDrives;
-            vessel.GetVesselAndModuleMass<AlcubierreDrive>(out vesselTotalMass, out massOfAlcubiereDrives);
+            var warpdriveList = vessel.GetVesselAndModuleMass<AlcubierreDrive>(out vesselTotalMass, out massOfAlcubiereDrives);
 
-            sumOfAlcubierreDrives = massOfAlcubiereDrives * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0);
-            warpToMassRatio = vesselTotalMass > 0 ? sumOfAlcubierreDrives / vesselTotalMass : 0;
+            totalWarpPower = warpdriveList.Sum(w => w.warpStrength * (w.isupgraded ? w.warpPowerMultTech1 : w.warpPowerMultTech0));
+
+            warpToMassRatio = vesselTotalMass > 0 ? totalWarpPower / vesselTotalMass : 0;
         }
 
         public override void OnUpdate()
@@ -872,19 +877,35 @@ namespace FNPlugin
             else
                 Events["RetrofitDrive"].active = false;
 
+            if (!IsSlave)
+            {
+                foreach (var drive in alcubierreDrives)
+                {
+                    drive.UpdateAnimateState(IsEnabled, IsCharging);
+                }
+            }
+        }
+
+        private void UpdateAnimateState(bool isEnabled, bool isCharging)
+        {
             if (animationState == null) return;
 
             foreach (var anim in animationState)
             {
-                if ((IsEnabled || IsCharging) && anim.normalizedTime < 1) { anim.speed = 1; }
-                if ((IsEnabled || IsCharging) && anim.normalizedTime >= 1)
+                if ((isEnabled || isCharging) && anim.normalizedTime < 1)
+                    anim.speed = 1;
+
+                if ((isEnabled || isCharging) && anim.normalizedTime >= 1)
                 {
                     anim.speed = 0;
                     anim.normalizedTime = 1;
                 }
 
-                if (!IsEnabled && !IsCharging && anim.normalizedTime > 0) { anim.speed = -1; }
-                if (IsEnabled || IsCharging || !(anim.normalizedTime <= 0)) continue;
+                if (!isEnabled && !isCharging && anim.normalizedTime > 0)
+                    anim.speed = -1;
+
+                if (isEnabled || isCharging || !(anim.normalizedTime <= 0))
+                    continue;
 
                 anim.speed = 0;
                 anim.normalizedTime = 0;
@@ -912,12 +933,12 @@ namespace FNPlugin
             minimumPowerAllowedFactor = maximumWarpSpeedFactor > minimum_selected_factor ? maximumWarpSpeedFactor : minimum_selected_factor;
 
             if (alcubierreDrives != null)
-                sumOfAlcubierreDrives = alcubierreDrives.Sum(p => p.partMass * (p.isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)); 
+                totalWarpPower = alcubierreDrives.Sum(p => p.warpStrength * (p.isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)); 
 
             vesselTotalMass = vessel.GetTotalMass();
-            if (sumOfAlcubierreDrives != 0 && vesselTotalMass != 0)
+            if (totalWarpPower != 0 && vesselTotalMass != 0)
             {
-                warpToMassRatio = sumOfAlcubierreDrives / vesselTotalMass;
+                warpToMassRatio = totalWarpPower / vesselTotalMass;
                 exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required * vesselTotalMass * powerRequirementMultiplier) / warpToMassRatio;
             }
 
@@ -1377,7 +1398,7 @@ namespace FNPlugin
                 GUILayout.BeginVertical();
 
                 PrintToGUILayout("Type", part.partInfo.title, bold_black_style, text_black_style);
-                PrintToGUILayout("Warp Power", sumOfAlcubierreDrives.ToString("0.0") + " t", bold_black_style, text_black_style);
+                PrintToGUILayout("Warp Power", totalWarpPower.ToString("0.0") + " t", bold_black_style, text_black_style);
                 PrintToGUILayout("Vessel Mass", vesselTotalMass.ToString("0.000") + " t", bold_black_style, text_black_style);
                 PrintToGUILayout("Warp To Mass Ratio", "1:" + warpToMassRatio.ToString("0.000"), bold_black_style, text_black_style);
                 PrintToGUILayout("Gravity At Surface", gravityAtSeaLevel.ToString("0.00000") + " m/s\xB2", bold_black_style, text_black_style);

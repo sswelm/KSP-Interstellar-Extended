@@ -19,6 +19,14 @@ namespace FNPlugin
             SupportedTransmitWavelengths = new List<WaveLengthData>();
         }
 
+        public bool HasPower
+        {
+            get
+            {
+                return nuclear_power > 0 || solar_power > 0;
+            }
+        }
+
         public double getAvailablePowerInKW()
         {
             double power = 0;

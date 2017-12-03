@@ -73,6 +73,7 @@
     <Compile Include="Beamedpower\BeamConfiguration.cs" />
     <Compile Include="Beamedpower\BeamGenerator.cs" />
     <Compile Include="Beamedpower\BandwidthConverter.cs" />
+    <Compile Include="Extensions\Vector3dExtension.cs" />
     <Compile Include="IUpgradeableModule.cs" />
     <Compile Include="Powermanagement\ResourceManager.cs" />
     <Compile Include="Powermanagement\ResourceOvermanager.cs" />

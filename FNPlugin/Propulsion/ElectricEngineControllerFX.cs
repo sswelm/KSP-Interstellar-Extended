@@ -572,26 +572,6 @@ namespace FNPlugin
             return true;
         }
 
-        public static Vector3d CalculateDeltaVV(float totalMass, double deltaTime, double thrust, double isp, Vector3d thrustDirection, out double demandMass)
-        {
-            // Mass flow rate
-            var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
-            // Change in mass over time interval dT
-            var dm = massFlowRate * deltaTime;
-            // Resource demand from propellants with mass
-            demandMass = dm;
-            // Mass at end of time interval dT
-            var finalMass = totalMass - dm;
-            // deltaV amount
-            var deltaV = finalMass > 0 && totalMass > 0
-                ? isp * GameConstants.STANDARD_GRAVITY * Math.Log(totalMass / finalMass)
-                : 0;
-
-            // Return deltaV vector
-            return deltaV * thrustDirection;
-        }
-
-
         private void PersistantThrust(float fixedDeltaTime, double universalTime, Vector3d thrustDirection, float vesselMass)
         {
             var propellantAverageDensity = Current_propellant.ResourceDefinition.density;
@@ -602,21 +582,18 @@ namespace FNPlugin
             // determine fuel availability
             if (!CheatOptions.InfinitePropellant && propellantAverageDensity > 0)
             {
-                CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, thrustDirection, out demandMass);
+                thrustDirection.CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, out demandMass);
 
                 var requestedAmount = demandMass / propellantAverageDensity;
                 if (IsValidPositiveNumber(requestedAmount))
-                {
-                    var receivedAmount = part.RequestResource(Current_propellant.Propellant.name, requestedAmount);
-                    fuelRatio = receivedAmount / requestedAmount;
-                }
+                    fuelRatio = part.RequestResource(Current_propellant.Propellant.name, requestedAmount) / requestedAmount;
             }
             else 
                 fuelRatio = 1;
 
             var effectiveThrust = throtle_max_thrust * fuelRatio;
 
-            var deltaVV = CalculateDeltaVV(vesselMass, fixedDeltaTime, effectiveThrust, engineIsp, thrustDirection, out demandMass);
+            var deltaVV = thrustDirection.CalculateDeltaVV(vesselMass, fixedDeltaTime, effectiveThrust, engineIsp, out demandMass);
 
             if (fuelRatio > 0.01)
                 vessel.orbit.Perturb(deltaVV, universalTime);

@@ -1476,6 +1476,9 @@ namespace FNPlugin
 
             foreach (ReceivedPowerData receivedPowerData in received_power.Values)
 			{
+                if (receivedPowerData.Wavelengths == string.Empty)
+                    continue;
+
 				GUILayout.BeginHorizontal();
 				GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, text_black_style, GUILayout.Width(labelWidth));
                 GUILayout.Label(receivedPowerData.Transmitter.Vessel.mainBody.name + " @ " + DistanceToText(receivedPowerData.Transmitter.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
@@ -1990,9 +1993,9 @@ namespace FNPlugin
 				part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, power_reduction * TimeWarp.fixedDeltaTime);
 
 				if (stabalizedFlowRate > 0)
-					stabalizedFlowRate /= 1000;
+					stabalizedFlowRate *= 0.001;
 				if (maxSupply > 0)
-					maxSupply /= 1000;
+					maxSupply *= 0.001;
 			}
 			else if (deployableSolarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
 			{
@@ -2129,46 +2132,41 @@ namespace FNPlugin
 			return ComputeFacingFactor(PluginHelper.getVesselPos(transmitterVessel), this.vessel.transform.position);
 		}
 
-		protected double ComputeFacingFactor(Vector3 transmitPosition, Vector3 receiverPosition)
+		protected double ComputeFacingFactor(Vector3d transmitPosition, Vector3d receiverPosition)
 		{
 			double facingFactor;
 			Vector3d directionVector = (transmitPosition - receiverPosition).normalized;
 
-
-			if (receiverType == 6) 
-			{
-				facingFactor = Math.Min(1, Math.Abs(Vector3d.Dot(part.transform.forward, directionVector)));
-			}
-			else if( receiverType == 5)
-			{
-				//Scale energy reception based on angle of reciever to transmitter from bottom
-				facingFactor = Math.Max(0, -Vector3d.Dot(part.transform.up, directionVector));
-			}
-			else if (receiverType == 4) // used by single pivoting solar arrays
-			{
-				facingFactor = Math.Min(1 -Math.Abs(Vector3d.Dot(part.transform.right, directionVector)), 1);
-			}
-			else if (receiverType == 3)
-			{
-				//Scale energy reception based on angle of reciever to transmitter from back
-				facingFactor = Math.Max(0, -Vector3d.Dot(part.transform.forward, directionVector));
-			}
-			else if (receiverType == 2)
-			{
-				// get the best result of inline and directed reciever
-				facingFactor = Math.Min(1 - Math.Abs(Vector3d.Dot(part.transform.up, directionVector)), 1);
-			}
-			else if (receiverType == 1)
-			{
-				// recieve from sides
-				facingFactor = Math.Min(1 - Math.Abs(Vector3d.Dot(part.transform.up, directionVector)), 1);
-			}
-			else // receiverType == 0
-			{
-				//Scale energy reception based on angle of reciever to transmitter from top
-				facingFactor = Math.Max(0, Vector3d.Dot(part.transform.up, directionVector));
-			}
-
+            switch (receiverType)
+            {
+                case 1:
+                    // recieve from sides
+                    facingFactor = Math.Min(1 - Math.Abs(Vector3d.Dot(part.transform.up, directionVector)), 1);
+                    break;
+                case 2:
+                    // get the best result of inline and directed reciever
+                    facingFactor = Math.Min(1 - Math.Abs(Vector3d.Dot(part.transform.up, directionVector)), 1);
+                    break;
+                case 3:
+                    //Scale energy reception based on angle of reciever to transmitter from back
+                    facingFactor = Math.Max(0, -Vector3d.Dot(part.transform.forward, directionVector));
+                    break;
+                case 4:
+                    // used by single pivoting solar arrays
+                    facingFactor = Math.Min(1 - Math.Abs(Vector3d.Dot(part.transform.right, directionVector)), 1);
+                    break;
+                case 5:
+                    //Scale energy reception based on angle of reciever to transmitter from bottom
+                    facingFactor = Math.Max(0, -Vector3d.Dot(part.transform.up, directionVector));
+                    break;
+                case 6:
+                    facingFactor = Math.Min(1, Math.Abs(Vector3d.Dot(part.transform.forward, directionVector)));
+                    break;
+                default:
+                    //Scale energy reception based on angle of reciever to transmitter from top
+                    facingFactor = Math.Max(0, Vector3d.Dot(part.transform.up, directionVector));
+                    break;
+            }
 
 			if (facingFactor > facingThreshold)
 				facingFactor = Math.Pow(facingFactor, facingSurfaceExponent);
@@ -2199,26 +2197,25 @@ namespace FNPlugin
 
 			var transmittersToCheck = new List<VesselMicrowavePersistence>();//stores all transmiters to which we want to connect
 
-			var recieverAtmosphericPresure = FlightGlobals.getStaticPressure(vessel.transform.position) / 100;
+			var recieverAtmosphericPresure = FlightGlobals.getStaticPressure(vessel.transform.position) * 0.01;
 
 			foreach (VesselMicrowavePersistence transmitter in MicrowaveSources.instance.globalTransmitters.Values)
 			{
+                //ignore if no power or transmitter is on the same vessel
+                if (transmitter.Vessel == vessel)
+                {
+                    //Debug.Log("[KSPI] - Transmitter vessel is equal to receiver vessel");
+                    continue;
+                }
+
 				//first check for direct connection from current vessel to transmitters, will always be optimal
-				if (transmitter.getAvailablePowerInKW() <= 0)
+                if (!transmitter.HasPower)
 				{
 					Debug.Log("[KSPI] - Transmitter vessel has no power available");
 					continue;
 				}
 
-				//ignore if no power or transmitter is on the same vessel
-				if (transmitter.Vessel == vessel)
-				{
-					//Debug.Log("[KSPI] - Transmitter vessel is equal to receiver vessel");
-					continue;
-				}
-
-				bool hasLineOfSight = PluginHelper.HasLineOfSightWith(this.vessel, transmitter.Vessel);
-				if (hasLineOfSight)
+				if (PluginHelper.HasLineOfSightWith(this.vessel, transmitter.Vessel))
 				{
                     double facingFactor = ComputeFacingFactor(transmitter.Vessel);
                     if (facingFactor <= 0)
@@ -2227,7 +2224,7 @@ namespace FNPlugin
 					var possibleWavelengths = new List<MicrowaveRoute>();
 					double distanceInMeter = ComputeDistance(this.vessel, transmitter.Vessel);
 
-					double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.transform.position) / 100;
+					double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.transform.position) * 0.01;
 
 					foreach (WaveLengthData wavelenghtData in transmitter.SupportedTransmitWavelengths)
 					{
@@ -2237,14 +2234,14 @@ namespace FNPlugin
 						var spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture, this.vessel, transmitter.Vessel);
 
 						double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, this.diameter);
+
 						double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, this.vessel, transmitter.Vessel);
 						double transmitterEfficency = distanceFacingEfficiency * atmosphereEfficency;
 
 						possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData)); 
 					}
 
-					var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : 
-						possibleWavelengths.FirstOrDefault(m => m.Efficiency ==  possibleWavelengths.Max(n => n.Efficiency));
+					var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency ==  possibleWavelengths.Max(n => n.Efficiency));
 
 					if (mostEfficientWavelength != null)
 					{
@@ -2275,7 +2272,7 @@ namespace FNPlugin
                         continue;
 
 					double distanceInMeter = ComputeDistance(this.vessel, relay.Vessel);
-					double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.transform.position) / 100;
+					double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.transform.position) * 0.01;
 
                     var possibleWavelengths = new List<MicrowaveRoute>();
 
