@@ -3,6 +3,7 @@ namespace FNPlugin
 {
     class GameConstants 
     {
+        public const double avogadroConstant = 6.022140857e+23; // number of atoms in 1 mol
         public const double basePowerConsumption = 5;
         public const double baseAMFPowerConsumption = 5000;
         public const double baseCentriPowerConsumption = 43.5;
