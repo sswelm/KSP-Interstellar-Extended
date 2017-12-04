@@ -61,9 +61,11 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Effective Diamter", guiFormat = "F3", guiUnits = " km")]
         protected double effectiveDiamterInKilometer;
         [KSPField(guiActive = true, guiName = "Solar Wind Ions", guiUnits = " mol/m\xB2/sec")]
-        protected float fSolarWindConcentration;
+        protected float fSolarWindConcentrationPerSquareMeter;
+        [KSPField(guiActive = true, guiName = "Interstellar Ions", guiUnits = " mol/m\xB2/sec")] 
+        protected float fInterstellarIonsConcentrationPerSquareMeter;
         [KSPField(guiActive = true, guiName = "Interstellar Particles", guiUnits = " mol/m\xB3")]
-        protected float fInterstellarHydrogenConcentration;
+        protected float fInterstellarIonsConcentrationPerCubicMeter;
         [KSPField(guiActive = true, guiName = "Atmosphere Particles", guiUnits = " mol/m\xB3")]
         protected float fAtmosphereConcentration;
         [KSPField(guiActive = true, guiName = "Neutral Atmospheric H", guiUnits = " mol/m\xB3")]
@@ -119,7 +121,7 @@ namespace FNPlugin
         double dHydrogenResourceFlow = 0;
         double heliumRequirementTonPerSecond;
         double solarWindMolesPerSquareMeterPerSecond = 0;
-        double interstellarDustMolesPerSquareMeter = 0;
+        double interstellarDustMolesPerCubicMeter = 0;
         double hydrogenMolarMassConcentrationPerSquareMeterPerSecond = 0;
         double dSolarWindSpareCapacity;
         double dHydrogenSpareCapacity;
@@ -134,11 +136,15 @@ namespace FNPlugin
 
         string strSolarWindResourceName;
         string strHydrogenResourceName;
+        string strLqdHelium4ResourceName;
+        string strHelium4GasResourceName;
 
         Animation deployAnimation;
         Animation ionisationAnimation;
         CelestialBody localStar;
-        PartResourceDefinition heliumResourceDefinition;
+
+        PartResourceDefinition helium4GasResourceDefinition;
+        PartResourceDefinition lqdHelium4ResourceDefinition;
 
         static FloatCurve massDensityAtmosphereCubeCM;
         static FloatCurve particlesAtmosphereCurbeM;
@@ -203,7 +209,8 @@ namespace FNPlugin
             if (state == StartState.Editor) return; // collecting won't work in editor
 
             heliumRequirementTonPerSecond = heliumRequirement * 1e-6 / GameConstants.SECONDS_IN_HOUR ;
-            heliumResourceDefinition = PartResourceLibrary.Instance.GetDefinition("Helium");
+            helium4GasResourceDefinition = PartResourceLibrary.Instance.GetDefinition(strHelium4GasResourceName);
+            lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(strLqdHelium4ResourceName);
 
             InitializeAtmosphereParticles();
 
@@ -212,6 +219,8 @@ namespace FNPlugin
             // get resource name solar wind
             strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
             strHydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
+            strLqdHelium4ResourceName = InterstellarResourcesConfiguration.Instance.LqdHelium4;
+            strHelium4GasResourceName = InterstellarResourcesConfiguration.Instance.Helium4Gas;
 
             // gets density of resources
             dSolarWindDensity = PartResourceLibrary.Instance.GetDefinition(strSolarWindResourceName).density;
@@ -538,21 +547,21 @@ namespace FNPlugin
             Fields["strReceivedPower"].guiActive = bIsEnabled;           
 
             solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(part.vessel.solarFlux, solarCheatMultiplier, solarWindSpeed);
-            interstellarDustMolesPerSquareMeter = CalculateInterstellarIonConcentration(interstellarCheatMultiplier);
+            interstellarDustMolesPerCubicMeter = CalculateInterstellarIonConcentration(interstellarCheatMultiplier);
 
             var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
             var dAtmosphericHydrogenConcentration = CalculateCurrentHydrogenConcentration(vessel);
             var dIonizedHydrogenConcentration = CalculateCurrentHydrogenIonsConcentration(vessel);
             hydrogenMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dAtmosphericHydrogenConcentration : dIonizedHydrogenConcentration;
 
-            fSolarWindConcentration = (float)solarWindMolesPerSquareMeterPerSecond;
-            fInterstellarHydrogenConcentration = (float)interstellarDustMolesPerSquareMeter;
+            fSolarWindConcentrationPerSquareMeter = (float)solarWindMolesPerSquareMeterPerSecond;
+            fInterstellarIonsConcentrationPerCubicMeter = (float)interstellarDustMolesPerCubicMeter;
             fAtmosphereConcentration = (float)dAtmosphereConcentration;
             fNeutralHydrogenConcentration = (float)dAtmosphericHydrogenConcentration;
             fIonizedHydrogenConcentration = (float)dIonizedHydrogenConcentration;
 
             magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
-            strMagnetoStrength = UpdateMagnetoStrengthInGUI();
+            strMagnetoStrength = UpdateMagnetoStrengthInGui();
         }
 
         public void FixedUpdate()
@@ -567,7 +576,7 @@ namespace FNPlugin
                 if (!bIsEnabled)
                 {
                     strCollectingStatus = "Disabled";
-                    distanceToLocalStar = UpdateDistanceInGUI(); // passes the distance to the GUI
+                    distanceToLocalStar = UpdateDistanceInGui(); // passes the distance to the GUI
                     return;
                 }
 
@@ -578,7 +587,7 @@ namespace FNPlugin
                     return;
                 }
 
-                distanceToLocalStar = UpdateDistanceInGUI();
+                distanceToLocalStar = UpdateDistanceInGui();
 
                 // collect solar wind for a single frame
                 CollectSolarWind(TimeWarp.fixedDeltaTime, false);
@@ -635,8 +644,8 @@ namespace FNPlugin
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
             {
                 ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
-                distanceToLocalStar = UpdateDistanceInGUI();
-                fSolarWindConcentration = 0;
+                distanceToLocalStar = UpdateDistanceInGui();
+                fSolarWindConcentrationPerSquareMeter = 0;
                 return bCanCollect;
             }
             else
@@ -782,12 +791,12 @@ namespace FNPlugin
         }
 
         // helper function for readying the distance for the GUI
-        private double UpdateDistanceInGUI()
+        private double UpdateDistanceInGui()
         {
             return ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) * 0.001);
         }
 
-        private string UpdateMagnetoStrengthInGUI()
+        private string UpdateMagnetoStrengthInGui()
         {
             return (GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) * 100).ToString("F1");
         }
@@ -797,7 +806,7 @@ namespace FNPlugin
         {
             var ionizationPowerCost =  bIonizing ? ionRequirements *  Math.Pow(powerPercentage * 0.01, 2) : 0;
             var magneticPowerCost = mwRequirements * Math.Pow(powerPercentage * 0.01, 2);
-            var dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * (magneticPowerCost + ionizationPowerCost); // change the mwRequirements number in part config to change the power consumption
+            var dPowerRequirementsMw = PluginHelper.PowerConsumptionMultiplier * (magneticPowerCost + ionizationPowerCost); // change the mwRequirements number in part config to change the power consumption
 
             // checks for free space in solar wind 'tanks'
             dSolarWindSpareCapacity = part.GetResourceSpareCapacity(strSolarWindResourceName);
@@ -811,22 +820,32 @@ namespace FNPlugin
 
             if ((solarWindMolesPerSquareMeterPerSecond > 0 || hydrogenMolarMassConcentrationPerSquareMeterPerSecond > 0)) // && (dSolarWindSpareCapacity > 0 || dHydrogenSpareCapacity > 0))
             {
-                var heliumResourceRequired = TimeWarp.fixedDeltaTime * heliumRequirementTonPerSecond / heliumResourceDefinition.density;
-                var receivedHeliumResource = part.RequestResource(heliumResourceDefinition.id, heliumResourceRequired);
-                var heliumRatio = heliumResourceRequired > 0 ? receivedHeliumResource / heliumResourceRequired : 0;
+                var requiredHeliumMass = TimeWarp.fixedDeltaTime * heliumRequirementTonPerSecond;
+
+                var heliumGasRequired = requiredHeliumMass / helium4GasResourceDefinition.density;
+                var receivedHeliumGas = part.RequestResource(helium4GasResourceDefinition.id, heliumGasRequired);
+                var receivedMassHeliumGas = receivedHeliumGas * helium4GasResourceDefinition.density;
+
+                var massHeliumMassShortage = (requiredHeliumMass - receivedMassHeliumGas);
+
+                var lqdHeliumRequired = massHeliumMassShortage / lqdHelium4ResourceDefinition.density;
+                var receivedLqdHelium = part.RequestResource(lqdHelium4ResourceDefinition.id, lqdHeliumRequired);
+                var receiverMassLqdHelium = receivedLqdHelium * lqdHelium4ResourceDefinition.density;
+
+                var heliumRatio = requiredHeliumMass > 0 ? (receivedMassHeliumGas + receiverMassLqdHelium) / requiredHeliumMass : 0;
 
                 // calculate available power
-                var revievedPowerMW = consumeFNResourcePerSecond(dPowerRequirementsMW * heliumRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
+                var revievedPowerMw = consumeFNResourcePerSecond(dPowerRequirementsMw * heliumRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 // if power requirement sufficiently low, retreive power from KW source
-                if (dPowerRequirementsMW < 2 && revievedPowerMW <= dPowerRequirementsMW)
+                if (dPowerRequirementsMw < 2 && revievedPowerMw <= dPowerRequirementsMw)
                 {
-                    var requiredKW = (dPowerRequirementsMW - revievedPowerMW) * 1000;
-                    var receivedKW = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, heliumRatio * requiredKW * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
-                    revievedPowerMW += (receivedKW * 0.001);
+                    var requiredKw = (dPowerRequirementsMw - revievedPowerMw) * 1000;
+                    var receivedKw = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, heliumRatio * requiredKw * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                    revievedPowerMw += (receivedKw * 0.001);
                 }
 
-                dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : (dPowerRequirementsMW > 0 ? revievedPowerMW / dPowerRequirementsMW : 0);
+                dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : (dPowerRequirementsMw > 0 ? revievedPowerMw / dPowerRequirementsMw : 0);
 
                 // show in GUI
                 strCollectingStatus = "Collecting solar wind";
@@ -835,13 +854,13 @@ namespace FNPlugin
             {
                 dLastHydrogenConcentration = 0;
                 dLastPowerPercentage = 0;
-                dPowerRequirementsMW = 0;
+                dPowerRequirementsMw = 0;
             }
 
             // set the GUI string to state the number of KWs received if the MW requirements were lower than 2, otherwise in MW
-            strReceivedPower = dPowerRequirementsMW < 2
-                ? (dLastPowerPercentage * dPowerRequirementsMW * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMW * 1000).ToString("0.0") + " KW"
-                : (dLastPowerPercentage * dPowerRequirementsMW).ToString("0.0") + " MW / " + dPowerRequirementsMW.ToString("0.0") + " MW";
+            strReceivedPower = dPowerRequirementsMw < 2
+                ? (dLastPowerPercentage * dPowerRequirementsMw * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMw * 1000).ToString("0.0") + " KW"
+                : (dLastPowerPercentage * dPowerRequirementsMw).ToString("0.0") + " MW / " + dPowerRequirementsMw.ToString("0.0") + " MW";
 
             // get the shielding effect provided by the magnetosphere
             magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
@@ -864,7 +883,10 @@ namespace FNPlugin
             solarwindProductionModifiers = collectMultiplier * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * solarWindFactor;
 
             var solarWindGramCollectedPerSecond = solarWindMolesPerSquareMeterPerSecond * solarwindProductionModifiers * effectiveSurfaceAreaInSquareMeter * 1.9;
-            var interstellarGramCollectedPerSecond = interstellarDustMolesPerSquareMeter * effectiveSurfaceAreaInSquareMeter * 1.9;            
+
+            var interstellarIonsConcentrationPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter;
+
+            var interstellarGramCollectedPerSecond = interstellarIonsConcentrationPerSquareMeter * effectiveSurfaceAreaInSquareMeter * 1.9;            
 
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
@@ -892,11 +914,11 @@ namespace FNPlugin
                 ScreenMessages.PostScreenMessage("We collected " + dHydrogenResourceChange.ToString(strNumberFormat) + " units of " + strHydrogenResourceName, 10, ScreenMessageStyle.LOWER_CENTER);
             }
 
-            dHydrogenResourceFlow = -part.RequestResource(strSolarWindResourceName, -dHydrogenResourceChange);
+            dHydrogenResourceFlow = -part.RequestResource(strHydrogenResourceName, -dHydrogenResourceChange);
 
             var atmosphericGasKgPerSquareMeter = GetAtmosphericGasDensityKgPerCubicMeter();
             var solarDustKgPerSquareMeter = solarWindMolesPerSquareMeterPerSecond * 1e-3 * 1.9;
-            var interstellarDustKgPerSquareMeter = interstellarDustMolesPerSquareMeter * 1e-3 * 1.9;
+            var interstellarDustKgPerSquareMeter = interstellarDustMolesPerCubicMeter * 1e-3 * 1.9;
             var atmosphericDragInNewton = vessel.obt_speed * atmosphericGasKgPerSquareMeter;
             var interstellarDustDragInNewton = vessel.obt_speed * interstellarDustKgPerSquareMeter;
             var maxOrbitalVesselDragInNewton = effectiveSurfaceAreaInSquareMeter * (atmosphericDragInNewton + interstellarDustDragInNewton);
@@ -905,6 +927,7 @@ namespace FNPlugin
             var dSolarWindVesselForceInNewton = solarwindDragInNewtonPerSquareMeter * effectiveSurfaceAreaInSquareMeter;
 
             fSolarWindCollectedGramPerHour = (float)(solarWindGramCollectedPerSecond * 3600);
+            fInterstellarIonsConcentrationPerSquareMeter = (float) interstellarIonsConcentrationPerSquareMeter;
             fInterstellarIonsCollectedGramPerSecond = (float)interstellarGramCollectedPerSecond;
             fAtmosphereGascollectedGramPerSecond = (float)dAtmosphereGascollectedPerSecond;
             fAtmosphereIonsKgPerSquareMeter = (float)atmosphericGasKgPerSquareMeter;
@@ -917,7 +940,7 @@ namespace FNPlugin
             fSolarWindDragInNewtonPerSquareMeter = (float)solarwindDragInNewtonPerSquareMeter;
             fSolarWindVesselForceInNewton = (float)dSolarWindVesselForceInNewton;
 
-            if (this.vessel.packed)
+            if (vessel.packed)
             {
                 var totalVesselMassInKg = part.vessel.GetTotalMass() * 1000;
                 if (totalVesselMassInKg <= 0)
