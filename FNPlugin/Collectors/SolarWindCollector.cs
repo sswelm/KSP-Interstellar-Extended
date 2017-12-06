@@ -102,8 +102,8 @@ namespace FNPlugin
         protected float fSolarWindCollectedGramPerHour;
         [KSPField(guiActive = true, guiName = "Interstellar Mass Collected", guiUnits = " g/s")]
         protected float fInterstellarIonsCollectedGramPerSecond;
-        [KSPField(guiActive = true, guiName = "Atmospheric Mass Collected", guiUnits = " g/s")]
-        protected float fAtmosphereGascollectedGramPerSecond;
+        [KSPField(guiActive = true, guiName = "Hydrogen Mass Collected", guiUnits = " g/s")]
+        protected float fHydrogencollectedGramPerSecond;
 
         [KSPField(guiActive = true, guiName = "Distance from the sun", guiFormat = "F1",  guiUnits = " km")]
         protected double distanceToLocalStar;
@@ -118,14 +118,14 @@ namespace FNPlugin
         double effectiveSurfaceAreaInSquareMeter;
         double dWindResourceFlow = 0;
         double dHydrogenResourceFlow = 0;
+	    double dHeliumResourceFlow = 0;
         double heliumRequirementTonPerSecond;
         double solarWindMolesPerSquareMeterPerSecond = 0;
         double interstellarDustMolesPerCubicMeter = 0;
         double hydrogenMolarMassConcentrationPerSquareMeterPerSecond = 0;
+        double heliumMolarMassConcentrationPerSquareMeterPerSecond = 0;
         double dSolarWindSpareCapacity;
         double dHydrogenSpareCapacity;
-        double dSolarWindDensity;
-        double dHydrogenDensity;
         double dShieldedEffectiveness = 0;
 
         float newNormalTime;
@@ -133,8 +133,8 @@ namespace FNPlugin
 
         bool previosIonisationState = false;
 
-        string strSolarWindResourceName;
-        string strHydrogenResourceName;
+        //string strSolarWindResourceName;
+        //string strHydrogenResourceName;
         string strLqdHelium4ResourceName;
         string strHelium4GasResourceName;
 
@@ -144,6 +144,8 @@ namespace FNPlugin
 
         PartResourceDefinition helium4GasResourceDefinition;
         PartResourceDefinition lqdHelium4ResourceDefinition;
+        PartResourceDefinition hydrogenResourceDefinition;
+		PartResourceDefinition solarWindResourceDefinition;
 
         [KSPEvent(guiActive = true, guiName = "Activate Collector", active = true)]
         public void ActivateCollector()
@@ -207,19 +209,18 @@ namespace FNPlugin
             lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(strLqdHelium4ResourceName);
 
             //Initialize Atmospheric Floatcurves
-			var instance = AtmosphericFloatCurves.Instance;
+            var instance = AtmosphericFloatCurves.Instance;
 
             localStar = GetCurrentStar();
 
             // get resource name solar wind
-            strSolarWindResourceName = InterstellarResourcesConfiguration.Instance.SolarWind;
-            strHydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
             strLqdHelium4ResourceName = InterstellarResourcesConfiguration.Instance.LqdHelium4;
             strHelium4GasResourceName = InterstellarResourcesConfiguration.Instance.Helium4Gas;
 
             // gets density of resources
-            dSolarWindDensity = PartResourceLibrary.Instance.GetDefinition(strSolarWindResourceName).density;
-            dHydrogenDensity = PartResourceLibrary.Instance.GetDefinition(strHydrogenResourceName).density; ;
+			solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.SolarWind);
+            //dHydrogenDensity = PartResourceLibrary.Instance.GetDefinition(strHydrogenResourceName).density;
+			hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
             var maGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
@@ -252,13 +253,13 @@ namespace FNPlugin
             }
 
             // calculate time difference since last time the vessel was active
-            double dTimeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
+            var dTimeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
 
             // collect solar wind for entire duration
             CollectSolarWind(dTimeDifference, true);
         }
 
- public override void OnUpdate()
+        public override void OnUpdate()
         {
             Events["ActivateCollector"].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
             Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
@@ -268,14 +269,20 @@ namespace FNPlugin
             interstellarDustMolesPerCubicMeter = CalculateInterstellarIonConcentration(interstellarCheatMultiplier);
 
             var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
-            var dAtmosphericHydrogenConcentration = CalculateCurrentHydrogenConcentration(vessel);
+
+            var dHydrogenParticleConcentration = CalculateCurrentHydrogenParticleConcentration(vessel);
             var dIonizedHydrogenConcentration = CalculateCurrentHydrogenIonsConcentration(vessel);
-            hydrogenMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dAtmosphericHydrogenConcentration : dIonizedHydrogenConcentration;
+
+			var dHeliumParticleConcentration = CalculateCurrentHeliumParticleConcentration(vessel);
+			var dIonizedHeliumConcentration = CalculateCurrentHeliumIonsConcentration(vessel);		
+
+			hydrogenMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dHydrogenParticleConcentration : dHeliumParticleConcentration;
+            heliumMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dHeliumParticleConcentration: dIonizedHeliumConcentration;
 
             fSolarWindConcentrationPerSquareMeter = (float)solarWindMolesPerSquareMeterPerSecond;
             fInterstellarIonsConcentrationPerCubicMeter = (float)interstellarDustMolesPerCubicMeter;
             fAtmosphereConcentration = (float)dAtmosphereConcentration;
-            fNeutralHydrogenConcentration = (float)dAtmosphericHydrogenConcentration;
+            fNeutralHydrogenConcentration = (float)dHydrogenParticleConcentration;
             fIonizedHydrogenConcentration = (float)dIonizedHydrogenConcentration;
 
             magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
@@ -466,25 +473,38 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesAtmosphereCurbeM.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesAtmosphereCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
             var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
             return atmosphereConcentration;
         }
 
-        private static double CalculateCurrentHydrogenConcentration(Vessel vessel)
+        private static double CalculateCurrentHydrogenParticleConcentration(Vessel vessel)
         {
             if (!vessel.mainBody.atmosphere)
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-			var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHydrogenCubeM.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHydrogenCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
             var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
             return atmosphereConcentration;
         }
+
+		private static double CalculateCurrentHeliumParticleConcentration(Vessel vessel)
+		{
+			if (!vessel.mainBody.atmosphere)
+				return 0;
+
+			var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
+			var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHeliumnPerCubePerCm.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+
+			var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+
+			return atmosphereConcentration;
+		}
 
         private static double CalculateCurrentHydrogenIonsConcentration(Vessel vessel)
         {
@@ -492,12 +512,26 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-			var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.HydrogenIonsCubeCm.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
             var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
             return atmosphereConcentration;
         }
+
+		// ToDo make CalculateCurrentHeliumIonsConcentration
+		private static double CalculateCurrentHeliumIonsConcentration(Vessel vessel)
+		{
+			if (!vessel.mainBody.atmosphere)
+				return 0;
+
+			var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
+			var atmosphereParticlesPerCubM = Math.Max(0, 0.5 * AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+
+			var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+
+			return atmosphereConcentration;
+		}
 
         // calculates the distance to sun
         private static double CalculateDistanceToSun(Vector3d vesselPosition, Vector3d sunPosition)
@@ -524,8 +558,8 @@ namespace FNPlugin
             var dPowerRequirementsMw = PluginHelper.PowerConsumptionMultiplier * (magneticPowerCost + ionizationPowerCost); // change the mwRequirements number in part config to change the power consumption
 
             // checks for free space in solar wind 'tanks'
-            dSolarWindSpareCapacity = part.GetResourceSpareCapacity(strSolarWindResourceName);
-            dHydrogenSpareCapacity = part.GetResourceSpareCapacity(strHydrogenResourceName);
+			dSolarWindSpareCapacity = part.GetResourceSpareCapacity(solarWindResourceDefinition.name);
+			dHydrogenSpareCapacity = part.GetResourceSpareCapacity(hydrogenResourceDefinition.name);
 
             if (offlineCollecting)
             {
@@ -606,30 +640,40 @@ namespace FNPlugin
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            var dSolarDustResourceChange = (solarWindGramCollectedPerSecond + interstellarGramCollectedPerSecond) * deltaTimeInSeconds * 1e-6 / dSolarWindDensity;
+			var dSolarDustResourceChange = (solarWindGramCollectedPerSecond + interstellarGramCollectedPerSecond) * deltaTimeInSeconds * 1e-6 / solarWindResourceDefinition.density;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting)
             {
                 var strNumberFormat = dSolarDustResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage("We collected " + dSolarDustResourceChange.ToString(strNumberFormat) + " units of " + strSolarWindResourceName, 10, ScreenMessageStyle.LOWER_CENTER);
+				ScreenMessages.PostScreenMessage("We collected " + dSolarDustResourceChange.ToString(strNumberFormat) + " units of " + solarWindResourceDefinition.name, 10, ScreenMessageStyle.LOWER_CENTER);
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
-            dWindResourceFlow = -part.RequestResource(strSolarWindResourceName, -dSolarDustResourceChange);
+			dWindResourceFlow = -part.RequestResource(solarWindResourceDefinition.id, -dSolarDustResourceChange);
 
-            var dAtmosphereGascollectedPerSecond = hydrogenMolarMassConcentrationPerSquareMeterPerSecond * effectiveSurfaceAreaInSquareMeter;
-            var dHydrogenResourceChange = fAtmosphereGascollectedGramPerSecond * 1e-6 / dHydrogenDensity;
+            var dHydrogenCollectedPerSecond = hydrogenMolarMassConcentrationPerSquareMeterPerSecond * effectiveSurfaceAreaInSquareMeter;
+            var dHydrogenResourceChange = dHydrogenCollectedPerSecond * 1e-6 / hydrogenResourceDefinition.density;
+			dHydrogenResourceFlow = -part.RequestResource(hydrogenResourceDefinition.id, -dHydrogenResourceChange);
 
             if (offlineCollecting)
             {
                 var strNumberFormat = dHydrogenResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage("We collected " + dHydrogenResourceChange.ToString(strNumberFormat) + " units of " + strHydrogenResourceName, 10, ScreenMessageStyle.LOWER_CENTER);
+				ScreenMessages.PostScreenMessage("We collected " + dHydrogenResourceChange.ToString(strNumberFormat) + " units of " + hydrogenResourceDefinition.name, 10, ScreenMessageStyle.LOWER_CENTER);
             }
 
-            dHydrogenResourceFlow = -part.RequestResource(strHydrogenResourceName, -dHydrogenResourceChange);
+			var dHeliumCollectedPerSecond = heliumMolarMassConcentrationPerSquareMeterPerSecond * effectiveSurfaceAreaInSquareMeter;
+			var dHeliumResourceChange = dHeliumCollectedPerSecond * 1e-6 / helium4GasResourceDefinition.density;
+			dHeliumResourceFlow = -part.RequestResource(helium4GasResourceDefinition.id, -dHeliumResourceChange);
+
+			if (offlineCollecting)
+			{
+				var strNumberFormat = dHeliumResourceChange > 100 ? "0" : "0.000";
+				// let the player know that offline collecting worked
+				ScreenMessages.PostScreenMessage("We collected " + dHeliumResourceFlow.ToString(strNumberFormat) + " units of " + helium4GasResourceDefinition.name, 10, ScreenMessageStyle.LOWER_CENTER);
+			}
 
             var atmosphericGasKgPerSquareMeter = GetAtmosphericGasDensityKgPerCubicMeter();
             var solarDustKgPerSquareMeter = solarWindMolesPerSquareMeterPerSecond * 1e-3 * 1.9;
@@ -644,7 +688,7 @@ namespace FNPlugin
             fSolarWindCollectedGramPerHour = (float)(solarWindGramCollectedPerSecond * 3600);
             fInterstellarIonsConcentrationPerSquareMeter = (float) interstellarIonsConcentrationPerSquareMeter;
             fInterstellarIonsCollectedGramPerSecond = (float)interstellarGramCollectedPerSecond;
-            fAtmosphereGascollectedGramPerSecond = (float)dAtmosphereGascollectedPerSecond;
+            fHydrogencollectedGramPerSecond = (float)dHydrogenCollectedPerSecond;
             fAtmosphereIonsKgPerSquareMeter = (float)atmosphericGasKgPerSquareMeter;
             fSolarWindKgPerSquareMeter = (float)solarDustKgPerSquareMeter;
             fInterstellarIonsKgPerSquareMeter = (float)interstellarDustKgPerSquareMeter;
@@ -685,7 +729,7 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-			var atmosphericDensityKgPerSquareMeter = Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereCubeCm.Evaluate((float)comparibleEarthAltitudeInKm)) * 1e+3;
+            var atmosphericDensityKgPerSquareMeter = Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereCubePerCm.Evaluate((float)comparibleEarthAltitudeInKm)) * 1e+3;
             return atmosphericDensityKgPerSquareMeter;
         }
 
