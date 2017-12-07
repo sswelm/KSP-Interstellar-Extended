@@ -28,6 +28,8 @@
 
 			InitializeParticlesHydrogenCubeM();
 
+            InitialiseParticlesHeliumnCubePerMeter();
+
 			InitializeHydrogenIonsCubeCm();
 		}
 
@@ -76,7 +78,7 @@
 			HydrogenIonsPerCubeCm.Add(10000, 0);
 		}
 
-		private void initialiseParticlesHeliumnCubePerMeter()
+		private void InitialiseParticlesHeliumnCubePerMeter()
 		{
 			if (ParticlesHeliumnPerCubePerCm != null) return;
 
@@ -123,7 +125,7 @@
 			ParticlesHeliumnPerCubePerCm.Add(2000.0f, 4.098E+03f);
 			ParticlesHeliumnPerCubePerCm.Add(4000.0f, 2.049E+01f);
 			ParticlesHeliumnPerCubePerCm.Add(8000.0f, 1.0245E-01f);
-			ParticlesHeliumnPerCubePerCm.Add(0, 0f);
+			ParticlesHeliumnPerCubePerCm.Add(10000, 0f);
 		}
 
 		private void InitializeParticlesHydrogenCubeM()

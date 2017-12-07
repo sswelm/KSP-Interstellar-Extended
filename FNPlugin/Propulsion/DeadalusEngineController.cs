@@ -58,8 +58,12 @@ namespace FNPlugin
 		public string fusionFuelAmounts;
 		[KSPField(guiActive = false, guiName = "Fusion", guiFormat = "F2", guiUnits = "%")]
 		public double fusionPercentage = 0;
-		[KSPField(guiActive = true, guiName = "Max Fuel Flow", guiFormat = "F8", guiUnits = " U")]
+		[KSPField(guiActive = true, guiName = "Max Fuel Flow", guiFormat = "F6", guiUnits = " U")]
 		public double calculatedFuelflow = 0;
+        [KSPField(guiActive = true, guiName = "Mass Flow", guiFormat = "F6", guiUnits = " kg/s")]
+        public double massFlowRateKgPerSecond;
+        [KSPField(guiActive = true, guiName = "Mass Flow", guiFormat = "F6", guiUnits = " t/h")]
+        public double massFlowRateTonPerHour;
 		[KSPField(guiActive = false, guiName = "Fuel Usage", guiFormat = "F2", guiUnits = " L/day")]
 		public double fusionFuelUsageDay = 0;
 		[KSPField(guiActive = false, guiName = "Stored Throtle")]
@@ -403,6 +407,9 @@ namespace FNPlugin
 				// Update ISP
 				effectiveIsp = timeDilation * engineIsp;
 
+                massFlowRateKgPerSecond = curEngineT.fuelFlowGui;
+                massFlowRateTonPerHour = curEngineT.fuelFlowGui * 3.6;
+
 				if (throttle > 0 && !this.vessel.packed)
 				{
 					UpdateAtmosphericCurve();
@@ -434,6 +441,8 @@ namespace FNPlugin
 						: maximizeThrust 
 							? ProcessPowerAndWasteHeat(1) 
 							: ProcessPowerAndWasteHeat(storedThrotle);
+
+                    
 
 					if (TimeWarp.fixedDeltaTime > 20)
 					{

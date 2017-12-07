@@ -59,9 +59,9 @@ namespace FNPlugin
         protected double effectiveSurfaceAreaInSquareKiloMeter;
         [KSPField(guiActive = true, guiName = "Effective Diamter", guiFormat = "F3", guiUnits = " km")]
         protected double effectiveDiamterInKilometer;
-        [KSPField(guiActive = true, guiName = "Solar Wind Ions", guiUnits = " mol/m\xB2/sec")]
+        [KSPField(guiActive = true, guiName = "Solar Wind Ions", guiUnits = " mol/m\xB2/s")]
         protected float fSolarWindConcentrationPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "Interstellar Ions", guiUnits = " mol/m\xB2/sec")] 
+        [KSPField(guiActive = true, guiName = "Interstellar Ions", guiUnits = " mol/m\xB2/s")] 
         protected float fInterstellarIonsConcentrationPerSquareMeter;
         [KSPField(guiActive = true, guiName = "Interstellar Particles", guiUnits = " mol/m\xB3")]
         protected float fInterstellarIonsConcentrationPerCubicMeter;
@@ -69,8 +69,12 @@ namespace FNPlugin
         protected float fAtmosphereConcentration;
         [KSPField(guiActive = true, guiName = "Neutral Atmospheric H", guiUnits = " mol/m\xB3")]
         protected float fNeutralHydrogenConcentration;
+        [KSPField(guiActive = true, guiName = "Neutral Atmospheric He", guiUnits = " mol/m\xB3")]
+        protected float fNeutralHeliumConcentration;
         [KSPField(guiActive = true, guiName = "Ionized Atmospheric H", guiUnits = " mol/m\xB3")]
         protected float fIonizedHydrogenConcentration;
+        [KSPField(guiActive = true, guiName = "Ionized Atmospheric He", guiUnits = " mol/m\xB3")]
+        protected float fIonizedHeliumConcentration;
 
         [KSPField(guiActive = true, guiName = "Atmospheric Density", guiUnits = " kg/m\xB3")]
         protected float fAtmosphereIonsKgPerSquareMeter;
@@ -100,10 +104,12 @@ namespace FNPlugin
         protected double solarwindProductionModifiers = 0;
         [KSPField(guiActive = true, guiName = "SolarWind Mass Collected", guiUnits = " g/h")]
         protected float fSolarWindCollectedGramPerHour;
-        [KSPField(guiActive = true, guiName = "Interstellar Mass Collected", guiUnits = " g/s")]
-        protected float fInterstellarIonsCollectedGramPerSecond;
-        [KSPField(guiActive = true, guiName = "Hydrogen Mass Collected", guiUnits = " g/s")]
-        protected float fHydrogencollectedGramPerSecond;
+        [KSPField(guiActive = true, guiName = "Interstellar Mass Collected", guiUnits = " g/h")]
+        protected float fInterstellarIonsCollectedGramPerHour;
+        [KSPField(guiActive = true, guiName = "Atm Hydrogen Mass Collected", guiUnits = " g/h")]
+        protected float fHydrogenCollectedGramPerHour;
+        [KSPField(guiActive = true, guiName = "Atm Helium Mass Collected", guiUnits = " g/h")]
+        protected float fHeliumCollectedGramPerHour;
 
         [KSPField(guiActive = true, guiName = "Distance from the sun", guiFormat = "F1",  guiUnits = " km")]
         protected double distanceToLocalStar;
@@ -135,8 +141,8 @@ namespace FNPlugin
 
         //string strSolarWindResourceName;
         //string strHydrogenResourceName;
-        string strLqdHelium4ResourceName;
-        string strHelium4GasResourceName;
+        //string strLqdHelium4ResourceName;
+        //string strHelium4GasResourceName;
 
         Animation deployAnimation;
         Animation ionisationAnimation;
@@ -153,7 +159,7 @@ namespace FNPlugin
             this.part.force_activate();
             bIsEnabled = true;
             OnUpdate();
-            if (IsCollectLegal() == true)
+            if (IsCollectLegal())
                 UpdatePartAnimation();
         }
 
@@ -202,25 +208,32 @@ namespace FNPlugin
                 ionisationAnimation.Blend(ionAnimName);
             }
 
+            Debug.Log("[KSPI] - SolarWind OnStart 1");
+
             if (state == StartState.Editor) return; // collecting won't work in editor
 
             heliumRequirementTonPerSecond = heliumRequirement * 1e-6 / GameConstants.SECONDS_IN_HOUR ;
-            helium4GasResourceDefinition = PartResourceLibrary.Instance.GetDefinition(strHelium4GasResourceName);
-            lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(strLqdHelium4ResourceName);
+            helium4GasResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
+            lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium4);
+            solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.SolarWind);
+            hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
+
+            Debug.Log("[KSPI] - SolarWind OnStart 2");
 
             //Initialize Atmospheric Floatcurves
-            var instance = AtmosphericFloatCurves.Instance;
+            //var instance = AtmosphericFloatCurves.Instance;
 
             localStar = GetCurrentStar();
 
             // get resource name solar wind
-            strLqdHelium4ResourceName = InterstellarResourcesConfiguration.Instance.LqdHelium4;
-            strHelium4GasResourceName = InterstellarResourcesConfiguration.Instance.Helium4Gas;
+            //strLqdHelium4ResourceName = InterstellarResourcesConfiguration.Instance.LqdHelium4;
+            //strHelium4GasResourceName = InterstellarResourcesConfiguration.Instance.Helium4Gas;
 
             // gets density of resources
-			solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.SolarWind);
+			
             //dHydrogenDensity = PartResourceLibrary.Instance.GetDefinition(strHydrogenResourceName).density;
-			hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
+
+            Debug.Log("[KSPI] - SolarWind OnStart 3");
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
             var maGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
@@ -229,6 +242,8 @@ namespace FNPlugin
                 mag.Fields["status"].guiActive = false;
                 mag.Fields["status"].guiActiveEditor = false;
             }
+
+            Debug.Log("[KSPI] - SolarWind OnStart 4");
 
             // verify collector was enabled 
             if (!bIsEnabled) return;
@@ -246,6 +261,8 @@ namespace FNPlugin
                 return;
             }
 
+            Debug.Log("[KSPI] - SolarWind OnStart 5");
+
             // if the part should be extended (from last time), go to the extended animation
             if (bIsExtended && deployAnimation != null)
             {
@@ -255,8 +272,12 @@ namespace FNPlugin
             // calculate time difference since last time the vessel was active
             var dTimeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
 
+            Debug.Log("[KSPI] - SolarWind OnStart 6");
+
             // collect solar wind for entire duration
             CollectSolarWind(dTimeDifference, true);
+
+            Debug.Log("[KSPI] - SolarWind OnStart 7");
         }
 
         public override void OnUpdate()
@@ -271,19 +292,22 @@ namespace FNPlugin
             var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
 
             var dHydrogenParticleConcentration = CalculateCurrentHydrogenParticleConcentration(vessel);
+            var dHeliumParticleConcentration = CalculateCurrentHeliumParticleConcentration(vessel);
+
             var dIonizedHydrogenConcentration = CalculateCurrentHydrogenIonsConcentration(vessel);
+			var dIonizedHeliumConcentration = CalculateCurrentHeliumIonsConcentration(vessel);
 
-			var dHeliumParticleConcentration = CalculateCurrentHeliumParticleConcentration(vessel);
-			var dIonizedHeliumConcentration = CalculateCurrentHeliumIonsConcentration(vessel);		
-
-			hydrogenMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dHydrogenParticleConcentration : dHeliumParticleConcentration;
+            hydrogenMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dHydrogenParticleConcentration : dIonizedHydrogenConcentration;
             heliumMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dHeliumParticleConcentration: dIonizedHeliumConcentration;
 
             fSolarWindConcentrationPerSquareMeter = (float)solarWindMolesPerSquareMeterPerSecond;
             fInterstellarIonsConcentrationPerCubicMeter = (float)interstellarDustMolesPerCubicMeter;
             fAtmosphereConcentration = (float)dAtmosphereConcentration;
             fNeutralHydrogenConcentration = (float)dHydrogenParticleConcentration;
+            fNeutralHeliumConcentration = (float)dHeliumParticleConcentration;
+
             fIonizedHydrogenConcentration = (float)dIonizedHydrogenConcentration;
+            fIonizedHeliumConcentration = (float)dIonizedHeliumConcentration;
 
             magnetoSphereStrengthRatio = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
             strMagnetoStrength = UpdateMagnetoStrengthInGui();
@@ -306,7 +330,7 @@ namespace FNPlugin
                 }
 
                 // won't collect in atmosphere
-                if (IsCollectLegal() == false)
+                if (!IsCollectLegal())
                 {
                     DisableCollector();
                     return;
@@ -364,9 +388,9 @@ namespace FNPlugin
         // checks if the vessel is not in atmosphere and if it can therefore collect solar wind. Could incorporate other checks if needed.
         private bool IsCollectLegal()
         {
-            if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody))) // won't collect in atmosphere
+            if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) / 2) // won't collect in atmosphere
             {
-                ScreenMessages.PostScreenMessage("Solar wind collection not possible in atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage("Solar wind collection not possible in low atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
                 distanceToLocalStar = UpdateDistanceInGui();
                 fSolarWindConcentrationPerSquareMeter = 0;
                 return false;
@@ -499,7 +523,7 @@ namespace FNPlugin
 				return 0;
 
 			var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-			var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHeliumnPerCubePerCm.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+			var atmosphereParticlesPerCubM = Math.Max(0, 1e+6 * AtmosphericFloatCurves.Instance.ParticlesHeliumnPerCubePerCm.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
 			var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
@@ -687,8 +711,9 @@ namespace FNPlugin
 
             fSolarWindCollectedGramPerHour = (float)(solarWindGramCollectedPerSecond * 3600);
             fInterstellarIonsConcentrationPerSquareMeter = (float) interstellarIonsConcentrationPerSquareMeter;
-            fInterstellarIonsCollectedGramPerSecond = (float)interstellarGramCollectedPerSecond;
-            fHydrogencollectedGramPerSecond = (float)dHydrogenCollectedPerSecond;
+            fInterstellarIonsCollectedGramPerHour = (float)interstellarGramCollectedPerSecond * 3600;
+            fHydrogenCollectedGramPerHour = (float)dHydrogenCollectedPerSecond * 3600;
+            fHeliumCollectedGramPerHour = (float)dHeliumCollectedPerSecond * 3600;
             fAtmosphereIonsKgPerSquareMeter = (float)atmosphericGasKgPerSquareMeter;
             fSolarWindKgPerSquareMeter = (float)solarDustKgPerSquareMeter;
             fInterstellarIonsKgPerSquareMeter = (float)interstellarDustKgPerSquareMeter;
