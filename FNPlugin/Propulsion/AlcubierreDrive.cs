@@ -1165,7 +1165,7 @@ namespace FNPlugin
                 ? 1 / sqrtSpeed 
                 : sqrtSpeed;
 
-            return powerModifier * exotic_power_required;
+            return powerModifier * exotic_power_required * 0.5;
         }
 
         private void UpdateWarpSpeed()

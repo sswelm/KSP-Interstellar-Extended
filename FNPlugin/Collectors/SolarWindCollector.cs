@@ -40,7 +40,7 @@ namespace FNPlugin
         public double ionRequirements = 100; // MW requirements of the collector panel.
 
         [KSPField] 
-        public double heliumRequirement = 0.1;
+        public double heliumRequirement = 0.2;
         [KSPField]
         public string animName = "";
         [KSPField]
@@ -92,7 +92,7 @@ namespace FNPlugin
 
         [KSPField(guiActive = true, guiName = "Max Orbital Drag", guiUnits = " N")]
         protected float fMaxOrbitalVesselDragInNewton;
-        [KSPField(guiActive = true, guiName = "Current Orbital Drag", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "Orbital Drag on Vessel", guiUnits = " N")]
         protected float fEffectiveOrbitalVesselDragInNewton;
         [KSPField(guiActive = true, guiName = "Solarwind Force on Vessel", guiUnits = " N")]
         protected float fSolarWindVesselForceInNewton;
@@ -138,11 +138,6 @@ namespace FNPlugin
         float previousPowerPercentage;
 
         bool previosIonisationState = false;
-
-        //string strSolarWindResourceName;
-        //string strHydrogenResourceName;
-        //string strLqdHelium4ResourceName;
-        //string strHelium4GasResourceName;
 
         Animation deployAnimation;
         Animation ionisationAnimation;
@@ -208,8 +203,6 @@ namespace FNPlugin
                 ionisationAnimation.Blend(ionAnimName);
             }
 
-            Debug.Log("[KSPI] - SolarWind OnStart 1");
-
             if (state == StartState.Editor) return; // collecting won't work in editor
 
             heliumRequirementTonPerSecond = heliumRequirement * 1e-6 / GameConstants.SECONDS_IN_HOUR ;
@@ -218,22 +211,7 @@ namespace FNPlugin
             solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.SolarWind);
             hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
 
-            Debug.Log("[KSPI] - SolarWind OnStart 2");
-
-            //Initialize Atmospheric Floatcurves
-            //var instance = AtmosphericFloatCurves.Instance;
-
             localStar = GetCurrentStar();
-
-            // get resource name solar wind
-            //strLqdHelium4ResourceName = InterstellarResourcesConfiguration.Instance.LqdHelium4;
-            //strHelium4GasResourceName = InterstellarResourcesConfiguration.Instance.Helium4Gas;
-
-            // gets density of resources
-			
-            //dHydrogenDensity = PartResourceLibrary.Instance.GetDefinition(strHydrogenResourceName).density;
-
-            Debug.Log("[KSPI] - SolarWind OnStart 3");
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
             var maGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
@@ -242,8 +220,6 @@ namespace FNPlugin
                 mag.Fields["status"].guiActive = false;
                 mag.Fields["status"].guiActiveEditor = false;
             }
-
-            Debug.Log("[KSPI] - SolarWind OnStart 4");
 
             // verify collector was enabled 
             if (!bIsEnabled) return;
@@ -261,8 +237,6 @@ namespace FNPlugin
                 return;
             }
 
-            Debug.Log("[KSPI] - SolarWind OnStart 5");
-
             // if the part should be extended (from last time), go to the extended animation
             if (bIsExtended && deployAnimation != null)
             {
@@ -272,12 +246,8 @@ namespace FNPlugin
             // calculate time difference since last time the vessel was active
             var dTimeDifference = (Planetarium.GetUniversalTime() - dLastActiveTime) * 55;
 
-            Debug.Log("[KSPI] - SolarWind OnStart 6");
-
             // collect solar wind for entire duration
             CollectSolarWind(dTimeDifference, true);
-
-            Debug.Log("[KSPI] - SolarWind OnStart 7");
         }
 
         public override void OnUpdate()
@@ -657,9 +627,9 @@ namespace FNPlugin
 
             var solarWindGramCollectedPerSecond = solarWindMolesPerSquareMeterPerSecond * solarwindProductionModifiers * effectiveSurfaceAreaInSquareMeter * 1.9;
 
-            var interstellarIonsConcentrationPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter;
+            var dInterstellarIonsConcentrationPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter;
 
-            var interstellarGramCollectedPerSecond = interstellarIonsConcentrationPerSquareMeter * effectiveSurfaceAreaInSquareMeter * 1.9;            
+            var interstellarGramCollectedPerSecond = dInterstellarIonsConcentrationPerSquareMeter * effectiveSurfaceAreaInSquareMeter * 1.9;            
 
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
@@ -709,8 +679,8 @@ namespace FNPlugin
             var solarwindDragInNewtonPerSquareMeter = solarWindSpeed * solarDustKgPerSquareMeter;
             var dSolarWindVesselForceInNewton = solarwindDragInNewtonPerSquareMeter * effectiveSurfaceAreaInSquareMeter;
 
+            fInterstellarIonsConcentrationPerSquareMeter = (float) dInterstellarIonsConcentrationPerSquareMeter;
             fSolarWindCollectedGramPerHour = (float)(solarWindGramCollectedPerSecond * 3600);
-            fInterstellarIonsConcentrationPerSquareMeter = (float) interstellarIonsConcentrationPerSquareMeter;
             fInterstellarIonsCollectedGramPerHour = (float)interstellarGramCollectedPerSecond * 3600;
             fHydrogenCollectedGramPerHour = (float)dHydrogenCollectedPerSecond * 3600;
             fHeliumCollectedGramPerHour = (float)dHeliumCollectedPerSecond * 3600;
