@@ -440,9 +440,7 @@ namespace FNPlugin
 						? 1 
 						: maximizeThrust 
 							? ProcessPowerAndWasteHeat(1) 
-							: ProcessPowerAndWasteHeat(storedThrotle);
-
-                    
+							: ProcessPowerAndWasteHeat(storedThrotle);                    
 
 					if (TimeWarp.fixedDeltaTime > 20)
 					{

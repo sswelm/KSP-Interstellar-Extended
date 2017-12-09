@@ -2052,11 +2052,11 @@ namespace FNPlugin
 
                         PrintToGUILayout(fuel.FuelName + " Reserves", PluginHelper.formatMassStr(availabilityInTon) + " (" + availableRessources.Count + " variants)", bold_style, text_style);
 
-                        var ton_fuel_use_per_hour = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInHour;
+                        var ton_fuel_use_per_hour = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginHelper.SecondsInHour;
                         var kg_fuel_use_per_hour = ton_fuel_use_per_hour * 1000;
                         var kg_fuel_use_per_day = kg_fuel_use_per_hour * PluginHelper.HoursInDay;
 
-                        PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.formatMassStr(ton_fuel_use_per_hour) + "/ hour", bold_style, text_style);
+                        PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.formatMassStr(ton_fuel_use_per_hour) + " / hour", bold_style, text_style);
 
                         if (kg_fuel_use_per_day > 0)
                         {
@@ -2098,10 +2098,10 @@ namespace FNPlugin
                             GUILayout.Label(PluginHelper.formatMassStr(availabilityInTon, "0.00000") + " / " + PluginHelper.formatMassStr(maxAvailabilityInTon, "0.00000"), text_style, GUILayout.Width(150));
                             GUILayout.EndHorizontal();
 
-                            double dayly_production_in_Ton = ongoing_total_power_generated * product.TonsProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency * CurrentFuelMode.NormalisedReactionRate * PluginHelper.SecondsInDay;
+                            double hour_production_in_Ton = ongoing_total_power_generated * product.TonsProductUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginHelper.SecondsInHour;
                             GUILayout.BeginHorizontal();
                             GUILayout.Label(product.FuelName + " Production", bold_style, GUILayout.Width(150));
-                            GUILayout.Label(PluginHelper.formatMassStr(dayly_production_in_Ton) + " / day", text_style, GUILayout.Width(150));
+                            GUILayout.Label(PluginHelper.formatMassStr(hour_production_in_Ton) + " / hour", text_style, GUILayout.Width(150));
                             GUILayout.EndHorizontal();
                         }
                     }

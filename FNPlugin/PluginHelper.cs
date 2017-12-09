@@ -358,19 +358,27 @@ namespace FNPlugin
         public static string formatMassStr(double mass, string format = "0.0000000")
         {
             if (mass >= 1)
-                return (mass / 1e+0).ToString(format) + " t";
+                return FormatString(mass / 1e+0, format) + " t";
             else if (mass >= 1e-3)
-                return (mass / 1e-3).ToString(format) + " kg";
+                return FormatString(mass / 1e-3, format) + " kg";
             else if (mass >= 1e-6)
-                return (mass / 1e-6).ToString(format) + " g";
+                return FormatString(mass / 1e-6, format) + " g";
             else if (mass >= 1e-9)
-                return (mass / 1e-9).ToString(format) + " mg";
+                return FormatString(mass / 1e-9, format)+ " mg";
             else if (mass >= 1e-12)
-                return (mass / 1e-12).ToString(format) + " ug";
+                return FormatString(mass / 1e-12, format) + " ug";
             else if (mass >= 1e-15)
-                return (mass / 1e-15).ToString(format) + " ng";
+                return FormatString(mass / 1e-15, format) + " ng";
             else
-                return (mass / 1e-18).ToString(format) + " pg";
+                return FormatString(mass / 1e-18, format) + " pg";
+        }
+
+        private static string FormatString(double value,  string format)
+        {
+            if (format == null)
+                return value.ToString();
+            else
+                return value.ToString(format);
         }
 
         public static bool HasTechRequirementOrEmpty(string techName)
