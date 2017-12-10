@@ -325,8 +325,8 @@ namespace FNPlugin
         {
             var minimum_power_per_second = maximum_power * ratio_min;
 
-            var provided_demand_power_per_second = Math.Min(maximum_power, Math.Max(minimum_power_per_second, Math.Max(available_power, GetCurrentUnfilledResourceDemand())));
-            var managed_supply_per_second = Math.Min(maximum_power, Math.Max(minimum_power_per_second, Math.Min(available_power, GetRequiredResourceDemand())));
+            var provided_demand_power_per_second    = Math.Min(maximum_power, Math.Max(minimum_power_per_second, Math.Max(available_power, GetCurrentUnfilledResourceDemand())));
+            var managed_supply_per_second           = Math.Min(maximum_power, Math.Max(minimum_power_per_second, Math.Min(available_power, GetRequiredResourceDemand())));
 
             currentPowerSupply += managed_supply_per_second;
             stable_supply += maximum_power;
@@ -643,24 +643,26 @@ namespace FNPlugin
             currentPowerSupply -= Math.Max(availableResourceAmount, 0.0);
             internl_power_extract_fixed = -currentPowerSupply * timeWarpFixedDeltaTime;
 
-            // passive dissip of waste heat - a little bit of this
-            double vessel_mass = my_vessel.GetTotalMass();
-            double passive_dissip = 2947.295521 * GameConstants.stefan_const * vessel_mass * 2;
-            internl_power_extract_fixed += passive_dissip * TimeWarp.fixedDeltaTime;
-
-            if (my_vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(my_vessel.mainBody))
+            if (resourceDefinition.id == wasteheatResourceDefinition.id)
             {
-                // passive convection - a lot of this
-                double pressure = FlightGlobals.getStaticPressure(my_vessel.transform.position) / 100;
-                double delta_temp = 20;
-                double conv_power_dissip = pressure * delta_temp * vessel_mass * 2.0 * GameConstants.rad_const_h / 1e6 * TimeWarp.fixedDeltaTime;
-                internl_power_extract_fixed += conv_power_dissip;
+                // passive dissip of waste heat - a little bit of this
+                double vessel_mass = my_vessel.GetTotalMass();
+                double passive_dissip = 2947.295521 * GameConstants.stefan_const * vessel_mass * 2;
+                internl_power_extract_fixed += passive_dissip * TimeWarp.fixedDeltaTime;
+
+                if (my_vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(my_vessel.mainBody))
+                {
+                    // passive convection - a lot of this
+                    double pressure = FlightGlobals.getStaticPressure(my_vessel.transform.position) / 100;
+                    double conv_power_dissip = pressure * 40 * vessel_mass * GameConstants.rad_const_h / 1e6 * TimeWarp.fixedDeltaTime;
+                    internl_power_extract_fixed += conv_power_dissip;
+                }
             }
 
-            if (internl_power_extract_fixed > 0) 
+            if (internl_power_extract_fixed > 0)
                 internl_power_extract_fixed = Math.Min(internl_power_extract_fixed, availableResourceAmount);
             else
-                internl_power_extract_fixed = Math.Max(internl_power_extract_fixed, -missingResourceAmount);
+                internl_power_extract_fixed = Math.Max(internl_power_extract_fixed, -missingResourceAmount);            
 
             my_part.RequestResource(resourceDefinition.id, internl_power_extract_fixed);
 

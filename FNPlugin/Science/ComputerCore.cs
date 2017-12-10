@@ -75,7 +75,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, };
             this.resources_to_supply = resources_to_supply;
 
             if (state == StartState.Editor)
@@ -100,8 +100,7 @@ namespace FNPlugin
             {
                 upgradePartModule();
 
-                double now = Planetarium.GetUniversalTime();
-                double time_diff = now - last_active_time;
+                double time_diff = Planetarium.GetUniversalTime() - last_active_time;
                 double altitude_multiplier = vessel.altitude / vessel.mainBody.Radius;
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
 
@@ -129,9 +128,7 @@ namespace FNPlugin
             base.OnUpdate();
 
             if (_moduleDataTransmitter != null)
-            {
                 _moduleDataTransmitter.antennaPower = IsEnabled && IsPowered ? 5e+17 : 50000;
-            }
 
             if (ResearchAndDevelopment.Instance != null)
                 Events["RetrofitCore"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost;
@@ -143,7 +140,7 @@ namespace FNPlugin
             Fields["scienceRate"].guiActive = isupgraded;
 
             double scienceratetmp =  science_rate_f * GameConstants.KEBRIN_DAY_SECONDS * PluginHelper.getScienceMultiplier(vessel);
-            scienceRate = scienceratetmp.ToString("0.000") + "/Day";
+            scienceRate = scienceratetmp.ToString("0.000") + "/ Day";
 
             if (ResearchAndDevelopment.Instance != null)
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
@@ -153,10 +150,10 @@ namespace FNPlugin
         {
             base.OnFixedUpdate();
 
-            if (isupgraded  && IsEnabled)
+            if (isupgraded && IsEnabled)
             {
-                double power_returned = CheatOptions.InfiniteElectricity 
-                    ? upgradedMegajouleRate
+                var power_returned = CheatOptions.InfiniteElectricity
+                    ? effectivePowerRequirement
                     : consumeFNResourcePerSecond(effectivePowerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 electrical_power_ratio = power_returned / effectivePowerRequirement;
@@ -164,8 +161,7 @@ namespace FNPlugin
 
                 if (IsPowered)
                 {
-                    double altitude_multiplier = vessel.altitude / vessel.mainBody.Radius;
-                    altitude_multiplier = Math.Max(altitude_multiplier, 1);
+                    double altitude_multiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
 
                     var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
 
@@ -261,8 +257,7 @@ namespace FNPlugin
 
         public static ConfigNode[] getNames()
         {
-            ConfigNode[] namelist = GameDatabase.Instance.GetConfigNodes("AI_CORE_NAME");
-            return namelist;
+            return GameDatabase.Instance.GetConfigNodes("AI_CORE_NAME");
         }
 
         public override int getPowerPriority()

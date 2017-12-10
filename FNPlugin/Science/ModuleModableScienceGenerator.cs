@@ -163,9 +163,6 @@ namespace FNPlugin
                 return new ScienceData[0];
         }
 
-
-
-
         public void ReviewDataItem(ScienceData science_data)
         {
             if (science_data == this.science_data)
