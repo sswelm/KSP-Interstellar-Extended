@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace InterstellarFuelSwitch
 {
@@ -126,14 +127,20 @@ namespace InterstellarFuelSwitch
 
             foreach (var resource in primaryResources)
             {
-                if (resource.definition.density > 0) 
+                if (resource.definition.density > 0)
+                {
+                    Debug.LogError("[IFS] - (resource.definition.density > 0)");
                     resource.normalizedDensity = resource.definition.density;
+                }
             }
 
             foreach (var resource in secondaryResources)
             {
-                if (resource.definition.density > 0) 
-                    resource.normalizedDensity = resource.definition.density; 
+                if (resource.definition.density > 0)
+                {
+                    Debug.LogError("[IFS] - (resource.definition.density > 0)");
+                    resource.normalizedDensity = resource.definition.density;
+                }
             }
 
             if (primaryResources.Count == 1 && secondaryResources.Count == 1)
@@ -151,16 +158,11 @@ namespace InterstellarFuelSwitch
                     primary.conversionRatio = secondary.definition.unitCost / primary.definition.unitCost;
                     secondary.conversionRatio = primary.definition.unitCost / secondary.definition.unitCost;
                 }
-				else if (primary.definition.volume > 0 && secondary.definition.volume > 0)
-				{
-					primary.conversionRatio = secondary.definition.volume / primary.definition.volume;
-                    secondary.conversionRatio = primary.definition.volume / secondary.definition.volume;
-				}
 
-				if (primary.normalizedDensity == 0)
-					primary.normalizedDensity = primaryNormalizedDensity;
-				if (secondary.normalizedDensity == 0)
-					secondary.normalizedDensity = secondaryNormalizedDensity;
+                if (primary.normalizedDensity == 0)
+                    primary.normalizedDensity = primaryNormalizedDensity;
+                if (secondary.normalizedDensity == 0)
+                    secondary.normalizedDensity = secondaryNormalizedDensity;
 
 				if (secondary.conversionRatio == 0 && secondary.conversionRatio == 0)
 				{

@@ -653,7 +653,7 @@ namespace FNPlugin
                 if (my_vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(my_vessel.mainBody))
                 {
                     // passive convection - a lot of this
-                    double pressure = FlightGlobals.getStaticPressure(my_vessel.transform.position) / 100;
+                    double pressure = FlightGlobals.getStaticPressure(my_vessel.transform.position) * 0.01;
                     double conv_power_dissip = pressure * 40 * vessel_mass * GameConstants.rad_const_h / 1e6 * TimeWarp.fixedDeltaTime;
                     internl_power_extract_fixed += conv_power_dissip;
                 }
