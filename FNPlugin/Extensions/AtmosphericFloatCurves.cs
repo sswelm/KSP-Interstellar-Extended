@@ -2,7 +2,7 @@
 {
 	public class AtmosphericFloatCurves
 	{
-		public FloatCurve MassDensityAtmosphereCubePerCm { get; private set; }
+		public FloatCurve MassDensityAtmosphereGramPerCubeCm { get; private set; }
 		public FloatCurve ParticlesAtmosphereCubePerMeter { get; private set; }
 		public FloatCurve ParticlesHydrogenCubePerMeter { get; private set; }
 		public FloatCurve ParticlesHeliumnPerCubePerCm { get; private set; }
@@ -295,76 +295,86 @@
 
 		private void InitializeDensityAtmosphereCubeCm()
 		{
-			if (MassDensityAtmosphereCubePerCm != null) return;
+			if (MassDensityAtmosphereGramPerCubeCm != null) return;
 
-			MassDensityAtmosphereCubePerCm = new FloatCurve();
+			MassDensityAtmosphereGramPerCubeCm = new FloatCurve();
 
-			MassDensityAtmosphereCubePerCm.Add(000, 1.340E-03f);
-			MassDensityAtmosphereCubePerCm.Add(001, 1.195E-03f);
-			MassDensityAtmosphereCubePerCm.Add(002, 1.072E-03f);
-			MassDensityAtmosphereCubePerCm.Add(003, 9.649E-04f);
-			MassDensityAtmosphereCubePerCm.Add(004, 8.681E-04f);
-			MassDensityAtmosphereCubePerCm.Add(005, 7.790E-04f);
-			MassDensityAtmosphereCubePerCm.Add(006, 6.959E-04f);
-			MassDensityAtmosphereCubePerCm.Add(007, 6.179E-04f);
-			MassDensityAtmosphereCubePerCm.Add(008, 5.446E-04f);
-			MassDensityAtmosphereCubePerCm.Add(009, 4.762E-04f);
-			MassDensityAtmosphereCubePerCm.Add(010, 4.128E-04f);
-			MassDensityAtmosphereCubePerCm.Add(012, 3.035E-04f);
-			MassDensityAtmosphereCubePerCm.Add(014, 2.203E-04f);
-			MassDensityAtmosphereCubePerCm.Add(016, 1.605E-04f);
-			MassDensityAtmosphereCubePerCm.Add(018, 1.175E-04f);
-			MassDensityAtmosphereCubePerCm.Add(020, 8.573E-05f);
-			MassDensityAtmosphereCubePerCm.Add(030, 1.611E-05f);
-			MassDensityAtmosphereCubePerCm.Add(040, 3.262E-06f);
-			MassDensityAtmosphereCubePerCm.Add(050, 8.602E-07f);
-			MassDensityAtmosphereCubePerCm.Add(060, 2.394E-07f);
-			MassDensityAtmosphereCubePerCm.Add(070, 6.017E-08f);
-			MassDensityAtmosphereCubePerCm.Add(080, 1.439E-08f);
-			MassDensityAtmosphereCubePerCm.Add(090, 3.080E-09f);
-			MassDensityAtmosphereCubePerCm.Add(100, 5.357E-10f);
-			MassDensityAtmosphereCubePerCm.Add(110, 8.711E-11f);
-			MassDensityAtmosphereCubePerCm.Add(120, 1.844E-11f);
-			MassDensityAtmosphereCubePerCm.Add(130, 7.383E-12f);
-			MassDensityAtmosphereCubePerCm.Add(140, 3.781E-12f);
-			MassDensityAtmosphereCubePerCm.Add(150, 2.185E-12f);
-			MassDensityAtmosphereCubePerCm.Add(160, 1.364E-12f);
-			MassDensityAtmosphereCubePerCm.Add(170, 8.974E-13f);
-			MassDensityAtmosphereCubePerCm.Add(180, 6.145E-13f);
-			MassDensityAtmosphereCubePerCm.Add(190, 4.333E-13f);
-			MassDensityAtmosphereCubePerCm.Add(200, 3.127E-13f);
-			MassDensityAtmosphereCubePerCm.Add(210, 2.300E-13f);
-			MassDensityAtmosphereCubePerCm.Add(220, 1.718E-13f);
-			MassDensityAtmosphereCubePerCm.Add(230, 1.300E-13f);
-			MassDensityAtmosphereCubePerCm.Add(240, 9.954E-14f);
-			MassDensityAtmosphereCubePerCm.Add(250, 7.698E-14f);
-			MassDensityAtmosphereCubePerCm.Add(260, 6.007E-14f);
-			MassDensityAtmosphereCubePerCm.Add(270, 4.725E-14f);
-			MassDensityAtmosphereCubePerCm.Add(280, 3.744E-14f);
-			MassDensityAtmosphereCubePerCm.Add(290, 2.987E-14f);
-			MassDensityAtmosphereCubePerCm.Add(300, 2.397E-14f);
-			MassDensityAtmosphereCubePerCm.Add(310, 1.934E-14f);
-			MassDensityAtmosphereCubePerCm.Add(320, 1.569E-14f);
-			MassDensityAtmosphereCubePerCm.Add(330, 1.278E-14f);
-			MassDensityAtmosphereCubePerCm.Add(340, 1.046E-14f);
-			MassDensityAtmosphereCubePerCm.Add(350, 8.594E-15f);
-			MassDensityAtmosphereCubePerCm.Add(400, 3.377E-15f);
-			MassDensityAtmosphereCubePerCm.Add(450, 1.412E-15f);
-			MassDensityAtmosphereCubePerCm.Add(500, 6.205E-16f);
-			MassDensityAtmosphereCubePerCm.Add(550, 2.854E-16f);
-			MassDensityAtmosphereCubePerCm.Add(600, 1.385E-16f);
-			MassDensityAtmosphereCubePerCm.Add(650, 7.176E-17f);
-			MassDensityAtmosphereCubePerCm.Add(700, 4.031E-17f);
-			MassDensityAtmosphereCubePerCm.Add(750, 2.477E-17f);
-			MassDensityAtmosphereCubePerCm.Add(800, 1.660E-17f);
-			MassDensityAtmosphereCubePerCm.Add(850, 1.197E-17f);
-			MassDensityAtmosphereCubePerCm.Add(900, 9.114E-18f);
-			MassDensityAtmosphereCubePerCm.Add(950, 7.211E-18f);
-			MassDensityAtmosphereCubePerCm.Add(1000, 5.849E-18f);
-			MassDensityAtmosphereCubePerCm.Add(2000, 2.9245E-20f);
-			MassDensityAtmosphereCubePerCm.Add(4000, 1.46225E-22f);
-			MassDensityAtmosphereCubePerCm.Add(8000, 7.31125E-25f);
-			MassDensityAtmosphereCubePerCm.Add(10000, 0);
+			MassDensityAtmosphereGramPerCubeCm.Add(000, 1.340E-03f);
+			MassDensityAtmosphereGramPerCubeCm.Add(001, 1.195E-03f);
+			MassDensityAtmosphereGramPerCubeCm.Add(002, 1.072E-03f);
+			MassDensityAtmosphereGramPerCubeCm.Add(003, 9.649E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(004, 8.681E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(005, 7.790E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(006, 6.959E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(007, 6.179E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(008, 5.446E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(009, 4.762E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(010, 4.128E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(012, 3.035E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(014, 2.203E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(016, 1.605E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(018, 1.175E-04f);
+			MassDensityAtmosphereGramPerCubeCm.Add(020, 8.573E-05f);
+            MassDensityAtmosphereGramPerCubeCm.Add(025, 3.756E-05f);
+			MassDensityAtmosphereGramPerCubeCm.Add(030, 1.611E-05f);
+            MassDensityAtmosphereGramPerCubeCm.Add(035, 7.028E-06f);
+			MassDensityAtmosphereGramPerCubeCm.Add(040, 3.262E-06f);
+            MassDensityAtmosphereGramPerCubeCm.Add(045, 1.627E-06f);
+			MassDensityAtmosphereGramPerCubeCm.Add(050, 8.602E-07f);
+            MassDensityAtmosphereGramPerCubeCm.Add(055, 4.593E-07f);
+            MassDensityAtmosphereGramPerCubeCm.Add(060, 1.214E-07f);
+            MassDensityAtmosphereGramPerCubeCm.Add(065, 6.017E-08f);
+			MassDensityAtmosphereGramPerCubeCm.Add(070, 6.017E-08f);
+            MassDensityAtmosphereGramPerCubeCm.Add(075, 2.943E-08f);
+			MassDensityAtmosphereGramPerCubeCm.Add(080, 1.439E-08f);
+            MassDensityAtmosphereGramPerCubeCm.Add(085, 6.826E-09f);
+			MassDensityAtmosphereGramPerCubeCm.Add(090, 3.080E-09f);
+            MassDensityAtmosphereGramPerCubeCm.Add(095, 1.316E-09f);
+			MassDensityAtmosphereGramPerCubeCm.Add(100, 5.357E-10f);
+            MassDensityAtmosphereGramPerCubeCm.Add(105, 2.133E-10f);
+			MassDensityAtmosphereGramPerCubeCm.Add(110, 8.711E-11f);
+            MassDensityAtmosphereGramPerCubeCm.Add(115, 3.780E-11f);
+			MassDensityAtmosphereGramPerCubeCm.Add(120, 1.844E-11f);
+			MassDensityAtmosphereGramPerCubeCm.Add(130, 7.383E-12f);
+			MassDensityAtmosphereGramPerCubeCm.Add(140, 3.781E-12f);
+			MassDensityAtmosphereGramPerCubeCm.Add(150, 2.185E-12f);
+			MassDensityAtmosphereGramPerCubeCm.Add(160, 1.364E-12f);
+			MassDensityAtmosphereGramPerCubeCm.Add(170, 8.974E-13f);
+			MassDensityAtmosphereGramPerCubeCm.Add(180, 6.145E-13f);
+			MassDensityAtmosphereGramPerCubeCm.Add(190, 4.333E-13f);
+			MassDensityAtmosphereGramPerCubeCm.Add(200, 3.127E-13f);
+			MassDensityAtmosphereGramPerCubeCm.Add(210, 2.300E-13f);
+			MassDensityAtmosphereGramPerCubeCm.Add(220, 1.718E-13f);
+			MassDensityAtmosphereGramPerCubeCm.Add(230, 1.300E-13f);
+			MassDensityAtmosphereGramPerCubeCm.Add(240, 9.954E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(250, 7.698E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(260, 6.007E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(270, 4.725E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(280, 3.744E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(290, 2.987E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(300, 2.397E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(310, 1.934E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(320, 1.569E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(330, 1.278E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(340, 1.046E-14f);
+			MassDensityAtmosphereGramPerCubeCm.Add(350, 8.594E-15f);
+			MassDensityAtmosphereGramPerCubeCm.Add(400, 3.377E-15f);
+			MassDensityAtmosphereGramPerCubeCm.Add(450, 1.412E-15f);
+			MassDensityAtmosphereGramPerCubeCm.Add(500, 6.205E-16f);
+			MassDensityAtmosphereGramPerCubeCm.Add(550, 2.854E-16f);
+			MassDensityAtmosphereGramPerCubeCm.Add(600, 1.385E-16f);
+			MassDensityAtmosphereGramPerCubeCm.Add(650, 7.176E-17f);
+			MassDensityAtmosphereGramPerCubeCm.Add(700, 4.031E-17f);
+			MassDensityAtmosphereGramPerCubeCm.Add(750, 2.477E-17f);
+			MassDensityAtmosphereGramPerCubeCm.Add(800, 1.660E-17f);
+			MassDensityAtmosphereGramPerCubeCm.Add(850, 1.197E-17f);
+			MassDensityAtmosphereGramPerCubeCm.Add(900, 9.114E-18f);
+			MassDensityAtmosphereGramPerCubeCm.Add(950, 7.211E-18f);
+			MassDensityAtmosphereGramPerCubeCm.Add(1000, 5.849E-18f);
+			MassDensityAtmosphereGramPerCubeCm.Add(2000, 2.9245E-20f);
+			MassDensityAtmosphereGramPerCubeCm.Add(4000, 1.46225E-22f);
+			MassDensityAtmosphereGramPerCubeCm.Add(8000, 7.31125E-25f);
+			MassDensityAtmosphereGramPerCubeCm.Add(10000, 0);
 		}
 	}
 }

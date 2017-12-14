@@ -17,20 +17,27 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Data Collection Rate")]
         public string scienceRate;
 
-        [KSPField(isPersistant = false)]
+
+        
+
+        [KSPField]
         public string upgradeTechReq = null;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string upgradedName = "";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string originalName = "";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float upgradeCost = 100;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float megajouleRate = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float upgradedMegajouleRate = 10;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double powerReqMult = 1;
+        [KSPField]
+        public double activeAIControlDistance = 9.460525284e15 * 100000;    // diameter of milkyway
+        [KSPField]
+        public double inactiveAIControlDistance = 100000;
 
         [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool IsEnabled = false;
@@ -128,7 +135,7 @@ namespace FNPlugin
             base.OnUpdate();
 
             if (_moduleDataTransmitter != null)
-                _moduleDataTransmitter.antennaPower = IsEnabled && IsPowered ? 5e+17 : 50000;
+                _moduleDataTransmitter.antennaPower = IsEnabled && IsPowered ? activeAIControlDistance : inactiveAIControlDistance;
 
             if (ResearchAndDevelopment.Instance != null)
                 Events["RetrofitCore"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost;

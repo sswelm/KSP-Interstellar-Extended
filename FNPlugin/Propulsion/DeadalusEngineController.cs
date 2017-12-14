@@ -69,7 +69,7 @@ namespace FNPlugin
 		[KSPField(guiActive = false, guiName = "Stored Throtle")]
 		public float storedThrotle = 0;
 		[KSPField(guiActive = true, guiName = "Max Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
-		public double effectiveThrust = 0;
+		public double effectiveMaxThrust = 0;
 		[KSPField(guiActive = true, guiName = "Max Effective Isp", guiFormat = "F2", guiUnits = "s")]
 		public double effectiveIsp = 0;
 		[KSPField(guiActive = false, guiName = "Fuel Remaining", guiFormat = "F3", guiUnits = "%")]
@@ -407,20 +407,20 @@ namespace FNPlugin
 				// Update ISP
 				effectiveIsp = timeDilation * engineIsp;
 
-                massFlowRateKgPerSecond = curEngineT.fuelFlowGui;
-                massFlowRateTonPerHour = curEngineT.fuelFlowGui * 3.6;
-
 				if (throttle > 0 && !this.vessel.packed)
 				{
 					UpdateAtmosphericCurve();
 
 					fusionRatio = ProcessPowerAndWasteHeat(throttle);
 
-					// Update FuelFlow
-					effectiveThrust = timeDilation * timeDilation * MaximumThrust * fusionRatio;
-					calculatedFuelflow = effectiveThrust / effectiveIsp / PluginHelper.GravityConstant;
+                    // Update FuelFlow
+                    effectiveMaxThrust = timeDilation * timeDilation * MaximumThrust * fusionRatio;
+					calculatedFuelflow = effectiveMaxThrust / effectiveIsp / PluginHelper.GravityConstant;
 					curEngineT.maxFuelFlow = (float)calculatedFuelflow;
-					curEngineT.maxThrust = (float)effectiveThrust;
+					curEngineT.maxThrust = (float)effectiveMaxThrust;
+
+                    massFlowRateKgPerSecond = curEngineT.currentThrottle * calculatedFuelflow * 1000;
+                    massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
 
 					// calculate day usage
 					var demandedMass = calculatedFuelflow / fusionFuelResourceDefinition.density;
@@ -440,7 +440,12 @@ namespace FNPlugin
 						? 1 
 						: maximizeThrust 
 							? ProcessPowerAndWasteHeat(1) 
-							: ProcessPowerAndWasteHeat(storedThrotle);                    
+							: ProcessPowerAndWasteHeat(storedThrotle);
+
+                    effectiveMaxThrust = timeDilation * timeDilation * MaximumThrust * fusionRatio;
+                    calculatedFuelflow = effectiveMaxThrust / effectiveIsp / PluginHelper.GravityConstant;
+                    massFlowRateKgPerSecond = calculatedFuelflow * 1000;
+                    massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
 
 					if (TimeWarp.fixedDeltaTime > 20)
 					{
@@ -471,11 +476,13 @@ namespace FNPlugin
 
 					UpdateAtmosphericCurve();
 
-					effectiveThrust = timeDilation * timeDilation * MaximumThrust;
+					effectiveMaxThrust = timeDilation * timeDilation * MaximumThrust;
+                    calculatedFuelflow = effectiveMaxThrust / effectiveIsp / PluginHelper.GravityConstant;
+                    massFlowRateKgPerSecond = calculatedFuelflow * 1000;
+                    massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
 
-					var maxFuelFlow = effectiveThrust / effectiveIsp / PluginHelper.GravityConstant;
-					curEngineT.maxFuelFlow = (float)maxFuelFlow;
-					curEngineT.maxThrust = (float)effectiveThrust;
+                    curEngineT.maxFuelFlow = (float)calculatedFuelflow;
+					curEngineT.maxThrust = (float)effectiveMaxThrust;
 				}
 
 				stopWatch.Stop();
@@ -513,9 +520,9 @@ namespace FNPlugin
 				recievedRatio = fusionFuelRequestAmount > 0 ? recievedFusionFuel/ fusionFuelRequestAmount : 0;
 			}
 
-			effectiveThrust = timeDilationMaximumThrust * recievedRatio;
+			effectiveMaxThrust = timeDilationMaximumThrust * recievedRatio;
 
-			var deltaVV = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveThrust, timeDialationEngineIsp, out demandMass);
+			var deltaVV = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveMaxThrust, timeDialationEngineIsp, out demandMass);
 
 			if (recievedRatio > 0.01)
 				vessel.orbit.Perturb(deltaVV, modifiedUniversalTime);

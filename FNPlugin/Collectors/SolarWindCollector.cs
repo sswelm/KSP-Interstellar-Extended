@@ -28,17 +28,21 @@ namespace FNPlugin
         protected float powerPercentage = 100;
 
         // Part properties
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Surface area", guiUnits = " km\xB2")]
+        [KSPField(guiActiveEditor = false, guiName = "Surface area", guiUnits = " km\xB2")]
         public double surfaceArea = 0; // Surface area of the panel.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Magnetic area", guiUnits = " m\xB2")]
+        [KSPField(guiActiveEditor = true, guiName = "Magnetic area", guiUnits = " m\xB2")]
         public double magneticArea = 0; // Surface area of the panel.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Collector effectiveness", guiFormat = "P1")]
+        [KSPField(guiActiveEditor = true, guiName = "Collector effectiveness", guiFormat = "P1")]
         public double effectiveness = 1; // Effectiveness of the panel. Lower in part config (to a 0.5, for example) to slow down resource collecting.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Magnetic Power Requirements", guiUnits = " MW")]
+        [KSPField(guiActiveEditor = true, guiName = "Magnetic Power Requirements", guiUnits = " MW")]
         public double mwRequirements = 1; // MW requirements of the collector panel.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Ionisation Power Requirements", guiUnits = " MW")]
+        [KSPField(guiActiveEditor = true, guiName = "Ionisation Power Requirements", guiUnits = " MW")]
         public double ionRequirements = 100; // MW requirements of the collector panel.
 
+        [KSPField]
+        public double squareVelocityDragRatio = 0.075;
+        [KSPField]
+        public double atmosphereIonRatio = 0.001;
         [KSPField] 
         public double heliumRequirement = 0.2;
         [KSPField]
@@ -48,7 +52,7 @@ namespace FNPlugin
         [KSPField]
         public double solarCheatMultiplier = 1;             // Amount of boosted Solar wind activity
         [KSPField]
-        public double interstellarCheatMultiplier = 1000;   // Amount of boosted Interstellar hydrogen activity
+        public double interstellarCheatMultiplier = 250;   // Amount of boosted Interstellar hydrogen activity
         [KSPField]
         public double collectMultiplier = 1;
         [KSPField]
@@ -80,7 +84,7 @@ namespace FNPlugin
         protected float fAtmosphereIonsKgPerSquareMeter;
         [KSPField(guiActive = true, guiName = "Interstellar Ions Density", guiUnits = " kg/m\xB3")]
         protected float fInterstellarIonsKgPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "Solarwind Density", guiUnits = " kg/m\xB3")]
+        [KSPField(guiActive = true, guiName = "Solarwind Mass Density", guiUnits = " kg/m\xB2")]
         protected float fSolarWindKgPerSquareMeter;
 
         [KSPField(guiActive = true, guiName = "Atmospheric Drag", guiUnits = " N/m\xB2")]
@@ -90,16 +94,16 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Interstellar Drag", guiUnits = " N/m\xB2")]
         protected float fInterstellarDustDragInNewton;
 
-        [KSPField(guiActive = true, guiName = "Max Orbital Drag", guiUnits = " N")]
-        protected float fMaxOrbitalVesselDragInNewton;
-        [KSPField(guiActive = true, guiName = "Orbital Drag on Vessel", guiUnits = " N")]
-        protected float fEffectiveOrbitalVesselDragInNewton;
+        [KSPField(guiActive = true, guiName = "Max Orbital Drag", guiUnits = " kN")]
+        protected float fMaxOrbitalVesselDragInKiloNewton;
+        [KSPField(guiActive = true, guiName = "Orbital Drag on Vessel", guiUnits = " kN")]
+        protected float fEffectiveOrbitalVesselDragInKiloNewton;
         [KSPField(guiActive = true, guiName = "Solarwind Force on Vessel", guiUnits = " N")]
         protected float fSolarWindVesselForceInNewton;
         [KSPField(guiActive = true, guiName = "Magneto Sphere Strength Ratio", guiFormat = "F3")]
         protected double magnetoSphereStrengthRatio;
         [KSPField(guiActive = true, guiName = "Solarwind Facing Factor", guiFormat = "F3")]
-        protected double solarWindFactor = 0;
+        protected double solarWindAngleOfAttackRatio = 0;
         [KSPField(guiActive = true, guiName = "Solarwind Collection Modifier", guiFormat = "F3")]
         protected double solarwindProductionModifiers = 0;
         [KSPField(guiActive = true, guiName = "SolarWind Mass Collected", guiUnits = " g/h")]
@@ -527,6 +531,16 @@ namespace FNPlugin
 			return atmosphereConcentration;
 		}
 
+        private double GetAtmosphericGasDensityKgPerCubicMeter()
+        {
+            if (!vessel.mainBody.atmosphere)
+                return 0;
+
+            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
+            var atmosphericDensityKgPerSquareMeter = Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereGramPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm)) * 1e+3;
+            return atmosphericDensityKgPerSquareMeter;
+        }
+
         // calculates the distance to sun
         private static double CalculateDistanceToSun(Vector3d vesselPosition, Vector3d sunPosition)
         {
@@ -622,8 +636,8 @@ namespace FNPlugin
             effectiveDiamterInKilometer = 2 * Math.Sqrt(effectiveSurfaceAreaInSquareKiloMeter / Math.PI);
 
             Vector3d solarDirectionVector = localStar.transform.position - vessel.transform.position;
-            solarWindFactor =  Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector.normalized));
-            solarwindProductionModifiers = collectMultiplier * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * solarWindFactor;
+            solarWindAngleOfAttackRatio =  Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector.normalized));
+            solarwindProductionModifiers = collectMultiplier * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * solarWindAngleOfAttackRatio;
 
             var solarWindGramCollectedPerSecond = solarWindMolesPerSquareMeterPerSecond * solarwindProductionModifiers * effectiveSurfaceAreaInSquareMeter * 1.9;
 
@@ -672,11 +686,13 @@ namespace FNPlugin
             var atmosphericGasKgPerSquareMeter = GetAtmosphericGasDensityKgPerCubicMeter();
             var solarDustKgPerSquareMeter = solarWindMolesPerSquareMeterPerSecond * 1e-3 * 1.9;
             var interstellarDustKgPerSquareMeter = interstellarDustMolesPerCubicMeter * 1e-3 * 1.9;
-            var atmosphericDragInNewton = vessel.obt_speed * atmosphericGasKgPerSquareMeter;
-            var interstellarDustDragInNewton = vessel.obt_speed * interstellarDustKgPerSquareMeter;
+            var minimumAtmosphericMassMomentumChange = vessel.obt_speed * atmosphericGasKgPerSquareMeter;
+            var atmosphericDragInNewton = minimumAtmosphericMassMomentumChange + (squareVelocityDragRatio * vessel.obt_speed * minimumAtmosphericMassMomentumChange);
+            var minimumInterstellarMomentumChange = vessel.obt_speed * interstellarDustKgPerSquareMeter;
+            var interstellarDustDragInNewton = minimumInterstellarMomentumChange + (squareVelocityDragRatio * vessel.obt_speed * minimumInterstellarMomentumChange);
             var maxOrbitalVesselDragInNewton = effectiveSurfaceAreaInSquareMeter * (atmosphericDragInNewton + interstellarDustDragInNewton);
-            var dEffectiveOrbitalVesselDragInNewton = maxOrbitalVesselDragInNewton * (bIonizing ? 1 : 0.001);
-            var solarwindDragInNewtonPerSquareMeter = solarWindSpeed * solarDustKgPerSquareMeter;
+            var dEffectiveOrbitalVesselDragInNewton = maxOrbitalVesselDragInNewton * (bIonizing ? 1 : atmosphereIonRatio);
+            var solarwindDragInNewtonPerSquareMeter = solarDustKgPerSquareMeter + (squareVelocityDragRatio * solarWindSpeed * solarDustKgPerSquareMeter);
             var dSolarWindVesselForceInNewton = solarwindDragInNewtonPerSquareMeter * effectiveSurfaceAreaInSquareMeter;
 
             fInterstellarIonsConcentrationPerSquareMeter = (float) dInterstellarIonsConcentrationPerSquareMeter;
@@ -689,8 +705,8 @@ namespace FNPlugin
             fInterstellarIonsKgPerSquareMeter = (float)interstellarDustKgPerSquareMeter;
             fAtmosphericDragInNewton = (float)atmosphericDragInNewton;
             fInterstellarDustDragInNewton = (float)interstellarDustDragInNewton;
-            fMaxOrbitalVesselDragInNewton = (float)maxOrbitalVesselDragInNewton;
-            fEffectiveOrbitalVesselDragInNewton = (float)dEffectiveOrbitalVesselDragInNewton;
+            fMaxOrbitalVesselDragInKiloNewton = (float)(maxOrbitalVesselDragInNewton * 0.001);
+            fEffectiveOrbitalVesselDragInKiloNewton = (float)(dEffectiveOrbitalVesselDragInNewton * 0.001);
             fSolarWindDragInNewtonPerSquareMeter = (float)solarwindDragInNewtonPerSquareMeter;
             fSolarWindVesselForceInNewton = (float)dSolarWindVesselForceInNewton;
 
@@ -718,15 +734,7 @@ namespace FNPlugin
             }
         }
 
-        private double GetAtmosphericGasDensityKgPerCubicMeter()
-        {
-            if (!vessel.mainBody.atmosphere)
-                return 0;
 
-            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphericDensityKgPerSquareMeter = Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereCubePerCm.Evaluate((float)comparibleEarthAltitudeInKm)) * 1e+3;
-            return atmosphericDensityKgPerSquareMeter;
-        }
 
     }
 }
