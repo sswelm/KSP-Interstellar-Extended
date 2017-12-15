@@ -58,7 +58,7 @@ namespace FNPlugin
         public string fusionFuelAmounts;
         [KSPField(guiActive = false, guiName = "Fusion", guiFormat = "F2", guiUnits = "%")]
         public double fusionPercentage = 0;
-        [KSPField(guiActive = false, guiName = "Thrust Power", guiFormat = "F2", guiUnits = "TW")]
+        [KSPField(guiActive = true, guiName = "Thrust Power", guiFormat = "F2", guiUnits = " TW")]
         public double thrustPowerInTeraWatt = 0;
         [KSPField(guiActive = true, guiName = "Max Fuel Flow", guiFormat = "F6", guiUnits = " U")]
         public double calculatedFuelflow = 0;
@@ -126,7 +126,6 @@ namespace FNPlugin
         bool radhazard;
         bool warpToReal;
         float engineIsp;
-        double currentFuelFlow;
 
         Stopwatch stopWatch;
         ModuleEngines curEngineT;
@@ -480,7 +479,7 @@ namespace FNPlugin
                 curEngineT.maxThrust = (float)effectiveMaxThrustInKiloNewton;
                 
                 massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
-                thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * Math.Pow(effectiveIsp * PluginHelper.GravityConstant, 2) * 1e-12;
+                thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * PluginHelper.GravityConstant * 1e-12;
 
                 stopWatch.Stop();
             }
