@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Extensions;
@@ -40,6 +42,8 @@ namespace FNPlugin
         public double ionRequirements = 100; // MW requirements of the collector panel.
 
         [KSPField]
+        public double powerReqMult = 1;
+        [KSPField]
         public double squareVelocityDragRatio = 0.075;
         [KSPField]
         public double atmosphereIonRatio = 0.001;
@@ -52,7 +56,7 @@ namespace FNPlugin
         [KSPField]
         public double solarCheatMultiplier = 1;             // Amount of boosted Solar wind activity
         [KSPField]
-        public double interstellarCheatMultiplier = 250;   // Amount of boosted Interstellar hydrogen activity
+        public double interstellarCheatMultiplier = 200;   // Amount of boosted Interstellar hydrogen activity
         [KSPField]
         public double collectMultiplier = 1;
         [KSPField]
@@ -123,6 +127,8 @@ namespace FNPlugin
         protected string strReceivedPower = "";
         [KSPField(guiActive = true, guiName = "Magnetosphere shielding effect", guiUnits = " %")]
         protected string strMagnetoStrength = "";
+        //[KSPField(guiActive = true, guiName = "Total Vessel Mass")]
+        //protected float totalVesselMass;
 
         // internals
         double effectiveSurfaceAreaInSquareMeter;
@@ -146,6 +152,7 @@ namespace FNPlugin
         Animation deployAnimation;
         Animation ionisationAnimation;
         CelestialBody localStar;
+        //PartResource solarWindBuffer;
 
         PartResourceDefinition helium4GasResourceDefinition;
         PartResourceDefinition lqdHelium4ResourceDefinition;
@@ -214,6 +221,7 @@ namespace FNPlugin
             lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium4);
             solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.SolarWind);
             hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
+            //solarWindBuffer = part.Resources.get;
 
             localStar = GetCurrentStar();
 
@@ -292,6 +300,12 @@ namespace FNPlugin
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
+            var solarWindBuffer = part.Resources[solarWindResourceDefinition.name];
+            if (solarWindBuffer != null)
+            {
+                solarWindBuffer.maxAmount = part.mass * TimeWarp.fixedDeltaTime;
+            }
+
             UpdateIonisationAnimation();
 
             if (FlightGlobals.fetch != null)
@@ -300,6 +314,10 @@ namespace FNPlugin
                 {
                     strCollectingStatus = "Disabled";
                     distanceToLocalStar = UpdateDistanceInGui(); // passes the distance to the GUI
+
+                    fEffectiveOrbitalVesselDragInKiloNewton = 0;
+                    fSolarWindVesselForceInNewton = 0;
+                    
                     return;
                 }
 
@@ -563,7 +581,7 @@ namespace FNPlugin
         {
             var ionizationPowerCost =  bIonizing ? ionRequirements *  Math.Pow(powerPercentage * 0.01, 2) : 0;
             var magneticPowerCost = mwRequirements * Math.Pow(powerPercentage * 0.01, 2);
-            var dPowerRequirementsMw = PluginHelper.PowerConsumptionMultiplier * (magneticPowerCost + ionizationPowerCost); // change the mwRequirements number in part config to change the power consumption
+            var dPowerRequirementsMw = powerReqMult * PluginHelper.PowerConsumptionMultiplier * (magneticPowerCost + ionizationPowerCost); // change the mwRequirements number in part config to change the power consumption
 
             // checks for free space in solar wind 'tanks'
             dSolarWindSpareCapacity = part.GetResourceSpareCapacity(solarWindResourceDefinition.name);
@@ -728,9 +746,37 @@ namespace FNPlugin
             }
             else
             {
+                part.vessel.IgnoreGForces(1);
                 var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
                 vesselRegitBody.AddForce(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3, ForceMode.Force);
                 vesselRegitBody.AddForce(solarDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3, ForceMode.Force);
+
+                //vesselRegitBody.AddForceAtPosition(vesselRegitBody.centerOfMass, (part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3));
+                //var totalMass = part.vessel.totalMass;
+                //totalVesselMass = part.vessel.GetTotalMass();
+
+                //foreach (Part currentPart in part.vessel.Parts)
+                //{
+                    //var partRegitBody = currentPart.vessel.GetComponent<Rigidbody>();
+                    //var partDirection = Part.VesselToPartSpaceDir(part.vel, part, part.vessel, PartSpaceMode.Pristine);
+                    //var partHeading = new Vector3d(currentPart.transform.up.x, currentPart.transform.up.y, currentPart.transform.up.z);
+
+                    //var vesselHeading =   new Vector3((float)part.vessel.velocityD.x, (float)part.vessel.velocityD.y, (float)part.vessel.velocityD.z);
+
+                    //var transformedHeading = currentPart.transform.TransformDirection(vesselHeading);
+
+                    //var partHeading = new Vector3d(currentPart.transform.forward.x, currentPart.transform.forward.z, currentPart.transform.forward.y);
+                    //var partHeading = new Vector3d(currentPart.transform.up.x, currentPart.transform.up.y, currentPart.transform.up.z);
+
+                    //var partVesselHeading = Vector3d.RotateTowards(partHeading, part.vessel.velocityD, (float)Math.PI, 1);
+
+                    //var transformedForce = currentPart.transform.TransformDirection(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3 * (part.mass / totalVesselMass));
+                    //var transformedForce = partHeading.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3 * (part.mass / totalVesselMass);
+
+                    //currentPart.AddForce(transformedForce);
+                //}
+
+                
             }
         }
 

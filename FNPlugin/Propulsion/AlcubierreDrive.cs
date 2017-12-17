@@ -83,11 +83,11 @@ namespace FNPlugin
         public double gravityDragRatio;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Drag %", guiUnits = "%", guiFormat = "F3")]
         public double gravityDragPercentage;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "GravityRatio")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "GravityRatio")]
         public double gravityRatio;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Warp Gravity Limit", guiUnits = "c", guiFormat = "F4")]
         public double maximumWarpForGravityPull;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Warp Altitude Limit", guiUnits = "c", guiFormat = "F4")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Warp Altitude Limit", guiUnits = "c", guiFormat = "F4")]
         public double maximumWarpForAltitude;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Warp Weighted Limit", guiUnits = "c", guiFormat = "F4")]
         public double maximumWarpWeighted;
@@ -283,7 +283,9 @@ namespace FNPlugin
         {
             var maxFactor = 0;
 
-            for (var i = 0; i < engine_throtle.Count(); i++)
+            var numberOfThrotleSettings = engine_throtle.Count();
+
+            for (var i = 0; i < numberOfThrotleSettings; i++)
             {
                 if (engine_throtle[i] > lightspeed)
                     return maxFactor;
@@ -926,8 +928,8 @@ namespace FNPlugin
             gravityDragRatio = Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Sqrt(gravityAtSeaLevel)));
             gravityDragPercentage = (1 - gravityDragRatio) * 100;
             maximumWarpForGravityPull = gravityPull > 0 ? 1 / gravityPull : 0;
-            maximumWarpForAltitude =  Math.Abs(vessel.altitude / speedOfLight);
-            maximumWarpWeighted = gravityRatio * maximumWarpForGravityPull + (1 - gravityRatio) * maximumWarpForAltitude;
+            maximumWarpForAltitude =  Math.Abs(vessel.altitude / speedOfLight) * 25;
+            maximumWarpWeighted = (gravityRatio * maximumWarpForGravityPull) + ((1 - gravityRatio) * maximumWarpForAltitude);
             maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpWeighted);
             maximumAllowedWarpThrotle = engine_throtle[maximumWarpSpeedFactor];
             minimumPowerAllowedFactor = maximumWarpSpeedFactor > minimum_selected_factor ? maximumWarpSpeedFactor : minimum_selected_factor;

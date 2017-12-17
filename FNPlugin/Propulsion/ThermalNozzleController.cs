@@ -56,8 +56,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float sootThrustDivider = 150;
         [KSPField(isPersistant = false)]
-        public float delayedThrottleFactor = 0.5f;
-        [KSPField(isPersistant = false)]
         public double maxTemp = 2750;
         [KSPField(isPersistant = false)]
         public double heatConductivity = 0.12;
