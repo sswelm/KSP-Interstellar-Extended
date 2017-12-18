@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Extensions;
@@ -127,8 +125,6 @@ namespace FNPlugin
         protected string strReceivedPower = "";
         [KSPField(guiActive = true, guiName = "Magnetosphere shielding effect", guiUnits = " %")]
         protected string strMagnetoStrength = "";
-        //[KSPField(guiActive = true, guiName = "Total Vessel Mass")]
-        //protected float totalVesselMass;
 
         // internals
         double effectiveSurfaceAreaInSquareMeter;
@@ -146,8 +142,6 @@ namespace FNPlugin
 
         float newNormalTime;
         float previousPowerPercentage;
-
-        bool previosIonisationState = false;
 
         Animation deployAnimation;
         Animation ionisationAnimation;
@@ -206,7 +200,7 @@ namespace FNPlugin
             deployAnimation = part.FindModelAnimators(animName).FirstOrDefault();
             ionisationAnimation = part.FindModelAnimators(ionAnimName).FirstOrDefault();
             previousPowerPercentage = powerPercentage;
-            previosIonisationState = bIonizing;
+
             if (ionisationAnimation != null)
             {
                 ionisationAnimation[ionAnimName].speed = 0;
@@ -302,47 +296,44 @@ namespace FNPlugin
 
             var solarWindBuffer = part.Resources[solarWindResourceDefinition.name];
             if (solarWindBuffer != null)
-            {
                 solarWindBuffer.maxAmount = part.mass * TimeWarp.fixedDeltaTime;
-            }
 
             UpdateIonisationAnimation();
 
-            if (FlightGlobals.fetch != null)
+            if (FlightGlobals.fetch == null) return;
+
+            if (!bIsEnabled)
             {
-                if (!bIsEnabled)
-                {
-                    strCollectingStatus = "Disabled";
-                    distanceToLocalStar = UpdateDistanceInGui(); // passes the distance to the GUI
+                strCollectingStatus = "Disabled";
+                distanceToLocalStar = UpdateDistanceInGui(); // passes the distance to the GUI
 
-                    fEffectiveOrbitalVesselDragInKiloNewton = 0;
-                    fSolarWindVesselForceInNewton = 0;
+                fEffectiveOrbitalVesselDragInKiloNewton = 0;
+                fSolarWindVesselForceInNewton = 0;
                     
-                    return;
-                }
-
-                // won't collect in atmosphere
-                if (!IsCollectLegal())
-                {
-                    DisableCollector();
-                    return;
-                }
-
-                distanceToLocalStar = UpdateDistanceInGui();
-
-                // collect solar wind for a single frame
-                CollectSolarWind(TimeWarp.fixedDeltaTime, false);
-
-                // store current time in case vesel is unloaded
-                dLastActiveTime = Planetarium.GetUniversalTime();
-                
-                // store current strength of the magnetic field in case vessel is unloaded
-                dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
-
-                // store current solar wind concentration in case vessel is unloaded
-                dLastSolarConcentration = solarWindMolesPerSquareMeterPerSecond; //CalculateSolarWindConcentration(part.vessel.solarFlux);
-                dLastHydrogenConcentration = hydrogenMolarMassConcentrationPerSquareMeterPerSecond;
+                return;
             }
+
+            // won't collect in atmosphere
+            if (!IsCollectLegal())
+            {
+                DisableCollector();
+                return;
+            }
+
+            distanceToLocalStar = UpdateDistanceInGui();
+
+            // collect solar wind for a single frame
+            CollectSolarWind(TimeWarp.fixedDeltaTime, false);
+
+            // store current time in case vesel is unloaded
+            dLastActiveTime = Planetarium.GetUniversalTime();
+                
+            // store current strength of the magnetic field in case vessel is unloaded
+            dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
+
+            // store current solar wind concentration in case vessel is unloaded
+            dLastSolarConcentration = solarWindMolesPerSquareMeterPerSecond; //CalculateSolarWindConcentration(part.vessel.solarFlux);
+            dLastHydrogenConcentration = hydrogenMolarMassConcentrationPerSquareMeterPerSecond;
         }
 
         /** 
@@ -746,7 +737,9 @@ namespace FNPlugin
             }
             else
             {
-                part.vessel.IgnoreGForces(1);
+                if (part.vessel.geeForce < 3)
+                    part.vessel.IgnoreGForces(1);
+
                 var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
                 vesselRegitBody.AddForce(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3, ForceMode.Force);
                 vesselRegitBody.AddForce(solarDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3, ForceMode.Force);
