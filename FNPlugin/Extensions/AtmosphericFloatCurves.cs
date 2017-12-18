@@ -41,7 +41,8 @@
 
 			InterstellarDensity = new FloatCurve();
 			InterstellarDensity.Add(0, 0);
-			InterstellarDensity.Add(80, 0.001f);
+			InterstellarDensity.Add(79, 0.0f);
+			InterstellarDensity.Add(80, 0.001f); // <== Termination Shock
 			InterstellarDensity.Add(81, 0.002f);
 			InterstellarDensity.Add(82, 0.004f);
 			InterstellarDensity.Add(83, 0.008f);
@@ -51,7 +52,7 @@
 			InterstellarDensity.Add(87, 0.125f);
 			InterstellarDensity.Add(88, 0.25f);
 			InterstellarDensity.Add(89, 0.5f);
-			InterstellarDensity.Add(90, 1); // <== Termination Shock
+			InterstellarDensity.Add(90, 1);  // <== Helio Pause
 			InterstellarDensity.Add(91, 2);
 			InterstellarDensity.Add(92, 4);
 			InterstellarDensity.Add(93, 8);

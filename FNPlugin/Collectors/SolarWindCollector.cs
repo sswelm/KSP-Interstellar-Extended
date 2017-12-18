@@ -262,7 +262,7 @@ namespace FNPlugin
             Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
             Fields["strReceivedPower"].guiActive = bIsEnabled;           
 
-            solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(part.vessel.solarFlux, solarCheatMultiplier, solarWindSpeed);
+            solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(vessel, solarCheatMultiplier, solarWindSpeed, localStar);
             interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarCheatMultiplier, localStar);
 
             var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
@@ -456,13 +456,17 @@ namespace FNPlugin
         }
 
         // calculates solar wind concentration
-        private static double CalculateSolarwindIonConcentration(double flux, double solarCheatMultiplier, double solarWindSpeed)
+        private static double CalculateSolarwindIonConcentration(Vessel vessel, double solarCheatMultiplier, double solarWindSpeed, CelestialBody localStar)
         {
             const int dAvgSolarWindPerCubM = 6 * 1000000; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
 
-            var dMolalSolarConcentration = (flux / GameConstants.averageKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed * solarCheatMultiplier / GameConstants.avogadroConstant;
+            var dMolalSolarConcentration = (vessel.solarFlux / GameConstants.averageKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed * solarCheatMultiplier / GameConstants.avogadroConstant;
 
-            return dMolalSolarConcentration; // in mol / m2 / sec
+            var influenceRatio = CalculateInfluenceRatio(vessel, localStar);
+
+            var helioSphereRatio =  Math.Max(0,  1 - AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float) influenceRatio * 100));
+
+            return helioSphereRatio * dMolalSolarConcentration; // in mol / m2 / sec
         }
 
         private static double CalculateInterstellarMoleConcentration(Vessel vessel, double interstellarCheatMultiplier, CelestialBody localStar)
@@ -471,13 +475,19 @@ namespace FNPlugin
 
             var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * interstellarCheatMultiplier / GameConstants.avogadroConstant;
 
-            var influenceRation = vessel.mainBody == localStar ? 
-                !double.IsInfinity(vessel.mainBody.sphereOfInfluence) && vessel.mainBody.sphereOfInfluence > 0
-                    ? vessel.altitude / vessel.mainBody.sphereOfInfluence 
-                    : vessel.altitude / 1.345e+15 
-                : 0;
+            var influenceRatio = CalculateInfluenceRatio(vessel, localStar);
 
-            return interstellarHydrogenConcentration * AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)influenceRation * 100); // in mol / m2 / sec
+            return interstellarHydrogenConcentration * AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)influenceRatio * 100); // in mol / m2 / sec
+        }
+
+        private static double CalculateInfluenceRatio(Vessel vessel, CelestialBody localStar)
+        {
+            var influenceRatio = vessel.mainBody == localStar
+                ? !double.IsInfinity(vessel.mainBody.sphereOfInfluence) && vessel.mainBody.sphereOfInfluence > 0
+                    ? vessel.altitude/vessel.mainBody.sphereOfInfluence
+                    : vessel.altitude/1.345e+15
+                : 0;
+            return influenceRatio;
         }
 
         private static double CalculateCurrentAtmosphereConcentration(Vessel vessel)
