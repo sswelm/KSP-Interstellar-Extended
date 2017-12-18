@@ -263,7 +263,7 @@ namespace FNPlugin
             Fields["strReceivedPower"].guiActive = bIsEnabled;           
 
             solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(part.vessel.solarFlux, solarCheatMultiplier, solarWindSpeed);
-            interstellarDustMolesPerCubicMeter = CalculateInterstellarIonConcentration(interstellarCheatMultiplier);
+            interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarCheatMultiplier, localStar);
 
             var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
 
@@ -460,20 +460,24 @@ namespace FNPlugin
         {
             const int dAvgSolarWindPerCubM = 6 * 1000000; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
 
-            double dMolalSolarConcentration = (flux / GameConstants.averageKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed * solarCheatMultiplier / GameConstants.avogadroConstant;
+            var dMolalSolarConcentration = (flux / GameConstants.averageKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed * solarCheatMultiplier / GameConstants.avogadroConstant;
 
             return dMolalSolarConcentration; // in mol / m2 / sec
         }
 
-        private static double CalculateInterstellarIonConcentration(Vessel vessel, double interstellarCheatMultiplier)
+        private static double CalculateInterstellarMoleConcentration(Vessel vessel, double interstellarCheatMultiplier, CelestialBody localStar)
         {
             const double  dAverageInterstellarHydrogenPerCubM = 1 * 1000000;
 
             var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * interstellarCheatMultiplier / GameConstants.avogadroConstant;
 
-			var influenceRation = vessel.mainBody.sphereOfInfluence > 0 ? vessel.altitude / vessel.mainBody.sphereOfInfluence : 0; 
+            var influenceRation = vessel.mainBody == localStar ? 
+                !double.IsInfinity(vessel.mainBody.sphereOfInfluence) && vessel.mainBody.sphereOfInfluence > 0
+                    ? vessel.altitude / vessel.mainBody.sphereOfInfluence 
+                    : vessel.altitude / 1.345e+15 
+                : 0;
 
-            return interstellarHydrogenConcentration; // in mol / m2 / sec
+            return interstellarHydrogenConcentration * AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)influenceRation * 100); // in mol / m2 / sec
         }
 
         private static double CalculateCurrentAtmosphereConcentration(Vessel vessel)
@@ -652,9 +656,9 @@ namespace FNPlugin
 
             var solarWindGramCollectedPerSecond = solarWindMolesPerSquareMeterPerSecond * solarwindProductionModifiers * effectiveSurfaceAreaInSquareMeter * 1.9;
 
-            var dInterstellarIonsConcentrationPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter;
+            var dInterstellarIonsConcentrationPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter * (bIonizing ? 1 : 0.001);
 
-            var interstellarGramCollectedPerSecond = dInterstellarIonsConcentrationPerSquareMeter * effectiveSurfaceAreaInSquareMeter * 1.9;            
+            var interstellarGramCollectedPerSecond = dInterstellarIonsConcentrationPerSquareMeter * effectiveSurfaceAreaInSquareMeter * 1.9;
 
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
