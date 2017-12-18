@@ -465,11 +465,13 @@ namespace FNPlugin
             return dMolalSolarConcentration; // in mol / m2 / sec
         }
 
-        private static double CalculateInterstellarIonConcentration(double interstellarCheatMultiplier)
+        private static double CalculateInterstellarIonConcentration(Vessel vessel, double interstellarCheatMultiplier)
         {
             const double  dAverageInterstellarHydrogenPerCubM = 1 * 1000000;
 
             var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * interstellarCheatMultiplier / GameConstants.avogadroConstant;
+
+			var influenceRation = vessel.mainBody.sphereOfInfluence > 0 ? vessel.altitude / vessel.mainBody.sphereOfInfluence : 0; 
 
             return interstellarHydrogenConcentration; // in mol / m2 / sec
         }
