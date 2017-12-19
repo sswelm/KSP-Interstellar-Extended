@@ -109,7 +109,9 @@
 			HydrogenIonsPerCubeCm.Add(2000, 3.8e+7f);
 			HydrogenIonsPerCubeCm.Add(4000, 1.9e+5f);
 			HydrogenIonsPerCubeCm.Add(8000, 9.5e+2f);
-			HydrogenIonsPerCubeCm.Add(10000, 0);
+			HydrogenIonsPerCubeCm.Add(16000, 4.75f);
+			HydrogenIonsPerCubeCm.Add(32000, 2.375e-2f);
+			HydrogenIonsPerCubeCm.Add(64000, 0);
 		}
 
 		private void InitialiseParticlesHeliumnCubePerMeter()
@@ -159,7 +161,9 @@
 			ParticlesHeliumnPerCubePerCm.Add(2000.0f, 4.098E+03f);
 			ParticlesHeliumnPerCubePerCm.Add(4000.0f, 2.049E+01f);
 			ParticlesHeliumnPerCubePerCm.Add(8000.0f, 1.0245E-01f);
-			ParticlesHeliumnPerCubePerCm.Add(10000, 0f);
+			ParticlesHeliumnPerCubePerCm.Add(16000.0f, 5.1225e-4f);
+			ParticlesHeliumnPerCubePerCm.Add(32000.0f, 2.56125e-6f);
+			ParticlesHeliumnPerCubePerCm.Add(64000.0f, 0);
 		}
 
 		private void InitializeParticlesHydrogenCubeM()
@@ -259,7 +263,9 @@
 			ParticlesHydrogenCubePerMeter.Add(2000, 3.912e+8f);
 			ParticlesHydrogenCubePerMeter.Add(4000, 1.956e+6f);
 			ParticlesHydrogenCubePerMeter.Add(8000, 9.780e+3f);
-			ParticlesHydrogenCubePerMeter.Add(10000, 0);
+			ParticlesHydrogenCubePerMeter.Add(16000, 48.9f);
+			ParticlesHydrogenCubePerMeter.Add(32000, 2.445e-1f);
+			ParticlesHydrogenCubePerMeter.Add(64000, 0);
 		}
 
 		private void InitializeParticlesAtmosphereCurbeM()
@@ -324,7 +330,8 @@
 			ParticlesAtmosphereCubePerMeter.Add(2000, 1.03e+9f);
 			ParticlesAtmosphereCubePerMeter.Add(4000, 5.2e+6f);
 			ParticlesAtmosphereCubePerMeter.Add(8000, 2.6e+4f);
-			ParticlesAtmosphereCubePerMeter.Add(10000, 0);
+			ParticlesAtmosphereCubePerMeter.Add(16000, 130);
+			ParticlesAtmosphereCubePerMeter.Add(64000, 0);
 		}
 
 		private void InitializeDensityAtmosphereCubeCm()
@@ -408,7 +415,9 @@
 			MassDensityAtmosphereGramPerCubeCm.Add(2000, 2.9245E-20f);
 			MassDensityAtmosphereGramPerCubeCm.Add(4000, 1.46225E-22f);
 			MassDensityAtmosphereGramPerCubeCm.Add(8000, 7.31125E-25f);
-			MassDensityAtmosphereGramPerCubeCm.Add(10000, 0);
+			MassDensityAtmosphereGramPerCubeCm.Add(16000, 3.655625e-27f);
+			MassDensityAtmosphereGramPerCubeCm.Add(32000, 1.8278125e-29f);
+			MassDensityAtmosphereGramPerCubeCm.Add(64000, 0);
 		}
 	}
 }
