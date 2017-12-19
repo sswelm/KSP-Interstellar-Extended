@@ -7,7 +7,6 @@
 		public FloatCurve ParticlesHydrogenCubePerMeter { get; private set; }
 		public FloatCurve ParticlesHeliumnPerCubePerCm { get; private set; }
 		public FloatCurve HydrogenIonsPerCubeCm { get; private set; }
-
 		public FloatCurve InterstellarDensity { get; private set; }
 
 		private static AtmosphericFloatCurves _instance;
@@ -33,6 +32,8 @@
             InitialiseParticlesHeliumnCubePerMeter();
 
 			InitializeHydrogenIonsCubeCm();
+
+            InitializeInterstellarParticleDensity();
 		}
 
 		private void InitializeInterstellarParticleDensity()

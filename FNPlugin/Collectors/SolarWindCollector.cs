@@ -125,6 +125,8 @@ namespace FNPlugin
         protected string strReceivedPower = "";
         [KSPField(guiActive = true, guiName = "Magnetosphere shielding effect", guiUnits = " %")]
         protected string strMagnetoStrength = "";
+        [KSPField(guiActive = true, guiName = "Helio Sphere Ratio")]
+        protected double helioSphereRatio;
 
         // internals
         double effectiveSurfaceAreaInSquareMeter;
@@ -260,7 +262,9 @@ namespace FNPlugin
         {
             Events["ActivateCollector"].active = !bIsEnabled; // will activate the event (i.e. show the gui button) if the process is not enabled
             Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
-            Fields["strReceivedPower"].guiActive = bIsEnabled;           
+            Fields["strReceivedPower"].guiActive = bIsEnabled;
+
+            helioSphereRatio = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar));
 
             solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(vessel, solarCheatMultiplier, solarWindSpeed, localStar);
             interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarCheatMultiplier, localStar);
@@ -296,7 +300,7 @@ namespace FNPlugin
 
             var solarWindBuffer = part.Resources[solarWindResourceDefinition.name];
             if (solarWindBuffer != null)
-                solarWindBuffer.maxAmount = part.mass * TimeWarp.fixedDeltaTime;
+                solarWindBuffer.maxAmount = 10 * part.mass * TimeWarp.fixedDeltaTime;
 
             UpdateIonisationAnimation();
 
@@ -462,11 +466,11 @@ namespace FNPlugin
 
             var dMolalSolarConcentration = (vessel.solarFlux / GameConstants.averageKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed * solarCheatMultiplier / GameConstants.avogadroConstant;
 
-            var influenceRatio = CalculateInfluenceRatio(vessel, localStar);
+            var helioSphereRatio = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar));
 
-            var helioSphereRatio =  Math.Max(0,  1 - AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float) influenceRatio * 100));
+            var helioSphereModifier = Math.Max(0, 1 - AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)helioSphereRatio * 100));
 
-            return helioSphereRatio * dMolalSolarConcentration; // in mol / m2 / sec
+            return dMolalSolarConcentration * helioSphereModifier; // in mol / m2 / sec
         }
 
         private static double CalculateInterstellarMoleConcentration(Vessel vessel, double interstellarCheatMultiplier, CelestialBody localStar)
@@ -475,17 +479,19 @@ namespace FNPlugin
 
             var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * interstellarCheatMultiplier / GameConstants.avogadroConstant;
 
-            var influenceRatio = CalculateInfluenceRatio(vessel, localStar);
+            var helioSphereRatio = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar));
 
-            return interstellarHydrogenConcentration * AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)influenceRatio * 100); // in mol / m2 / sec
+            var interstellarDensityModifier = Math.Max(0, AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)helioSphereRatio * 100));
+
+            return interstellarHydrogenConcentration * interstellarDensityModifier; // in mol / m2 / sec
         }
 
-        private static double CalculateInfluenceRatio(Vessel vessel, CelestialBody localStar)
+        private static double CalculateHelioSphereRatio(Vessel vessel, CelestialBody localStar)
         {
             var influenceRatio = vessel.mainBody == localStar
                 ? !double.IsInfinity(vessel.mainBody.sphereOfInfluence) && vessel.mainBody.sphereOfInfluence > 0
                     ? vessel.altitude/vessel.mainBody.sphereOfInfluence
-                    : vessel.altitude/1.345e+15
+                    : vessel.altitude/1.345e+12
                 : 0;
             return influenceRatio;
         }
