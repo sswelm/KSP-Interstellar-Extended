@@ -7,7 +7,7 @@
 		public FloatCurve ParticlesHydrogenCubePerMeter { get; private set; }
 		public FloatCurve ParticlesHeliumnPerCubePerCm { get; private set; }
 		public FloatCurve HydrogenIonsPerCubeCm { get; private set; }
-		public FloatCurve InterstellarDensity { get; private set; }
+		public FloatCurve InterstellarDensityRatio { get; private set; }
 
 		private static AtmosphericFloatCurves _instance;
 
@@ -33,38 +33,48 @@
 
 			InitializeHydrogenIonsCubeCm();
 
-            InitializeInterstellarParticleDensity();
+            InitializeInterstellarDensityRatio();
 		}
 
-		private void InitializeInterstellarParticleDensity()
+		private void InitializeInterstellarDensityRatio()
 		{
-			if (InterstellarDensity != null) return;
+			if (InterstellarDensityRatio != null) return;
 
-			InterstellarDensity = new FloatCurve();
-			InterstellarDensity.Add(0, 0);
-			InterstellarDensity.Add(79, 0.0f);
-			InterstellarDensity.Add(80, 0.001f); // <== Termination Shock
-			InterstellarDensity.Add(81, 0.002f);
-			InterstellarDensity.Add(82, 0.004f);
-			InterstellarDensity.Add(83, 0.008f);
-			InterstellarDensity.Add(84, 0.016f);
-			InterstellarDensity.Add(85, 0.03125f);
-			InterstellarDensity.Add(86, 0.0625f);
-			InterstellarDensity.Add(87, 0.125f);
-			InterstellarDensity.Add(88, 0.25f);
-			InterstellarDensity.Add(89, 0.5f);
-			InterstellarDensity.Add(90, 1);  // <== Helio Pause
-			InterstellarDensity.Add(91, 2);
-			InterstellarDensity.Add(92, 4);
-			InterstellarDensity.Add(93, 8);
-			InterstellarDensity.Add(94, 16);
-			InterstellarDensity.Add(95, 32);
-			InterstellarDensity.Add(96, 64);
-			InterstellarDensity.Add(97, 100); //<== Hydrogen Wall
-			InterstellarDensity.Add(98, 33);
-			InterstellarDensity.Add(99, 11);
-			InterstellarDensity.Add(100, 1);
-			InterstellarDensity.Add(10000, 1);
+			InterstellarDensityRatio = new FloatCurve();
+			InterstellarDensityRatio.Add(0, 0);
+			InterstellarDensityRatio.Add(69, 0);
+			InterstellarDensityRatio.Add(70, 0.05f); // <== Termination Shock
+			InterstellarDensityRatio.Add(71, 0.1f);
+			InterstellarDensityRatio.Add(72, 0.2f);
+			InterstellarDensityRatio.Add(73, 0.3f);
+			InterstellarDensityRatio.Add(74, 0.4f);
+			InterstellarDensityRatio.Add(75, 0.5f);
+			InterstellarDensityRatio.Add(76, 0.6f);
+			InterstellarDensityRatio.Add(77, 0.7f);
+			InterstellarDensityRatio.Add(78, 0.8f);
+			InterstellarDensityRatio.Add(79, 0.9f);
+			InterstellarDensityRatio.Add(80, 1);  // <== Helio Pause
+			InterstellarDensityRatio.Add(81, 2);
+			InterstellarDensityRatio.Add(82, 4);
+			InterstellarDensityRatio.Add(83, 8);
+			InterstellarDensityRatio.Add(84, 16);
+			InterstellarDensityRatio.Add(85, 32);
+			InterstellarDensityRatio.Add(86, 64);
+			InterstellarDensityRatio.Add(87, 100); //<== Hydrogen Wall
+			InterstellarDensityRatio.Add(88, 1 + 33.3f);
+			InterstellarDensityRatio.Add(89, 1 + 11.1f);
+			InterstellarDensityRatio.Add(90, 1 + 3.7f);
+			InterstellarDensityRatio.Add(91, 1 + 1.234f);
+			InterstellarDensityRatio.Add(92, 1 + 0.412f);
+			InterstellarDensityRatio.Add(93, 1 + 0.137f);
+			InterstellarDensityRatio.Add(94, 1 + 0.05f);
+			InterstellarDensityRatio.Add(95, 1 + 0.015f);  
+			InterstellarDensityRatio.Add(96, 1 + 0.005f);
+			InterstellarDensityRatio.Add(97, 1 + 0.0017f);
+			InterstellarDensityRatio.Add(98, 1 + 5.65e-4f);
+			InterstellarDensityRatio.Add(99, 1 + 1.88e-4f); // <== Bow Shock
+			InterstellarDensityRatio.Add(100, 1);
+			InterstellarDensityRatio.Add(10000, 1);
 		}
 
 		private void InitializeHydrogenIonsCubeCm()

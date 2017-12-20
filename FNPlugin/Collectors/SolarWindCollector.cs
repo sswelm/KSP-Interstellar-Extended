@@ -280,7 +280,7 @@ namespace FNPlugin
 
             verticalSpeed = vessel.mainBody == localStar ? 0 : vessel.verticalSpeed;
             helioSphereRatio = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar));
-            interstellarDensityRatio = AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)helioSphereRatio * 100);
+            interstellarDensityRatio = AtmosphericFloatCurves.Instance.InterstellarDensityRatio.Evaluate((float)helioSphereRatio * 100);
             solarwindDensityRatio = Math.Max(0, 1 - interstellarDensityRatio);
             relativeSolarWindSpeed = solarwindDensityRatio * (solarWindSpeed - verticalSpeed);
 
