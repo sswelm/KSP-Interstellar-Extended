@@ -127,6 +127,8 @@ namespace FNPlugin
         protected string strMagnetoStrength = "";
         [KSPField(guiActive = true, guiName = "Helio Sphere Ratio")]
         protected double helioSphereRatio;
+        [KSPField(guiActive = true, guiName = "Belt Radiation Flux")]
+        protected double beltRadiationFlux;
 
         // internals
         double effectiveSurfaceAreaInSquareMeter;
@@ -148,6 +150,7 @@ namespace FNPlugin
         Animation deployAnimation;
         Animation ionisationAnimation;
         CelestialBody localStar;
+        CelestialBody homeworld; 
         //PartResource solarWindBuffer;
 
         PartResourceDefinition helium4GasResourceDefinition;
@@ -221,6 +224,8 @@ namespace FNPlugin
 
             localStar = GetCurrentStar();
 
+            homeworld = FlightGlobals.fetch.bodies.First(m => m.isHomeWorld == true);
+
             // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
             var maGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
             foreach (ModuleAnimateGeneric mag in maGlist)
@@ -268,6 +273,8 @@ namespace FNPlugin
 
             solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(vessel, solarCheatMultiplier, solarWindSpeed, localStar);
             interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarCheatMultiplier, localStar);
+
+            beltRadiationFlux = vessel.mainBody.GetBeltAntiparticles(homeworld, vessel.altitude, vessel.orbit.inclination);
 
             var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
 
@@ -555,7 +562,7 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereParticlesPerCubM = Math.Max(0, 0.5 * AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var atmosphereParticlesPerCubM = Math.Max(0, 0.5 * AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm / 100)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
             var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
@@ -645,6 +652,8 @@ namespace FNPlugin
                 dPowerRequirementsMw = 0;
             }
 
+            
+
             // set the GUI string to state the number of KWs received if the MW requirements were lower than 2, otherwise in MW
             strReceivedPower = dPowerRequirementsMw < 2
                 ? (dLastPowerPercentage * dPowerRequirementsMw * 1000).ToString("0.0") + " KW / " + (dPowerRequirementsMw * 1000).ToString("0.0") + " KW"
@@ -682,7 +691,7 @@ namespace FNPlugin
             var dSolarDustResourceChange = (solarWindGramCollectedPerSecond + interstellarGramCollectedPerSecond) * deltaTimeInSeconds * 1e-6 / solarWindResourceDefinition.density;
 
             // if the vessel has been out of focus, print out the collected amount for the player
-            if (offlineCollecting)
+            if (offlineCollecting && dSolarDustResourceChange > 0)
             {
                 var strNumberFormat = dSolarDustResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
@@ -696,7 +705,7 @@ namespace FNPlugin
             var dHydrogenResourceChange = dHydrogenCollectedPerSecond * 1e-6 / hydrogenResourceDefinition.density;
             dHydrogenResourceFlow = -part.RequestResource(hydrogenResourceDefinition.id, -dHydrogenResourceChange);
 
-            if (offlineCollecting)
+            if (offlineCollecting && dHydrogenResourceChange > 0)
             {
                 var strNumberFormat = dHydrogenResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
@@ -707,7 +716,7 @@ namespace FNPlugin
             var dHeliumResourceChange = dHeliumCollectedPerSecond * 1e-6 / helium4GasResourceDefinition.density;
             dHeliumResourceFlow = -part.RequestResource(helium4GasResourceDefinition.id, -dHeliumResourceChange);
 
-            if (offlineCollecting)
+            if (offlineCollecting && dHeliumResourceChange > 0)
             {
                 var strNumberFormat = dHeliumResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked

@@ -43,8 +43,7 @@ namespace FNPlugin
 
 	        double lat = vessel.mainBody.GetLatitude(vessel.transform.position);
 	        double vessel_avg_alt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2;
-	        double vessel_inclination = vessel.orbit.inclination;
-	        double flux = collectionMultiplier * 0.5 * (vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, vessel_inclination) + vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, 0.0));
+            double flux = collectionMultiplier * 0.5 * (vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, vessel.orbit.inclination) + vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, 0.0));
 	        double time_diff = Planetarium.GetUniversalTime() - last_active_time;
 	        double antimatter_to_add = time_diff * flux;
 	        part.RequestResource(antimatter_def.id, -antimatter_to_add, ResourceFlowMode.STACK_PRIORITY_SEARCH);
