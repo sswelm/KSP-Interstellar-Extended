@@ -72,7 +72,7 @@
 			InterstellarDensityRatio.Add(96, 1 + 0.005f);
 			InterstellarDensityRatio.Add(97, 1 + 0.0017f);
 			InterstellarDensityRatio.Add(98, 1 + 5.65e-4f);
-			InterstellarDensityRatio.Add(99, 1 + 1.88e-4f); // <== Bow Shock
+			InterstellarDensityRatio.Add(99, 1 + 1.88e-4f); // <== Bow Wave
 			InterstellarDensityRatio.Add(100, 1);
 			InterstellarDensityRatio.Add(10000, 1);
 		}

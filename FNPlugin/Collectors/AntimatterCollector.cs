@@ -41,11 +41,11 @@ namespace FNPlugin
 
 	        if (last_active_time == 0 || !(vessel.orbit.eccentricity < 1) || !active || !canCollect) return;
 
-	        double lat = vessel.mainBody.GetLatitude(vessel.transform.position);
-	        double vessel_avg_alt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2;
-            double flux = collectionMultiplier * 0.5 * (vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, vessel.orbit.inclination) + vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, 0.0));
-	        double time_diff = Planetarium.GetUniversalTime() - last_active_time;
-	        double antimatter_to_add = time_diff * flux;
+	        var lat = vessel.mainBody.GetLatitude(vessel.transform.position);
+	        var vessel_avg_alt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2;
+            var flux = collectionMultiplier * 0.5 * (vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, vessel.orbit.inclination) + vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, 0.0));
+	        var time_diff = Planetarium.GetUniversalTime() - last_active_time;
+	        var antimatter_to_add = time_diff * flux;
 	        part.RequestResource(antimatter_def.id, -antimatter_to_add, ResourceFlowMode.STACK_PRIORITY_SEARCH);
         }
 

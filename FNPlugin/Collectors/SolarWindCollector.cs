@@ -1,7 +1,7 @@
+using FNPlugin.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
-using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -809,10 +809,13 @@ namespace FNPlugin
 
                 
             }
+
         }
 
-
-
+        public override int getPowerPriority()
+        {
+            return 4;
+        }
     }
 }
 
