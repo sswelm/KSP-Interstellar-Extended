@@ -59,12 +59,14 @@ namespace FNPlugin
         public double collectMultiplier = 1;
         [KSPField]
         public double solarWindSpeed = 500000;              // Average Solar win speed 500 km/s
+        [KSPField] 
+        public double avgSolarWindPerCubM = 6000000;
 
         // GUI
         [KSPField(guiActive = true, guiName = "Effective Surface Area", guiFormat = "F3", guiUnits = " km\xB2")]
         protected double effectiveSurfaceAreaInSquareKiloMeter;
         [KSPField(guiActive = true, guiName = "Effective Diamter", guiFormat = "F3", guiUnits = " km")]
-        protected double effectiveDiamterInKilometer;
+        protected double effectiveDiameterInKilometer;
         [KSPField(guiActive = true, guiName = "Solar Wind Ions", guiUnits = " mol/m\xB2/s")]
         protected float fSolarWindConcentrationPerSquareMeter;
         [KSPField(guiActive = true, guiName = "Interstellar Ions", guiUnits = " mol/m\xB2/s")] 
@@ -129,6 +131,14 @@ namespace FNPlugin
         protected double helioSphereRatio;
         [KSPField(guiActive = true, guiName = "Belt Radiation Flux")]
         protected double beltRadiationFlux;
+        [KSPField(guiActive = true, guiName = "Vertical Speed")]
+        protected double verticalSpeed;
+        [KSPField(guiActive = true, guiName = "Relative Solar Speed")]
+        protected double relativeSolarWindSpeed;
+        [KSPField(guiActive = true, guiName = "Interstellar Density Ratio")]
+        protected double interstellarDensityRatio;
+        [KSPField(guiActive = true, guiName = "SolarWind Density Ratio")]
+        protected double solarwindDensityRatio;
 
         // internals
         double effectiveSurfaceAreaInSquareMeter;
@@ -151,7 +161,7 @@ namespace FNPlugin
         Animation ionisationAnimation;
         CelestialBody localStar;
         CelestialBody homeworld; 
-        //PartResource solarWindBuffer;
+        PartResource solarWindBuffer;
 
         PartResourceDefinition helium4GasResourceDefinition;
         PartResourceDefinition lqdHelium4ResourceDefinition;
@@ -220,11 +230,10 @@ namespace FNPlugin
             lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium4);
             solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.SolarWind);
             hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
-            //solarWindBuffer = part.Resources.get;
+            solarWindBuffer = part.Resources[solarWindResourceDefinition.name];
 
             localStar = GetCurrentStar();
-
-            homeworld = FlightGlobals.fetch.bodies.First(m => m.isHomeWorld == true);
+            homeworld = FlightGlobals.GetHomeBody();
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
             var maGlist = part.FindModulesImplementing<ModuleAnimateGeneric>();
@@ -269,18 +278,20 @@ namespace FNPlugin
             Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
             Fields["strReceivedPower"].guiActive = bIsEnabled;
 
+            verticalSpeed = vessel.mainBody == localStar ? 0 : vessel.verticalSpeed;
             helioSphereRatio = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar));
+            interstellarDensityRatio = AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)helioSphereRatio * 100);
+            solarwindDensityRatio = Math.Max(0, 1 - interstellarDensityRatio);
+            relativeSolarWindSpeed = solarwindDensityRatio * (solarWindSpeed - verticalSpeed);
 
-            solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(vessel, solarCheatMultiplier, solarWindSpeed, localStar);
-            interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarCheatMultiplier, localStar);
+            solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(avgSolarWindPerCubM * solarCheatMultiplier, vessel, relativeSolarWindSpeed);
+            interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarCheatMultiplier, interstellarDensityRatio);
 
             beltRadiationFlux = vessel.mainBody.GetBeltAntiparticles(homeworld, vessel.altitude, vessel.orbit.inclination);
-
+            
             var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
-
             var dHydrogenParticleConcentration = CalculateCurrentHydrogenParticleConcentration(vessel);
             var dHeliumParticleConcentration = CalculateCurrentHeliumParticleConcentration(vessel);
-
             var dIonizedHydrogenConcentration = CalculateCurrentHydrogenIonsConcentration(vessel);
             var dIonizedHeliumConcentration = CalculateCurrentHeliumIonsConcentration(vessel);
 
@@ -305,7 +316,6 @@ namespace FNPlugin
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
-            var solarWindBuffer = part.Resources[solarWindResourceDefinition.name];
             if (solarWindBuffer != null)
                 solarWindBuffer.maxAmount = 10 * part.mass * TimeWarp.fixedDeltaTime;
 
@@ -353,7 +363,7 @@ namespace FNPlugin
          */
         protected CelestialBody GetCurrentStar()
         {
-            int iDepth = 0;
+            var iDepth = 0;
             var star = FlightGlobals.currentMainBody;
             while ((iDepth < 10) && (star.GetTemperature(0) < 2000))
             {
@@ -467,28 +477,22 @@ namespace FNPlugin
         }
 
         // calculates solar wind concentration
-        private static double CalculateSolarwindIonConcentration(Vessel vessel, double solarCheatMultiplier, double solarWindSpeed, CelestialBody localStar)
+        private static double CalculateSolarwindIonConcentration(double solarwindDensity,   Vessel vessel, double solarWindSpeed)
         {
-            const int dAvgSolarWindPerCubM = 6 * 1000000; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
+            //const int dAvgSolarWindPerCubM = 6 * 1000000; // various sources differ, most state that there are around 6 particles per cm^3, so around 6000000 per m^3 (some sources go up to 10/cm^3 or even down to 2/cm^3, most are around 6/cm^3).
 
-            var dMolalSolarConcentration = (vessel.solarFlux / GameConstants.averageKerbinSolarFlux) * dAvgSolarWindPerCubM * solarWindSpeed * solarCheatMultiplier / GameConstants.avogadroConstant;
+            var dMolalSolarConcentration = (vessel.solarFlux / GameConstants.averageKerbinSolarFlux) * solarwindDensity * solarWindSpeed / GameConstants.avogadroConstant;
 
-            var helioSphereRatio = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar));
-
-            var helioSphereModifier = Math.Max(0, 1 - AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)helioSphereRatio * 100));
-
-            return dMolalSolarConcentration * helioSphereModifier; // in mol / m2 / sec
+            return Math.Abs(dMolalSolarConcentration); // in mol / m2 / sec
         }
 
-        private static double CalculateInterstellarMoleConcentration(Vessel vessel, double interstellarCheatMultiplier, CelestialBody localStar)
+        private static double CalculateInterstellarMoleConcentration(Vessel vessel, double interstellarCheatMultiplier, double interstellarDensity)
         {
             const double  dAverageInterstellarHydrogenPerCubM = 1 * 1000000;
 
             var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM * interstellarCheatMultiplier / GameConstants.avogadroConstant;
 
-            var helioSphereRatio = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar));
-
-            var interstellarDensityModifier = Math.Max(0, AtmosphericFloatCurves.Instance.InterstellarDensity.Evaluate((float)helioSphereRatio * 100));
+            var interstellarDensityModifier = Math.Max(0, interstellarDensity);
 
             return interstellarHydrogenConcentration * interstellarDensityModifier; // in mol / m2 / sec
         }
@@ -673,10 +677,13 @@ namespace FNPlugin
 
             effectiveSurfaceAreaInSquareMeter = surfaceArea + (magneticArea * powerPercentage * 0.01);
             effectiveSurfaceAreaInSquareKiloMeter = effectiveSurfaceAreaInSquareMeter * 1e-6;
-            effectiveDiamterInKilometer = 2 * Math.Sqrt(effectiveSurfaceAreaInSquareKiloMeter / Math.PI);
+            effectiveDiameterInKilometer = 2 * Math.Sqrt(effectiveSurfaceAreaInSquareKiloMeter / Math.PI);
 
-            Vector3d solarDirectionVector = localStar.transform.position - vessel.transform.position;
-            solarWindAngleOfAttackRatio =  Math.Max(0, Vector3d.Dot(part.transform.up, solarDirectionVector.normalized));
+            Vector3d solarWindDirectionVector = localStar.transform.position - vessel.transform.position;
+            if (relativeSolarWindSpeed < 0)
+                solarWindDirectionVector *= -1;
+
+            solarWindAngleOfAttackRatio =  Math.Max(0, Vector3d.Dot(part.transform.up, solarWindDirectionVector.normalized));
             solarwindProductionModifiers = collectMultiplier * effectiveness * dShieldedEffectiveness * dLastPowerPercentage * solarWindAngleOfAttackRatio;
 
             var solarWindGramCollectedPerSecond = solarWindMolesPerSquareMeterPerSecond * solarwindProductionModifiers * effectiveSurfaceAreaInSquareMeter * 1.9;
@@ -763,7 +770,7 @@ namespace FNPlugin
                 var orbitalDragDeltaVv = TimeWarp.fixedDeltaTime * part.vessel.obt_velocity.normalized * -dEffectiveOrbitalVesselDragInNewton / totalVesselMassInKg;
                 vessel.orbit.Perturb(orbitalDragDeltaVv, universalTime);
 
-                var solarPushDeltaVv = TimeWarp.fixedDeltaTime * solarDirectionVector.normalized * -fSolarWindVesselForceInNewton / totalVesselMassInKg;
+                var solarPushDeltaVv = TimeWarp.fixedDeltaTime * solarWindDirectionVector.normalized * -fSolarWindVesselForceInNewton / totalVesselMassInKg;
                 vessel.orbit.Perturb(solarPushDeltaVv, universalTime);
             }
             else
@@ -773,7 +780,7 @@ namespace FNPlugin
 
                 var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
                 vesselRegitBody.AddForce(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3, ForceMode.Force);
-                vesselRegitBody.AddForce(solarDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3, ForceMode.Force);
+                vesselRegitBody.AddForce(solarWindDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3, ForceMode.Force);
 
                 //vesselRegitBody.AddForceAtPosition(vesselRegitBody.centerOfMass, (part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3));
                 //var totalMass = part.vessel.totalMass;
