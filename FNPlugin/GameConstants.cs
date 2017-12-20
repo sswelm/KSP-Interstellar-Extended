@@ -19,6 +19,7 @@ namespace FNPlugin
         public const double aluminiumElectrolysisEnergyPerTon = 35485.714;
         public const double pechineyUgineKuhlmannEnergyPerTon = 1021;
         public const double EarthAtmospherePressureAtSeaLevel = 101.325;
+        public const double EarthRadius = 6371000;
         public const double aluminiumElectrolysisMassRatio = 1.5;
         public const double deuterium_abudance = 0.00015625;
         public const double deuterium_timescale = 0.0016667;

@@ -24,8 +24,10 @@ namespace FNPlugin
         protected bool bIsExtended = false;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Ionizing"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         protected bool bIonizing = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Power"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Power"), UI_FloatRange(stepIncrement = 1f/3f, maxValue = 100, minValue = 0)]
         protected float powerPercentage = 100;
+        //[KSPField(isPersistant = true, guiActive = true, guiName = "Drag <=> Collect"), UI_FloatRange(stepIncrement = 1f/3f, maxValue = 100, minValue = 0)]
+        //protected float collectPercentage = 100;
 
         // Part properties
         [KSPField(guiActiveEditor = false, guiName = "Surface area", guiUnits = " km\xB2")]
@@ -98,7 +100,7 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Interstellar Drag", guiUnits = " N/m\xB2")]
         protected float fInterstellarDustDragInNewton;
 
-        [KSPField(guiActive = true, guiName = "Max Orbital Drag", guiUnits = " kN")]
+        [KSPField(guiActive = false, guiName = "Max Orbital Drag", guiUnits = " kN")]
         protected float fMaxOrbitalVesselDragInKiloNewton;
         [KSPField(guiActive = true, guiName = "Orbital Drag on Vessel", guiUnits = " kN")]
         protected float fEffectiveOrbitalVesselDragInKiloNewton;
@@ -280,7 +282,7 @@ namespace FNPlugin
 
             verticalSpeed = vessel.mainBody == localStar ? 0 : vessel.verticalSpeed;
             helioSphereRatio = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar));
-            interstellarDensityRatio = AtmosphericFloatCurves.Instance.InterstellarDensityRatio.Evaluate((float)helioSphereRatio * 100);
+            interstellarDensityRatio = Math.Max(0, AtmosphericFloatCurves.Instance.InterstellarDensityRatio.Evaluate((float)helioSphereRatio * 100));
             solarwindDensityRatio = Math.Max(0, 1 - interstellarDensityRatio);
             relativeSolarWindSpeed = solarwindDensityRatio * (solarWindSpeed - verticalSpeed);
 
@@ -513,9 +515,14 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesAtmosphereCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
+            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
 
-            var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+            var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 : comparibleEarthAltitudeInKm <= 1000 
+                ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesAtmosphereCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm))
+                :  2.06e+11f * (1 / (Math.Pow(20,(comparibleEarthAltitudeInKm - 1000) / 1000 ))) ;            
+
+            var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
             return atmosphereConcentration;
         }
@@ -526,9 +533,14 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHydrogenCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
+            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
 
-            var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+            var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 : comparibleEarthAltitudeInKm <= 1000
+                ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHydrogenCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm))
+                : 2.101e+13f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));            
+
+            var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
             return atmosphereConcentration;
         }
@@ -539,9 +551,14 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereParticlesPerCubM = Math.Max(0, 1e+6 * AtmosphericFloatCurves.Instance.ParticlesHeliumnPerCubePerCm.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
+            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
 
-            var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+            var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 : comparibleEarthAltitudeInKm <= 1000
+                ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHeliumnPerCubePerCm.Evaluate((float)comparibleEarthAltitudeInKm))
+                : 8.196E+05f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
+
+            var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
             return atmosphereConcentration;
         }
@@ -552,9 +569,14 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereParticlesPerCubM = Math.Max(0, AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
+            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
 
-            var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+            var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 : comparibleEarthAltitudeInKm <= 1240
+                ? Math.Max(0, AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
+                : 6.46e+9f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1240) / 1240)));
+
+            var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
             return atmosphereConcentration;
         }
@@ -566,9 +588,14 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereParticlesPerCubM = Math.Max(0, 0.5 * AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm / 100)) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
+            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
 
-            var atmosphereConcentration = atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+            var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 : comparibleEarthAltitudeInKm <= 1240
+                ? Math.Max(0, AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
+                : 6.46e+9f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1240) / 1240)));            
+
+            var atmosphereConcentration = 0.5 * 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
 
             return atmosphereConcentration;
         }
@@ -579,8 +606,14 @@ namespace FNPlugin
                 return 0;
 
             var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphericDensityKgPerSquareMeter = Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereGramPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm)) * 1e+3;
-            return atmosphericDensityKgPerSquareMeter;
+            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
+            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
+
+            var atmosphericDensityGramPerSquareCm = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 : comparibleEarthAltitudeInKm <= 1000
+                ? Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereGramPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
+                : 5.849E-18f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
+
+            return  1e+3 * atmosphereMultiplier * atmosphericDensityGramPerSquareCm;
         }
 
         // calculates the distance to sun
