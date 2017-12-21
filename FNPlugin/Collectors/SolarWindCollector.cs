@@ -131,8 +131,8 @@ namespace FNPlugin
         protected string strMagnetoStrength = "";
         [KSPField(guiActive = true, guiName = "Helio Sphere Ratio")]
         protected double helioSphereRatio;
-        [KSPField(guiActive = true, guiName = "Belt Radiation Flux")]
-        protected double beltRadiationFlux;
+        //[KSPField(guiActive = true, guiName = "Belt Radiation Flux")]
+        //protected double beltRadiationFlux;
         [KSPField(guiActive = true, guiName = "Vertical Speed")]
         protected double verticalSpeed;
         [KSPField(guiActive = true, guiName = "Relative Solar Speed")]
@@ -289,7 +289,7 @@ namespace FNPlugin
             solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(avgSolarWindPerCubM * solarCheatMultiplier, vessel, relativeSolarWindSpeed);
             interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarCheatMultiplier, interstellarDensityRatio);
 
-            beltRadiationFlux = vessel.mainBody.GetBeltAntiparticles(homeworld, vessel.altitude, vessel.orbit.inclination);
+            //beltRadiationFlux = vessel.mainBody.GetBeltAntiparticles(homeworld, vessel.altitude, vessel.orbit.inclination);
             
             var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
             var dHydrogenParticleConcentration = CalculateCurrentHydrogenParticleConcentration(vessel);
