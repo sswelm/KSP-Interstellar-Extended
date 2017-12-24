@@ -325,6 +325,7 @@ namespace FNPlugin
 		protected GUIStyle text_black_style;
 
 		private const int labelWidth = 200;
+        private const int wideLabelWidth = 275;
 		private const int valueWidthWide = 100;
 		private const int ValueWidthNormal = 65;
         private const int ValueWidthShort = 30;
@@ -1502,46 +1503,24 @@ namespace FNPlugin
 
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Transmitter", bold_black_style, GUILayout.Width(labelWidth));
-                GUILayout.Label("Receiver Part", bold_black_style, GUILayout.Width(labelWidth));
-                GUILayout.Label("Relay Count", bold_black_style, GUILayout.Width(valueWidthWide));
-                GUILayout.Label("Relay 1", bold_black_style, GUILayout.Width(labelWidth));
-                GUILayout.Label("Relay 2", bold_black_style, GUILayout.Width(labelWidth));
-                GUILayout.Label("Relay 3", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Relay Nr", bold_black_style, GUILayout.Width(ValueWidthShort));
+                GUILayout.Label("Relay Name", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Relay Location", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Max Capacity", bold_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.EndHorizontal();
 
                 foreach (ReceivedPowerData receivedPowerData in received_power.Values)
                 {
-                    if (receivedPowerData.Relays.Count > 0)
+                    for (int r = 0; r < receivedPowerData.Relays.Count; r++)
                     {
+                        var vesselPersistance = receivedPowerData.Relays[r];
+
                         GUILayout.BeginHorizontal();
+                        GUILayout.Label(r.ToString(), text_black_style, GUILayout.Width(ValueWidthShort));
                         GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, text_black_style, GUILayout.Width(labelWidth));
-                        GUILayout.Label(receivedPowerData.Receiver.part.partInfo.title, text_black_style, GUILayout.Width(labelWidth));
-                        GUILayout.Label(receivedPowerData.Relays.Count.ToString(CultureInfo.InvariantCulture), text_black_style, GUILayout.Width(valueWidthWide));
-
-                        if (receivedPowerData.Relays.Count > 0)
-                        {
-                            var relaydata = receivedPowerData.Relays[0].Vessel.name + " (" + PowerToText(receivedPowerData.Relays[0].PowerCapacity);
-                            GUILayout.Label(relaydata, text_black_style, GUILayout.Width(labelWidth));
-                        }
-                        else
-                            GUILayout.Label("", text_black_style, GUILayout.Width(labelWidth));
-
-                        if (receivedPowerData.Relays.Count > 1)
-                        {
-                            var relaydata = receivedPowerData.Relays[1].Vessel.name + " (" + PowerToText(receivedPowerData.Relays[1].PowerCapacity);
-                            GUILayout.Label(relaydata, text_black_style, GUILayout.Width(labelWidth));
-                        }
-                        else
-                            GUILayout.Label("", text_black_style, GUILayout.Width(labelWidth));
-
-                        if (receivedPowerData.Relays.Count > 2)
-                        {
-                            var relaydata = receivedPowerData.Relays[2].Vessel.name + " (" + PowerToText(receivedPowerData.Relays[2].PowerCapacity);
-                            GUILayout.Label(relaydata, text_black_style, GUILayout.Width(labelWidth));
-                        }
-                        else
-                            GUILayout.Label("", text_black_style, GUILayout.Width(labelWidth));
-
+                        GUILayout.Label(vesselPersistance.Vessel.name, text_black_style, GUILayout.Width(wideLabelWidth));
+                        GUILayout.Label(vesselPersistance.Vessel.mainBody.name + " @ " + DistanceToText(vesselPersistance.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
+                        GUILayout.Label(PowerToText(vesselPersistance.PowerCapacity * powerMult), GUILayout.Width(ValueWidthNormal));
                         GUILayout.EndHorizontal();
                     }
                 }
@@ -1865,7 +1844,7 @@ namespace FNPlugin
 
                         // take into account maximum route capacity
                         var beamNetworkPower = beamedPowerData.Relays != null && beamedPowerData.Relays.Count > 0
-                            ? Math.Min(remainingPowerInBeam, beamedPowerData.Relays.Min(m => m.PowerCapacity))
+                            ? Math.Min(remainingPowerInBeam, beamedPowerData.Relays.Min(m => m.PowerCapacity) * powerMult)
                             : remainingPowerInBeam;
 
                         // substract from remaining power 
@@ -2241,7 +2220,7 @@ namespace FNPlugin
 						possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData)); 
 					}
 
-					var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency ==  possibleWavelengths.Max(n => n.Efficiency));
+					var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
 
 					if (mostEfficientWavelength != null)
 					{
@@ -2290,8 +2269,7 @@ namespace FNPlugin
 						possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
 					}
 
-					var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null :
-						possibleWavelengths.SingleOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
+					var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
 
 					if (mostEfficientWavelength != null)
 					{
@@ -2367,8 +2345,7 @@ namespace FNPlugin
 								possibleWavelengths.Add(new MicrowaveRoute(efficiencyForRoute, newDistance, relayRouteFacingFactor, spotsize, transmitterWavelenghtData, relayPersistance));
 							}
 
-							 var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null :
-									possibleWavelengths.SingleOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
+							 var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
 
 							if (mostEfficientWavelength == null) continue;
 
@@ -2412,8 +2389,7 @@ namespace FNPlugin
 								possibleWavelengths.Add(new MicrowaveRoute(efficiencyForRoute, relayToNextRelayDistance, relayRouteFacingFactor, spotsize, transmitterWavelenghtData, relayPersistance));
 							}
 
-							var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null :
-								possibleWavelengths.SingleOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
+							var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
 
 							if (mostEfficientWavelength != null)
 							{

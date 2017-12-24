@@ -27,7 +27,6 @@ namespace FNPlugin.Refinery
         double _nitrogen_production_rate;
         double _neon_production_rate;
 
-
         string _solar_wind_resource_name;
         string _hydrogen_resource_name;
         string _deuterium_resource_name;
@@ -41,10 +40,11 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Solar Wind Process"; } }
 
-        public bool HasActivityRequirements {
+        public bool HasActivityRequirements 
+        {
             get
             {
-                return _part.GetConnectedResources(_solar_wind_resource_name).Any(rs => rs.amount > 0);
+                return _part.GetConnectedResources(_solar_wind_resource_name).Any(rs => rs.maxAmount > 0);
             }
         }
 
@@ -315,11 +315,14 @@ namespace FNPlugin.Refinery
                 _status = "Processing of Solar Wind Particles Ongoing";
             else if (CurrentPower <= 0.01*PowerRequirements)
                 _status = "Insufficient Power";
+            else if (_maxCapacitySolarWindMass <= float.MinValue)
+                _status = "No Solar Wind Particles Available";
             else
                 _status = "Insufficient Storage, try allowing overflow";
         }
 
-        public void PrintMissingResources() {
+        public void PrintMissingResources() 
+        {
             ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.SolarWind, 3.0f, ScreenMessageStyle.UPPER_CENTER);
         }
     }

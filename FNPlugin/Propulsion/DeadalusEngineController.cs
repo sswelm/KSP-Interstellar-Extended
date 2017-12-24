@@ -50,7 +50,7 @@ namespace FNPlugin
         public string radhazardstr = "";
         [KSPField(guiActiveEditor = true, guiName = "Engine Mass", guiUnits = " t")]
         public float partMass = 1;
-        [KSPField(guiActive = false, guiName = "Fusion Ratio", guiFormat = "F6")]
+        [KSPField(guiActive = true, guiName = "Fusion Ratio", guiFormat = "F6")]
         public double fusionRatio = 0;
         [KSPField(guiActive = false, guiName = "Recieved Ratio", guiFormat = "F6")]
         public double recievedRatio = 0;
@@ -68,7 +68,7 @@ namespace FNPlugin
         public double massFlowRateTonPerHour;
         [KSPField(guiActive = false, guiName = "Fuel Usage", guiFormat = "F2", guiUnits = " L/day")]
         public double fusionFuelUsageDay = 0;
-        [KSPField(guiActive = false, guiName = "Stored Throtle")]
+        [KSPField(guiActive = true, guiName = "Stored Throtle")]
         public float storedThrotle = 0;
         [KSPField(guiActive = true, guiName = "Max Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
         public double effectiveMaxThrustInKiloNewton = 0;
@@ -413,6 +413,9 @@ namespace FNPlugin
 
                 if (throttle > 0 && !this.vessel.packed)
                 {
+                    if (part.vessel.geeForce <= 2)
+                        part.vessel.IgnoreGForces(1);
+
                     fusionRatio = ProcessPowerAndWasteHeat(throttle);
 
                     // Update FuelFlow
@@ -499,7 +502,7 @@ namespace FNPlugin
 
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, float vesselMass)
         {
-            var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust;
+            var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
             var timeDialationEngineIsp = timeDilation * engineIsp;
 
             double demandMass;
@@ -535,11 +538,10 @@ namespace FNPlugin
                 ? requestedPower
                 : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            var plasmaRatio = effectivePowerRequirement > 0 ? recievedPower / effectivePowerRequirement : 0;
+            var plasmaRatio = effectivePowerRequirement > 0 ? recievedPower / requestedPower : 0;
             var wasteheatFusionRatio = plasmaRatio >= 1 ? 1 : plasmaRatio > 0.01 ? plasmaRatio : 0;
 
             powerUsage = (recievedPower / 1000d).ToString("0.000") + " GW / " + (effectivePowerRequirement * 0.001).ToString("0.000") + " GW";
-
 
             if (!CheatOptions.IgnoreMaxTemperature)
             {
