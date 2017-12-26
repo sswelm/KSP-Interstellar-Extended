@@ -1074,7 +1074,7 @@ namespace FNPlugin
                 electrical_power_currently_needed = currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling;
             }
 
-            return electrical_power_currently_needed;
+            return outputPower > 1 || attachedPowerSource.MinimumPower > 0 || electrical_power_currently_needed > attachedPowerSource.MaximumPower * 0.01 ? electrical_power_currently_needed : 0;
         }
 
         private void PowerDown()

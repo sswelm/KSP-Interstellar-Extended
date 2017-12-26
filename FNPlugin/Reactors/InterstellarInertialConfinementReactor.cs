@@ -59,6 +59,7 @@ namespace FNPlugin
 
         BaseField isChargingField;
         BaseField accumulatedChargeStrField;
+        PartResourceDefinition primaryInputResourceDefinition;
         PartResourceDefinition secondaryInputResourceDefinition;
 
         public override double PlasmaModifier
@@ -91,6 +92,10 @@ namespace FNPlugin
 
                 UnityEngine.Debug.LogWarning("[KSPI] - InterstellarInertialConfinementReactor.OnStart allowJumpStart");
             }
+
+            primaryInputResourceDefinition = !string.IsNullOrEmpty(primaryInputResource)
+                ? PartResourceLibrary.Instance.GetDefinition(primaryInputResource)
+                : null;
 
             secondaryInputResourceDefinition = !string.IsNullOrEmpty(secondaryInputResource)
                 ? PartResourceLibrary.Instance.GetDefinition(secondaryInputResource)
@@ -240,16 +245,17 @@ namespace FNPlugin
             if (!CheatOptions.InfiniteElectricity && primaryPowerRequest > 0)
             {
                 primaryPowerReceived = usePowerManagerForPrimaryInputPower
-                    ? consumeFNResourcePerSecond(primaryPowerRequest, primaryInputResource)
-                    : part.RequestResource(primaryInputResource, primaryPowerRequest * timeWarpFixedDeltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW) / timeWarpFixedDeltaTime;
+                    ? consumeFNResourcePerSecondBuffered(primaryPowerRequest, primaryInputResource, 0.1)
+                    : part.RequestResource(primaryInputResourceDefinition.id, primaryPowerRequest * timeWarpFixedDeltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW) / timeWarpFixedDeltaTime;
             }
             else
                 primaryPowerReceived = primaryPowerRequest;
 
+            // calculate effective primary power ratio
             var powerReceived = primaryInputMultiplier > 0 ? primaryPowerReceived / primaryInputMultiplier : 0;
-            var powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1; 
+            var powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1;
 
-            // retreive any shortage from secondary buffer
+            // retrieve any shortage from secondary buffer
             if (secondaryInputMultiplier > 0 && secondaryInputResourceDefinition != null && !CheatOptions.InfiniteElectricity && IsEnabled && powerReceived < powerRequested)
             {
                 double currentSecondaryRatio;

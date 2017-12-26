@@ -8,6 +8,7 @@
 		public FloatCurve ParticlesHeliumnPerCubePerCm { get; private set; }
 		public FloatCurve HydrogenIonsPerCubeCm { get; private set; }
 		public FloatCurve InterstellarDensityRatio { get; private set; }
+        public FloatCurve IonSolarMinimumDayTimeCubeCm { get; private set; }
 
 		private static AtmosphericFloatCurves _instance;
 
@@ -23,6 +24,8 @@
 
 		private void InitializeAtmosphereParticles()
 		{
+            InitializeIonSolarMinimumDayTimeCubeCm();
+
 			InitializeDensityAtmosphereCubeCm();
 
 			InitializeParticlesAtmosphereCurbeM();
@@ -35,6 +38,51 @@
 
             InitializeInterstellarDensityRatio();
 		}
+
+        private void InitializeIonSolarMinimumDayTimeCubeCm()
+        {
+            if (IonSolarMinimumDayTimeCubeCm != null) return;
+
+            IonSolarMinimumDayTimeCubeCm = new FloatCurve();
+            IonSolarMinimumDayTimeCubeCm.Add(0, 0);
+            IonSolarMinimumDayTimeCubeCm.Add(50, 0);
+            IonSolarMinimumDayTimeCubeCm.Add(5.84262011243010e+001f, 1.03692663828734e+001f);
+            IonSolarMinimumDayTimeCubeCm.Add(6.00542440281892e+001f, 1.72274291476994e+001f);
+            IonSolarMinimumDayTimeCubeCm.Add(6.34476899181606e+001f, 4.75516240683401e+001f);
+            IonSolarMinimumDayTimeCubeCm.Add(6.76498143956718e+001f, 1.05589819443358e+002f);
+            IonSolarMinimumDayTimeCubeCm.Add(7.01748267991766e+001f, 2.02808715380246e+002f);
+            IonSolarMinimumDayTimeCubeCm.Add(7.34640343579081e+001f, 4.18839125445748e+002f);
+            IonSolarMinimumDayTimeCubeCm.Add(8.05121871190212e+001f, 1.03692663828734e+003f);
+            IonSolarMinimumDayTimeCubeCm.Add(8.35172843676226e+001f, 3.19107497292355e+003f);
+            IonSolarMinimumDayTimeCubeCm.Add(8.82365409325018e+001f, 1.09488896512769e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(9.23723302266039e+001f, 2.18063348750633e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(9.75919530763632e+001f, 5.02096739961446e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.04055443478603e+002f, 8.34180133250633e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.08932690303828e+002f, 9.64388379154446e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.15088078589484e+002f, 1.07521685318989e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.21591285375184e+002f, 1.19878184595838e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.33256775315053e+002f, 1.33654705089111e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.47385525613502e+002f, 1.54517039269415e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.57146831747898e+002f, 1.78635801924574e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.67554626722040e+002f, 2.22053024501554e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.80295922340581e+002f, 2.76022752209027e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(1.90483786105181e+002f, 2.96784315039004e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(2.03099479146079e+002f, 3.55779649033949e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(2.18543699066457e+002f, 4.26502184423342e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(2.35162338192397e+002f, 4.93075456902875e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(2.53044702456961e+002f, 5.30163041156278e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(2.62489532691202e+002f, 5.30163041156278e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(2.82449928880915e+002f, 4.75516240683401e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(3.06725324600799e+002f, 3.68917395443824e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(3.55147363347329e+002f, 2.06519293147963e+005f);
+            IonSolarMinimumDayTimeCubeCm.Add(4.26562128488569e+002f, 9.64388379154446e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(5.07665101723574e+002f, 5.59798197912328e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(5.56370583524392e+002f, 4.34305446331671e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(6.44203559128576e+002f, 3.02214265517838e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(7.12506211708764e+002f, 2.43123406199979e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(8.17464553275307e+002f, 1.81904113317882e+004f);
+            IonSolarMinimumDayTimeCubeCm.Add(1000, 1.17724306767693e+004f);
+        }
 
 		private void InitializeInterstellarDensityRatio()
 		{

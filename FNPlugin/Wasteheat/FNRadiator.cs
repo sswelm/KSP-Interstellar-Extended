@@ -566,15 +566,17 @@ namespace FNPlugin
 
                 deployAnim[animName].normalizedTime = radiatorIsEnabled ? 1 : 0;
             }
-
-            _moduleDeployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
+          
             _moduleActiveRadiator = part.FindModuleImplementing<ModuleActiveRadiator>();
             if (_moduleActiveRadiator != null)
             {
                 _moduleActiveRadiator.Events["Activate"].guiActive = false;
                 _moduleActiveRadiator.Events["Shutdown"].guiActive = false;
-                radiatorState = _moduleDeployableRadiator.deployState;
             }
+
+            _moduleDeployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
+            if (_moduleDeployableRadiator != null)
+                radiatorState = _moduleDeployableRadiator.deployState;
 
             BaseField radiatorfield = Fields["radiatorIsEnabled"];
             radiatorfield.guiActive = showControls;
