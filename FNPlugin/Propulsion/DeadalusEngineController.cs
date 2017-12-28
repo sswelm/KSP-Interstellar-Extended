@@ -26,8 +26,6 @@ namespace FNPlugin
         public double vesselLifetime;
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Maximise Thrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool maximizeThrust = true;
-        [KSPField(isPersistant = true, guiActive = false, guiName = "Initial Speed")]
-        public double initialSpeed;
 
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Power Usage")]
         public string powerUsage;
@@ -75,7 +73,9 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Max Effective Isp", guiFormat = "F2", guiUnits = "s")]
         public double effectiveIsp = 0;
         [KSPField(guiActive = false, guiName = "Fuel Remaining", guiFormat = "F3", guiUnits = "%")]
-        private double percentageFuelRemaining;
+        public double percentageFuelRemaining;
+        [KSPField(guiActive = true, guiName = "World Space Vel", guiFormat = "F3", guiUnits = " m/s")]
+        public double worldSpaceVel;
 
         [KSPField]
         public double universalTime;
@@ -121,6 +121,9 @@ namespace FNPlugin
         public string engineType = "";
         [KSPField(guiActive = false, guiActiveEditor = true, guiName= "upgrade tech")]
         public string upgradeTechReq = null;
+
+
+        double speedOfLightSquared;
 
         bool hasrequiredupgrade;
         bool radhazard;
@@ -186,6 +189,7 @@ namespace FNPlugin
             {
                 stopWatch = new Stopwatch();
                 speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
+                speedOfLightSquared = speedOfLight*speedOfLight;
                 fusionFuelResourceDefinition = PartResourceLibrary.Instance.GetDefinition(fusionFuel);
 
                 part.maxTemp = maxTemp;
@@ -324,14 +328,13 @@ namespace FNPlugin
         {
             try
             {
-                if (initialSpeed == 0 || vessel.missionTime == 0)
-                    initialSpeed = vessel.obt_speed;
+                lightSpeedRatio = Math.Min(vessel.obt_speed / speedOfLight, 0.9999999999);
 
-                lightSpeedRatio = Math.Min(Math.Max(vessel.obt_speed - initialSpeed, 0) / speedOfLight, 0.9999999999);
+                timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
 
-                relativity = 1 / Math.Sqrt(1 - lightSpeedRatio * lightSpeedRatio);
+                relativity = 1 / timeDilation;
 
-                timeDilation = 1 / relativity;
+                worldSpaceVel = vessel.orbit.GetWorldSpaceVel().magnitude;
             }
             catch (Exception e)
             {
