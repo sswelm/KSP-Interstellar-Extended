@@ -26,11 +26,13 @@ namespace FNPlugin
         public double dInterstellarIonsConcentrationPerSquareMeter;
         [KSPField(isPersistant = true)]
         protected bool bIsExtended = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Ionizing"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        protected bool bIonizing = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Power"), UI_FloatRange(stepIncrement = 1f/3f, maxValue = 100, minValue = 0)]
+        //[KSPField(isPersistant = true, guiActive = true, guiName = "Ionizing"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //protected bool bIonizing = false;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Ionisation"), UI_FloatRange(stepIncrement = 1f/3f, maxValue = 100, minValue = 0)]
+        protected float ionisationPercentage = 0;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Magnetic strength"), UI_FloatRange(stepIncrement = 1f/3f, maxValue = 100, minValue = 0)]
         protected float powerPercentage = 100;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Collecting"), UI_FloatRange(stepIncrement = 1f/3f, maxValue = 100, minValue = 0)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Pulsation"), UI_FloatRange(stepIncrement = 1f/3f, maxValue = 100, minValue = 0)]
         protected float pulsatingPercentage = 100;
 
         // Part properties
@@ -62,7 +64,7 @@ namespace FNPlugin
         [KSPField]
         public double solarCheatMultiplier = 1;             // Amount of boosted Solar wind activity
         [KSPField]
-        public double interstellarDensityCubeCm = 200;   // Amount of Interstellar molecules per cubic cm
+        public double interstellarDensityCubeCm = 50;   // Amount of Interstellar molecules per cubic cm
         [KSPField]
         public double collectMultiplier = 1;
         [KSPField]
@@ -110,6 +112,8 @@ namespace FNPlugin
         protected float fSolarWindDragInNewtonPerSquareMeter;
         [KSPField(guiActive = true, guiName = "Interstellar Drag", guiUnits = " N/m\xB2")]
         protected float fInterstellarDustDragInNewton;
+        [KSPField(guiActive = true, guiName = "Ionisation Facing Factor", guiFormat = "F3")]
+        protected double ionisationAoA;
 
         [KSPField(guiActive = true, guiName = "Orbital Drag on Vessel", guiUnits = " kN")]
         protected float fEffectiveOrbitalVesselDragInKiloNewton;
@@ -118,7 +122,7 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Magneto Sphere Strength Ratio", guiFormat = "F3")]
         protected double magnetoSphereStrengthRatio;
         [KSPField(guiActive = true, guiName = "Solarwind Facing Factor", guiFormat = "F3")]
-        protected double solarWindAngleOfAttackRatio = 0;
+        protected double solarWindAngleOfAttackFactor = 0;
         [KSPField(guiActive = true, guiName = "Solarwind Collection Modifier", guiFormat = "F3")]
         protected double solarwindProductionModifiers = 0;
         [KSPField(guiActive = true, guiName = "SolarWind Mass Collected", guiUnits = " g/h")]
@@ -153,23 +157,23 @@ namespace FNPlugin
         protected double solarwindDensityRatio;
 
         // internals
+        
         double effectiveSurfaceAreaInSquareMeter;
         double dWindResourceFlow = 0;
         double dHydrogenResourceFlow = 0;
         double dHeliumResourceFlow = 0;
         double heliumRequirementTonPerSecond;
         double solarWindMolesPerSquareMeterPerSecond = 0;
-        
-        
         double hydrogenMolarMassConcentrationPerSquareMeterPerSecond = 0;
         double heliumMolarMassConcentrationPerSquareMeterPerSecond = 0;
-
         double dSolarWindSpareCapacity;
         double dHydrogenSpareCapacity;
         double dShieldedEffectiveness = 0;
 
+        float effectiveIonisationFactor;
+        float effectiveNonIonisationFactor;
         float newNormalTime;
-        float previousPowerPercentage;
+        float previousIonisationPercentage;
 
         Animation deployAnimation;
         Animation ionisationAnimation;
@@ -196,7 +200,7 @@ namespace FNPlugin
         public void DisableCollector()
         {
             bIsEnabled = false;
-            bIonizing = false;
+            ionisationPercentage = 0;
             OnUpdate();
             // folding nimation will only play if the collector was extended before being disabled
             if (bIsExtended == true)
@@ -224,17 +228,22 @@ namespace FNPlugin
                 ActivateCollector();
         }
 
+        public bool bIonizing
+        {
+            get { return ionisationPercentage > 0; }
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             // get the part's animation
             deployAnimation = part.FindModelAnimators(animName).FirstOrDefault();
             ionisationAnimation = part.FindModelAnimators(ionAnimName).FirstOrDefault();
-            previousPowerPercentage = powerPercentage;
+            previousIonisationPercentage = ionisationPercentage;
 
             if (ionisationAnimation != null)
             {
                 ionisationAnimation[ionAnimName].speed = 0;
-                ionisationAnimation[ionAnimName].normalizedTime = bIonizing ? powerPercentage / 100 : 0; // normalizedTime at 1 is the end of the animation
+                ionisationAnimation[ionAnimName].normalizedTime = bIonizing ? ionisationPercentage * 0.01f : 0; // normalizedTime at 1 is the end of the animation
                 ionisationAnimation.Blend(ionAnimName);
             }
 
@@ -296,6 +305,7 @@ namespace FNPlugin
             Events["DisableCollector"].active = bIsEnabled; // will show the button when the process IS enabled
             Fields["strReceivedPower"].guiActive = bIsEnabled;
 
+            localStar = GetCurrentStar();
             verticalSpeed = vessel.mainBody == localStar ? vessel.verticalSpeed : 0;
             helioSphereRatio = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar, homeworld));
             interstellarDensityRatio = helioSphereRatio == 0 ? 0 : Math.Max(0, AtmosphericFloatCurves.Instance.InterstellarDensityRatio.Evaluate((float)helioSphereRatio * 100));
@@ -304,7 +314,9 @@ namespace FNPlugin
 
             solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(avgSolarWindPerCubM * solarCheatMultiplier, vessel, Math.Abs(relativeSolarWindSpeed));
             interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarDensityCubeCm, interstellarDensityRatio);
-            dInterstellarIonsConcentrationPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter * (bIonizing ? 1 : 0.001);
+
+            var maxInterstellarDustMolesPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter;
+            dInterstellarIonsConcentrationPerSquareMeter = maxInterstellarDustMolesPerSquareMeter * (effectiveIonisationFactor + effectiveNonIonisationFactor * interstellarIonRatio);
 
             //beltRadiationFlux = vessel.mainBody.GetBeltAntiparticles(homeworld, vessel.altitude, vessel.orbit.inclination);
             
@@ -314,8 +326,8 @@ namespace FNPlugin
             var dIonizedHydrogenConcentration = CalculateCurrentHydrogenIonsConcentration(vessel);
             var dIonizedHeliumConcentration = CalculateCurrentHeliumIonsConcentration(vessel);
 
-            hydrogenMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dHydrogenParticleConcentration : dIonizedHydrogenConcentration;
-            heliumMolarMassConcentrationPerSquareMeterPerSecond = bIonizing ? dHeliumParticleConcentration: dIonizedHeliumConcentration;
+            hydrogenMolarMassConcentrationPerSquareMeterPerSecond = effectiveIonisationFactor * dHydrogenParticleConcentration + effectiveNonIonisationFactor * dIonizedHydrogenConcentration; 
+            heliumMolarMassConcentrationPerSquareMeterPerSecond = effectiveIonisationFactor * dHeliumParticleConcentration + effectiveNonIonisationFactor * dIonizedHeliumConcentration; 
 
             fSolarWindConcentrationPerSquareMeter = (float)solarWindMolesPerSquareMeterPerSecond;
             fInterstellarIonsConcentrationPerCubicMeter = (float)interstellarDustMolesPerCubicMeter;
@@ -329,7 +341,7 @@ namespace FNPlugin
             strMagnetoStrength = UpdateMagnetoStrengthInGui();
         }
 
-        public double SquareDragRatio
+        public double SquareDragFactor
         {
             get { return ((100d - pulsatingPercentage) / 100d) + squareVelocityDragRatio; }
         }
@@ -351,11 +363,11 @@ namespace FNPlugin
 
             if (FlightGlobals.fetch == null) return;
 
+            UpdateDistanceInGui(); // passes the distance to the GUI
+
             if (!bIsEnabled)
             {
                 strCollectingStatus = "Disabled";
-                distanceToLocalStar = UpdateDistanceInGui(); // passes the distance to the GUI
-
                 fEffectiveOrbitalVesselDragInKiloNewton = 0;
                 fSolarWindVesselForceInNewton = 0;
                     
@@ -368,8 +380,6 @@ namespace FNPlugin
                 DisableCollector();
                 return;
             }
-
-            distanceToLocalStar = UpdateDistanceInGui();
 
             // collect solar wind for a single frame
             CollectSolarWind(TimeWarp.fixedDeltaTime, false);
@@ -394,8 +404,12 @@ namespace FNPlugin
         {
             var iDepth = 0;
             var star = FlightGlobals.currentMainBody;
+
             while ((iDepth < 10) && (star.GetTemperature(0) < 2000))
             {
+                if (star.name == "Valentine")
+                    return star;
+
                 star = star.referenceBody;
                 iDepth++;
             }
@@ -424,7 +438,7 @@ namespace FNPlugin
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) / 2) // won't collect in atmosphere
             {
                 ScreenMessages.PostScreenMessage("Solar wind collection not possible in low atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
-                distanceToLocalStar = UpdateDistanceInGui();
+                //UpdateDistanceInGui();
                 fSolarWindConcentrationPerSquareMeter = 0;
                 return false;
             }
@@ -436,7 +450,7 @@ namespace FNPlugin
         {
             if (!bIonizing)
             {
-                previousPowerPercentage = powerPercentage;
+                previousIonisationPercentage = ionisationPercentage;
                 if (ionisationAnimation != null)
                 {
                     ionisationAnimation[ionAnimName].speed = 0;
@@ -446,34 +460,34 @@ namespace FNPlugin
                 return;
             }
 
-            if (powerPercentage < previousPowerPercentage)
+            if (ionisationPercentage < previousIonisationPercentage)
             {
-                newNormalTime = Math.Min(Math.Max(powerPercentage / 100, previousPowerPercentage / 100 - TimeWarp.fixedDeltaTime / 2), 1);
+                newNormalTime = Math.Min(Math.Max(ionisationPercentage / 100, previousIonisationPercentage / 100 - TimeWarp.fixedDeltaTime / 2), 1);
                 if (ionisationAnimation != null)
                 {
                     ionisationAnimation[ionAnimName].speed = 0;
                     ionisationAnimation[ionAnimName].normalizedTime = newNormalTime;
                     ionisationAnimation.Blend(ionAnimName);
                 }
-                previousPowerPercentage = newNormalTime * 100;
+                previousIonisationPercentage = newNormalTime * 100;
             }
-            else if (powerPercentage > previousPowerPercentage)
+            else if (ionisationPercentage > previousIonisationPercentage)
             {
-                newNormalTime = Math.Min(Math.Max(0, previousPowerPercentage / 100 + TimeWarp.fixedDeltaTime / 2), powerPercentage / 100);
+                newNormalTime = Math.Min(Math.Max(0, previousIonisationPercentage / 100 + TimeWarp.fixedDeltaTime / 2), ionisationPercentage / 100);
                 if (ionisationAnimation != null)
                 {
                     ionisationAnimation[ionAnimName].speed = 0;
                     ionisationAnimation[ionAnimName].normalizedTime = newNormalTime;
                     ionisationAnimation.Blend(ionAnimName);
                 }
-                previousPowerPercentage = newNormalTime * 100;
+                previousIonisationPercentage = newNormalTime * 100;
             }
             else
             {
                 if (ionisationAnimation != null)
                 {
                     ionisationAnimation[ionAnimName].speed = 0;
-                    ionisationAnimation[ionAnimName].normalizedTime = powerPercentage / 100;
+                    ionisationAnimation[ionAnimName].normalizedTime = ionisationPercentage / 100;
                     ionisationAnimation.Blend(ionAnimName);
                 }
             }
@@ -673,9 +687,14 @@ namespace FNPlugin
         }
 
         // helper function for readying the distance for the GUI
-        private double UpdateDistanceInGui()
+        private void UpdateDistanceInGui()
         {
-            return ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) * 0.001);
+            if (localStar == null)
+                distanceToLocalStar = double.PositiveInfinity;
+
+            //distanceToLocalStar = part.vessel.distanceToSun * 0.001;
+
+            distanceToLocalStar = ((CalculateDistanceToSun(part.transform.position, localStar.transform.position) - localStar.Radius) * 0.001);
         }
 
         private string UpdateMagnetoStrengthInGui()
@@ -686,7 +705,7 @@ namespace FNPlugin
         // the main collecting function
         private void CollectSolarWind(double deltaTimeInSeconds, bool offlineCollecting)
         {
-            var ionizationPowerCost =  bIonizing ? ionRequirements *  Math.Pow(powerPercentage * 0.01, 2) : 0;
+            var ionizationPowerCost = bIonizing ? ionRequirements * Math.Pow(ionisationPercentage * 0.01, 2) : 0;
 
             var magneticPulsatingPowerCost = mwRequirements * (pulsatingPercentage / 100);
             var magneticSuperconductorPowerReqCost = mwRequirements * superConductingRatio;
@@ -771,8 +790,8 @@ namespace FNPlugin
             if (relativeSolarWindSpeed < 0)
                 solarWindDirectionVector *= -1;
 
-            solarWindAngleOfAttackRatio =  Math.Max(0, Vector3d.Dot(part.transform.up, solarWindDirectionVector.normalized));
-            solarwindProductionModifiers = collectMultiplier * effectiveness * dShieldedEffectiveness * dLastPowerRatio * solarWindAngleOfAttackRatio;
+            solarWindAngleOfAttackFactor =  Math.Max(0, Vector3d.Dot(part.transform.up, solarWindDirectionVector.normalized));
+            solarwindProductionModifiers = collectMultiplier * effectiveness * dShieldedEffectiveness * dLastPowerRatio * solarWindAngleOfAttackFactor;
 
             var effectiveSurfaceAreaForCollection = effectiveSurfaceAreaInSquareMeter * CollectionRatio;
 
@@ -823,22 +842,27 @@ namespace FNPlugin
 
             var atmosphericGasKgPerSquareMeter = GetAtmosphericGasDensityKgPerCubicMeter(vessel);
             var minAtmosphericGasMassMomentumChange = vessel.obt_speed * atmosphericGasKgPerSquareMeter;
-            var atmosphericGasDragInNewton = minAtmosphericGasMassMomentumChange + (SquareDragRatio * vessel.obt_speed * minAtmosphericGasMassMomentumChange);
+            var atmosphericGasDragInNewton = minAtmosphericGasMassMomentumChange + (SquareDragFactor * vessel.obt_speed * minAtmosphericGasMassMomentumChange);
 
             var atmosphericIonsKgPerSquareMeter = CalculateAtmosphereIonAtSolarMinimumDayTimeAtKgPerCubicMeter(vessel);
             var minAtmosphericIonsMassMomentumChange = vessel.obt_speed * atmosphericIonsKgPerSquareMeter;
-            var atmosphericIonDragInNewton = minAtmosphericIonsMassMomentumChange + (SquareDragRatio * vessel.obt_speed * minAtmosphericIonsMassMomentumChange);
+            var atmosphericIonDragInNewton = minAtmosphericIonsMassMomentumChange + (SquareDragFactor * vessel.obt_speed * minAtmosphericIonsMassMomentumChange);
 
             var interstellarDustKgPerSquareMeter = interstellarDustMolesPerCubicMeter * 1e-3 * 1.9;
             var minimumInterstellarMomentumChange = vessel.obt_speed * interstellarDustKgPerSquareMeter;
-            var interstellarDustDragInNewton = minimumInterstellarMomentumChange + (SquareDragRatio * vessel.obt_speed * minimumInterstellarMomentumChange);
+            var interstellarDustDragInNewton = minimumInterstellarMomentumChange + (SquareDragFactor * vessel.obt_speed * minimumInterstellarMomentumChange);
 
-            var effectiveAtmosphereDrag = bIonizing ? atmosphericGasDragInNewton : atmosphericIonDragInNewton;
-            var effectiveInterstellarDrag = interstellarDustDragInNewton * (bIonizing ? 1 : interstellarIonRatio);
+            ionisationAoA = Math.Max(0, Vector3d.Dot(part.transform.up, part.vessel.obt_velocity.normalized));
+            effectiveIonisationFactor = (float)(Math.Max(0, ionisationAoA - 0.5f) * 2) * Mathf.Pow(ionisationPercentage * 0.01f, 2);
+            effectiveNonIonisationFactor = 1 - effectiveIonisationFactor;
+
+            var effectiveAtmosphereDrag = effectiveIonisationFactor * atmosphericGasDragInNewton + effectiveNonIonisationFactor * atmosphericIonDragInNewton;
+            var effectiveInterstellarDrag = interstellarDustDragInNewton * (effectiveIonisationFactor + effectiveNonIonisationFactor * interstellarIonRatio); 
+
             var dEffectiveOrbitalVesselDragInNewton = effectiveSurfaceAreaInSquareMeter * (effectiveAtmosphereDrag + effectiveInterstellarDrag);
 
             var solarDustKgPerSquareMeter = solarWindMolesPerSquareMeterPerSecond * 1e-3 * 1.9;
-            var solarwindDragInNewtonPerSquareMeter = solarDustKgPerSquareMeter + (SquareDragRatio * solarWindSpeed * solarDustKgPerSquareMeter);
+            var solarwindDragInNewtonPerSquareMeter = solarDustKgPerSquareMeter + (SquareDragFactor * solarWindSpeed * solarDustKgPerSquareMeter);
             var dSolarWindVesselForceInNewton = solarwindDragInNewtonPerSquareMeter * effectiveSurfaceAreaInSquareMeter;
 
             fInterstellarIonsConcentrationPerSquareMeter = (float) dInterstellarIonsConcentrationPerSquareMeter;
@@ -856,6 +880,8 @@ namespace FNPlugin
             fEffectiveOrbitalVesselDragInKiloNewton = (float)(dEffectiveOrbitalVesselDragInNewton * 0.001);
             fSolarWindDragInNewtonPerSquareMeter = (float)solarwindDragInNewtonPerSquareMeter;
             fSolarWindVesselForceInNewton = (float)dSolarWindVesselForceInNewton;
+
+            
 
             if (vessel.packed)
             {

@@ -328,18 +328,39 @@ namespace FNPlugin
         {
             try
             {
-                lightSpeedRatio = Math.Min(vessel.obt_speed / speedOfLight, 0.9999999999);
+                worldSpaceVel = GetWorldVelocity();
+
+                lightSpeedRatio = Math.Min(worldSpaceVel / speedOfLight, 0.9999999999);
 
                 timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
 
-                relativity = 1 / timeDilation;
-
-                worldSpaceVel = vessel.orbit.GetWorldSpaceVel().magnitude;
+                relativity = 1 / timeDilation;                
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError("[KSPI] - Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
             }
+        }
+
+        private double GetWorldVelocity()
+        {
+            var velocity = vessel.orbit.GetWorldSpaceVel();
+            var iDepth = 0;
+
+            var celestrialBody = vessel.mainBody;
+
+            while (iDepth < 10 && celestrialBody != null)
+            {
+                if (celestrialBody.orbit != null)
+                    velocity = velocity + celestrialBody.orbit.vel;
+                else
+                    break;
+
+                celestrialBody = celestrialBody.referenceBody;
+                iDepth++;
+            }
+
+            return velocity.magnitude;
         }
 
         public void FixedUpdate()
