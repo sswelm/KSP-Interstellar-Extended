@@ -427,9 +427,9 @@ namespace FNPlugin
         public static double CalculateDeltaV(float Isp, float m0, float thrust, double dT)
         {
             // Mass flow rate
-            double mdot = thrust / (Isp * 9.81);
+            var mdot = thrust / (Isp * 9.81);
             // Final mass
-            double m1 = m0 - mdot * dT;
+            var m1 = m0 - mdot * dT;
             // DeltaV
             return Isp * 9.81 * Math.Log(m0 / m1);
         }

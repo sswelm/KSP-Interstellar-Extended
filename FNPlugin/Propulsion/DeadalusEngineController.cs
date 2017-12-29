@@ -122,9 +122,6 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = true, guiName= "upgrade tech")]
         public string upgradeTechReq = null;
 
-
-        double speedOfLightSquared;
-
         bool hasrequiredupgrade;
         bool radhazard;
         bool warpToReal;
@@ -189,7 +186,6 @@ namespace FNPlugin
             {
                 stopWatch = new Stopwatch();
                 speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
-                speedOfLightSquared = speedOfLight*speedOfLight;
                 fusionFuelResourceDefinition = PartResourceLibrary.Instance.GetDefinition(fusionFuel);
 
                 part.maxTemp = maxTemp;
