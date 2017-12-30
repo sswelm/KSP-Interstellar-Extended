@@ -18,64 +18,52 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool rad_safety_features = true;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Lightspeed Limiter", guiUnits = "c"), UI_FloatRange(stepIncrement = 1/3f, maxValue = 1, minValue = 1/3f)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"), UI_FloatRange(stepIncrement = 1 / 3f, maxValue = 1, minValue = 1 / 3f)]
         public float speedLimit = 1;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Fuel Limiter", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_fuelLimit", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
         public float fuelLimit = 100;
-        [KSPField(isPersistant = true, guiActive = false, guiName = "Vessel Time", guiFormat = "F1", guiUnits = " s")]
-        public double vesselLifetime;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Maximise Thrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_maximizeThrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool maximizeThrust = true;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Power Usage")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_powerUsage")]
         public string powerUsage;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Fusion Fuel")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_fusionFuel")]
         public string fusionFuel = "FusionPellets";
-        [KSPField(guiActive = true, guiName = "Temperature")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_temperatureStr")]
         public string temperatureStr = "";
-        [KSPField(guiActive = true, guiName = "Light Speed", guiFormat = "F1" , guiUnits = " m/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiUnits = " m/s")]
         public double speedOfLight;
-        [KSPField(guiActive = true, guiName = "Vessel Speed", guiFormat = "F9", guiUnits = "c")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
         public double lightSpeedRatio = 0;
-        [KSPField(guiActive = false, guiName = "Relativity", guiFormat = "F10")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_relativity", guiFormat = "F10")]
         public double relativity;
-        [KSPField(guiActive = true, guiName = "Time Dilation", guiFormat = "F10")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
         public double timeDilation;
-        [KSPField(guiActive = false, guiName = "Mission Time" , guiFormat = "F1", guiUnits = " s")]
-        public double missionTime ;
 
-        [KSPField(guiActive = true, guiName = "Radiation Hazard To")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_radhazardstr")]
         public string radhazardstr = "";
-        [KSPField(guiActiveEditor = true, guiName = "Engine Mass", guiUnits = " t")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_partMass", guiUnits = " t")]
         public float partMass = 1;
-        [KSPField(guiActive = true, guiName = "Fusion Ratio", guiFormat = "F6")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fusionRatio", guiFormat = "F6")]
         public double fusionRatio = 0;
-        [KSPField(guiActive = false, guiName = "Recieved Ratio", guiFormat = "F6")]
-        public double recievedRatio = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Fuel Amount")]
-        public string fusionFuelAmounts;
-        [KSPField(guiActive = false, guiName = "Fusion", guiFormat = "F2", guiUnits = "%")]
-        public double fusionPercentage = 0;
-        [KSPField(guiActive = true, guiName = "Thrust Power", guiFormat = "F2", guiUnits = " TW")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")]
+        public string fuelAmountsRatio;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_thrustPowerInTeraWatt", guiFormat = "F2", guiUnits = " TW")]
         public double thrustPowerInTeraWatt = 0;
-        [KSPField(guiActive = true, guiName = "Max Fuel Flow", guiFormat = "F6", guiUnits = " U")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_calculatedFuelflow", guiFormat = "F6", guiUnits = " U")]
         public double calculatedFuelflow = 0;
-        [KSPField(guiActive = true, guiName = "Mass Flow", guiFormat = "F6", guiUnits = " kg/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateKgPerSecond", guiFormat = "F6", guiUnits = " kg/s")]
         public double massFlowRateKgPerSecond;
-        [KSPField(guiActive = true, guiName = "Mass Flow", guiFormat = "F6", guiUnits = " t/h")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateTonPerHour", guiFormat = "F6", guiUnits = " t/h")]
         public double massFlowRateTonPerHour;
-        [KSPField(guiActive = false, guiName = "Fuel Usage", guiFormat = "F2", guiUnits = " L/day")]
-        public double fusionFuelUsageDay = 0;
-        [KSPField(guiActive = true, guiName = "Stored Throtle")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_storedThrotle")]
         public float storedThrotle = 0;
-        [KSPField(guiActive = true, guiName = "Max Effective Thrust", guiFormat = "F2", guiUnits = " kN")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_effectiveMaxThrustInKiloNewton", guiFormat = "F2", guiUnits = " kN")]
         public double effectiveMaxThrustInKiloNewton = 0;
-        [KSPField(guiActive = true, guiName = "Max Effective Isp", guiFormat = "F2", guiUnits = "s")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_effectiveIsp", guiFormat = "F2", guiUnits = "s")]
         public double effectiveIsp = 0;
-        [KSPField(guiActive = false, guiName = "Fuel Remaining", guiFormat = "F3", guiUnits = "%")]
-        public double percentageFuelRemaining;
-        [KSPField(guiActive = true, guiName = "World Space Vel", guiFormat = "F3", guiUnits = " m/s")]
-        public double worldSpaceVel;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_worldSpaceVelocity", guiFormat = "F3", guiUnits = " m/s")]
+        public double worldSpaceVelocity;
 
         [KSPField]
         public double universalTime;
@@ -126,6 +114,7 @@ namespace FNPlugin
         bool radhazard;
         bool warpToReal;
         float engineIsp;
+        public double percentageFuelRemaining;
 
         Stopwatch stopWatch;
         ModuleEngines curEngineT;
@@ -238,7 +227,7 @@ namespace FNPlugin
                 part.GetConnectedResourceTotals(fusionFuelResourceDefinition.id, out fusionFuelCurrentAmount, out fusionFuelMaxAmount);
 
                 percentageFuelRemaining = fusionFuelCurrentAmount / fusionFuelMaxAmount * 100;
-                fusionFuelAmounts = percentageFuelRemaining.ToString("0.0000") + "% " + fusionFuelMaxAmount.ToString("0") + " L";
+                fuelAmountsRatio = percentageFuelRemaining.ToString("0.0000") + "% " + fusionFuelMaxAmount.ToString("0") + " L";
             }
             catch (Exception e)
             {
@@ -324,9 +313,9 @@ namespace FNPlugin
         {
             try
             {
-                worldSpaceVel = GetWorldVelocity();
+                worldSpaceVelocity = vessel.orbit.GetFrameVel().magnitude;
 
-                lightSpeedRatio = Math.Min(worldSpaceVel / speedOfLight, 0.9999999999);
+                lightSpeedRatio = Math.Min(worldSpaceVelocity / speedOfLight, 0.9999999999);
 
                 timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
 
@@ -336,27 +325,6 @@ namespace FNPlugin
             {
                 UnityEngine.Debug.LogError("[KSPI] - Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
             }
-        }
-
-        private double GetWorldVelocity()
-        {
-            var velocity = vessel.orbit.GetWorldSpaceVel();
-            var iDepth = 0;
-
-            var celestrialBody = vessel.mainBody;
-
-            while (iDepth < 10 && celestrialBody != null)
-            {
-                if (celestrialBody.orbit != null)
-                    velocity = velocity + celestrialBody.orbit.vel;
-                else
-                    break;
-
-                celestrialBody = celestrialBody.referenceBody;
-                iDepth++;
-            }
-
-            return velocity.magnitude;
         }
 
         public void FixedUpdate()
@@ -381,17 +349,9 @@ namespace FNPlugin
         {
             try
             {
-                missionTime = vessel.missionTime;
                 fixedDeltaTime = TimeWarp.fixedDeltaTime;
                 universalTime = Planetarium.GetUniversalTime();
                 CalculateTimeDialation();
-
-                if (!(vessel.missionTime > 0)) return;
-
-                if (vesselLifetime == 0)
-                    vesselLifetime = vessel.missionTime;
-                else
-                    vesselLifetime += TimeWarp.fixedDeltaTime * timeDilation;
             }
             catch (Exception e)
             {
@@ -445,7 +405,6 @@ namespace FNPlugin
 
                     // calculate day usage
                     var fusionFuelRequestAmount = calculatedFuelflow / fusionFuelResourceDefinition.density;
-                    fusionFuelUsageDay = fusionFuelRequestAmount * PluginHelper.SecondsInDay;
 
                     if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
                     {
@@ -492,9 +451,6 @@ namespace FNPlugin
 
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
                     calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / PluginHelper.GravityConstant;
-
-                    fusionFuelUsageDay = 0;
-                    fusionPercentage = 0;
                     massFlowRateKgPerSecond = 0;
                 }
 
@@ -529,8 +485,8 @@ namespace FNPlugin
             thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, out demandMass);
 
             var fusionFuelRequestAmount = demandMass / fusionFuelResourceDefinition.density;
-            fusionFuelUsageDay = fusionFuelRequestAmount / modifiedFixedDeltaTime * PluginHelper.SecondsInDay;
 
+            double recievedRatio;
             if (CheatOptions.InfinitePropellant)
                 recievedRatio = 1;
             else
@@ -571,8 +527,6 @@ namespace FNPlugin
                 // The Aborbed wasteheat from Fusion
                 supplyFNResourcePerSecond(FusionWasteHeat * wasteHeatMultiplier * wasteheatFusionRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
             }
-
-            fusionPercentage = wasteheatFusionRatio * 100d;
 
             return wasteheatFusionRatio;
         }
