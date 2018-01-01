@@ -306,7 +306,7 @@ namespace FNPlugin
             solarwindDensityFactor = Math.Max(0, 1 - interstellarDensityFactor);
             relativeSolarWindSpeed = solarwindDensityFactor * (solarWindSpeed - verticalSpeed);
 
-            solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonConcentration(avgSolarWindPerCubM * solarCheatMultiplier, vessel, Math.Abs(relativeSolarWindSpeed));
+            solarWindMolesPerSquareMeterPerSecond = CalculateSolarwindIonMolesPerSquareMeter(avgSolarWindPerCubM * solarCheatMultiplier, vessel, Math.Abs(relativeSolarWindSpeed));
             interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarDensityCubeCm, interstellarDensityFactor);
 
             var maxInterstellarDustMolesPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter;
@@ -552,7 +552,7 @@ namespace FNPlugin
         }
 
         // calculates solar wind concentration
-        private static double CalculateSolarwindIonConcentration(double solarWindPerCubM, Vessel vessel, double solarWindSpeed)
+        private static double CalculateSolarwindIonMolesPerSquareMeter(double solarWindPerCubM, Vessel vessel, double solarWindSpeed)
         {
             var dMolalSolarConcentration = (vessel.solarFlux / GameConstants.averageKerbinSolarFlux) * solarWindPerCubM * solarWindSpeed / GameConstants.avogadroConstant;
 
