@@ -1,0 +1,2 @@
+  If you feel that you could translate KSPIE into your language, please contact @sswelm first, and create a new file in those folders called Localization with your language's name in KSP, then copy everything in en-us.cfg to that file. KSPIE localization have many part: Parts for work plugin, Field for WarpPlugin, Resources for KSPIE, Interstellar Fuel Switch, Intersteller Hybrid Rocketry, Community Tech Tree. If you have any questions or suggestions, please contact @sswelm or if you find a bug when you're doing translation, please create a issue.
+  (demo)
