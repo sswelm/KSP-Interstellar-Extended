@@ -9,7 +9,7 @@ namespace FNPlugin
         public bool active = true;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Antimatter Flux")]
         public string ParticleFlux;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Rate", guiFormat = "F4", guiUnits = " mg/day")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Rate", guiFormat = "F4", guiUnits = " mg/hour")]
         public double collectionRate;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Multiplier")]
         public double collectionMultiplier = 1;
@@ -22,14 +22,17 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false)]
         public double flux;
 
-        private PartResourceDefinition antimatter_def;
+        private PartResourceDefinition _antimatterDef;
         private ModuleAnimateGeneric _moduleAnimateGeneric;
-        private CelestialBody homeworld; 
+        private CelestialBody _homeworld;
+
+        private double _effectiveFlux;
+        private double _offlineResource;
 
         
         public override void OnStart(PartModule.StartState state) 
         {
-            antimatter_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter);
+            _antimatterDef = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter);
 
             _moduleAnimateGeneric = part.FindModuleImplementing<ModuleAnimateGeneric>();
 
@@ -37,25 +40,23 @@ namespace FNPlugin
 
             if (state == StartState.Editor) return;
 
-            homeworld = FlightGlobals.fetch.bodies.First(m => m.isHomeWorld == true);
+            _homeworld = FlightGlobals.fetch.bodies.First(m => m.isHomeWorld == true);
 
-	        if (last_active_time == 0 || !(vessel.orbit.eccentricity < 1) || !active || !canCollect) return;
+            if (last_active_time == 0 || !(vessel.orbit.eccentricity < 1) || !active || !canCollect) return;
 
-	        var lat = vessel.mainBody.GetLatitude(vessel.transform.position);
-	        var vessel_avg_alt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2;
-            var flux = collectionMultiplier * 0.5 * (vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, vessel.orbit.inclination) + vessel.mainBody.GetBeltAntiparticles(homeworld, vessel_avg_alt, 0.0));
-	        var time_diff = Planetarium.GetUniversalTime() - last_active_time;
-	        var antimatter_to_add = time_diff * flux;
-	        part.RequestResource(antimatter_def.id, -antimatter_to_add, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+            var vesselAvgAlt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2;
+            flux = collectionMultiplier * 0.5 * (vessel.mainBody.GetBeltAntiparticles(_homeworld, vesselAvgAlt, vessel.orbit.inclination) + vessel.mainBody.GetBeltAntiparticles(_homeworld, vesselAvgAlt, 0.0));
+            var timeDiff = Planetarium.GetUniversalTime() - last_active_time;
+            _offlineResource = timeDiff * flux;
         }
 
         public override void OnUpdate() 
         {
-            double lat = vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
-            flux = collectionMultiplier * vessel.mainBody.GetBeltAntiparticles(homeworld, vessel.altitude, lat);
+            var lat = vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
+            flux = collectionMultiplier * vessel.mainBody.GetBeltAntiparticles(_homeworld, vessel.altitude, lat);
             ParticleFlux = flux.ToString("E");
-
-            canCollect = _moduleAnimateGeneric != null ? _moduleAnimateGeneric.GetScalar == 1 : true;
+            collectionRate = _effectiveFlux * PluginHelper.SecondsInHour;
+            canCollect = _moduleAnimateGeneric == null ? true :  _moduleAnimateGeneric.GetScalar == 1;
         }
 
         public void FixedUpdate()
@@ -64,7 +65,7 @@ namespace FNPlugin
 
             if (!active || !canCollect)
             {
-                collectionRate = 0;
+                _effectiveFlux = 0;
                 return;
             }
 
@@ -72,16 +73,16 @@ namespace FNPlugin
             // first attemp to get power more megajoule network
             var fixedRecievedChargeKW = CheatOptions.InfiniteElectricity
                 ? fixedPowerReqKW
-                : consumeFNResource(fixedPowerReqKW / 1000, ResourceManager.FNRESOURCE_MEGAJOULES, TimeWarp.fixedDeltaTime) * 1000;
+                : consumeFNResource(fixedPowerReqKW * 0.001, ResourceManager.FNRESOURCE_MEGAJOULES, TimeWarp.fixedDeltaTime) * 1000;
             // alternativly attempt to use electric charge
             if (fixedRecievedChargeKW <= fixedPowerReqKW)
                 fixedRecievedChargeKW += part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
             var powerRatio = fixedPowerReqKW > 0 ? fixedRecievedChargeKW / fixedPowerReqKW : 0;
             
-            var effectiveFlux = powerRatio * flux;
-            part.RequestResource(antimatter_def.id, -effectiveFlux * TimeWarp.fixedDeltaTime, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+            _effectiveFlux = powerRatio * flux;
+            part.RequestResource(_antimatterDef.id, -_effectiveFlux * TimeWarp.fixedDeltaTime - _offlineResource, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+            _offlineResource = 0;
             last_active_time = Planetarium.GetUniversalTime();
-            collectionRate = effectiveFlux * PluginHelper.SecondsInDay;
         }
 
         public override int getPowerPriority()
