@@ -382,6 +382,7 @@ namespace FNPlugin
         double lithium_consumed_per_second;
         double tritium_produced_per_second;
         double helium_produced_per_second;
+        double delayed_tritium_delta_time;
 
         float previousDeltaTime;
 
@@ -1563,6 +1564,12 @@ namespace FNPlugin
                 return;
             }
 
+            if (delayed_tritium_delta_time != 0)
+            {
+                fixedDeltaTime += delayed_tritium_delta_time;
+                delayed_tritium_delta_time = 0;
+            }
+
             if (partResourceLithium6 != null)
             {
                 totalAmountLithium = partResourceLithium6.amount;
@@ -1696,7 +1703,8 @@ namespace FNPlugin
             }
 
             // breed tritium
-            BreedTritium(ongoing_thermal_power_generated, delta_time_diff);
+            //BreedTritium(ongoing_thermal_power_generated, delta_time_diff);
+            delayed_tritium_delta_time = delta_time_diff;
         }
 
         protected bool ReactorIsOverheating()
