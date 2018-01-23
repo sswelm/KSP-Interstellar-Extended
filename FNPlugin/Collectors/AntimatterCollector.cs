@@ -44,7 +44,7 @@ namespace FNPlugin
 
             if (last_active_time == 0 || !(vessel.orbit.eccentricity < 1) || !active || !canCollect) return;
 
-            var vesselAvgAlt = (vessel.orbit.ApR + vessel.orbit.PeR) / 2;
+            var vesselAvgAlt = (vessel.orbit.ApA + vessel.orbit.PeA) / 2;
             flux = collectionMultiplier * 0.5 * (vessel.mainBody.GetBeltAntiparticles(_homeworld, vesselAvgAlt, vessel.orbit.inclination) + vessel.mainBody.GetBeltAntiparticles(_homeworld, vesselAvgAlt, 0.0));
             var timeDiff = Planetarium.GetUniversalTime() - last_active_time;
             _offlineResource = timeDiff * flux;
