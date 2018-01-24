@@ -1696,8 +1696,8 @@ namespace FNPlugin
             }
 
             // breed tritium
-			// ongoing_total_power_generated is persistent, and CurrentFuelMode is initialized in OnStart through SetDefaultFuelMode
-			BreedTritium(ongoing_total_power_generated * (1 - CurrentFuelMode.ChargedPowerRatio), delta_time_diff);
+            BreedTritium(ongoing_total_power_generated * (1 - CurrentFuelMode.ChargedPowerRatio), delta_time_diff);
+
         }
 
         protected bool ReactorIsOverheating()
