@@ -332,9 +332,9 @@ namespace FNPlugin
         public double geeForceModifier;
         [KSPField(isPersistant = true)]
         public double ongoing_total_power_generated;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_Reactor_thermalPower", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_Reactor_thermalPower", guiFormat = "F6")]
         protected double ongoing_thermal_power_generated;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_Reactor_chargedPower ", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_Reactor_chargedPower ", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
 
         // shared variabels
@@ -1696,8 +1696,8 @@ namespace FNPlugin
             }
 
             // breed tritium
-            // ongoing_total_power_generated is persistent, and CurrentFuelMode is initialized in OnStart through SetDefaultFuelMode
             BreedTritium(ongoing_total_power_generated * (1 - CurrentFuelMode.ChargedPowerRatio), delta_time_diff);
+
         }
 
         protected bool ReactorIsOverheating()
