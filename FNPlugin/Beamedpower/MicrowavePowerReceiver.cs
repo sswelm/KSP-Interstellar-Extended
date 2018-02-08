@@ -1945,11 +1945,18 @@ namespace FNPlugin
 
 			// readout kerbalism solar power output so we can remove it
 			if (_field_kerbalism_output != null)
-				kerbalismPowerOutput = _field_kerbalism_output.GetValue<double>(warpfixer);
+            {
+                // if GUI is inactive, then Panel doesn't produce power since Kerbalism doesn't reset the value on occlusion
+                // to be fixed in Kerbalism!
+                kerbalismPowerOutput = _field_kerbalism_output.guiActive == true ? _field_kerbalism_output.GetValue<double>(warpfixer) : 0;
+            }
 
-			flowRate = deployableSolarPanel.flowRate > 0
-				? deployableSolarPanel.flowRate
-				: deployableSolarPanel.chargeRate * deployableSolarPanel._flowRate;
+            // solarPanel.resHandler.outputResource[0].rate is zeroed by Kerbalism, flowRate is bogus.
+            // So we need to assume that Kerbalism Power Output is ok (if present),
+            // since calculating output from flowRate (or _flowRate) will not be possible.
+            flowRate = kerbalismPowerOutput > 0 ? kerbalismPowerOutput :
+                deployableSolarPanel.flowRate > 0 ? deployableSolarPanel.flowRate :
+                deployableSolarPanel.chargeRate * deployableSolarPanel._flowRate;
 
 			flowRateQueue.Enqueue(flowRate);
 
@@ -1964,12 +1971,10 @@ namespace FNPlugin
 				? Math.Max(stabalizedFlowRate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
 				: stabalizedFlowRate;
 
-			// extract power otherwise we end up with double power
-			var power_reduction = deployableSolarPanel.flowRate > 0 ? deployableSolarPanel.flowRate : kerbalismPowerOutput;
-
-			if (deployableSolarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+            // extract power otherwise we end up with double power
+            if (deployableSolarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
 			{
-				part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, power_reduction * TimeWarp.fixedDeltaTime);
+                part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, flowRate * TimeWarp.fixedDeltaTime);
 
 				if (stabalizedFlowRate > 0)
 					stabalizedFlowRate *= 0.001;
@@ -1978,7 +1983,7 @@ namespace FNPlugin
 			}
 			else if (deployableSolarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
 			{
-				part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, power_reduction * TimeWarp.fixedDeltaTime);
+                part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, flowRate * TimeWarp.fixedDeltaTime);
 			}
 			else
 			{
