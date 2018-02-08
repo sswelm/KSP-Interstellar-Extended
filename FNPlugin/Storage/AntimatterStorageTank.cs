@@ -84,6 +84,7 @@ namespace FNPlugin
         //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiUnits = "%", guiName = "Anti Hydrogen"), UI_FloatRange(stepIncrement = 0.1f, maxValue = 100f, minValue = 0f)]
         //public float resourceFloatRange = 0;
 
+        bool isJustAboutToDie = false;
         bool showAntimatterFields;
         bool charging = false;
         bool should_charge = false;
@@ -236,6 +237,7 @@ namespace FNPlugin
             deploymentAnimation = part.FindModuleImplementing<ModuleAnimateGeneric>();
 
             part.OnJustAboutToBeDestroyed += OnJustAboutToBeDestroyed;
+            part.OnJustAboutToDie += OnJustAboutToDie; 
 
             antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
 
@@ -284,12 +286,54 @@ namespace FNPlugin
             UpdateAttachedTanks();
         }
 
+        
+
+        void OnJustAboutToDie()
+        {
+            Debug.Log("[KSPI] - OnJustAboutToDie called on " + part.name);
+
+            isJustAboutToDie = true;
+        }
+
         void OnJustAboutToBeDestroyed()
         {
-            if (antimatterResource == null || antimatterResource.resourceName != resourceName)
-                return;
+            Debug.Log("[KSPI] - OnJustAboutToBeDestroyed called on " + part.name);
 
-            if (!HighLogic.LoadedSceneIsFlight || antimatterResource.amount <= minimimAnimatterAmount || !FlightGlobals.VesselsLoaded.Contains(this.vessel)) return;
+            if (!isJustAboutToDie)
+            {
+                Debug.Log("[KSPI] - isJustAboutToDie == false");
+                return;
+            }
+
+            if (antimatterResource == null)
+            {
+                Debug.Log("[KSPI] - antimatterResource == null");
+                return;
+            }
+
+            if (antimatterResource.resourceName != resourceName)
+            {
+                Debug.Log("[KSPI] - antimatterResource.resourceName != resourceName");
+                return;
+            }
+
+            if (!HighLogic.LoadedSceneIsFlight)
+            {
+                Debug.Log("[KSPI] - !HighLogic.LoadedSceneIsFlight");
+                return;
+            }
+
+            if (antimatterResource.amount <= minimimAnimatterAmount)
+            {
+                Debug.Log("[KSPI] - antimatterResource.amount <= minimimAnimatterAmount");
+                return;
+            }
+
+            if (!FlightGlobals.VesselsLoaded.Contains(this.vessel))
+            {
+                Debug.Log("[KSPI] - !FlightGlobals.VesselsLoaded.Contains(this.vessel)");
+                return;
+            }
 
             if (part.temperature >= part.maxTemp)
                 doExplode("Antimatter container exploded because antimatter melted and breached containment");
