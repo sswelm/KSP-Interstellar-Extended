@@ -129,8 +129,15 @@ namespace InterstellarFuelSwitch
             {
                 if (resource.definition.density > 0)
                 {
-                    Debug.LogError("[IFS] - (resource.definition.density > 0)");
                     resource.normalizedDensity = resource.definition.density;
+                }
+                else if (resource.definition.density == 0)
+                {
+                    Debug.LogWarning("[IFS] - " + resource + " have ZERO density");
+                }
+                else
+                {
+                    Debug.LogError("[IFS] - " + resource + " have " + resource.definition.density + " density");
                 }
             }
 
@@ -138,8 +145,15 @@ namespace InterstellarFuelSwitch
             {
                 if (resource.definition.density > 0)
                 {
-                    Debug.LogError("[IFS] - (resource.definition.density > 0)");
                     resource.normalizedDensity = resource.definition.density;
+                }
+                else if (resource.definition.density == 0)
+                {
+                    Debug.LogWarning("[IFS] - " + resource + " have ZERO density");
+                }
+                else
+                {
+                    Debug.LogError("[IFS] - " + resource + " have " + resource.definition.density + " density");
                 }
             }
 

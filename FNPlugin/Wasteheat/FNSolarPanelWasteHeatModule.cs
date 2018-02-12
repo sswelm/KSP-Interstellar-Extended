@@ -187,23 +187,28 @@ namespace FNPlugin
                 }
                 previousDeltaTime = TimeWarp.fixedDeltaTime;
 
-                double solar_rate = solarPanel.flowRate > 0 
-                    ? solarPanel.flowRate
-                    : solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT 
-                        ? solarPanel._flowRate 
-                        : solarPanel._flowRate * solarPanel.chargeRate;
+                // readout kerbalism solar power output so we use it
+                if (_field_kerbalism_output != null)
+                {
+                    // if GUI is inactive, then Panel doesn't produce power since Kerbalism doesn't reset the value on occlusion
+                    // to be fixed in Kerbalism!
+                    kerbalismPowerOutput = _field_kerbalism_output.guiActive == true ? _field_kerbalism_output.GetValue<double>(warpfixer) : 0;
+                }
+
+                // solarPanel.resHandler.outputResource[0].rate is zeroed by Kerbalism, flowRate is bogus.
+                // So we need to assume that Kerbalism Power Output is ok (if present),
+                // since calculating output from flowRate (or _flowRate) will not be possible.
+                double solar_rate = kerbalismPowerOutput > 0 ? kerbalismPowerOutput : 
+                    solarPanel.flowRate > 0 ? solarPanel.flowRate :
+                    solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT ? solarPanel._flowRate :
+                    solarPanel._flowRate * solarPanel.chargeRate;
 
                 double maxSupply = solarPanel._distMult > 0
                     ? solarPanel.chargeRate * solarPanel._distMult * solarPanel._efficMult 
                     : solar_rate;
 
-                // readout kerbalism solar power output so we can remove it
-                if (_field_kerbalism_output != null)
-                    kerbalismPowerOutput = _field_kerbalism_output.GetValue<double>(warpfixer);
-
                 // extract power otherwise we end up with double power
-                var power_reduction = solarPanel.flowRate > 0 ? solarPanel.flowRate : kerbalismPowerOutput;
-                part.RequestResource(outputDefinition.id, power_reduction * TimeWarp.fixedDeltaTime);
+                part.RequestResource(outputDefinition.id, solar_rate * TimeWarp.fixedDeltaTime);
 
                 solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate / 1000;
                 solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply / 1000;
