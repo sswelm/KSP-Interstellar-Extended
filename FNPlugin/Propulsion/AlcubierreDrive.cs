@@ -2,22 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
+    [KSPModule("#LOC_KSPIE_AlcubierreDrive_partModuleName")]
     class AlcubierreDrive : ResourceSuppliableModule
     {
         // persistant
         [KSPField(isPersistant = true)]
-        public bool IsEnabled = false;
+        public bool IsEnabled;
         [KSPField(isPersistant = true)]
-        public bool IsCharging = false;
+        public bool IsCharging;
         [KSPField(isPersistant = true)]
         private double existing_warp_speed;
         [KSPField(isPersistant = true)]
         public bool warpInit = false;
         [KSPField(isPersistant = true)]
         public int selected_factor = -1;
+        [KSPField(isPersistant = true)]
+        public bool isupgraded;
+        [KSPField(isPersistant = true)]
+        public string serialisedwarpvector;
 
         // non persistant
         [KSPField]
@@ -48,81 +54,74 @@ namespace FNPlugin
         public float warpPowerMultTech0 = 10;
         [KSPField]
         public float warpPowerMultTech1 = 20;
-
         [KSPField]
         public double wasteheatRatio = 0.5;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double wasteheatRatioUpgraded = 0.25;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double wasteHeatMultiplier = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Type")]
-        public string warpdriveType = "Alcubierre Drive";
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Warp engine mass", guiUnits = " t")]
-        public float partMass = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Warp Strength", guiFormat = "F1", guiUnits = " t")]
-        public float warpStrength = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Total Warp Power", guiFormat = "F1", guiUnits = " t")]
-        public float totalWarpPower;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Vessel Total Mass", guiFormat = "F4", guiUnits = " t")]
-        public float vesselTotalMass;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Warp to Mass Ratio", guiFormat = "F4")]
-        public float warpToMassRatio;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity At Surface", guiUnits = " m/s\xB2", guiFormat = "F5")]
-        public double gravityAtSeaLevel;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Vessel Pull", guiUnits = " m/s\xB2", guiFormat = "F5")]
-        public double gravityPull;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Gravity Drag Ratio", guiFormat = "F5")]
-        public double gravityDragRatio;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Gravity Drag %", guiUnits = "%", guiFormat = "F3")]
-        public double gravityDragPercentage;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "GravityRatio")]
-        public double gravityRatio;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Warp Gravity Limit", guiUnits = "c", guiFormat = "F4")]
-        public double maximumWarpForGravityPull;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Warp Altitude Limit", guiUnits = "c", guiFormat = "F4")]
-        public double maximumWarpForAltitude;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Warp Weighted Limit", guiUnits = "c", guiFormat = "F4")]
+        [KSPField]
         public double maximumWarpWeighted;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Allowed Throtle", guiUnits = "c", guiFormat = "F4")]
-        public double maximumAllowedWarpThrotle;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Current Selected Speed", guiUnits = "c", guiFormat = "F4")]
-        public double warpEngineThrottle;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Magnitude Diff")]
+        [KSPField]
         public double magnitudeDiff;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Req Exotic Matter", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField]
         public double exotic_power_required = 1000;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Abs Min Power Warp", guiUnits = " MW", guiFormat = "F4")]
+
+
+        //GUI
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpdriveType")]
+        public string warpdriveType = "Alcubierre Drive";
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_engineMass", guiUnits = " t")]
+        public float partMass = 0;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpStrength", guiFormat = "F1", guiUnits = " t")]
+        public float warpStrength = 1;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_totalWarpPower", guiFormat = "F1", guiUnits = " t")]
+        public float totalWarpPower;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_vesselTotalMass", guiFormat = "F4", guiUnits = " t")]
+        public float vesselTotalMass;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpToMassRatio", guiFormat = "F4")]
+        public float warpToMassRatio;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_gravityAtSeaLevel", guiUnits = " m/s\xB2", guiFormat = "F5")]
+        public double gravityAtSeaLevel;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_gravityVesselPull", guiUnits = " m/s\xB2", guiFormat = "F5")]
+        public double gravityPull;
+        [KSPField(guiActive = false,  guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_gravityDragRatio", guiFormat = "F5")]
+        public double gravityDragRatio;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_gravityDragPercentage", guiUnits = "%", guiFormat = "F3")]
+        public double gravityDragPercentage;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_gravityRatio")]
+        public double gravityRatio;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_maxWarpGravityLimit", guiUnits = "c", guiFormat = "F4")]
+        public double maximumWarpForGravityPull;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_maxWarpAltitudeLimit", guiUnits = "c", guiFormat = "F4")]
+        public double maximumWarpForAltitude;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_maxAllowedThrotle", guiUnits = "c", guiFormat = "F4")]
+        public double maximumAllowedWarpThrotle;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentSelectedSpeed", guiUnits = "c", guiFormat = "F4")]
+        public double warpEngineThrottle;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_minPowerReqForLightSpeed", guiUnits = " MW", guiFormat = "F4")]
         public double minPowerRequirementForLightSpeed;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Cur Power for Warp ", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentPowerReqForWarp", guiUnits = " MW", guiFormat = "F4")]
         public double currentPowerRequirementForWarp;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Max Speed", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_powerReqForMaxAllowedSpeed", guiUnits = " MW", guiFormat = "F4")]
         public double powerRequirementForMaximumAllowedLightSpeed;
-
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Speed", guiUnits = " m/s", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentWarpExitSpeed", guiUnits = " m/s", guiFormat = "F3")]
         public double exitSpeed;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Apoapsis", guiUnits = " km", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentWarpExitApoapsis", guiUnits = " km", guiFormat = "F3")]
         public double exitApoapsis;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Periapsis", guiUnits = " km", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentWarpExitPeriapsis", guiUnits = " km", guiFormat = "F3")]
         public double exitPeriapsis;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Eccentricity", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentWarpExitEccentricity", guiFormat = "F3")]
         public double exitEccentricity;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Mean Anomaly", guiUnits = "\xB0", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentWarpExitMeanAnomaly", guiUnits = "\xB0", guiFormat = "F3")]
         public double exitMeanAnomaly;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Exit Burn to Circularize", guiUnits = " m/s", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentWarpExitBurnToCircularize", guiUnits = " m/s", guiFormat = "F3")]
         public double exitBurnCircularize;
-
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_status")]
         public string driveStatus;
 
 
-        [KSPField(isPersistant = true)]
-        public bool isupgraded = false;
-        [KSPField(isPersistant = true)]
-        public string serialisedwarpvector;
-
-        //private double[] engine_throtle = { 0.001, 0.0016, 0.0025, 0.004, 0.0063, 0.01, 0.016, 0.025, 0.04, 0.063, 0.1, 0.16, 0.25, 0.40, 0.63, 1.0, 1.6, 2.5, 4.0, 6.3, 10, 16, 25, 40, 63, 100, 160, 250, 400, 630, 1000 };
-        private double[] engine_throtle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
+        private readonly double[] _engineThrotle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
 
         private GameObject warp_effect;
         private GameObject warp_effect2;
@@ -175,13 +174,13 @@ namespace FNPlugin
         private CelestialBody warpInitialMainBody;
         private ModuleReactionWheel moduleReactionWheel;
 
-        [KSPEvent(guiActive = true, guiName = "Warp Control Window", active = true, guiActiveUnfocused = true, unfocusedRange = 5f, guiActiveUncommand = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpControlWindow", active = true, guiActiveUnfocused = true, unfocusedRange = 5f, guiActiveUncommand = true)]
         public void ToggleWarpControlWindow()
         {
             render_window = !render_window;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Start Charging", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_startChargingDrive", active = true)]
         public void StartCharging()
         {
             Debug.Log("[KSPI] - Start Charging pressed");
@@ -190,7 +189,9 @@ namespace FNPlugin
 
             if (warpToMassRatio < 1)
             {
-                ScreenMessages.PostScreenMessage("Warp Power to Vessel Mass is to low to create a stable warp field");
+                Debug.Log("[KSPI] - warpToMassRatio: " + warpToMassRatio + " is less than 1" );
+                var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpStrenthToLowForVesselMass");
+                ScreenMessages.PostScreenMessage(message);
                 return;
             }
 
@@ -198,7 +199,7 @@ namespace FNPlugin
             IsCharging = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Stop Charging", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_stopChargingDrive", active = false)]
         public void StopCharging()
         {
             Debug.Log("[KSPI] - Stop Charging button pressed");
@@ -212,7 +213,7 @@ namespace FNPlugin
             part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exoticMatterAmount);
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Warp Drive", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_activateWarpDrive", active = true)]
         public void ActivateWarpDrive()
         {
             Debug.Log("[KSPI] - Activate Warp Drive button pressed");
@@ -220,16 +221,15 @@ namespace FNPlugin
 
             if (warpToMassRatio < 1)
             {
-                const string message = "Not enough warp power to warp vessel";
+                var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_notEnoughWarpPowerToVesselMass");
                 Debug.Log("[KSPI] - " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
 
-            Vessel vess = this.part.vessel;
-            if (vess.altitude <= PluginHelper.getMaxAtmosphericAltitude(vess.mainBody) && vess.mainBody.flightGlobalsIndex != 0)
+            if (part.vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(part.vessel.mainBody) && part.vessel.mainBody.flightGlobalsIndex != 0)
             {
-                const string message = "Cannot activate warp drive within the atmosphere!";
+                var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_cannotActivateWarpdriveWithinAtmosphere");
                 Debug.Log("[KSPI] - " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
@@ -241,7 +241,7 @@ namespace FNPlugin
 
             if (exoticMatterAvailable < exotic_power_required)
             {
-                const string message = "Warp drive isn't fully charged yet for Warp!";
+                string message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpdriveIsNotFullyChargedForWarp");
                 Debug.Log("[KSPI] - " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
@@ -250,13 +250,9 @@ namespace FNPlugin
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
 
-            double newWarpfactor = engine_throtle[selected_factor];
-
-            currentPowerRequirementForWarp = GetPowerRequirementForWarp(newWarpfactor);
-
-            if (!CheatOptions.InfiniteElectricity && currentPowerRequirementForWarp > getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES))
+            if (!CheatOptions.InfiniteElectricity && GetPowerRequirementForWarp(_engineThrotle[selected_factor]) > getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES))
             {
-                const string message = "Warp power requirement is higher that maximum power supply!";
+                var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpPowerReqIsHigherThanMaxPowerSupply");
                 Debug.Log("[KSPI] - " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
@@ -270,11 +266,11 @@ namespace FNPlugin
         {
             var maxFactor = 0;
 
-            var numberOfThrotleSettings = engine_throtle.Count();
+            var numberOfThrotleSettings = _engineThrotle.Count();
 
             for (var i = 0; i < numberOfThrotleSettings; i++)
             {
-                if (engine_throtle[i] > lightspeed)
+                if (_engineThrotle[i] > lightspeed)
                     return maxFactor;
                 maxFactor = i;
             }
@@ -287,7 +283,7 @@ namespace FNPlugin
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
 
-            var newWarpSpeed = engine_throtle[selected_factor];
+            var newWarpSpeed = _engineThrotle[selected_factor];
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(newWarpSpeed);
 
@@ -305,7 +301,7 @@ namespace FNPlugin
                     {
                         Debug.Log("[KSPI] - call ReduceWarpPower");
                         ReduceWarpPower();
-                        newWarpSpeed = engine_throtle[selected_factor];
+                        newWarpSpeed = _engineThrotle[selected_factor];
                         currentPowerRequirementForWarp = GetPowerRequirementForWarp(newWarpSpeed);
                         if (powerReturned >= currentPowerRequirementForWarp)
                             return;
@@ -353,7 +349,7 @@ namespace FNPlugin
             existing_warp_speed = newWarpSpeed;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Warp Drive", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_deactivateWarpDrive", active = false)]
         public void DeactivateWarpDrive()
         {
             Debug.Log("[KSPI] - Deactivate Warp Drive event called");
@@ -391,13 +387,13 @@ namespace FNPlugin
             Develocitize();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Increase Warp Speed (+)", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed", active = true)]
         public void ToggleWarpSpeedUp()
         {
             Debug.Log("[KSPI] - Warp Throttle (+) button pressed");
             selected_factor++;
-            if (selected_factor >= engine_throtle.Length)
-                selected_factor = engine_throtle.Length - 1;
+            if (selected_factor >= _engineThrotle.Length)
+                selected_factor = _engineThrotle.Length - 1;
 
             if (!IsEnabled)
                 old_selected_factor = selected_factor;
@@ -411,9 +407,9 @@ namespace FNPlugin
             {
                 selected_factor++;
 
-                if (selected_factor < engine_throtle.Length) continue;
+                if (selected_factor < _engineThrotle.Length) continue;
 
-                selected_factor = engine_throtle.Length - 1;
+                selected_factor = _engineThrotle.Length - 1;
                 break;
             }
 
@@ -429,9 +425,9 @@ namespace FNPlugin
             {
                 selected_factor++;
 
-                if (selected_factor < engine_throtle.Length) continue;
+                if (selected_factor < _engineThrotle.Length) continue;
 
-                selected_factor = engine_throtle.Length - 1;
+                selected_factor = _engineThrotle.Length - 1;
                 break;
             }
 
@@ -439,7 +435,7 @@ namespace FNPlugin
                 old_selected_factor = selected_factor;
         }
 
-        [KSPEvent(guiActive = true, guiActiveUnfocused = true, guiName = "Decrease Warp Speed (-)", active = true)]
+        [KSPEvent(guiActive = true, guiActiveUnfocused = true, guiName = "#LOC_KSPIE_AlcubierreDrive_decreaseWarpSpeed", active = true)]
         public void ToggleWarpSpeedDown()
         {
             Debug.Log("[KSPI] - Warp Throttle (-) button pressed");
@@ -499,28 +495,28 @@ namespace FNPlugin
                 ToggleWarpSpeedDown();
         }
 
-        [KSPAction("Toggle Warp Control Window")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_warpControlWindow")]
         public void ToggleWarpControlWindowAction(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Toggled Warp Control Window");
             ToggleWarpControlWindow();
         }
 
-        [KSPAction("Start Charging")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_startChargingDrive")]
         public void StartChargingAction(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Start Charging Action activated");
             StartCharging();
         }
 
-        [KSPAction("Stop Charging")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_stopChargingDrive")]
         public void StopChargingAction(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Stop Charging Action activated");
             StopCharging();
         }
 
-        [KSPAction("Toggle Charging")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_toggleChargingDrive")]
         public void ToggleChargingAction(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Toggle Charging Action activated");
@@ -530,42 +526,42 @@ namespace FNPlugin
                 StartCharging();
         }
 
-        [KSPAction("Reduce Warp Power")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_reducePowerConsumption")]
         public void ReduceWarpDriveAction(KSPActionParam param)
         {
             Debug.Log("[KSPI] - ReduceWarpPower action activated");
             ReduceWarpPower();
         }
 
-        [KSPAction("Activate Warp Drive")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_activateWarpDrive")]
         public void ActivateWarpDriveAction(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Activate Warp Drive action activated");
             ActivateWarpDrive();
         }
 
-        [KSPAction("Deactivate Warp Drive")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_deactivateWarpDrive")]
         public void DeactivateWarpDriveAction(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Deactivate Warp Drive action activated");
             DeactivateWarpDrive();
         }
 
-        [KSPAction("Increase Warp Speed (+)")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed")]
         public void ToggleWarpSpeedUpAction(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Toggle Warp SpeedUp pressed");
             ToggleWarpSpeedUp();
         }
 
-        [KSPAction("Increase Warp Speed x3 (+)")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed3")]
         public void ToggleWarpSpeedUpAction3(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Toggle Warp Speed Up x3 pressed");
             ToggleWarpSpeedUp3();
         }
 
-        [KSPAction("Increase Warp Speed x3 (+)")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed10")]
         public void ToggleWarpSpeedUpAction10(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Toggle Warp Speed Up x10 pressed");
@@ -573,28 +569,28 @@ namespace FNPlugin
         }
 
 
-        [KSPAction("Decrease Warp Speed (-)")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_decreaseWarpSpeed")]
         public void ToggleWarpSpeedDownAction(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Toggle Warp Speed Down pressed");
             ToggleWarpSpeedDown();
         }
 
-        [KSPAction("Decrease Warp Speed x3 (-)")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_decreaseWarpSpeed3")]
         public void ToggleWarpSpeedDownAction3(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Toggle Warp Speed Down x3 pressed");
             ToggleWarpSpeedDown3();
         }
 
-        [KSPAction("Decrease Warp Speed x10 (-)")]
+        [KSPAction("#LOC_KSPIE_AlcubierreDrive_decreaseWarpSpeed10")]
         public void ToggleWarpSpeedDownAction10(KSPActionParam param)
         {
             Debug.Log("[KSPI] - Toggle Warp Speed Down x10 pressed");
             ToggleWarpSpeedDown10();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_retrofit", active = true)]
         public void RetrofitDrive()
         {
             Debug.Log("[KSPI] - Retrofit button pressed");
@@ -653,13 +649,9 @@ namespace FNPlugin
                 Events["ToggleWarpSpeedDown"].active = !IsSlave;
                 Events["ReduceWarpPower"].active = !IsSlave;
                 Events["ToggleWarpControlWindow"].active = !IsSlave;
-
-                //Fields["exotic_power_required"].guiActive = !IsSlave;
                 Fields["warpEngineThrottle"].guiActive = !IsSlave;
                 Fields["maximumAllowedWarpThrotle"].guiActive = !IsSlave;
                 Fields["warpToMassRatio"].guiActive = !IsSlave;
-                //Fields["vesselTotalMass"].guiActive = !IsSlave;
-                
                 Fields["minPowerRequirementForLightSpeed"].guiActive = !IsSlave;
                 Fields["currentPowerRequirementForWarp"].guiActive = !IsSlave;
                 Fields["totalWarpPower"].guiActive = !IsSlave;
@@ -673,7 +665,7 @@ namespace FNPlugin
                 Actions["ToggleWarpSpeedUpAction"].guiName = Events["ToggleWarpSpeedUp"].guiName = String.Format("Warp Speed (+)");
                 Actions["ToggleWarpSpeedDownAction"].guiName = Events["ToggleWarpSpeedDown"].guiName = String.Format("Warp Speed (-)");
 
-                minimum_selected_factor = engine_throtle.ToList().IndexOf(engine_throtle.First(w => Math.Abs(w - 1) < float.Epsilon));
+                minimum_selected_factor = _engineThrotle.ToList().IndexOf(_engineThrotle.First(w => Math.Abs(w - 1) < float.Epsilon));
                 if (selected_factor == -1)
                     selected_factor = minimum_selected_factor;
 
@@ -894,7 +886,7 @@ namespace FNPlugin
 
             UpdateWateheatBuffer();
 
-            warpEngineThrottle = engine_throtle[selected_factor];
+            warpEngineThrottle = _engineThrotle[selected_factor];
 
             gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
             gravityAtSeaLevel = vessel.mainBody.GeeASL * GameConstants.STANDARD_GRAVITY;
@@ -905,7 +897,7 @@ namespace FNPlugin
             maximumWarpForAltitude = Math.Abs(vessel.altitude / PluginHelper.SpeedOfLight) * 25;
             maximumWarpWeighted = (gravityRatio * maximumWarpForGravityPull) + ((1 - gravityRatio) * maximumWarpForAltitude);
             maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpWeighted);
-            maximumAllowedWarpThrotle = engine_throtle[maximumWarpSpeedFactor];
+            maximumAllowedWarpThrotle = _engineThrotle[maximumWarpSpeedFactor];
             minimumPowerAllowedFactor = maximumWarpSpeedFactor > minimum_selected_factor ? maximumWarpSpeedFactor : minimum_selected_factor;
 
             if (alcubierreDrives != null)
@@ -919,8 +911,8 @@ namespace FNPlugin
             }
 
             minPowerRequirementForLightSpeed = GetPowerRequirementForWarp(1);
-            powerRequirementForMaximumAllowedLightSpeed = GetPowerRequirementForWarp(engine_throtle[maximumWarpSpeedFactor]);
-            currentPowerRequirementForWarp = GetPowerRequirementForWarp(engine_throtle[selected_factor]);
+            powerRequirementForMaximumAllowedLightSpeed = GetPowerRequirementForWarp(_engineThrotle[maximumWarpSpeedFactor]);
+            currentPowerRequirementForWarp = GetPowerRequirementForWarp(_engineThrotle[selected_factor]);
 
             // calculate Exotic Matter Capacity
             if (exoticMatterResource == null || double.IsNaN(exotic_power_required) || double.IsInfinity(exotic_power_required) || !(exotic_power_required > 0)) return;
@@ -1000,7 +992,7 @@ namespace FNPlugin
             warp_effect1_renderer.material.mainTexture = warp_textures[((int)tex_count) % warp_textures.Length];
             warp_effect2_renderer.material.mainTexture = warp_textures2[((int)tex_count + 8) % warp_textures.Length];
 
-            warpEngineThrottle = engine_throtle[selected_factor];
+            warpEngineThrottle = _engineThrotle[selected_factor];
 
             tex_count += warpEngineThrottle;
 
@@ -1073,8 +1065,8 @@ namespace FNPlugin
                 if (insufficientPowerTimeout < 0)
                 {
                     insufficientPowerTimeout--;
-                    Debug.Log("[KSPI] - Not enough power to initiate stable warp field!");
-                    ScreenMessages.PostScreenMessage("Not enough power to initiate stable warp field!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    Debug.Log("[KSPI] - Not enough power to initiate stable warp field");
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_notEnoughElectricPowerForWarp"), 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     StopCharging();
 
                     return;
@@ -1148,7 +1140,7 @@ namespace FNPlugin
         {
             if (!IsEnabled || exotic_power_required <= 0) return;
 
-            var newLightSpeed = engine_throtle[selected_factor];
+            var newLightSpeed = _engineThrotle[selected_factor];
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(newLightSpeed);
 
@@ -1179,11 +1171,11 @@ namespace FNPlugin
             {
                 if (vesselWasInOuterspace)
                 {
-                    var message = vessel.mainBody.atmosphere 
-                        ? "Droped out of warp because too close to atmosphere" 
-                        : "Droped out of warp because too close to surface";
+                    var message = vessel.mainBody.atmosphere
+                        ? "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToAtmosphere"
+                        : "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToSurface";
 
-                    Debug.Log("[KSPI] - " + message);
+                    Debug.Log("[KSPI] - " + Localizer.Format(message));
                     ScreenMessages.PostScreenMessage(message, 5);
                     DeactivateWarpDrive();
                     return;
@@ -1214,16 +1206,16 @@ namespace FNPlugin
                 {
                     string message;
                     if (powerReturned < 0.99 * currentPowerRequirementForWarp)
-                        message = "Critical Power supply at " + (powerReturned / currentPowerRequirementForWarp * 100).ToString("0.0" ) + "% , deactivating warp";
+                        message = "Critical Power supply at" + " " + (powerReturned / currentPowerRequirementForWarp * 100).ToString("0.0" ) + "% , " + "deactivating warp drive";
                     else
-                        message = "Critical Power shortage while at minimum speed, deactivating warp";
+                        message = "Critical Power shortage while at minimum speed, " + "deactivating warp drive";
 
                     Debug.Log("[KSPI] - " + message);
                     ScreenMessages.PostScreenMessage(message, 5);
                     DeactivateWarpDrive();
                     return;
                 }
-                var insufficientMessage = "Insufficient Power at " + (powerReturned / currentPowerRequirementForWarp * 100).ToString("0.0") + ", reducing power drain";
+                var insufficientMessage = "Insufficient Power at " + (powerReturned / currentPowerRequirementForWarp * 100).ToString("0.0") + "% ," + ", reducing power drain";
                 Debug.Log("[KSPI] - " + insufficientMessage);
                 ScreenMessages.PostScreenMessage(insufficientMessage, 5);
                 ReduceWarpPower();
@@ -1234,7 +1226,7 @@ namespace FNPlugin
             if (hasHeadingChanged)
                 counterPreviousChange = counterCurrent;
 
-            newLightSpeed = engine_throtle[selected_factor];
+            newLightSpeed = _engineThrotle[selected_factor];
             existing_warp_speed = newLightSpeed;
 
             var reverseHeading = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
@@ -1285,7 +1277,7 @@ namespace FNPlugin
 
             // This code is inspired quite heavily by HyperEdit's OrbitEditor.cs
             var universalTime = Planetarium.GetUniversalTime();
-            Orbit currentOrbit = vessel.orbitDriver.orbit;
+            var currentOrbit = vessel.orbitDriver.orbit;
             Vector3d currentOrbitalVelocity = currentOrbit.getOrbitalVelocityAtUT(universalTime);
             Vector3d progradeNormalizedVelocity = currentOrbitalVelocity.normalized;
             Vector3d velocityToCancel = currentOrbitalVelocity;

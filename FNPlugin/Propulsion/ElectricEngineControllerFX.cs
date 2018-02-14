@@ -7,7 +7,7 @@ using KSP.Localization;
 
 namespace FNPlugin
 {
-    [KSPModule("#LOC_KSPIE_ElectricEngine_electricEngine")]
+    [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
     class ElectricEngineControllerFX : ResourceSuppliableModule, IUpgradeableModule
     {
         // Persistent True
