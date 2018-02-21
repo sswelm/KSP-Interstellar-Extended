@@ -17,12 +17,18 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
         public string temperatureStr = "";
 
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(guiActiveEditor = true)]
         public double powerRequirement = 625;
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(guiActiveEditor = true)]
         public double powerRequirementUpgraded = 1250;
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField( guiActiveEditor = true)]
+        public double powerRequirementUpgraded1 = 0;
+        [KSPField(guiActiveEditor = true)]
         public double powerRequirementUpgraded2 = 2500;
+        [KSPField(guiActiveEditor = true)]
+        public double powerRequirementUpgraded3 = 2500;
+        [KSPField(guiActiveEditor = true)]
+        public double powerRequirementUpgraded4 = 2500;
 
         [KSPField(isPersistant = false)]
         public bool selectableIsp = false;
@@ -34,12 +40,18 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double killDivider = 50;
 
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(guiActiveEditor = true)]
         public double fusionWasteHeat = 625;
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(guiActiveEditor = true)]
         public double fusionWasteHeatUpgraded = 2500;
-        [KSPField(isPersistant = false, guiActiveEditor = true)]
+        [KSPField(guiActiveEditor = true)]
+        public double fusionWasteHeatUpgraded1 = 0;
+        [KSPField(guiActiveEditor = true)]
         public double fusionWasteHeatUpgraded2 = 10000;
+        [KSPField(guiActiveEditor = true)]
+        public double fusionWasteHeatUpgraded3 = 10000;
+        [KSPField(guiActiveEditor = true)]
+        public double fusionWasteHeatUpgraded4 = 10000;
 
         // Use for SETI Mode
         [KSPField(isPersistant = false)]
@@ -86,13 +98,9 @@ namespace FNPlugin
         protected double standard_deuterium_rate = 0;
         protected double standard_tritium_rate = 0;
         protected string FuelConfigName = "Fusion Type";
-
-        
+                
         protected float CurveMaxISP;
-
         protected double Altitude, lastAltitude;
-
-
 
         [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
         public void DeactivateRadSafety()
@@ -129,9 +137,15 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return fusionWasteHeat;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return fusionWasteHeatUpgraded;
-                else
+                {
+                    return fusionWasteHeatUpgraded1 > 0 ? fusionWasteHeatUpgraded1 : fusionWasteHeatUpgraded;
+                }
+                else if (EngineGenerationType == GenerationType.Mk3)
                     return fusionWasteHeatUpgraded2;
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return fusionWasteHeatUpgraded3;
+                else
+                    return fusionWasteHeatUpgraded4;
             }
         }
 
@@ -142,9 +156,13 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return MaxThrust;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return MaxThrustUpgraded;
-                else
+                    return MaxThrustUpgraded1;
+                else if (EngineGenerationType == GenerationType.Mk3)
                     return MaxThrustUpgraded2;
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return MaxThrustUpgraded3;
+                else
+                    return MaxThrustUpgraded4;
             }
         }
 
@@ -155,9 +173,18 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return efficiency;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return efficiencyUpgraded;
-                else
+                {
+                    if (efficiencyUpgraded1 > 0)
+                        return efficiencyUpgraded1;
+                    else
+                        return efficiencyUpgraded;
+                }
+                else if (EngineGenerationType == GenerationType.Mk3)
                     return efficiencyUpgraded2;
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return efficiencyUpgraded3;
+                else
+                    return efficiencyUpgraded4;
             }
         }
 
@@ -176,9 +203,18 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return powerRequirement * powerMult();
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return powerRequirementUpgraded * powerMult();
+                {
+                    if (powerRequirementUpgraded1 > 0)
+                        return powerRequirementUpgraded1 * powerMult();
+                    else
+                        return powerRequirementUpgraded * powerMult();
+                }
+                else if (EngineGenerationType == GenerationType.Mk3)
+                    return powerRequirementUpgraded2 * powerMult();
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return powerRequirementUpgraded3 * powerMult();
                 else
-                    return powerRequirementUpgraded2 * powerMult(); 
+                    return powerRequirementUpgraded4 * powerMult(); 
             }
         }
 
@@ -190,8 +226,12 @@ namespace FNPlugin
                     return minThrottleRatioMk1;
                 else if (EngineGenerationType == GenerationType.Mk2)
                     return minThrottleRatioMk2;
-                else
+                else if (EngineGenerationType == GenerationType.Mk3)
                     return minThrottleRatioMk3;
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return minThrottleRatioMk4;
+                else
+                    return minThrottleRatioMk5;
             }
         }
         private double powerMult ()

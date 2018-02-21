@@ -5,8 +5,6 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    //enum GenerationType { Mk1, Mk2, Mk3, Mk4, Mk5 }
-
     class VistaEngineControllerAdvanced : FusionEngineControllerBase
     {
         const float maxIsp = 27200f;
@@ -43,6 +41,10 @@ namespace FNPlugin
         public float minThrottleRatioMk2 = 0.1f;
         [KSPField(isPersistant = false)]
         public float minThrottleRatioMk3 = 0.05f;
+        [KSPField(isPersistant = false)]
+        public float minThrottleRatioMk4 = 0.05f;
+        [KSPField(isPersistant = false)]
+        public float minThrottleRatioMk5 = 0.05f;
 
         // None Persistant
         [KSPField(isPersistant = false, guiActive = true, guiName = "Radiation Hazard To")]
@@ -55,14 +57,26 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float powerRequirementUpgraded = 1250;
         [KSPField(isPersistant = false)]
+        public float powerRequirementUpgraded1 = 0;
+        [KSPField(isPersistant = false)]
         public float powerRequirementUpgraded2 = 2500;
+        [KSPField(isPersistant = false)]
+        public float powerRequirementUpgraded3 = 2500;
+        [KSPField(isPersistant = false)]
+        public float powerRequirementUpgraded4 = 2500;
 
         [KSPField(isPersistant = false)]
         public float maxThrust = 75;
         [KSPField(isPersistant = false)]
         public float maxThrustUpgraded = 300;
         [KSPField(isPersistant = false)]
+        public float maxThrustUpgraded1 = 0;
+        [KSPField(isPersistant = false)]
         public float maxThrustUpgraded2 = 1200;
+        [KSPField(isPersistant = false)]
+        public float maxThrustUpgraded3 = 1200;
+        [KSPField(isPersistant = false)]
+        public float maxThrustUpgraded4 = 1200;
 
         [KSPField(isPersistant = false)]
         public float maxAtmosphereDensity = 0.001f;
@@ -83,7 +97,13 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public float fusionWasteHeatUpgraded = 2500;
         [KSPField(isPersistant = false)]
+        public float fusionWasteHeatUpgraded1 = 0;
+        [KSPField(isPersistant = false)]
         public float fusionWasteHeatUpgraded2 = 10000;
+        [KSPField(isPersistant = false)]
+        public float fusionWasteHeatUpgraded3 = 10000;
+        [KSPField(isPersistant = false)]
+        public float fusionWasteHeatUpgraded4 = 10000;
 
         // Use for SETI Mode
         [KSPField(isPersistant = false)]
@@ -185,9 +205,15 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return fusionWasteHeat;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return fusionWasteHeatUpgraded;
-                else
+                {
+                    return fusionWasteHeatUpgraded1 > 0 ? fusionWasteHeatUpgraded1 : fusionWasteHeatUpgraded;
+                }
+                else if (EngineGenerationType == GenerationType.Mk3)
                     return fusionWasteHeatUpgraded2;
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return fusionWasteHeatUpgraded3;
+                else
+                    return fusionWasteHeatUpgraded4;
             } 
         }
 
@@ -198,9 +224,15 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return maxThrust;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return maxThrustUpgraded;
-                else
+                {
+                    return maxThrustUpgraded1 > 0 ? maxThrustUpgraded1 : maxThrustUpgraded;
+                }
+                else if (EngineGenerationType == GenerationType.Mk3)
                     return maxThrustUpgraded2;
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return maxThrustUpgraded3;
+                else
+                    return maxThrustUpgraded4;
             }
         }
 
@@ -232,9 +264,15 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return powerRequirement;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return powerRequirementUpgraded;
-                else
+                {
+                    return powerRequirementUpgraded1 > 0 ? powerRequirementUpgraded1 : powerRequirementUpgraded;
+                }
+                else if (EngineGenerationType == GenerationType.Mk3)
                     return powerRequirementUpgraded2;
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return powerRequirementUpgraded3;
+                else
+                    return powerRequirementUpgraded4;
             }
         }
 
@@ -246,11 +284,14 @@ namespace FNPlugin
                     return minThrottleRatioMk1;
                 else if (EngineGenerationType == GenerationType.Mk2)
                     return minThrottleRatioMk2;
-                else
+                else if (EngineGenerationType == GenerationType.Mk3)
                     return minThrottleRatioMk3;
+                else if (EngineGenerationType == GenerationType.Mk4)
+                    return minThrottleRatioMk4;
+                else
+                    return minThrottleRatioMk5;
             }
-        }
-        
+        }        
 
         public override void OnStart(PartModule.StartState state) 
         {
