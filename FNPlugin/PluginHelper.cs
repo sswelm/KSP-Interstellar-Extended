@@ -1166,6 +1166,18 @@ namespace FNPlugin
 
                     }
 
+                    if (available_part.partPrefab.FindModulesImplementing<ModuleGenerator>().Any())
+                    {
+                        // FNGeneratorAdapter is not already on the part
+                        var existingSolarControlModule = available_part.partPrefab.FindModuleImplementing<FNGeneratorAdapter>();
+                        if (existingSolarControlModule == null)
+                        {
+                            ModuleGenerator generator = available_part.partPrefab.FindModuleImplementing<ModuleGenerator>();
+                            FNGeneratorAdapter adapter = available_part.partPrefab.gameObject.AddComponent(typeof(FNGeneratorAdapter)) as FNGeneratorAdapter;
+                            available_part.partPrefab.Modules.Add(adapter);
+                        }
+                    }
+
                     if (available_part.partPrefab.FindModulesImplementing<ElectricEngineControllerFX>().Count() > 0)
                     {
                         available_part.moduleInfo = available_part.partPrefab.FindModulesImplementing<ElectricEngineControllerFX>().First().GetInfo();

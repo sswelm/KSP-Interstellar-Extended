@@ -37,8 +37,7 @@
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="Scale_Redist, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Scale_Redist">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\TweakScale\plugins\Scale_Redist.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -175,6 +174,7 @@
     <Compile Include="Beamedpower\VesselRelayPersistence.cs" />
     <Compile Include="Propulsion\VistaEngineController.cs" />
     <Compile Include="Wasteheat\FNRadiator.cs" />
+    <Compile Include="Wasteheat\FNGeneratorAdapter.cs" />
     <Compile Include="Wasteheat\FNSolarPanelWasteHeatModule.cs" />
     <Compile Include="Storage\AntimatterStorageTank.cs" />
     <Compile Include="Propulsion\ModuleSolarSail.cs" />
