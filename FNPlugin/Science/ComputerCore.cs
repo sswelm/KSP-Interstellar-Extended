@@ -6,20 +6,27 @@ namespace FNPlugin
 {
     class ComputerCore : ModuleModableScienceGenerator, ITelescopeController, IUpgradeableModule
     {
-        [KSPField(isPersistant = false)]
-        const double baseScienceRate = 0.3;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Type")]
-        public string computercoreType;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Upgrade")]
-        public string upgradeCostStr;
+        // Persistant
         [KSPField(isPersistant = true, guiActive = true, guiName = "Name")]
         public string nameStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Data Collection Rate")]
+        [KSPField(guiActive = true, guiName = "Data Collection Rate")]
         public string scienceRate;
+        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool IsEnabled = false;
+        [KSPField(isPersistant = true, guiName = "Powered", guiActive = true, guiActiveEditor = true)]
+        public bool IsPowered = false;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true)]
+        public bool isupgraded = false;
+        [KSPField(isPersistant = true)]
+        public double electrical_power_ratio;
+        [KSPField(isPersistant = true)]
+        public double last_active_time;
+        [KSPField(isPersistant = true)]
+        public double science_to_add;
+        [KSPField(isPersistant = true)]
+        public bool coreInit = false;
 
-
-        
-
+        // Config
         [KSPField]
         public string upgradeTechReq = null;
         [KSPField]
@@ -35,41 +42,36 @@ namespace FNPlugin
         [KSPField]
         public double powerReqMult = 1;
         [KSPField]
-        public double activeAIControlDistance = 9.460525284e15 * 100000;    // diameter of milkyway
+        public double activeAIControlDistance = 9.460525284e20;    // diameter of milkyway
         [KSPField]
         public double inactiveAIControlDistance = 100000;
 
-        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool IsEnabled = false;
-        [KSPField(isPersistant = true, guiName = "Powered", guiActive = true, guiActiveEditor = true)]
-        public bool IsPowered = false;
-        [KSPField(isPersistant = true, guiActiveEditor = true,  guiActive = true)]
-        public bool isupgraded = false;
-        [KSPField(isPersistant = true)]
-        public double electrical_power_ratio;
-        [KSPField(isPersistant = true)]
-        public double last_active_time;
-        [KSPField(isPersistant = true)]
-        public double science_to_add;
-        [KSPField(isPersistant = true)]
-        public bool coreInit = false;
+        //Gui
+        [KSPField]
+        const double baseScienceRate = 0.3;
+        [KSPField(guiActive = true, guiName = "Type")]
+        public string computercoreType;
+        [KSPField(guiActive = true, guiName = "Upgrade")]
+        public string upgradeCostStr;        
 
-        protected double science_rate_f;
+        // Privates
+        double science_rate_f;
+        double effectivePowerRequirement; 
 
-        private double effectivePowerRequirement; 
+        ConfigNode _experiment_node;
+        BaseField _nameStrField;
+        BaseField _isEnabledField;
+        BaseField _upgradeCostStrField;
+        BaseField _scienceRateField;
+        BaseEvent _retrofitCoreEvent;
+        ModuleDataTransmitter _moduleDataTransmitter;
+        ModuleCommand moduleCommand;
 
-        private ConfigNode _experiment_node;
-
-        private ModuleDataTransmitter _moduleDataTransmitter;
-
-        protected ModuleCommand moduleCommand;
+        //Properties
         public String UpgradeTechnology { get { return upgradeTechReq; } }
+        public bool CanProvideTelescopeControl {  get { return isupgraded && IsEnabled && IsPowered; }  }
 
-        public bool CanProvideTelescopeControl
-        {
-            get { return isupgraded && IsEnabled && IsPowered; }
-        }
-
+        // Events
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
         public void RetrofitCore()
         {
@@ -80,10 +82,17 @@ namespace FNPlugin
             ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
         }
 
+        // Public Overrides
         public override void OnStart(PartModule.StartState state)
         {
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, };
             this.resources_to_supply = resources_to_supply;
+
+            _isEnabledField = Fields["IsEnabled"];
+            _upgradeCostStrField = Fields["upgradeCostStr"];
+            _retrofitCoreEvent = Events["RetrofitCore"];
+            _nameStrField = Fields["nameStr"];
+            _scienceRateField = Fields["scienceRate"];
 
             if (state == StartState.Editor)
             {
@@ -100,9 +109,6 @@ namespace FNPlugin
             _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
             moduleCommand = part.FindModuleImplementing<ModuleCommand>();
 
-            Fields["IsEnabled"].guiActive = isupgraded;
-            Fields["IsEnabled"].guiActiveEditor = isupgraded;
-
             if ((isupgraded || !PluginHelper.TechnologyIsInUse) && IsEnabled)
             {
                 upgradePartModule();
@@ -116,19 +122,12 @@ namespace FNPlugin
                 double science_to_increment = baseScienceRate * time_diff / GameConstants.KEBRIN_DAY_SECONDS * electrical_power_ratio * scienceMultiplier / (Math.Sqrt(altitude_multiplier));
                 science_to_increment = (double.IsNaN(science_to_increment) || double.IsInfinity(science_to_increment)) ? 0 : science_to_increment;
                 science_to_add += science_to_increment;
-
-                //var curReaction = this.part.Modules["ModuleReactionWheel"] as ModuleReactionWheel;
-                //curReaction.PitchTorque = 5;
-                //curReaction.RollTorque = 5;
-                //curReaction.YawTorque = 5;
             } 
             else
                 computercoreType = originalName;
 
             effectivePowerRequirement = (isupgraded ? upgradedMegajouleRate : megajouleRate) * powerReqMult;
         }
-
-
 
         public override void OnUpdate()
         {
@@ -138,13 +137,15 @@ namespace FNPlugin
                 _moduleDataTransmitter.antennaPower = IsEnabled && IsPowered ? activeAIControlDistance : inactiveAIControlDistance;
 
             if (ResearchAndDevelopment.Instance != null)
-                Events["RetrofitCore"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost;
+                _retrofitCoreEvent.active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost;
             else
-                Events["RetrofitCore"].active = false;
-
-            Fields["upgradeCostStr"].guiActive = !isupgraded;
-            Fields["nameStr"].guiActive = isupgraded;
-            Fields["scienceRate"].guiActive = isupgraded;
+                _retrofitCoreEvent.active = false;
+            
+            _isEnabledField.guiActive = isupgraded;
+            _isEnabledField.guiActiveEditor = isupgraded;
+            _upgradeCostStrField.guiActive = !isupgraded;
+            _nameStrField.guiActive = isupgraded;
+            _scienceRateField.guiActive = isupgraded;
 
             double scienceratetmp =  science_rate_f * GameConstants.KEBRIN_DAY_SECONDS * PluginHelper.getScienceMultiplier(vessel);
             scienceRate = scienceratetmp.ToString("0.000") + "/ Day";
@@ -191,17 +192,6 @@ namespace FNPlugin
                 science_to_add = 0;
             }
 
-            //else
-            //{
-            //    if (moduleCommand != null)
-            //    {
-            //        var fixedNeededPower = megajouleRate * TimeWarp.fixedDeltaTime;
-            //        float power_returned = consumeFNResource(fixedNeededPower, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
-            //        var electrical_power_ratio = Math.Round(power_returned / megajouleRate, 1);
-            //        moduleCommand.enabled = electrical_power_ratio == 1;
-            //    }
-            //}
-
             last_active_time = Planetarium.GetUniversalTime();
         }
 
@@ -245,28 +235,6 @@ namespace FNPlugin
             science_to_add = 0;
         }
 
-        public void upgradePartModule()
-        {
-            computercoreType = upgradedName;
-            if (nameStr == "")
-            {
-                ConfigNode[] namelist = ComputerCore.getNames();
-                System.Random rands = new System.Random();
-                ConfigNode myName = namelist[rands.Next(0, namelist.Length)];
-                nameStr = myName.GetValue("name");
-            }
-
-            isupgraded = true;
-            canDeploy = true;
-
-            _experiment_node = GameDatabase.Instance.GetConfigNodes("EXPERIMENT_DEFINITION").FirstOrDefault(nd => nd.GetValue("id") == experimentID);
-        }
-
-        public static ConfigNode[] getNames()
-        {
-            return GameDatabase.Instance.GetConfigNodes("AI_CORE_NAME");
-        }
-
         public override int getPowerPriority()
         {
             return 2;
@@ -279,6 +247,25 @@ namespace FNPlugin
             return desc;
         }
 
+        // IUpgradeableModule
+        public void upgradePartModule()
+        {
+            computercoreType = upgradedName;
+            if (nameStr == "")
+            {
+                ConfigNode[] namelist = GameDatabase.Instance.GetConfigNodes("AI_CORE_NAME");
+                System.Random rands = new System.Random();
+                ConfigNode myName = namelist[rands.Next(0, namelist.Length)];
+                nameStr = myName.GetValue("name");
+            }
+
+            isupgraded = true;
+            canDeploy = true;
+
+            _experiment_node = GameDatabase.Instance.GetConfigNodes("EXPERIMENT_DEFINITION").FirstOrDefault(nd => nd.GetValue("id") == experimentID);
+        }
+
+        // Privates
         private string getRandomExperimentResult()
         {
             try
@@ -294,6 +281,7 @@ namespace FNPlugin
                 return " has detected a glitch in the universe and recommends checking your installation of KSPInterstellar.";
             }
         }
+
 
     }
 }
