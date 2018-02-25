@@ -33,11 +33,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public bool selectableIsp = false;
 
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double maxAtmosphereDensity = 0.001;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double leathalDistance = 2000;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double killDivider = 50;
 
         [KSPField(guiActiveEditor = true)]
@@ -59,27 +59,27 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double powerRequirementMultiplier = 1;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false)]
+        [KSPField(guiActive = true, guiActiveEditor = false)]
         public double powerMultiplier;
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Fusion Ratio", guiFormat = "F2")]
+        [KSPField(guiActive = true, guiName = "Fusion Ratio", guiFormat = "F2")]
         public double fusionRatio;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Power Requirement", guiFormat = "F2", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiName = "Power Requirement", guiFormat = "F2", guiUnits = " MW")]
         public double enginePowerRequirement;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Laser Wasteheat", guiFormat = "F2", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiName = "Laser Wasteheat", guiFormat = "F2", guiUnits = " MW")]
         public double laserWasteheat;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Absorbed Wasteheat", guiFormat = "F2", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiName = "Absorbed Wasteheat", guiFormat = "F2", guiUnits = " MW")]
         public double absorbedWasteheat;
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Radiator Temp")]
+        [KSPField(guiName = "Radiator Temp")]
         public double coldBathTemp;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Radiator Temp")]
+        [KSPField(guiName = "Max Radiator Temp")]
         public float maxTempatureRadiators;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Performance Radiators")]
+        [KSPField(guiName = "Performance Radiators")]
         public double radiatorPerformance;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Emisiveness")]
+        [KSPField(guiName = "Emisiveness")]
         public double partEmissiveConstant;
-
+        [KSPField]
+        protected float curveMaxISP; // ToDo: make sure it is properly initialized after  comming from assembly 
 
         // abstracts
         protected abstract float SelectedIsp { get; set; }
@@ -98,8 +98,8 @@ namespace FNPlugin
         protected double standard_deuterium_rate = 0;
         protected double standard_tritium_rate = 0;
         protected string FuelConfigName = "Fusion Type";
-                
-        protected float CurveMaxISP;
+
+
         protected double Altitude, lastAltitude;
 
         [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
@@ -126,7 +126,7 @@ namespace FNPlugin
         {
             get
             {
-                return FullTrustMaximum * Math.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / CurveMaxISP;               
+                return FullTrustMaximum * Math.Pow((MinIsp / SelectedIsp), MaxThrustEfficiencyByIspPower) * MinIsp / curveMaxISP;               
             }
         }
 
@@ -294,7 +294,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("FusionEngine FCUpdate exception: " + e.Message);
+                Debug.LogError("[KSPI] - FusionEngine FCUpdate exception: " + e.Message);
             }
         }
 
@@ -309,13 +309,13 @@ namespace FNPlugin
             if (!isEditor)
             {
 
-                Debug.Log("Fusion Gui Updated");
+                Debug.Log("[KSPI] - Fusion Gui Updated");
                 BaseFloatCurve = ActiveConfiguration.atmosphereCurve;
                 standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
                 standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
-                CurveMaxISP = GetMaxKey(BaseFloatCurve);
+                curveMaxISP = GetMaxKey(BaseFloatCurve);
                 FCSetup();
-                Debug.Log("Curve Max ISP:" + CurveMaxISP);
+                Debug.Log("[KSPI] - Curve Max ISP:" + curveMaxISP);
             }
 
         }
@@ -333,12 +333,12 @@ namespace FNPlugin
                 curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
                 if (curEngineT == null)
                 {
-                    Debug.LogError("FusionEngine OnStart Engine not found");
+                    Debug.LogError("[KSPI] - FusionEngine OnStart Engine not found");
                     return;
                 }
                 BaseFloatCurve = curEngineT.atmosphereCurve;
 
-                CurveMaxISP = GetMaxKey(BaseFloatCurve);
+                curveMaxISP = GetMaxKey(BaseFloatCurve);
                 if (hasMultipleConfigurations) FCSetup();
 
                 standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
@@ -360,7 +360,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("FusionEngine OnStart eception: " + e.Message);
+                Debug.LogError("[KSPI] - FusionEngine OnStart eception: " + e.Message);
             }
             base.OnStart(state);
         }
@@ -377,7 +377,6 @@ namespace FNPlugin
             {
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName).ratio = akRatio;
             }
-
         }
 
         public override void OnUpdate()
@@ -529,14 +528,13 @@ namespace FNPlugin
                 SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)standard_deuterium_rate / rateMultplier);
                 SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)standard_tritium_rate / rateMultplier);
 
-                // Update ISP
                 var currentIsp = SelectedIsp;
                 UpdateISP();
-
                 maximumThrust = MaximumThrust;
 
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * maximumThrust / currentIsp / PluginHelper.GravityConstant;
+
 
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.maxThrust = (float)maximumThrust;
@@ -551,7 +549,6 @@ namespace FNPlugin
                 laserWasteheat = 0;
                 fusionRatio = 0;
                 var currentIsp = SelectedIsp;
-
                 maximumThrust = MaximumThrust;
 
                 UpdateISP();

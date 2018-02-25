@@ -15,10 +15,11 @@
         public float localIsp = defaultMinIsp + (stepNumb * defaultSteps);
        
         // settings
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float neutronAbsorptionFractionAtMinIsp = 0.5f;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float maxThrustEfficiencyByIspPower = 2f;
+
         public float minIsp = defaultMinIsp;
         private FloatCurve atmophereCurve;
 

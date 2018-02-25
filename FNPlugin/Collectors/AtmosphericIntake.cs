@@ -5,47 +5,46 @@ namespace FNPlugin
 {
     class AtmosphericIntake : PartModule
     {
+        // persistents
+        [KSPField(isPersistant = true, guiName = "Air / sec", guiActiveEditor = false, guiActive = true, guiFormat = "F5")]
+        public double finalAir;
+        [KSPField(isPersistant = false, guiActive = false)]
+        public bool intakeOpen;
+
         [KSPField]
         protected double _intake_speed;
         [KSPField(guiName = "Atmosphere Flow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]
         public double airFlow;
         [KSPField(guiName = "Atmosphere Speed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]
         public double airSpeed;
-        [KSPField(guiName = "Air This Update", guiActive = true, guiFormat ="F6")]
+        [KSPField(guiName = "Air This Update", guiActive = false, guiFormat ="F6")]
         public double airThisUpdate;
-        [KSPField(guiName = "Intake Ratio",  guiActive = true, guiFormat = "F3")]
+        [KSPField(guiName = "Intake Angle",  guiActive = true, guiFormat = "F3")]
         public float intakeAngle = 0;
-        [KSPField(guiName = "aoaThreshold",  guiActive = true, guiActiveEditor = false)]
+        [KSPField(guiName = "aoaThreshold",  guiActive = true, guiActiveEditor = false, guiFormat = "F3")]
         public double aoaThreshold = 0.1;
-        [KSPField(guiName = "Area", guiActiveEditor = true, guiActive = false)]
+        [KSPField(guiName = "Area", guiActiveEditor = true, guiActive = false, guiFormat = "F3")]
         public double area = 0.01;
         [KSPField]
         public string intakeTransformName;
-        [KSPField(guiName = "maxIntakeSpeed", guiActive = true, guiActiveEditor = false)]
+        [KSPField(guiName = "maxIntakeSpeed", guiActive = false, guiActiveEditor = false)]
         public double maxIntakeSpeed = 100;
-        [KSPField(guiName = "unitScalar", guiActive = true, guiActiveEditor = false)]
+        [KSPField(guiName = "unitScalar", guiActive = false, guiActiveEditor = false)]
         public double unitScalar = 0.2;
-        [KSPField(guiName = "storesResource", guiActive = true, guiActiveEditor = true)]
+        [KSPField(guiName = "storesResource", guiActive = false, guiActiveEditor = true)]
         public bool storesResource = false;
-        [KSPField(guiName = "Intake Exposure",guiActive = true, guiActiveEditor = false )]
+        [KSPField(guiName = "Intake Exposure", guiActive = true, guiActiveEditor = false, guiFormat = "F1")]
         public double intakeExposure = 0;
-        [KSPField(guiName = "Trace atmo. density", guiActive = true, guiFormat = "F3", guiActiveEditor = false)]
+        [KSPField(guiName = "Trace atmo. density", guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         public double upperAtmoDensity;
-        [KSPField(guiName = "Air Density", guiActive = true,   guiFormat = "F3")]
+        [KSPField(guiName = "Air Density", guiActive = false,   guiFormat = "F3")]
         public double airDensity;
-        [KSPField(guiName = "Tech Bonus", guiActive = true,  guiFormat = "F3")]
+        [KSPField(guiName = "Tech Bonus", guiActive = false, guiFormat = "F3")]
         public double jetTechBonusPercentage;
-        [KSPField(guiName = "Upper Atmo Fraction", guiActive = true,  guiFormat = "F3")]
+        [KSPField(guiName = "Upper Atmo Fraction", guiActive = false, guiFormat = "F3")]
         public double upperAtmoFraction;
         [KSPField(guiActive = false)]
         public bool foundModuleResourceIntake;
-
-        // persistents
-        [KSPField(isPersistant = true, guiName = "Air / sec", guiActiveEditor = false, guiActive = true, guiFormat = "F5" )]
-        public double finalAir;
-
-        [KSPField(isPersistant = false, guiActive = false)]
-        public bool intakeOpen;
 
         double startupCount;
         float previousDeltaTime;
