@@ -265,7 +265,8 @@ namespace FNPlugin
                 else N++;
                 I++;
             }
-            if (N + 1 >= ActiveConfiguration.Fuels.Length) Fields["selectedFuel"].guiActive = false;
+            //if (N + 1 >= akConfig.Fuels.Length) 
+            //    Fields["selectedFuel"].guiActive = false;
 
             akPropellants.AddValue("maxThrust", 1);
             akPropellants.AddValue("maxFuelFlow", 1);
@@ -321,7 +322,8 @@ namespace FNPlugin
                 I++;
             }
 
-            if (N + 1 >= akConfig.Fuels.Length) Fields["selectedFuel"].guiActive = false;
+            if (N + 1 >= akConfig.Fuels.Length) 
+                Fields["selectedFuel"].guiActive = false;
 
             Debug.Log("New Fuels: " + akConfig.Fuels.Length);
             if (tweakableUI == null)
@@ -601,7 +603,8 @@ namespace FNPlugin
         {
             get
             {
-                if (akFuels.Length == 0) akFuels = Regex.Replace(fuels, " ", "").Split(',');
+                if (akFuels.Length == 0) 
+                    akFuels = Regex.Replace(fuels, " ", "").Split(',');
                 return akFuels;
             }
         }
