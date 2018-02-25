@@ -17,9 +17,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Data Collection Rate")]
         public string scienceRate;
 
-
-        
-
         [KSPField]
         public string upgradeTechReq = null;
         [KSPField]
@@ -39,20 +36,19 @@ namespace FNPlugin
         [KSPField]
         public double inactiveAIControlDistance = 100000;
 
-        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = false),
+         UI_Toggle(disabledText = "Off", enabledText = "On", scene = UI_Scene.Flight)]
         public bool IsEnabled = false;
-        [KSPField(isPersistant = true, guiName = "Powered", guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = true, guiName = "Powered", guiActive = true, guiActiveEditor = false)]
         public bool IsPowered = false;
-        [KSPField(isPersistant = true, guiActiveEditor = true,  guiActive = true)]
+        [KSPField(isPersistant = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         public double electrical_power_ratio;
         [KSPField(isPersistant = true)]
         public double last_active_time;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiName = "Data stored", guiActive = true, guiActiveEditor = false)]
         public double science_to_add;
-        [KSPField(isPersistant = true)]
-        public bool coreInit = false;
 
         protected double science_rate_f;
 
@@ -100,13 +96,17 @@ namespace FNPlugin
             _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();
             moduleCommand = part.FindModuleImplementing<ModuleCommand>();
 
-            Fields["IsEnabled"].guiActive = isupgraded;
-            Fields["IsEnabled"].guiActiveEditor = isupgraded;
-
-            if ((isupgraded || !PluginHelper.TechnologyIsInUse) && IsEnabled)
+            if (isupgraded || !PluginHelper.TechnologyIsInUse)
             {
                 upgradePartModule();
+            }
+            else
+            {
+                computercoreType = originalName;
+            }
 
+            if (IsEnabled)
+            {
                 double time_diff = Planetarium.GetUniversalTime() - last_active_time;
                 double altitude_multiplier = vessel.altitude / vessel.mainBody.Radius;
                 altitude_multiplier = Math.Max(altitude_multiplier, 1);
@@ -122,8 +122,6 @@ namespace FNPlugin
                 //curReaction.RollTorque = 5;
                 //curReaction.YawTorque = 5;
             } 
-            else
-                computercoreType = originalName;
 
             effectivePowerRequirement = (isupgraded ? upgradedMegajouleRate : megajouleRate) * powerReqMult;
         }
@@ -145,6 +143,8 @@ namespace FNPlugin
             Fields["upgradeCostStr"].guiActive = !isupgraded;
             Fields["nameStr"].guiActive = isupgraded;
             Fields["scienceRate"].guiActive = isupgraded;
+            Fields["IsEnabled"].guiActive = isupgraded;
+            Fields["science_to_add"].guiActive = isupgraded;
 
             double scienceratetmp =  science_rate_f * GameConstants.KEBRIN_DAY_SECONDS * PluginHelper.getScienceMultiplier(vessel);
             scienceRate = scienceratetmp.ToString("0.000") + "/ Day";
