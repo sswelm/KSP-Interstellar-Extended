@@ -236,7 +236,6 @@ namespace FNPlugin
         }
         private double powerMult ()
         {
-            //powerMultiplier =(FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1) * (scale == 0 ? 1 : Math.Pow(scale, 2));
             powerMultiplier = FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1;
             return powerMultiplier;
         }
@@ -425,7 +424,7 @@ namespace FNPlugin
                 Fields["localIsp"].guiActiveEditor = selectableIsp;
                 SelectedIsp = MinIsp;
             }
-         //   Fields["selectedFuelConfiguration"].guiName = FuelConfigName;
+
             base.OnUpdate();
         }
 
@@ -474,11 +473,8 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-          //  base.OnFixedUpdate();
             temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
             MinIsp = BaseFloatCurve.Evaluate((float)Altitude);
-
-            // part.ona
 
             if (curEngineT == null || !curEngineT.isEnabled) return;
 
