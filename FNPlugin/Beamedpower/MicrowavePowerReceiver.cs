@@ -285,13 +285,14 @@ namespace FNPlugin
 		protected BaseField minimumWavelengthField;
 		protected BaseField solarFacingFactorField;
 		protected BaseField solarFluxField;
-		//protected BaseField toteffField;
+        protected ModuleResource mockInputResource;
+        //protected BaseField toteffField;
 
-		protected BaseField _radiusField;
+        protected BaseField _radiusField;
 		protected BaseField _coreTempereratureField;
 		protected BaseField _field_kerbalism_output;
 
-		protected BaseEvent _linkReceiverBaseEvent;
+        protected BaseEvent _linkReceiverBaseEvent;
 		protected BaseEvent _unlinkReceiverBaseEvent;
 		protected BaseEvent _activateReceiverBaseEvent;
 		protected BaseEvent _disableReceiverBaseEvent;
@@ -332,9 +333,9 @@ namespace FNPlugin
 
 		// GUI elements declaration
 		private Rect windowPosition;
-		private int windowID;		
+		private int windowID;
 
-		public Part Part { get { return this.part; } }
+        public Part Part { get { return this.part; } }
 
 		public int ProviderPowerPriority { get { return 1; } }
 
@@ -848,7 +849,10 @@ namespace FNPlugin
 			deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
 			if (deployableSolarPanel != null)
 			{
-				try
+                mockInputResource = new ModuleResource();
+                mockInputResource.name = deployableSolarPanel.resourceName;
+                resHandler.inputResources.Add(mockInputResource);
+                try
 				{
 					deployableSolarPanel.Events["Extend"].guiActive = false;
 				}
@@ -1974,7 +1978,7 @@ namespace FNPlugin
             // extract power otherwise we end up with double power
             if (deployableSolarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
 			{
-                part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, flowRate * TimeWarp.fixedDeltaTime);
+                mockInputResource.rate = flowRate;
 
 				if (stabalizedFlowRate > 0)
 					stabalizedFlowRate *= 0.001;
@@ -1983,7 +1987,7 @@ namespace FNPlugin
 			}
 			else if (deployableSolarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
 			{
-                part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, flowRate * TimeWarp.fixedDeltaTime);
+                mockInputResource.rate = flowRate;
 			}
 			else
 			{

@@ -32,6 +32,7 @@ namespace FNPlugin
         private PartResource electricChargePartResource;
         private BaseField _field_kerbalism_output;
         private PartModule warpfixer;
+        private ModuleResource mockInputResource;
 
         private bool active = false;
         private float previousDeltaTime;
@@ -91,6 +92,10 @@ namespace FNPlugin
                 }
                 else
                     outputType = resourceType.other;
+
+                mockInputResource = new ModuleResource();
+                mockInputResource.name = solarPanel.resourceName;
+                resHandler.inputResources.Add(mockInputResource);
 
                 outputDefinition = PartResourceLibrary.Instance.GetDefinition(solarPanel.resourceName);
             }
@@ -160,8 +165,6 @@ namespace FNPlugin
 
                 if (outputType == resourceType.other) return;
 
-
-
                 if (megajoulePartResource != null && fixedMegajouleBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
                 {
                     double requiredMegawattCapacity = fixedMegajouleBufferSize * TimeWarp.fixedDeltaTime;
@@ -208,7 +211,7 @@ namespace FNPlugin
                     : solar_rate;
 
                 // extract power otherwise we end up with double power
-                part.RequestResource(outputDefinition.id, solar_rate * TimeWarp.fixedDeltaTime);
+                mockInputResource.rate = solar_rate;
 
                 solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate / 1000;
                 solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply / 1000;
