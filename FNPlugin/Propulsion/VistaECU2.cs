@@ -1,12 +1,11 @@
 ﻿namespace FNPlugin
 {
-
     class VistaECU2 : FusionECU2, IUpgradeableModule
     {
         const float maxMin = defaultMinIsp / defaultMaxIsp;
-        const float defaultMaxIsp = 27200f;
-        const float defaultMinIsp = 15500f;
-        const float defaultMaxSteps = 100.00f;
+        const float defaultMaxIsp = 27200;
+        const float defaultMinIsp = 15500;
+        const float defaultMaxSteps = 100;
         const float defaultSteps = (defaultMaxIsp - defaultMinIsp) / defaultMaxSteps;
         const float stepNumb = 0;
 
@@ -18,7 +17,9 @@
         [KSPField]
         public float neutronAbsorptionFractionAtMinIsp = 0.5f;
         [KSPField]
-        public float maxThrustEfficiencyByIspPower = 2f;
+        public float maxThrustEfficiencyByIspPower = 2;
+        [KSPField]
+        public float gearDivider = -1;
 
         public float minIsp = defaultMinIsp;
         private FloatCurve atmophereCurve;
@@ -26,21 +27,19 @@
         protected override FloatCurve BaseFloatCurve
         {
             get
-            {
-                
+            {                
                 return atmophereCurve ?? curEngineT.atmosphereCurve;
             }
             set
             {
-                    atmophereCurve = value;
-                
+                    atmophereCurve = value;                
             }
         }
         
         protected override float SelectedIsp { get { return localIsp; } set { if (value > 0) { localIsp = value; } } }
         protected override float MinIsp { get { return minIsp; } set { if (value <= 10) { minIsp = value + .01f; } else { minIsp = value; } } }
         protected override float MaxIsp { get { return minIsp / maxMin; } }
-        protected override float MaxMin { get { return maxMin; } }
+        protected override float GearDivider { get { return gearDivider >= 0 ? gearDivider : maxMin; } }
         protected override float MaxSteps { get { return defaultMaxSteps; } }
         protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
         protected override float NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }

@@ -562,10 +562,6 @@ namespace FNPlugin
         public string amount = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Amount")]
         public string maxAmount = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max ISP")]
-        public float maxIsp = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thrust")]
-        public float maxThrust = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "ThrustMult")]
         public float thrustMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Power Requirement")]
@@ -667,7 +663,6 @@ namespace FNPlugin
                 else if (akIgnoreIsp.Length == 0) akIgnoreIsp = StringToBoolArray(ignoreForIsp);
                 return akIgnoreIsp;
             }
-
         }
 
         public bool[] IgnoreForThrust
@@ -750,7 +745,6 @@ namespace FNPlugin
         }
         private void Refresh()
         {
-
             akConfigName = "";
             strMaxAmount = maxAmount;
             akMaxAmount = new float[0];
@@ -760,7 +754,6 @@ namespace FNPlugin
                 if (Amount[i] > MaxAmount[i]) Amount[i] = MaxAmount[i];
                 i++;
             }
-
         }
 
         private void SaveAmount(ShipConstruct Ship)
@@ -777,7 +770,6 @@ namespace FNPlugin
                     }
 
                 strAmount = FloatArrayToString(Amount);
-
             }
             catch (Exception e)
             {

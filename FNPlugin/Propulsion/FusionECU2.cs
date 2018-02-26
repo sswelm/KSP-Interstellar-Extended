@@ -85,7 +85,7 @@ namespace FNPlugin
         protected abstract float SelectedIsp { get; set; }
         protected abstract float MinIsp { get; set; }
         protected abstract float MaxIsp { get; }
-        protected abstract float MaxMin { get; }
+        protected abstract float GearDivider { get; }
         protected abstract float MaxSteps { get; }
         protected abstract float MaxThrustEfficiencyByIspPower { get; }
         protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
@@ -266,27 +266,27 @@ namespace FNPlugin
                     float akIsp = SelectedIsp;
                     float akMinIsp = IspController[I].minValue;
                     float akMaxIsp = IspController[I].maxValue;
-                    float StepIncrement = IspController[I].stepIncrement;
-                    float StepNumb = (akIsp - akMinIsp) / StepIncrement;
+                    float stepIncrement = IspController[I].stepIncrement;
+                    float stepNumb = stepIncrement > 0 ? (akIsp - akMinIsp) / stepIncrement : 0;
 
-                    if (StepNumb < 0)
-                        StepNumb = 0;
+                    if (stepNumb < 0)
+                        stepNumb = 0;
                     else
-                        if (StepNumb > MaxSteps) StepNumb = MaxSteps;
+                        if (stepNumb > MaxSteps) stepNumb = MaxSteps;
 
                     akMinIsp = (float)Math.Round(BaseFloatCurve.Evaluate((float)Altitude));
 
                     if (akMinIsp < 1)
                         akMinIsp = 1;
 
-                    akMaxIsp = (float)Math.Round(akMinIsp / MaxMin);
-                    StepIncrement = (akMaxIsp - akMinIsp) / 100;
+                    akMaxIsp = GearDivider > 0 ? (float)Math.Round(akMinIsp / GearDivider) : akMinIsp;
+                    stepIncrement = (akMaxIsp - akMinIsp) / 100;
 
                     IspController[I].minValue = akMinIsp;
                     IspController[I].maxValue = akMaxIsp;
-                    IspController[I].stepIncrement = StepIncrement;
+                    IspController[I].stepIncrement = stepIncrement;
 
-                    SelectedIsp = akMinIsp + StepIncrement * StepNumb;
+                    SelectedIsp = akMinIsp + stepIncrement * stepNumb;
                     I++;
                 }
                 lastAltitude = Altitude;
@@ -367,10 +367,9 @@ namespace FNPlugin
 
         private double GetRatio(string akPropName)
         {
-            double akRatio = curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName) != null ? curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName).ratio : 0;
-
-            return akRatio;
+            return curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName) != null ? curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName).ratio : 0;
         }
+
         private void SetRatio(string akPropName, float akRatio)
         {
             if (curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName) != null)
