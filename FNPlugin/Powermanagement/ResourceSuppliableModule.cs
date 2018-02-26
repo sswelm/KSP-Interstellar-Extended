@@ -417,7 +417,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.CurrentRresourceDemand;
+            return manager.CurrentResourceDemand;
         }
 
         public double getResourceBarRatio(String resourcename)

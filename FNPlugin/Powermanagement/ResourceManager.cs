@@ -75,7 +75,6 @@ namespace FNPlugin
         double stored_current_demand = 0;
         double stored_current_charge_demand = 0;
         double stored_supply = 0;
-        double stored_charge_demand = 0;
         double stored_total_power_supplied = 0;
 
         double current_resource_demand = 0;
@@ -387,7 +386,6 @@ namespace FNPlugin
         public double CurrentResourceDemand { get { return current_resource_demand; } }
         public double CurrentHighPriorityResourceDemand { get { return stored_current_hp_demand; } }
         public double PowerSupply { get { return currentPowerSupply; } }
-        public double CurrentRresourceDemand { get { return current_resource_demand; } }
         public double ResourceBarRatioBegin { get {  return resource_bar_ratio_begin; } }
         public double ResourceBarRatioEnd { get { return resource_bar_ratio_end; } }
         public Vessel Vessel { get { return my_vessel; } }
@@ -444,7 +442,6 @@ namespace FNPlugin
             stored_current_demand = current_resource_demand;
             stored_current_hp_demand = high_priority_resource_demand;
             stored_current_charge_demand = charge_resource_demand;
-            stored_charge_demand = charge_resource_demand;
             stored_total_power_supplied = total_power_distributed;
 
             current_resource_demand = 0;
@@ -938,7 +935,7 @@ namespace FNPlugin
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("DC Electrical System", left_aligned_label, GUILayout.ExpandWidth(true));
-                GUILayout.Label(getPowerFormatString(stored_charge_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
+                GUILayout.Label(getPowerFormatString(stored_current_charge_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
                 GUILayout.Label("0", right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(priorityWidth));
                 GUILayout.EndHorizontal();
             }
