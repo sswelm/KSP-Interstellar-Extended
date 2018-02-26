@@ -22,6 +22,7 @@ namespace FNPlugin
         private float previousDeltaTime;
         private double fixedMegajouleBufferSize;
         private double fixedElectricChargeBufferSize;
+        private ModuleResource mockInputResource;
 
         public override void OnStart(StartState state)
         {
@@ -58,6 +59,11 @@ namespace FNPlugin
                             fixedMegajouleBufferSize = megajoulePartResource.maxAmount * 50;
                         }
                         outputDefinition = PartResourceLibrary.Instance.GetDefinition(moduleResource.name);
+
+                        mockInputResource = new ModuleResource();
+                        mockInputResource.name = moduleResource.name;
+                        resHandler.inputResources.Add(mockInputResource);
+
                         break;
                     }
                     if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
@@ -70,6 +76,11 @@ namespace FNPlugin
                             fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
                         }
                         outputDefinition = PartResourceLibrary.Instance.GetDefinition(moduleResource.name);
+
+                        mockInputResource = new ModuleResource();
+                        mockInputResource.name = moduleResource.name;
+                        resHandler.inputResources.Add(mockInputResource);
+
                         break;
                     }
                 }
@@ -166,7 +177,7 @@ namespace FNPlugin
                 double generatorRate = mainResource.isDeprived ? 0 : mainResource.rate;
 
                 // extract power otherwise we end up with double power
-                part.RequestResource(outputDefinition.id, generatorRate * TimeWarp.fixedDeltaTime);
+                mockInputResource.rate = generatorRate;
 
                 double generatorSupply = outputType == resourceType.megajoule ? generatorRate : generatorRate / 1000;
 
