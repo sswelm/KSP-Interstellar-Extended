@@ -315,7 +315,7 @@ namespace FNPlugin
                 Debug.Log("[KSPI] - Resource: " + akConfig.Fuels[I] + " has a " + akConfig.MaxAmount[I] + " tank.");
                 if (akConfig.MaxAmount[I] > 0)
                 {
-                    
+                    Debug.Log("[KSPI] - Loaded Resource: " + akConfig.Fuels[I]);
                     part.AddResource(LoadResource(akConfig.Fuels[I], akConfig.Amount[I], akConfig.MaxAmount[I]));
                 }
                 else N++;
@@ -486,14 +486,6 @@ namespace FNPlugin
             }
         }
 
-        //public void UpdateusefulConfigurations()
-        //{
-        //    IList<FuelConfiguration> akConfig = new List<FuelConfiguration>(usefulConfigurations);
-        //    usefulConfigurations = GetUsableConfigurations(FuelConfigurations);
-        //    if (akConfig.Equals(usefulConfigurations)) 
-        //           InitializeFuelSelector();
-        //}
-
         public IList<FuelConfiguration> GetUsableConfigurations(IList<FuelConfiguration> akConfigs)
         {
             IList<FuelConfiguration> nwConfigs = new List<FuelConfiguration>();
@@ -503,10 +495,10 @@ namespace FNPlugin
                 if (ConfigurationHasFuel(akConfigs[I]))
                 {
                     nwConfigs.Add(akConfigs[I]);
-                    Debug.Log("[KSPI] - Added: " + akConfigs[I].fuelConfigurationName);
-
+                    Debug.Log("[KSPI] - Added fuel configuration: " + akConfigs[I].fuelConfigurationName);
                 }
-                else if (I < selectedFuel && I > 0) selectedFuel--;
+                else 
+                    if (I < selectedFuel && I > 0) selectedFuel--;
                 I++;
             }
 
@@ -523,20 +515,23 @@ namespace FNPlugin
                 {
                     double akAmount = 0;
                     double akMaxAmount = 0;
-                    PartResource akResource = this.part.Resources.Get(akConfig.Fuels[I]);
+
+                    var akResource = PartResourceLibrary.Instance.GetDefinition(akConfig.Fuels[I]);
+
                     if (akResource != null)
                     {
-                        part.GetConnectedResourceTotals(akResource.info.id, out akAmount, out akMaxAmount);
+                        part.GetConnectedResourceTotals(akResource.id, out akAmount, out akMaxAmount);
                         Debug.Log("[KSPI] - Resource: " + akConfig.Fuels[I] + " has " + akAmount);
                         if (akAmount == 0 && akMaxAmount > 0)
                         {
+                            Debug.Log("[KSPI] - Resource: " + akConfig.Fuels[I] + " is empty");
                             Test = false;
                             I = akConfig.Fuels.Length;
                         }
                     }
                     else
                     {
-                        Debug.Log("[KSPI] - Resource: " + akConfig.Fuels[I] + " has " + 0);
+                        Debug.Log("[KSPI] - Resource: " + akConfig.Fuels[I] + " is not defined");
                         Test = false;
                         I = akConfig.Fuels.Length;
                     }
@@ -622,7 +617,8 @@ namespace FNPlugin
         {
             get
             {
-                if (akAmount.Length == 0) akAmount = StringToFloatArray(StrAmount);
+                if (akAmount.Length == 0) 
+                    akAmount = StringToFloatArray(StrAmount);
                 return VolumeTweaked(akAmount);
             }
         }
@@ -631,7 +627,8 @@ namespace FNPlugin
         {
             get
             {
-                if (akMaxAmount.Length == 0) akMaxAmount = StringToFloatArray(StrMaxAmount);
+                if (akMaxAmount.Length == 0) 
+                    akMaxAmount = StringToFloatArray(StrMaxAmount);
                 return VolumeTweaked(akMaxAmount);
             }
 
