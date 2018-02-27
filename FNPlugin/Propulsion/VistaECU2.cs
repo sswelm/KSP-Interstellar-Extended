@@ -1,4 +1,6 @@
-﻿namespace FNPlugin
+﻿using LibNoise;
+
+namespace FNPlugin
 {
     class VistaECU2 : FusionECU2, IUpgradeableModule
     {
@@ -20,8 +22,11 @@
         public float maxThrustEfficiencyByIspPower = 2;
         [KSPField]
         public float gearDivider = -1;
-
+        [KSPField]
         public float minIsp = defaultMinIsp;
+        [KSPField]
+        public float initialGearRatio = 0;
+
         private FloatCurve atmophereCurve;
 
         protected override FloatCurve BaseFloatCurve
@@ -32,10 +37,11 @@
             }
             set
             {
-                    atmophereCurve = value;                
+                    atmophereCurve = value;
             }
         }
-        
+
+        protected override float InitialGearRatio {get { return initialGearRatio; }}
         protected override float SelectedIsp { get { return localIsp; } set { if (value > 0) { localIsp = value; } } }
         protected override float MinIsp { get { return minIsp; } set { if (value <= 10) { minIsp = value + .01f; } else { minIsp = value; } } }
         protected override float MaxIsp { get { return minIsp / maxMin; } }
