@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin.Extensions
+namespace FNPlugin.Resources
 {
     class CrustalResourceHandler
     {
@@ -147,7 +147,11 @@ namespace FNPlugin.Extensions
                 List<ConfigNode> Crustal_resource_list = Crustal_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestialBody.name).ToList();
                 if (Crustal_resource_list.Any())
                 {
-                    bodyCrustalComposition = Crustal_resource_list.Select(orsc => new CrustalResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
+                    bodyCrustalComposition = Crustal_resource_list.Select(orsc => 
+                        new CrustalResource(orsc.HasValue("resourceName") 
+                            ? orsc.GetValue("resourceName") : null, 
+                            double.Parse(orsc.GetValue("abundance")), 
+                            orsc.GetValue("guiName"))).ToList();
                 }
             }
             return bodyCrustalComposition;

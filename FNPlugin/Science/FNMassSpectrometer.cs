@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using FNPlugin.Resources;
 
 namespace FNPlugin 
 {

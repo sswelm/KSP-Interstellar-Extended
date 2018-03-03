@@ -1,4 +1,4 @@
-﻿namespace FNPlugin.Extensions
+﻿namespace FNPlugin.Resources
 {
 	public class AtmosphericFloatCurves
 	{

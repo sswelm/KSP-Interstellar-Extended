@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using TweakScale;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {

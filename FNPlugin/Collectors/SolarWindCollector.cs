@@ -1,3 +1,4 @@
+using FNPlugin.Resources;
 using FNPlugin.Extensions;
 using System;
 using System.Linq;
