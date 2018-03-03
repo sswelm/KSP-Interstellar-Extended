@@ -37,7 +37,7 @@ namespace FNPlugin
 
                 if (moduleGenerator == null) return;
 
-                part.force_activate();
+                //part.force_activate(); <== this caused launh clamp to activat
 
                 String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
                 this.resources_to_supply = resources_to_supply;
