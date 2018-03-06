@@ -72,11 +72,11 @@ namespace FNPlugin
         [KSPField]
         public double efficiency = 0.19;
         [KSPField]
-        public double efficiencyUpgraded1 = 0;
+        public double efficiencyUpgraded1 = 0.25;
         [KSPField]
-        public double efficiencyUpgraded2 = 0.76;
+        public double efficiencyUpgraded2 = 0.44;
         [KSPField]
-        public double efficiencyUpgraded3 = 0.76;
+        public double efficiencyUpgraded3 = 0.65;
         [KSPField]
         public double efficiencyUpgraded4 = 0.76;
 
@@ -447,7 +447,7 @@ namespace FNPlugin
             {
                 Debug.LogError("EngineECU2 OnStart eception: " + e.Message);
             }
-
+            
             base.OnStart(state);
         }
 
