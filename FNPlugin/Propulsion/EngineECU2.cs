@@ -55,6 +55,8 @@ namespace FNPlugin
         public double thrustmultiplier = 1;
         [KSPField]
         public bool isLoaded = false;
+        [KSPField]
+        public bool resourceSwitching = true;
 
         [KSPField(guiActiveEditor = true)]
         public float maxThrust = 150;
@@ -277,6 +279,9 @@ namespace FNPlugin
 
         private void UpdateResources()
         {
+            if (!resourceSwitching)
+                return;
+
             Debug.Log("[KSPI] - Update Resources");
 
             ConfigNode akResources = new ConfigNode();
