@@ -30,8 +30,6 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public string selectedTankName = "";
 
-        [KSPField]
-        public string upgradeTechReq;
         [KSPField(guiActiveEditor = true, guiName = "upgrade tech 1")]
         public string upgradeTechReq1;
         [KSPField(guiActiveEditor = true, guiName = "upgrade tech 2")]
@@ -59,22 +57,18 @@ namespace FNPlugin
         public bool isLoaded = false;
 
         [KSPField(guiActiveEditor = true)]
-        public float maxThrust = 75;
+        public float maxThrust = 150;
         [KSPField(guiActiveEditor = true)]
-        public float maxThrustUpgraded = 300;
+        public float maxThrustUpgraded1 = 300;
         [KSPField(guiActiveEditor = true)]
-        public float maxThrustUpgraded1 = 0;
-        [KSPField(guiActiveEditor = true)]
-        public float maxThrustUpgraded2 = 1200;
+        public float maxThrustUpgraded2 = 500;
         [KSPField( guiActiveEditor = true)]
-        public float maxThrustUpgraded3 = 1200;
+        public float maxThrustUpgraded3 = 800;
         [KSPField( guiActiveEditor = true)]
         public float maxThrustUpgraded4 = 1200;
 
         [KSPField]
         public double efficiency = 0.19;
-        [KSPField]
-        public double efficiencyUpgraded = 0.38;
         [KSPField]
         public double efficiencyUpgraded1 = 0;
         [KSPField]
@@ -105,7 +99,7 @@ namespace FNPlugin
         public GenerationType EngineGenerationType { get; private set; }
 
         public double MaxThrust {  get { return maxThrust * thrustMult(); } }
-        public double MaxThrustUpgraded1 { get { return (maxThrustUpgraded1 > 0 ? maxThrustUpgraded1 : maxThrustUpgraded) * thrustMult(); } }
+        public double MaxThrustUpgraded1 { get { return maxThrustUpgraded1 * thrustMult(); } }
         public double MaxThrustUpgraded2 { get { return maxThrustUpgraded2 * thrustMult(); } }
         public double MaxThrustUpgraded3 { get { return maxThrustUpgraded3 * thrustMult(); } }
         public double MaxThrustUpgraded4 { get { return maxThrustUpgraded4 * thrustMult(); } }
@@ -113,7 +107,7 @@ namespace FNPlugin
         public void DetermineTechLevel()
         {
             int numberOfUpgradeTechs = 1;
-            if (PluginHelper.upgradeAvailable(upgradeTechReq1) || PluginHelper.upgradeAvailable(upgradeTechReq))
+            if (PluginHelper.upgradeAvailable(upgradeTechReq1))
                 numberOfUpgradeTechs++;
             if (PluginHelper.upgradeAvailable(upgradeTechReq2))
                 numberOfUpgradeTechs++;

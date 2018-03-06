@@ -19,14 +19,12 @@ namespace FNPlugin
 
         [KSPField(guiActiveEditor = true)]
         public double powerRequirement = 625;
-        [KSPField(guiActiveEditor = true)]
-        public double powerRequirementUpgraded = 1250;
         [KSPField( guiActiveEditor = true)]
-        public double powerRequirementUpgraded1 = 0;
+        public double powerRequirementUpgraded1 = 1000;
         [KSPField(guiActiveEditor = true)]
-        public double powerRequirementUpgraded2 = 2500;
+        public double powerRequirementUpgraded2 = 1500;
         [KSPField(guiActiveEditor = true)]
-        public double powerRequirementUpgraded3 = 2500;
+        public double powerRequirementUpgraded3 = 2000;
         [KSPField(guiActiveEditor = true)]
         public double powerRequirementUpgraded4 = 2500;
 
@@ -43,13 +41,11 @@ namespace FNPlugin
         [KSPField(guiActiveEditor = true)]
         public double fusionWasteHeat = 625;
         [KSPField(guiActiveEditor = true)]
-        public double fusionWasteHeatUpgraded = 2500;
+        public double fusionWasteHeatUpgraded1 = 2500;
         [KSPField(guiActiveEditor = true)]
-        public double fusionWasteHeatUpgraded1 = 0;
+        public double fusionWasteHeatUpgraded2 = 5000;
         [KSPField(guiActiveEditor = true)]
-        public double fusionWasteHeatUpgraded2 = 10000;
-        [KSPField(guiActiveEditor = true)]
-        public double fusionWasteHeatUpgraded3 = 10000;
+        public double fusionWasteHeatUpgraded3 = 7500;
         [KSPField(guiActiveEditor = true)]
         public double fusionWasteHeatUpgraded4 = 10000;
 
@@ -117,7 +113,7 @@ namespace FNPlugin
 
         #region IUpgradeableModule
 
-        public String UpgradeTechnology { get { return upgradeTechReq; } }
+        public String UpgradeTechnology { get { return upgradeTechReq1; } }
 
         public void upgradePartModule() { }
 
@@ -138,9 +134,7 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return fusionWasteHeat;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                {
-                    return fusionWasteHeatUpgraded1 > 0 ? fusionWasteHeatUpgraded1 : fusionWasteHeatUpgraded;
-                }
+                    return fusionWasteHeatUpgraded1;
                 else if (EngineGenerationType == GenerationType.Mk3)
                     return fusionWasteHeatUpgraded2;
                 else if (EngineGenerationType == GenerationType.Mk4)
@@ -174,12 +168,7 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return efficiency;
                 else if (EngineGenerationType == GenerationType.Mk2)
-                {
-                    if (efficiencyUpgraded1 > 0)
-                        return efficiencyUpgraded1;
-                    else
-                        return efficiencyUpgraded;
-                }
+                    return efficiencyUpgraded1;
                 else if (EngineGenerationType == GenerationType.Mk3)
                     return efficiencyUpgraded2;
                 else if (EngineGenerationType == GenerationType.Mk4)
@@ -204,12 +193,7 @@ namespace FNPlugin
                 if (EngineGenerationType == GenerationType.Mk1)
                     return powerRequirement * PowerMult();
                 else if (EngineGenerationType == GenerationType.Mk2)
-                {
-                    if (powerRequirementUpgraded1 > 0)
-                        return powerRequirementUpgraded1 * PowerMult();
-                    else
-                        return powerRequirementUpgraded * PowerMult();
-                }
+                    return powerRequirementUpgraded1 * PowerMult();
                 else if (EngineGenerationType == GenerationType.Mk3)
                     return powerRequirementUpgraded2 * PowerMult();
                 else if (EngineGenerationType == GenerationType.Mk4)
