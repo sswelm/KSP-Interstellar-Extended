@@ -1144,7 +1144,6 @@ namespace FNPlugin
                                 FNSolarPanelWasteHeatModule pm = available_part.partPrefab.gameObject.AddComponent(typeof(FNSolarPanelWasteHeatModule)) as FNSolarPanelWasteHeatModule;
                                 available_part.partPrefab.Modules.Add(pm);
                             }
-
                             //if (!available_part.partPrefab.Resources.Contains("WasteHeat") && panel.chargeRate > 0)
                             //{
                             //    ConfigNode node = new ConfigNode("RESOURCE");
@@ -1168,11 +1167,10 @@ namespace FNPlugin
 
                     if (available_part.partPrefab.FindModulesImplementing<ModuleGenerator>().Any())
                     {
+                        var existingGeneratorAdapter = available_part.partPrefab.FindModuleImplementing<FNGeneratorAdapter>();
                         // FNGeneratorAdapter is not already on the part
-                        var existingSolarControlModule = available_part.partPrefab.FindModuleImplementing<FNGeneratorAdapter>();
-                        if (existingSolarControlModule == null)
+                        if (existingGeneratorAdapter == null)
                         {
-                            ModuleGenerator generator = available_part.partPrefab.FindModuleImplementing<ModuleGenerator>();
                             FNGeneratorAdapter adapter = available_part.partPrefab.gameObject.AddComponent(typeof(FNGeneratorAdapter)) as FNGeneratorAdapter;
                             available_part.partPrefab.Modules.Add(adapter);
                         }
@@ -1188,6 +1186,16 @@ namespace FNPlugin
                             mod_info.moduleName = "Electric Engine";
                     }
 
+                    if (available_part.partPrefab.Modules.Contains("FissionGenerator"))
+                    {
+                        // FNFissionGeneratorAdapter is not already on the part
+                        var existingFissionGeneratorAdapter = available_part.partPrefab.FindModuleImplementing<FNFissionGeneratorAdapter>();
+                        if (existingFissionGeneratorAdapter == null)
+                        {
+                            FNFissionGeneratorAdapter adapter = available_part.partPrefab.gameObject.AddComponent(typeof(FNFissionGeneratorAdapter)) as FNFissionGeneratorAdapter;
+                            available_part.partPrefab.Modules.Add(adapter);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
