@@ -55,8 +55,15 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double powerRequirementMultiplier = 1;
 
-        [KSPField(guiActive = true, guiActiveEditor = false)]
-        public double powerMultiplier;
+        // Debugging variables
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public double powerMultiplier = 1;
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public bool hasIspThrottling = true;
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public float currentIsp;
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public double neutronbsorbionBonus;
 
         [KSPField(guiActive = true, guiName = "Fusion Ratio", guiFormat = "F2")]
         public double fusionRatio;
@@ -87,6 +94,8 @@ namespace FNPlugin
         protected abstract float MaxThrustEfficiencyByIspPower { get; }
         protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
         protected abstract FloatCurve BaseFloatCurve { get; set; }
+
+
 
         // protected
         protected bool hasrequiredupgrade = false;
@@ -132,15 +141,15 @@ namespace FNPlugin
             get
             {
                 if (EngineGenerationType == GenerationType.Mk1)
-                    return fusionWasteHeat;
+                    return fusionWasteHeat * WasteheatMult();
                 else if (EngineGenerationType == GenerationType.Mk2)
-                    return fusionWasteHeatUpgraded1;
+                    return fusionWasteHeatUpgraded1 * WasteheatMult();
                 else if (EngineGenerationType == GenerationType.Mk3)
-                    return fusionWasteHeatUpgraded2;
+                    return fusionWasteHeatUpgraded2 * WasteheatMult();
                 else if (EngineGenerationType == GenerationType.Mk4)
-                    return fusionWasteHeatUpgraded3;
+                    return fusionWasteHeatUpgraded3 * WasteheatMult();
                 else
-                    return fusionWasteHeatUpgraded4;
+                    return fusionWasteHeatUpgraded4 * WasteheatMult();
             }
         }
 
@@ -221,8 +230,17 @@ namespace FNPlugin
         }
         private double PowerMult ()
         {
-            powerMultiplier = FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1;
-            return powerMultiplier;
+            return FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1;
+        }
+
+        public bool HasIspThrottling()
+        {
+            return FuelConfigurations.Count > 0 ? ActiveConfiguration.hasIspThrottling : true;
+        }
+
+        private double WasteheatMult()
+        {
+            return FuelConfigurations.Count > 0 ? ActiveConfiguration.wasteheatMult : 1;
         }
 
         private void FcUpdate()
@@ -447,14 +465,14 @@ namespace FNPlugin
             return max;
         }
 
-        private void UpdateIsp()
+        private void UpdateAtmosphereCurve(float currentIsp )
         {
                 var newIsp = new FloatCurve();
                 Altitude = vessel.atmDensity;
                 var origIsp = BaseFloatCurve.Evaluate((float)Altitude);
 
                 FcUpdate();
-                newIsp.Add((float)Altitude, SelectedIsp);
+                newIsp.Add((float)Altitude, currentIsp);
                 curEngineT.atmosphereCurve = newIsp;
                 MinIsp = origIsp;
         }
@@ -483,6 +501,8 @@ namespace FNPlugin
 
             KillKerbalsWithRadiation(throttle);
 
+            hasIspThrottling = HasIspThrottling();
+
             if (throttle > 0 )
             {
                 // Calculate Fusion Ratio
@@ -509,18 +529,19 @@ namespace FNPlugin
                     supplyFNResourcePerSecond(laserWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
-                var rateMultplier = MinIsp / SelectedIsp;
-                var neutronbsorbionBonus = 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp)));
+                
+                var rateMultplier = hasIspThrottling ? MinIsp / SelectedIsp : 1;
+                neutronbsorbionBonus = hasIspThrottling ? 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp))) : 0.5;
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;
                 supplyFNResourcePerSecond(absorbedWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
-                SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)standard_deuterium_rate / rateMultplier);
-                SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)standard_tritium_rate / rateMultplier);
+                SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)(standard_deuterium_rate / rateMultplier));
+                SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)(standard_tritium_rate / rateMultplier));
 
-                var currentIsp = SelectedIsp;
-                UpdateIsp();
-                maximumThrust = MaximumThrust;
+                currentIsp = hasIspThrottling ? SelectedIsp : MinIsp;
+                UpdateAtmosphereCurve(currentIsp);
+                maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
 
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * maximumThrust / currentIsp / PluginHelper.GravityConstant;
@@ -538,17 +559,17 @@ namespace FNPlugin
                 absorbedWasteheat = 0;
                 laserWasteheat = 0;
                 fusionRatio = 0;
-                var currentIsp = SelectedIsp;
-                maximumThrust = MaximumThrust;
+                currentIsp = hasIspThrottling ? SelectedIsp : MinIsp;
+                maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
 
-                UpdateIsp();
+                UpdateAtmosphereCurve(currentIsp);
                 curEngineT.maxThrust = (float)maximumThrust;
-                var rateMultplier = MinIsp / SelectedIsp;
+                var rateMultplier = hasIspThrottling ? MinIsp / SelectedIsp : 1;
 
                 var maxFuelFlow = maximumThrust / currentIsp / PluginHelper.GravityConstant;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
-                SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)standard_deuterium_rate / rateMultplier);
-                SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)standard_tritium_rate / rateMultplier);
+                SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)(standard_deuterium_rate / rateMultplier));
+                SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)(standard_tritium_rate / rateMultplier));
             }
 
             coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
