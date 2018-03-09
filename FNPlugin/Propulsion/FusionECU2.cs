@@ -230,17 +230,17 @@ namespace FNPlugin
         }
         private double PowerMult ()
         {
-            return FuelConfigurations.Count > 0 ? ActiveConfiguration.powerMult : 1;
+            return FuelConfigurations.Count > 0 ? CurrentActiveConfiguration.powerMult : 1;
         }
 
         public bool HasIspThrottling()
         {
-            return FuelConfigurations.Count > 0 ? ActiveConfiguration.hasIspThrottling : true;
+            return FuelConfigurations.Count > 0 ? CurrentActiveConfiguration.hasIspThrottling : true;
         }
 
         private double WasteheatMult()
         {
-            return FuelConfigurations.Count > 0 ? ActiveConfiguration.wasteheatMult : 1;
+            return FuelConfigurations.Count > 0 ? CurrentActiveConfiguration.wasteheatMult : 1;
         }
 
         private void FcUpdate()
@@ -311,7 +311,7 @@ namespace FNPlugin
             if (isEditor) return;
 
             Debug.Log("[KSPI] - Fusion Gui Updated");
-            BaseFloatCurve = ActiveConfiguration.atmosphereCurve;
+            BaseFloatCurve = CurrentActiveConfiguration.atmosphereCurve;
             standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
             standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
             curveMaxISP = GetMaxKey(BaseFloatCurve);
@@ -356,7 +356,7 @@ namespace FNPlugin
                 if (wasteheatPowerResource != null)
                 {
                     var wasteheatRatio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+3 * wasteHeatMultiplier;
+                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
                     wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheatRatio;
                 }
 
