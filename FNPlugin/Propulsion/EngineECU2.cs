@@ -12,6 +12,9 @@ namespace FNPlugin
 
     abstract class EngineECU2 : ResourceSuppliableModule, IRescalable<EngineECU2>
     {
+        [KSPField(guiActive = true, guiName = "Max Thrust", guiUnits = " kN", guiFormat = "F4")]
+        public double maximumThrust;
+
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Fuel Config")]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.All, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedFuel = 0;
@@ -86,21 +89,20 @@ namespace FNPlugin
         [KSPField]
         public float upgradeCost = 100;
 
-        [KSPField(guiActive = true, guiName = "Max Thrust", guiUnits = " kN", guiFormat = "F4")]
-        public double maximumThrust;
+
         [KSPField]
         public float throttle;
 
         public ModuleEngines curEngineT;
         public bool hasMultipleConfigurations = false;
 
-        IList<FuelConfiguration> _activeConfigurations;
+        private IList<FuelConfiguration> _activeConfigurations;
         private FuelConfiguration _currentActiveConfiguration;
         private UIPartActionWindow tweakableUI;
         private StartState CurState;
 
-        UI_ChooseOption chooseOptionEditor;
-        UI_ChooseOption chooseOptionFlight;
+        private UI_ChooseOption chooseOptionEditor;
+        private UI_ChooseOption chooseOptionFlight;
  
         public GenerationType EngineGenerationType { get; private set; }
 
@@ -142,6 +144,7 @@ namespace FNPlugin
             Events["HideFuels"].active = !hideEmpty; // will show the button when the process IS enabled
             //UpdateusefulConfigurations();
             InitializeFuelSelector();
+            Debug.Log("[KSPI] - HideFuels calls UpdateFuel");
             UpdateFuel();
         }
 
@@ -154,6 +157,7 @@ namespace FNPlugin
             Events["HideFuels"].active = !hideEmpty; // will show the button when the process IS enabled
             selectedFuel = ActiveConfigurations.IndexOf(CurConfig);
             InitializeFuelSelector();
+            Debug.Log("[KSPI] - ShowFuels calls UpdateFuel");
             UpdateFuel();
         }
 
@@ -254,12 +258,13 @@ namespace FNPlugin
         private void UpdateFlightGUI(BaseField field, object oldFieldValueObj)
         {
             UpdateFromGUI(field, oldFieldValueObj);
+            Debug.Log("[KSPI] - UpdateFlightGUI calls UpdateFuel");
             UpdateFuel();
         }
 
         public virtual void UpdateFuel(bool isEditor = false)
         {
-            Debug.Log("[KSPI] - Update Fuel " + isEditor);
+            Debug.Log("[KSPI] - Update Fuel with " + CurrentActiveConfiguration.fuelConfigurationName);
 
             ConfigNode akPropellants = new ConfigNode();
 
@@ -267,8 +272,13 @@ namespace FNPlugin
             int N = 0;
             while (I < CurrentActiveConfiguration.Fuels.Length)
             {
-                if (CurrentActiveConfiguration.Ratios[I] > 0) akPropellants.AddNode(LoadPropellant(CurrentActiveConfiguration.Fuels[I], CurrentActiveConfiguration.Ratios[I]));
-                else N++;
+                if (CurrentActiveConfiguration.Ratios[I] > 0)
+                {
+                    Debug.Log("[KSPI] - Load propellant " + CurrentActiveConfiguration.Fuels[I]);
+                    akPropellants.AddNode(LoadPropellant(CurrentActiveConfiguration.Fuels[I], CurrentActiveConfiguration.Ratios[I]));
+                }
+                else
+                    N++;
                 I++;
             }
             //if (N + 1 >= akConfig.Fuels.Length) 
@@ -398,19 +408,22 @@ namespace FNPlugin
 
         private void UpdateActiveConfiguration()
         {
+            if (_currentActiveConfiguration == null)
+                return;
+
+            string previousFuelConfigurationName = _currentActiveConfiguration.fuelConfigurationName;
+
             _activeConfigurations = ActiveConfigurations;
 
             if (!_activeConfigurations.Any())
                 return;
 
-            var names = _activeConfigurations.Select(m => m.fuelConfigurationName).ToArray();
-            chooseOptionEditor.options = names;
-            chooseOptionFlight.options = names;
+            chooseOptionFlight.options = _activeConfigurations.Select(m => m.fuelConfigurationName).ToArray();
 
-            if (_currentActiveConfiguration == null)
-                return;
+            var index = chooseOptionFlight.options.IndexOf(previousFuelConfigurationName);
 
-            string previousFuelConfigurationName = _currentActiveConfiguration.fuelConfigurationName;
+            if (index >= 0)
+                selectedFuel = index;
 
             if (selectedFuel < _activeConfigurations.Count)
                 _currentActiveConfiguration = _activeConfigurations[selectedFuel];
@@ -424,7 +437,10 @@ namespace FNPlugin
                 return;
 
             if (previousFuelConfigurationName != _currentActiveConfiguration.fuelConfigurationName)
+            {
+                Debug.Log("[KSPI] - UpdateActiveConfiguration calls UpdateFuel");
                 UpdateFuel();
+            }
         }
 
         public override void OnUpdate()
@@ -463,6 +479,7 @@ namespace FNPlugin
                     selectedTank = selectedFuel;
                     selectedTankName = FuelConfigurations[selectedFuel].ConfigName;
                     UpdateResources();
+                    Debug.Log("[KSPI] - OnStart calls UpdateFuel");
                     UpdateFuel(true);
                 }
                 else
@@ -475,6 +492,7 @@ namespace FNPlugin
                         UpdateResources();
                         //UpdateusefulConfigurations();
                         InitializeFuelSelector();
+                        Debug.Log("[KSPI] - OnStart calls UpdateFuel");
                         UpdateFuel();
                     }
                     else
@@ -533,11 +551,15 @@ namespace FNPlugin
         {
             IList<FuelConfiguration> nwConfigs = new List<FuelConfiguration>();
             int I = 0;
+
             while (I < akConfigs.Count)
             {
-                if (ConfigurationHasFuel(akConfigs[I]))
+                var currentConfig = akConfigs[I];
+
+                if ((_currentActiveConfiguration != null && currentConfig.fuelConfigurationName == _currentActiveConfiguration.fuelConfigurationName) 
+                    || ConfigurationHasFuel(currentConfig))
                 {
-                    nwConfigs.Add(akConfigs[I]);
+                    nwConfigs.Add(currentConfig);
                     //Debug.Log("[KSPI] - Added fuel configuration: " + akConfigs[I].fuelConfigurationName);
                 }
                 else 
@@ -582,7 +604,6 @@ namespace FNPlugin
                                 I = akConfig.Fuels.Length;
                             }
                         }
-                        
                     }
                     else
                     {
@@ -591,7 +612,6 @@ namespace FNPlugin
                         I = akConfig.Fuels.Length;
                     }
                 }
-
                 I++;
             }
             return result;

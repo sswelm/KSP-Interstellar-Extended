@@ -65,7 +65,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double neutronbsorbionBonus;
 
-        [KSPField(guiActive = true, guiName = "Fusion Ratio", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiName = "Fusion Ratio", guiFormat = "F2")]
         public double fusionRatio;
         [KSPField(guiActive = true, guiName = "Power Requirement", guiFormat = "F2", guiUnits = " MW")]
         public double enginePowerRequirement;
