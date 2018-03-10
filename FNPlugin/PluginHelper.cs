@@ -1128,7 +1128,6 @@ namespace FNPlugin
                         //    node.AddValue("possibleAmount", intake_air_resource.amount);
                         //    available_part.partPrefab.AddResource(node);
                         //}
-
                     }
 
 
@@ -1165,17 +1164,6 @@ namespace FNPlugin
 
                     }
 
-                    if (available_part.partPrefab.FindModulesImplementing<ModuleGenerator>().Any())
-                    {
-                        var existingGeneratorAdapter = available_part.partPrefab.FindModuleImplementing<FNGeneratorAdapter>();
-                        // FNGeneratorAdapter is not already on the part
-                        if (existingGeneratorAdapter == null)
-                        {
-                            FNGeneratorAdapter adapter = available_part.partPrefab.gameObject.AddComponent(typeof(FNGeneratorAdapter)) as FNGeneratorAdapter;
-                            available_part.partPrefab.Modules.Add(adapter);
-                        }
-                    }
-
                     if (available_part.partPrefab.FindModulesImplementing<ElectricEngineControllerFX>().Count() > 0)
                     {
                         available_part.moduleInfo = available_part.partPrefab.FindModulesImplementing<ElectricEngineControllerFX>().First().GetInfo();
@@ -1184,17 +1172,6 @@ namespace FNPlugin
 
                         if (mod_info != null)
                             mod_info.moduleName = "Electric Engine";
-                    }
-
-                    if (available_part.partPrefab.Modules.Contains("FissionGenerator"))
-                    {
-                        // FNFissionGeneratorAdapter is not already on the part
-                        var existingFissionGeneratorAdapter = available_part.partPrefab.FindModuleImplementing<FNFissionGeneratorAdapter>();
-                        if (existingFissionGeneratorAdapter == null)
-                        {
-                            FNFissionGeneratorAdapter adapter = available_part.partPrefab.gameObject.AddComponent(typeof(FNFissionGeneratorAdapter)) as FNFissionGeneratorAdapter;
-                            available_part.partPrefab.Modules.Add(adapter);
-                        }
                     }
                 }
                 catch (Exception ex)
