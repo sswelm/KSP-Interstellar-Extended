@@ -1104,33 +1104,6 @@ namespace FNPlugin
                 {
                     if (available_part.partPrefab.Modules == null) continue;
 
-                    ModuleResourceIntake intake = available_part.partPrefab.FindModuleImplementing<ModuleResourceIntake>();
-
-                    if (intake != null && intake.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir)
-                    {
-                        var pm = available_part.partPrefab.gameObject.AddComponent<AtmosphericIntake>();
-                        available_part.partPrefab.Modules.Add(pm);
-                        pm.area = intake.area;
-                        //pm.aoaThreshold = intake.aoaThreshold;
-                        pm.intakeTransformName = intake.intakeTransformName;
-                        //pm.maxIntakeSpeed = intake.maxIntakeSpeed;
-                        pm.unitScalar = intake.unitScalar;
-                        //pm.useIntakeCompensation = intake.useIntakeCompensation;
-                        //pm.storesResource = intake.storesResource;
-
-                        //PartResource intake_air_resource = available_part.partPrefab.Resources[InterstellarResourcesConfiguration.Instance.IntakeAir];
-
-                        //if (intake_air_resource != null && !available_part.partPrefab.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
-                        //{
-                        //    ConfigNode node = new ConfigNode("RESOURCE");
-                        //    node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
-                        //    node.AddValue("maxAmount", intake_air_resource.maxAmount);
-                        //    node.AddValue("possibleAmount", intake_air_resource.amount);
-                        //    available_part.partPrefab.AddResource(node);
-                        //}
-                    }
-
-
                     if (available_part.partPrefab.FindModulesImplementing<ModuleDeployableSolarPanel>().Any())
                     {
                         // FNSolarPanelWasteHeatModule is not already on the part
