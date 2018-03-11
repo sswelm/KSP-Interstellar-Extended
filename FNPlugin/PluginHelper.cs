@@ -1161,17 +1161,6 @@ namespace FNPlugin
                             //    }
                             //}
                         }
-
-                    }
-
-                    if (available_part.partPrefab.FindModulesImplementing<ElectricEngineControllerFX>().Count() > 0)
-                    {
-                        available_part.moduleInfo = available_part.partPrefab.FindModulesImplementing<ElectricEngineControllerFX>().First().GetInfo();
-                        available_part.moduleInfos.RemoveAll(modi => modi.moduleName == "Engine");
-                        AvailablePart.ModuleInfo mod_info = available_part.moduleInfos.FirstOrDefault(modi => modi.moduleName == "Electric Engine Controller");
-
-                        if (mod_info != null)
-                            mod_info.moduleName = "Electric Engine";
                     }
                 }
                 catch (Exception ex)
