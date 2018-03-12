@@ -1097,53 +1097,6 @@ namespace FNPlugin
 
             //gdb = GameDatabase.Instance;
             plugin_init = true;
-
-            foreach (AvailablePart available_part in PartLoader.LoadedPartsList)
-            {
-                try
-                {
-                    if (available_part.partPrefab.Modules == null) continue;
-
-                    if (available_part.partPrefab.FindModulesImplementing<ModuleDeployableSolarPanel>().Any())
-                    {
-                        // FNSolarPanelWasteHeatModule is not already on the part
-                        var existingSolarControlModule = available_part.partPrefab.FindModuleImplementing<FNSolarPanelWasteHeatModule>();
-                        if (existingSolarControlModule == null)
-                        {
-                            ModuleDeployableSolarPanel panel = available_part.partPrefab.FindModuleImplementing<ModuleDeployableSolarPanel>();
-                            if (panel.chargeRate > 0)
-                            {
-                                FNSolarPanelWasteHeatModule pm = available_part.partPrefab.gameObject.AddComponent(typeof(FNSolarPanelWasteHeatModule)) as FNSolarPanelWasteHeatModule;
-                                available_part.partPrefab.Modules.Add(pm);
-                            }
-                            //if (!available_part.partPrefab.Resources.Contains("WasteHeat") && panel.chargeRate > 0)
-                            //{
-                            //    ConfigNode node = new ConfigNode("RESOURCE");
-                            //    node.AddValue("name", "WasteHeat");
-                            //    node.AddValue("maxAmount", panel.chargeRate * 100);
-                            //    node.AddValue("possibleAmount", 0);
-
-                            //    PartResource pr = available_part.partPrefab.AddResource(node);
-
-                            //    if (available_part.resourceInfo != null && pr != null)
-                            //    {
-                            //        if (available_part.resourceInfo.Length == 0)
-                            //            available_part.resourceInfo = pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-                            //        else
-                            //            available_part.resourceInfo = available_part.resourceInfo + "\n" + pr.resourceName + ":" + pr.amount + " / " + pr.maxAmount;
-                            //    }
-                            //}
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (available_part.partPrefab != null)
-                        print("[KSPI] Exception caught adding to: " + available_part.partPrefab.name + " part: " + ex.ToString());
-                    else
-                        print("[KSPI] Exception caught adding to unknown module");
-                }
-            }
         }
 
         protected static bool warning_displayed = false;
