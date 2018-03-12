@@ -21,8 +21,6 @@ namespace FNPlugin
         public double airThisUpdate;
         [KSPField(guiName = "Intake Angle",  guiActive = true, guiFormat = "F3")]
         public float intakeAngle = 0;
-        [KSPField(guiName = "aoaThreshold",  guiActive = true, guiActiveEditor = false, guiFormat = "F3")]
-        public double aoaThreshold = 0.1;
         [KSPField(guiName = "Area", guiActiveEditor = true, guiActive = false, guiFormat = "F3")]
         public double area = 0.01;
         [KSPField]
@@ -43,8 +41,6 @@ namespace FNPlugin
         public double jetTechBonusPercentage;
         [KSPField(guiName = "Upper Atmo Fraction", guiActive = false, guiFormat = "F3")]
         public double upperAtmoFraction;
-        [KSPField(guiActive = false)]
-        public bool foundModuleResourceIntake;
 
         double startupCount;
         float previousDeltaTime;
@@ -81,18 +77,13 @@ namespace FNPlugin
 
             _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
 
-            foundModuleResourceIntake = _moduleResourceIntake != null;
-
+            // if _moduleResourceIntake is null there SHOULD be an exception - and it's a good thing.
+            area = _moduleResourceIntake.area;
+            intakeTransformName = _moduleResourceIntake.intakeTransformName;
+            unitScalar = _moduleResourceIntake.unitScalar;
+ 
             atmosphereBuffer = area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed * 300 ;
 
-            if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere))
-            {
-                ConfigNode node = new ConfigNode("RESOURCE");
-                node.AddValue("name", InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
-                node.AddValue("maxAmount", atmosphereBuffer);
-                node.AddValue("amount", 0);
-                part.AddResource(node);
-            }
             _intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
             _intake_speed = maxIntakeSpeed;
@@ -183,19 +174,12 @@ namespace FNPlugin
 
             if (!storesResource)
             {
-                foreach (PartResource resource in part.Resources)
-                {
-                    if (resource.resourceName != _resourceAtmosphere.name)
-                        continue;
-
-                    airThisUpdate = airThisUpdate >= 0
-                        ? (airThisUpdate <= resource.maxAmount
-                            ? airThisUpdate
-                            : resource.maxAmount)
-                        : 0;
-                    resource.amount = airThisUpdate;
-                    break;
-                }
+                airThisUpdate = airThisUpdate >= 0
+                    ? (airThisUpdate <= _intake_atmosphere_resource.maxAmount
+                        ? airThisUpdate
+                        : _intake_atmosphere_resource.maxAmount)
+                    : 0;
+                _intake_atmosphere_resource.amount = airThisUpdate;
             }
             else
             {

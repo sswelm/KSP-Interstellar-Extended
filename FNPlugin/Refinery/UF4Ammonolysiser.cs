@@ -44,13 +44,13 @@ namespace FNPlugin.Refinery
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
         {
             _current_power = PowerRequirements * rateMultiplier;
-            _current_rate = CurrentPower / GameConstants.baseUraniumAmmonolysisRate;
+            _current_rate = CurrentPower * GameConstants.baseUraniumAmmonolysisRate;
             double uf4persec = _current_rate * 1.24597 / _uranium_tetraflouride_density;
             double ammoniapersec = _current_rate * 0.901 / _ammonia_density;
-            _uranium_tetraflouride_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, uf4persec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL)/_uranium_tetraflouride_density/fixedDeltaTime;
-            _ammonia_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, ammoniapersec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL ) / _ammonia_density / fixedDeltaTime;
+            _uranium_tetraflouride_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride, uf4persec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _uranium_tetraflouride_density / fixedDeltaTime;
+            _ammonia_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Ammonia, ammoniapersec * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) * _ammonia_density / fixedDeltaTime;
 
-            if(_ammonia_consumption_rate > 0 && _uranium_tetraflouride_consumption_rate > 0) 
+            if (_ammonia_consumption_rate > 0 && _uranium_tetraflouride_consumption_rate > 0)
                 _uranium_nitride_production_rate = -_part.RequestResource(InterstellarResourcesConfiguration.Instance.UraniumNitride, -_uranium_tetraflouride_consumption_rate / 1.24597 / _uranium_nitride_density * fixedDeltaTime, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _uranium_nitride_density;
 
             updateStatusMessage();

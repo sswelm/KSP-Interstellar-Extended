@@ -13,7 +13,6 @@ namespace FNPlugin
         public double megaJouleGeneratorPowerSupply; 
         
         private ModuleGenerator moduleGenerator;
-        private PartResourceDefinition outputDefinition;
         private PartResource megajoulePartResource;
         private PartResource electricChargePartResource;
 
@@ -23,6 +22,7 @@ namespace FNPlugin
         private double fixedMegajouleBufferSize;
         private double fixedElectricChargeBufferSize;
         private ModuleResource mockInputResource;
+        private ModuleResource moduleOutputResource;
 
         public override void OnStart(StartState state)
         {
@@ -30,20 +30,27 @@ namespace FNPlugin
             {
                 if (state == StartState.Editor) return;
 
-                if (part.Modules.Contains("ModuleGenerator"))
-                {
-                    moduleGenerator = part.FindModuleImplementing<ModuleGenerator>();
-                }
+                moduleGenerator = part.FindModuleImplementing<ModuleGenerator>();
 
                 if (moduleGenerator == null) return;
-
-                //part.force_activate(); <== this caused launh clamp to activat
 
                 String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
                 this.resources_to_supply = resources_to_supply;
                 base.OnStart(state);
 
                 previousDeltaTime = TimeWarp.fixedDeltaTime;
+
+                megajoulePartResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
+                if (megajoulePartResource != null)
+                {
+                    fixedMegajouleBufferSize = megajoulePartResource.maxAmount * 50;
+                }
+
+                electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
+                if (electricChargePartResource != null)
+                {
+                    fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
+                }
 
                 outputType = resourceType.other;
                 foreach (ModuleResource moduleResource in moduleGenerator.resHandler.outputResources)
@@ -53,34 +60,22 @@ namespace FNPlugin
                     {
                         outputType = resourceType.megajoule;
 
-                        megajoulePartResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
-                        if (megajoulePartResource != null)
-                        {
-                            fixedMegajouleBufferSize = megajoulePartResource.maxAmount * 50;
-                        }
-                        outputDefinition = PartResourceLibrary.Instance.GetDefinition(moduleResource.name);
-
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
-                        resHandler.inputResources.Add(mockInputResource);
-
+                        mockInputResource.id = moduleResource.name.GetHashCode();
+                        moduleGenerator.resHandler.inputResources.Add(mockInputResource);
+                        moduleOutputResource = moduleResource;
                         break;
                     }
                     if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                     {
                         outputType = resourceType.electricCharge;
 
-                        electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
-                        if (electricChargePartResource != null)
-                        {
-                            fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
-                        }
-                        outputDefinition = PartResourceLibrary.Instance.GetDefinition(moduleResource.name);
-
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
-                        resHandler.inputResources.Add(mockInputResource);
-
+                        mockInputResource.id = moduleResource.name.GetHashCode();
+                        moduleGenerator.resHandler.inputResources.Add(mockInputResource);
+                        moduleOutputResource = moduleResource;
                         break;
                     }
                 }
@@ -173,10 +168,7 @@ namespace FNPlugin
                 }
                 previousDeltaTime = TimeWarp.fixedDeltaTime;
 
-                ModuleResource mainResource = moduleGenerator.resHandler.outputResources[0];
-                double generatorRate = mainResource.isDeprived ? 0 : mainResource.rate;
-
-                // extract power otherwise we end up with double power
+                double generatorRate = moduleOutputResource.rate;
                 mockInputResource.rate = generatorRate;
 
                 double generatorSupply = outputType == resourceType.megajoule ? generatorRate : generatorRate / 1000;
