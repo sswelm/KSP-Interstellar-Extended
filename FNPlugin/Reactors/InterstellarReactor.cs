@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using TweakScale;
 using FNPlugin.Propulsion;
+using FNPlugin.Extensions;
 using KSP.Localization;
 
 namespace FNPlugin
