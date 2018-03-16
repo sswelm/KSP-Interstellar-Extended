@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace FNPlugin
 {
@@ -33,57 +34,29 @@ namespace FNPlugin
         public void SwapFuelMode()
         {
             if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) || part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount > 0.01) return;
-
             defuelCurrentFuel();
             if (IsCurrentFuelDepleted())
             {
-                fuel_mode++;
-                if (fuel_mode >= fuel_modes.Count)
-                    fuel_mode = 0;
-
-                CurrentFuelMode = fuel_modes[fuel_mode];
-                fuelModeStr = CurrentFuelMode.ModeGUIName;
+                DisableResources();
+                SwitchFuelType();
+                EnableResources();
                 Refuel();
             }
         }
 
-        [KSPEvent(guiName = "Swap Fuel", guiActiveEditor = true, guiActiveUnfocused = false, guiActive = false)]
+        [KSPEvent(guiName = "Swap Fuel", guiActiveEditor = true, guiActive = false)]
         public void EditorSwapFuel()
         {
             if (fuel_modes.Count == 1)
                 return;
 
-            foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
-            {
-                ReactorFuelMaxAmount = part.Resources[fuel.ResourceName].maxAmount; // Store the amount of the current fuel type
-                part.Resources.Remove(fuel.ResourceName); 
-            }
-
-            var startFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
-            var currentFirstFuelType = startFirstFuelType;
-            
-            do
-            {
-                fuel_mode++;
-                if (fuel_mode >= fuel_modes.Count)
-                    fuel_mode = 0;
-
-                CurrentFuelMode = fuel_modes[fuel_mode];
-                currentFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
-            }
-            while (currentFirstFuelType.ResourceName == startFirstFuelType.ResourceName);
-
-            foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
-            {
-                // Add the new resource type with the same amount as the old one
-                part.Resources.Add(fuel.ResourceName, ReactorFuelMaxAmount, ReactorFuelMaxAmount, true, true, false, true, 0);
-            }
+            DisableResources();
+            SwitchFuelType();
+            EnableResources();
 
             var modesAvailable = checkFuelModes();
             // Hide Switch Mode button if theres only one mode for the selected fuel type available
             Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = modesAvailable > 1;
-
-            fuelModeStr = CurrentFuelMode.ModeGUIName;
         }
 
         [KSPEvent(guiName = "Switch Mode", guiActiveEditor = true, guiActiveUnfocused = true, guiActive = true)]
@@ -91,6 +64,7 @@ namespace FNPlugin
         {
             var startFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
             var currentFirstFuelType = startFirstFuelType;
+
             // repeat until found same or differnt fuelmode with same kind of primary fuel
             do
             {
@@ -129,12 +103,14 @@ namespace FNPlugin
         {
             foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
             {
-                if (!part.Resources.Contains(fuel.ResourceName) || !part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides)) return; // avoid exceptions, just in case
+                // avoid exceptions, just in case
+                if (!part.Resources.Contains(fuel.ResourceName) || !part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides)) return;
+
                 PartResource fuel_reactor = part.Resources[fuel.ResourceName];
                 PartResource actinides_reactor = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-                List<PartResource> fuel_resources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName)).ToList();
+                List<PartResource> fuel_resources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuel_reactor)).ToList();
 
-                double spare_capacity_for_fuel = fuel_reactor.maxAmount - actinides_reactor.amount;
+                double spare_capacity_for_fuel = fuel_reactor.maxAmount - actinides_reactor.amount - fuel_reactor.amount;
                 fuel_resources.ForEach(res =>
                 {
                     double resource_available = res.amount;
@@ -205,10 +181,10 @@ namespace FNPlugin
             Events["Refuel"].active = Events["Refuel"].guiActiveUnfocused = !IsEnabled && !decay_ongoing;
             Events["Refuel"].guiName = "Refuel " + (CurrentFuelMode != null ? CurrentFuelMode.ModeGUIName : "");
             Events["SwapFuelMode"].active = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1 && !IsEnabled && !decay_ongoing;
+            Events["SwapFuelMode"].guiActive = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1;
 
             Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = checkFuelModes() > 1;
-            Events["SwapFuelMode"].guiActive = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1;
-            Events["EditorSwapFuel"].guiActiveEditor = Events["EditorSwapFuel"].guiActiveUnfocused = fuel_modes.Count > 1;
+            Events["EditorSwapFuel"].guiActiveEditor = fuel_modes.Count > 1;
 
             base.OnUpdate();
         }
@@ -238,10 +214,22 @@ namespace FNPlugin
             fluorineDepletedFuelVolumeMultiplier = ((19 * 4) / 232d) * (depletedFuelDefinition.density / fluorineGasDefinition.density);
             enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * (depletedFuelDefinition.density / enrichedUraniumDefinition.density);
             oxygenDepletedUraniumVolumeMultipler = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
-            
+
+            ReactorFuelMaxAmount = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName).maxAmount;
+            foreach (ReactorFuelType fuelMode in fuel_modes)
+            {
+                foreach (ReactorFuel fuel in fuelMode.Variants.First().ReactorFuels)
+                {
+                    PartResource resource = part.Resources.Get(fuel.ResourceName);
+                    if (resource == null)
+                        // non-tweakable resources
+                        part.Resources.Add(fuel.ResourceName, 0, 0, true, false, false, true, 0);
+                }
+            }
+
             Events["SwitchMode"].guiActiveEditor = Events["SwitchMode"].guiActive = Events["SwitchMode"].guiActiveUnfocused = checkFuelModes() > 1;
             Events["SwapFuelMode"].guiActive = Events["SwapFuelMode"].guiActiveUnfocused = fuel_modes.Count > 1;
-            Events["EditorSwapFuel"].guiActiveEditor = Events["EditorSwapFuel"].guiActiveUnfocused = fuel_modes.Count > 1;
+            Events["EditorSwapFuel"].guiActiveEditor = fuel_modes.Count > 1;
         }
 
         public override void OnFixedUpdate()
@@ -309,12 +297,68 @@ namespace FNPlugin
             CurrentFuelMode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
         }
 
+        private void DisableResources()
+        {
+            bool editor = HighLogic.LoadedSceneIsEditor;
+            foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
+            {
+                PartResource resource = part.Resources.Get(fuel.ResourceName);
+                if (resource != null)
+                {
+                    if (editor)
+                    {
+                        resource.amount = 0;
+                        resource.isTweakable = false;
+                    }
+                    resource.maxAmount = 0;
+                    
+                }
+            }
+        }
+
+        private void EnableResources()
+        {
+            bool editor = HighLogic.LoadedSceneIsEditor;
+            foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
+            {
+                PartResource resource = part.Resources.Get(fuel.ResourceName);
+                if (resource != null)
+                {
+                    if (editor)
+                    {
+                        resource.amount = ReactorFuelMaxAmount;
+                        resource.isTweakable = true;
+                    }
+                    resource.maxAmount = ReactorFuelMaxAmount;
+                }
+            }
+        }
+
+        private void SwitchFuelType()
+        {
+            var startFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
+            var currentFirstFuelType = startFirstFuelType;
+
+            do
+            {
+                fuel_mode++;
+                if (fuel_mode >= fuel_modes.Count)
+                    fuel_mode = 0;
+
+                CurrentFuelMode = fuel_modes[fuel_mode];
+                currentFirstFuelType = CurrentFuelMode.Variants.First().ReactorFuels.First();
+            }
+            while (currentFirstFuelType.ResourceName == startFirstFuelType.ResourceName);
+
+            fuelModeStr = CurrentFuelMode.ModeGUIName;
+        }
+
         private void defuelCurrentFuel()
         {
             foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
             {
                 PartResource fuel_reactor = part.Resources[fuel.ResourceName];
-                List<PartResource> swap_resource_list = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName)).ToList();
+                List<PartResource> swap_resource_list = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuel_reactor)).ToList();
 
                 swap_resource_list.ForEach(res =>
                 {
