@@ -15,6 +15,7 @@ namespace FNPlugin
         private PartModule moduleGenerator;
         private BaseField _field_status;
         private BaseField _field_generated;
+        private BaseField _field_addedToTanks;
         private BaseField _field_max;
 
         private PartResource electricChargePartResource;
@@ -22,7 +23,6 @@ namespace FNPlugin
         private bool active = false;
         private float previousDeltaTime;
         private double fixedElectricChargeBufferSize;
-        private ModuleResource mockInputResource;
 
         public override void OnStart(StartState state)
         {
@@ -35,6 +35,7 @@ namespace FNPlugin
                     moduleGenerator = part.Modules["FissionGenerator"];
                     _field_status = moduleGenerator.Fields["Status"];
                     _field_generated = moduleGenerator.Fields["CurrentGeneration"];
+                    _field_addedToTanks = moduleGenerator.Fields["AddedToFuelTanks"];
                     _field_max = moduleGenerator.Fields["PowerGeneration"];
                 }
 
@@ -51,11 +52,6 @@ namespace FNPlugin
                 {
                     fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
                 }
-
-                mockInputResource = new ModuleResource();
-                mockInputResource.name = ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE;
-                mockInputResource.id = mockInputResource.name.GetHashCode();
-                resHandler.inputResources.Add(mockInputResource);
             }
             catch (Exception e)
             {
@@ -139,7 +135,10 @@ namespace FNPlugin
                 float generatorMax = _field_max.GetValue<float>(moduleGenerator);
 
                 // extract power otherwise we end up with double power
-                mockInputResource.rate = generatorRate;
+                if (_field_addedToTanks != null)
+                {
+                    part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, _field_addedToTanks.GetValue<float>(moduleGenerator));
+                }
 
                 megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorRate / 1000, generatorMax / 1000, ResourceManager.FNRESOURCE_MEGAJOULES);
             }
