@@ -139,7 +139,6 @@ namespace FNPlugin
             {
                 // you can have any fuel you want in the editor but not in flight
                 //List<PartResource> totalpartresources = part.GetConnectedResources(new_propellant.name).ToList();
-
                 //if (!totalpartresources.Any() && maxSwitching > 0)
                 //{
                 //    SwitchPropellant(moveNext, --maxSwitching);

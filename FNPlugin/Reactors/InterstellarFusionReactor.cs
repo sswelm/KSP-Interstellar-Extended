@@ -12,6 +12,8 @@ namespace FNPlugin
         public string fuel_mode_name = string.Empty;
         [KSPField(isPersistant = true, guiActive = false)]
         public bool allowJumpStart = true;
+        [KSPField(isPersistant = true)]
+        public int powerPriority = 1;
 
         [KSPField(isPersistant = false)]
         public bool powerIsAffectedByLithium = true;
@@ -32,10 +34,11 @@ namespace FNPlugin
         public double plasma_ratio = 1;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Plasma Modifier", guiFormat = "F6")]
         public double plasma_modifier = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Lithium Modifier", guiFormat = "F6")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Lithium Modifier", guiFormat = "F6")]
         public double lithium_modifier = 1;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode = false;
+
 
         public double MaximumChargedIspMult { get { return 100; } }
 
@@ -108,6 +111,7 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             base.OnStart(state);
+            Fields["lithium_modifier"].guiActive = powerIsAffectedByLithium;
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Next Fusion Mode", active = true)]
@@ -143,6 +147,7 @@ namespace FNPlugin
             if (fuel_mode >= fuel_modes.Count)
                 fuel_mode = 0;
 
+            stored_fuel_ratio = 1;
             CurrentFuelMode = fuel_modes[fuel_mode];
             fuel_mode_name = CurrentFuelMode.ModeGUIName;
 
@@ -234,6 +239,11 @@ namespace FNPlugin
 
             fuel_mode = fuel_modes.IndexOf(CurrentFuelMode);
             fuel_mode_name = CurrentFuelMode.ModeGUIName;
+        }
+
+        public override int getPowerPriority()
+        {
+            return powerPriority;
         }
     }
 }

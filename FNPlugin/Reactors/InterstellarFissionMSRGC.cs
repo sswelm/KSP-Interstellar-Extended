@@ -106,9 +106,9 @@ namespace FNPlugin
                 // avoid exceptions, just in case
                 if (!part.Resources.Contains(fuel.ResourceName) || !part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides)) return;
 
-                PartResource fuel_reactor = part.Resources[fuel.ResourceName];
-                PartResource actinides_reactor = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-                List<PartResource> fuel_resources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuel_reactor)).ToList();
+                var fuel_reactor = part.Resources[fuel.ResourceName];
+                var actinides_reactor = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
+                var fuel_resources = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuel_reactor)).ToList();
 
                 double spare_capacity_for_fuel = fuel_reactor.maxAmount - actinides_reactor.amount - fuel_reactor.amount;
                 fuel_resources.ForEach(res =>
@@ -191,6 +191,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            Debug.Log("[KSPI] - OnStart MSRGC " + part.name);
+
             // start as normal
             base.OnStart(state);
             // auto switch if current fuel mode is depleted
@@ -220,7 +222,7 @@ namespace FNPlugin
             {
                 foreach (ReactorFuel fuel in fuelMode.Variants.First().ReactorFuels)
                 {
-                    PartResource resource = part.Resources.Get(fuel.ResourceName);
+                    var resource = part.Resources.Get(fuel.ResourceName);
                     if (resource == null)
                         // non-tweakable resources
                         part.Resources.Add(fuel.ResourceName, 0, 0, true, false, false, true, 0);
@@ -255,34 +257,31 @@ namespace FNPlugin
         {
             if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides))
             {
-                PartResource actinides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
-                double new_actinides_amount = Math.Max(actinides.amount - rate, 0);
-                double actinides_change = actinides.amount - new_actinides_amount;
+                var actinides = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides];
+                var new_actinides_amount = Math.Max(actinides.amount - rate, 0);
+                var actinides_change = actinides.amount - new_actinides_amount;
                 actinides.amount = new_actinides_amount;
 
-                double depleted_fuels_request = actinides_change * 0.2;
-                double depleted_fuels_produced = -Part.RequestResource(depletedFuelDefinition.id, -depleted_fuels_request, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var depleted_fuels_request = actinides_change * 0.2;
+                var depleted_fuels_produced = -Part.RequestResource(depletedFuelDefinition.id, -depleted_fuels_request, ResourceFlowMode.STAGE_PRIORITY_FLOW);
 
                 // first try to replace depletedfuel with enriched uranium
-                double enrichedUraniumRequest = depleted_fuels_produced * enrichedUraniumVolumeMultiplier;
-                double enrichedUraniumRetrieved = Part.RequestResource(enrichedUraniumDefinition.id, enrichedUraniumRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-                double receivedEnrichedUraniumFraction = enrichedUraniumRequest > 0 ? enrichedUraniumRetrieved / enrichedUraniumRequest : 0;
+                var enrichedUraniumRequest = depleted_fuels_produced * enrichedUraniumVolumeMultiplier;
+                var enrichedUraniumRetrieved = Part.RequestResource(enrichedUraniumDefinition.id, enrichedUraniumRequest, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var receivedEnrichedUraniumFraction = enrichedUraniumRequest > 0 ? enrichedUraniumRetrieved / enrichedUraniumRequest : 0;
 
                 // if missing fluorine is dumped
-                double oxygenChange = -Part.RequestResource(oxygenGasDefinition.id, -depleted_fuels_produced * oxygenDepletedUraniumVolumeMultipler * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
-                double fluorineChange = -Part.RequestResource(fluorineGasDefinition.id, -depleted_fuels_produced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var oxygenChange = -Part.RequestResource(oxygenGasDefinition.id, -depleted_fuels_produced * oxygenDepletedUraniumVolumeMultipler * receivedEnrichedUraniumFraction, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+                var fluorineChange = -Part.RequestResource(fluorineGasDefinition.id, -depleted_fuels_produced * fluorineDepletedFuelVolumeMultiplier * (1 - receivedEnrichedUraniumFraction), ResourceFlowMode.STAGE_PRIORITY_FLOW);
 
                 var reactorFuels = CurrentFuelMode.Variants.First().ReactorFuels;
-
-                double sum_useage_per_mw = reactorFuels.Sum(fuel => fuel.AmountFuelUsePerMJ * fuelUsePerMJMult);
+                var sum_useage_per_mw = reactorFuels.Sum(fuel => fuel.AmountFuelUsePerMJ * fuelUsePerMJMult);
 
                 foreach (ReactorFuel fuel in reactorFuels)
                 {
-                    PartResource fuel_resource = part.Resources[fuel.ResourceName];
-
-                    double powerFraction = sum_useage_per_mw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sum_useage_per_mw : 1;
-
-                    double new_fuel_amount = Math.Min(fuel_resource.amount + ((depleted_fuels_produced * 4) + (depleted_fuels_produced * receivedEnrichedUraniumFraction)) * powerFraction * depletedToEnrichVolumeMultplier, fuel_resource.maxAmount);
+                    var fuel_resource = part.Resources[fuel.ResourceName];
+                    var powerFraction = sum_useage_per_mw > 0.0 ? fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / sum_useage_per_mw : 1;
+                    var new_fuel_amount = Math.Min(fuel_resource.amount + ((depleted_fuels_produced * 4) + (depleted_fuels_produced * receivedEnrichedUraniumFraction)) * powerFraction * depletedToEnrichVolumeMultplier, fuel_resource.maxAmount);
                     fuel_resource.amount = new_fuel_amount;
                 }
 
@@ -302,7 +301,7 @@ namespace FNPlugin
             bool editor = HighLogic.LoadedSceneIsEditor;
             foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
             {
-                PartResource resource = part.Resources.Get(fuel.ResourceName);
+                var resource = part.Resources.Get(fuel.ResourceName);
                 if (resource != null)
                 {
                     if (editor)
@@ -321,7 +320,7 @@ namespace FNPlugin
             bool editor = HighLogic.LoadedSceneIsEditor;
             foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
             {
-                PartResource resource = part.Resources.Get(fuel.ResourceName);
+                var resource = part.Resources.Get(fuel.ResourceName);
                 if (resource != null)
                 {
                     if (editor)
@@ -357,8 +356,8 @@ namespace FNPlugin
         {
             foreach (ReactorFuel fuel in CurrentFuelMode.Variants.First().ReactorFuels)
             {
-                PartResource fuel_reactor = part.Resources[fuel.ResourceName];
-                List<PartResource> swap_resource_list = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuel_reactor)).ToList();
+                var fuel_reactor = part.Resources[fuel.ResourceName];
+                var swap_resource_list = part.vessel.parts.SelectMany(p => p.Resources.Where(r => r.resourceName == fuel.ResourceName && r != fuel_reactor)).ToList();
 
                 swap_resource_list.ForEach(res =>
                 {

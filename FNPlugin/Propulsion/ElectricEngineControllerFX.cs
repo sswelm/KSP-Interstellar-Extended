@@ -110,7 +110,6 @@ namespace FNPlugin
 
         List<ElectricEnginePropellant> _propellants;
         ModuleEngines _attachedEngine;
-        PartResource _vacuumPlasmaResource;
 
         // Properties
         public string UpgradeTechnology { get { return upgradeTechReq; } }
@@ -239,7 +238,6 @@ namespace FNPlugin
                 if (_hasrequiredupgrade && (isupgraded || state == StartState.Editor))
                     upgradePartModule();
 
-                _vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
                 UpdateEngineTypeString();
 
                 // calculate WasteHeat Capacity
@@ -530,9 +528,10 @@ namespace FNPlugin
                     this.part.Effect(Current_propellant.ParticleFXName, 0, -1);
             }
 
-            if (isupgraded && _vacuumPlasmaResource != null)
+            var vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
+            if (isupgraded && vacuumPlasmaResource != null)
             {
-                part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -_vacuumPlasmaResource.maxAmount);
+                part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, - vacuumPlasmaResource.maxAmount);
             }
         }
 

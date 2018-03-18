@@ -160,9 +160,6 @@ namespace FNPlugin
         private long counterCurrent;
         private long counterPreviousChange;
 
-        private PartResource wasteheatPowerResource;
-        private PartResource exoticMatterResource;
-
         private Renderer warp_effect1_renderer;
         private Renderer warp_effect2_renderer;
 
@@ -617,11 +614,9 @@ namespace FNPlugin
             moduleReactionWheel = part.FindModuleImplementing<ModuleReactionWheel>();
 
             exoticResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.ExoticMatter);
-
-            wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-            exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
-            
+           
             // reset Exotic Matter Capacity
+            var exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
             if (exoticMatterResource != null)
             {
                 var ratio = Math.Min(1, Math.Max(0, exoticMatterResource.amount / exoticMatterResource.maxAmount));
@@ -907,6 +902,7 @@ namespace FNPlugin
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(_engineThrotle[selected_factor]);
 
             // calculate Exotic Matter Capacity
+            var exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
             if (exoticMatterResource == null || double.IsNaN(exotic_power_required) || double.IsInfinity(exotic_power_required) || !(exotic_power_required > 0)) return;
 
             var ratio = Math.Min(1, Math.Max(0, exoticMatterResource.amount / exoticMatterResource.maxAmount));
@@ -1105,6 +1101,7 @@ namespace FNPlugin
 
         private void UpdateWateheatBuffer(double maxWasteheatRatio = 1)
         {
+            var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
             if (wasteheatPowerResource != null && Math.Abs(TimeWarp.fixedDeltaTime - previousDeltaTime) > float.Epsilon)
             {
                 var adjustedWasteheatRatio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, maxWasteheatRatio);

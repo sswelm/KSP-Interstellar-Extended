@@ -46,11 +46,9 @@ namespace FNPlugin
         float previousDeltaTime;
         double atmosphereBuffer;
 
-        PartResource _intake_atmosphere_resource;
         PartResourceDefinition _resourceAtmosphere;
         ModuleResourceIntake _moduleResourceIntake;
 
-        
         // this property will be accessed by the atmospheric extractor
         public double FinalAir
         {
@@ -84,7 +82,6 @@ namespace FNPlugin
  
             atmosphereBuffer = area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed * 300 ;
 
-            _intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
             _intake_speed = maxIntakeSpeed;
         }
@@ -104,6 +101,7 @@ namespace FNPlugin
         {
             var currentDeltaTime = intakesOpen ? TimeWarp.fixedDeltaTime : 0.02;
 
+            var _intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
             if (_intake_atmosphere_resource != null && atmosphereBuffer > 0 && currentDeltaTime != previousDeltaTime)
             {
                 double requiredAtmosphereCapacity = atmosphereBuffer * currentDeltaTime;
@@ -174,6 +172,7 @@ namespace FNPlugin
 
             if (!storesResource)
             {
+                var _intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
                 airThisUpdate = airThisUpdate >= 0
                     ? (airThisUpdate <= _intake_atmosphere_resource.maxAmount
                         ? airThisUpdate

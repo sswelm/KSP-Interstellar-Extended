@@ -252,7 +252,6 @@ namespace FNPlugin
         private AnimationState[] heatStates;
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
-        private PartResource wasteheatPowerResource;
         private ResourceManager wasteheatManager;
         private ModuleDeployablePart.DeployState radiatorState;
 
@@ -539,7 +538,7 @@ namespace FNPlugin
 
             // calculate WasteHeat Capacity
             partBaseWasteheat = part.mass * 1e+6 * wasteHeatMultiplier;
-            wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
+            
 
             var myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine == null)
@@ -626,6 +625,7 @@ namespace FNPlugin
 
         private void UpdateWasteheatBuffer(float deltaTime, double maximum_ratio)
         {
+            var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
             if (wasteheatPowerResource == null)
                 return;
 

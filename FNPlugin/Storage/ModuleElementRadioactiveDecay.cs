@@ -20,7 +20,6 @@ namespace FNPlugin
 
         protected double density_rat = 1;
 
-        private PartResource decay_resource;
         private bool resourceDefinitionsContainDecayProduct;
 
         public override void OnStart(PartModule.StartState state)
@@ -30,13 +29,9 @@ namespace FNPlugin
             if (state == StartState.Editor)
                 return;
 
-            if (part.Resources.Contains(resourceName))
-                decay_resource = part.Resources[resourceName];
-            else
-            {
-                decay_resource = null;
+            var decay_resource = part.Resources[resourceName];
+            if (decay_resource == null)
                 return;
-            }
 
             resourceDefinitionsContainDecayProduct = PartResourceLibrary.Instance.resourceDefinitions.Contains(decayProduct);
             if (resourceDefinitionsContainDecayProduct)
@@ -59,6 +54,7 @@ namespace FNPlugin
 
         public void FixedUpdate()
         {
+            var decay_resource = part.Resources[resourceName];
             if (decay_resource == null) return;
 
             if (!HighLogic.LoadedSceneIsFlight) return;

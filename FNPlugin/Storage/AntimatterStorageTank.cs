@@ -101,7 +101,6 @@ namespace FNPlugin
         int temperature_explode_counter = 0;
 
         GameObject lightGameObject;
-        PartResource antimatterResource;
         ModuleAnimateGeneric deploymentAnimation;
         PartResourceDefinition antimatterDefinition;
         List<AntimatterStorageTank> attachedAntimatterTanks;
@@ -189,6 +188,7 @@ namespace FNPlugin
 
         public void doExplode(string reason = null)
         {
+            var antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null || antimatterResource.amount <= minimimAnimatterAmount) return;
 
             if (antimatterResource.resourceName != resourceName)
@@ -245,8 +245,7 @@ namespace FNPlugin
 
             antimatterDensity = (double)(decimal)antimatterDefinition.density;
 
-            antimatterResource = part.Resources[resourceName];
-
+            var antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null)
             {
                 var alternativeResource = part.Resources.OrderBy(m => m.maxAmount).FirstOrDefault();
@@ -305,6 +304,7 @@ namespace FNPlugin
                 return;
             }
 
+            var antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null)
             {
                 Debug.Log("[KSPI] - antimatterResource == null");
@@ -383,7 +383,7 @@ namespace FNPlugin
 
         public void Update()
         {
-            antimatterResource = part.Resources[resourceName];
+            var antimatterResource = part.Resources[resourceName];
 
             showAntimatterFields = antimatterResource != null && antimatterResource.resourceName == resourceName;
 
@@ -404,7 +404,9 @@ namespace FNPlugin
             maxAmountStrField.guiActive = showAntimatterFields;
             maxAmountStrField.guiActiveEditor = showAntimatterFields;
 
-            UpdateAmounts();
+            capacityStr = PluginHelper.formatMassStr(antimatterResource.amount * antimatterDensity);
+            maxAmountStr = PluginHelper.formatMassStr(antimatterResource.maxAmount * antimatterDensity);
+
             UpdateTargetMass();
 
             var newRatio = antimatterResource.amount / antimatterResource.maxAmount;
@@ -457,12 +459,6 @@ namespace FNPlugin
             }
         }
 
-        private void UpdateAmounts()
-        {
-            capacityStr = PluginHelper.formatMassStr(antimatterResource.amount * antimatterDensity);
-            maxAmountStr = PluginHelper.formatMassStr(antimatterResource.maxAmount * antimatterDensity);
-        }
-
         public void FixedUpdate()
         {
             if (HighLogic.LoadedSceneIsEditor)
@@ -470,6 +466,7 @@ namespace FNPlugin
 
             fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime,7);
 
+            var antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null)
                 return;
 
@@ -481,6 +478,10 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Self Destruct", active = true)]
         public void SelfDestruct()
         {
+            var antimatterResource = part.Resources[resourceName];
+            if (antimatterResource == null)
+                return;
+
             if (HighLogic.LoadedSceneIsEditor || antimatterResource.amount <= minimimAnimatterAmount) return;
 
             doExplode("Antimatter container exploded because self destruct was activated");
@@ -488,6 +489,7 @@ namespace FNPlugin
 
         private void MaintainContainment()
         {
+            var antimatterResource = part.Resources[resourceName];
             if (chargestatus > 0 && antimatterResource.amount > minimimAnimatterAmount)
                 chargestatus -= fixedDeltaTime;
 
@@ -587,13 +589,13 @@ namespace FNPlugin
                 power_explode_counter = 0;
             }
 
-
             if (chargestatus > maxCharge)
                 chargestatus = maxCharge;
         }
 
         private void ExplodeContainer()
         {
+            var antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null || antimatterResource.resourceName != resourceName)
                 return;
 
