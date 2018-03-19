@@ -493,11 +493,6 @@ namespace FNPlugin
 				return 0;
 		}
 
-		protected PartResource wasteheatResource;
-		protected PartResource megajouleResource;
-		protected PartResource electricResource;
-		protected PartResource thermalResource;
-
 		protected Animation animation;
 		protected Animation animT;
 
@@ -917,11 +912,6 @@ namespace FNPlugin
 					((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
 			}
 
-			wasteheatResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-			megajouleResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
-			thermalResource = part.Resources[ResourceManager.FNRESOURCE_THERMALPOWER];
-			electricResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
-
 			// calculate WasteHeat Capacity
 			partBaseWasteheat = part.mass * 2.0e+5 * wasteHeatMultiplier;
 
@@ -977,13 +967,17 @@ namespace FNPlugin
 		{
 			try
 			{
-
+                var wasteheatResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
 				if (wasteheatResource != null && TimeWarp.fixedDeltaTime != previousDeltaTime)
 				{
 					var ratio = Math.Min(1, wasteheatResource.amount / wasteheatResource.maxAmount);
 					wasteheatResource.maxAmount = partBaseWasteheat * TimeWarp.fixedDeltaTime; ;
 					wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
 				}
+
+                var thermalResource = part.Resources[ResourceManager.FNRESOURCE_THERMALPOWER];
+                var megajouleResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
+                var electricResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
 
 				if (inputPower > 0)
 				{
@@ -993,7 +987,6 @@ namespace FNPlugin
 						thermalResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
 						thermalResource.amount = thermalResource.maxAmount * ratio;
 					}
-
 					if (megajouleResource != null)
 					{
 						var ratio = Math.Min(1, megajouleResource.amount / megajouleResource.maxAmount);

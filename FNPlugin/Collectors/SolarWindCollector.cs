@@ -176,7 +176,6 @@ namespace FNPlugin
         Animation ionisationAnimation;
         CelestialBody localStar;
         CelestialBody homeworld; 
-        PartResource solarWindBuffer;
 
         PartResourceDefinition helium4GasResourceDefinition;
         PartResourceDefinition lqdHelium4ResourceDefinition;
@@ -251,7 +250,7 @@ namespace FNPlugin
             lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium4);
             solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.SolarWind);
             hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
-            solarWindBuffer = part.Resources[solarWindResourceDefinition.name];
+            
 
             localStar = GetCurrentStar();
             homeworld = FlightGlobals.GetHomeBody();
@@ -288,6 +287,7 @@ namespace FNPlugin
             var dTimeDifference =  Math.Abs(Planetarium.GetUniversalTime() - dLastActiveTime);
 
             // increase bugger to allow procesing
+            var solarWindBuffer = part.Resources[solarWindResourceDefinition.name];
             solarWindBuffer.maxAmount = 100 * part.mass * dTimeDifference;
 
             // collect solar wind for entire duration
@@ -392,6 +392,7 @@ namespace FNPlugin
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
+            var solarWindBuffer = part.Resources[solarWindResourceDefinition.name];
             if (solarWindBuffer != null)
                 solarWindBuffer.maxAmount = 10 * part.mass * TimeWarp.fixedDeltaTime;
 

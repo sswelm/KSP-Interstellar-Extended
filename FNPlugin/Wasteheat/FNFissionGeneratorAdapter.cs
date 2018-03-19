@@ -18,8 +18,6 @@ namespace FNPlugin
         private BaseField _field_addedToTanks;
         private BaseField _field_max;
 
-        private PartResource electricChargePartResource;
-
         private bool active = false;
         private float previousDeltaTime;
         private double fixedElectricChargeBufferSize;
@@ -47,7 +45,7 @@ namespace FNPlugin
 
                 previousDeltaTime = TimeWarp.fixedDeltaTime;
 
-                electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
+                var electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
                 if (electricChargePartResource != null)
                 {
                     fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
@@ -116,6 +114,7 @@ namespace FNPlugin
                 if (_field_status == null) return;
                 if (_field_generated == null) return;
 
+                var electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
                 if (electricChargePartResource != null && fixedElectricChargeBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
                 {
                     double requiredElectricChargeCapacity = fixedElectricChargeBufferSize * TimeWarp.fixedDeltaTime;

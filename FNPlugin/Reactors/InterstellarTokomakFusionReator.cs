@@ -118,10 +118,5 @@ namespace FNPlugin
 
             base.OnStart(state);
         }
-
-        public override int getPowerPriority()
-        {
-            return 1;
-        }
     }
 }

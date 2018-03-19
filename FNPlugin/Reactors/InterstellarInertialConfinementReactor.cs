@@ -30,10 +30,14 @@ namespace FNPlugin
         public float startupMaximumGeforce = 10000;
         [KSPField]
         public float startupMinimumChargePercentage = 0;
+        [KSPField]
+        public double reactorRatioThreshold = 0.000005;
+        [KSPField]
+        public double minReactorRatio = 0;
 
         // Persistant
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Throttling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool autoThrottle = true;
+        //[KSPField(isPersistant = true, guiActive = true, guiName = "Throttling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool autoThrottle = true;
         [KSPField(isPersistant = true)]
         public double accumulatedElectricChargeInMW;
         [KSPField(guiActiveEditor = true, guiName = "Power Affects Maintenance")]
@@ -44,11 +48,13 @@ namespace FNPlugin
         public float maxSecondaryPowerUsage = 90;
 
         // UI Display
+        [KSPField(guiActive = false, guiFormat = "F4", guiName = "Required Ratio")]
+        public double required_reactor_ratio;
         [KSPField(guiActive = true, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
         public double minimumThrottlePercentage;
         [KSPField(guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
-        [KSPField(guiActive = true, guiName = "Power Requirment")]
+        [KSPField(guiActive = true, guiName = "Fusion Power Requirement")]
         public double currentLaserPowerRequirements = 0;
 
         double primaryPowerRequest;
@@ -236,12 +242,20 @@ namespace FNPlugin
             ProcessCharging();
 
             // determine amount of power needed
-            var required_reactor_ratio = reactor_power_ratio >= 0.000005 ? reactor_power_ratio : 0;
-            var powerRequested = LaserPowerRequirements * Math.Max(required_reactor_ratio, 0);
+            required_reactor_ratio = Math.Max(minReactorRatio, reactor_power_ratio >= reactorRatioThreshold ? reactor_power_ratio : 0);
+
+            // quit if no fuel available
+            if (stored_fuel_ratio <= 0.01)
+            {
+                primaryPowerRequest = 0;
+                plasma_ratio = 0;
+                return;
+            }
+
+            var powerRequested = LaserPowerRequirements * required_reactor_ratio;
+            primaryPowerRequest = powerRequested * primaryInputMultiplier;
 
             double primaryPowerReceived;
-
-            primaryPowerRequest = powerRequested * primaryInputMultiplier;
             if (!CheatOptions.InfiniteElectricity && primaryPowerRequest > 0)
             {
                 primaryPowerReceived = usePowerManagerForPrimaryInputPower
@@ -416,11 +430,5 @@ namespace FNPlugin
                 accumulatedElectricChargeInMW += secondaryPowerReceived / secondaryInputMultiplier;
             }
         }
-
-        public override int getPowerPriority()
-        {
-            return 1;
-        }
-
     }
 }

@@ -671,7 +671,7 @@ namespace InterstellarFuelSwitch
                     PartResource existingResource = null;
                     if (!HighLogic.LoadedSceneIsEditor || (HighLogic.LoadedSceneIsEditor && !calledByPlayer))
                     {
-                        foreach (PartResource partResource in currentPart.Resources)
+                        foreach (var partResource in currentPart.Resources)
                         {
                             if (partResource.resourceName.Equals(selectedTankResource.name))
                             {
@@ -709,7 +709,7 @@ namespace InterstellarFuelSwitch
                     newResourceNodes.Clear();
                 }
 
-                foreach (PartResource resource in currentPart.Resources)
+                foreach (var resource in currentPart.Resources)
                 {
                     if (!activeResourceList.Contains(resource.resourceName))
                     {

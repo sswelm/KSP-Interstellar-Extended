@@ -210,20 +210,17 @@ namespace FNPlugin
             }
 
             // map ors resource to kspi resource
-            
             if (PluginHelper.OrsResourceMappings == null || !PluginHelper.OrsResourceMappings.TryGetValue(ors_atmospheric_resource_name, out resourceStoragename))
                 resourceStoragename = ors_atmospheric_resource_name;
             else if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(resourceStoragename))
                 resourceStoragename = ors_atmospheric_resource_name;
 
-            //double resourcedensity = PartResourceLibrary.Instance.GetDefinition(PluginHelper.atomspheric_resources_tocollect[currentresource]).density;
             var definition = PartResourceLibrary.Instance.GetDefinition(resourceStoragename);
 
             if (definition == null)
                 return;
 
             double resourcedensity = definition.density;
-
             double maxAltitudeAtmosphere = PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody);
             
             double upperAtmospherFraction = Math.Max(0, (vessel.altitude - maxAltitudeAtmosphere) / Math.Max(0.000001, maxAltitudeAtmosphere * PluginHelper.MaxAtmosphericAltitudeMult - maxAltitudeAtmosphere));

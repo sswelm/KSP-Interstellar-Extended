@@ -24,210 +24,205 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public double animationStarted = 0;
 
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float jetengineAccelerationBaseSpeed = 0.2f;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float jetengineDecelerationBaseSpeed = 0.4f;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float engineAccelerationBaseSpeed = 2f;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float engineDecelerationBaseSpeed = 10f;
-
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float partMass = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool initialized = false;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float wasteHeatMultiplier = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public int jetPerformanceProfile = 0;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool canUseLFO = false;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool isJet = false;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float powerTrustMultiplier = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float powerTrustMultiplierJet = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double IspTempMultOffset = -1.371670613;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float sootHeatDivider = 150;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float sootThrustDivider = 150;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double maxTemp = 2750;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double heatConductivity = 0.12;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double heatConvectiveConstant = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double emissiveConstant = 0.85;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float thermalMassModifier = 1f;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float engineHeatProductionConst = 3000; 
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double engineHeatProductionExponent = 0.8;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double engineHeatFuelThreshold = 0.001;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double skinMaxTemp = 2750;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double skinInternalConductionMult = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double skinThermalMassModifier = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double skinSkinConductionMult = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string deployAnimationName = String.Empty;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string pulseAnimationName = String.Empty;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string emiAnimationName = String.Empty;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float pulseDuration = 0;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float recoveryAnimationDivider = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double wasteheatEfficiencyLowTemperature = 0.99;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double wasteheatEfficiencyHighTemperature = 0.9;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float upgradeCost = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string originalName = "";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string upgradedName = "";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string upgradeTechReq = "";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string EffectNameJet = String.Empty;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string EffectNameLFO = String.Empty;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string EffectNameNonLFO = String.Empty;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string EffectNameLithium = String.Empty;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool showPartTemperature = true;
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField]
         public bool limitedByMaxThermalNozzleIsp = true;
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField]
         public double baseMaxIsp;
 
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
         public double radius;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
         public float exitArea = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Afterburner upgrade tech")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Afterburner upgrade tech")]
         public string afterburnerTechReq = String.Empty;
 
-        //External
-        //public bool static_updating = true;
-        //public bool static_updating2 = true;
-
         //GUI
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Type")]
+        [KSPField(guiActive = false, guiName = "Type")]
         public string engineType = ":";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Propellant")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Propellant")]
         public string _fuelmode;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Propellant Isp Multiplier")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Propellant Isp Multiplier")]
         public double _ispPropellantMultiplier = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Soot")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Soot")]
         public float _propellantSootFactorFullThrotle;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Min Soot")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Min Soot")]
         public float _propellantSootFactorMinThrotle;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Equilibrium Soot")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Equilibrium Soot")]
         public float _propellantSootFactorEquilibrium;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Temperature")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Temperature")]
         public string temperatureStr = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "ISP / Thrust Mult")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "ISP / Thrust Mult")]
         public string thrustIspMultiplier = "";
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuel Thrust Multiplier", guiFormat="F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Fuel Thrust Multiplier", guiFormat="F3")]
         public double _thrustPropellantMultiplier = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade Cost")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float baseHeatProduction = 100;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Heat Production")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production")]
         public double engineHeatProduction;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F4")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F4")]
         public double pressureThreshold;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_thermal_power;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Charge", guiUnits = " MJ")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested Charge", guiUnits = " MJ")]
         public double requested_charge_particles;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Power", guiUnits = " MJ", guiFormat="F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Recieved Power", guiUnits = " MJ", guiFormat="F3")]
         public double power_received;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
         public string radiusModifier;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Vacuum")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Vacuum")]
         public string vacuumPerformance;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Sea")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Sea")]
         public string surfacePerformance;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Base Isp")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Base Isp")]
         protected float _baseIspMultiplier;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Decomposition Energy")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Decomposition Energy")]
         protected float _decompositionEnergy;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Exchange Divider")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Exchange Divider")]
         protected double heatExchangerThrustDivisor;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Engine Max Thrust", guiFormat = "F3", guiUnits = " kN")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Max Thrust", guiFormat = "F3", guiUnits = " kN")]
         protected double engineMaxThrust;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust In Space")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thrust In Space")]
         protected double max_thrust_in_space;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust In Current")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thrust In Current")]
         protected double max_thrust_in_current_atmosphere;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Final Engine Thrust")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Final Engine Thrust")]
         protected double final_max_engine_thrust;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
         protected double _maxISP;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
         protected double _minISP;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3")]
         protected double calculatedMaxThrust;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow")]
         protected double max_fuel_flow_rate = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
         protected double maxPressureThresholdAtKerbinSurface;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Ratio")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Ratio")]
         protected double thermalRatio;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Ratio")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Charged Power Ratio")]
         protected double chargedParticleRatio;
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Expected Max Thrust")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Expected Max Thrust")]
         protected double expectedMaxThrust;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Is LFO")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Is LFO")]
         protected bool _propellantIsLFO = false;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Velocity Modifier", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Velocity Modifier", guiFormat = "F3")]
         protected float vcurveAtCurrentVelocity;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atmosphere Modifier", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Atmosphere Modifier", guiFormat = "F3")]
         protected float atmosphereModifier;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Atom Type")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Atom Type")]
         protected int _atomType = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Propellant Type")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Type")]
         protected int _propType = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Is Neutron Absorber")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Is Neutron Absorber")]
         protected bool _isNeutronAbsorber = false;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thermal Power", guiUnits = " MJ")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Thermal Power", guiUnits = " MJ")]
         protected double currentMaxThermalPower;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Charged Power", guiUnits = " MJ")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Charged Power", guiUnits = " MJ")]
         protected double currentMaxChargedPower;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Modifier")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Modifier")]
         protected double thrust_modifiers;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Available T Power ", guiUnits = " MJ")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Available T Power ", guiUnits = " MJ")]
         protected double availableThermalPower;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Available C Power ", guiUnits = " MJ")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Available C Power ", guiUnits = " MJ")]
         protected double availableChargedPower;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
         protected double airflowHeatModifier;
-
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Supply", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Supply", guiFormat = "F3")]
         protected double effectiveThermalPower;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Charged Power Supply", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Charged Power Supply", guiFormat = "F3")]
         protected double effectiveChargedPower;
+        [KSPField(guiActive = false, guiName = "Wasteheat Efficiency Modifier")]
+        public double wasteheatEfficiencyModifier;
 
         [KSPField]
         int pre_coolers_active;
@@ -245,9 +240,6 @@ namespace FNPlugin
         public int supportedPropellantAtoms = 511;
         [KSPField]
         public int supportedPropellantTypes = 511;
-
-        [KSPField(guiActive = true, guiName = "Wasteheat Efficiency Modifier")]
-        public double wasteheatEfficiencyModifier;
 
         //Internal
         protected string _particleFXName;

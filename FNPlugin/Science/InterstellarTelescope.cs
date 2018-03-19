@@ -19,7 +19,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool dpo;
         [KSPField(isPersistant = true)]
-        public float helium_depleted_time;
+        public double helium_depleted_time;
         [KSPField(isPersistant = true)]
         public double science_awaiting_addition;
 
@@ -205,12 +205,12 @@ namespace FNPlugin
 
         private void calculateTimeToHeliumDepletion()
         {
-            List<PartResource> helium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium4).ToList();
-            double max_helium = helium_resources.Sum(hr => hr.maxAmount);
-            double cur_helium = helium_resources.Sum(hr => hr.amount);
-            double helium_fraction = (max_helium > 0) ? cur_helium / max_helium : cur_helium;
+            var helium_resources = part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdHelium4).ToList();
+            var max_helium = helium_resources.Sum(hr => hr.maxAmount);
+            var cur_helium = helium_resources.Sum(hr => hr.amount);
+            var helium_fraction = (max_helium > 0) ? cur_helium / max_helium : cur_helium;
             helium_time_scale = 1.0 / GameConstants.helium_boiloff_fraction * helium_fraction;
-            helium_depleted_time = (float)(helium_time_scale + Planetarium.GetUniversalTime());
+            helium_depleted_time = helium_time_scale + Planetarium.GetUniversalTime();
         }
     }
 }

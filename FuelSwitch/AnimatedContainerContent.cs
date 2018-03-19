@@ -38,8 +38,7 @@ namespace FNPlugin
 
             if (!String.IsNullOrEmpty(resourceName))
             {
-                PartResource animatedResource = part.Resources[resourceName];
-
+                var animatedResource = part.Resources[resourceName];
                 if (animatedResource != null)
                     resourceRatio = animatedResource.maxAmount > 0 ? animatedResource.amount / animatedResource.maxAmount : 0;
             }

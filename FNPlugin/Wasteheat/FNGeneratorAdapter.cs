@@ -13,8 +13,6 @@ namespace FNPlugin
         public double megaJouleGeneratorPowerSupply; 
         
         private ModuleGenerator moduleGenerator;
-        private PartResource megajoulePartResource;
-        private PartResource electricChargePartResource;
 
         private resourceType outputType = 0;
         private bool active = false;
@@ -40,13 +38,13 @@ namespace FNPlugin
 
                 previousDeltaTime = TimeWarp.fixedDeltaTime;
 
-                megajoulePartResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
+                var megajoulePartResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
                 if (megajoulePartResource != null)
                 {
                     fixedMegajouleBufferSize = megajoulePartResource.maxAmount * 50;
                 }
 
-                electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
+                var electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
                 if (electricChargePartResource != null)
                 {
                     fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
@@ -143,6 +141,7 @@ namespace FNPlugin
 
                 if (outputType == resourceType.other) return;
 
+                var megajoulePartResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
                 if (megajoulePartResource != null && fixedMegajouleBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
                 {
                     double requiredMegawattCapacity = fixedMegajouleBufferSize * TimeWarp.fixedDeltaTime;
@@ -155,6 +154,7 @@ namespace FNPlugin
                         : Math.Max(0, Math.Min(requiredMegawattCapacity, ratio * requiredMegawattCapacity));
                 }
 
+                var electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
                 if (electricChargePartResource != null && fixedElectricChargeBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
                 {
                     double requiredElectricChargeCapacity = fixedElectricChargeBufferSize * TimeWarp.fixedDeltaTime;
