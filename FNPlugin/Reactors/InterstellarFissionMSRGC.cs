@@ -291,7 +291,7 @@ namespace FNPlugin
         }
 
         // This Methods loads the correct fuel mode
-        protected override void setDefaultFuelMode()
+        protected override void SetDefaultFuelMode()
         {
             CurrentFuelMode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
         }

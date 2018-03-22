@@ -8,7 +8,7 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
-    enum GenerationType { Mk1 = 0, Mk2 = 1, Mk3 = 2, Mk4 = 3, Mk5 = 4 }
+    enum GenerationType { Mk1 = 0, Mk2 = 1, Mk3 = 2, Mk4 = 3, Mk5 = 4, Mk6 = 5, Mk7 = 6 }
 
     abstract class EngineECU2 : ResourceSuppliableModule, IRescalable<EngineECU2>
     {

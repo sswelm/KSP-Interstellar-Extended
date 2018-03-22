@@ -1997,7 +1997,7 @@ namespace FNPlugin
 			get { return isThermalReceiver ? 0 : powerInputMegajoules; }
 		}
 
-		public virtual double GetCoreTempAtRadiatorTemp(double rad_temp)
+		public virtual double GetCoreTempAtRadiatorTemp(double radTemp)
 		{
 			return 3500;
 		}

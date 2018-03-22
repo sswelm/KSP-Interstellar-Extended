@@ -223,7 +223,7 @@ namespace FNPlugin
             PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_style, text_style);
         }
 
-        protected override void setDefaultFuelMode()
+        protected override void SetDefaultFuelMode()
         {
             if (fuel_modes == null)
                 return;

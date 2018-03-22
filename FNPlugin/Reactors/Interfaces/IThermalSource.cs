@@ -87,7 +87,7 @@ namespace FNPlugin
 
         bool shouldScaleDownJetISP();
 
-        double GetCoreTempAtRadiatorTemp(double rad_temp);
+        double GetCoreTempAtRadiatorTemp(double radTemp);
 
         double GetThermalPowerAtTemp(double temp);
 

@@ -243,7 +243,7 @@ namespace FNPlugin
             setupThermalPower();
         }
 
-        public double GetCoreTempAtRadiatorTemp(double rad_temp)
+        public double GetCoreTempAtRadiatorTemp(double radTemp)
         {
             return 1500;
         }
