@@ -18,16 +18,23 @@ namespace FNPlugin
         public float partMass = 0;
     }
 
+
+
     [KSPModule("Thermal Electric Effect Generator")]
     class ThermalElectricEffectGenerator : FNGenerator {}
+
+    [KSPModule("Integrated Thermal Electric Power Generator")]
+    class IntegratedThermalElectricPowerGenerator : FNGenerator { }
 
     [KSPModule("Thermal Electric Power Generator")]
     class ThermalElectricPowerGenerator : FNGenerator {}
 
+    [KSPModule("Integrated Charged Particles Power Generator")]
+    class IntegratedChargedParticlesPowerGenerator : FNGenerator {}
+
     [KSPModule("Charged Particles Power Generator")]
     class ChargedParticlesPowerGenerator : FNGenerator {}
 
-    [KSPModule("Electrical Power Generator")]
     class FNGenerator : ResourceSuppliableModule, IUpgradeableModule, IElectricPowerGeneratorSource, IPartMassModifier, IRescalable<FNGenerator>
     {
         [KSPField(isPersistant = true)]
@@ -155,8 +162,8 @@ namespace FNPlugin
         public double adjusted_thermal_power_needed;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Reactor Power Ratio", guiFormat = "F4")]
         public double attachedPowerSourceRatio;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Type")]
-        public string generatorType;
+        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Type")]
+        //public string generatorType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Current Power", guiUnits = " MW_e", guiFormat = "F3")]
         public string OutputPower;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Power")]
@@ -298,7 +305,7 @@ namespace FNPlugin
         public void upgradePartModule()
         {
             isupgraded = true;
-            generatorType = chargedParticleMode ? altUpgradedName : upgradedName;
+            //generatorType = chargedParticleMode ? altUpgradedName : upgradedName;
         }
 
         /// <summary>
@@ -375,7 +382,7 @@ namespace FNPlugin
             }
 
             base.OnStart(state);
-            generatorType = originalName;
+            //generatorType = originalName;
 
             targetMass = part.prefabMass * storedMassMultiplier;
             initialMass = part.prefabMass * storedMassMultiplier;
@@ -389,7 +396,7 @@ namespace FNPlugin
 
             Fields["partMass"].guiActive = Fields["partMass"].guiActiveEditor = calculatedMass;
             Fields["powerPercentage"].guiActive = Fields["powerPercentage"].guiActiveEditor = showSpecialisedUI;
-            Fields["generatorType"].guiActiveEditor = showSpecialisedUI;
+            //Fields["generatorType"].guiActiveEditor = showSpecialisedUI;
             Fields["radius"].guiActiveEditor = showSpecialisedUI;
 
             if (state == StartState.Editor)
@@ -903,11 +910,11 @@ namespace FNPlugin
 
                         electricdtps = Math.Max(effective_input_power_per_second * powerOutputMultiplier, 0);
 
-                        var effectiveMaxThermalPower = applies_balance
+                        var effectiveMaxThermalPowerRatio = applies_balance
                             ? (1 - attachedPowerSource.ChargedPowerRatio)
                             : 1;
 
-                        max_electricdtps = effectiveMaxThermalPower * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * attachedPowerSource.ThermalEnergyEfficiency * _totalEff;
+                        max_electricdtps = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * attachedPowerSource.ThermalEnergyEfficiency * _totalEff;
                     }
                     else // charged particle mode
                     {
@@ -915,9 +922,7 @@ namespace FNPlugin
 
                         if (_totalEff <= 0) return;
 
-                        double charged_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
-
-                        requested_power_per_second = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff), attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio);
+                        requested_power_per_second = Math.Max(Math.Min(maxChargedPower, CalculateElectricalPowerCurrentlyNeeded() / _totalEff), attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio);
 
                         var maximum_charged_power = attachedPowerSource.MaximumChargedPower * attachedPowerSource.ChargedParticleEnergyEfficiency;
                         var chargedPowerRequestRatio = Math.Min(1, maximum_charged_power > 0 ? requested_power_per_second / maximum_charged_power : 0);
@@ -933,7 +938,10 @@ namespace FNPlugin
                         electricdtps = Math.Max(effective_input_power_per_second * powerOutputMultiplier, 0);
                         max_electricdtps = maxChargedPower * _totalEff;
                     }
-                    outputPower = -supplyFNResourcePerSecondWithMax(electricdtps, max_electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                    outputPower = isLimitedByMinThrotle 
+                        ? -supplyManagedFNResourcePerSecond(electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES) 
+                        : -supplyFNResourcePerSecondWithMax(electricdtps, max_electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES);
                 }
                 else
                 {

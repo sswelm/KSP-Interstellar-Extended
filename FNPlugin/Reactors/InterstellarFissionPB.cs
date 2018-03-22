@@ -2,7 +2,12 @@
 
 namespace FNPlugin
 {
-    [KSPModule("Fission Reactor")]
+    [KSPModule("Pebble Bed Fission Reactor")]
+    class InterstellarPebbleBedFissionReactor : InterstellarFissionPB {}
+
+    [KSPModule("Pebble Bed Fission Engine")]
+    class InterstellarPebbleBedFissionEngine : InterstellarFissionPB { }
+    
     class InterstellarFissionPB : InterstellarReactor
     {
         // Persistant False

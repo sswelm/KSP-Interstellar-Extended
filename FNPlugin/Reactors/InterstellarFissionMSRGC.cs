@@ -5,11 +5,15 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    [KSPModule("Fission Reactor")]
+    [KSPModule("Nuclear Thermal Reactor")]
     class InterstellarFissionNTR : InterstellarFissionMSRGC { }
 
-
     [KSPModule("Fission Reactor")]
+    class InterstellarFissionReactor : InterstellarFissionMSRGC { }
+
+    [KSPModule("Molten Salt Reactor")]
+    class InterstellarMoltenSaltReactor : InterstellarFissionMSRGC { }
+
     class InterstellarFissionMSRGC : InterstellarReactor, INuclearFuelReprocessable
     {
         [KSPField(isPersistant = true)]

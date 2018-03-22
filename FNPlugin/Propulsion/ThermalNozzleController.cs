@@ -123,8 +123,6 @@ namespace FNPlugin
         public string afterburnerTechReq = String.Empty;
 
         //GUI
-        [KSPField(guiActive = false, guiName = "Type")]
-        public string engineType = ":";
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Propellant")]
         public string _fuelmode;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Propellant Isp Multiplier")]
@@ -155,11 +153,11 @@ namespace FNPlugin
         public double requested_charge_particles;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Recieved Power", guiUnits = " MJ", guiFormat="F3")]
         public double power_received;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius Modifier")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Modifier")]
         public string radiusModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Vacuum")]
         public string vacuumPerformance;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Sea")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Sea")]
         public string surfacePerformance;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Base Isp")]
         protected float _baseIspMultiplier;
@@ -175,9 +173,9 @@ namespace FNPlugin
         protected double max_thrust_in_current_atmosphere;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Final Engine Thrust")]
         protected double final_max_engine_thrust;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxISP")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxISP", guiFormat = "F3", guiUnits = "s")]
         protected double _maxISP;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MinISP")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MinISP", guiFormat = "F3", guiUnits = "s")]
         protected double _minISP;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3")]
         protected double calculatedMaxThrust;
@@ -367,7 +365,6 @@ namespace FNPlugin
 
         public void upgradePartModule()
         {
-            engineType = upgradedName;
             isupgraded = true;
 
             if (isJet)
@@ -436,9 +433,6 @@ namespace FNPlugin
                     wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
                     wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
                 }
-
-                engineType = originalName;
-
                 Debug.Log("[KSPI] - ThermalNozzleController - find module implementing <ModuleEngines>");
 
                 myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
@@ -576,7 +570,6 @@ namespace FNPlugin
 
                 thrustIspMultiplier = _ispPropellantMultiplier.ToString("0.0000") + " / " + _thrustPropellantMultiplier.ToString("0.0000");
 
-                Fields["engineType"].guiActive = isJet;
                 if (ResearchAndDevelopment.Instance != null && isJet)
                 {
                     Events["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
