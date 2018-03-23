@@ -2092,12 +2092,12 @@ namespace FNPlugin.Reactors
 
                         if (lithiumLifetimeYears < 1e9)
                         {
-                            if (lithiumLifetimeYears <= 0)
-                                PrintToGUILayout("Lithium Remaining", lithiumLifetimeRemainingDays + " days " + lithiumLifetimeRemainingHours.ToString("0.0000") + " hours", bold_style, text_style);
+                            if (lithiumLifetimeYears < 1)
+                                PrintToGUILayout("Lithium Remaining", lithiumLifetimeRemainingDays + " days " + lithiumLifetimeRemainingHours.ToString("0.0") + " hours", bold_style, text_style);
                             else if (lithiumLifetimeYears < 1e3)
-                                PrintToGUILayout("Lithium Remaining", lithiumLifetimeYears + " years " + lithiumLifetimeRemainingDays + " days " + lithiumLifetimeRemainingHours.ToString("0.0000") + " hours", bold_style, text_style);
+                                PrintToGUILayout("Lithium Remaining", lithiumLifetimeYears + " years " + lithiumLifetimeRemainingDays + " days", bold_style, text_style);
                             else if (lithiumLifetimeYears < 1e6)
-                                PrintToGUILayout("Lithium Remaining", lithiumLifetimeYears + " years " + lithiumLifetimeRemainingDays + " days ", bold_style, text_style);
+                                PrintToGUILayout("Lithium Remaining", lithiumLifetimeYears + " years " + lithiumLifetimeRemainingDays + " days", bold_style, text_style);
                             else
                                 PrintToGUILayout("Lithium Remaining", lithiumLifetimeYears + " years " , bold_style, text_style);
                         }
@@ -2126,7 +2126,6 @@ namespace FNPlugin.Reactors
                     GUILayout.BeginHorizontal();
                     GUILayout.Label("Fuel", bold_style, GUILayout.Width(150));
                     GUILayout.EndHorizontal();
-
 
                     foreach (var fuel in current_fuel_variant.ReactorFuels)
                     {

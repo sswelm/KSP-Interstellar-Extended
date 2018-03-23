@@ -156,101 +156,102 @@ namespace FNPlugin
 		public double powerInputMegajoules = 0;
 		[KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Max Input Power", guiFormat = "F3", guiUnits = " MJ")]
 		public double powerInputMegajoulesMax = 0;
-		[KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Thermal Power", guiFormat = "F3", guiUnits = " MJ")]
+
+		[KSPField(guiActiveEditor = false, guiActive = true, guiName = "Thermal Power", guiFormat = "F3", guiUnits = " MJ")]
 		public double ThermalPower;
-		[KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Radius", guiUnits = " m")]
+		[KSPField(guiActiveEditor = true, guiActive = false, guiName = "Radius", guiUnits = " m")]
 		public double radius = 2.5;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public float alternatorRatio = 1;
 
-		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "min Wavelength")]
+		[KSPField(guiActive = true, guiActiveEditor = true, guiName = "min Wavelength")]
 		public double minimumWavelength = 0.00000001;
-		[KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "max Wavelength")]
+		[KSPField(guiActive = true, guiActiveEditor = true, guiName = "max Wavelength")]
 		public double maximumWavelength = 1;
 
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double heatTransportationEfficiency = 0.7;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double powerHeatExponent = 0.7;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double powerHeatBase = 3200;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public int receiverType = 0;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double receiverFracionBonus = 0;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double wasteHeatMultiplier = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double apertureMultiplier = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double highSpeedAtmosphereFactor = 0;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double atmosphereToleranceModifier = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double thermalPropulsionEfficiency = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double thermalEnergyEfficiency = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double chargedParticleEnergyEfficiency = 1;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public double thermalProcessingModifier = 1;
-		[KSPField(isPersistant = false, guiActiveEditor = false)]
+		[KSPField]
 		public bool canSwitchBandwidthInEditor = false;
-		[KSPField(isPersistant = false, guiActiveEditor = false)]
+		[KSPField]
 		public bool canSwitchBandwidthInFlight = false;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public string bandWidthName;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public int connectStackdepth = 4;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public int connectParentdepth = 2;
-		[KSPField(isPersistant = false)]
+		[KSPField]
 		public int connectSurfacedepth = 2;
 
 		//GUI
 		[KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
 		public float receiptPower = 100;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Distance Effectivity", guiFormat = "F4")]
+
+		[KSPField( guiActive = false, guiName = "Distance Effectivity", guiFormat = "F4")]
 		public double effectiveDistanceFacingEfficiency;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Core Temperature")]
+		[KSPField(guiActive = false, guiName = "Core Temperature")]
 		public string coreTempererature;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Produced Power")]
+		[KSPField(guiActive = true, guiName = "Produced Power")]
 		public string beamedpower;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Satellites Connected")]
+		[KSPField(guiActive = true, guiName = "Satellites Connected")]
 		public string connectedsats;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Relays Connected")]
+		[KSPField(guiActive = true, guiName = "Relays Connected")]
 		public string connectedrelays;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Network Depth")]
+		[KSPField(guiActive = true, guiName = "Network Depth")]
 		public string networkDepthString;
 		//[KSPField(isPersistant = false, guiActive = true, guiName = "Recieve Efficiency")]
 		//public string toteff;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Connected Slaves")]
+		[KSPField(guiActive = true, guiName = "Connected Slaves")]
 		public int slavesAmount;
-		[KSPField(isPersistant = false, guiActive = true, guiName = "Slaves Power", guiUnits = " MW", guiFormat = "F2")]
+		[KSPField(guiActive = true, guiName = "Slaves Power", guiUnits = " MW", guiFormat = "F2")]
 		public double slavesPower;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Available Thermal Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiName = "Available Thermal Power", guiUnits = " MW", guiFormat = "F2")]
         public double total_thermal_power_available;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Thermal Power Supply", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiName = "Thermal Power Supply", guiUnits = " MW", guiFormat = "F2")]
 		public double total_thermal_power_provided;
-		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
+		[KSPField(guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
 		public double maximumPower = 0;
-		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
+		[KSPField(guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
 		public double maximumElectricPower = 0;
-		[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
+		[KSPField(guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
 		public double maximumThermalPower = 0;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Sun Facing Factor", guiFormat = "F4")]
+		[KSPField(guiActive = false, guiName = "Sun Facing Factor", guiFormat = "F4")]
 		public double solarFacingFactor;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
+		[KSPField(guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
 		public double solarFlux;
-		[KSPField(isPersistant = false, guiActive = false, guiName = "Buffer Power", guiFormat = "F4", guiUnits = " MW")]
+		[KSPField(guiActive = false, guiName = "Buffer Power", guiFormat = "F4", guiUnits = " MW")]
 		public double partBaseMegajoules;
 
-		[KSPField(isPersistant = false, guiActive = true, guiName = "FlowRate", guiFormat = "F4")]
+		[KSPField(guiActive = true, guiName = "FlowRate", guiFormat = "F4")]
 		public double flowRate;
-		[KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+		[KSPField(guiActiveEditor = false, guiActive = false)]
 		public double kerbalismPowerOutput;
-
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiFormat = "F2")]
+        [KSPField(guiActiveEditor = false, guiActive = true, guiFormat = "F2")]
         public double thermal_power_ratio;
 
         public double powerCapacityEfficiency;
