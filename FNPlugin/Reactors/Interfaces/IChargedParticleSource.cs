@@ -1,5 +1,5 @@
 ﻿
-namespace FNPlugin
+namespace FNPlugin.Reactors.Interfaces
 {
     public interface IChargedParticleSource : IPowerSource
     {

@@ -1,9 +1,8 @@
-﻿using System;
-using UnityEngine;
+﻿using FNPlugin.Reactors.Interfaces;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
-    [KSPModule("Fission Reactor")]
+    [KSPModule("Fission Fragment Reactor")]
     class InterstellarFissionDP : InterstellarFissionPB, IChargedParticleSource
     {
         public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }

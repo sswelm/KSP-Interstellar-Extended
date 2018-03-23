@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
     [KSPModule("Pebble Bed Fission Reactor")]
     class InterstellarPebbleBedFissionReactor : InterstellarFissionPB {}

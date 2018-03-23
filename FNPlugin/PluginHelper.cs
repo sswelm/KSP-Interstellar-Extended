@@ -441,6 +441,9 @@ namespace FNPlugin
             if (String.IsNullOrEmpty(techid))
                 return false;
 
+			if (techid == "none")
+				return false;
+
             if (ResearchAndDevelopment.Instance == null)
                 return HasTechFromSaveFile(techid);
 
@@ -508,8 +511,8 @@ namespace FNPlugin
 
             if (HighLogic.CurrentGame != null)
             {
-                if (PluginHelper.TechnologyIsInUse)
-                    return PluginHelper.hasTech(techid);
+                if (TechnologyIsInUse)
+                    return hasTech(techid);
                 else
                     return true;
             }

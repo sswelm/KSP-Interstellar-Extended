@@ -1,14 +1,15 @@
-﻿using FNPlugin.Extensions;
-using FNPlugin.Propulsion;
-using KSP.Localization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FNPlugin.Extensions;
+using FNPlugin.Propulsion;
+using FNPlugin.Reactors.Interfaces;
+using KSP.Localization;
 using TweakScale;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
     [KSPModule("#LOC_KSPIE_Reactor_moduleName")]
     class InterstellarReactor : ResourceSuppliableModule, IPowerSource, IRescalable<InterstellarReactor>
@@ -307,6 +308,8 @@ namespace FNPlugin
         public bool canUseGammaRayFuels = true;
 
         [KSPField]
+        public int fuelModeTechLevel;
+        [KSPField]
         public string bimodelUpgradeTechReq = String.Empty;
         [KSPField]
         public string powerUpgradeTechReq = String.Empty;
@@ -413,7 +416,6 @@ namespace FNPlugin
         long last_draw_update;       
 
         int windowID = 90175467;
-        int nrAvailableUpgradeTechs;
         int deactivate_timer = 0;
 
         bool? hasBimodelUpgradeTechReq;
@@ -847,11 +849,11 @@ namespace FNPlugin
             }
         }
 
-        public int ReactorTechLevel
+        public int ReactorFuelModeTechLevel
         {
             get
             {
-                return (int)CurrentGenerationType + reactorModeTechBonus;
+                return fuelModeTechLevel + reactorModeTechBonus;
             }
         }
 
@@ -1101,7 +1103,7 @@ namespace FNPlugin
 
         private void UpdateReactorCharacteristics()
         {
-            DetermineGenerationType();
+            DeterminePowerGenerationType();
 
             DeterminePowerOutput();
 
@@ -1162,7 +1164,7 @@ namespace FNPlugin
                 fuelEfficencyMk7 = fuelEfficencyMk6;
         }
 
-        private void DetermineGenerationType()
+        private void DeterminePowerGenerationType()
         {
             // initialse tech requirment if missing 
             if (string.IsNullOrEmpty(upgradeTechReqMk2))
@@ -1171,61 +1173,35 @@ namespace FNPlugin
                 upgradeTechReqMk3 = powerUpgradeTechReq;
 
             // determine number of upgrade techs
-            nrAvailableUpgradeTechs = 1;
+            currentGenerationType = 0;
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk7))
-                nrAvailableUpgradeTechs++;
+                currentGenerationType++;
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk6))
-                nrAvailableUpgradeTechs++;
+                currentGenerationType++;
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk5))
-                nrAvailableUpgradeTechs++;
+                currentGenerationType++;
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk4))
-                nrAvailableUpgradeTechs++;
+                currentGenerationType++;
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk3))
-                nrAvailableUpgradeTechs++;
+                currentGenerationType++;
             if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
-                nrAvailableUpgradeTechs++;
+                currentGenerationType++;
 
             // show poweroutput when appropriate
-            if (nrAvailableUpgradeTechs >= 7)
+            if (currentGenerationType >= 6)
                 Fields["powerOutputMk7"].guiActiveEditor = true;
-            if (nrAvailableUpgradeTechs >= 6)
+            if (currentGenerationType >= 5)
                 Fields["powerOutputMk6"].guiActiveEditor = true;
-            if (nrAvailableUpgradeTechs >= 5)
+            if (currentGenerationType >= 4)
                 Fields["powerOutputMk5"].guiActiveEditor = true;
-            if (nrAvailableUpgradeTechs >= 4)
+            if (currentGenerationType >= 3)
                 Fields["powerOutputMk4"].guiActiveEditor = true;
-            if (nrAvailableUpgradeTechs >= 3)
+            if (currentGenerationType >= 2)
                 Fields["powerOutputMk3"].guiActiveEditor = true;
-            if (nrAvailableUpgradeTechs >= 2)
+            if (currentGenerationType >= 1)
                 Fields["powerOutputMk2"].guiActiveEditor = true;
-            if (nrAvailableUpgradeTechs >= 1)
+            if (currentGenerationType >= 0)
                 Fields["powerOutputMk1"].guiActiveEditor = true;
-
-            // determine fusion tech levels
-            switch (nrAvailableUpgradeTechs)
-            {
-                case 7:
-                    CurrentGenerationType = GenerationType.Mk7;
-                    break;
-                case 6:
-                    CurrentGenerationType = GenerationType.Mk6;
-                    break;
-                case 5:
-                    CurrentGenerationType = GenerationType.Mk5;
-                    break;
-                case 4:
-                    CurrentGenerationType = GenerationType.Mk4;
-                    break;
-                case 3:
-                    CurrentGenerationType = GenerationType.Mk3;
-                    break;
-                case 2:
-                    CurrentGenerationType = GenerationType.Mk2;
-                    break;
-                default:
-                    CurrentGenerationType = GenerationType.Mk1;
-                    break;
-            }
         }
 
         /// <summary>
@@ -1852,7 +1828,7 @@ namespace FNPlugin
                     && fm.AllProductResourcesDefinitionsAvailable 
                     && (fm.SupportedReactorTypes & ReactorType) == ReactorType
                     && PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
-                    && ReactorTechLevel >= fm.TechLevel
+                    && ReactorFuelModeTechLevel >= fm.TechLevel
                     && (fm.Aneutronic || canUseNeutronicFuels)
                     && maxGammaRayPower >= fm.GammaRayEnergy
                     ).ToList();

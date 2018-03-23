@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
-    [KSPModule("Inertial Fusion Reactor")]
+    [KSPModule("Inertial Confinement Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor
     {
         // Configs

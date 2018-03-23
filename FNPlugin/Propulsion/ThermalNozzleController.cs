@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Propulsion;
 using FNPlugin.Extensions;
+using FNPlugin.Reactors.Interfaces;
 using UnityEngine;
 using System;
 using System.Collections.Generic;

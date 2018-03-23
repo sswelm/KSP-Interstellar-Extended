@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using FNPlugin.Reactors.Interfaces;
 using UnityEngine;
 using FNPlugin.Propulsion;
 using FNPlugin.Extensions;

@@ -1,7 +1,7 @@
 using System;
 using FNPlugin.Propulsion;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors.Interfaces
 {
     public enum ElectricGeneratorType { unknown = 0, thermal = 1, charged_particle = 2 };
 

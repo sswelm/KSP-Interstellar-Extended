@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
     [KSPModule("Nuclear Thermal Reactor")]
     class InterstellarFissionNTR : InterstellarFissionMSRGC { }
