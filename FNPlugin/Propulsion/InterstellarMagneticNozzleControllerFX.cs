@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Propulsion;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -49,6 +50,7 @@ namespace FNPlugin
         protected double exchanger_thrust_divisor;
         protected double calculatedIsp;
         protected double _previous_charged_particles_received;
+        protected ResourceBuffers resourceBuffers;
 
         protected double minimum_isp;
         protected double maximum_isp;
@@ -66,15 +68,9 @@ namespace FNPlugin
 
 		public override void OnStart(PartModule.StartState state) 
         {
-			// calculate WasteHeat Capacity
-			var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
-			if (wasteheatPowerResource != null)
-			{
-				var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-				wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-				wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-			}
-            
+            resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+4, 0.95, false));
+            resourceBuffers.Init(this.part);
+
             if (state == StartState.Editor) return;
 
             _attached_warpable_engine = this.part.FindModuleImplementing<ModuleEnginesWarp>();

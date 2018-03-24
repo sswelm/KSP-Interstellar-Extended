@@ -313,6 +313,7 @@ namespace FNPlugin
 		protected double total_conversion_waste_heat_production;
 		protected double connectedRecieversSum;
 		protected int initializationCountdown;
+        protected ResourceBuffers resourceBuffers;
 
         protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
 		protected Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
@@ -507,8 +508,6 @@ namespace FNPlugin
 		protected long deactivate_timer = 0;
 		protected double solarInputMegajoules = 0;
 		protected double solarInputMegajoulesMax = 0;
-		
-		protected double partBaseWasteheat;
 
 		protected bool has_transmitter = false;
 
@@ -912,8 +911,8 @@ namespace FNPlugin
 					((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
 			}
 
-			// calculate WasteHeat Capacity
-			partBaseWasteheat = part.mass * 2.0e+5 * wasteHeatMultiplier;
+            resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+5));
+            resourceBuffers.Init(this.part);
 
 			// calculate Power Capacity buffer
 			partBaseMegajoules = StableMaximumReactorPower * 0.05;
@@ -967,13 +966,7 @@ namespace FNPlugin
 		{
 			try
 			{
-                var wasteheatResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-				if (wasteheatResource != null && TimeWarp.fixedDeltaTime != previousDeltaTime)
-				{
-					var ratio = Math.Min(1, wasteheatResource.amount / wasteheatResource.maxAmount);
-					wasteheatResource.maxAmount = partBaseWasteheat * TimeWarp.fixedDeltaTime; ;
-					wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
-				}
+                resourceBuffers.UpdateBuffers();
 
                 var thermalResource = part.Resources[ResourceManager.FNRESOURCE_THERMALPOWER];
                 var megajouleResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];

@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin 
 {
@@ -254,6 +255,7 @@ namespace FNPlugin
         private ModuleActiveRadiator _moduleActiveRadiator;
         private ResourceManager wasteheatManager;
         private ModuleDeployablePart.DeployState radiatorState;
+        private ResourceBuffers resourceBuffers;
 
         private Queue<double> temperatureQueue = new Queue<double>(10);
 
@@ -536,10 +538,6 @@ namespace FNPlugin
             Actions["RetractRadiatorAction"].guiName = "Retract Radiator";
             Events["RetractRadiator"].guiName = "Retract Radiator";
 
-            // calculate WasteHeat Capacity
-            partBaseWasteheat = part.mass * 1e+6 * wasteHeatMultiplier;
-            
-
             var myAttachedEngine = part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine == null)
             {
@@ -620,18 +618,10 @@ namespace FNPlugin
             radiatorTempStr = maxRadiatorTemperature + "K";
 
             maxVacuumTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) :  Math.Min(maxVacuumTemperature, maxRadiatorTemperature);
-            maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature); 
-        }
+            maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature);
 
-        private void UpdateWasteheatBuffer(float deltaTime, double maximum_ratio)
-        {
-            var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-            if (wasteheatPowerResource == null)
-                return;
-
-            var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, maximum_ratio);
-            wasteheatPowerResource.maxAmount = partBaseWasteheat * deltaTime;
-            wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
+            resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 1.0e+6));
+            resourceBuffers.Init(this.part);
         }
 
         void radiatorIsEnabled_OnValueModified(object arg1)
@@ -664,7 +654,6 @@ namespace FNPlugin
         public void Update()
         {
             partMass = part.mass;
-            partBaseWasteheat = part.mass * 1e+6 * wasteHeatMultiplier;
 
             var isUndefined = _moduleDeployableRadiator == null 
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING 
@@ -742,8 +731,8 @@ namespace FNPlugin
         {
             try
             {
-                UpdateWasteheatBuffer();
-
+                resourceBuffers.UpdateBuffers();
+                
                 if (!HighLogic.LoadedSceneIsFlight)
                     return;
 
@@ -850,13 +839,6 @@ namespace FNPlugin
             {
                 Debug.LogError("[KSPI] - FNRadiator.FixedUpdate" + e.Message);
             }
-        }
-
-
-        private void UpdateWasteheatBuffer()
-        {
-            var deltaTime = HighLogic.LoadedSceneIsFlight ? TimeWarp.fixedDeltaTime : 0.02f;
-            UpdateWasteheatBuffer(deltaTime, 1);
         }
 
         private void DeployMentControl(double dynamic_pressure)

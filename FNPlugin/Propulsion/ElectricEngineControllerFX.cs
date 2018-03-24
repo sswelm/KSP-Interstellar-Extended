@@ -84,6 +84,7 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_maxThrottlePower", guiFormat = "F3", guiUnits = " MW")]
         public double maxThrottlePower;
 
+        protected ResourceBuffers resourceBuffers;
 
         // privates
         const double OneThird = 1.0 / 3.0;
@@ -240,14 +241,8 @@ namespace FNPlugin
 
                 UpdateEngineTypeString();
 
-                // calculate WasteHeat Capacity
-                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
-                if (wasteheatPowerResource != null)
-                {
-                    var wasteheatRatio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                    wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheatRatio;
-                }
+                resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+4, 0.95, false));
+                resourceBuffers.Init(this.part);
 
                 // initialize propellant
                 _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);

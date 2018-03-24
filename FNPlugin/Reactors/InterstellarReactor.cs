@@ -364,6 +364,8 @@ namespace FNPlugin
         PartResourceDefinition tritium_def;
         PartResourceDefinition helium_def;
 
+        ResourceBuffers resourceBuffers;
+
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
         Queue<double> averageGeeForce = new Queue<double>();
@@ -371,7 +373,6 @@ namespace FNPlugin
         Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
 
         double connectedRecieversSum;
-        double partBaseWasteheat;
 
         double tritiumBreedingMassAdjustment;
         double heliumBreedingMassAdjustment;
@@ -944,6 +945,9 @@ namespace FNPlugin
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;
 
+            resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 1.0e+5));
+            resourceBuffers.Init(this.part);
+
             windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
             base.OnStart(state);
 
@@ -958,9 +962,6 @@ namespace FNPlugin
                 coretempStr = CoreTemperature.ToString("0") + " K";
                 return;
             }
-
-            // calculate WasteHeat Capacity
-            partBaseWasteheat = part.mass * 1e+5 * wasteHeatMultiplier;
 
             if (!reactorInit)
             {
@@ -1230,8 +1231,6 @@ namespace FNPlugin
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
             base.OnFixedUpdate();
-
-            //UpdateWasteheatBuffer(TimeWarp.fixedDeltaTime, 1);
 
             StoreGeneratorRequests();
 
@@ -1510,18 +1509,6 @@ namespace FNPlugin
                 }
 
                 reactorBooted = true;
-
-                var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-                if (wasteheatPowerResource != null)
-                {
-                    // calculate WasteHeat Capacity
-                    partBaseWasteheat = part.mass * 1e+5 * wasteHeatMultiplier;
-
-                    var wasteheat_ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-
-                    wasteheatPowerResource.maxAmount = timeWarpFixedDeltaTime * partBaseWasteheat; ;
-                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-                }
             }
             else
             {
@@ -1540,15 +1527,8 @@ namespace FNPlugin
                     chargedPowerResource.maxAmount = Math.Max(0.0001, 4 * timeWarpFixedDeltaTime * MaximumChargedPower);
                     chargedPowerResource.amount = Math.Max(0, Math.Min(chargedPowerResource.maxAmount, chargedPowerRatio * chargedPowerResource.maxAmount));
                 }
-
-                var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-                if (wasteheatPowerResource != null)
-                {
-                    var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
-                    wasteheatPowerResource.maxAmount = Math.Max(0.0001, timeWarpFixedDeltaTime * partBaseWasteheat);
-                    wasteheatPowerResource.amount = Math.Max(0, Math.Min(wasteheatPowerResource.maxAmount, wasteHeatRatio * wasteheatPowerResource.maxAmount));
-                }
             }
+            resourceBuffers.UpdateBuffers();
 
             previousDeltaTime = TimeWarp.fixedDeltaTime;
         }

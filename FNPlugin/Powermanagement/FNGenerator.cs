@@ -208,7 +208,6 @@ namespace FNPlugin
 
         protected double powerCustomSettingFraction;
         protected double _previousMaxStableMegaWattPower;
-        protected float previousDeltaTime;
 
         protected PowerStates _powerState;
 
@@ -216,6 +215,7 @@ namespace FNPlugin
         protected Queue<double> averageRadiatorTemperatureQueue = new Queue<double>();
 
         protected IPowerSource attachedPowerSource;
+        protected ResourceBuffers resourceBuffers;
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -364,15 +364,8 @@ namespace FNPlugin
             //	return;
             //}
 
-            previousDeltaTime = TimeWarp.fixedDeltaTime - 1.0e-6f;
-
-            var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-            if (wasteheatPowerResource != null)
-            {
-                var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                wasteheatPowerResource.maxAmount = part.mass * TimeWarp.fixedDeltaTime * 2.0e+5 * wasteHeatMultiplier;
-                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-            }
+            resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+5, 0.95, true));
+            resourceBuffers.Init(this.part);
 
             base.OnStart(state);
             generatorType = originalName;
@@ -942,7 +935,6 @@ namespace FNPlugin
                     if (attachedPowerSource != null)
                         attachedPowerSource.RequestedThermalHeat = 0;
 
-                    previousDeltaTime = TimeWarp.fixedDeltaTime;
                     if (IsEnabled && !vessel.packed)
                     {
                         if (!FNRadiator.hasRadiatorsForVessel(vessel))
@@ -1016,16 +1008,7 @@ namespace FNPlugin
                         electricChargeResource.amount = Math.Max(0, Math.Min(requiredElectricChargeCapacity, electricChargeRatio * requiredElectricChargeCapacity));                    
                 }
             }
-
-            var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-            if (wasteheatPowerResource != null && TimeWarp.fixedDeltaTime != previousDeltaTime)
-            {
-                var wasteheat_ratio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-                wasteheatPowerResource.maxAmount = part.mass * TimeWarp.fixedDeltaTime * 2.0e+5 * wasteHeatMultiplier;
-                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-            }
-
-            previousDeltaTime = TimeWarp.fixedDeltaTime;
+            resourceBuffers.UpdateBuffers();
         }
 
         private double CalculateElectricalPowerCurrentlyNeeded()

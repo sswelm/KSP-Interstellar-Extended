@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -185,8 +186,9 @@ namespace FNPlugin
         protected double standard_megajoule_rate = 0;
         protected double standard_deuterium_rate = 0;
         protected double standard_tritium_rate = 0;
-        public ModuleEngines curEngineT;
+        protected ModuleEngines curEngineT;
         protected float CurveMaxISP;
+        protected ResourceBuffers resourceBuffers;
 
         protected double Altitude, lastAltitude;
 
@@ -375,14 +377,8 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-                // calculate WasteHeat Capacity
-                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
-                if (wasteheatPowerResource != null)
-                {
-                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                    wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-                }
+                resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+4, 0.95, false));
+                resourceBuffers.Init(this.part);
 
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
@@ -500,9 +496,6 @@ namespace FNPlugin
             }
 
             KillKerbalsWithRadiation(throttle);
-            
-            
-              
 
             if (throttle > 0)
             {
@@ -522,7 +515,7 @@ namespace FNPlugin
                 if (!CheatOptions.IgnoreMaxTemperature)
                     supplyFNResourcePerSecond(enginePowerRequirement, ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                // The Aborbed wasteheat from Fusion
+                // The Absorbed wasteheat from Fusion
                 var rateMultplier = MinIsp / SelectedIsp;
                 var neutronbsorbionBonus = 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp)));
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -104,7 +105,7 @@ namespace FNPlugin
         protected double standard_deuterium_rate = 0;
         protected double standard_tritium_rate = 0;
         protected string FuelConfigName = "Fusion Type";
-
+        protected ResourceBuffers resourceBuffers;
 
         protected double Altitude, lastAltitude;
 
@@ -351,14 +352,8 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-                // calculate WasteHeat Capacity
-                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
-                if (wasteheatPowerResource != null)
-                {
-                    var wasteheatRatio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                    wasteheatPowerResource.maxAmount = part.mass * 1.0e+4 * wasteHeatMultiplier;
-                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheatRatio;
-                }
+                resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 1.0e+4, 0.95, false));
+                resourceBuffers.Init(this.part);
 
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;

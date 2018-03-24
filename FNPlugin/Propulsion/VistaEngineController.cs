@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -82,8 +83,7 @@ namespace FNPlugin
         protected double standard_deuterium_rate = 0;
         protected double standard_tritium_rate = 0;
         protected ModuleEngines curEngineT;
-
-        
+        protected ResourceBuffers resourceBuffers;
 
         [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
         public void DeactivateRadSafety() 
@@ -145,14 +145,8 @@ namespace FNPlugin
             else if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
 
-            // calculate WasteHeat Capacity
-            var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
-            if (wasteheatPowerResource != null)
-            {
-                var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-            }
+            resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+4, 0.95, false));
+            resourceBuffers.Init(this.part);
 
             if (state == StartState.Editor && this.HasTechsRequiredToUpgrade())
             {
