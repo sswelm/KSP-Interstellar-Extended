@@ -51,16 +51,14 @@ namespace FNPlugin
         public float powerPercentage = 100;
 
         // Persistent False
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Is MHD")]
+        [KSPField]
         public bool isMHD = false;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Is Limited by min throtle")]
+        [KSPField]
         public bool isLimitedByMinThrotle = false;
         [KSPField]
         public double powerOutputMultiplier = 1;
-
-        [KSPField(guiName = "Hot/Cold Bath Ratio")]
+        [KSPField]
         public double hotColdBathRatio;
-
         [KSPField]
         public bool calculatedMass = false;
         [KSPField]
@@ -118,7 +116,6 @@ namespace FNPlugin
         [KSPField]
         public bool showSpecialisedUI = true;
 
-
         /// <summary>
         /// MW Power to part mass divider, need to be lower for SETI/NFE mode 
         /// </summary>
@@ -163,13 +160,11 @@ namespace FNPlugin
         public double adjusted_thermal_power_needed;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Reactor Power Ratio", guiFormat = "F4")]
         public double attachedPowerSourceRatio;
-        //[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Type")]
-        //public string generatorType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Current Power", guiUnits = " MW_e", guiFormat = "F3")]
         public string OutputPower;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Power")]
         public string MaxPowerStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Electric Power Efficiency")]
         public string OverallEfficiency;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Upgrade Cost")]
         public string upgradeCostStr = "";
@@ -306,7 +301,6 @@ namespace FNPlugin
         public void upgradePartModule()
         {
             isupgraded = true;
-            //generatorType = chargedParticleMode ? altUpgradedName : upgradedName;
         }
 
         /// <summary>

@@ -13,6 +13,7 @@ namespace FNPlugin.Reactors
     [KSPModule("Molten Salt Reactor")]
     class InterstellarMoltenSaltReactor : InterstellarFissionMSRGC { }
 
+    [KSPModule("Fission Reactor")]
     class InterstellarFissionMSRGC : InterstellarReactor, INuclearFuelReprocessable
     {
         [KSPField(isPersistant = true)]
@@ -29,7 +30,7 @@ namespace FNPlugin.Reactors
         double enrichedUraniumVolumeMultiplier;
         double depletedToEnrichVolumeMultplier;
         double oxygenDepletedUraniumVolumeMultipler;
-        double ReactorFuelMaxAmount;
+        double reactorFuelMaxAmount;
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
 
@@ -198,6 +199,7 @@ namespace FNPlugin.Reactors
 
             // start as normal
             base.OnStart(state);
+
             // auto switch if current fuel mode is depleted
             if (IsCurrentFuelDepleted())
             {
@@ -220,7 +222,10 @@ namespace FNPlugin.Reactors
             enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * (depletedFuelDefinition.density / enrichedUraniumDefinition.density);
             oxygenDepletedUraniumVolumeMultipler = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
 
-            ReactorFuelMaxAmount = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName).maxAmount;
+            var mainReactorFuel = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName);
+            if (mainReactorFuel != null)
+                reactorFuelMaxAmount = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName).maxAmount;
+
             foreach (ReactorFuelType fuelMode in fuel_modes)
             {
                 foreach (ReactorFuel fuel in fuelMode.Variants.First().ReactorFuels)
@@ -328,10 +333,10 @@ namespace FNPlugin.Reactors
                 {
                     if (editor)
                     {
-                        resource.amount = ReactorFuelMaxAmount;
+                        resource.amount = reactorFuelMaxAmount;
                         resource.isTweakable = true;
                     }
-                    resource.maxAmount = ReactorFuelMaxAmount;
+                    resource.maxAmount = reactorFuelMaxAmount;
                 }
             }
         }
