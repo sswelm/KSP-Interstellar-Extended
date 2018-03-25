@@ -124,6 +124,8 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool displayTankCost = false;
         [KSPField]
+        public bool displayWetDryMass = true;
+        [KSPField]
         public bool hasSwitchChooseOption = true;
         [KSPField]
         public bool hasGUI = true;
@@ -165,8 +167,8 @@ namespace InterstellarFuelSwitch
         // Debug
         [KSPField]
         public double dryMass;
-        [KSPField]
-        public double wetMass;
+        //[KSPField]
+        //public double wetMass;
         [KSPField]
         public double initialMass;
         [KSPField]
@@ -315,6 +317,14 @@ namespace InterstellarFuelSwitch
                 this.enabled = true;
 
                 AssignResourcesToPart(false);
+
+                var maxWetDryMassField = Fields["maxWetDryMass"];
+                maxWetDryMassField.guiActive = displayWetDryMass;
+                maxWetDryMassField.guiActiveEditor = displayWetDryMass;
+
+                var massRatioStrField = Fields["massRatioStr"];
+                massRatioStrField.guiActive = displayWetDryMass;
+                massRatioStrField.guiActiveEditor = displayWetDryMass;
 
                 _chooseField = Fields["selectedTankSetup"];
 
@@ -949,12 +959,15 @@ namespace InterstellarFuelSwitch
             _maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
             _maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource1.maxAmount;
 
-            wetMass = _maxResourceMassAmount0 + _maxResourceMassAmount1 + _maxResourceMassAmount2;
+            if (!displayWetDryMass) return;
+
+            var wetMass = _maxResourceMassAmount0 + _maxResourceMassAmount1 + _maxResourceMassAmount2;
 
             if (wetMass > 0 && dryMass > 0)
                 massRatioStr = ToRoundedString(1 / (dryMass / wetMass));
 
             maxWetDryMass = string.Format("{0} t / {1} t", ToStringWithFixedDigits(dryMass), ToStringWithFixedDigits(wetMass));
+
         }
 
         private string ToRoundedString(double value)

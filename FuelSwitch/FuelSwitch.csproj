@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnimatedContainerContent.cs" />
+    <Compile Include="IFSCryostat.cs" />
     <Compile Include="InterstellarAnimate.cs" />
     <Compile Include="InterstellarResourceConverter.cs" />
     <Compile Include="InterstellarTextureSwitch2.cs" />
@@ -66,6 +67,7 @@
     <Compile Include="InterstellarMeshSwitch.cs" />
     <Compile Include="InterstellarNodeLoader.cs" />
     <Compile Include="InterstellarTextureSwitch.cs" />
+    <Compile Include="IFSRadioactiveDecay.cs" />
     <Compile Include="ParseTools.cs" />
     <Compile Include="PartExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

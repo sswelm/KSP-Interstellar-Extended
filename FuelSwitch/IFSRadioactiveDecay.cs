@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace FNPlugin 
+namespace InterstellarFuelSwitch 
 {
     [KSPModule("Radioactive Decay")]
-    class ModuleElementRadioactiveDecay : PartModule 
+    class IFSRadioactiveDecay : PartModule 
     {
         // Persistent False
         [KSPField(isPersistant = false)]

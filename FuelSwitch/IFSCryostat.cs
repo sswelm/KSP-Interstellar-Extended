@@ -1,14 +1,18 @@
 ﻿using System;
 
 
-namespace FNPlugin
+namespace InterstellarFuelSwitch
 {
     [KSPModule("Cryostat")]
-    class ModuleStorageCryostat: FNModuleCryostat {}
-
-    [KSPModule("Cryostat")]
-    class FNModuleCryostat : ResourceSuppliableModule
+    class IFSCryostat : PartModule
     {
+        public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
+        public const string FNRESOURCE_MEGAJOULES = "Megajoules";
+
+        public const int KEBRIN_HOURS_DAY = 8;
+        public const int SECONDS_IN_HOUR = 3600;
+        public const int KEBRIN_DAY_SECONDS = SECONDS_IN_HOUR * KEBRIN_HOURS_DAY;
+
         // Persistant
         [KSPField(isPersistant = true, guiActive = true, guiName = "Cooling"), UI_Toggle(disabledText = "On", enabledText = "Off")]
         public bool isDisabled = false;
@@ -90,10 +94,10 @@ namespace FNPlugin
                 return;
 
             // if electricCharge buffer is missing, add it.
-            if (!part.Resources.Contains(InterstellarResourcesConfiguration.Instance.ElectricCharge))
+            if (!part.Resources.Contains(STOCK_RESOURCE_ELECTRICCHARGE))
             {
                 ConfigNode node = new ConfigNode("RESOURCE");
-                node.AddValue("name", InterstellarResourcesConfiguration.Instance.ElectricCharge);
+                node.AddValue("name", STOCK_RESOURCE_ELECTRICCHARGE);
                 node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
                 node.AddValue("amount", powerReqKW > 0  ? powerReqKW / 50 : 1);
                 part.AddResource(node);
@@ -102,7 +106,7 @@ namespace FNPlugin
 
         private void UpdateElectricChargeBuffer(double currentPowerUsage)
         {
-            var _electricCharge_resource = part.Resources[InterstellarResourcesConfiguration.Instance.ElectricCharge];
+            var _electricCharge_resource = part.Resources[STOCK_RESOURCE_ELECTRICCHARGE];
             if (_electricCharge_resource != null && (TimeWarp.fixedDeltaTime != previousDeltaTime || previousPowerUsage != currentPowerUsage))
             {
                 var requiredCapacity = 2 * currentPowerUsage * TimeWarp.fixedDeltaTime;
@@ -211,15 +215,13 @@ namespace FNPlugin
 
                 var fixedPowerReqKW = currentPowerReq * TimeWarp.fixedDeltaTime;
 
-                var fixedRecievedChargeKW = CheatOptions.InfiniteElectricity 
-                    ? fixedPowerReqKW
-                    : consumeFNResource(fixedPowerReqKW / 1000, ResourceManager.FNRESOURCE_MEGAJOULES) * 1000;
+                var fixedRecievedChargeKW = CheatOptions.InfiniteElectricity ? fixedPowerReqKW : 0;
 
                 if (fixedRecievedChargeKW <= fixedPowerReqKW)
-                    fixedRecievedChargeKW += part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, (fixedPowerReqKW - fixedRecievedChargeKW) / 1000) * 1000;
+                    fixedRecievedChargeKW += part.RequestResource(FNRESOURCE_MEGAJOULES, (fixedPowerReqKW - fixedRecievedChargeKW) / 1000) * 1000;
 
                 if (currentPowerReq < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
-                    fixedRecievedChargeKW += part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
+                    fixedRecievedChargeKW += part.RequestResource(STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
 
                 recievedPowerKW = fixedRecievedChargeKW / TimeWarp.fixedDeltaTime;
             }
@@ -253,20 +255,10 @@ namespace FNPlugin
             previousRecievedPowerKW = recievedPowerKW;
         }
 
-        public override string getResourceManagerDisplayName()
-        {
-            return resourceGUIName + " Cryostat";
-        }
-
-        public override int getPowerPriority()
-        {
-            return 2;
-        }
-
         public override string GetInfo()
         {
-            return "Power Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW\n Powered Boil Off Fraction: " 
-                + boilOffRate * PluginHelper.SecondsInDay + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * PluginHelper.SecondsInDay + " /day";
+            return "Power Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW\n Powered Boil Off Fraction: "
+                + boilOffRate * KEBRIN_DAY_SECONDS + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * KEBRIN_DAY_SECONDS + " /day";
         }
     }
 }
