@@ -1,10 +1,10 @@
-﻿using System;
+﻿using KSP.Localization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 using TweakScale;
-using KSP.Localization;
+using UnityEngine;
 
 namespace InterstellarFuelSwitch
 {
@@ -25,13 +25,13 @@ namespace InterstellarFuelSwitch
         {
             ID = name.GetHashCode();
             this.name = name;
-            PartResourceDefinition resourceDefinition = PartResourceLibrary.Instance.GetDefinition(name);
-            if (resourceDefinition != null)
-            {
-                this.density = resourceDefinition.density;
-                this.unitCost = resourceDefinition.unitCost;
-                this.specificHeatCapacity = resourceDefinition.specificHeatCapacity;
-            }
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(name);
+
+            if (resourceDefinition == null) return;
+
+            this.density = resourceDefinition.density;
+            this.unitCost = resourceDefinition.unitCost;
+            this.specificHeatCapacity = resourceDefinition.specificHeatCapacity;
         }
 
         public double FullMass { get { return maxAmount * density; } }
@@ -53,7 +53,7 @@ namespace InterstellarFuelSwitch
         public double FullResourceMass { get { return Resources.Sum(m => m.FullMass); } }
     }
 
-	[KSPModule("#LOC_IFS_FuelSwitch_moduleName")]
+    [KSPModule("#LOC_IFS_FuelSwitch_moduleName")]
     public class InterstellarFuelSwitch : PartModule, IRescalable<InterstellarFuelSwitch>, IPartCostModifier, IPartMassModifier
     {
         // Persistants
@@ -149,6 +149,8 @@ namespace InterstellarFuelSwitch
         public bool showInfo = true; // if false, does not feed info to the part list pop up info menu
         [KSPField]
         public string resourcesFormat = "0.0000";
+        [KSPField]
+        public bool canSwithWithFullTanks = false;
 
         //dummyvalues
         [KSPField]
@@ -167,8 +169,6 @@ namespace InterstellarFuelSwitch
         // Debug
         [KSPField]
         public double dryMass;
-        //[KSPField]
-        //public double wetMass;
         [KSPField]
         public double initialMass;
         [KSPField]
@@ -205,15 +205,16 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiFormat = "F3", guiUnits = " Ѵ")]         // Total Tank cost
         public double totalCost = 0;
 
-        InterstellarTextureSwitch2 textureSwitch;
-        List<string> currentResources;
+        InterstellarTextureSwitch2 _textureSwitch;
+        List<string> _currentResources;
         List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
-        IFSmodularTank selectedTank;
-        UIPartActionWindow tweakableUI;
-        HashSet<string> activeResourceList = new HashSet<string>();
+        IFSmodularTank _selectedTank;
+        UIPartActionWindow _tweakableUi;
 
-        bool initialized = false;
-        int numberOfAvailableTanks = 0;
+        readonly HashSet<string> _activeResourceList = new HashSet<string>();
+
+        bool _initialized;
+        int _numberOfAvailableTanks;
 
         double _maxResourceMassAmount0;
         double _maxResourceMassAmount1;
@@ -241,9 +242,9 @@ namespace InterstellarFuelSwitch
         BaseEvent _nextTankSetupEvent;
         BaseEvent _previousTankSetupEvent;
 
-        static HashSet<string> researchedTechs;
+        static HashSet<string> _researchedTechs;
 
-        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        public virtual void OnRescale(ScalingFactor factor)
         {
             try
             {
@@ -278,11 +279,11 @@ namespace InterstellarFuelSwitch
                         initialTankSetup = String.Join(";", part.Resources.Select(m => m.resourceName).ToArray());
                     }
 
-                    for (int i = 0; i < _modularTankList.Count; i++)
+                    for (var i = 0; i < _modularTankList.Count; i++)
                     {
                         var modularTank = _modularTankList[i];
 
-                        bool isSimilar = true;
+                        var isSimilar = true;
                         foreach (var resource in modularTank.Resources)
                         {
                             if (!part.Resources.Contains(resource.name))
@@ -292,11 +293,10 @@ namespace InterstellarFuelSwitch
                             }
                             else if (adaptiveTankSelection && selectedTankSetup != -1)
                             {
-                                if (part.Resources[resource.name].maxAmount != resource.maxAmount)
-                                {
-                                    isSimilar = false;
-                                    break;
-                                }
+                                if (part.Resources[resource.name].maxAmount == resource.maxAmount) continue;
+
+                                isSimilar = false;
+                                break;
                             }
                         }
                         if (isSimilar)
@@ -316,7 +316,7 @@ namespace InterstellarFuelSwitch
 
                 this.enabled = true;
 
-                AssignResourcesToPart(false);
+                AssignResourcesToPart();
 
                 var maxWetDryMassField = Fields["maxWetDryMass"];
                 maxWetDryMassField.guiActive = displayWetDryMass;
@@ -327,8 +327,6 @@ namespace InterstellarFuelSwitch
                 massRatioStrField.guiActiveEditor = displayWetDryMass;
 
                 _chooseField = Fields["selectedTankSetup"];
-
-                var chooseField = Fields["selectedObject"];
                 _chooseField.guiName = Localizer.Format(switcherDescription);
                 _chooseField.guiActiveEditor = hasSwitchChooseOption && availableInEditor && _modularTankList.Count > 1;
                 _chooseField.guiActive = hasSwitchChooseOption && availableInFlight && _modularTankList.Count > 1;
@@ -359,9 +357,9 @@ namespace InterstellarFuelSwitch
             if (!_modularTankList[selectedTankSetup].hasTech)
             {
                 if ((int)oldFieldValueObj < selectedTankSetup || ((int)oldFieldValueObj == _modularTankList.Count - 1 && selectedTankSetup == 0))
-                    nextTankSetupEvent();
+                    NextTankSetupEvent();
                 else
-                    previousTankSetupEvent();
+                    PreviousTankSetupEvent();
             }
             else
                 AssignResourcesToPart(true, true);
@@ -383,9 +381,9 @@ namespace InterstellarFuelSwitch
                 if (!_modularTankList[selectedTankSetup].hasTech)
                 {
                     if (oldSelectedTankSetup < selectedTankSetup || (oldSelectedTankSetup == _modularTankList.Count - 1 && selectedTankSetup == 0))
-                        nextTankSetupEvent();
+                        NextTankSetupEvent();
                     else
-                        previousTankSetupEvent();
+                        PreviousTankSetupEvent();
                 }
                 else
                     AssignResourcesToPart(calledByPlayer, true);
@@ -428,7 +426,7 @@ namespace InterstellarFuelSwitch
             try
             {
                 // Prevent execution to once per Scene switch
-                if (initialized)
+                if (_initialized)
                     return;
 
                 _field0 = Fields["resourceAmountStr0"];
@@ -436,19 +434,19 @@ namespace InterstellarFuelSwitch
                 _field2 = Fields["resourceAmountStr2"];
                 _tankGuiNameField = Fields["tankGuiName"];
 
-                availableInEditor = String.IsNullOrEmpty(inEditorSwitchingTechReq) ? availableInEditor : hasTech(inEditorSwitchingTechReq);
-                availableInFlight = String.IsNullOrEmpty(inFlightSwitchingTechReq) ? availableInFlight : hasTech(inFlightSwitchingTechReq);
+                availableInEditor = String.IsNullOrEmpty(inEditorSwitchingTechReq) ? availableInEditor : HasTech(inEditorSwitchingTechReq);
+                availableInFlight = String.IsNullOrEmpty(inFlightSwitchingTechReq) ? availableInFlight : HasTech(inFlightSwitchingTechReq);
 
-                SetupTankList(false);
+                SetupTankList();
 
                 if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
                 {
                     Debug.Log("[IFS] - InsterstellarFuelSwitch Verify Tank Tech Requirements ");
                     foreach (var modularTank in _modularTankList)
                     {
-                        modularTank.hasTech = hasTech(modularTank.techReq);
+                        modularTank.hasTech = HasTech(modularTank.techReq);
                     }
-                    numberOfAvailableTanks = _modularTankList.Where(m => m.hasTech).Count();
+                    _numberOfAvailableTanks = _modularTankList.Count(m => m.hasTech);
                 }
 
                 _nextTankSetupEvent = Events["nextTankSetupEvent"];
@@ -464,15 +462,15 @@ namespace InterstellarFuelSwitch
 
                 if (useTextureSwitchModule)
                 {
-                    textureSwitch = part.GetComponent<InterstellarTextureSwitch2>(); // only looking for first, not supporting multiple fuel switchers
-                    if (textureSwitch == null)
+                    _textureSwitch = part.GetComponent<InterstellarTextureSwitch2>(); // only looking for first, not supporting multiple fuel switchers
+                    if (_textureSwitch == null)
                     {
                         useTextureSwitchModule = false;
                         Debug.Log("[IFS] - no InterstellarTextureSwitch2 module found, despite useTextureSwitchModule being true");
                     }
                 }
 
-                initialized = true;
+                _initialized = true;
             }
             catch (Exception e)
             {
@@ -482,7 +480,7 @@ namespace InterstellarFuelSwitch
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_nextTankSetupText")]
-        public void nextTankSetupEvent()
+        public void NextTankSetupEvent()
         {
             try
             {
@@ -492,7 +490,7 @@ namespace InterstellarFuelSwitch
                     selectedTankSetup = 0;
 
                 if (!_modularTankList[selectedTankSetup].hasTech)
-                    nextTankSetupEvent();
+                    NextTankSetupEvent();
 
                 AssignResourcesToPart(true, true);
             }
@@ -504,7 +502,7 @@ namespace InterstellarFuelSwitch
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_previousTankSetupText")]
-        public void previousTankSetupEvent()
+        public void PreviousTankSetupEvent()
         {
             try
             {
@@ -513,7 +511,7 @@ namespace InterstellarFuelSwitch
                     selectedTankSetup = _modularTankList.Count - 1;
 
                 if (!_modularTankList[selectedTankSetup].hasTech)
-                    previousTankSetupEvent();
+                    PreviousTankSetupEvent();
 
                 AssignResourcesToPart(true, true);
             }
@@ -529,10 +527,10 @@ namespace InterstellarFuelSwitch
             try
             {
                 // destroying a resource messes up the gui in editor, but not in flight.
-                currentResources = SetupTankInPart(part, calledByPlayer);
+                _currentResources = SetupTankInPart(part, calledByPlayer);
 
                 // update GUI part
-                ConfigureResourceMassGui(currentResources);
+                ConfigureResourceMassGui(_currentResources);
                 UpdateTankName();
                 UpdateTexture(calledByPlayer);
 
@@ -544,26 +542,25 @@ namespace InterstellarFuelSwitch
 
                 if (HighLogic.LoadedSceneIsEditor && affectSymCounterparts)
                 {
-                    foreach (Part symPart in part.symmetryCounterparts)
+                    foreach (var symPart in part.symmetryCounterparts)
                     {
-                        InterstellarFuelSwitch symSwitch = String.IsNullOrEmpty(tankId) 
+                        var symSwitch = String.IsNullOrEmpty(tankId) 
                             ? symPart.FindModulesImplementing<InterstellarFuelSwitch>().FirstOrDefault()
                             : symPart.FindModulesImplementing<InterstellarFuelSwitch>().FirstOrDefault(m => m.tankId == tankId);
 
-                        if (symSwitch != null)
-                        {
-                            symSwitch.selectedTankSetup = selectedTankSetup;
-                            symSwitch.selectedTankSetupTxt = selectedTankSetupTxt;
-                            symSwitch.AssignResourcesToPart(calledByPlayer, false);
-                        }
+                        if (symSwitch == null) continue;
+
+                        symSwitch.selectedTankSetup = selectedTankSetup;
+                        symSwitch.selectedTankSetupTxt = selectedTankSetupTxt;
+                        symSwitch.AssignResourcesToPart(calledByPlayer, false);
                     }
                 }
 
-                if (tweakableUI == null)
-                    tweakableUI = part.FindActionWindow();
+                if (_tweakableUi == null)
+                    _tweakableUi = part.FindActionWindow();
 
-                if (tweakableUI != null)
-                    tweakableUI.displayDirty = true;
+                if (_tweakableUi != null)
+                    _tweakableUi.displayDirty = true;
             }
             catch (Exception e)
             {
@@ -574,8 +571,8 @@ namespace InterstellarFuelSwitch
 
         public void UpdateTexture(bool calledByPlayer)
         {
-            if (textureSwitch != null)
-                textureSwitch.SelectTankSetup(selectedTankSetup, calledByPlayer);
+            if (_textureSwitch != null)
+                _textureSwitch.SelectTankSetup(selectedTankSetup, calledByPlayer);
         }
 
         public void UpdateTankName()
@@ -592,31 +589,31 @@ namespace InterstellarFuelSwitch
             try
             {
                 // find selected tank
-                selectedTank = null;
+                _selectedTank = null;
 
                 if (!calledByPlayer && !String.IsNullOrEmpty(selectedTankSetupTxt))
                 {
                     // first find based on gui name
-                    selectedTank = _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt);
+                    _selectedTank = _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt);
 
                     // otherwise find based on switch name
-                    if (selectedTank == null)
-                        selectedTank = _modularTankList.FirstOrDefault(t => t.SwitchName == selectedTankSetupTxt);
+                    if (_selectedTank == null)
+                        _selectedTank = _modularTankList.FirstOrDefault(t => t.SwitchName == selectedTankSetupTxt);
  
                     // otherwise find basided on similarity with switch name
-                    if (selectedTank == null)
-                        selectedTank = _modularTankList.FirstOrDefault(t => selectedTankSetupTxt.Contains(t.SwitchName));
+                    if (_selectedTank == null)
+                        _selectedTank = _modularTankList.FirstOrDefault(t => selectedTankSetupTxt.Contains(t.SwitchName));
                 }
 
                 // if still no tank selected, do it based on index or pick the first one if invalid
-                if (selectedTank == null)
-                    selectedTank = selectedTankSetup < _modularTankList.Count
+                if (_selectedTank == null)
+                    _selectedTank = selectedTankSetup < _modularTankList.Count
                         ? _modularTankList[selectedTankSetup]
                         : _modularTankList[0];
 
                 // update txt and index for future
-                selectedTankSetupTxt = selectedTank.GuiName;
-                selectedTankSetup = _modularTankList.IndexOf(selectedTank);
+                selectedTankSetupTxt = _selectedTank.GuiName;
+                selectedTankSetup = _modularTankList.IndexOf(_selectedTank);
 
                 // create new ResourceNode
                 var newResources = new List<string>();
@@ -631,8 +628,7 @@ namespace InterstellarFuelSwitch
                     if (calledByPlayer)
                         configuredAmounts = String.Empty;
 
-                    string[] configAmounts = configuredAmounts.Split(',');
-                    foreach (string item in configAmounts)
+                    foreach (var item in configuredAmounts.Split(','))
                     {
                         float value;
                         if (float.TryParse(item, out value))
@@ -650,8 +646,7 @@ namespace InterstellarFuelSwitch
                     if (calledByPlayer)
                         configuredFlowStates = String.Empty;
 
-                    string[] configFlowStates = configuredFlowStates.Split(',');
-                    foreach (string item in configFlowStates)
+                    foreach (var item in configuredFlowStates.Split(','))
                     {
                         bool value;
                         if (bool.TryParse(item, out value))
@@ -663,17 +658,17 @@ namespace InterstellarFuelSwitch
                         configuredFlowStates = String.Empty;
                 }
 
-                for (int resourceId = 0; resourceId < selectedTank.Resources.Count; resourceId++)
+                for (var resourceId = 0; resourceId < _selectedTank.Resources.Count; resourceId++)
                 {
-                    var selectedTankResource = selectedTank.Resources[resourceId];
+                    var selectedTankResource = _selectedTank.Resources[resourceId];
 
                     if (selectedTankResource.name == "Structural")
                         continue;
 
                     newResources.Add(selectedTankResource.name);
 
-                    ConfigNode newResourceNode = new ConfigNode("RESOURCE");
-                    double maxAmount = selectedTankResource.maxAmount * storedVolumeMultiplier;
+                    var newResourceNode = new ConfigNode("RESOURCE");
+                    var maxAmount = selectedTankResource.maxAmount * storedVolumeMultiplier;
 
                     newResourceNode.AddValue("name", selectedTankResource.name);
                     newResourceNode.AddValue("maxAmount", maxAmount);
@@ -681,13 +676,10 @@ namespace InterstellarFuelSwitch
                     PartResource existingResource = null;
                     if (!HighLogic.LoadedSceneIsEditor || (HighLogic.LoadedSceneIsEditor && !calledByPlayer))
                     {
-                        foreach (var partResource in currentPart.Resources)
+                        foreach (var partResource in currentPart.Resources.Where(partResource => partResource.resourceName.Equals(selectedTankResource.name)))
                         {
-                            if (partResource.resourceName.Equals(selectedTankResource.name))
-                            {
-                                existingResource = partResource;
-                                break;
-                            }
+                            existingResource = partResource;
+                            break;
                         }
                     }
 
@@ -700,7 +692,7 @@ namespace InterstellarFuelSwitch
                     else if (!HighLogic.LoadedSceneIsEditor && calledByPlayer)
                         resourceNodeAmount = 0.0;
                     else
-                        resourceNodeAmount = selectedTank.Resources[resourceId].amount * storedVolumeMultiplier;
+                        resourceNodeAmount = _selectedTank.Resources[resourceId].amount * storedVolumeMultiplier;
 
                     newResourceNode.AddValue("amount", resourceNodeAmount);
 
@@ -721,16 +713,15 @@ namespace InterstellarFuelSwitch
 
                 foreach (var resource in currentPart.Resources)
                 {
-                    if (!activeResourceList.Contains(resource.resourceName))
-                    {
-                        ConfigNode newResourceNode = new ConfigNode("RESOURCE");
-                        newResourceNode.AddValue("name", resource.resourceName);
-                        newResourceNode.AddValue("maxAmount", resource.maxAmount);
-                        newResourceNode.AddValue("amount", resource.amount);
-                        newResourceNode.AddValue("flowState", resource.flowState);
+                    if (_activeResourceList.Contains(resource.resourceName)) continue;
 
-                        finalResourceNodes.Add(newResourceNode);
-                    }
+                    var newResourceNode = new ConfigNode("RESOURCE");
+                    newResourceNode.AddValue("name", resource.resourceName);
+                    newResourceNode.AddValue("maxAmount", resource.maxAmount);
+                    newResourceNode.AddValue("amount", resource.amount);
+                    newResourceNode.AddValue("flowState", resource.flowState);
+
+                    finalResourceNodes.Add(newResourceNode);
                 }
 
                 // add any remaining new nodes
@@ -808,26 +799,18 @@ namespace InterstellarFuelSwitch
                 return 0;
             }
 
-            bool preserveInitialCost = false;
+            var preserveInitialCost = false;
             if (!ignoreInitialCost && !String.IsNullOrEmpty(initialTankSetup))
             {
-                preserveInitialCost = true;
-                string[] initialTankSetupArray = initialTankSetup.Split(';');
+                var initialTankSetupArray = initialTankSetup.Split(';');
 
-                foreach (var resourcename in initialTankSetupArray)
-                {
-                    if (!part.Resources.Contains(resourcename))
-                    {
-                        preserveInitialCost = false;
-                        break;
-                    }
-                }
+                preserveInitialCost = initialTankSetupArray.All(resourcename => part.Resources.Contains(resourcename));
             }
 
             var isSmaller = storedFactorMultiplier < 0.999;
             var isLarger = storedFactorMultiplier > 1.001;
 
-            bool unaltered = !isSmaller && !isLarger;
+            var unaltered = !isSmaller && !isLarger;
 
             resourceCost += _partRresourceDefinition0.unitCost * _partResource0.amount;
             maxResourceCost += _partRresourceDefinition0.unitCost * _partResource0.maxAmount; 
@@ -880,40 +863,39 @@ namespace InterstellarFuelSwitch
 
         private void UpdateDryMass()
         {
-            if (dryMass == 0 || HighLogic.LoadedSceneIsEditor)
-            {
-                // update Dry Mass
-                dryMass = CalculateDryMass();
+            if (dryMass != 0 && !HighLogic.LoadedSceneIsEditor) return;
 
-                UpdateMassRatio();
-            }
+            // update Dry Mass
+            dryMass = CalculateDryMass();
+
+            UpdateMassRatio();
         }
 
         private double CalculateDryMass()
         {
-            if (selectedTank == null && selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
+            if (_selectedTank == null && selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
             {
-                selectedTank = _modularTankList[selectedTankSetup];
+                _selectedTank = _modularTankList[selectedTankSetup];
             }
 
             double mass = basePartMass;
-            if (selectedTank != null)
+            if (_selectedTank != null)
             {
-                var totalTankResourceMassDivider = selectedTank.resourceMassDivider + selectedTank.resourceMassDividerAddition;
+                var totalTankResourceMassDivider = _selectedTank.resourceMassDivider + _selectedTank.resourceMassDividerAddition;
 
                 if (overrideMassWithTankDividers && totalTankResourceMassDivider > 0)
-                    mass = selectedTank.FullResourceMass / totalTankResourceMassDivider;
+                    mass = _selectedTank.FullResourceMass / totalTankResourceMassDivider;
                 else
                 {
-                    mass += selectedTank.tankMass;
+                    mass += _selectedTank.tankMass;
 
                     // use baseResourceMassDivider if specified
                     if (baseResourceMassDivider > 0)
-                        mass += selectedTank.FullResourceMass / baseResourceMassDivider;
+                        mass += _selectedTank.FullResourceMass / baseResourceMassDivider;
 
                     // use resourceMassDivider if specified
                     if (totalTankResourceMassDivider > 0)
-                        mass += selectedTank.FullResourceMass / totalTankResourceMassDivider;
+                        mass += _selectedTank.FullResourceMass / totalTankResourceMassDivider;
                 }
             }
 
@@ -924,7 +906,7 @@ namespace InterstellarFuelSwitch
             return mass * storedMassMultiplier;
         }
 
-        private string formatMassStr(double amount)
+        private string FormatMassStr(double amount)
         {
             if (amount >= 1)
                 return (amount).ToString(resourcesFormat) + " t";
@@ -948,9 +930,9 @@ namespace InterstellarFuelSwitch
 
             totalMass = dryMass + currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2;
 
-            resourceAmountStr0 = missing0 ? String.Empty : formatMassStr(currentResourceMassAmount0);
-            resourceAmountStr1 = missing1 ? String.Empty : formatMassStr(currentResourceMassAmount1);
-            resourceAmountStr2 = missing2 ? String.Empty : formatMassStr(currentResourceMassAmount2);
+            resourceAmountStr0 = missing0 ? String.Empty : FormatMassStr(currentResourceMassAmount0);
+            resourceAmountStr1 = missing1 ? String.Empty : FormatMassStr(currentResourceMassAmount1);
+            resourceAmountStr2 = missing2 ? String.Empty : FormatMassStr(currentResourceMassAmount2);
         }
 
         private void UpdateMassRatio()
@@ -1010,12 +992,18 @@ namespace InterstellarFuelSwitch
             {
                 UpdateGuiResourceMass();
 
-                // show if any tank resources below 1/1000
-                var showSwitchButtons = availableInFlight && numberOfAvailableTanks > 1 
-                    && (_partResource0 == null || _partResource0.amount < _partResourceMaxAmountFraction0)
-                    && (_partResource1 == null || _partResource1.amount < _partResourceMaxAmountFraction1) 
-                    && (_partResource2 == null || _partResource2.amount < _partResourceMaxAmountFraction2);
+                var allowedToSwitch = availableInFlight && _numberOfAvailableTanks > 1 && 
+                                    (canSwithWithFullTanks || (
+                                      (_partResource0 == null || _partResource0.amount < _partResourceMaxAmountFraction0) && 
+                                      (_partResource1 == null || _partResource1.amount < _partResourceMaxAmountFraction1) && 
+                                      (_partResource2 == null || _partResource2.amount < _partResourceMaxAmountFraction2))
+                                    );
 
+                // show/hide choose option
+                _chooseField.guiActive = hasSwitchChooseOption && allowedToSwitch;
+
+                // show/hide switch buttons
+                var showSwitchButtons = hasGUI && allowedToSwitch;
                 _nextTankSetupEvent.guiActive = showSwitchButtons;
                 _previousTankSetupEvent.guiActive = showSwitchButtons;
 
@@ -1033,11 +1021,11 @@ namespace InterstellarFuelSwitch
             foreach (var resoure in part.Resources)
             {
                 configuredAmounts += resoure.amount + ",";
-                configuredFlowStates += resoure.flowState.ToString() + ",";
+                configuredFlowStates += resoure.flowState + ",";
             }
         }
 
-        private void SetupTankList(bool calledByPlayer)
+        private void SetupTankList()
         {
             try
             {
@@ -1047,20 +1035,20 @@ namespace InterstellarFuelSwitch
                 var tankResourceMassDividerAdditionList = ParseTools.ParseDoubles(tankResourceMassDividerAddition, () => tankResourceMassDividerAddition);
 
                 // First find the amounts each tank type is filled with
-                List<List<double>> resourceList = new List<List<double>>();
-                List<List<double>> initialResourceList = new List<List<double>>();
-                List<List<double>> boilOffTempList = new List<List<double>>();
-                List<List<double>> latendHeatVaporationList = new List<List<double>>();
+                var resourceList = new List<List<double>>();
+                var initialResourceList = new List<List<double>>();
+                var boilOffTempList = new List<List<double>>();
+                var latendHeatVaporationList = new List<List<double>>();
 
-                string[] resourceTankAbsoluteAmountArray = resourceAmounts.Split(';');
-                string[] resourceTankRatioAmountArray = resourceRatios.Split(';');
-                string[] initialResourceTankArray = initialResourceAmounts.Split(';');
-                string[] boilOffTempTankArray = boilOffTemp.Split(';');
-                string[] latendHeatVaporationArray = latendHeatVaporation.Split(';');
-                string[] tankNameArray = resourceNames.Split(';');
-                string[] tankTechReqArray = tankTechReq.Split(';');
-                string[] tankGuiNameArray = resourceGui.Split(';');
-                string[] tankSwitcherNameArray = tankSwitchNames.Split(';');
+                var resourceTankAbsoluteAmountArray = resourceAmounts.Split(';');
+                var resourceTankRatioAmountArray = resourceRatios.Split(';');
+                var initialResourceTankArray = initialResourceAmounts.Split(';');
+                var boilOffTempTankArray = boilOffTemp.Split(';');
+                var latendHeatVaporationArray = latendHeatVaporation.Split(';');
+                var tankNameArray = resourceNames.Split(';');
+                var tankTechReqArray = tankTechReq.Split(';');
+                var tankGuiNameArray = resourceGui.Split(';');
+                var tankSwitcherNameArray = tankSwitchNames.Split(';');
 
                 // if initial resource ammount is missing or not complete, use full amount
                 if (initialResourceAmounts.Equals(String.Empty) ||
@@ -1069,17 +1057,17 @@ namespace InterstellarFuelSwitch
 
                 var maxLengthTankArray = Math.Max(resourceTankAbsoluteAmountArray.Length, resourceTankRatioAmountArray.Length);
 
-                for (int tankCounter = 0; tankCounter < maxLengthTankArray; tankCounter++)
+                for (var tankCounter = 0; tankCounter < maxLengthTankArray; tankCounter++)
                 {
                     resourceList.Add(new List<double>());
                     initialResourceList.Add(new List<double>());
                     boilOffTempList.Add(new List<double>());
                     latendHeatVaporationList.Add(new List<double>());
 
-                    string[] resourceAmountArray = resourceTankAbsoluteAmountArray[tankCounter].Trim().Split(',');
-                    string[] initialResourceAmountArray = initialResourceTankArray[tankCounter].Trim().Split(',');
-                    string[] boilOffTempAmountArray = boilOffTempTankArray.Count() > tankCounter ? boilOffTempTankArray[tankCounter].Trim().Split(',') : new string[0];
-                    string[] latendHeatVaporationAmountArray = latendHeatVaporationArray.Count() > tankCounter ? latendHeatVaporationArray[tankCounter].Trim().Split(',') : new string[0];
+                    var resourceAmountArray = resourceTankAbsoluteAmountArray[tankCounter].Trim().Split(',');
+                    var initialResourceAmountArray = initialResourceTankArray[tankCounter].Trim().Split(',');
+                    var boilOffTempAmountArray = boilOffTempTankArray.Count() > tankCounter ? boilOffTempTankArray[tankCounter].Trim().Split(',') : new string[0];
+                    var latendHeatVaporationAmountArray = latendHeatVaporationArray.Count() > tankCounter ? latendHeatVaporationArray[tankCounter].Trim().Split(',') : new string[0];
 
                     // if missing or not complete, use full amount
                     if (initialResourceAmounts.Equals(String.Empty) ||
@@ -1163,8 +1151,8 @@ namespace InterstellarFuelSwitch
                         var resourceName = resourceNameArray[nameCounter].Trim(' ');
                         var newResource = new IFSresource(resourceName);
 
-                        if (!activeResourceList.Contains(resourceName))
-                            activeResourceList.Add(resourceName);
+                        if (!_activeResourceList.Contains(resourceName))
+                            _activeResourceList.Add(resourceName);
 
                         if (resourceList[currentResourceCounter] != null && nameCounter < resourceList[currentResourceCounter].Count)
                         {
@@ -1183,10 +1171,10 @@ namespace InterstellarFuelSwitch
                     }
 
                     var extraActiveResourceList = bannedResourceNames.Split(';');
-                    foreach( string resourceName in extraActiveResourceList)
+
+                    foreach (var resourceName in extraActiveResourceList.Where(resourceName => !_activeResourceList.Contains(resourceName)))
                     {
-                        if (!activeResourceList.Contains(resourceName))
-                            activeResourceList.Add(resourceName);
+                        _activeResourceList.Add(resourceName);
                     }
 
                     // ensure there is always a gui name
@@ -1194,11 +1182,11 @@ namespace InterstellarFuelSwitch
                     {
                         var names = modularTank.Resources.Select(m => m.name);
                         modularTank.GuiName = String.Empty;
-                        foreach (var name in names)
+                        foreach (var currentname in names)
                         {
                             if (!String.IsNullOrEmpty(modularTank.GuiName))
                                 modularTank.GuiName += "+";
-                            modularTank.GuiName += name;
+                            modularTank.GuiName += currentname;
                         }
                     }
 
@@ -1281,7 +1269,7 @@ namespace InterstellarFuelSwitch
             return info.ToString();
         }
 
-        private bool hasTech(string techid)
+        private bool HasTech(string techid)
         {
             if (String.IsNullOrEmpty(techid))
                 return true;
@@ -1294,10 +1282,13 @@ namespace InterstellarFuelSwitch
 
             if (ResearchAndDevelopment.Instance == null)
             {
-                if (researchedTechs == null)
+                if (_researchedTechs == null)
                     LoadSaveFile();
 
-                bool found = researchedTechs.Contains(techid);
+                if (_researchedTechs == null)
+                    return false;
+
+                var found = _researchedTechs.Contains(techid);
                 return found;
             }
 
@@ -1313,22 +1304,21 @@ namespace InterstellarFuelSwitch
 
         private void LoadSaveFile()
         {
-            researchedTechs = new HashSet<string>();
+            _researchedTechs = new HashSet<string>();
 
-            string persistentfile = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs";
-            ConfigNode config = ConfigNode.Load(persistentfile);
-            ConfigNode gameconf = config.GetNode("GAME");
-            ConfigNode[] scenarios = gameconf.GetNodes("SCENARIO");
+            var config = ConfigNode.Load(KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/persistent.sfs");
+            var gameconf = config.GetNode("GAME");
+            var scenarios = gameconf.GetNodes("SCENARIO");
 
-            foreach (ConfigNode scenario in scenarios)
+            foreach (var scenario in scenarios)
             {
                 if (scenario.GetValue("name") == "ResearchAndDevelopment")
                 {
-                    ConfigNode[] techs = scenario.GetNodes("Tech");
-                    foreach (ConfigNode technode in techs)
+                    var techs = scenario.GetNodes("Tech");
+                    foreach (var technode in techs)
                     {
                         var technodename = technode.GetValue("id");
-                        researchedTechs.Add(technodename);
+                        _researchedTechs.Add(technodename);
                     }
                 }
             }
