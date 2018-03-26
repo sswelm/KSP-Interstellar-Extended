@@ -6,10 +6,10 @@ using System.Diagnostics;
 
 namespace FNPlugin
 {
-	[KSPModule("Fusion Engine")]
+    [KSPModule("Fusion Engine")]
     class FusionEngineController : DaedalusEngineController { }
 
-	[KSPModule("Inertial Confinement Fusion Engine")]
+    [KSPModule("Inertial Confinement Fusion Engine")]
     class DaedalusEngineController : ResourceSuppliableModule, IUpgradeableModule 
     {
         // Persistant
@@ -89,6 +89,10 @@ namespace FNPlugin
         public float maxThrustMk5 = 1500;
         [KSPField(guiActiveEditor = true)]
         public float maxThrustMk6 = 2000;
+        [KSPField(guiActiveEditor = true)]
+        public float maxThrustMk7 = 2500;
+        [KSPField(guiActiveEditor = true)]
+        public float maxThrustMk8 = 3000;
 
         [KSPField]
         public float maxAtmosphereDensity = 0;
@@ -138,6 +142,10 @@ namespace FNPlugin
         public string upgradeTechReq5;
         [KSPField(guiActiveEditor = true, guiName = "upgrade tech 6")]
         public string upgradeTechReq6;
+        [KSPField(guiActiveEditor = true, guiName = "upgrade tech 7")]
+        public string upgradeTechReq7;
+        [KSPField(guiActiveEditor = true, guiName = "upgrade tech 8")]
+        public string upgradeTechReq8;
 
         bool hasrequiredupgrade;
         bool radhazard;
@@ -208,8 +216,14 @@ namespace FNPlugin
                     case (int)GenerationType.Mk5:
                         return maxThrustMk5;
                         break;
-                    default:
+                    case (int)GenerationType.Mk6:
                         return maxThrustMk6;
+                        break;
+                    case (int)GenerationType.Mk7:
+                        return maxThrustMk7;
+                        break;
+                    default:
+                        return maxThrustMk8;
                         break;
                 }
             }
@@ -277,6 +291,8 @@ namespace FNPlugin
                 Fields["upgradeTechReq4"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq4);
                 Fields["upgradeTechReq5"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq5);
                 Fields["upgradeTechReq6"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq6);
+                Fields["upgradeTechReq7"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq7);
+                Fields["upgradeTechReq8"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq8);
             }
             catch (Exception e)
             {
