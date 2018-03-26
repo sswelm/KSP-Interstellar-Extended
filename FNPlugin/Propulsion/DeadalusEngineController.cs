@@ -124,9 +124,6 @@ namespace FNPlugin
         public string upgradedName = "Deadalus IC Fusion Engine";
 
         // Gui
-        [KSPField(guiActive = false, guiName = "Type")]
-        public string engineType = "";
-
         [KSPField(guiActiveEditor = true, guiName= "upgrade tech")]
         public string upgradeTechReq = null;
 
@@ -240,7 +237,6 @@ namespace FNPlugin
 
         public void upgradePartModule()
         {
-            engineType = upgradedName;
             isupgraded = true;
         }
 
@@ -258,7 +254,6 @@ namespace FNPlugin
                 part.thermalMass = 1;
                 part.thermalMassModifier = 1;
 
-                engineType = originalName;
                 curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
 
                 if (curEngineT == null) return;
@@ -303,7 +298,7 @@ namespace FNPlugin
         private void DetermineTechLevel()
         {
             var numberOfUpgradeTechs = 0;
-            if (PluginHelper.UpgradeAvailable(upgradeTechReq1) || PluginHelper.UpgradeAvailable(upgradeTechReq))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq1))
                 numberOfUpgradeTechs++;
             if (PluginHelper.UpgradeAvailable(upgradeTechReq2))
                 numberOfUpgradeTechs++;
@@ -314,6 +309,10 @@ namespace FNPlugin
             if (PluginHelper.UpgradeAvailable(upgradeTechReq5))
                 numberOfUpgradeTechs++;
             if (PluginHelper.UpgradeAvailable(upgradeTechReq6))
+                numberOfUpgradeTechs++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq7))
+                numberOfUpgradeTechs++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq8))
                 numberOfUpgradeTechs++;
 
             EngineGenerationType = (GenerationType) numberOfUpgradeTechs;
@@ -622,14 +621,14 @@ namespace FNPlugin
 
             powerUsage = (recievedPower / 1000d).ToString("0.000") + " GW / " + (effectivePowerRequirement * 0.001).ToString("0.000") + " GW";
 
-            if (!CheatOptions.IgnoreMaxTemperature)
-            {
-                // Lasers produce Wasteheat
-                supplyFNResourcePerSecond(recievedPower * (1 - Efficiency), ResourceManager.FNRESOURCE_WASTEHEAT);
+            if (CheatOptions.IgnoreMaxTemperature) 
+                return wasteheatFusionRatio;
 
-                // The Aborbed wasteheat from Fusion
-                supplyFNResourcePerSecond(FusionWasteHeat * wasteHeatMultiplier * wasteheatFusionRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
-            }
+            // Lasers produce Wasteheat
+            supplyFNResourcePerSecond(recievedPower * (1 - Efficiency), ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            // The Aborbed wasteheat from Fusion
+            supplyFNResourcePerSecond(FusionWasteHeat * wasteHeatMultiplier * wasteheatFusionRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
 
             return wasteheatFusionRatio;
         }
