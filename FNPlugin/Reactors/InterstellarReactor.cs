@@ -952,7 +952,7 @@ namespace FNPlugin.Reactors
 
             print("[KSPI] - Found matching Interstellar upgradetech for part '" + part.name + "' with technode " + upgradetechName);
 
-            return PluginHelper.upgradeAvailable(upgradetechName);
+            return PluginHelper.UpgradeAvailable(upgradetechName);
         }
 
         public void DeterminePowerOutput()
@@ -1174,17 +1174,17 @@ namespace FNPlugin.Reactors
 
             // determine number of upgrade techs
             currentGenerationType = 0;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk7))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk7))
                 currentGenerationType++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk6))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk6))
                 currentGenerationType++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk5))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk5))
                 currentGenerationType++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk4))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk4))
                 currentGenerationType++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk3))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk3))
                 currentGenerationType++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReqMk2))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk2))
                 currentGenerationType++;
 
             // show poweroutput when appropriate

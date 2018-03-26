@@ -12,7 +12,7 @@ namespace FNPlugin
     {
         public static bool HasTechsRequiredToUpgrade(this IUpgradeableModule upg_module)
         {
-            return PluginHelper.upgradeAvailable(upg_module.UpgradeTechnology);
+            return PluginHelper.UpgradeAvailable(upg_module.UpgradeTechnology);
         }
     }
 }

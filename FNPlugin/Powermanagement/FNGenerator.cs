@@ -478,15 +478,15 @@ namespace FNPlugin
                 Mk2TechReq = upgradeTechReq;
 
             int techLevel = 1;
-            if (PluginHelper.upgradeAvailable(Mk6TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk6TechReq))
                 techLevel++;
-            if (PluginHelper.upgradeAvailable(Mk5TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk5TechReq))
                 techLevel++;
-            if (PluginHelper.upgradeAvailable(Mk4TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk4TechReq))
                 techLevel++;
-            if (PluginHelper.upgradeAvailable(Mk3TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk3TechReq))
                 techLevel++;
-            if (PluginHelper.upgradeAvailable(Mk2TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk2TechReq))
                 techLevel++;
 
             if (techLevel == 6)

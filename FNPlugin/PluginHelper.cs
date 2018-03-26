@@ -383,12 +383,12 @@ namespace FNPlugin
 
         public static bool HasTechRequirementOrEmpty(string techName)
         {
-            return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
+            return techName == String.Empty || PluginHelper.UpgradeAvailable(techName);
         }
 
         public static bool HasTechRequirementAndNotEmpty(string techName)
         {
-            return techName != String.Empty && PluginHelper.upgradeAvailable(techName);
+            return techName != String.Empty && PluginHelper.UpgradeAvailable(techName);
         }
 
         public static Dictionary<string, string> TechTitleById;
@@ -504,7 +504,7 @@ namespace FNPlugin
             return found;
         }
 
-        public static bool upgradeAvailable(string techid)
+        public static bool UpgradeAvailable(string techid)
         {
             if (String.IsNullOrEmpty(techid))
                 return false;

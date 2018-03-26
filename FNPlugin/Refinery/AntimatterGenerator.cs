@@ -19,11 +19,11 @@
 
             if (HighLogic.CurrentGame != null && HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
             {
-                if (PluginHelper.upgradeAvailable("ultraHighEnergyPhysics"))
+                if (PluginHelper.UpgradeAvailable("ultraHighEnergyPhysics"))
                     _efficiency /= 100;
-                else if (PluginHelper.upgradeAvailable("appliedHighEnergyPhysics"))
+                else if (PluginHelper.UpgradeAvailable("appliedHighEnergyPhysics"))
                     _efficiency /= 500;
-                else if (PluginHelper.upgradeAvailable("highEnergyScience"))
+                else if (PluginHelper.UpgradeAvailable("highEnergyScience"))
                     _efficiency /= 2000;
                 else
                     _efficiency /= 10000;

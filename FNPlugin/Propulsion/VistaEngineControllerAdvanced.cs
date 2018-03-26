@@ -181,9 +181,9 @@ namespace FNPlugin
         public void DetermineTechLevel()
         {
             int numberOfUpgradeTechs = 1;
-            if (PluginHelper.upgradeAvailable(upgradeTechReq))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq))
                 numberOfUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReq2))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq2))
                 numberOfUpgradeTechs++;
 
             if (numberOfUpgradeTechs == 3)

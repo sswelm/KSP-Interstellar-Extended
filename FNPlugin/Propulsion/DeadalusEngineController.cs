@@ -6,8 +6,10 @@ using System.Diagnostics;
 
 namespace FNPlugin
 {
+	[KSPModule("Fusion Engine")]
     class FusionEngineController : DaedalusEngineController { }
 
+	[KSPModule("Inertial Confinement Fusion Engine")]
     class DaedalusEngineController : ResourceSuppliableModule, IUpgradeableModule 
     {
         // Persistant
@@ -68,13 +70,26 @@ namespace FNPlugin
         [KSPField]
         public double universalTime;
         [KSPField]
-        public float fixedDeltaTime;
-        [KSPField]
         public float powerRequirement = 2500;
+
         [KSPField]
-        public float maxThrust = 300;
+        public float maxThrust = 0;
         [KSPField]
         public float maxThrustUpgraded = 1200;
+
+        [KSPField(guiActiveEditor = true)]
+        public float maxThrustMk1 = 300;
+        [KSPField(guiActiveEditor = true)]
+        public float maxThrustMk2 = 500;
+        [KSPField(guiActiveEditor = true)]
+        public float maxThrustMk3 = 800;
+        [KSPField(guiActiveEditor = true)]
+        public float maxThrustMk4 = 1200;
+        [KSPField(guiActiveEditor = true)]
+        public float maxThrustMk5 = 1500;
+        [KSPField(guiActiveEditor = true)]
+        public float maxThrustMk6 = 2000;
+
         [KSPField]
         public float maxAtmosphereDensity = 0;
         [KSPField]
@@ -107,14 +122,28 @@ namespace FNPlugin
         // Gui
         [KSPField(guiActive = false, guiName = "Type")]
         public string engineType = "";
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName= "upgrade tech")]
+
+        [KSPField(guiActiveEditor = true, guiName= "upgrade tech")]
         public string upgradeTechReq = null;
+
+        [KSPField(guiActiveEditor = true, guiName = "upgrade tech 1")]
+        public string upgradeTechReq1;
+        [KSPField(guiActiveEditor = true, guiName = "upgrade tech 2")]
+        public string upgradeTechReq2;
+        [KSPField(guiActiveEditor = true, guiName = "upgrade tech 3")]
+        public string upgradeTechReq3;
+        [KSPField(guiActiveEditor = true, guiName = "upgrade tech 4")]
+        public string upgradeTechReq4;
+        [KSPField(guiActiveEditor = true, guiName = "upgrade tech 5")]
+        public string upgradeTechReq5;
+        [KSPField(guiActiveEditor = true, guiName = "upgrade tech 6")]
+        public string upgradeTechReq6;
 
         bool hasrequiredupgrade;
         bool radhazard;
         bool warpToReal;
         float engineIsp;
-        public double percentageFuelRemaining;
+        double percentageFuelRemaining;
 
         Stopwatch stopWatch;
         ModuleEngines curEngineT;
@@ -123,6 +152,13 @@ namespace FNPlugin
         BaseEvent retrofitEngineEvent;
         BaseField radhazardstrField;
         PartResourceDefinition fusionFuelResourceDefinition;
+
+        private int _engineGenerationType;
+        public GenerationType EngineGenerationType
+        {
+            get { return (GenerationType) _engineGenerationType; }
+            private set { _engineGenerationType = (int) value; }
+        }
 
         [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
         public void DeactivateRadSafety() 
@@ -150,10 +186,37 @@ namespace FNPlugin
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
         private double Efficiency { get { return isupgraded ? efficiencyUpgraded : efficiency; } }
-        private float MaximumThrust { get { return isupgraded ? maxThrustUpgraded : maxThrust; } }
+
+        private float MaximumThrust
+        {
+            get
+            {
+                switch (_engineGenerationType)
+                {
+                    case (int)GenerationType.Mk1:
+                        return maxThrustMk1 + maxThrust;
+                        break;
+                    case (int)GenerationType.Mk2:
+                        return maxThrustMk2 + maxThrustUpgraded;
+                        break;
+                    case (int)GenerationType.Mk3:
+                        return maxThrustMk3;
+                        break;
+                    case (int)GenerationType.Mk4:
+                        return maxThrustMk4;
+                        break;
+                    case (int)GenerationType.Mk5:
+                        return maxThrustMk5;
+                        break;
+                    default:
+                        return maxThrustMk6;
+                        break;
+                }
+            }
+        }
         private float FusionWasteHeat { get { return isupgraded ? fusionWasteHeatUpgraded : fusionWasteHeat; } }
 
-        public double EffectivePowerRequirement
+        private double EffectivePowerRequirement
         {
             get
             {
@@ -169,7 +232,7 @@ namespace FNPlugin
 
         #endregion
 
-        public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(StartState state) 
         {
             try
             {
@@ -200,16 +263,44 @@ namespace FNPlugin
                     upgradePartModule();
                 }
 
+                DetermineTechLevel();
+
                 // bind with fields and events
                 deactivateRadSafetyEvent = Events["DeactivateRadSafety"];
                 activateRadSafetyEvent = Events["ActivateRadSafety"];
                 retrofitEngineEvent = Events["RetrofitEngine"];
                 radhazardstrField = Fields["radhazardstr"];
+
+                Fields["upgradeTechReq1"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq1);
+                Fields["upgradeTechReq2"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq2);
+                Fields["upgradeTechReq3"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq3);
+                Fields["upgradeTechReq4"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq4);
+                Fields["upgradeTechReq5"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq5);
+                Fields["upgradeTechReq6"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq6);
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError("[KSPI] - Error OnStart " + e.Message + " stack " + e.StackTrace);
             }
+        }
+
+        private void DetermineTechLevel()
+        {
+            var numberOfUpgradeTechs = 0;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq1) || PluginHelper.UpgradeAvailable(upgradeTechReq))
+                numberOfUpgradeTechs++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq2))
+                numberOfUpgradeTechs++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq3))
+                numberOfUpgradeTechs++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq4))
+                numberOfUpgradeTechs++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq5))
+                numberOfUpgradeTechs++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq6))
+                numberOfUpgradeTechs++;
+
+            EngineGenerationType = (GenerationType) numberOfUpgradeTechs;
         }
 
         public void Update()
@@ -349,7 +440,6 @@ namespace FNPlugin
         {
             try
             {
-                fixedDeltaTime = TimeWarp.fixedDeltaTime;
                 universalTime = Planetarium.GetUniversalTime();
                 CalculateTimeDialation();
             }
@@ -402,9 +492,6 @@ namespace FNPlugin
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
                     calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / PluginHelper.GravityConstant;
                     massFlowRateKgPerSecond = curEngineT.currentThrottle * calculatedFuelflow * 1000;
-
-                    // calculate day usage
-                    var fusionFuelRequestAmount = calculatedFuelflow / fusionFuelResourceDefinition.density;
 
                     if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
                     {

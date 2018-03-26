@@ -40,13 +40,13 @@ namespace FNPlugin
 
             // determine number of upgrade techs
             NrAvailableUpgradeTechs = 1;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech4))
+            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech4))
                 NrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
+            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
                 NrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech2))
+            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech2))
                 NrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech1))
+            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech1))
                 NrAvailableUpgradeTechs++;
 
             // determine fusion tech levels
@@ -312,17 +312,17 @@ namespace FNPlugin
         private void DetermineGenerationType()
         {
             // check if we have SurfaceAreaUpgradeTechReq 
-            hasSurfaceAreaUpgradeTechReq = PluginHelper.upgradeAvailable(surfaceAreaUpgradeTechReq);
+            hasSurfaceAreaUpgradeTechReq = PluginHelper.UpgradeAvailable(surfaceAreaUpgradeTechReq);
 
             // determine number of upgrade techs
             nrAvailableUpgradeTechs = 1;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech4))
+            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech4))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
+            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech2))
+            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech2))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(PluginHelper.RadiatorUpgradeTech1))
+            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech1))
                 nrAvailableUpgradeTechs++;
 
             // determine fusion tech levels

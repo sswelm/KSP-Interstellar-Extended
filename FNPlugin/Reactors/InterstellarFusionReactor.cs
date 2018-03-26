@@ -154,17 +154,17 @@ namespace FNPlugin.Reactors
                 fuelModeTechReqLevel7 = upgradeTechReqMk7;
 
             fuelModeTechLevel = 0;
-            if (PluginHelper.upgradeAvailable(fuelModeTechReqLevel2))
+            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel2))
                 fuelModeTechLevel++;
-            if (PluginHelper.upgradeAvailable(fuelModeTechReqLevel3))
+            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel3))
                 fuelModeTechLevel++;
-            if (PluginHelper.upgradeAvailable(fuelModeTechReqLevel4))
+            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel4))
                 fuelModeTechLevel++;
-            if (PluginHelper.upgradeAvailable(fuelModeTechReqLevel5))
+            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel5))
                 fuelModeTechLevel++;
-            if (PluginHelper.upgradeAvailable(fuelModeTechReqLevel6))
+            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel6))
                 fuelModeTechLevel++;
-            if (PluginHelper.upgradeAvailable(fuelModeTechReqLevel7))
+            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel7))
                 fuelModeTechLevel++;
         }
 
