@@ -1741,12 +1741,16 @@ namespace FNPlugin.Reactors
             var basicFuelmodes = fuelmodes.Select(node => new ReactorFuelMode(node)).Where(fm => (fm.SupportedReactorTypes & reactorType) == reactorType).ToList();
             var sb = new StringBuilder();
 
+            sb.AppendLine("<color=#7fdfffff>");
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_getInfoReactorInfo"));
+            sb.AppendLine("</color>");
+            sb.AppendLine("<size=10>");
             sb.AppendLine(originalName);
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_thermalPower") + ": " + PluginHelper.getFormattedPowerString(powerOutputMk1));
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_coreTemperature") + ": " + coreTemperatureMk1.ToString("0") + "K");
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_fuelEfficiency") + ": " + (fuelEfficencyMk1 * 100.0).ToString("0.00") + "%");
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_getInfoFuelModes"));
+
             basicFuelmodes.ForEach(fm =>
             {
                 sb.AppendLine("---");
@@ -1760,6 +1764,7 @@ namespace FNPlugin.Reactors
                 }
                 sb.AppendLine("---");
             });
+            sb.AppendLine("</size>");
 
             return sb.ToString();
         }
