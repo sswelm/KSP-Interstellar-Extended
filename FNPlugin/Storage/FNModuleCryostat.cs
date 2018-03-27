@@ -1,5 +1,5 @@
 ﻿using System;
-
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -67,10 +67,9 @@ namespace FNPlugin
         private double previousRecievedPowerKW;
         private double currentPowerReq;
         private double previousPowerReq;
-        private double previousPowerUsage;
+        private ResourceBuffers resourceBuffers;
        
         private bool requiresPower;
-        private float previousDeltaTime;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -96,23 +95,17 @@ namespace FNPlugin
                 node.AddValue("maxAmount", powerReqKW > 0 ? powerReqKW / 50 : 1);
                 node.AddValue("amount", powerReqKW > 0  ? powerReqKW / 50 : 1);
                 part.AddResource(node);
-            }            
+            }
+
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.ElectricCharge, 2));
+            resourceBuffers.Init(this.part);
         }
 
         private void UpdateElectricChargeBuffer(double currentPowerUsage)
         {
-            var _electricCharge_resource = part.Resources[InterstellarResourcesConfiguration.Instance.ElectricCharge];
-            if (_electricCharge_resource != null && (TimeWarp.fixedDeltaTime != previousDeltaTime || previousPowerUsage != currentPowerUsage))
-            {
-                var requiredCapacity = 2 * currentPowerUsage * TimeWarp.fixedDeltaTime;
-                var bufferRatio = _electricCharge_resource.maxAmount > 0 ? _electricCharge_resource.amount / _electricCharge_resource.maxAmount : 0;
-
-                _electricCharge_resource.maxAmount = requiredCapacity;
-                _electricCharge_resource.amount =  bufferRatio * requiredCapacity;
-            }
-
-            previousPowerUsage = currentPowerUsage;
-            previousDeltaTime = TimeWarp.fixedDeltaTime;
+            resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ElectricCharge, currentPowerUsage);
+            resourceBuffers.UpdateBuffers();
         }
 
         public void Update()

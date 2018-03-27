@@ -241,7 +241,9 @@ namespace FNPlugin
 
                 UpdateEngineTypeString();
 
-                resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+4, 0.95, false));
+                resourceBuffers = new ResourceBuffers();
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
 
                 // initialize propellant
@@ -424,6 +426,8 @@ namespace FNPlugin
                 GetAllPropellants().ForEach(prop => part.Effect(prop.ParticleFXName, 0, -1)); // set all FX to zero
 
             if (Current_propellant == null) return;
+
+            resourceBuffers.UpdateBuffers();
 
             if (!this.vessel.packed && !_warpToReal)
                 storedThrotle = vessel.ctrlState.mainThrottle;

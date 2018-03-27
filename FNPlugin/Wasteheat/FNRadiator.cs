@@ -620,7 +620,9 @@ namespace FNPlugin
             maxVacuumTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) :  Math.Min(maxVacuumTemperature, maxRadiatorTemperature);
             maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature);
 
-            resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 1.0e+6));
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 1.0e+6));
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.Init(this.part);
         }
 
@@ -731,13 +733,13 @@ namespace FNPlugin
         {
             try
             {
-                resourceBuffers.UpdateBuffers();
-                
                 if (!HighLogic.LoadedSceneIsFlight)
                     return;
 
                 if (!active)
                     base.OnFixedUpdate();
+
+                resourceBuffers.UpdateBuffers();
 
                 effectiveRadiatorArea = EffectiveRadiatorArea;
 
@@ -837,7 +839,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNRadiator.FixedUpdate" + e.Message);
+                Debug.LogError("[KSPI] - FNRadiator.FixedUpdate " + e.Message);
             }
         }
 

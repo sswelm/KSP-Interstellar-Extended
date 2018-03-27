@@ -319,9 +319,11 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-                resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+4, 0.95, false));
+                resourceBuffers = new ResourceBuffers();
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
-                
+
                 if (state != StartState.Editor)
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
             }
@@ -401,6 +403,8 @@ namespace FNPlugin
             }
 
             KillKerbalsWithRadiation(throttle);
+
+            resourceBuffers.UpdateBuffers();
 
             if (throttle > 0)
             {

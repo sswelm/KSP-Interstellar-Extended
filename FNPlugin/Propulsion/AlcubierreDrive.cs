@@ -616,15 +616,6 @@ namespace FNPlugin
 
             exoticResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.ExoticMatter);
            
-            // reset Exotic Matter Capacity
-            var exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
-            if (exoticMatterResource != null)
-            {
-                var ratio = Math.Min(1, Math.Max(0, exoticMatterResource.amount / exoticMatterResource.maxAmount));
-                exoticMatterResource.maxAmount = 0.001;
-                exoticMatterResource.amount = exoticMatterResource.maxAmount * ratio;
-            }
-
             InstanceID = GetInstanceID();
 
             if (IsSlave)
@@ -635,7 +626,11 @@ namespace FNPlugin
             if (!String.IsNullOrEmpty(AnimationName))
                 animationState = SetUpAnimation(AnimationName, this.part);
 
-            resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+5, 0.95, true));
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5, true));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.VariableConfig(InterstellarResourcesConfiguration.Instance.ExoticMatter));
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ExoticMatter, 0.001);
             resourceBuffers.Init(this.part);
 
             try
@@ -873,8 +868,6 @@ namespace FNPlugin
         {
             if (vessel == null) return;
 
-            resourceBuffers.UpdateBuffers();
-
             warpEngineThrottle = _engineThrotle[selected_factor];
 
             gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
@@ -904,12 +897,10 @@ namespace FNPlugin
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(_engineThrotle[selected_factor]);
 
             // calculate Exotic Matter Capacity
-            var exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
-            if (exoticMatterResource == null || double.IsNaN(exotic_power_required) || double.IsInfinity(exotic_power_required) || !(exotic_power_required > 0)) return;
+            if (double.IsNaN(exotic_power_required) || double.IsInfinity(exotic_power_required) || !(exotic_power_required > 0)) return;
 
-            var ratio = Math.Min(1, Math.Max(0, exoticMatterResource.amount / exoticMatterResource.maxAmount));
-            exoticMatterResource.maxAmount = exotic_power_required;
-            exoticMatterResource.amount = exoticMatterResource.maxAmount * ratio;
+            resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
+            resourceBuffers.UpdateBuffers();
         }
 
         public override void OnFixedUpdate()

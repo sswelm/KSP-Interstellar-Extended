@@ -352,7 +352,9 @@ namespace FNPlugin
 
                 DetermineTechLevel();
 
-                resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 1.0e+4, 0.95, false));
+                resourceBuffers = new ResourceBuffers();
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 1.0e+4, true));
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
 
                 if (state != StartState.Editor)
@@ -477,6 +479,8 @@ namespace FNPlugin
         {
             temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
             MinIsp = BaseFloatCurve.Evaluate((float)Altitude);
+
+            resourceBuffers.UpdateBuffers();
 
             if (curEngineT == null || !curEngineT.isEnabled) return;
 

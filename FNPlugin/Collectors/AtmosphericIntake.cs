@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin  
 {
@@ -43,11 +44,10 @@ namespace FNPlugin
         public double upperAtmoFraction;
 
         double startupCount;
-        float previousDeltaTime;
-        double atmosphereBuffer;
 
         PartResourceDefinition _resourceAtmosphere;
         ModuleResourceIntake _moduleResourceIntake;
+        ResourceBuffers resourceBuffers;
 
         // this property will be accessed by the atmospheric extractor
         public double FinalAir
@@ -79,8 +79,11 @@ namespace FNPlugin
             area = _moduleResourceIntake.area;
             intakeTransformName = _moduleResourceIntake.intakeTransformName;
             unitScalar = _moduleResourceIntake.unitScalar;
- 
-            atmosphereBuffer = area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed * 300 ;
+
+            ResourceBuffers resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(
+                new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed));
+            resourceBuffers.Init(this.part);
 
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
             _intake_speed = maxIntakeSpeed;
@@ -97,25 +100,12 @@ namespace FNPlugin
             IntakeThatAir(TimeWarp.fixedDeltaTime); // collect intake atmosphere for the timeframe
         }
 
-        private void UpdateAtmosphereBuffer(bool intakesOpen)
+        private void UpdateAtmosphereBuffer()
         {
-            var currentDeltaTime = intakesOpen ? TimeWarp.fixedDeltaTime : 0.02;
-
-            var _intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
-            if (_intake_atmosphere_resource != null && atmosphereBuffer > 0 && currentDeltaTime != previousDeltaTime)
+            if (intakeOpen)
             {
-                double requiredAtmosphereCapacity = atmosphereBuffer * currentDeltaTime;
-                double previousAtmosphereCapacity = atmosphereBuffer * previousDeltaTime;
-                double atmosphereRatio = (_intake_atmosphere_resource.amount / _intake_atmosphere_resource.maxAmount);
-
-                _intake_atmosphere_resource.maxAmount = requiredAtmosphereCapacity;
-
-                _intake_atmosphere_resource.amount = currentDeltaTime > previousDeltaTime
-                    ? Math.Max(0, Math.Min(requiredAtmosphereCapacity, _intake_atmosphere_resource.amount + requiredAtmosphereCapacity - previousAtmosphereCapacity))
-                    : Math.Max(0, Math.Min(requiredAtmosphereCapacity, atmosphereRatio * requiredAtmosphereCapacity));
+                resourceBuffers.UpdateBuffers();
             }
-
-            previousDeltaTime = TimeWarp.fixedDeltaTime;
         }
 
 
@@ -130,12 +120,12 @@ namespace FNPlugin
                 intakeExposure = 0;
                 airFlow = 0;
                 intakeOpen = false;
-                UpdateAtmosphereBuffer(false);
+                UpdateAtmosphereBuffer();
                 return;
             }
 
             intakeOpen = true;
-            UpdateAtmosphereBuffer(true);
+            UpdateAtmosphereBuffer();
 
             var vesselFlyingVector = vessel.altitude < part.vessel.mainBody.atmosphereDepth * 0.5 
                 ? vessel.GetSrfVelocity() 

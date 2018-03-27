@@ -145,7 +145,9 @@ namespace FNPlugin
             else if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
 
-            resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+4, 0.95, false));
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.Init(this.part);
 
             if (state == StartState.Editor && this.HasTechsRequiredToUpgrade())
@@ -214,6 +216,8 @@ namespace FNPlugin
         public override void OnFixedUpdate()
         {
             temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
+
+            resourceBuffers.UpdateBuffers();
 
             if (curEngineT == null) return;
 
@@ -347,4 +351,3 @@ namespace FNPlugin
         }
     }
 }
-

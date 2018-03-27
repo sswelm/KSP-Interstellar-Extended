@@ -430,7 +430,9 @@ namespace FNPlugin
 
                 Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
 
-                resourceBuffers = new ResourceBuffers(new ResourceBuffers.WasteHeatConfig(wasteHeatMultiplier, 2.0e+4, 0.95, false));
+                resourceBuffers = new ResourceBuffers();
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
 
                 engineType = originalName;
@@ -966,6 +968,8 @@ namespace FNPlugin
                 if (!HighLogic.LoadedSceneIsFlight) return;
 
                 if (myAttachedEngine == null) return;
+
+                resourceBuffers.UpdateBuffers();
 
                 if (AttachedReactor == null)
                 {
