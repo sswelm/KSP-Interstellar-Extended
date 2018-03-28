@@ -80,7 +80,7 @@ namespace FNPlugin
             intakeTransformName = _moduleResourceIntake.intakeTransformName;
             unitScalar = _moduleResourceIntake.unitScalar;
 
-            ResourceBuffers resourceBuffers = new ResourceBuffers();
+            resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(
                 new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed));
             resourceBuffers.Init(this.part);
@@ -97,7 +97,7 @@ namespace FNPlugin
             if (!vessel.mainBody.atmosphere) // No atmosphere? No collecting
                 return;
 
-            IntakeThatAir(TimeWarp.fixedDeltaTime); // collect intake atmosphere for the timeframe
+            IntakeThatAir(); // collect intake atmosphere for the timeframe
         }
 
         private void UpdateAtmosphereBuffer()
@@ -109,7 +109,7 @@ namespace FNPlugin
         }
 
 
-        public void IntakeThatAir(double deltaTimeInSecs)
+        public void IntakeThatAir()
         {
             // do not return anything when intakes are closed
             if (_moduleResourceIntake != null && !_moduleResourceIntake.intakeEnabled)

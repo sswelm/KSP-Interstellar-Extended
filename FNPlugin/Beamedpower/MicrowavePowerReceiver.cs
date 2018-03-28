@@ -967,6 +967,8 @@ namespace FNPlugin
 		{
 			try
 			{
+                powerDownFraction = 1;
+                _powerState = PowerStates.powerOnline;
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
                 resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
