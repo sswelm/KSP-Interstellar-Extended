@@ -40,8 +40,6 @@ namespace FNPlugin
         public double ongoing_consumption_rate;
         [KSPField(isPersistant = true)]
         public bool reactorInit;
-        [KSPField(isPersistant = true)]
-        public bool reactorBooted;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_startEnabled"), UI_Toggle(disabledText = "True", enabledText = "False")]
         public bool startDisabled;
         [KSPField(isPersistant = true)]
