@@ -896,6 +896,8 @@ namespace FNPlugin
             powerRequirementForMaximumAllowedLightSpeed = GetPowerRequirementForWarp(_engineThrotle[maximumWarpSpeedFactor]);
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(_engineThrotle[selected_factor]);
 
+            resourceBuffers.UpdateBuffers();
+
             // calculate Exotic Matter Capacity
             if (double.IsNaN(exotic_power_required) || double.IsInfinity(exotic_power_required) || !(exotic_power_required > 0)) return;
 

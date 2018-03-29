@@ -639,6 +639,7 @@ namespace FNPlugin
 
             Events["ActivateGenerator"].active = !IsEnabled && showSpecialisedUI;
             Events["DeactivateGenerator"].active = IsEnabled && showSpecialisedUI;
+            Fields["OverallEfficiency"].guiActive = IsEnabled;
             Fields["MaxPowerStr"].guiActive = IsEnabled;
             Fields["coldBathTemp"].guiActive = !chargedParticleMode;
             Fields["hotBathTemp"].guiActive = !chargedParticleMode;
