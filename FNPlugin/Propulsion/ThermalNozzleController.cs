@@ -145,7 +145,7 @@ namespace FNPlugin
         public string upgradeCostStr;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float baseHeatProduction = 100;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Production")]
         public double engineHeatProduction;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F4")]
         public double pressureThreshold;

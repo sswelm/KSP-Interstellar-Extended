@@ -150,7 +150,9 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string resourcesFormat = "0.0000";
         [KSPField]
-        public bool canSwithWithFullTanks = false;
+        public bool canSwitchWithFullTanks = false;
+        [KSPField]
+        public bool allowedToSwitch;
 
         //dummyvalues
         [KSPField]
@@ -167,6 +169,7 @@ namespace InterstellarFuelSwitch
         public string massRatioStr = "";
 
         // Debug
+
         [KSPField]
         public double dryMass;
         //[KSPField]
@@ -207,8 +210,7 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiFormat = "F3", guiUnits = " Ѵ")]         // Total Tank cost
         public double totalCost = 0;
 
-        [KSPField(guiActive = true)]
-        public bool allowedToSwitch;
+
 
         InterstellarTextureSwitch2 textureSwitch;
         List<string> currentResources;
@@ -1016,7 +1018,7 @@ namespace InterstellarFuelSwitch
                 UpdateGuiResourceMass();
 
                 allowedToSwitch = availableInFlight && _numberOfAvailableTanks > 1 &&
-                                    (canSwithWithFullTanks || (
+                                    (canSwitchWithFullTanks || (
                                       (_partResource0 == null || _partResource0.amount < _partResourceMaxAmountFraction0) &&
                                       (_partResource1 == null || _partResource1.amount < _partResourceMaxAmountFraction1) &&
                                       (_partResource2 == null || _partResource2.amount < _partResourceMaxAmountFraction2))

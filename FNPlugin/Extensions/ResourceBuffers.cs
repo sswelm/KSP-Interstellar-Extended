@@ -11,7 +11,6 @@ namespace FNPlugin.Extensions
         abstract public class Config
         {
             public String ResourceName { get; private set; }
-            public PartResource BufferedResource { get; private set; }
 
             public Config(String resourceName)
             {
@@ -22,9 +21,11 @@ namespace FNPlugin.Extensions
 
             protected abstract void UpdateBufferForce();
 
+            protected Part _part;
+
             public virtual void Init(Part part)
             {
-                BufferedResource = part.Resources[ResourceName];
+                _part = part;
             }
 
             public virtual void UpdateBuffer()
@@ -38,9 +39,16 @@ namespace FNPlugin.Extensions
 
         public class VariableConfig : Config
         {
-            public double VariableMultiplier { get; private set; } = 1.0d;
+            private double _variableMultiplier = 1;
+            public double VariableMultiplier 
+            { 
+                get {  return _variableMultiplier;  } 
+                private set {_variableMultiplier = value; } 
+            }
+
             protected double BaseResourceMax { get; set; }
-            private bool VariableChanged { get; set; } = false;
+
+            private bool VariableChanged = false;
 
             public VariableConfig(String resourceName) : base(resourceName) { }
 
@@ -61,12 +69,13 @@ namespace FNPlugin.Extensions
 
             protected override void UpdateBufferForce()
             {
-                if (BufferedResource != null)
+                var bufferedResource = _part.Resources[ResourceName];
+                if (bufferedResource != null)
                 {
                     // Calculate amount to max ratio
-                    var wasteHeatRatio = Math.Max(0, Math.Min(1, BufferedResource.maxAmount > 0 ? BufferedResource.amount / BufferedResource.maxAmount : 0));
-                    BufferedResource.maxAmount = Math.Max(0.0001, BaseResourceMax);
-                    BufferedResource.amount = Math.Max(0, wasteHeatRatio * BufferedResource.maxAmount);
+                    var wasteHeatRatio = Math.Max(0, Math.Min(1, bufferedResource.maxAmount > 0 ? bufferedResource.amount / bufferedResource.maxAmount : 0));
+                    bufferedResource.maxAmount = Math.Max(0.0001, BaseResourceMax);
+                    bufferedResource.amount = Math.Max(0, wasteHeatRatio * bufferedResource.maxAmount);
                 }
             }
 
@@ -89,7 +98,7 @@ namespace FNPlugin.Extensions
             public double ResourceMultiplier { get; private set; }
             public double BaseResourceAmount { get; private set; }
 
-            private bool Initialized { get; set; } = false;
+            private bool Initialized = false;
             private float PreviousDeltaTime { get; set; }
 
             public TimeBasedConfig(String resourceName, double resourceMultiplier = 1.0d, double baseResourceAmount = 1.0d, bool clampInitialMaxAmount = false)
@@ -109,15 +118,16 @@ namespace FNPlugin.Extensions
 
             protected override void UpdateBufferForce()
             {
-                if (BufferedResource != null)
+                var bufferedResource = _part.Resources[ResourceName];
+                if (bufferedResource != null)
                 {
                     float timeMultiplier = HighLogic.LoadedSceneIsFlight ? TimeWarp.fixedDeltaTime : 0.02f;
                     double maxWasteHeatRatio = ClampInitialMaxAmount && !Initialized ? 0.95d : 1.0d;
 
                     // Calculate amount to max ratio
-                    var wasteHeatRatio = Math.Max(0, Math.Min(maxWasteHeatRatio, BufferedResource.maxAmount > 0 ? BufferedResource.amount / BufferedResource.maxAmount : 0));
-                    BufferedResource.maxAmount = Math.Max(0.0001, timeMultiplier * BaseResourceMax);
-                    BufferedResource.amount = Math.Max(0, wasteHeatRatio * BufferedResource.maxAmount);
+                    var wasteHeatRatio = Math.Max(0, Math.Min(maxWasteHeatRatio, bufferedResource.maxAmount > 0 ? bufferedResource.amount / bufferedResource.maxAmount : 0));
+                    bufferedResource.maxAmount = Math.Max(0.0001, timeMultiplier * BaseResourceMax);
+                    bufferedResource.amount = Math.Max(0, wasteHeatRatio * bufferedResource.maxAmount);
                 }
                 Initialized = true;
             }

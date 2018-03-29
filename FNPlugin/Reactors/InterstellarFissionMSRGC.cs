@@ -18,7 +18,7 @@ namespace FNPlugin.Reactors
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Actinides Modifier")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Actinides Modifier")]
         public double actinidesModifer;
 
         PartResourceDefinition fluorineGasDefinition;

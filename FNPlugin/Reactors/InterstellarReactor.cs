@@ -391,7 +391,6 @@ namespace FNPlugin.Reactors
         PartResourceDefinition helium_def;
 
         ResourceBuffers resourceBuffers;
-
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
         Queue<double> averageGeeForce = new Queue<double>();
