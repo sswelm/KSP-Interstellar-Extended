@@ -50,7 +50,7 @@ namespace FNPlugin.Reactors
             AlternativeFuelType1 = first.AlternativeFuelType1;
             AlternativeFuelType2 = first.AlternativeFuelType2;
             AlternativeFuelType3 = first.AlternativeFuelType3;
-			AlternativeFuelType4 = first.AlternativeFuelType4;
+            AlternativeFuelType4 = first.AlternativeFuelType4;
             AlternativeFuelType5 = first.AlternativeFuelType5;
 
             Index = first.Index;
@@ -91,7 +91,7 @@ namespace FNPlugin.Reactors
         public string AlternativeFuelType1 { get; private set; }
         public string AlternativeFuelType2 { get; private set; }
         public string AlternativeFuelType3 { get; private set; }
-		public string AlternativeFuelType4 { get; private set; }
+        public string AlternativeFuelType4 { get; private set; }
         public string AlternativeFuelType5 { get; private set; }
 
         public List<ReactorFuelMode> Variants { get; private set; }
@@ -134,7 +134,7 @@ namespace FNPlugin.Reactors
         protected string _alternativeFuelType1;
         protected string _alternativeFuelType2;
         protected string _alternativeFuelType3;
-		protected string _alternativeFuelType4;
+        protected string _alternativeFuelType4;
         protected string _alternativeFuelType5;
 
         public ReactorFuelMode(ConfigNode node)
@@ -149,7 +149,7 @@ namespace FNPlugin.Reactors
             _alternativeFuelType1 = node.HasValue("AlternativeFuelType1") ? node.GetValue("AlternativeFuelType1") : String.Empty;
             _alternativeFuelType2 = node.HasValue("AlternativeFuelType2") ? node.GetValue("AlternativeFuelType2") : String.Empty;
             _alternativeFuelType3 = node.HasValue("AlternativeFuelType3") ? node.GetValue("AlternativeFuelType3") : String.Empty;
-			_alternativeFuelType4 = node.HasValue("AlternativeFuelType4") ? node.GetValue("AlternativeFuelType4") : String.Empty;
+            _alternativeFuelType4 = node.HasValue("AlternativeFuelType4") ? node.GetValue("AlternativeFuelType4") : String.Empty;
             _alternativeFuelType5 = node.HasValue("AlternativeFuelType5") ? node.GetValue("AlternativeFuelType5") : String.Empty;
 
             _reactionRate = node.HasValue("NormalisedReactionRate") ? Single.Parse(node.GetValue("NormalisedReactionRate")) : 1;
@@ -181,7 +181,7 @@ namespace FNPlugin.Reactors
         public string AlternativeFuelType1 { get { return _alternativeFuelType1; } }
         public string AlternativeFuelType2 { get { return _alternativeFuelType2; } }
         public string AlternativeFuelType3 { get { return _alternativeFuelType3; } }
-		public string AlternativeFuelType4 { get { return _alternativeFuelType4; } }
+        public string AlternativeFuelType4 { get { return _alternativeFuelType4; } }
         public string AlternativeFuelType5 { get { return _alternativeFuelType5; } }
 
         public int SupportedReactorTypes { get { return _reactor_type; } }

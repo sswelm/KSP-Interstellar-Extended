@@ -9,9 +9,9 @@ namespace FNPlugin
 {
     class InterstellarMagneticNozzleControllerFX : ResourceSuppliableModule, IEngineNoozle
     {
-		//Persistent False
+        //Persistent False
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = "m")]
-		public float radius = 2.5f;
+        public float radius = 2.5f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = " t")]
         public float partMass = 1;
         [KSPField(isPersistant = false)]
@@ -39,14 +39,14 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Throtle Exponent")]
         protected double throtleExponent = 1;
 
-		//remove then possible
+        //remove then possible
         public bool static_updating = true;
         public bool static_updating2 = true;
 
-		//Internal
-		protected ModuleEnginesFX _attached_engine;
+        //Internal
+        protected ModuleEnginesFX _attached_engine;
         protected ModuleEnginesWarp _attached_warpable_engine;
-		protected IChargedParticleSource _attached_reactor;
+        protected IChargedParticleSource _attached_reactor;
         protected int _attached_reactor_distance;
         protected double exchanger_thrust_divisor;
         protected double calculatedIsp;
@@ -67,7 +67,7 @@ namespace FNPlugin
         public bool RequiresChargedPower { get { return true; } }
         
 
-		public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state) 
         {
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
@@ -109,7 +109,7 @@ namespace FNPlugin
             exchanger_thrust_divisor = radius > _attached_reactor.Radius
                 ? _attached_reactor.Radius * _attached_reactor.Radius / radius / radius
                 : radius * radius / _attached_reactor.Radius / _attached_reactor.Radius;
-		}
+        }
 
         private IChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)
         {
@@ -155,7 +155,7 @@ namespace FNPlugin
             return null;
         }
            
-		public void FixedUpdate() 
+        public void FixedUpdate() 
         {
             resourceBuffers.UpdateBuffers();
 
@@ -246,16 +246,16 @@ namespace FNPlugin
                 _charged_particles_received = 0;
                 _engineMaxThrust = 0;
             }
-		}
+        }
 
-		public override string GetInfo() 
+        public override string GetInfo() 
         {
-			return "";
-		}
+            return "";
+        }
 
         public override string getResourceManagerDisplayName()
         {
             return part.partInfo.title;
         }
-	}
+    }
 }

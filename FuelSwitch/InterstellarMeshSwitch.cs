@@ -7,7 +7,7 @@ using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
-	[KSPModule("#LOC_IFS_MeshSwitch_moduleName")]
+    [KSPModule("#LOC_IFS_MeshSwitch_moduleName")]
     public class InterstellarMeshSwitch : PartModule 
     {
         [KSPField]
@@ -58,10 +58,10 @@ namespace InterstellarFuelSwitch
         private bool initialized;
 
 
-		[KSPField(guiActiveEditor = false, guiName = "#LOC_IFS_MeshSwitch_currentObjectName")]
+        [KSPField(guiActiveEditor = false, guiName = "#LOC_IFS_MeshSwitch_currentObjectName")]
         public string currentObjectName = string.Empty;
 
-		[KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "#LOC_IFS_MeshSwitch_nextSetup")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "#LOC_IFS_MeshSwitch_nextSetup")]
         public void nextObjectEvent()
         {
             selectedObject++;
@@ -71,7 +71,7 @@ namespace InterstellarFuelSwitch
             switchToObject(selectedObject, true);            
         }
 
-		[KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "#LOC_IFS_MeshSwitch_previousetup")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiActiveUnfocused = false, guiName = "#LOC_IFS_MeshSwitch_previousetup")]
         public void previousObjectEvent()
         {
             selectedObject--;
@@ -293,9 +293,9 @@ namespace InterstellarFuelSwitch
         {
             if (showInfo)
             {
-	            List<string> variantList = ParseTools.ParseNames(objectDisplayNames.Length > 0 ? objectDisplayNames : objects);
+                List<string> variantList = ParseTools.ParseNames(objectDisplayNames.Length > 0 ? objectDisplayNames : objects);
 
-	            var info = new StringBuilder();
+                var info = new StringBuilder();
                 info.AppendLine(Localizer.Format("#LOC_IFS_MeshSwitch_GetInfo") + ":");
                 for (int i = 0; i < variantList.Count; i++)
                 {

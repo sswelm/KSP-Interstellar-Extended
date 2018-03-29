@@ -12,7 +12,7 @@ namespace FNPlugin.Reactors
 
         public double MaximumChargedIspMult { get { return 1; } }
 
-		public double MinimumChargdIspMult { get { return 100; } }
+        public double MinimumChargdIspMult { get { return 100; } }
 
     }
 }

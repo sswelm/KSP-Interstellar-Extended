@@ -79,25 +79,25 @@ namespace FNPlugin
         {
             if (science_data != null)
             {
-				if (merdp == null || !data_gend)
-				{
-					merdp = new ModableExperimentResultDialogPage(
-							base.part,
-							this.science_data,
-							this.science_data.baseTransmitValue,
-							0,
-							false,
-							"",
-							true,
-							false,
-							new Callback<ScienceData>(this.endExperiment),
-							new Callback<ScienceData>(this.keepData),
-							new Callback<ScienceData>(this.sendDataToComms),
-							new Callback<ScienceData>(this.sendDataToLab));
-					merdp.setUpScienceData(result_title, result_string, (float)transmit_value, (float)recovery_value, (float)data_size, xmit_scalar, ref_value);
-				}
-				ExperimentsResultDialog.DisplayResult(merdp);
-			}
+                if (merdp == null || !data_gend)
+                {
+                    merdp = new ModableExperimentResultDialogPage(
+                            base.part,
+                            this.science_data,
+                            this.science_data.baseTransmitValue,
+                            0,
+                            false,
+                            "",
+                            true,
+                            false,
+                            new Callback<ScienceData>(this.endExperiment),
+                            new Callback<ScienceData>(this.keepData),
+                            new Callback<ScienceData>(this.sendDataToComms),
+                            new Callback<ScienceData>(this.sendDataToLab));
+                    merdp.setUpScienceData(result_title, result_string, (float)transmit_value, (float)recovery_value, (float)data_size, xmit_scalar, ref_value);
+                }
+                ExperimentsResultDialog.DisplayResult(merdp);
+            }
             else
                 ResetExperiment();
         }

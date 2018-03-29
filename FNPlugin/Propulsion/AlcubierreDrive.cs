@@ -1305,7 +1305,7 @@ namespace FNPlugin
             vessel.orbitDriver.vel = vessel.orbit.vel;
         }
 
-		// ReSharper disable once UnusedMember.Global
+        // ReSharper disable once UnusedMember.Global
         public void OnGUI()
         {
             if (this.vessel == FlightGlobals.ActiveVessel && render_window)

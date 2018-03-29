@@ -147,11 +147,11 @@ namespace FNPlugin
                     {
                         first = false;
                         net_vector = surface_vector;
-						distribution_factor = 1;
+                        distribution_factor = 1;
                     } 
                     else 
                     {
-						distribution_factor += 1.0 - Vector3d.Dot(surface_vector, net_vector.normalized);
+                        distribution_factor += 1.0 - Vector3d.Dot(surface_vector, net_vector.normalized);
                         net_vector = net_vector + surface_vector;
                     }
                 }

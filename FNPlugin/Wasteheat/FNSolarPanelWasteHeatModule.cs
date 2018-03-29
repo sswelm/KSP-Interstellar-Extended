@@ -187,6 +187,6 @@ namespace FNPlugin
                 throw;
             }
         }
-	}
+    }
 }
 

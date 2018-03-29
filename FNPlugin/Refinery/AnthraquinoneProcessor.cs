@@ -10,8 +10,8 @@ namespace FNPlugin.Refinery
         double _fixedConsumptionRate;
         double _consumptionRate;
 
-		double _hydrogen_density;
-		double _oxygen_density;
+        double _hydrogen_density;
+        double _oxygen_density;
         double _hydrogen_peroxide_density;
 
         string _oxygenResourceName;
@@ -26,11 +26,11 @@ namespace FNPlugin.Refinery
         double _availableHydrogenMass;
         double _spareRoomHydrogenPeroxideMass;
 
-		double _hydrogen_consumption_rate;
-		double _oxygen_consumption_rate;
+        double _hydrogen_consumption_rate;
+        double _oxygen_consumption_rate;
         double _hydrogen_peroxide_production_rate;
 
-		double _hydrogenMassByFraction = (1.0079 * 2)/ 34.01468;
+        double _hydrogenMassByFraction = (1.0079 * 2)/ 34.01468;
         double _oxygenMassByFraction = 1 - ((1.0079 * 2) / 34.01468);
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
@@ -59,18 +59,18 @@ namespace FNPlugin.Refinery
             _hydrogenResourceName = InterstellarResourcesConfiguration.Instance.Hydrogen;
             _hydrogenPeroxideResourceName = InterstellarResourcesConfiguration.Instance.HydrogenPeroxide;
 
-			_hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
-			_oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
+            _hydrogen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
+            _oxygen_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
             _hydrogen_peroxide_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
         }
 
         public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
-	    {
+        {
             _effectiveMaxPower = PowerRequirements * productionModidier;
 
             // determine how much resource we have
             _current_power = _effectiveMaxPower * powerFraction;
-		    _current_rate = CurrentPower / PluginHelper.AnthraquinoneEnergyPerTon;
+            _current_rate = CurrentPower / PluginHelper.AnthraquinoneEnergyPerTon;
 
             var partsThatContainOxygen = _part.GetConnectedResources(_oxygenResourceName);
             var partsThatContainHydrogen = _part.GetConnectedResources(_hydrogenResourceName);
@@ -117,7 +117,7 @@ namespace FNPlugin.Refinery
             }
 
 
-			updateStatusMessage();
+            updateStatusMessage();
         }
 
         public override void UpdateGUI()
@@ -149,10 +149,10 @@ namespace FNPlugin.Refinery
             GUILayout.Label(_availableOxygenMass.ToString("0.00000") + " mT / " + _maxCapacityOxygenMass.ToString("0.00000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
-			GUILayout.BeginHorizontal();
+            GUILayout.BeginHorizontal();
             GUILayout.Label("Oxygen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label((_oxygen_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.00000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
-			GUILayout.EndHorizontal();
+            GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Hydrogen Peroxide Storage", _bold_label, GUILayout.Width(labelWidth));

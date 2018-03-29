@@ -116,7 +116,7 @@ namespace FNPlugin
     class FlatFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
-    class FNRadiator : ResourceSuppliableModule	
+    class FNRadiator : ResourceSuppliableModule    
     {
         // persitant
         [KSPField(isPersistant = true, guiActive = true, guiName = "Radiator Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts= UI_Scene.All)]

@@ -66,7 +66,7 @@ namespace FNPlugin
         [KSPField]
         public double solarCheatMultiplier = 1;             // Amount of boosted Solar wind activity
         [KSPField]
-        public double interstellarDensityCubeCm = 50;		// Amount of Interstellar molecules per cubic cm
+        public double interstellarDensityCubeCm = 50;       // Amount of Interstellar molecules per cubic cm
         [KSPField]
         public double collectMultiplier = 1;
         [KSPField]

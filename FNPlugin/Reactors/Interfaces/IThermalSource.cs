@@ -95,7 +95,7 @@ namespace FNPlugin.Reactors.Interfaces
 
         double ThermalPropulsionEfficiency { get; }
 
-		double PlasmaPropulsionEfficiency { get; }
+        double PlasmaPropulsionEfficiency { get; }
 
         double ThermalEnergyEfficiency { get; }
 

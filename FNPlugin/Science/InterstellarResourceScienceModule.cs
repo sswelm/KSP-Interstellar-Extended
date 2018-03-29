@@ -38,8 +38,8 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Biodome" )]
         public string currentBiome = "";
-		//[KSPField(isPersistant = false, guiActive = false, guiName = "Research")]
-		//public double research;
+        //[KSPField(isPersistant = false, guiActive = false, guiName = "Research")]
+        //public double research;
 
         [KSPField(isPersistant = false, guiActive = false)]
         public bool needSubjects = false;

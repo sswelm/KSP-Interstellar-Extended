@@ -20,7 +20,7 @@ namespace FNPlugin.Extensions
             part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
 
             maximumMass = maxAmount * definition.density;
-			spareRoomMass = (maxAmount - currentAmount) * definition.density;
+            spareRoomMass = (maxAmount - currentAmount) * definition.density;
         }
 
         public static double GetResourceSpareCapacity(this Part part, String resourcename)

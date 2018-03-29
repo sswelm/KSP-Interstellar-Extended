@@ -178,19 +178,19 @@ namespace InterstellarFuelSwitch
                 if (secondary.normalizedDensity == 0)
                     secondary.normalizedDensity = secondaryNormalizedDensity;
 
-				if (secondary.conversionRatio == 0 && secondary.conversionRatio == 0)
-				{
-					if (primary.normalizedDensity > 0 && secondary.normalizedDensity > 0)
-					{
-						primary.conversionRatio = secondary.normalizedDensity / primary.normalizedDensity;
+                if (secondary.conversionRatio == 0 && secondary.conversionRatio == 0)
+                {
+                    if (primary.normalizedDensity > 0 && secondary.normalizedDensity > 0)
+                    {
+                        primary.conversionRatio = secondary.normalizedDensity / primary.normalizedDensity;
                         secondary.conversionRatio = primary.normalizedDensity / secondary.normalizedDensity;
-					}
-					else
-					{
-						primary.conversionRatio = 1;
+                    }
+                    else
+                    {
+                        primary.conversionRatio = 1;
                         secondary.conversionRatio = 1;
-					}
-				}
+                    }
+                }
             }
 
             primaryResources.ForEach(m => m.transferRate = maxPowerPrimary / primaryConversionEnergyCost / 1000 / m.normalizedDensity);

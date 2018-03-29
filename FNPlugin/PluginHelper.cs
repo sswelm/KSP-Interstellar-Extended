@@ -441,8 +441,8 @@ namespace FNPlugin
             if (String.IsNullOrEmpty(techid))
                 return false;
 
-			if (techid == "none")
-				return false;
+            if (techid == "none")
+                return false;
 
             if (ResearchAndDevelopment.Instance == null)
                 return HasTechFromSaveFile(techid);
