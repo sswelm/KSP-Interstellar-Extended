@@ -269,6 +269,8 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double thermalPropulsionEfficiency = 1;
         [KSPField]
+        public double plasmaPropulsionEfficiency = 1;
+        [KSPField]
         public double thermalEnergyEfficiency = 1;
         [KSPField]
         public double chargedParticleEnergyEfficiency = 1;
@@ -656,6 +658,8 @@ namespace FNPlugin.Reactors
         public double ChargedParticlePropulsionEfficiency { get { return chargedParticlePropulsionEfficiency; } }
 
         public double ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
+
+        public double PlasmaPropulsionEfficiency { get { return plasmaPropulsionEfficiency; } }
 
         public double ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
 

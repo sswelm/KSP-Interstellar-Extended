@@ -141,7 +141,9 @@ namespace FNPlugin.Reactors
 
         public double ThermalPropulsionEfficiency { get { return 1; } }
 
-        public double ThermalEnergyEfficiency { get { return 1; } }
+		public double PlasmaPropulsionEfficiency { get { return 0; } }
+
+	    public double ThermalEnergyEfficiency { get { return 1; } }
 
         public double ChargedParticleEnergyEfficiency { get { return 0; } }
 

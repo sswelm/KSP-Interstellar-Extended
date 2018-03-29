@@ -57,8 +57,6 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode;
 
-
-
         public GenerationType FuelModeTechLevel
         {
             get { return (GenerationType)fuelModeTechLevel; }

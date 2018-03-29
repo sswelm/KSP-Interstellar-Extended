@@ -523,6 +523,8 @@ namespace FNPlugin
 
 		public double ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
+		public double PlasmaPropulsionEfficiency { get { return 0; } }
+
 		public double ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
 
 		public double ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
