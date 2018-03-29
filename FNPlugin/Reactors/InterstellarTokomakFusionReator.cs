@@ -1,7 +1,8 @@
 ﻿using System;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
+    [KSPModule("Magnetic Confinement Fusion Reactor")]
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
         public bool fusion_alert = false;

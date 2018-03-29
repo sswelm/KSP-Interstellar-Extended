@@ -655,7 +655,7 @@ namespace FNPlugin
                 if (selected_factor == -1)
                     selected_factor = minimum_selected_factor;
 
-                hasrequiredupgrade = PluginHelper.upgradeAvailable(upgradeTechReq);
+                hasrequiredupgrade = PluginHelper.UpgradeAvailable(upgradeTechReq);
                 if (hasrequiredupgrade)
                     isupgraded = true;
 

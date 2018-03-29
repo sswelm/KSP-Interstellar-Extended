@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
+    [KSPModule("Cryostat")]
     class ModuleStorageCryostat: FNModuleCryostat {}
 
     [KSPModule("Cryostat")]
@@ -124,7 +125,7 @@ namespace FNPlugin
 
                 bool coolingIsRelevant = cryostat_resource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
 
-                powerStatusStrField.guiActive = showPower && requiresPower;
+                powerStatusStrField.guiActive = showPower && requiresPower && coolingIsRelevant;
                 boiloffStrField.guiActive = showBoiloff && boiloff > 0.00001;
                 externalTemperatureField.guiActive = showTemp && coolingIsRelevant;
 

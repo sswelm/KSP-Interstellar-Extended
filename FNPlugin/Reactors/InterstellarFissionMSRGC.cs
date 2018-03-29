@@ -1,13 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
-    [KSPModule("Fission Reactor")]
+    [KSPModule("Nuclear Thermal Reactor")]
     class InterstellarFissionNTR : InterstellarFissionMSRGC { }
 
+    [KSPModule("Fission Reactor")]
+    class InterstellarFissionReactor : InterstellarFissionMSRGC { }
+
+    [KSPModule("Molten Salt Reactor")]
+    class InterstellarMoltenSaltReactor : InterstellarFissionMSRGC { }
 
     [KSPModule("Fission Reactor")]
     class InterstellarFissionMSRGC : InterstellarReactor, INuclearFuelReprocessable
@@ -26,7 +30,7 @@ namespace FNPlugin
         double enrichedUraniumVolumeMultiplier;
         double depletedToEnrichVolumeMultplier;
         double oxygenDepletedUraniumVolumeMultipler;
-        double ReactorFuelMaxAmount;
+        double reactorFuelMaxAmount;
 
         public double WasteToReprocess { get { return part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) ? part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount : 0; } }
 
@@ -195,6 +199,7 @@ namespace FNPlugin
 
             // start as normal
             base.OnStart(state);
+
             // auto switch if current fuel mode is depleted
             if (IsCurrentFuelDepleted())
             {
@@ -217,7 +222,10 @@ namespace FNPlugin
             enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * (depletedFuelDefinition.density / enrichedUraniumDefinition.density);
             oxygenDepletedUraniumVolumeMultipler = ((16 * 2) / (16 * 2 + 232d)) * (depletedFuelDefinition.density / oxygenGasDefinition.density);
 
-            ReactorFuelMaxAmount = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName).maxAmount;
+            var mainReactorFuel = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName);
+            if (mainReactorFuel != null)
+                reactorFuelMaxAmount = part.Resources.Get(CurrentFuelMode.Variants.First().ReactorFuels.First().ResourceName).maxAmount;
+
             foreach (ReactorFuelType fuelMode in fuel_modes)
             {
                 foreach (ReactorFuel fuel in fuelMode.Variants.First().ReactorFuels)
@@ -291,7 +299,7 @@ namespace FNPlugin
         }
 
         // This Methods loads the correct fuel mode
-        protected override void setDefaultFuelMode()
+        protected override void SetDefaultFuelMode()
         {
             CurrentFuelMode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
         }
@@ -325,10 +333,10 @@ namespace FNPlugin
                 {
                     if (editor)
                     {
-                        resource.amount = ReactorFuelMaxAmount;
+                        resource.amount = reactorFuelMaxAmount;
                         resource.isTweakable = true;
                     }
-                    resource.maxAmount = ReactorFuelMaxAmount;
+                    resource.maxAmount = reactorFuelMaxAmount;
                 }
             }
         }

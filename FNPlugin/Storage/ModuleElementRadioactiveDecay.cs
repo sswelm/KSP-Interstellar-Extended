@@ -14,7 +14,6 @@ namespace FNPlugin
         public string decayProduct = "";
         [KSPField(isPersistant = false)]
         public double convFactor = 1;
-
         [KSPField(isPersistant = true)]
         public double lastActiveTime = 1;
 
@@ -54,10 +53,10 @@ namespace FNPlugin
 
         public void FixedUpdate()
         {
+            if (!HighLogic.LoadedSceneIsFlight) return;
+
             var decay_resource = part.Resources[resourceName];
             if (decay_resource == null) return;
-
-            if (!HighLogic.LoadedSceneIsFlight) return;
 
             lastActiveTime = Planetarium.GetUniversalTime();
 

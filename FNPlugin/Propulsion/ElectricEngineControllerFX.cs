@@ -1,9 +1,9 @@
 ﻿using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -227,12 +227,12 @@ namespace FNPlugin
             try
             {
                 // initialise resources
-                this.resources_to_supply = new string[] { ResourceManager.FNRESOURCE_WASTEHEAT };
+                this.resources_to_supply = new [] { ResourceManager.FNRESOURCE_WASTEHEAT };
                 base.OnStart(state);
                 AttachToEngine();
 
                 _g0 = PluginHelper.GravityConstant;
-                _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.upgradeAvailable(gearsTechReq);
+                _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.UpgradeAvailable(gearsTechReq);
                 _modifiedEngineBaseIsp = baseISP * PluginHelper.ElectricEngineIspMult;
                 _hasrequiredupgrade = this.HasTechsRequiredToUpgrade();
 

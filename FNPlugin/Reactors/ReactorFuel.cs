@@ -1,8 +1,8 @@
 ﻿using System;
-using UnityEngine;
 using FNPlugin.Extensions;
+using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
     class ReactorFuel
     {

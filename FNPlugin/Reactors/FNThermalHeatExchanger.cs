@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FNPlugin.Propulsion;
+using FNPlugin.Reactors.Interfaces;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
     class FNThermalHeatExchanger : ResourceSuppliableModule, IPowerSource
     {
@@ -140,7 +141,9 @@ namespace FNPlugin
 
         public double ThermalPropulsionEfficiency { get { return 1; } }
 
-        public double ThermalEnergyEfficiency { get { return 1; } }
+		public double PlasmaPropulsionEfficiency { get { return 0; } }
+
+	    public double ThermalEnergyEfficiency { get { return 1; } }
 
         public double ChargedParticleEnergyEfficiency { get { return 0; } }
 
@@ -243,7 +246,7 @@ namespace FNPlugin
             setupThermalPower();
         }
 
-        public double GetCoreTempAtRadiatorTemp(double rad_temp)
+        public double GetCoreTempAtRadiatorTemp(double radTemp)
         {
             return 1500;
         }

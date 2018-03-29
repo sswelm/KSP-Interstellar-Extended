@@ -8,7 +8,7 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
-    enum GenerationType { Mk1 = 0, Mk2 = 1, Mk3 = 2, Mk4 = 3, Mk5 = 4 }
+	enum GenerationType { Mk1 = 0, Mk2 = 1, Mk3 = 2, Mk4 = 3, Mk5 = 4, Mk6 = 5, Mk7 = 6, Mk8 = 7 }
 
     abstract class EngineECU2 : ResourceSuppliableModule, IRescalable<EngineECU2>
     {
@@ -99,8 +99,6 @@ namespace FNPlugin
         private IList<FuelConfiguration> _activeConfigurations;
         private FuelConfiguration _currentActiveConfiguration;
         private UIPartActionWindow tweakableUI;
-        private StartState CurState;
-
         private UI_ChooseOption chooseOptionEditor;
         private UI_ChooseOption chooseOptionFlight;
  
@@ -112,28 +110,19 @@ namespace FNPlugin
         public double MaxThrustUpgraded3 { get { return maxThrustUpgraded3 * thrustMult(); } }
         public double MaxThrustUpgraded4 { get { return maxThrustUpgraded4 * thrustMult(); } }
 
-        public void DetermineTechLevel()
+        protected void DetermineTechLevel()
         {
-            int numberOfUpgradeTechs = 1;
-            if (PluginHelper.upgradeAvailable(upgradeTechReq1))
+            var numberOfUpgradeTechs = 0;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq1))
                 numberOfUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReq2))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq2))
                 numberOfUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReq3))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq3))
                 numberOfUpgradeTechs++;
-            if (PluginHelper.upgradeAvailable(upgradeTechReq4))
+            if (PluginHelper.UpgradeAvailable(upgradeTechReq4))
                 numberOfUpgradeTechs++;
 
-            if (numberOfUpgradeTechs == 5)
-                EngineGenerationType = GenerationType.Mk5;
-            else if (numberOfUpgradeTechs == 4)
-                EngineGenerationType = GenerationType.Mk4;
-            else if (numberOfUpgradeTechs == 3)
-                EngineGenerationType = GenerationType.Mk3;
-            else if (numberOfUpgradeTechs == 2)
-                EngineGenerationType = GenerationType.Mk2;
-            else
-                EngineGenerationType = GenerationType.Mk1;
+            EngineGenerationType = (GenerationType)numberOfUpgradeTechs;
         }
 
         [KSPEvent(active = true, advancedTweakable = true, guiActive = true, guiActiveEditor = false, name = "HideUsableFuelsToggle", guiName = "Hide Unusable Configurations")]
@@ -467,7 +456,6 @@ namespace FNPlugin
             {
                 Debug.Log("[KSPI] - Start State: " + state.ToString());
                 Debug.Log("[KSPI] - Already Launched: " + Launched);
-                CurState = state;
                 curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
 
                 InitializeGUI();

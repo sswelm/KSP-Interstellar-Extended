@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FNPlugin.Reactors.Interfaces;
 using UnityEngine;
 using TweakScale;
 using FNPlugin.Extensions;
@@ -18,16 +19,23 @@ namespace FNPlugin
         public float partMass = 0;
     }
 
+
+
     [KSPModule("Thermal Electric Effect Generator")]
     class ThermalElectricEffectGenerator : FNGenerator {}
+
+    [KSPModule("Integrated Thermal Electric Power Generator")]
+    class IntegratedThermalElectricPowerGenerator : FNGenerator { }
 
     [KSPModule("Thermal Electric Power Generator")]
     class ThermalElectricPowerGenerator : FNGenerator {}
 
+    [KSPModule("Integrated Charged Particles Power Generator")]
+    class IntegratedChargedParticlesPowerGenerator : FNGenerator {}
+
     [KSPModule("Charged Particles Power Generator")]
     class ChargedParticlesPowerGenerator : FNGenerator {}
 
-    [KSPModule("Electrical Power Generator")]
     class FNGenerator : ResourceSuppliableModule, IUpgradeableModule, IElectricPowerGeneratorSource, IPartMassModifier, IRescalable<FNGenerator>
     {
         [KSPField(isPersistant = true)]
@@ -43,16 +51,14 @@ namespace FNPlugin
         public float powerPercentage = 100;
 
         // Persistent False
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Is MHD")]
+        [KSPField]
         public bool isMHD = false;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Is Limited by min throtle")]
+        [KSPField]
         public bool isLimitedByMinThrotle = false;
         [KSPField]
         public double powerOutputMultiplier = 1;
-
-        [KSPField(guiName = "Hot/Cold Bath Ratio")]
+        [KSPField]
         public double hotColdBathRatio;
-
         [KSPField]
         public bool calculatedMass = false;
         [KSPField]
@@ -110,7 +116,6 @@ namespace FNPlugin
         [KSPField]
         public bool showSpecialisedUI = true;
 
-
         /// <summary>
         /// MW Power to part mass divider, need to be lower for SETI/NFE mode 
         /// </summary>
@@ -155,13 +160,11 @@ namespace FNPlugin
         public double adjusted_thermal_power_needed;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Reactor Power Ratio", guiFormat = "F4")]
         public double attachedPowerSourceRatio;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Type")]
-        public string generatorType;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Current Power", guiUnits = " MW_e", guiFormat = "F3")]
         public string OutputPower;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Max Power")]
         public string MaxPowerStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Electric Power Efficiency")]
         public string OverallEfficiency;
         [KSPField(isPersistant = false, guiActive = false, guiName = "Upgrade Cost")]
         public string upgradeCostStr = "";
@@ -294,7 +297,6 @@ namespace FNPlugin
         public void upgradePartModule()
         {
             isupgraded = true;
-            generatorType = chargedParticleMode ? altUpgradedName : upgradedName;
         }
 
         /// <summary>
@@ -368,7 +370,7 @@ namespace FNPlugin
             resourceBuffers.Init(this.part);
 
             base.OnStart(state);
-            generatorType = originalName;
+            //generatorType = originalName;
 
             targetMass = part.prefabMass * storedMassMultiplier;
             initialMass = part.prefabMass * storedMassMultiplier;
@@ -382,7 +384,7 @@ namespace FNPlugin
 
             Fields["partMass"].guiActive = Fields["partMass"].guiActiveEditor = calculatedMass;
             Fields["powerPercentage"].guiActive = Fields["powerPercentage"].guiActiveEditor = showSpecialisedUI;
-            Fields["generatorType"].guiActiveEditor = showSpecialisedUI;
+            //Fields["generatorType"].guiActiveEditor = showSpecialisedUI;
             Fields["radius"].guiActiveEditor = showSpecialisedUI;
 
             if (state == StartState.Editor)
@@ -469,15 +471,15 @@ namespace FNPlugin
                 Mk2TechReq = upgradeTechReq;
 
             int techLevel = 1;
-            if (PluginHelper.upgradeAvailable(Mk6TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk6TechReq))
                 techLevel++;
-            if (PluginHelper.upgradeAvailable(Mk5TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk5TechReq))
                 techLevel++;
-            if (PluginHelper.upgradeAvailable(Mk4TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk4TechReq))
                 techLevel++;
-            if (PluginHelper.upgradeAvailable(Mk3TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk3TechReq))
                 techLevel++;
-            if (PluginHelper.upgradeAvailable(Mk2TechReq))
+            if (PluginHelper.UpgradeAvailable(Mk2TechReq))
                 techLevel++;
 
             if (techLevel == 6)
@@ -895,11 +897,11 @@ namespace FNPlugin
 
                         electricdtps = Math.Max(effective_input_power_per_second * powerOutputMultiplier, 0);
 
-                        var effectiveMaxThermalPower = applies_balance
+                        var effectiveMaxThermalPowerRatio = applies_balance
                             ? (1 - attachedPowerSource.ChargedPowerRatio)
                             : 1;
 
-                        max_electricdtps = effectiveMaxThermalPower * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * attachedPowerSource.ThermalEnergyEfficiency * _totalEff;
+                        max_electricdtps = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * attachedPowerSource.ThermalEnergyEfficiency * _totalEff;
                     }
                     else // charged particle mode
                     {
@@ -907,9 +909,7 @@ namespace FNPlugin
 
                         if (_totalEff <= 0) return;
 
-                        double charged_power_currently_needed = CalculateElectricalPowerCurrentlyNeeded();
-
-                        requested_power_per_second = Math.Max(Math.Min(maxChargedPower, charged_power_currently_needed / _totalEff), attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio);
+                        requested_power_per_second = Math.Max(Math.Min(maxChargedPower, CalculateElectricalPowerCurrentlyNeeded() / _totalEff), attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio);
 
                         var maximum_charged_power = attachedPowerSource.MaximumChargedPower * attachedPowerSource.ChargedParticleEnergyEfficiency;
                         var chargedPowerRequestRatio = Math.Min(1, maximum_charged_power > 0 ? requested_power_per_second / maximum_charged_power : 0);
@@ -925,7 +925,10 @@ namespace FNPlugin
                         electricdtps = Math.Max(effective_input_power_per_second * powerOutputMultiplier, 0);
                         max_electricdtps = maxChargedPower * _totalEff;
                     }
-                    outputPower = -supplyFNResourcePerSecondWithMax(electricdtps, max_electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                    outputPower = isLimitedByMinThrotle 
+                        ? -supplyManagedFNResourcePerSecond(electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES) 
+                        : -supplyFNResourcePerSecondWithMax(electricdtps, max_electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES);
                 }
                 else
                 {

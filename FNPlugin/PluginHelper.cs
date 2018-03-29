@@ -383,12 +383,12 @@ namespace FNPlugin
 
         public static bool HasTechRequirementOrEmpty(string techName)
         {
-            return techName == String.Empty || PluginHelper.upgradeAvailable(techName);
+            return techName == String.Empty || PluginHelper.UpgradeAvailable(techName);
         }
 
         public static bool HasTechRequirementAndNotEmpty(string techName)
         {
-            return techName != String.Empty && PluginHelper.upgradeAvailable(techName);
+            return techName != String.Empty && PluginHelper.UpgradeAvailable(techName);
         }
 
         public static Dictionary<string, string> TechTitleById;
@@ -440,6 +440,9 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(techid))
                 return false;
+
+			if (techid == "none")
+				return false;
 
             if (ResearchAndDevelopment.Instance == null)
                 return HasTechFromSaveFile(techid);
@@ -501,15 +504,15 @@ namespace FNPlugin
             return found;
         }
 
-        public static bool upgradeAvailable(string techid)
+        public static bool UpgradeAvailable(string techid)
         {
             if (String.IsNullOrEmpty(techid))
                 return false;
 
             if (HighLogic.CurrentGame != null)
             {
-                if (PluginHelper.TechnologyIsInUse)
-                    return PluginHelper.hasTech(techid);
+                if (TechnologyIsInUse)
+                    return hasTech(techid);
                 else
                     return true;
             }

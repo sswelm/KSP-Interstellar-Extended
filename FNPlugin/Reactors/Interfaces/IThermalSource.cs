@@ -1,7 +1,7 @@
 using System;
 using FNPlugin.Propulsion;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors.Interfaces
 {
     public enum ElectricGeneratorType { unknown = 0, thermal = 1, charged_particle = 2 };
 
@@ -87,13 +87,15 @@ namespace FNPlugin
 
         bool shouldScaleDownJetISP();
 
-        double GetCoreTempAtRadiatorTemp(double rad_temp);
+        double GetCoreTempAtRadiatorTemp(double radTemp);
 
         double GetThermalPowerAtTemp(double temp);
 
         bool IsThermalSource { get; }
 
         double ThermalPropulsionEfficiency { get; }
+
+		double PlasmaPropulsionEfficiency { get; }
 
         double ThermalEnergyEfficiency { get; }
 

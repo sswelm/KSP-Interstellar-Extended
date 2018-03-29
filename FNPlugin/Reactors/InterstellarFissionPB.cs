@@ -1,8 +1,13 @@
 ﻿using System;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
-    [KSPModule("Fission Reactor")]
+    [KSPModule("Pebble Bed Fission Reactor")]
+    class InterstellarPebbleBedFissionReactor : InterstellarFissionPB {}
+
+    [KSPModule("Pebble Bed Fission Engine")]
+    class InterstellarPebbleBedFissionEngine : InterstellarFissionPB { }
+    
     class InterstellarFissionPB : InterstellarReactor
     {
         // Persistant False
@@ -101,20 +106,20 @@ namespace FNPlugin
             return true;
         }
 
-        public override double GetCoreTempAtRadiatorTemp(double rad_temp)
+        public override double GetCoreTempAtRadiatorTemp(double radTemp)
         {
             if (heatThrottling)
             {
                 double pfr_temp = 0;
 
-                if (!double.IsNaN(rad_temp) && !double.IsInfinity(rad_temp))
-                    pfr_temp = Math.Min(Math.Max(rad_temp * 1.5, OptimalTemp), ZeroPowerTemp);
+                if (!double.IsNaN(radTemp) && !double.IsInfinity(radTemp))
+                    pfr_temp = Math.Min(Math.Max(radTemp * 1.5, OptimalTemp), ZeroPowerTemp);
                 else
                     pfr_temp = OptimalTemp;
 
                 return pfr_temp;
             }
-            return base.GetCoreTempAtRadiatorTemp(rad_temp);
+            return base.GetCoreTempAtRadiatorTemp(radTemp);
         }
 
         public override double GetThermalPowerAtTemp(double temp)

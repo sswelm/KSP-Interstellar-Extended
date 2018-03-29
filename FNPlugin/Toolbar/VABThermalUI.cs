@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using FNPlugin.Reactors.Interfaces;
 using UnityEngine;
 
 namespace FNPlugin 

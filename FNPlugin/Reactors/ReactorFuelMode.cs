@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FNPlugin
+namespace FNPlugin.Reactors
 {
     class ReactorProduction
     {
         public ReactorProduct fuelmode;
         public double mass;
     }
-
      
     class FuelResourceMetaData
     {
