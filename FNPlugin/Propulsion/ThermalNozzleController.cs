@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -268,6 +269,7 @@ namespace FNPlugin
         protected int thrustLimitRatio = 0;
         protected double old_intake = 0;
         protected int partDistance = 0;
+        protected ResourceBuffers resourceBuffers;
 
         protected List<Propellant> list_of_propellants = new List<Propellant>();
         protected List<FNModulePreecooler> _vesselPrecoolers;
@@ -426,14 +428,11 @@ namespace FNPlugin
 
                 Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
 
-                // calculate WasteHeat Capacity
-                var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
-                if (wasteheatPowerResource != null)
-                {
-                    var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                    wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-                }
+                resourceBuffers = new ResourceBuffers();
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                resourceBuffers.Init(this.part);
+
                 Debug.Log("[KSPI] - ThermalNozzleController - find module implementing <ModuleEngines>");
 
                 myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
@@ -964,6 +963,8 @@ namespace FNPlugin
                 if (!HighLogic.LoadedSceneIsFlight) return;
 
                 if (myAttachedEngine == null) return;
+
+                resourceBuffers.UpdateBuffers();
 
                 if (AttachedReactor == null)
                 {

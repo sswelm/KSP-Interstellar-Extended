@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -16,9 +17,7 @@ namespace FNPlugin
 
         private resourceType outputType = 0;
         private bool active = false;
-        private float previousDeltaTime;
-        private double fixedMegajouleBufferSize;
-        private double fixedElectricChargeBufferSize;
+        private ResourceBuffers resourceBuffers;
         private ModuleResource mockInputResource;
         private ModuleResource moduleOutputResource;
 
@@ -36,20 +35,8 @@ namespace FNPlugin
                 this.resources_to_supply = resources_to_supply;
                 base.OnStart(state);
 
-                previousDeltaTime = TimeWarp.fixedDeltaTime;
 
-                var megajoulePartResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
-                if (megajoulePartResource != null)
-                {
-                    fixedMegajouleBufferSize = megajoulePartResource.maxAmount * 50;
-                }
-
-                var electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
-                if (electricChargePartResource != null)
-                {
-                    fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
-                }
-
+                resourceBuffers = new ResourceBuffers();
                 outputType = resourceType.other;
                 foreach (ModuleResource moduleResource in moduleGenerator.resHandler.outputResources)
                 {
@@ -57,6 +44,7 @@ namespace FNPlugin
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                     {
                         outputType = resourceType.megajoule;
+                        resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 10));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -68,6 +56,7 @@ namespace FNPlugin
                     if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                     {
                         outputType = resourceType.electricCharge;
+                        resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 10));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -77,6 +66,7 @@ namespace FNPlugin
                         break;
                     }
                 }
+                resourceBuffers.Init(this.part);
             }
             catch (Exception e)
             {
@@ -141,37 +131,17 @@ namespace FNPlugin
 
                 if (outputType == resourceType.other) return;
 
-                var megajoulePartResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
-                if (megajoulePartResource != null && fixedMegajouleBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
-                {
-                    double requiredMegawattCapacity = fixedMegajouleBufferSize * TimeWarp.fixedDeltaTime;
-                    double previousMegawattCapacity = fixedMegajouleBufferSize * previousDeltaTime;
-                    double ratio = megajoulePartResource.amount / megajoulePartResource.maxAmount;
-
-                    megajoulePartResource.maxAmount = requiredMegawattCapacity;
-                    megajoulePartResource.amount = TimeWarp.fixedDeltaTime > previousDeltaTime
-                        ? Math.Max(0, Math.Min(requiredMegawattCapacity, megajoulePartResource.amount + requiredMegawattCapacity - previousMegawattCapacity))
-                        : Math.Max(0, Math.Min(requiredMegawattCapacity, ratio * requiredMegawattCapacity));
-                }
-
-                var electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
-                if (electricChargePartResource != null && fixedElectricChargeBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
-                {
-                    double requiredElectricChargeCapacity = fixedElectricChargeBufferSize * TimeWarp.fixedDeltaTime;
-                    double previousPreviousElectricCapacity = fixedElectricChargeBufferSize * previousDeltaTime;
-                    double ratio = electricChargePartResource.amount / electricChargePartResource.maxAmount;
-
-                    electricChargePartResource.maxAmount = requiredElectricChargeCapacity;
-                    electricChargePartResource.amount = TimeWarp.fixedDeltaTime > previousDeltaTime
-                        ? Math.Max(0, Math.Min(requiredElectricChargeCapacity, electricChargePartResource.amount + requiredElectricChargeCapacity - previousPreviousElectricCapacity))
-                        : Math.Max(0, Math.Min(requiredElectricChargeCapacity, ratio * requiredElectricChargeCapacity));
-                }
-                previousDeltaTime = TimeWarp.fixedDeltaTime;
-
                 double generatorRate = moduleOutputResource.rate;
                 mockInputResource.rate = generatorRate;
 
                 double generatorSupply = outputType == resourceType.megajoule ? generatorRate : generatorRate / 1000;
+
+                if (outputType == resourceType.megajoule)
+                    resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, generatorSupply);
+                else
+                    resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorSupply);
+
+                resourceBuffers.UpdateBuffers();
 
                 megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorSupply, generatorSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
             }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -11,6 +12,8 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Generator current power", guiUnits = " MW", guiFormat = "F5")]
         public double megaJouleGeneratorPowerSupply;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Efficiency")]
+        public string OverallEfficiency;
 
         private PartModule moduleGenerator;
         private BaseField _field_status;
@@ -19,8 +22,7 @@ namespace FNPlugin
         private BaseField _field_max;
 
         private bool active = false;
-        private float previousDeltaTime;
-        private double fixedElectricChargeBufferSize;
+        private ResourceBuffers resourceBuffers;
 
         public override void OnStart(StartState state)
         {
@@ -39,17 +41,16 @@ namespace FNPlugin
 
                 if (moduleGenerator == null) return;
 
-                String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+                OverallEfficiency = "10%";
+
+                String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
                 this.resources_to_supply = resources_to_supply;
                 base.OnStart(state);
 
-                previousDeltaTime = TimeWarp.fixedDeltaTime;
-
-                var electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
-                if (electricChargePartResource != null)
-                {
-                    fixedElectricChargeBufferSize = electricChargePartResource.maxAmount * 50;
-                }
+                resourceBuffers = new ResourceBuffers();
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 10));
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, 1, 2.0e+5, true));
+                resourceBuffers.Init(this.part);
             }
             catch (Exception e)
             {
@@ -114,20 +115,6 @@ namespace FNPlugin
                 if (_field_status == null) return;
                 if (_field_generated == null) return;
 
-                var electricChargePartResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
-                if (electricChargePartResource != null && fixedElectricChargeBufferSize > 0 && TimeWarp.fixedDeltaTime != previousDeltaTime)
-                {
-                    double requiredElectricChargeCapacity = fixedElectricChargeBufferSize * TimeWarp.fixedDeltaTime;
-                    double previousPreviousElectricCapacity = fixedElectricChargeBufferSize * previousDeltaTime;
-                    double ratio = electricChargePartResource.amount / electricChargePartResource.maxAmount;
-
-                    electricChargePartResource.maxAmount = requiredElectricChargeCapacity;
-                    electricChargePartResource.amount = TimeWarp.fixedDeltaTime > previousDeltaTime
-                        ? Math.Max(0, Math.Min(requiredElectricChargeCapacity, electricChargePartResource.amount + requiredElectricChargeCapacity - previousPreviousElectricCapacity))
-                        : Math.Max(0, Math.Min(requiredElectricChargeCapacity, ratio * requiredElectricChargeCapacity));
-                }
-                previousDeltaTime = TimeWarp.fixedDeltaTime;
-
                 bool status = _field_status.GetValue<bool>(moduleGenerator);
 
                 float generatorRate = status ? _field_generated.GetValue<float>(moduleGenerator) : 0;
@@ -139,7 +126,13 @@ namespace FNPlugin
                     part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, _field_addedToTanks.GetValue<float>(moduleGenerator));
                 }
 
+                resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorMax);
+                resourceBuffers.UpdateBuffers();
+
                 megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorRate / 1000, generatorMax / 1000, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResourcePerSecond(generatorRate / 10000.0d, ResourceManager.FNRESOURCE_WASTEHEAT);
             }
             catch (Exception e)
             {

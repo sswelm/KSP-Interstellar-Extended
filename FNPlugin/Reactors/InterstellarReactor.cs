@@ -41,8 +41,6 @@ namespace FNPlugin.Reactors
         public double ongoing_consumption_rate;
         [KSPField(isPersistant = true)]
         public bool reactorInit;
-        [KSPField(isPersistant = true)]
-        public bool reactorBooted;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_startEnabled"), UI_Toggle(disabledText = "True", enabledText = "False")]
         public bool startDisabled;
         [KSPField(isPersistant = true)]
@@ -392,6 +390,8 @@ namespace FNPlugin.Reactors
         PartResourceDefinition tritium_def;
         PartResourceDefinition helium_def;
 
+        ResourceBuffers resourceBuffers;
+
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
         Queue<double> averageGeeForce = new Queue<double>();
@@ -399,7 +399,6 @@ namespace FNPlugin.Reactors
         Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
 
         double connectedRecieversSum;
-        double partBaseWasteheat;
 
         double tritiumBreedingMassAdjustment;
         double heliumBreedingMassAdjustment;
@@ -411,8 +410,6 @@ namespace FNPlugin.Reactors
         double lithium_consumed_per_second;
         double tritium_produced_per_second;
         double helium_produced_per_second;
-
-        float previousDeltaTime;
 
         long update_count;
         long last_draw_update;       
@@ -1006,7 +1003,6 @@ namespace FNPlugin.Reactors
             UpdateReactorCharacteristics();
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
-            previousDeltaTime = TimeWarp.fixedDeltaTime - 1.0e-6f;
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
             staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
 
@@ -1034,6 +1030,13 @@ namespace FNPlugin.Reactors
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;
 
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 1.0e+5, true));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, 4));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, 4));
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.Init(this.part);
+
             windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
             base.OnStart(state);
 
@@ -1048,9 +1051,6 @@ namespace FNPlugin.Reactors
                 coretempStr = CoreTemperature.ToString("0") + " K";
                 return;
             }
-
-            // calculate WasteHeat Capacity
-            partBaseWasteheat = part.mass * 1e+5 * wasteHeatMultiplier;
 
             if (!reactorInit)
             {
@@ -1317,7 +1317,7 @@ namespace FNPlugin.Reactors
             if (isFixedUpdatedCalled) return;
 
             isFixedUpdatedCalled = true;
-            UpdateCapacities(stored_fuel_ratio);
+            UpdateCapacities();
         }
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
@@ -1361,7 +1361,7 @@ namespace FNPlugin.Reactors
 
                 LookForAlternativeFuelTypes();
 
-                UpdateCapacities(stored_fuel_ratio);
+                UpdateCapacities();
 
                 if (stored_fuel_ratio > 0.0001 && stored_fuel_ratio < 0.99)
                 {
@@ -1481,19 +1481,9 @@ namespace FNPlugin.Reactors
 
             if (IsEnabled) return;
 
-            var thermalPowerResource = part.Resources[ResourceManager.FNRESOURCE_THERMALPOWER];
-            if (thermalPowerResource != null)
-            {
-                thermalPowerResource.maxAmount = 0.0001;
-                thermalPowerResource.amount = 0;
-            }
-
-            var chargedPowerResource = part.Resources[ResourceManager.FNRESOURCE_CHARGED_PARTICLES];
-            if (chargedPowerResource != null)
-            {
-                chargedPowerResource.maxAmount = 0.0001;
-                chargedPowerResource.amount = 0;
-            }
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, 0);
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, 0);
+            resourceBuffers.UpdateBuffers();
         }
 
         private void LookForAlternativeFuelTypes()
@@ -1560,83 +1550,11 @@ namespace FNPlugin.Reactors
             currentGeneratorChargedEnergyRequestRatio = 0;
         }
 
-        private void UpdateCapacities(double fuel_ratio)
+        private void UpdateCapacities()
         {
-            timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
-
-            // calculate thermalpower capacity
-            if (TimeWarp.fixedDeltaTime != previousDeltaTime)
-            {
-                var thermalPowerResource = part.Resources[ResourceManager.FNRESOURCE_THERMALPOWER];
-                if (thermalPowerResource != null)
-                {
-                    var requiredThermalCapacity = Math.Max(0.0001, 4 * MaximumThermalPower * timeWarpFixedDeltaTime);
-                    var thermalPowerRatio = thermalPowerResource.amount / thermalPowerResource.maxAmount;
-
-                    thermalPowerResource.maxAmount = requiredThermalCapacity;
-
-                    if (reactorBooted)
-                        thermalPowerResource.amount = Math.Max(0, Math.Min(requiredThermalCapacity, thermalPowerRatio * requiredThermalCapacity));
-                    else
-                        thermalPowerResource.amount = thermalPowerResource.maxAmount * fuel_ratio;
-                }
-
-                var chargedPowerResource = part.Resources[ResourceManager.FNRESOURCE_CHARGED_PARTICLES];
-                if (chargedPowerResource != null)
-                {
-                    var requiredChargedCapacity = Math.Max(0.0001, 4 * MaximumChargedPower * timeWarpFixedDeltaTime);
-                    var chargedPowerRatio = chargedPowerResource.amount / chargedPowerResource.maxAmount;
-
-                    chargedPowerResource.maxAmount = requiredChargedCapacity;
-
-                    if (reactorBooted)
-                        chargedPowerResource.amount = Math.Max(0, Math.Min(requiredChargedCapacity, chargedPowerRatio * requiredChargedCapacity));
-                    else
-                        chargedPowerResource.amount = chargedPowerResource.maxAmount * fuel_ratio;
-                }
-
-                reactorBooted = true;
-
-                var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-                if (wasteheatPowerResource != null)
-                {
-                    // calculate WasteHeat Capacity
-                    partBaseWasteheat = part.mass * 1e+5 * wasteHeatMultiplier;
-
-                    var wasteheatRatio = wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount;
-
-                    wasteheatPowerResource.maxAmount = timeWarpFixedDeltaTime * partBaseWasteheat; ;
-                    wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheatRatio;
-                }
-            }
-            else
-            {
-                var thermalPowerResource = part.Resources[ResourceManager.FNRESOURCE_THERMALPOWER];
-                if (thermalPowerResource != null)
-                {
-                    var thermalPowerRatio = Math.Max(0, Math.Min(1,thermalPowerResource.amount / thermalPowerResource.maxAmount));
-                    thermalPowerResource.maxAmount = Math.Max(0.0001, 4 * timeWarpFixedDeltaTime * MaximumThermalPower);
-                    thermalPowerResource.amount = Math.Max(0, Math.Min(thermalPowerResource.maxAmount, thermalPowerRatio * thermalPowerResource.maxAmount));
-                }
-
-                var chargedPowerResource = part.Resources[ResourceManager.FNRESOURCE_CHARGED_PARTICLES];
-                if (chargedPowerResource != null)
-                {
-                    var chargedPowerRatio = Math.Max(0, Math.Min(1, chargedPowerResource.amount / chargedPowerResource.maxAmount));
-                    chargedPowerResource.maxAmount = Math.Max(0.0001, 4 * timeWarpFixedDeltaTime * MaximumChargedPower);
-                    chargedPowerResource.amount = Math.Max(0, Math.Min(chargedPowerResource.maxAmount, chargedPowerRatio * chargedPowerResource.maxAmount));
-                }
-
-                var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-                if (wasteheatPowerResource != null)
-                {
-                    var wasteHeatRatio = Math.Max(0, Math.Min(1, wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount));
-                    wasteheatPowerResource.maxAmount = Math.Max(0.0001, timeWarpFixedDeltaTime * partBaseWasteheat);
-                    wasteheatPowerResource.amount = Math.Max(0, Math.Min(wasteheatPowerResource.maxAmount, wasteHeatRatio * wasteheatPowerResource.maxAmount));
-                }
-            }
-
-            previousDeltaTime = TimeWarp.fixedDeltaTime;
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, MaximumThermalPower);
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, MaximumChargedPower);
+            resourceBuffers.UpdateBuffers();
         }
 
         protected double GetFuelRatio(ReactorFuel reactorFuel, double fuelEfficency, double megajoules)

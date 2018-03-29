@@ -3,6 +3,7 @@ using System.Linq;
 using FNPlugin.Reactors.Interfaces;
 using UnityEngine;
 using FNPlugin.Propulsion;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -50,6 +51,7 @@ namespace FNPlugin
         protected double exchanger_thrust_divisor;
         protected double calculatedIsp;
         protected double _previous_charged_particles_received;
+        protected ResourceBuffers resourceBuffers;
 
         protected double minimum_isp;
         protected double maximum_isp;
@@ -67,15 +69,11 @@ namespace FNPlugin
 
 		public override void OnStart(PartModule.StartState state) 
         {
-			// calculate WasteHeat Capacity
-			var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
-			if (wasteheatPowerResource != null)
-			{
-				var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-				wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-				wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-			}
-            
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.Init(this.part);
+
             if (state == StartState.Editor) return;
 
             _attached_warpable_engine = this.part.FindModuleImplementing<ModuleEnginesWarp>();
@@ -159,6 +157,8 @@ namespace FNPlugin
            
 		public void FixedUpdate() 
         {
+            resourceBuffers.UpdateBuffers();
+
             if (HighLogic.LoadedSceneIsFlight && _attached_engine != null && _attached_reactor != null && _attached_reactor.ChargedParticlePropulsionEfficiency > 0)
             {
                 _max_charged_particles_power = _attached_reactor.MaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;

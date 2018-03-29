@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -82,8 +83,7 @@ namespace FNPlugin
         protected double standard_deuterium_rate = 0;
         protected double standard_tritium_rate = 0;
         protected ModuleEngines curEngineT;
-
-        
+        protected ResourceBuffers resourceBuffers;
 
         [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
         public void DeactivateRadSafety() 
@@ -145,14 +145,10 @@ namespace FNPlugin
             else if (this.HasTechsRequiredToUpgrade())
                 hasrequiredupgrade = true;
 
-            // calculate WasteHeat Capacity
-            var wasteheatPowerResource = part.Resources.FirstOrDefault(r => r.resourceName == ResourceManager.FNRESOURCE_WASTEHEAT);
-            if (wasteheatPowerResource != null)
-            {
-                var wasteheat_ratio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, 0.95);
-                wasteheatPowerResource.maxAmount = part.mass * 2.0e+4 * wasteHeatMultiplier;
-                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * wasteheat_ratio;
-            }
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.Init(this.part);
 
             if (state == StartState.Editor && this.HasTechsRequiredToUpgrade())
             {
@@ -220,6 +216,8 @@ namespace FNPlugin
         public override void OnFixedUpdate()
         {
             temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
+
+            resourceBuffers.UpdateBuffers();
 
             if (curEngineT == null) return;
 
@@ -353,4 +351,3 @@ namespace FNPlugin
         }
     }
 }
-

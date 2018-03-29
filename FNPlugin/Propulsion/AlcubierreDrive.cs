@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using KSP.Localization;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -130,7 +131,6 @@ namespace FNPlugin
         private AudioSource warp_sound;
 
         private double tex_count;
-        private float previousDeltaTime;
         private float warp_size = 50000;
 
         private bool vesselWasInOuterspace;
@@ -170,6 +170,7 @@ namespace FNPlugin
         private PartResourceDefinition exoticResourceDefinition;
         private CelestialBody warpInitialMainBody;
         private ModuleReactionWheel moduleReactionWheel;
+        private ResourceBuffers resourceBuffers;
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpControlWindow", active = true, guiActiveUnfocused = true, unfocusedRange = 5f, guiActiveUncommand = true)]
         public void ToggleWarpControlWindow()
@@ -615,15 +616,6 @@ namespace FNPlugin
 
             exoticResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.ExoticMatter);
            
-            // reset Exotic Matter Capacity
-            var exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
-            if (exoticMatterResource != null)
-            {
-                var ratio = Math.Min(1, Math.Max(0, exoticMatterResource.amount / exoticMatterResource.maxAmount));
-                exoticMatterResource.maxAmount = 0.001;
-                exoticMatterResource.amount = exoticMatterResource.maxAmount * ratio;
-            }
-
             InstanceID = GetInstanceID();
 
             if (IsSlave)
@@ -633,6 +625,13 @@ namespace FNPlugin
 
             if (!String.IsNullOrEmpty(AnimationName))
                 animationState = SetUpAnimation(AnimationName, this.part);
+
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5, true));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.VariableConfig(InterstellarResourcesConfiguration.Instance.ExoticMatter));
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ExoticMatter, 0.001);
+            resourceBuffers.Init(this.part);
 
             try
             {
@@ -663,8 +662,6 @@ namespace FNPlugin
                 warpdriveType = isupgraded ? upgradedName : originalName;
 
                 if (state == StartState.Editor) return;
-
-                UpdateWateheatBuffer(0.95);
 
                 if (!IsSlave)
                 {
@@ -871,8 +868,6 @@ namespace FNPlugin
         {
             if (vessel == null) return;
 
-            UpdateWateheatBuffer();
-
             warpEngineThrottle = _engineThrotle[selected_factor];
 
             gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
@@ -901,13 +896,13 @@ namespace FNPlugin
             powerRequirementForMaximumAllowedLightSpeed = GetPowerRequirementForWarp(_engineThrotle[maximumWarpSpeedFactor]);
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(_engineThrotle[selected_factor]);
 
-            // calculate Exotic Matter Capacity
-            var exoticMatterResource = part.Resources[InterstellarResourcesConfiguration.Instance.ExoticMatter];
-            if (exoticMatterResource == null || double.IsNaN(exotic_power_required) || double.IsInfinity(exotic_power_required) || !(exotic_power_required > 0)) return;
+            resourceBuffers.UpdateBuffers();
 
-            var ratio = Math.Min(1, Math.Max(0, exoticMatterResource.amount / exoticMatterResource.maxAmount));
-            exoticMatterResource.maxAmount = exotic_power_required;
-            exoticMatterResource.amount = exoticMatterResource.maxAmount * ratio;
+            // calculate Exotic Matter Capacity
+            if (double.IsNaN(exotic_power_required) || double.IsInfinity(exotic_power_required) || !(exotic_power_required > 0)) return;
+
+            resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
+            resourceBuffers.UpdateBuffers();
         }
 
         public override void OnFixedUpdate()
@@ -1097,19 +1092,6 @@ namespace FNPlugin
                     (isupgraded 
                         ? wasteheatRatioUpgraded 
                         : wasteheatRatio), ResourceManager.FNRESOURCE_WASTEHEAT);
-        }
-
-        private void UpdateWateheatBuffer(double maxWasteheatRatio = 1)
-        {
-            var wasteheatPowerResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-            if (wasteheatPowerResource != null && Math.Abs(TimeWarp.fixedDeltaTime - previousDeltaTime) > float.Epsilon)
-            {
-                var adjustedWasteheatRatio = Math.Min(wasteheatPowerResource.amount / wasteheatPowerResource.maxAmount, maxWasteheatRatio);
-                wasteheatPowerResource.maxAmount = part.mass * TimeWarp.fixedDeltaTime * 2.0e+5 * wasteHeatMultiplier;
-                wasteheatPowerResource.amount = wasteheatPowerResource.maxAmount * adjustedWasteheatRatio;
-            }
-
-            previousDeltaTime = TimeWarp.fixedDeltaTime;
         }
 
         private double GetPowerRequirementForWarp(double lightspeedFraction)

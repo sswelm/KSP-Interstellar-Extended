@@ -51,8 +51,8 @@ namespace FNPlugin
 	[KSPModule("Beamed Power Receiver")]
     class MicrowavePowerReceiver : ResourceSuppliableModule, IPowerSource, IElectricPowerGeneratorSource // tweakscales with exponent 2.5
 	{
-		//Persistent True
-		[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Bandwidth")]
+        //Persistent True
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Bandwidth")]
 		[UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
 		public int selectedBandwidthConfiguration = 0;
 
@@ -244,8 +244,6 @@ namespace FNPlugin
 		public double solarFacingFactor;
 		[KSPField(guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
 		public double solarFlux;
-		[KSPField(guiActive = false, guiName = "Buffer Power", guiFormat = "F4", guiUnits = " MW")]
-		public double partBaseMegajoules;
 
 		[KSPField(guiActive = true, guiName = "FlowRate", guiFormat = "F4")]
 		public double flowRate;
@@ -271,7 +269,6 @@ namespace FNPlugin
         [KSPField]
         protected double currentGeneratorThermalEnergyRequestRatio;
 
-		protected double previousDeltaTime;
 		protected double previousInputMegajoules = 0;
 
 
@@ -315,6 +312,9 @@ namespace FNPlugin
 		protected double total_conversion_waste_heat_production;
 		protected double connectedRecieversSum;
 		protected int initializationCountdown;
+        protected double powerDownFraction;
+        protected PowerStates _powerState;
+        protected ResourceBuffers resourceBuffers;
 
         protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
 		protected Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
@@ -509,8 +509,6 @@ namespace FNPlugin
 		protected long deactivate_timer = 0;
 		protected double solarInputMegajoules = 0;
 		protected double solarInputMegajoulesMax = 0;
-		
-		protected double partBaseWasteheat;
 
 		protected bool has_transmitter = false;
 
@@ -916,14 +914,16 @@ namespace FNPlugin
 					((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
 			}
 
-			// calculate WasteHeat Capacity
-			partBaseWasteheat = part.mass * 2.0e+5 * wasteHeatMultiplier;
-
-			// calculate Power Capacity buffer
-			partBaseMegajoules = StableMaximumReactorPower * 0.05;
-
-			// initialize power buffers
-			UpdateBuffers(powerInputMegajoules);
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+            resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+            resourceBuffers.Init(this.part);
 
 			// look for any transmitter partmodule
 			part_transmitter = part.FindModuleImplementing<MicrowavePowerTransmitter>();
@@ -967,76 +967,44 @@ namespace FNPlugin
 				animation = part.FindModelAnimators(animName).FirstOrDefault();
 		}
 
-		private void UpdateBuffers(double inputPower)
+		private void UpdateBuffers()
 		{
 			try
 			{
-                var wasteheatResource = part.Resources[ResourceManager.FNRESOURCE_WASTEHEAT];
-				if (wasteheatResource != null && TimeWarp.fixedDeltaTime != previousDeltaTime)
-				{
-					var ratio = Math.Min(1, wasteheatResource.amount / wasteheatResource.maxAmount);
-					wasteheatResource.maxAmount = partBaseWasteheat * TimeWarp.fixedDeltaTime; ;
-					wasteheatResource.amount = wasteheatResource.maxAmount * ratio;
-				}
-
-                var thermalResource = part.Resources[ResourceManager.FNRESOURCE_THERMALPOWER];
-                var megajouleResource = part.Resources[ResourceManager.FNRESOURCE_MEGAJOULES];
-                var electricResource = part.Resources[ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE];
-
-				if (inputPower > 0)
-				{
-					if (thermalResource != null)
-					{
-						var ratio = Math.Min(1, thermalResource.amount / thermalResource.maxAmount);
-						thermalResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
-						thermalResource.amount = thermalResource.maxAmount * ratio;
-					}
-					if (megajouleResource != null)
-					{
-						var ratio = Math.Min(1, megajouleResource.amount / megajouleResource.maxAmount);
-						megajouleResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
-						megajouleResource.amount = megajouleResource.maxAmount * ratio;
-					}
-					if (electricResource != null)
-					{
-						var ratio = Math.Min(1, electricResource.amount / electricResource.maxAmount);
-						electricResource.maxAmount = inputPower * TimeWarp.fixedDeltaTime;
-						electricResource.amount = electricResource.maxAmount * ratio;
-					}
-				}
-				else
-				{
-					if (thermalResource != null && thermalResource.maxAmount > 0.001)
-					{
-						var ratio = Math.Min(1, thermalResource.amount / thermalResource.maxAmount);
-						thermalResource.maxAmount = Math.Min(StableMaximumReactorPower * TimeWarp.fixedDeltaTime, thermalResource.maxAmount * 0.99);
-						thermalResource.amount = Math.Min(thermalResource.maxAmount, thermalResource.amount);
-					}
-					if (megajouleResource != null && megajouleResource.maxAmount > 0.001)
-					{
-						var ratio = Math.Min(1, megajouleResource.amount / megajouleResource.maxAmount);
-						megajouleResource.maxAmount = Math.Min(StableMaximumReactorPower * TimeWarp.fixedDeltaTime, megajouleResource.maxAmount * 0.9);
-						megajouleResource.amount = Math.Min(megajouleResource.maxAmount, megajouleResource.amount);
-					}
-					if (electricResource != null && electricResource.maxAmount > 0.001)
-					{
-						var ratio = Math.Min(1, electricResource.amount / electricResource.maxAmount);
-						electricResource.maxAmount = Math.Min(StableMaximumReactorPower * TimeWarp.fixedDeltaTime, electricResource.maxAmount * 0.9);
-						electricResource.amount = Math.Min(electricResource.maxAmount, electricResource.amount);
-					}
-				}
-			}    
-			catch (Exception e)
+                powerDownFraction = 1;
+                _powerState = PowerStates.powerOnline;
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+                resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+                resourceBuffers.UpdateBuffers();
+            }
+            catch (Exception e)
 			{
 				Debug.LogError("[KSPI] - MicrowavePowerReceiver.UpdateBuffers " + e.Message);
 			}
-			previousDeltaTime = TimeWarp.fixedDeltaTime;
 		}
 
-		/// <summary>
-		/// Event handler called when part is attached to another part
-		/// </summary>
-		private void OnEditorAttach()
+        private void PowerDown()
+        {
+            if (_powerState != PowerStates.powerOffline)
+            {
+                if (powerDownFraction > 0)
+                    powerDownFraction -= 0.01;
+
+                if (powerDownFraction <= 0)
+                    _powerState = PowerStates.powerOffline;
+
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower * powerDownFraction);
+                resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower * powerDownFraction);
+                resourceBuffers.UpdateBuffers();
+            }
+        }
+
+        /// <summary>
+        /// Event handler called when part is attached to another part
+        /// </summary>
+        private void OnEditorAttach()
 		{
 			try
 			{
@@ -1587,7 +1555,7 @@ namespace FNPlugin
 					fnRadiator.canRadiateHeat = true;
 					fnRadiator.radiatorIsEnabled = true;
 				}
-				UpdateBuffers(0);
+				PowerDown();
 				return;
 			}
 
@@ -1607,7 +1575,7 @@ namespace FNPlugin
 						deactivate_timer++;
 						if (FlightGlobals.ActiveVessel == vessel && deactivate_timer > 2)
 							ScreenMessages.PostScreenMessage("Warning Dangerous Overheating Detected: Emergency microwave power shutdown occuring NOW!", 5f, ScreenMessageStyle.UPPER_CENTER);
-						UpdateBuffers(0);
+						PowerDown();
 						return;
 					}
 
@@ -1618,7 +1586,7 @@ namespace FNPlugin
 					AddAlternatorPower();
 
 					// update energy buffers
-					UpdateBuffers(powerInputMegajoules);
+					UpdateBuffers();
 
                     if (isThermalReceiverSlave || thermalMode)
                     {
@@ -1714,7 +1682,7 @@ namespace FNPlugin
 					//connectedrelaysi = 0;
 					ThermalPower = 0;
 
-					UpdateBuffers(0);
+					PowerDown();
 
 					received_power.Clear();
 
