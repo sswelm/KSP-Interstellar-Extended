@@ -1395,9 +1395,9 @@ namespace FNPlugin
 
         public override string GetInfo()
         {
-	        var upgraded = this.HasTechsRequiredToUpgrade();
+            var upgraded = this.HasTechsRequiredToUpgrade();
 
-	        var propNodes = upgraded && isJet ? getPropellantsHybrid() : getPropellants(isJet);
+            var propNodes = upgraded && isJet ? getPropellantsHybrid() : getPropellants(isJet);
 
             var returnStr = "Thrust: Variable\n";
             foreach (var propellantNode in propNodes)

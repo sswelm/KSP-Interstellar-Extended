@@ -51,7 +51,7 @@ namespace FNPlugin
         public const String _TRITIUM_GAS = "Tritium";
 
         private String _uranium_TerraFloride = "UF4";
-		private String _aluminium = _ALIMINIUM;
+        private String _aluminium = _ALIMINIUM;
         private String _ammonia = _LIQUID_AMMONIA;
         private String _argon = _LIQUID_ARGON;
         private String _carbonDioxide = _LIQUID_CO2;

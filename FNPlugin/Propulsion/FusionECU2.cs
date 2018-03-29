@@ -326,7 +326,7 @@ namespace FNPlugin
             {
                 if (state.ToString().Contains(StartState.PreLaunch.ToString()))
                 {
-					Debug.Log("[KSPI] - PreLaunch uses InitialGearRatio:" + InitialGearRatio);
+                    Debug.Log("[KSPI] - PreLaunch uses InitialGearRatio:" + InitialGearRatio);
                     SelectedIsp = ((MaxIsp - MinIsp) * Math.Max(0, Math.Min(1, InitialGearRatio))) + MinIsp;
                 }
 

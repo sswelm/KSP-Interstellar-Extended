@@ -32,7 +32,7 @@ namespace FNPlugin.Refinery
 
         private bool HasAccessToNitrogen()
         {
-			var atmosphericNitrogen = AtmosphericResourceHandler.getAtmosphericResourceContent(_vessel.mainBody.flightGlobalsIndex, InterstellarResourcesConfiguration.Instance.Nitrogen);
+            var atmosphericNitrogen = AtmosphericResourceHandler.getAtmosphericResourceContent(_vessel.mainBody.flightGlobalsIndex, InterstellarResourcesConfiguration.Instance.Nitrogen);
 
             return _vessel.atmDensity * atmosphericNitrogen >= 0.01 || _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Nitrogen).Any(rs => rs.amount > 0);
         }

@@ -14,11 +14,11 @@
 
         public void setUpScienceData(string experiment_title, string experiment_results, float transmitValue, float recoveryValue, float data_size, float xmitScalar, float refValue)
         {
-			this.title = experiment_title;
+            this.title = experiment_title;
             this.resultText = experiment_results;
             //this.transmitValue = valueAfterTransmit;
 
-			// No need for manual tinkering now
+            // No need for manual tinkering now
             //this.valueAfterTransmit = transmitValue;
             //this.valueAfterRecovery = recoveryValue;
             //this.dataSize = data_size;

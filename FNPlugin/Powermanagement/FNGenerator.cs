@@ -358,8 +358,8 @@ namespace FNPlugin
 
             //if (state == PartModule.StartState.Docked)
             //{
-            //	base.OnStart(state);
-            //	return;
+            //    base.OnStart(state);
+            //    return;
             //}
 
             resourceBuffers = new ResourceBuffers();

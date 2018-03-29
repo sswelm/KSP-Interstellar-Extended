@@ -14,11 +14,11 @@ namespace FNPlugin.Reactors
 
         //Persistent False
         [KSPField(isPersistant = false)]
-		public double radius = 2.5;
+        public double radius = 2.5;
         [KSPField(isPersistant = false)]
         public double heatTransportationEfficiency = 0.7f;
         [KSPField(isPersistant = false)]
-		public double maximumPowerRecieved = 6;
+        public double maximumPowerRecieved = 6;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]
@@ -141,9 +141,9 @@ namespace FNPlugin.Reactors
 
         public double ThermalPropulsionEfficiency { get { return 1; } }
 
-		public double PlasmaPropulsionEfficiency { get { return 0; } }
+        public double PlasmaPropulsionEfficiency { get { return 0; } }
 
-	    public double ThermalEnergyEfficiency { get { return 1; } }
+        public double ThermalEnergyEfficiency { get { return 1; } }
 
         public double ChargedParticleEnergyEfficiency { get { return 0; } }
 

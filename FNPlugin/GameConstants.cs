@@ -3,7 +3,7 @@ namespace FNPlugin
 {
     class GameConstants
     {
-		public const double averageKerbinSolarFlux = 1409.285;  // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
+        public const double averageKerbinSolarFlux = 1409.285;  // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
         public const double avogadroConstant = 6.022140857e+23; // number of atoms in 1 mol
         public const double basePowerConsumption = 5;
         public const double baseAMFPowerConsumption = 5000;
@@ -29,7 +29,7 @@ namespace FNPlugin
         public const double microwave_angle = 3.64773814E-10;
         public const double microwave_dish_efficiency = 0.85;
         public const double microwave_alpha = 0.00399201596806387225548902195609;
-	    public const double microwave_beta = 1 - microwave_alpha;
+        public const double microwave_beta = 1 - microwave_alpha;
         public const double stefan_const = 5.67036713e-8;  // Stefan-Botzman const for watts / m2
         public const double rad_const_h = 1000;
         public const double atmospheric_non_precooled_limit = 740;

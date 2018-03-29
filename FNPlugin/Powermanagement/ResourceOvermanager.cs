@@ -22,7 +22,7 @@ namespace FNPlugin
             return fnro;
         }
 
-	    public ResourceOvermanager(String name) 
+        public ResourceOvermanager(String name) 
         {
             managers = new Dictionary<Vessel, ResourceManager>();
             this.resource_name = name;

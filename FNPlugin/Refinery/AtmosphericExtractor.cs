@@ -433,7 +433,7 @@ namespace FNPlugin.Refinery
                 }
                 
                 // produce the resources
-                _ammonia_production_rate =	_ammoniaPercentage == 0 ?	0 : -_part.RequestResource(_ammonia_resource_name, -_atmosphere_consumption_rate * _ammoniaPercentage * fixedDeltaTime / _ammonia.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammonia.density;
+                _ammonia_production_rate = _ammoniaPercentage == 0 ? 0 : -_part.RequestResource(_ammonia_resource_name, -_atmosphere_consumption_rate * _ammoniaPercentage * fixedDeltaTime / _ammonia.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammonia.density;
                 _argon_production_rate = _argonPercentage == 0 ? 0 : -_part.RequestResource(_argon_resource_name, -_atmosphere_consumption_rate * _argonPercentage * fixedDeltaTime / _argon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _argon.density;
                 _dioxide_production_rate = _dioxidePercentage == 0 ? 0 : -_part.RequestResource(_dioxide_resource_name, -_atmosphere_consumption_rate * _dioxidePercentage * fixedDeltaTime / _dioxide.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _dioxide.density;
                 _helium3_production_rate = _helium3Percentage == 0 ? 0 : -_part.RequestResource(_helium3_resource_name, -_atmosphere_consumption_rate * _helium3Percentage * fixedDeltaTime / _helium3.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium3.density;

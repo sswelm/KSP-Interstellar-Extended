@@ -45,10 +45,10 @@ namespace FNPlugin
             return finalpower;
         }
 
-	    public double getAvailablePowerInMW()
-	    {
-		    return getAvailablePowerInKW()/1000;
-	    }
+        public double getAvailablePowerInMW()
+        {
+            return getAvailablePowerInKW()/1000;
+        }
 
         public Vessel Vessel
         {

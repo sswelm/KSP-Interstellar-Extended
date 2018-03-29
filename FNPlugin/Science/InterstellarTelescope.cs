@@ -101,26 +101,26 @@ namespace FNPlugin
 
             if (science_awaiting_addition > 0)
             {
-				ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.InSpaceHigh, vessel.mainBody, "", "");
-				if (subject == null)
-					return false;
+                ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.InSpaceHigh, vessel.mainBody, "", "");
+                if (subject == null)
+                    return false;
 
-				subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
-				subject.scienceCap = 167 * subject.subjectValue;   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,false);
-				subject.dataScale = 1.25f;
+                subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
+                subject.scienceCap = 167 * subject.subjectValue;   //PluginHelper.getScienceMultiplier(vessel.mainBody.flightGlobalsIndex,false);
+                subject.dataScale = 1.25f;
 
-				float remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
-				science_awaiting_addition = Math.Min(science_awaiting_addition, remaining_base_science);
+                float remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
+                science_awaiting_addition = Math.Min(science_awaiting_addition, remaining_base_science);
 
-				// transmission of zero data breaks the experiment result dialog box
-				data_size = Math.Max(float.Epsilon, science_awaiting_addition * subject.dataScale);
-				science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Infrared Telescope Data");
+                // transmission of zero data breaks the experiment result dialog box
+                data_size = Math.Max(float.Epsilon, science_awaiting_addition * subject.dataScale);
+                science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Infrared Telescope Data");
 
-				result_title = "Infrared Telescope Experiment";
+                result_title = "Infrared Telescope Experiment";
                 result_string = "Infrared telescope observations were recovered from the vicinity of " + vessel.mainBody.name + ".";
 
-				recovery_value = science_awaiting_addition;
-				transmit_value = recovery_value;
+                recovery_value = science_awaiting_addition;
+                transmit_value = recovery_value;
                 xmit_scalar = 1;
                 ref_value = subject.scienceCap;
 

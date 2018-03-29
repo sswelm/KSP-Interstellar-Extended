@@ -18,15 +18,15 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wasteheat Ratio")]
         public double resourceBarRatio;
         [KSPField(isPersistant = false)]
-		public double thermalRatioEfficiencyModifier = 0.81;
+        public double thermalRatioEfficiencyModifier = 0.81;
         [KSPField(isPersistant = false)]
-		public double maximumChargedIspMult = 114;
+        public double maximumChargedIspMult = 114;
         [KSPField(isPersistant = false)]
-		public double minimumChargdIspMult = 11.4;
+        public double minimumChargdIspMult = 11.4;
         [KSPField(isPersistant = false)]
-		public double coreTemperatureWasteheatPower = 0.3;
+        public double coreTemperatureWasteheatPower = 0.3;
         [KSPField(isPersistant = false)]
-		public double coreTemperatureWasteheatModifier = -0.2;
+        public double coreTemperatureWasteheatModifier = -0.2;
         [KSPField(isPersistant = false)]
         public double coreTemperatureWasteheatMultiplier = 1.25;
 

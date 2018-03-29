@@ -17,7 +17,7 @@ namespace FNPlugin
             if (vessel.Landed)
             {
                 //PopupDialog.SpawnPopupDialog("Seismic Probe", "Surface will be monitored for impact events.", "OK", false, HighLogic.Skin);
-				PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "Seismic Probe", "Seismic Probe", "Surface will be monitored for impact events.", "OK", false, HighLogic.UISkin);
+                PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "Seismic Probe", "Seismic Probe", "Surface will be monitored for impact events.", "OK", false, HighLogic.UISkin);
                 probeIsEnabled = true;
             }
             else
@@ -82,33 +82,33 @@ namespace FNPlugin
                         science_vess_ref = probe_data.name;
                         bool transmitted = false;
                         string vessel_name = "";
-						float distribution_factor = 0;
+                        float distribution_factor = 0;
 
-						if (probe_data.HasValue("transmitted"))
+                        if (probe_data.HasValue("transmitted"))
                             transmitted = bool.Parse(probe_data.GetValue("transmitted"));
                         if (probe_data.HasValue("vesselname"))
                             vessel_name = probe_data.GetValue("vesselname");
-						if (probe_data.HasValue("distribution_factor"))
-							distribution_factor = float.Parse(probe_data.GetValue("distribution_factor"));
-						
+                        if (probe_data.HasValue("distribution_factor"))
+                            distribution_factor = float.Parse(probe_data.GetValue("distribution_factor"));
+                        
                         if (!transmitted)
                         {
-							ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.SrfLanded, vessel.mainBody, vessel.mainBody.name + "'s surface.", vessel.mainBody.name + "'s surface.");
+                            ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ExperimentSituations.SrfLanded, vessel.mainBody, vessel.mainBody.name + "'s surface.", vessel.mainBody.name + "'s surface.");
                             if (subject == null)
                                 return false;
-							subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
-							subject.scienceCap = 10 * experiment.baseValue * subject.subjectValue;
+                            subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
+                            subject.scienceCap = 10 * experiment.baseValue * subject.subjectValue;
 
-							float base_science = experiment.baseValue * distribution_factor;
-							data_size = base_science * subject.dataScale;
-							science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Impactor Data");
+                            float base_science = experiment.baseValue * distribution_factor;
+                            data_size = base_science * subject.dataScale;
+                            science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Impactor Data");
 
-							result_string = vessel_name + " impacted into " + vessel.mainBody.name + " producing seismic activity.  From this data, information on the structure of " + vessel.mainBody.name + "'s crust can be determined.";
+                            result_string = vessel_name + " impacted into " + vessel.mainBody.name + " producing seismic activity.  From this data, information on the structure of " + vessel.mainBody.name + "'s crust can be determined.";
 
-							float science_amount = base_science * subject.subjectValue;
-							recovery_value = science_amount * subject.scientificValue;
-							transmit_value = recovery_value;
-							ref_value = subject.scienceCap;
+                            float science_amount = base_science * subject.subjectValue;
+                            recovery_value = science_amount * subject.scientificValue;
+                            transmit_value = recovery_value;
+                            ref_value = subject.scienceCap;
 
                             return true;
                         }

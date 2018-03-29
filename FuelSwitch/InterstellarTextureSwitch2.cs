@@ -7,7 +7,7 @@ using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
-	[KSPModule("#LOC_IFS_TextureSwitch_moduleName")]
+    [KSPModule("#LOC_IFS_TextureSwitch_moduleName")]
     public class InterstellarTextureSwitch2 : PartModule
     {
         [KSPField]
@@ -105,7 +105,7 @@ namespace InterstellarFuelSwitch
             return childList;
         }
 
-		[KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_nextSetup")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_nextSetup")]
         public void nextTextureEvent()
         {
             selectedTexture++;
@@ -114,7 +114,7 @@ namespace InterstellarFuelSwitch
             useTextureAll(true);
         }
 
-		[KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_previousSetup")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_previousSetup")]
         public void previousTextureEvent()
         {
             selectedTexture--;

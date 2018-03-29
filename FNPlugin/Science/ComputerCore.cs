@@ -206,35 +206,35 @@ namespace FNPlugin
         {
             ScienceExperiment experiment = ResearchAndDevelopment.GetExperiment(experimentID);
             if (experiment == null)
-				return false;
+                return false;
 
             if (science_to_add > 0)
             {
-				ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "", "");
-				if (subject == null)
-					return false;
-				subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
-				subject.scienceCap = 167 * subject.subjectValue; 
-				subject.dataScale = 1.25f;
+                ScienceSubject subject = ResearchAndDevelopment.GetExperimentSubject(experiment, ScienceUtil.GetExperimentSituation(vessel), vessel.mainBody, "", "");
+                if (subject == null)
+                    return false;
+                subject.subjectValue = PluginHelper.getScienceMultiplier(vessel);
+                subject.scienceCap = 167 * subject.subjectValue; 
+                subject.dataScale = 1.25f;
 
-				double remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
-				science_to_add = Math.Min(science_to_add, remaining_base_science);
+                double remaining_base_science = (subject.scienceCap - subject.science) / subject.subjectValue;
+                science_to_add = Math.Min(science_to_add, remaining_base_science);
 
-				// transmission of zero data breaks the experiment result dialog box
-				data_size = Math.Max(float.Epsilon, science_to_add * subject.dataScale);
-				science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Science Lab Data");
+                // transmission of zero data breaks the experiment result dialog box
+                data_size = Math.Max(float.Epsilon, science_to_add * subject.dataScale);
+                science_data = new ScienceData((float)data_size, 1, 0, subject.id, "Science Lab Data");
 
-				result_title = experiment.experimentTitle;
+                result_title = experiment.experimentTitle;
                 result_string = this.nameStr + " " + getRandomExperimentResult();
 
-				recovery_value = science_to_add;
-				transmit_value = recovery_value;
+                recovery_value = science_to_add;
+                transmit_value = recovery_value;
                 xmit_scalar = 1;
                 ref_value = subject.scienceCap;
 
-				return true;
+                return true;
             }
-			return false;
+            return false;
         }
 
         protected override void cleanUpScienceData()
