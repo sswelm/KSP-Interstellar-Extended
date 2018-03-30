@@ -13,51 +13,62 @@ namespace FNPlugin.Microwave
     [KSPModule("Beamed Power Bandwidth Converter")]
     class BandwidthConverter : PartModule
     {
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wavelength Name")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
         public string bandwidthName = "missing";
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Target Wavelength", guiFormat = "F9", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiFormat = "F9", guiUnits = " m")]
         public double targetWavelength = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Start Wavelength", guiFormat = "F9", guiUnits = " m")]
+        
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F9", guiUnits = " m")]
         public double minimumWavelength = 0.001;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "End Wavelength", guiFormat = "F9", guiUnits = " m")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F9", guiUnits = " m")]
         public double maximumWavelength = 1;
 
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Tech Requirement")]
+        [KSPField(guiActiveEditor = false, guiActive = false)]
         public int AvailableTechLevel;
 
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Electric Efficiency Old", guiFormat = "F0", guiUnits = "%")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double efficiencyPercentage0 = 45;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Electric Power Efficiency", guiFormat = "F0", guiUnits = "%")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double electricEfficiencyPercentage0 = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Thermal Power Efficiency", guiFormat = "F0", guiUnits = "%")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double thermalEfficiencyPercentage0 = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Tech Requirement")]
+        [KSPField(guiActiveEditor = false, guiActive = false)]
         public string techRequirement0 = "";
 
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Electric Efficiency Old", guiFormat = "F0", guiUnits = "%")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double efficiencyPercentage1 = 45;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Electric Power Efficiency", guiFormat = "F0", guiUnits = "%")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double electricEfficiencyPercentage1 = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Thermal Power Efficiency", guiFormat = "F0", guiUnits = "%")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double thermalEfficiencyPercentage1 = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Tech Requirement")]
+        [KSPField(guiActiveEditor = false, guiActive = false)]
         public string techRequirement1 = "";
 
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Electric Efficiency Old", guiFormat = "F0", guiUnits = "%")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double efficiencyPercentage2 = 45;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Electric Power Efficiency", guiFormat = "F0", guiUnits = "%")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double electricEfficiencyPercentage2 = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Thermal Power Efficiency", guiFormat = "F0", guiUnits = "%")]
+        [KSPField( guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double thermalEfficiencyPercentage2 = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Tech Requirement")]
+        [KSPField(guiActiveEditor = false, guiActive = false)]
         public string techRequirement2 = "";
 
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
+        public double efficiencyPercentage3 = 45;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
+        public double electricEfficiencyPercentage3 = 0;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
+        public double thermalEfficiencyPercentage3 = 0;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        public string techRequirement3 = "";
 
         public void Initialize()
         {
-            if (PluginHelper.HasTechRequirementAndNotEmpty(techRequirement2))
+            if (PluginHelper.HasTechRequirementAndNotEmpty(techRequirement3))
+                AvailableTechLevel = 3;
+            else if (PluginHelper.HasTechRequirementAndNotEmpty(techRequirement2))
                 AvailableTechLevel = 2;
-            if (PluginHelper.HasTechRequirementAndNotEmpty(techRequirement1))
+            else if (PluginHelper.HasTechRequirementAndNotEmpty(techRequirement1))
                 AvailableTechLevel = 1;
             else if (PluginHelper.HasTechRequirementOrEmpty(techRequirement0))
                 AvailableTechLevel = 0;
@@ -73,6 +84,8 @@ namespace FNPlugin.Microwave
                     return electricEfficiencyPercentage1 > 0 ? electricEfficiencyPercentage1 : efficiencyPercentage1;
                 else if (AvailableTechLevel == 2)
                     return electricEfficiencyPercentage2 > 0 ? electricEfficiencyPercentage2 : efficiencyPercentage2;
+                else if (AvailableTechLevel == 3)
+                    return electricEfficiencyPercentage3 > 0 ? electricEfficiencyPercentage3 : efficiencyPercentage3;
                 else
                     return 0;
             }
@@ -88,6 +101,8 @@ namespace FNPlugin.Microwave
                     return thermalEfficiencyPercentage1 > 0 ? thermalEfficiencyPercentage1 : efficiencyPercentage1;
                 else if (AvailableTechLevel == 2)
                     return thermalEfficiencyPercentage2 > 0 ? thermalEfficiencyPercentage2 : efficiencyPercentage2;
+                else if (AvailableTechLevel == 3)
+                    return thermalEfficiencyPercentage3 > 0 ? thermalEfficiencyPercentage3 : efficiencyPercentage3;
                 else
                     return 0;
             }
@@ -103,6 +118,8 @@ namespace FNPlugin.Microwave
                     return efficiencyPercentage1 > 0 ? efficiencyPercentage1 : thermalEfficiencyPercentage1;
                 else if (AvailableTechLevel == 2)
                     return efficiencyPercentage2 > 0 ? efficiencyPercentage2 : thermalEfficiencyPercentage2;
+                else if (AvailableTechLevel == 3)
+                    return efficiencyPercentage3 > 0 ? efficiencyPercentage3 : thermalEfficiencyPercentage3;
                 else
                     return 0;
             }
@@ -123,6 +140,7 @@ namespace FNPlugin.Microwave
         {
             var info = new StringBuilder();
 
+            info.AppendLine("<size=10>");
             info.AppendLine("Name: " + bandwidthName);
             info.AppendLine("Bandwidth start: " + minimumWavelength + " m");
             info.AppendLine("Bandwidth end: " + maximumWavelength + " m");
@@ -142,6 +160,12 @@ namespace FNPlugin.Microwave
                 info.AppendLine("Mk3 technode: \n" + PluginHelper.GetTechTitleById(techRequirement2));
                 info.AppendLine("Mk3 efficiency: " + efficiencyPercentage2 + "%");
             }
+            if (!string.IsNullOrEmpty(techRequirement3))
+            {
+                info.AppendLine("Mk4 technode: \n" + PluginHelper.GetTechTitleById(techRequirement3));
+                info.AppendLine("Mk4 efficiency: " + efficiencyPercentage2 + "%");
+            }
+            info.AppendLine("</size>");
 
             return info.ToString();
         }
