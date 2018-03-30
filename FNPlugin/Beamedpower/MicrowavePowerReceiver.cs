@@ -521,15 +521,13 @@ namespace FNPlugin
 
         public double ThermalTransportationEfficiency { get { return heatTransportationEfficiency; } }
 
+        public double ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
         public double PlasmaPropulsionEfficiency { get { return 0; } }
+        public double ChargedParticlePropulsionEfficiency { get { return 0; } }
 
         public double ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
-
-        public double ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
-
+        public double PlasmaEnergyEfficiency { get { return 0; } }
         public double ChargedParticleEnergyEfficiency { get { return 0; } }
-
-        public double ChargedParticlePropulsionEfficiency { get { return 0; } }
 
         public bool IsSelfContained { get { return false; } }
 
@@ -972,7 +970,7 @@ namespace FNPlugin
             try
             {
                 powerDownFraction = 1;
-                _powerState = PowerStates.powerOnline;
+                _powerState = PowerStates.PowerOnline;
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
                 resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
@@ -986,13 +984,13 @@ namespace FNPlugin
 
         private void PowerDown()
         {
-            if (_powerState != PowerStates.powerOffline)
+            if (_powerState != PowerStates.PowerOffline)
             {
                 if (powerDownFraction > 0)
                     powerDownFraction -= 0.01;
 
                 if (powerDownFraction <= 0)
-                    _powerState = PowerStates.powerOffline;
+                    _powerState = PowerStates.PowerOffline;
 
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower * powerDownFraction);
