@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace FNPlugin 
 {
     public class ResourceOvermanager 
     {
         protected static Dictionary<String, ResourceOvermanager> resources_managers = new Dictionary<String, ResourceOvermanager>();
-        protected Dictionary<Vessel, ResourceManager> managers;
-        protected String resource_name;
 
         public static ResourceOvermanager getResourceOvermanagerForResource(String resource_name) 
         {
-            ResourceOvermanager fnro;
+            ResourceOvermanager fnro = null;
 
             if (!resources_managers.TryGetValue(resource_name, out fnro))
             {
@@ -21,6 +20,9 @@ namespace FNPlugin
 
             return fnro;
         }
+
+        protected Dictionary<Vessel, ResourceManager> managers;
+        protected String resource_name;
 
         public ResourceOvermanager(String name) 
         {
@@ -35,6 +37,9 @@ namespace FNPlugin
 
         public ResourceManager getManagerForVessel(Vessel vess) 
         {
+            if (vess == null)
+                return null;
+
             ResourceManager manager;
 
             managers.TryGetValue(vess, out manager);
