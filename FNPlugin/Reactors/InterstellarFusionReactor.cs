@@ -46,6 +46,13 @@ namespace FNPlugin.Reactors
         [KSPField]
         public string fuelModeTechReqLevel7;
 
+        [KSPField]
+        public double maximumChargedIspMult = 100;
+        [KSPField]
+        public double minimumChargdIspMult = 1;
+        [KSPField]
+        public double maintenancePowerWasteheatRatio = 0.1;
+
         [KSPField(guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
         [KSPField(guiActive = true, guiName = "Plasma Ratio")]
@@ -64,9 +71,9 @@ namespace FNPlugin.Reactors
         }
 
 
-        public double MaximumChargedIspMult { get { return 100; } }
+        public double MaximumChargedIspMult { get { return maximumChargedIspMult; } }
 
-        public double MinimumChargdIspMult { get { return 1; } }
+        public double MinimumChargdIspMult { get { return minimumChargdIspMult; } }
 
         public override double StableMaximumReactorPower { get { return base.StableMaximumReactorPower * LithiumModifier; } }
 

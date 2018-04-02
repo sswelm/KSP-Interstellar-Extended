@@ -115,7 +115,6 @@ namespace FNPlugin
         protected EventData<float, float> onMoving;
         protected EventData<float> onStop;
 
-
         //Internal
         protected Animation anim;
         protected List<ModuleDeployableSolarPanel> panels;
@@ -123,10 +122,7 @@ namespace FNPlugin
         protected List<MicrowavePowerReceiver> vessel_recievers;
         protected BeamGenerator activeBeamGenerator;
         protected List<BeamGenerator> beamGenerators;
-
-        protected ModuleAnimateGeneric genericAnimation;
-
-        
+        protected ModuleAnimateGeneric genericAnimation;  
 
         public bool CanMove { get { return true; } }
 

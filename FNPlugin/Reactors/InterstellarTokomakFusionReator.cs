@@ -79,6 +79,9 @@ namespace FNPlugin.Reactors
                     ? powerRequest
                     : consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
+                if (maintenancePowerWasteheatRatio > 0)
+                    supplyFNResourceFixed(maintenancePowerWasteheatRatio * power_consumed, ResourceManager.FNRESOURCE_WASTEHEAT);
+
                 if (isSwappingFuelMode)
                 {
                     plasma_ratio = 1;

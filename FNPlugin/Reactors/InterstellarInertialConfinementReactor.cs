@@ -2,6 +2,15 @@
 
 namespace FNPlugin.Reactors
 {
+    [KSPModule("Quantum Singularity Reactor")]
+    class QuantumSingularityReactor : InterstellarInertialConfinementReactor { }
+
+    [KSPModule("Confinement Fusion Engine")]
+    class IntegratedInertialConfinementReactor : InterstellarInertialConfinementReactor {}
+
+    [KSPModule("Confinement Fusion Reactor")]
+    class InertialConfinementReactor : InterstellarInertialConfinementReactor { }
+
     [KSPModule("Inertial Confinement Fusion Reactor")]
     class InterstellarInertialConfinementReactor : InterstellarFusionReactor
     {
@@ -34,6 +43,8 @@ namespace FNPlugin.Reactors
         public double reactorRatioThreshold = 0.000005;
         [KSPField]
         public double minReactorRatio = 0;
+        [KSPField]
+        public double geeForceMaintenancePowerMultiplier = 0;
 
         // Persistant
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Throttling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
@@ -48,16 +59,15 @@ namespace FNPlugin.Reactors
         public float maxSecondaryPowerUsage = 90;
 
         // UI Display
-        [KSPField(guiActive = false, guiFormat = "F4", guiName = "Required Ratio")]
+        [KSPField(guiActive = false, guiName = "Required Ratio", guiFormat = "F4")]
         public double required_reactor_ratio;
-        [KSPField(guiActive = true, guiUnits = "%", guiFormat = "F2", guiName = "Minimum Throtle")]
+        [KSPField(guiActive = true, guiUnits = "%", guiName = "Minimum Throtle", guiFormat = "F2")]
         public double minimumThrottlePercentage;
         [KSPField(guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
-        [KSPField(guiActive = true, guiName = "Fusion Power Requirement")]
+        [KSPField(guiActive = true, guiName = "Fusion Power Requirement", guiFormat = "F2")]
         public double currentLaserPowerRequirements = 0;
 
-        double primaryPowerRequest;
         double power_consumed;
         bool fusion_alert;
         int jumpstartPowerTime;
@@ -108,6 +118,12 @@ namespace FNPlugin.Reactors
                 : null;
         }
 
+        public override void StartReactor()
+        {
+            // instead of starting the reactor right away, we always first have to charge it
+            isChargingForJumpstart = true;
+        }
+
         public override double MinimumThrottle
         {
             get
@@ -132,7 +148,11 @@ namespace FNPlugin.Reactors
                     : powerControlAffectsMaintenance
                         ? PowerRatio * NormalizedPowerRequirment
                         : NormalizedPowerRequirment;
-                return currentLaserPowerRequirements;
+
+                if (geeForceMaintenancePowerMultiplier > 0)
+                    currentLaserPowerRequirements += Math.Abs(currentLaserPowerRequirements * geeForceMaintenancePowerMultiplier * part.vessel.geeForce);
+
+                return currentLaserPowerRequirements * primaryInputMultiplier;
             }
         }
 
@@ -143,9 +163,9 @@ namespace FNPlugin.Reactors
                 var startupPower = startupPowerMultiplier * LaserPowerRequirements;
                 if (startupCostGravityMultiplier > 0)
                 {
-                    var gravityFactor = startupCostGravityMultiplier * FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
+                    var gravityFactor = startupCostGravityMultiplier * Math.Sqrt(FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude);
                     if (gravityFactor > 0)
-                        startupPower = (float)(startupPower / gravityFactor);
+                        startupPower = startupPower / gravityFactor;
                 }
 
                 return startupPower;
@@ -247,26 +267,27 @@ namespace FNPlugin.Reactors
             // quit if no fuel available
             if (stored_fuel_ratio <= 0.01)
             {
-                primaryPowerRequest = 0;
                 plasma_ratio = 0;
                 return;
             }
 
             var powerRequested = LaserPowerRequirements * required_reactor_ratio;
-            primaryPowerRequest = powerRequested * primaryInputMultiplier;
 
             double primaryPowerReceived;
-            if (!CheatOptions.InfiniteElectricity && primaryPowerRequest > 0)
+            if (!CheatOptions.InfiniteElectricity && powerRequested > 0)
             {
                 primaryPowerReceived = usePowerManagerForPrimaryInputPower
-                    ? consumeFNResourcePerSecondBuffered(primaryPowerRequest, primaryInputResource, 0.1)
-                    : part.RequestResource(primaryInputResourceDefinition.id, primaryPowerRequest * timeWarpFixedDeltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW) / timeWarpFixedDeltaTime;
+                    ? consumeFNResourcePerSecondBuffered(powerRequested, primaryInputResource, 0.1)
+                    : part.RequestResource(primaryInputResourceDefinition.id, powerRequested * timeWarpFixedDeltaTime, ResourceFlowMode.STAGE_PRIORITY_FLOW) / timeWarpFixedDeltaTime;
             }
             else
-                primaryPowerReceived = primaryPowerRequest;
+                primaryPowerReceived = powerRequested;
+
+            if (maintenancePowerWasteheatRatio > 0)
+                supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * primaryPowerReceived, ResourceManager.FNRESOURCE_WASTEHEAT);
 
             // calculate effective primary power ratio
-            var powerReceived = primaryInputMultiplier > 0 ? primaryPowerReceived / primaryInputMultiplier : 0;
+            var powerReceived = primaryPowerReceived;
             var powerRequirmentMetRatio = powerRequested > 0 ? powerReceived / powerRequested : 1;
 
             // retrieve any shortage from secondary buffer
@@ -395,12 +416,22 @@ namespace FNPlugin.Reactors
         {
             if (!canJumpstart || !isChargingForJumpstart || !(part.vessel.geeForce < startupMaximumGeforce)) return;
 
-            var neededPower = StartupPower - accumulatedElectricChargeInMW;
+            var neededPower = Math.Max(StartupPower - accumulatedElectricChargeInMW, 0);
 
-            // first try to charge from Megajoule Storage
-            if (neededPower > 0)
+            if (neededPower <= 0)
+                return;
+
+            var availableStablePower = getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+            var minimumChargingPower = startupMinimumChargePercentage * RawPowerOutput;
+
+            if (availableStablePower < minimumChargingPower)
             {
-                var primaryPowerRequest = neededPower * primaryInputMultiplier;
+                ScreenMessages.PostScreenMessage("You need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor", 5f, ScreenMessageStyle.LOWER_CENTER);
+            }
+            else
+            {
+                var primaryPowerRequest = Math.Min(neededPower, availableStablePower);
 
                 // verify we amount of power collected exceeds treshhold
                 var returnedPrimaryPower = CheatOptions.InfiniteElectricity
@@ -409,11 +440,14 @@ namespace FNPlugin.Reactors
                         ? consumeFNResource(primaryPowerRequest, primaryInputResource)
                         : part.RequestResource(primaryInputResource, primaryPowerRequest);
 
-                var returnedMegaJoulePower = returnedPrimaryPower / primaryInputMultiplier;
+                if (maintenancePowerWasteheatRatio > 0)
+                    supplyFNResourceFixed(maintenancePowerWasteheatRatio * returnedPrimaryPower, ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                if (startupMinimumChargePercentage <= 0 || returnedMegaJoulePower / timeWarpFixedDeltaTime > (startupMinimumChargePercentage * StartupPower))
+                var powerPerSecond = returnedPrimaryPower / timeWarpFixedDeltaTime;
+
+                if (powerPerSecond > minimumChargingPower)
                 {
-                    accumulatedElectricChargeInMW += returnedMegaJoulePower;
+                    accumulatedElectricChargeInMW += returnedPrimaryPower;
                 }
             }
 

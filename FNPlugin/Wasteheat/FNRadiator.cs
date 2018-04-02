@@ -246,7 +246,7 @@ namespace FNPlugin
         private BaseField isAutomatedField;
         private BaseField pivotEnabledField;
 
-        private Animation deployAnim;
+        private Animation deployAnimation;
         private Color emissiveColor;
         private CelestialBody star;
         private Renderer[] renderArray;
@@ -429,12 +429,12 @@ namespace FNPlugin
 
             radiatorIsEnabled = true;
 
-            if (deployAnim == null) return;
+            if (deployAnimation == null) return;
 
-            deployAnim[animName].enabled = true;
-            deployAnim[animName].speed = 0.5f;
-            deployAnim[animName].normalizedTime = 0f;
-            deployAnim.Blend(animName, 2);
+            deployAnimation[animName].enabled = true;
+            deployAnimation[animName].speed = 0.5f;
+            deployAnimation[animName].normalizedTime = 0f;
+            deployAnimation.Blend(animName, 2);
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Retract Radiator", active = true)]
@@ -462,12 +462,12 @@ namespace FNPlugin
 
             radiatorIsEnabled = false;
 
-            if (deployAnim == null) return;
+            if (deployAnimation == null) return;
 
-            deployAnim[animName].enabled = true;
-            deployAnim[animName].speed = -0.5f;
-            deployAnim[animName].normalizedTime = 1;
-            deployAnim.Blend(animName, 2);
+            deployAnimation[animName].enabled = true;
+            deployAnimation[animName].speed = -0.5f;
+            deployAnimation[animName].normalizedTime = 1;
+            deployAnimation.Blend(animName, 2);
         }
 
         [KSPAction("Deploy Radiator")]
@@ -549,19 +549,19 @@ namespace FNPlugin
 
             if (!String.IsNullOrEmpty(thermalAnim))
             {
-                heatStates = SetUpAnimation(thermalAnim, this.part);
+                heatStates = PluginHelper.SetUpAnimation(thermalAnim, this.part);
 
                 if (heatStates != null)
                     SetHeatAnimationRatio(0);
             }
 
-            deployAnim = part.FindModelAnimators(animName).FirstOrDefault();
-            if (deployAnim != null)
+            deployAnimation = part.FindModelAnimators(animName).FirstOrDefault();
+            if (deployAnimation != null)
             {
-                deployAnim[animName].layer = 1;
-                deployAnim[animName].speed = 0;
+                deployAnimation[animName].layer = 1;
+                deployAnimation[animName].speed = 0;
 
-                deployAnim[animName].normalizedTime = radiatorIsEnabled ? 1 : 0;
+                deployAnimation[animName].normalizedTime = radiatorIsEnabled ? 1 : 0;
             }
           
             _moduleActiveRadiator = part.FindModuleImplementing<ModuleActiveRadiator>();
@@ -621,8 +621,11 @@ namespace FNPlugin
             maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature);
 
             resourceBuffers = new ResourceBuffers();
+
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 1.0e+6));
+
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+
             resourceBuffers.Init(this.part);
         }
 
@@ -636,21 +639,6 @@ namespace FNPlugin
                 Deploy();
             else
                 Retract();
-        }
-
-        public static AnimationState[] SetUpAnimation(string animationName, Part part)
-        {
-            var states = new List<AnimationState>();
-            foreach (var animation in part.FindModelAnimators())
-            {
-                var animationState = animation[animationName];
-                animationState.speed = 0;
-                animationState.enabled = true;
-                animationState.wrapMode = WrapMode.ClampForever;
-                animation.Blend(animationName);
-                states.Add(animationState);
-            }
-            return states.ToArray();
         }
 
         public void Update()
@@ -839,7 +827,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNRadiator.FixedUpdate " + e.Message);
+                Debug.LogError("[KSPI] - Exception on " +  part.name + " durring FNRadiator.FixedUpdate with message " + e.Message);
             }
         }
 

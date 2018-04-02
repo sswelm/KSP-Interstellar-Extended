@@ -264,18 +264,21 @@ namespace FNPlugin.Reactors
         public double hotBathTemperature = 0;
         [KSPField]
         public bool hasAlternator = false;
+
         [KSPField]
         public double thermalPropulsionEfficiency = 1;
         [KSPField]
         public double plasmaPropulsionEfficiency = 1;
+        [KSPField]
+        public double chargedParticlePropulsionEfficiency = 1;
+
         [KSPField]
         public double thermalEnergyEfficiency = 1;
         [KSPField]
         public double chargedParticleEnergyEfficiency = 1;
         [KSPField] 
         public double plasmaEnergyEfficiency = 1;
-        [KSPField]
-        public double chargedParticlePropulsionEfficiency = 1;
+
         [KSPField]
         public double maxGammaRayPower = 0;
         [KSPField]
@@ -521,25 +524,18 @@ namespace FNPlugin.Reactors
                 {
                     case GenerationType.Mk7:
                         return minimumThrottleMk7;
-                        break;
                     case GenerationType.Mk6:
                         return minimumThrottleMk6;
-                        break;
                     case GenerationType.Mk5:
                         return minimumThrottleMk5;
-                        break;
                     case GenerationType.Mk4:
                         return minimumThrottleMk4;
-                        break;
                     case GenerationType.Mk3:
                         return minimumThrottleMk3;
-                        break;
                     case GenerationType.Mk2:
                         return minimumThrottleMk2;
-                        break;
                     default:
                         return minimumThrottleMk1;
-                        break;
                 }
             }
         }
@@ -1662,15 +1658,80 @@ namespace FNPlugin.Reactors
         {
             UpdateReactorCharacteristics();
 
-            var fuelmodes = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
-            var basicFuelmodes = fuelmodes.Select(node => new ReactorFuelMode(node)).Where(fm => (fm.SupportedReactorTypes & reactorType) == reactorType).ToList();
+            //var fuelmodes = GameDatabase.Instance.GetConfigNodes("REACTOR_FUEL_MODE");
+            //var basicFuelmodes = fuelmodes.Select(node => new ReactorFuelMode(node)).Where(fm => (fm.SupportedReactorTypes & reactorType) == reactorType).ToList();
             var sb = new StringBuilder();
 
-            sb.AppendLine("<color=#7fdfffff>");
-            sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_getInfoReactorInfo"));
-            sb.AppendLine("</color>");
-            sb.AppendLine("<size=10>");
-            sb.AppendLine(originalName);
+            //sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_getInfoReactorInfo"));
+
+            sb.AppendLine("<size=11><color=#7fdfffff>" + Localizer.Format("Propulsion") + ":</color><size=10>"); 
+            sb.AppendLine(Localizer.Format("Thermal Nozzle")  + ": " + UtilisationInfo(thermalPropulsionEfficiency));
+            sb.AppendLine(Localizer.Format("Plasma Nozzle")   + ": " + UtilisationInfo(plasmaPropulsionEfficiency));
+            sb.AppendLine(Localizer.Format("Magnetic Nozzle") + ": " + UtilisationInfo(chargedParticlePropulsionEfficiency));
+            sb.Append("</size>");
+            sb.AppendLine();
+            sb.AppendLine("<size=11><color=#7fdfffff>" + Localizer.Format("Power Generation") + ":</color><size=10>"); 
+            sb.AppendLine(Localizer.Format("Thermal Generator")          + ": " + UtilisationInfo(thermalEnergyEfficiency));
+            sb.AppendLine(Localizer.Format("MHD Generator")              + ": " + UtilisationInfo(plasmaEnergyEfficiency));
+            sb.AppendLine(Localizer.Format("Charged Particle Generator") + ": " + UtilisationInfo(chargedParticleEnergyEfficiency));
+            sb.Append("</size>");
+
+            if (!string.IsNullOrEmpty(upgradeTechReqMk2))
+            {
+                sb.AppendLine();
+                sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("Upgrade Technologies") + ":</color><size=10>");
+                if (!string.IsNullOrEmpty(upgradeTechReqMk2)) sb.AppendLine("- " + PluginHelper.GetTechTitleById(upgradeTechReqMk2));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk3)) sb.AppendLine("- " + PluginHelper.GetTechTitleById(upgradeTechReqMk3));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk4)) sb.AppendLine("- " + PluginHelper.GetTechTitleById(upgradeTechReqMk4));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk5)) sb.AppendLine("- " + PluginHelper.GetTechTitleById(upgradeTechReqMk5));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk6)) sb.AppendLine("- " + PluginHelper.GetTechTitleById(upgradeTechReqMk6));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk7)) sb.AppendLine("- " + PluginHelper.GetTechTitleById(upgradeTechReqMk7));
+                sb.Append("</size>");
+            }
+
+            if (thermalEnergyEfficiency > 0 || plasmaEnergyEfficiency > 0 || chargedParticleEnergyEfficiency > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("Reactor Power") + ":</color><size=10>");
+                sb.AppendLine("Mk1: " + PluginHelper.getFormattedPowerString(powerOutputMk1));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk2)) sb.AppendLine("Mk2: " + PluginHelper.getFormattedPowerString(powerOutputMk2));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk3)) sb.AppendLine("Mk3: " + PluginHelper.getFormattedPowerString(powerOutputMk3));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk4)) sb.AppendLine("Mk4: " + PluginHelper.getFormattedPowerString(powerOutputMk4));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk5)) sb.AppendLine("Mk5: " + PluginHelper.getFormattedPowerString(powerOutputMk5));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk6)) sb.AppendLine("Mk6: " + PluginHelper.getFormattedPowerString(powerOutputMk6));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk7)) sb.AppendLine("Mk7: " + PluginHelper.getFormattedPowerString(powerOutputMk7));
+                sb.Append("</size>");
+            }
+            
+            if (plasmaPropulsionEfficiency > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("Plasma Nozzle Performance") + ":</color><size=10>");
+                                                              sb.AppendLine("Mk1: " + PlasmaNozzlePerformance(coreTemperatureMk1, powerOutputMk1 * plasmaPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk2)) sb.AppendLine("Mk2: " + PlasmaNozzlePerformance(coreTemperatureMk2, powerOutputMk2 * plasmaPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk3)) sb.AppendLine("Mk3: " + PlasmaNozzlePerformance(coreTemperatureMk3, powerOutputMk3 * plasmaPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk4)) sb.AppendLine("Mk4: " + PlasmaNozzlePerformance(coreTemperatureMk4, powerOutputMk4 * plasmaPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk5)) sb.AppendLine("Mk5: " + PlasmaNozzlePerformance(coreTemperatureMk5, powerOutputMk5 * plasmaPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk6)) sb.AppendLine("Mk6: " + PlasmaNozzlePerformance(coreTemperatureMk6, powerOutputMk6 * plasmaPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk7)) sb.AppendLine("Mk7: " + PlasmaNozzlePerformance(coreTemperatureMk7, powerOutputMk7 * plasmaPropulsionEfficiency));
+                sb.Append("</size>");
+            }
+
+            if (thermalPropulsionEfficiency > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("Thermal Nozzle Performance") + ":</color><size=10>");
+                sb.AppendLine("Mk1: " + ThermalNozzlePerformance(coreTemperatureMk1, powerOutputMk1 * thermalPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk2)) sb.AppendLine("Mk2: " + ThermalNozzlePerformance(coreTemperatureMk2, powerOutputMk2 * thermalPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk3)) sb.AppendLine("Mk3: " + ThermalNozzlePerformance(coreTemperatureMk3, powerOutputMk3 * thermalPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk4)) sb.AppendLine("Mk4: " + ThermalNozzlePerformance(coreTemperatureMk4, powerOutputMk4 * thermalPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk5)) sb.AppendLine("Mk5: " + ThermalNozzlePerformance(coreTemperatureMk5, powerOutputMk5 * thermalPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk6)) sb.AppendLine("Mk6: " + ThermalNozzlePerformance(coreTemperatureMk6, powerOutputMk6 * thermalPropulsionEfficiency));
+                if (!string.IsNullOrEmpty(upgradeTechReqMk7)) sb.AppendLine("Mk7: " + ThermalNozzlePerformance(coreTemperatureMk7, powerOutputMk7 * thermalPropulsionEfficiency));
+                sb.Append("</size>");
+            }
+
+            /*
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_thermalPower") + ": " + PluginHelper.getFormattedPowerString(powerOutputMk1));
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_coreTemperature") + ": " + coreTemperatureMk1.ToString("0") + "K");
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_fuelEfficiency") + ": " + (fuelEfficencyMk1 * 100.0).ToString("0.00") + "%");
@@ -1689,9 +1750,44 @@ namespace FNPlugin.Reactors
                 }
                 sb.AppendLine("---");
             });
+            */
             sb.AppendLine("</size>");
-
             return sb.ToString();
+        }
+
+        private string ThermalNozzlePerformance(double temperature, double powerInMJ)
+        {
+            var isp = Math.Min(Math.Sqrt(temperature) * 21, PluginHelper.MaxThermalNozzleIsp);
+
+            var exhaustvelocity = isp * 9.81;
+
+            var thrust = powerInMJ * 2000 / exhaustvelocity / powerOutputMultiplier;
+
+            return thrust.ToString("F1") + "kN @ " + isp.ToString("F0") + "s";
+        }
+
+        private string PlasmaNozzlePerformance(double temperature, double powerInMJ)
+        {
+            var isp = Math.Sqrt(temperature) * 21;
+
+            var exhaustvelocity = isp * 9.81;
+
+            var thrust = powerInMJ * 2000 / exhaustvelocity / powerOutputMultiplier;
+
+            return thrust.ToString("F1") + "kN @ " + isp.ToString("F0") + "s";
+        }
+
+        private string UtilisationInfo(double value)
+        {
+            if (value > 0)
+            {
+                string result = "<color=green>Ѵ</color>";
+                if (value != 1)
+                    result += " <color=orange>" + (value * 100).ToString("F0") + "%</color>";
+                return result;
+            }
+            else
+                return "<color=red>X</color>";
         }
 
         protected void DoPersistentResourceUpdate()
