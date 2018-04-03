@@ -18,33 +18,6 @@ namespace FNPlugin.Reactors
 
         [KSPField]
         public bool powerIsAffectedByLithium = true;
-        [KSPField]
-        public double fusionEnergyGainFactorMk1 = 10;
-        [KSPField]
-        public double fusionEnergyGainFactorMk2;
-        [KSPField]
-        public double fusionEnergyGainFactorMk3;
-        [KSPField]
-        public double fusionEnergyGainFactorMk4;
-        [KSPField]
-        public double fusionEnergyGainFactorMk5;
-        [KSPField]
-        public double fusionEnergyGainFactorMk6;
-        [KSPField] 
-        public double fusionEnergyGainFactorMk7;
-
-        [KSPField]
-        public string fuelModeTechReqLevel2;
-        [KSPField]
-        public string fuelModeTechReqLevel3;
-        [KSPField]
-        public string fuelModeTechReqLevel4;
-        [KSPField]
-        public string fuelModeTechReqLevel5;
-        [KSPField]
-        public string fuelModeTechReqLevel6;
-        [KSPField]
-        public string fuelModeTechReqLevel7;
 
         [KSPField]
         public double maximumChargedIspMult = 100;
@@ -143,36 +116,6 @@ namespace FNPlugin.Reactors
             }
         }
 
-        private void DetermineFuelModeTechLevel()
-        {
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel2))
-                fuelModeTechReqLevel2 = upgradeTechReqMk2;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel3))
-                fuelModeTechReqLevel3 = upgradeTechReqMk3;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel4))
-                fuelModeTechReqLevel4 = upgradeTechReqMk4;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel5))
-                fuelModeTechReqLevel5 = upgradeTechReqMk5;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel6))
-                fuelModeTechReqLevel6 = upgradeTechReqMk6;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel7))
-                fuelModeTechReqLevel7 = upgradeTechReqMk7;
-
-            fuelModeTechLevel = 0;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel2))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel3))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel4))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel5))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel6))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel7))
-                fuelModeTechLevel++;
-        }
-
         private void InitialiseGainFactors()
         {
             if (fusionEnergyGainFactorMk2 == 0)
@@ -192,8 +135,6 @@ namespace FNPlugin.Reactors
         public override void OnStart(PartModule.StartState state)
         {
             InitialiseGainFactors();
-
-            DetermineFuelModeTechLevel();
 
             base.OnStart(state);
             Fields["lithium_modifier"].guiActive = powerIsAffectedByLithium;
@@ -284,8 +225,6 @@ namespace FNPlugin.Reactors
             }
             return hasAllFuels;
         }
-
-
 
         protected override void WindowReactorSpecificOverride()
         {
