@@ -80,7 +80,7 @@ namespace FNPlugin.Reactors
                     : consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES) / TimeWarp.fixedDeltaTime;
 
                 if (maintenancePowerWasteheatRatio > 0)
-                    supplyFNResourceFixed(maintenancePowerWasteheatRatio * power_consumed, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * power_consumed, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 if (isSwappingFuelMode)
                 {
