@@ -64,9 +64,9 @@ namespace FNPlugin.Extensions
                 if (BufferedResource != null)
                 {
                     // Calculate amount to max ratio
-                    var wasteHeatRatio = Math.Max(0, Math.Min(1, BufferedResource.maxAmount > 0 ? BufferedResource.amount / BufferedResource.maxAmount : 0));
+                    var resourceRatio = Math.Max(0, Math.Min(1, BufferedResource.maxAmount > 0 ? BufferedResource.amount / BufferedResource.maxAmount : 0));
                     BufferedResource.maxAmount = Math.Max(0.0001, BaseResourceMax);
-                    BufferedResource.amount = Math.Max(0, wasteHeatRatio * BufferedResource.maxAmount);
+                    BufferedResource.amount = Math.Max(0, resourceRatio * BufferedResource.maxAmount);
                 }
             }
 
@@ -115,9 +115,9 @@ namespace FNPlugin.Extensions
                     double maxWasteHeatRatio = ClampInitialMaxAmount && !Initialized ? 0.95d : 1.0d;
 
                     // Calculate amount to max ratio
-                    var wasteHeatRatio = Math.Max(0, Math.Min(maxWasteHeatRatio, BufferedResource.maxAmount > 0 ? BufferedResource.amount / BufferedResource.maxAmount : 0));
+                    var resourceRatio = Math.Max(0, Math.Min(maxWasteHeatRatio, BufferedResource.maxAmount > 0 ? BufferedResource.amount / BufferedResource.maxAmount : 0));
                     BufferedResource.maxAmount = Math.Max(0.0001, timeMultiplier * BaseResourceMax);
-                    BufferedResource.amount = Math.Max(0, wasteHeatRatio * BufferedResource.maxAmount);
+                    BufferedResource.amount = Math.Max(0, resourceRatio * BufferedResource.maxAmount);
                 }
                 Initialized = true;
             }
@@ -131,6 +131,34 @@ namespace FNPlugin.Extensions
                     PreviousDeltaTime = TimeWarp.fixedDeltaTime;
                 }
                 return updateRequired;
+            }
+        }
+
+        public class MaxAmountConfig : TimeBasedConfig
+        {
+            public double InitialMaxAmount { get; private set; }
+            public double MaxMultiplier { get; private set; }
+
+            public MaxAmountConfig(String resourceName, double maxMultiplier)
+                : base(resourceName, 1.0d, 1.0d, false)
+            {
+                this.MaxMultiplier = maxMultiplier;
+            }
+
+            public override void Init(Part part)
+            {
+                base.Init(part);
+                if (BufferedResource != null)
+                {
+                    InitialMaxAmount = BufferedResource.maxAmount;
+                    RecalculateBaseResourceMax();
+                }
+            }
+
+            protected override void RecalculateBaseResourceMax()
+            {
+                // calculate Resource Capacity
+                this.BaseResourceMax = InitialMaxAmount * MaxMultiplier;
             }
         }
 

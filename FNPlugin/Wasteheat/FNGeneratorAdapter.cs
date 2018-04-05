@@ -44,7 +44,7 @@ namespace FNPlugin
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                     {
                         outputType = resourceType.megajoule;
-                        resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 10));
+                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -56,7 +56,7 @@ namespace FNPlugin
                     if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                     {
                         outputType = resourceType.electricCharge;
-                        resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 10));
+                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -135,11 +135,6 @@ namespace FNPlugin
                 mockInputResource.rate = generatorRate;
 
                 double generatorSupply = outputType == resourceType.megajoule ? generatorRate : generatorRate / 1000;
-
-                if (outputType == resourceType.megajoule)
-                    resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, generatorSupply);
-                else
-                    resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorSupply);
 
                 resourceBuffers.UpdateBuffers();
 
