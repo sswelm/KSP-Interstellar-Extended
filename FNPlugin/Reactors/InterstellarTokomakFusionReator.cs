@@ -5,11 +5,17 @@ namespace FNPlugin.Reactors
     [KSPModule("Magnetic Confinement Fusion Reactor")]
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
+        // persistants
+        [KSPField(isPersistant = true, guiActive = true)]
+        public double storedPlasmaEnergy;
+
+        // configs
         [KSPField]
         public double minimumHeatingRequirements = 0.1;
         [KSPField]
         public double heatingRequestExponent = 1.5;
 
+        // help varaiables
         public bool fusion_alert;
         public int jumpstartPowerTime;
         public int fusionAlertFrames;
@@ -50,9 +56,25 @@ namespace FNPlugin.Reactors
             electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(heatingPowerRequirements);
         }
 
-        private float GetPlasmaRatio(double consumedPower, double fusionPowerRequirement)
+        private float GetPlasmaRatio(double receivedPower, double fusionPowerRequirement)
         {
-            return (float)Math.Round(fusionPowerRequirement > 0 ? consumedPower / fusionPowerRequirement : 1, 4);
+            if (receivedPower > fusionPowerRequirement)
+            {
+                storedPlasmaEnergy += ((receivedPower - fusionPowerRequirement) / PowerRequirement);
+                receivedPower = fusionPowerRequirement;
+            }
+            else
+            {
+                var shortage = fusionPowerRequirement - receivedPower;
+                if (shortage < storedPlasmaEnergy)
+                {
+                    storedPlasmaEnergy -= (shortage / PowerRequirement);
+                    receivedPower = fusionPowerRequirement;
+                }
+            }
+
+
+            return (float)Math.Round(fusionPowerRequirement > 0 ? receivedPower / fusionPowerRequirement : 1, 4);
         }
 
         public override void StartReactor()
@@ -61,12 +83,24 @@ namespace FNPlugin.Reactors
 
             if (HighLogic.LoadedSceneIsEditor) return;
 
+            var availablePower = getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES);
+
             var fusionPowerRequirement = PowerRequirement;
 
-            // consume from any stored megajoule source
-            power_consumed = CheatOptions.InfiniteElectricity
-                ? fusionPowerRequirement
-                : part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, fusionPowerRequirement * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+            if (availablePower >= fusionPowerRequirement)
+            {
+                // consume from any stored megajoule source
+                power_consumed = CheatOptions.InfiniteElectricity
+                    ? fusionPowerRequirement
+                    : part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, fusionPowerRequirement * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+            }
+            else
+            {
+                var message = "Not enough power to start fusion reactor, it requires at " + fusionPowerRequirement.ToString("F2") + " MW";
+                UnityEngine.Debug.Log("[KSPI] - " + message);
+                ScreenMessages.PostScreenMessage(message, 5f, ScreenMessageStyle.LOWER_CENTER);
+                return;
+            }
 
             // determine if we have received enough power
             plasma_ratio = GetPlasmaRatio(power_consumed, fusionPowerRequirement);
@@ -74,8 +108,9 @@ namespace FNPlugin.Reactors
             allowJumpStart = plasma_ratio > 0.99;
             if (allowJumpStart)
             {
+                storedPlasmaEnergy = 1;
                 ScreenMessages.PostScreenMessage("Starting fusion reaction", 5f, ScreenMessageStyle.LOWER_CENTER);
-                jumpstartPowerTime = 100;
+                jumpstartPowerTime = 10;
             }
             else
                 ScreenMessages.PostScreenMessage("Not enough power to start fusion reaction", 5f, ScreenMessageStyle.LOWER_CENTER);
@@ -88,10 +123,12 @@ namespace FNPlugin.Reactors
             {
                 var fusionPowerRequirement = HeatingPowerRequirements;
 
+                var requestedPower = fusionPowerRequirement + ((1 - storedPlasmaEnergy) * PowerRequirement);
+
                 // consume power from managed power source
                 power_consumed = CheatOptions.InfiniteElectricity
-                    ? fusionPowerRequirement
-                    : consumeFNResourcePerSecond(fusionPowerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    ? requestedPower
+                    : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 if (maintenancePowerWasteheatRatio > 0)
                     supplyFNResourcePerSecond(maintenancePowerWasteheatRatio * power_consumed, ResourceManager.FNRESOURCE_WASTEHEAT);
@@ -128,7 +165,10 @@ namespace FNPlugin.Reactors
                     if (startDisabled)
                         allowJumpStart = false;
                     else
-                        jumpstartPowerTime = 100;
+                    {
+                        storedPlasmaEnergy = 1;
+                        jumpstartPowerTime = 10;
+                    }
 
                     UnityEngine.Debug.Log("[KSPI] - Jumpstart InterstellarTokamakFusionReactor ");
                 }
