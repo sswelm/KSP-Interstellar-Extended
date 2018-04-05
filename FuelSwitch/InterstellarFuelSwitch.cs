@@ -70,6 +70,12 @@ namespace InterstellarFuelSwitch
         public bool configLoaded = false;
         [KSPField(isPersistant = true)]
         public string initialTankSetup;
+        [KSPField(isPersistant = true)]
+        public float storedFactorMultiplier = 1;
+        [KSPField(isPersistant = true)]
+        public float storedVolumeMultiplier = 1;
+        [KSPField(isPersistant = true)]
+        public float storedMassMultiplier = 1;
 
         // Config properties
         [KSPField]
@@ -92,17 +98,17 @@ namespace InterstellarFuelSwitch
         public string initialResourceAmounts = string.Empty;
         [KSPField]
         public bool ignoreInitialCost = false;
-        [KSPField(guiActiveEditor = false)]
+        [KSPField]
         public bool adaptiveTankSelection = false;
-        [KSPField(guiActiveEditor = false)]
+        [KSPField]
         public float basePartMass = 0;
-        [KSPField(guiActiveEditor = false)]
+        [KSPField]
         public float baseResourceMassDivider = 0;
-        [KSPField(guiActiveEditor = false)]
+        [KSPField]
         public string tankResourceMassDivider = string.Empty;
-        [KSPField(guiActiveEditor = false)]
+        [KSPField]
         public string tankResourceMassDividerAddition = string.Empty;
-        [KSPField(guiActiveEditor = false)]
+        [KSPField]
         public bool overrideMassWithTankDividers = false;
 
         [KSPField]
@@ -125,17 +131,17 @@ namespace InterstellarFuelSwitch
         public bool displayTankCost = false;
         [KSPField]
         public bool displayWetDryMass = true;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public bool hasSwitchChooseOption = true;
         [KSPField]
         public bool hasGUI = true;
         [KSPField]
         public bool boiloffActive = false;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public bool availableInFlight = false;
         [KSPField]
         public bool availableInEditor = true;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public bool returnDryMass = false;
         [KSPField]
         public string inEditorSwitchingTechReq;
@@ -150,7 +156,9 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string resourcesFormat = "0.0000";
         [KSPField]
-        public bool canSwithWithFullTanks = false;
+        public bool canSwitchWithFullTanks = false;
+        [KSPField]
+        public bool allowedToSwitch;
 
         //dummyvalues
         [KSPField]
@@ -169,21 +177,12 @@ namespace InterstellarFuelSwitch
         // Debug
         [KSPField]
         public double dryMass;
-        //[KSPField]
-        //public double wetMass;
         [KSPField]
         public double initialMass;
         [KSPField]
         public double moduleMassDelta;
         [KSPField]
         public float defaultMass;
-
-        [KSPField(isPersistant = true, guiActiveEditor = false)]
-        public float storedFactorMultiplier = 1;
-        [KSPField(isPersistant = true)]
-        public float storedVolumeMultiplier = 1;
-        [KSPField(isPersistant = true)]
-        public float storedMassMultiplier = 1;
 
         [KSPField]
         public string resourceAmountStr0 = "";
@@ -206,9 +205,6 @@ namespace InterstellarFuelSwitch
         public double resourceCost = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiFormat = "F3", guiUnits = " Ѵ")]         // Total Tank cost
         public double totalCost = 0;
-
-        [KSPField(guiActive = true)]
-        public bool allowedToSwitch;
 
         InterstellarTextureSwitch2 textureSwitch;
         List<string> currentResources;
@@ -1016,7 +1012,7 @@ namespace InterstellarFuelSwitch
                 UpdateGuiResourceMass();
 
                 allowedToSwitch = availableInFlight && _numberOfAvailableTanks > 1 &&
-                                    (canSwithWithFullTanks || (
+                                    (canSwitchWithFullTanks || (
                                       (_partResource0 == null || _partResource0.amount < _partResourceMaxAmountFraction0) &&
                                       (_partResource1 == null || _partResource1.amount < _partResourceMaxAmountFraction1) &&
                                       (_partResource2 == null || _partResource2.amount < _partResourceMaxAmountFraction2))

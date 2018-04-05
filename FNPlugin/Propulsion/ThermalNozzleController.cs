@@ -71,7 +71,7 @@ namespace FNPlugin
         [KSPField]
         public double engineHeatProductionExponent = 0.8;
         [KSPField]
-        public double engineHeatFuelThreshold = 0.001;
+        public double engineHeatFuelThreshold = 0.000001;
         [KSPField]
         public double skinMaxTemp = 2750;
         [KSPField]
@@ -143,11 +143,15 @@ namespace FNPlugin
         public double _thrustPropellantMultiplier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float baseHeatProduction = 100;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Multiplier")]
+        public float heatProductionMult = 0.3f;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Exponent")]
+        public float heatProductionExponent = 7.1f;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F4")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F5")]
         public double pressureThreshold;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_thermal_power;
@@ -175,13 +179,13 @@ namespace FNPlugin
         protected double max_thrust_in_current_atmosphere;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Final Engine Thrust")]
         protected double final_max_engine_thrust;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxISP", guiFormat = "F3", guiUnits = "s")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "MaxISP", guiFormat = "F3", guiUnits = "s")]
         protected double _maxISP;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MinISP", guiFormat = "F3", guiUnits = "s")]
         protected double _minISP;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F5", guiUnits = " kN")]
         protected double calculatedMaxThrust;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
         protected double max_fuel_flow_rate = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;
@@ -215,7 +219,7 @@ namespace FNPlugin
         protected double availableThermalPower;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Available C Power ", guiUnits = " MJ")]
         protected double availableChargedPower;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
         protected double airflowHeatModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Supply", guiFormat = "F3")]
         protected double effectiveThermalPower;
@@ -1101,6 +1105,8 @@ namespace FNPlugin
             }
             else
                 pressureThreshold = 0;
+
+            Fields["pressureThreshold"].guiActive = pressureThreshold > 0;
         }
 
         private void UpdateAnimation()
@@ -1195,7 +1201,7 @@ namespace FNPlugin
 
                     var powerHeatModifier = GetPowerThrustModifier() * GetHeatThrustModifier();
 
-                    engineMaxThrust = Math.Max(powerHeatModifier * thrustLimit * power_received / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.001);
+                    engineMaxThrust = Math.Max(powerHeatModifier * thrustLimit * power_received / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.0001);
                     calculatedMaxThrust = powerHeatModifier * AttachedReactor.MaximumPower / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio;
                 }
                 else
@@ -1270,7 +1276,7 @@ namespace FNPlugin
                     }
                 }
 
-                if (calculatedMaxThrust <= 0.00001)
+                if (calculatedMaxThrust <= 0.00001 || double.IsNaN(calculatedMaxThrust))
                 {
                     calculatedMaxThrust = 0.00001;
                     max_fuel_flow_rate = 1e-10;
@@ -1306,11 +1312,14 @@ namespace FNPlugin
                 airflowHeatModifier = proportion > 0
                     ? Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit * proportion), 0)
                     : 0;
+
                 airflowHeatModifier *= vessel.atmDensity * (vessel.speed / vessel.speedOfSound);
+                if (double.IsNaN(airflowHeatModifier)) 
+                    airflowHeatModifier = 0;
 
                 engineHeatProduction = (max_fuel_flow_rate >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.001)
-                    ? baseHeatProduction * PluginHelper.EngineHeatProduction / max_fuel_flow_rate / _maxISP / part.mass
-                    : baseHeatProduction;
+                    ? Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / max_fuel_flow_rate / _maxISP / part.mass 
+                    : 100;
 
                 engineHeatProduction *= (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult);
 

@@ -581,7 +581,12 @@ namespace FNPlugin
         {
             foreach (String resourcename in resources_to_supply)
             {
-                ResourceManager resource_manager = getOvermanagerForResource(resourcename).getManagerForVessel(vessel);
+                var overmanager = getOvermanagerForResource(resourcename);
+
+                if (overmanager == null)
+                    continue;
+
+                ResourceManager resource_manager = overmanager.getManagerForVessel(vessel);
 
                 if (resource_manager != null && resource_manager.PartModule == this)
                     resource_manager.UpdatePartModule(null);

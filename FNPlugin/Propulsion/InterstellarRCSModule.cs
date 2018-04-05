@@ -207,7 +207,7 @@ namespace FNPlugin
             efficencyStr = (efficency * 100).ToString() + "%";
 
             if (!String.IsNullOrEmpty(AnimationName))
-                rcsStates = SetUpAnimation(AnimationName, this.part);
+                rcsStates = PluginHelper.SetUpAnimation(AnimationName, this.part);
 
             // initialize propellant
             _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
@@ -334,21 +334,6 @@ namespace FNPlugin
                 hasSufficientPower = true;
                 SetupPropellants(true, 0);
             }
-        }
-
-        public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
-        {
-            var states = new List<AnimationState>();
-            foreach (var animation in part.FindModelAnimators(animationName))
-            {
-                var animationState = animation[animationName];
-                animationState.speed = 0;
-                animationState.enabled = true;
-                animationState.wrapMode = WrapMode.ClampForever;
-                animation.Blend(animationName);
-                states.Add(animationState);
-            }
-            return states.ToArray();
         }
 
         public override string getResourceManagerDisplayName()

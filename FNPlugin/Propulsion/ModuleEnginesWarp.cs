@@ -23,6 +23,10 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "Demand")]
         public double propellantUsed;
 
+		// Resource used for deltaV and mass calculations
+		[KSPField]
+		public string resourceDeltaV = "LqdHydrogen";
+
         //[KSPField(guiActive = false, guiName = "Calc Flow")]
         //public double calcualtedFlow;
 
@@ -41,23 +45,21 @@ namespace FNPlugin
         float previousThrottle = 0;
 
         // Are we transitioning from timewarp to reatime?
-        [KSPField]
-        bool warpToReal = false;
+        bool _warpToReal = false;
 
-        // Resource used for deltaV and mass calculations
-        [KSPField]
-        public string resourceDeltaV;
+
+
         // Density of resource
-        double density;
+        double _density;
 
         // Update
         public override void OnUpdate()
         {
             // When transitioning from timewarp to real update throttle
-            if (warpToReal)
+            if (_warpToReal)
             {
                 vessel.ctrlState.mainThrottle = ThrottlePersistent;
-                warpToReal = false;
+                _warpToReal = false;
             }
 
             // Persistent thrust GUI
@@ -67,14 +69,13 @@ namespace FNPlugin
 
             // Update display values
             Thrust = FormatThrust(thrust_d);
-            Isp = Math.Round(isp_d, 2).ToString() + " s";
-            Throttle = Math.Round(throttle_d * 100).ToString() + "%";
+            Isp = Math.Round(isp_d, 2) + " s";
+            Throttle = Math.Round(throttle_d * 100) + "%";
 
-            if (!IsForceActivated && isEnabled && isOperational)
-            {
-                IsForceActivated = true;
-                part.force_activate();
-            }
+	        if (IsForceActivated || !isEnabled || !isOperational) return;
+
+	        IsForceActivated = true;
+	        part.force_activate();
         }
 
         // Initialization
@@ -84,7 +85,7 @@ namespace FNPlugin
             base.OnLoad(node);
 
             // Initialize density of propellant used in deltaV and mass calculations
-            density = PartResourceLibrary.Instance.GetDefinition(resourceDeltaV).density;
+            _density = PartResourceLibrary.Instance.GetDefinition(resourceDeltaV).density;
         }
 
         // Physics update
@@ -93,17 +94,23 @@ namespace FNPlugin
             if (FlightGlobals.fetch == null || !isEnabled) return;
 
             // Realtime mode
-            if (!this.vessel.packed)
+            if (!vessel.packed)
             {
+                if (this.currentThrottle > 0 && !vessel.packed)
+                {
+                    if (vessel.geeForce <= 2)
+                        vessel.IgnoreGForces(1);
+                }
+
                 //double mdot = requestedMassFlow;
                 requestedFlow = this.requestedMassFlow;
                 //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
-                double dm = requestedFlow * TimeWarp.fixedDeltaTime; 
-                propellantUsed = dm / density; // Resource demand
+                var dm = requestedFlow * TimeWarp.fixedDeltaTime; 
+                propellantUsed = dm / _density; // Resource demand
 
                 // if not transitioning from warp to real
                 // Update values to use during timewarp
-                if (!warpToReal) //&& vessel.ctrlState.mainThrottle == previousThrottle)
+                if (!_warpToReal) //&& vessel.ctrlState.mainThrottle == previousThrottle)
                 {
                     IspPersistent = realIsp;
                     ThrottlePersistent = vessel.ctrlState.mainThrottle;
@@ -114,16 +121,16 @@ namespace FNPlugin
                         ThrustPersistent = finalThrust;
                 }
             }
-            else if (part.vessel.situation != Vessel.Situations.SUB_ORBITAL)
+            else //if (part.vessel.situation != Vessel.Situations.SUB_ORBITAL)
             { 
                 // Timewarp mode: perturb orbit using thrust
-                warpToReal = true; // Set to true for transition to realtime
-                double UT = Planetarium.GetUniversalTime(); // Universal time
+                _warpToReal = true; // Set to true for transition to realtime
+                var universalTime = Planetarium.GetUniversalTime(); // Universal time
 
                 requestedFlow = this.requestedMassFlow;
                 //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
-                double dm = requestedFlow * TimeWarp.fixedDeltaTime; // Change in mass over dT
-                double demandReq = dm / density; // Resource demand
+                var dm = requestedFlow * TimeWarp.fixedDeltaTime; // Change in mass over dT
+                var demandReq = dm / _density; // Resource demand
 
                 // Update vessel resource
                 propellantUsed = CheatOptions.InfinitePropellant ? demandReq : part.RequestResource(resourceDeltaV, demandReq);
@@ -132,14 +139,13 @@ namespace FNPlugin
                 // TODO test if dm exceeds remaining propellant mass
                 if (propellantUsed > 0)
                 {
-                    double vesselMass = this.vessel.GetTotalMass(); // Current mass
-                    double m1 = vesselMass - dm; // Mass at end of burn
-                    double deltaV = IspPersistent * PluginHelper.GravityConstant * Math.Log(vesselMass / m1); // Delta V from burn
+                    var vesselMass = this.vessel.GetTotalMass(); // Current mass
+                    var m1 = vesselMass - dm; // Mass at end of burn
+                    var deltaV = IspPersistent * PluginHelper.GravityConstant * Math.Log(vesselMass / m1); // Delta V from burn
 
                     Vector3d thrustV = this.part.transform.up; // Thrust direction
-                    Vector3d deltaVV = deltaV * thrustV; // DeltaV vector
-                    vessel.orbit.Perturb(deltaVV, UT); // Update vessel orbit
-                    //this.rigidbody.AddRelativeForce(deltaVV, ForceMode.Impulse);
+                    var deltaVV = deltaV * thrustV; // DeltaV vector
+                    vessel.orbit.Perturb(deltaVV, universalTime); // Update vessel orbit
                 }
                 // Otherwise, if throttle is turned on, and demand out is 0, show warning
                     
@@ -148,10 +154,10 @@ namespace FNPlugin
                     Debug.Log("Propellant depleted");
                 }
             }
-            else //if (vessel.ctrlState.mainThrottle > 0)
-            {
-                ScreenMessages.PostScreenMessage("Cannot accelerate and timewarp durring sub orbital spaceflight!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-            }
+            //else //if (vessel.ctrlState.mainThrottle > 0)
+            //{
+            //	ScreenMessages.PostScreenMessage("Cannot accelerate and timewarp durring sub orbital spaceflight!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+            //}
             
 
             // Update display numbers
@@ -165,11 +171,11 @@ namespace FNPlugin
         public static string FormatThrust(double thrust)
         {
             if (thrust < 0.001)
-                return Math.Round(thrust * 1000000.0, 3).ToString() + " mN";
+                return Math.Round(thrust * 1000000.0, 3) + " mN";
             else if (thrust < 1.0)
-                return Math.Round(thrust * 1000.0, 3).ToString() + " N";
+                return Math.Round(thrust * 1000.0, 3) + " N";
             else
-                return Math.Round(thrust, 3).ToString() + " kN";
+                return Math.Round(thrust, 3) + " kN";
         }
     }
 

@@ -93,15 +93,14 @@ namespace FNPlugin.Reactors.Interfaces
 
         bool IsThermalSource { get; }
 
-        double ThermalPropulsionEfficiency { get; }
 
+        double ThermalPropulsionEfficiency { get; }
         double PlasmaPropulsionEfficiency { get; }
+		double ChargedParticlePropulsionEfficiency { get; }
 
         double ThermalEnergyEfficiency { get; }
-
+		double PlasmaEnergyEfficiency { get; }
         double ChargedParticleEnergyEfficiency { get; }
-
-        double ChargedParticlePropulsionEfficiency { get; }
 
         double EfficencyConnectedThermalEnergyGenerator { get; }
 

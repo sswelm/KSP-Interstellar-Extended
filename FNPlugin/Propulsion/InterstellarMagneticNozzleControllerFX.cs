@@ -191,9 +191,9 @@ namespace FNPlugin
                 }
 
                 // update Isp
-                double current_isp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
+                var currentIsp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
 
-                var ispPowerCostMultiplier = 1 + max_power_multiplier - Math.Log10(current_isp / minimum_isp);
+                var ispPowerCostMultiplier = 1 + max_power_multiplier - Math.Log10(currentIsp / minimum_isp);
 
                 _requestedElectricPower = _charged_particles_received * ispPowerCostMultiplier * 0.005 * Math.Max(_attached_reactor_distance, 1);
 
@@ -201,42 +201,41 @@ namespace FNPlugin
                     ? _requestedElectricPower
                     : consumeFNResourcePerSecond(_requestedElectricPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                var megajoules_ratio = _recievedElectricPower / _requestedElectricPower;
-                megajoules_ratio = (double.IsNaN(megajoules_ratio) || double.IsInfinity(megajoules_ratio)) ? 0 : megajoules_ratio;
+                var megajoulesRatio = _recievedElectricPower / _requestedElectricPower;
+                megajoulesRatio = (double.IsNaN(megajoulesRatio) || double.IsInfinity(megajoulesRatio)) ? 0 : megajoulesRatio;
 
-                FloatCurve new_isp = new FloatCurve();
-                new_isp.Add(0, (float)(current_isp * megajoules_ratio), 0, 0);
-                _attached_engine.atmosphereCurve = new_isp;
+                FloatCurve newIsp = new FloatCurve();
+                newIsp.Add(0, (float)(currentIsp * megajoulesRatio), 0, 0);
+                _attached_engine.atmosphereCurve = newIsp;
 
-                double atmo_thrust_factor = Math.Min(1.0, Math.Max(1.0 - Math.Pow(vessel.atmDensity, 0.2), 0));
+                var atmoThrustFactor = Math.Min(1.0, Math.Max(1.0 - Math.Pow(vessel.atmDensity, 0.2), 0));
 
                 _engineMaxThrust = 0;
                 if (_max_charged_particles_power > 0)
                 {
                     double powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * powerThrustMultiplier;
-                    var enginethrust_from_recieved_particles = powerThrustModifier * _charged_particles_received * megajoules_ratio * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant;
-                    var max_theoretical_thrust = powerThrustModifier * _max_charged_particles_power * atmo_thrust_factor / current_isp / PluginHelper.GravityConstant;
+                    var enginethrust_from_recieved_particles = powerThrustModifier * _charged_particles_received * megajoulesRatio * atmoThrustFactor / currentIsp / PluginHelper.GravityConstant;
+                    var max_theoretical_thrust = powerThrustModifier * _max_charged_particles_power * atmoThrustFactor / currentIsp / PluginHelper.GravityConstant;
 
                     _engineMaxThrust = _attached_engine.currentThrottle > 0
                         ? Math.Max(enginethrust_from_recieved_particles, 0.000000001)
                         : Math.Max(max_theoretical_thrust, 0.000000001);
                 }
 
-                var max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && current_isp > 0
-                    ? _engineMaxThrust / current_isp / PluginHelper.GravityConstant / (_attached_engine.currentThrottle > 0 ? _attached_engine.currentThrottle : 1)
+                var max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && currentIsp > 0
+                    ? _engineMaxThrust / currentIsp / PluginHelper.GravityConstant / (_attached_engine.currentThrottle > 0 ? _attached_engine.currentThrottle : 1)
                     : 0;
 
                 // set maximum flow
                 _attached_engine.maxFuelFlow = Math.Max((float)max_fuel_flow_rate, 0.0000000001f);
 
                 // This whole thing may be inefficient, but it should clear up some confusion for people.
-                if (!_attached_engine.getFlameoutState)
-                {
-                    if (megajoules_ratio < 0.75 && _requestedElectricPower > 0)
-                        _attached_engine.status = "Insufficient Electricity";
-                    else if (atmo_thrust_factor < 0.75)
-                        _attached_engine.status = "Too dense atmospherere";
-                }
+                if (_attached_engine.getFlameoutState) return;
+
+                if (megajoulesRatio < 0.75 && _requestedElectricPower > 0)
+                    _attached_engine.status = "Insufficient Electricity";
+                else if (atmoThrustFactor < 0.75)
+                    _attached_engine.status = "Too dense atmospherere";
             } 
             else if (_attached_engine != null)
             {

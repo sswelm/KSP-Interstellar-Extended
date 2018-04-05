@@ -18,33 +18,13 @@ namespace FNPlugin.Reactors
 
         [KSPField]
         public bool powerIsAffectedByLithium = true;
-        [KSPField]
-        public double fusionEnergyGainFactorMk1 = 10;
-        [KSPField]
-        public double fusionEnergyGainFactorMk2;
-        [KSPField]
-        public double fusionEnergyGainFactorMk3;
-        [KSPField]
-        public double fusionEnergyGainFactorMk4;
-        [KSPField]
-        public double fusionEnergyGainFactorMk5;
-        [KSPField]
-        public double fusionEnergyGainFactorMk6;
-        [KSPField] 
-        public double fusionEnergyGainFactorMk7;
 
         [KSPField]
-        public string fuelModeTechReqLevel2;
+        public double maximumChargedIspMult = 100;
         [KSPField]
-        public string fuelModeTechReqLevel3;
+        public double minimumChargdIspMult = 1;
         [KSPField]
-        public string fuelModeTechReqLevel4;
-        [KSPField]
-        public string fuelModeTechReqLevel5;
-        [KSPField]
-        public string fuelModeTechReqLevel6;
-        [KSPField]
-        public string fuelModeTechReqLevel7;
+        public double maintenancePowerWasteheatRatio = 0.1;
 
         [KSPField(guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
@@ -57,6 +37,13 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode;
 
+        [KSPField]
+        public double reactorRatioThreshold = 0.000005;
+        [KSPField]
+        public double minReactorRatio = 0;
+        [KSPField(guiActive = false, guiName = "Required Ratio", guiFormat = "F4")]
+        public double required_reactor_ratio;
+
         public GenerationType FuelModeTechLevel
         {
             get { return (GenerationType)fuelModeTechLevel; }
@@ -64,9 +51,9 @@ namespace FNPlugin.Reactors
         }
 
 
-        public double MaximumChargedIspMult { get { return 100; } }
+        public double MaximumChargedIspMult { get { return maximumChargedIspMult; } }
 
-        public double MinimumChargdIspMult { get { return 1; } }
+        public double MinimumChargdIspMult { get { return minimumChargdIspMult; } }
 
         public override double StableMaximumReactorPower { get { return base.StableMaximumReactorPower * LithiumModifier; } }
 
@@ -136,36 +123,6 @@ namespace FNPlugin.Reactors
             }
         }
 
-        private void DetermineFuelModeTechLevel()
-        {
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel2))
-                fuelModeTechReqLevel2 = upgradeTechReqMk2;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel3))
-                fuelModeTechReqLevel3 = upgradeTechReqMk3;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel4))
-                fuelModeTechReqLevel4 = upgradeTechReqMk4;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel5))
-                fuelModeTechReqLevel5 = upgradeTechReqMk5;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel6))
-                fuelModeTechReqLevel6 = upgradeTechReqMk6;
-            if (string.IsNullOrEmpty(fuelModeTechReqLevel7))
-                fuelModeTechReqLevel7 = upgradeTechReqMk7;
-
-            fuelModeTechLevel = 0;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel2))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel3))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel4))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel5))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel6))
-                fuelModeTechLevel++;
-            if (PluginHelper.UpgradeAvailable(fuelModeTechReqLevel7))
-                fuelModeTechLevel++;
-        }
-
         private void InitialiseGainFactors()
         {
             if (fusionEnergyGainFactorMk2 == 0)
@@ -185,8 +142,6 @@ namespace FNPlugin.Reactors
         public override void OnStart(PartModule.StartState state)
         {
             InitialiseGainFactors();
-
-            DetermineFuelModeTechLevel();
 
             base.OnStart(state);
             Fields["lithium_modifier"].guiActive = powerIsAffectedByLithium;
@@ -278,8 +233,6 @@ namespace FNPlugin.Reactors
             return hasAllFuels;
         }
 
-
-
         protected override void WindowReactorSpecificOverride()
         {
             GUILayout.BeginHorizontal();
@@ -297,6 +250,14 @@ namespace FNPlugin.Reactors
             GUILayout.EndHorizontal();
 
             PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_style, text_style);
+        }
+
+        public override void OnFixedUpdate()
+        {
+            base.OnFixedUpdate();
+
+            // determine amount of power needed
+            required_reactor_ratio = Math.Max(minReactorRatio, reactor_power_ratio >= reactorRatioThreshold ? reactor_power_ratio : 0);
         }
 
         protected override void SetDefaultFuelMode()

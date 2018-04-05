@@ -92,7 +92,7 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Transmission Efficiency", guiUnits = "%")]
         public double transmissionEfficiencyPercentage;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission Strength"), UI_FloatRange(stepIncrement = 1f/3f, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission Strength"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
@@ -115,7 +115,6 @@ namespace FNPlugin
         protected EventData<float, float> onMoving;
         protected EventData<float> onStop;
 
-
         //Internal
         protected Animation anim;
         protected List<ModuleDeployableSolarPanel> panels;
@@ -123,10 +122,7 @@ namespace FNPlugin
         protected List<MicrowavePowerReceiver> vessel_recievers;
         protected BeamGenerator activeBeamGenerator;
         protected List<BeamGenerator> beamGenerators;
-
-        protected ModuleAnimateGeneric genericAnimation;
-
-        
+        protected ModuleAnimateGeneric genericAnimation;  
 
         public bool CanMove { get { return true; } }
 
@@ -496,7 +492,7 @@ namespace FNPlugin
 
             Fields["apertureDiameter"].guiActive = isTransmitting; 
             Fields["beamedpower"].guiActive = isTransmitting && canBeActive;
-            Fields["transmitPower"].guiActive = isTransmitting;
+            Fields["transmitPower"].guiActive = part_receiver == null || !part_receiver.isActive();
             Fields["displayed_solar_power"].guiActive = isTransmitting && displayed_solar_power > 0;
 
             bool isLinkedForRelay = part_receiver != null && part_receiver.linkedForRelay;

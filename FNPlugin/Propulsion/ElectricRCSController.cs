@@ -340,7 +340,7 @@ namespace FNPlugin
                 efficiencyStr = (efficiency * 100).ToString() + "%";
 
                 if (!String.IsNullOrEmpty(AnimationName))
-                    rcsStates = SetUpAnimation(AnimationName, this.part);
+                    rcsStates = PluginHelper.SetUpAnimation(AnimationName, this.part);
 
                 // initialize propellant
                 _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
@@ -521,21 +521,6 @@ namespace FNPlugin
             // return any unused power
             if (!hasSufficientPower && power_recieved_f > 0)
                 part.RequestResource(definitionMegajoule.id, -power_recieved_f * TimeWarp.fixedDeltaTime);
-        }
-
-        public static AnimationState[] SetUpAnimation(string animationName, Part part)  //Thanks Majiir!
-        {
-            var states = new List<AnimationState>();
-            foreach (var animation in part.FindModelAnimators(animationName))
-            {
-                var animationState = animation[animationName];
-                animationState.speed = 0;
-                animationState.enabled = true;
-                animationState.wrapMode = WrapMode.ClampForever;
-                animation.Blend(animationName);
-                states.Add(animationState);
-            }
-            return states.ToArray();
         }
 
         public override string getResourceManagerDisplayName() 
