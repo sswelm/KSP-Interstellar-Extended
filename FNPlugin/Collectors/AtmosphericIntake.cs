@@ -65,6 +65,10 @@ namespace FNPlugin
         {
             if (state == StartState.Editor) return; // don't do any of this stuff in editor
 
+            _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
+
+            if (_moduleResourceIntake == null) return;
+
             bool hasJetUpgradeTech0 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
             bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
             bool hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
@@ -73,9 +77,6 @@ namespace FNPlugin
             var jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3);
             jetTechBonusPercentage = 10 * (1 + (jetTechBonus / 10.736f));
 
-            _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
-
-            // if _moduleResourceIntake is null there SHOULD be an exception - and it's a good thing.
             area = _moduleResourceIntake.area;
             intakeTransformName = _moduleResourceIntake.intakeTransformName;
             unitScalar = _moduleResourceIntake.unitScalar;
@@ -102,7 +103,7 @@ namespace FNPlugin
 
         private void UpdateAtmosphereBuffer()
         {
-            if (intakeOpen)
+            if (intakeOpen && resourceBuffers != null)
             {
                 resourceBuffers.UpdateBuffers();
             }
@@ -111,6 +112,8 @@ namespace FNPlugin
 
         public void IntakeThatAir()
         {
+            if (_moduleResourceIntake == null) return;
+
             // do not return anything when intakes are closed
             if (_moduleResourceIntake != null && !_moduleResourceIntake.intakeEnabled)
             {
