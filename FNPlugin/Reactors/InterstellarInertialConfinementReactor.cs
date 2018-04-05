@@ -40,10 +40,6 @@ namespace FNPlugin.Reactors
         [KSPField]
         public float startupMinimumChargePercentage = 0;
         [KSPField]
-        public double reactorRatioThreshold = 0.000005;
-        [KSPField]
-        public double minReactorRatio = 0;
-        [KSPField]
         public double geeForceMaintenancePowerMultiplier = 0;
 
         // Persistant
@@ -59,8 +55,6 @@ namespace FNPlugin.Reactors
         public float maxSecondaryPowerUsage = 90;
 
         // UI Display
-        [KSPField(guiActive = false, guiName = "Required Ratio", guiFormat = "F4")]
-        public double required_reactor_ratio;
         [KSPField(guiActive = true, guiUnits = "%", guiName = "Minimum Throtle", guiFormat = "F2")]
         public double minimumThrottlePercentage;
         [KSPField(guiActive = true, guiName = "Charge")]
@@ -260,9 +254,6 @@ namespace FNPlugin.Reactors
             }
 
             ProcessCharging();
-
-            // determine amount of power needed
-            required_reactor_ratio = Math.Max(minReactorRatio, reactor_power_ratio >= reactorRatioThreshold ? reactor_power_ratio : 0);
 
             // quit if no fuel available
             if (stored_fuel_ratio <= 0.01)

@@ -37,6 +37,13 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode;
 
+        [KSPField]
+        public double reactorRatioThreshold = 0.000005;
+        [KSPField]
+        public double minReactorRatio = 0;
+        [KSPField(guiActive = false, guiName = "Required Ratio", guiFormat = "F4")]
+        public double required_reactor_ratio;
+
         public GenerationType FuelModeTechLevel
         {
             get { return (GenerationType)fuelModeTechLevel; }
@@ -243,6 +250,14 @@ namespace FNPlugin.Reactors
             GUILayout.EndHorizontal();
 
             PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_style, text_style);
+        }
+
+        public override void OnFixedUpdate()
+        {
+            base.OnFixedUpdate();
+
+            // determine amount of power needed
+            required_reactor_ratio = Math.Max(minReactorRatio, reactor_power_ratio >= reactorRatioThreshold ? reactor_power_ratio : 0);
         }
 
         protected override void SetDefaultFuelMode()
