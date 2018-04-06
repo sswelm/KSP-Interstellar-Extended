@@ -21,11 +21,11 @@ namespace FNPlugin.Extensions
 
             protected abstract void UpdateBufferForce();
 
-            protected Part _part;
+            protected Part part;
 
             public virtual void Init(Part part)
             {
-                _part = part;
+                this.part = part;
             }
 
             public virtual void UpdateBuffer()
@@ -69,13 +69,12 @@ namespace FNPlugin.Extensions
 
             protected override void UpdateBufferForce()
             {
-                var bufferedResource = _part.Resources[ResourceName];
+                var bufferedResource = part.Resources[ResourceName];
                 if (bufferedResource != null)
                 {
-                    // Calculate amount to max ratio
-                    var wasteHeatRatio = Math.Max(0, Math.Min(1, bufferedResource.maxAmount > 0 ? bufferedResource.amount / bufferedResource.maxAmount : 0));
+                    var resourceRatio = Math.Max(0, Math.Min(1, bufferedResource.maxAmount > 0 ? bufferedResource.amount / bufferedResource.maxAmount : 0));
                     bufferedResource.maxAmount = Math.Max(0.0001, BaseResourceMax);
-                    bufferedResource.amount = Math.Max(0, wasteHeatRatio * bufferedResource.maxAmount);
+                    bufferedResource.amount = Math.Max(0, resourceRatio * bufferedResource.maxAmount);
                 }
             }
 
@@ -118,16 +117,15 @@ namespace FNPlugin.Extensions
 
             protected override void UpdateBufferForce()
             {
-                var bufferedResource = _part.Resources[ResourceName];
+                var bufferedResource = part.Resources[ResourceName];
                 if (bufferedResource != null)
                 {
                     float timeMultiplier = HighLogic.LoadedSceneIsFlight ? TimeWarp.fixedDeltaTime : 0.02f;
                     double maxWasteHeatRatio = ClampInitialMaxAmount && !Initialized ? 0.95d : 1.0d;
 
-                    // Calculate amount to max ratio
-                    var wasteHeatRatio = Math.Max(0, Math.Min(maxWasteHeatRatio, bufferedResource.maxAmount > 0 ? bufferedResource.amount / bufferedResource.maxAmount : 0));
+                    var resourceRatio = Math.Max(0, Math.Min(maxWasteHeatRatio, bufferedResource.maxAmount > 0 ? bufferedResource.amount / bufferedResource.maxAmount : 0));
                     bufferedResource.maxAmount = Math.Max(0.0001, timeMultiplier * BaseResourceMax);
-                    bufferedResource.amount = Math.Max(0, wasteHeatRatio * bufferedResource.maxAmount);
+                    bufferedResource.amount = Math.Max(0, resourceRatio * bufferedResource.maxAmount);
                 }
                 Initialized = true;
             }
@@ -141,6 +139,35 @@ namespace FNPlugin.Extensions
                     PreviousDeltaTime = TimeWarp.fixedDeltaTime;
                 }
                 return updateRequired;
+            }
+        }
+
+        public class MaxAmountConfig : TimeBasedConfig
+        {
+            public double InitialMaxAmount { get; private set; }
+            public double MaxMultiplier { get; private set; }
+
+            public MaxAmountConfig(String resourceName, double maxMultiplier)
+                : base(resourceName, 1.0d, 1.0d, false)
+            {
+                this.MaxMultiplier = maxMultiplier;
+            }
+
+            public override void Init(Part part)
+            {
+                base.Init(part);
+                var bufferedResource = part.Resources[ResourceName];
+                if (bufferedResource != null)
+                {
+                    InitialMaxAmount = bufferedResource.maxAmount;
+                    RecalculateBaseResourceMax();
+                }
+            }
+
+            protected override void RecalculateBaseResourceMax()
+            {
+                // calculate Resource Capacity
+                this.BaseResourceMax = InitialMaxAmount * MaxMultiplier;
             }
         }
 

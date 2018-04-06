@@ -66,12 +66,12 @@ namespace FNPlugin
                 resourceBuffers = new ResourceBuffers();
                 if (solarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
                 {
-                    resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 10));
+                    resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
                     outputType = resourceType.megajoule;
                 }
                 else if (solarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                 {
-                    resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 10));
+                    resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
                     outputType = resourceType.electricCharge;
                 }
                 else
@@ -165,11 +165,6 @@ namespace FNPlugin
                 double maxSupply = solarPanel._distMult > 0
                     ? solarPanel.chargeRate * solarPanel._distMult * solarPanel._efficMult 
                     : solar_rate;
-
-                if (outputType == resourceType.megajoule)
-                    resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, maxSupply);
-                else
-                    resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, maxSupply);
 
                 resourceBuffers.UpdateBuffers();
 

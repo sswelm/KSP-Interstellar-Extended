@@ -48,7 +48,7 @@ namespace FNPlugin
                 base.OnStart(state);
 
                 resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 10));
+                resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
                 resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, 1, 2.0e+5, true));
                 resourceBuffers.Init(this.part);
             }
@@ -126,7 +126,6 @@ namespace FNPlugin
                     part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, _field_addedToTanks.GetValue<float>(moduleGenerator));
                 }
 
-                resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, generatorMax);
                 resourceBuffers.UpdateBuffers();
 
                 megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorRate / 1000, generatorMax / 1000, ResourceManager.FNRESOURCE_MEGAJOULES);
