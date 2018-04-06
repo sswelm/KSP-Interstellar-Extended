@@ -467,18 +467,16 @@ namespace FNPlugin
 
             double demand_supply_ratio = stored_current_demand > 0
                 ? Math.Min((currentPowerSupply - stored_current_charge_demand - stored_current_hp_demand) / stored_current_demand, 1.0)
-                : 1.0;        
+                : 1.0;
 
-            //Prioritise supplying stock ElectricCharge resource
-            if (resourceDefinition.id == megajouleResourceDefinition.id && stored_stable_supply > 0) 
+            //First supply minimal Amount of Stock ElectricCharge resource to keep probe core and life support functioning
+            if (resourceDefinition.id == megajouleResourceDefinition.id && stored_stable_supply > 0)
             {
                 double amount;
                 double maxAmount;
 
                 my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
-                double stock_electric_charge_needed = maxAmount - amount;
-
-                double power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
+                double stock_electric_charge_needed = Math.Min(10, maxAmount - amount);
                 if (stock_electric_charge_needed > 0)
                 {
                     var deltaResourceDemand = stock_electric_charge_needed / 1000 / timeWarpFixedDeltaTime;
@@ -486,6 +484,7 @@ namespace FNPlugin
                     charge_resource_demand += deltaResourceDemand;
                 }
 
+                double power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
                 if (power_supplied > 0)
                 {
                     double fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -power_supplied) / 1000;
@@ -519,8 +518,58 @@ namespace FNPlugin
 
             power_draw_list_archive = power_draw_items.ToList();
             power_draw_list_archive.Reverse();
+
+            // check priority 0 parts like fusion reactors that need to be fed before any other parts can consume large amounts of power
+            foreach (KeyValuePair<IResourceSuppliable, PowerDistribution> power_kvp in power_draw_items)
+            {
+                IResourceSuppliable resourceSuppliable = power_kvp.Key;
+
+                if (resourceSuppliable.getPowerPriority() == 0)
+                {
+                    double power = power_kvp.Value.Power_draw;
+                    current_resource_demand += power;
+                    high_priority_resource_demand += power;
+
+                    if (flow_type == FNRESOURCE_FLOWTYPE_EVEN)
+                        power = power * high_priority_demand_supply_ratio;
+
+                    double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
+
+                    currentPowerSupply -= power_supplied;
+                    total_power_distributed += power_supplied;
+
+                    //notify of supply
+                    resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
+                }
+            }
+
+            //Prioritise supplying stock ElectricCharge for High power
+            if (resourceDefinition.id == megajouleResourceDefinition.id && stored_stable_supply > 0)
+            {
+                double amount;
+                double maxAmount;
+
+                my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
+                double stock_electric_charge_needed = maxAmount - amount;
+
+                double power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
+                if (stock_electric_charge_needed > 0)
+                {
+                    var deltaResourceDemand = stock_electric_charge_needed / 1000 / timeWarpFixedDeltaTime;
+                    current_resource_demand += deltaResourceDemand;
+                    charge_resource_demand += deltaResourceDemand;
+                }
+
+                if (power_supplied > 0)
+                {
+                    double fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -power_supplied) / 1000;
+                    var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW / timeWarpFixedDeltaTime;
+                    total_power_distributed += -provided_electric_charge_per_second;
+                    currentPowerSupply += provided_electric_charge_per_second;
+                }
+            }
             
-            // check priority 1 parts like reactors
+            // check priority 1 parts
             foreach (KeyValuePair<IResourceSuppliable, PowerDistribution> power_kvp in power_draw_items) 
             {
                 IResourceSuppliable resourceSuppliable = power_kvp.Key;
@@ -544,7 +593,7 @@ namespace FNPlugin
                 }
             }
 
-            // check priority 2 parts like reactors
+            // check priority 2 parts
             foreach (KeyValuePair<IResourceSuppliable, PowerDistribution> power_kvp in power_draw_items) 
             {
                 IResourceSuppliable resourceSuppliable = power_kvp.Key;

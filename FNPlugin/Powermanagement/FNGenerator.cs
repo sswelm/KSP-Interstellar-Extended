@@ -366,7 +366,7 @@ namespace FNPlugin
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5, true));
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50 / powerOutputMultiplier));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 1000 / powerOutputMultiplier));
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.Init(this.part);
 
@@ -895,16 +895,26 @@ namespace FNPlugin
                             ? attachedPowerSource.PlasmaEnergyEfficiency
                             : attachedPowerSource.ThermalEnergyEfficiency;
 
-                        var maximumThermalPower = attachedPowerSource.MaximumThermalPower * effectiveThermalEfficiency;
+                        double thermalPowerReceived = 0;
 
-                        var thermalPowerRequestRatio = Math.Min(1, maximumThermalPower > 0 ? thermalPowerRequested / maximumThermalPower : 0);
-                        attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio);
-
-                        var thermalPowerReceived = consumeFNResourcePerSecond(thermalPowerRequested, ResourceManager.FNRESOURCE_THERMALPOWER);
-
-                        if (attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0 && thermalPowerReceived < reactorPowerRequested && attachedPowerSource.ChargedPowerRatio > 0.001)
+                        if (attachedPowerSource.ChargedPowerRatio != 1)
                         {
-                            var requestedChargedPower = Math.Min(Math.Min(reactorPowerRequested - thermalPowerReceived, maxChargedPower), Math.Max(0, maxThermalPower - thermalPowerReceived)) * availableChargedPowerRatio;
+                            var maximumThermalPower = attachedPowerSource.MaximumThermalPower * effectiveThermalEfficiency;
+                            var thermalPowerRequestRatio = Math.Min(1, maximumThermalPower > 0 ? thermalPowerRequested / maximumThermalPower : 0);
+                            thermalPowerReceived = consumeFNResourcePerSecond(thermalPowerRequested, ResourceManager.FNRESOURCE_THERMALPOWER);
+                            attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio);
+                        }
+
+                        if (attachedPowerSource.ChargedPowerRatio == 1)
+                        {
+                            var maximumChargedPower = attachedPowerSource.MaximumChargedPower * effectiveThermalEfficiency;
+                            var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? thermalPowerRequested / maximumChargedPower : 0);
+                            thermalPowerReceived += consumeFNResourcePerSecond(reactorPowerRequested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                            attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio);
+                        }
+                        else  if (attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0 && thermalPowerReceived < reactorPowerRequested && attachedPowerSource.ChargedPowerRatio > 0.001)
+                        {
+                            var requestedChargedPower = Math.Min(Math.Min(reactorPowerRequested - thermalPowerReceived, maxChargedPower), Math.Max(0, maxReactorPower - thermalPowerReceived)) * availableChargedPowerRatio;
 
                             if (requestedChargedPower < 0.000025)
                                 thermalPowerReceived += requestedChargedPower;

@@ -13,9 +13,10 @@ namespace FNPlugin.Reactors
         public string fuel_mode_name = string.Empty;
         [KSPField(isPersistant = true, guiActive = false)]
         public bool allowJumpStart = true;
-        [KSPField(isPersistant = true)]
-        public int powerPriority = 1;
 
+
+        [KSPField]
+        public int powerPriority = 0;
         [KSPField]
         public bool powerIsAffectedByLithium = true;
 

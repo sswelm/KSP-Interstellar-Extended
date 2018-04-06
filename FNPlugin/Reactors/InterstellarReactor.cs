@@ -61,7 +61,7 @@ namespace FNPlugin.Reactors
         public double thermal_power_ratio = 1;
         [KSPField(isPersistant = true)]
         public double charged_power_ratio = 1;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true)]
         public double reactor_power_ratio = 1;
         [KSPField(isPersistant = true)]
         public double power_request_ratio;
@@ -69,7 +69,7 @@ namespace FNPlugin.Reactors
         public double maximum_thermal_request_ratio;
         [KSPField(isPersistant = true)]
         public double maximum_charged_request_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true)]
         public double maximum_reactor_request_ratio;
         [KSPField(isPersistant = true)]
         public double thermalThrottleRatio;

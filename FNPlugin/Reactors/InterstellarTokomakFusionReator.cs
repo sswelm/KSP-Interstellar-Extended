@@ -11,6 +11,8 @@ namespace FNPlugin.Reactors
 
         // configs
         [KSPField]
+        public double plasmaBufferSize = 20;
+        [KSPField]
         public double minimumHeatingRequirements = 0.1;
         [KSPField]
         public double heatingRequestExponent = 1.5;
@@ -123,7 +125,7 @@ namespace FNPlugin.Reactors
             {
                 var fusionPowerRequirement = HeatingPowerRequirements;
 
-                var requestedPower = fusionPowerRequirement + ((1 - storedPlasmaEnergy) * PowerRequirement);
+                var requestedPower = fusionPowerRequirement + ((plasmaBufferSize - storedPlasmaEnergy) * PowerRequirement);
 
                 // consume power from managed power source
                 power_consumed = CheatOptions.InfiniteElectricity
@@ -166,7 +168,7 @@ namespace FNPlugin.Reactors
                         allowJumpStart = false;
                     else
                     {
-                        storedPlasmaEnergy = 1;
+                        storedPlasmaEnergy = plasmaBufferSize;
                         jumpstartPowerTime = 10;
                     }
 
