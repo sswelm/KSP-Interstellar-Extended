@@ -200,28 +200,20 @@ namespace FNPlugin
                 {
                     case (int)GenerationType.Mk1:
                         return maxThrustMk1 + maxThrust;
-                        break;
                     case (int)GenerationType.Mk2:
                         return maxThrustMk2 + maxThrustUpgraded;
-                        break;
                     case (int)GenerationType.Mk3:
                         return maxThrustMk3;
-                        break;
                     case (int)GenerationType.Mk4:
                         return maxThrustMk4;
-                        break;
                     case (int)GenerationType.Mk5:
                         return maxThrustMk5;
-                        break;
                     case (int)GenerationType.Mk6:
                         return maxThrustMk6;
-                        break;
                     case (int)GenerationType.Mk7:
                         return maxThrustMk7;
-                        break;
                     default:
                         return maxThrustMk8;
-                        break;
                 }
             }
         }
