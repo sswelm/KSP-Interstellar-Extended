@@ -78,7 +78,7 @@ namespace InterstellarFuelSwitch
             if (selectedObject < 0)
                 selectedObject = objectDisplayList.Count - 1;
 
-            switchToObject(selectedObject, true);            
+            switchToObject(selectedObject, true);        
         }
 
         private void parseObjectNames()
