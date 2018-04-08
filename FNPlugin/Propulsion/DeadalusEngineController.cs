@@ -28,7 +28,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_maximizeThrust"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool maximizeThrust = true;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_powerUsage")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_powerUsage")]
         public string powerUsage;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_fusionFuel")]
         public string fusionFuel = "FusionPellets";
@@ -185,6 +185,24 @@ namespace FNPlugin
         [KSPField]
         public double powerRequirementMk9 = 10000;
 
+        [KSPField]
+        public double thrustIspMk1 = 83886;
+        [KSPField]
+        public double thrustIspMk2 = 104857;
+        [KSPField]
+        public double thrustIspMk3 = 131072;
+        [KSPField]
+        public double thrustIspMk4 = 163840;
+        [KSPField]
+        public double thrustIspMk5 = 204800;
+        [KSPField]
+        public double thrustIspMk6 = 256000;
+        [KSPField]
+        public double thrustIspMk7 = 320000;
+        [KSPField]
+        public double thrustIspMk8 = 400000;
+        [KSPField]
+        public double thrustIspMk9 = 500000;
 
         [KSPField(guiActive = true, guiName = "Available Upgrade Techs")]
         public int numberOfAvailableUpgradeTechs;
@@ -226,10 +244,9 @@ namespace FNPlugin
         [KSPField]
         public string upgradeTechReq8;
 
-        //bool hasrequiredupgrade;
         bool radhazard;
         bool warpToReal;
-        float engineIsp;
+        double engineIsp;
         double percentageFuelRemaining;
 
         Stopwatch stopWatch;
@@ -239,6 +256,8 @@ namespace FNPlugin
         BaseEvent retrofitEngineEvent;
         BaseField radhazardstrField;
         PartResourceDefinition fusionFuelResourceDefinition;
+
+        const string LIGHTBLUE = "#7fdfffff";
 
         private int _engineGenerationType;
         public GenerationType EngineGenerationType
@@ -383,6 +402,34 @@ namespace FNPlugin
             }
         }
 
+        public double EngineIsp
+        {
+            get
+            {
+                switch (_engineGenerationType)
+                {
+                    case (int)GenerationType.Mk1:
+                        return thrustIspMk1;
+                    case (int)GenerationType.Mk2:
+                        return thrustIspMk2;
+                    case (int)GenerationType.Mk3:
+                        return thrustIspMk3;
+                    case (int)GenerationType.Mk4:
+                        return thrustIspMk4;
+                    case (int)GenerationType.Mk5:
+                        return thrustIspMk5;
+                    case (int)GenerationType.Mk6:
+                        return thrustIspMk6;
+                    case (int)GenerationType.Mk7:
+                        return thrustIspMk7;
+                    case (int)GenerationType.Mk8:
+                        return thrustIspMk8;
+                    default:
+                        return thrustIspMk9;
+                }
+            }
+        }
+
         private double EffectivePowerRequirement
         {
             get
@@ -414,7 +461,7 @@ namespace FNPlugin
 
                 if (curEngineT == null) return;
 
-                engineIsp = curEngineT.atmosphereCurve.Evaluate(0);
+                //engineIsp = curEngineT.atmosphereCurve.Evaluate(0);
 
                 //// if we can upgrade, let's do so
                 //if (isupgraded)
@@ -429,6 +476,8 @@ namespace FNPlugin
                 //}
 
                 DetermineTechLevel();
+
+                engineIsp = EngineIsp;
 
                 // bind with fields and events
                 deactivateRadSafetyEvent = Events["DeactivateRadSafety"];
@@ -502,17 +551,16 @@ namespace FNPlugin
             {
                 if (HighLogic.LoadedSceneIsEditor)
                 {
-                    powerUsage = (EffectivePowerRequirement / 1000d).ToString("0.000") + " GW";
+                    //powerUsage = (EffectivePowerRequirement / 1000d).ToString("0.000") + " GW";
 
-                    guiMaxThrustMk1 = FormatStatistics(powerRequirementMk1, maxThrustMk1, EngineGenerationType == GenerationType.Mk1 ? "#7fdfffff" : null);
-                    guiMaxThrustMk2 = FormatStatistics(powerRequirementMk2, maxThrustMk2, EngineGenerationType == GenerationType.Mk2 ? "#7fdfffff" : null);
-                    guiMaxThrustMk3 = FormatStatistics(powerRequirementMk3, maxThrustMk3, EngineGenerationType == GenerationType.Mk3 ? "#7fdfffff" : null);
-                    guiMaxThrustMk4 = FormatStatistics(powerRequirementMk4, maxThrustMk4, EngineGenerationType == GenerationType.Mk4 ? "#7fdfffff" : null);
-                    guiMaxThrustMk5 = FormatStatistics(powerRequirementMk5, maxThrustMk5, EngineGenerationType == GenerationType.Mk5 ? "#7fdfffff" : null);
-                    guiMaxThrustMk6 = FormatStatistics(powerRequirementMk6, maxThrustMk6, EngineGenerationType == GenerationType.Mk6 ? "#7fdfffff" : null);
-                    guiMaxThrustMk7 = FormatStatistics(powerRequirementMk7, maxThrustMk7, EngineGenerationType == GenerationType.Mk7 ? "#7fdfffff" : null);
-                    guiMaxThrustMk8 = FormatStatistics(powerRequirementMk8, maxThrustMk8, EngineGenerationType == GenerationType.Mk8 ? "#7fdfffff" : null);
-                    guiMaxThrustMk9 = FormatStatistics(powerRequirementMk9, maxThrustMk9, EngineGenerationType == GenerationType.Mk9 ? "#7fdfffff" : null);
+                    UpdateThrustGui();
+
+                    // configure engine for Kerbal Engeneer support
+                    UpdateAtmosphericCurve(EngineIsp);
+                    effectiveMaxThrustInKiloNewton = MaximumThrust;
+                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / EngineIsp / PluginHelper.GravityConstant;
+                    curEngineT.maxFuelFlow = (float)calculatedFuelflow;
+                    curEngineT.maxThrust = (float)effectiveMaxThrustInKiloNewton;
 
                     return;
                 }
@@ -530,9 +578,22 @@ namespace FNPlugin
             }
         }
 
-        private string FormatStatistics(double powerRequirement,  double value, string color = null, string format = "F0")
+        private void UpdateThrustGui()
         {
-            var result = (powerRequirement * powerRequirementMultiplier).ToString(format) + " MWe " + value.ToString(format) + "kN";
+            guiMaxThrustMk1 = FormatStatistics(powerRequirementMk1, maxThrustMk1, thrustIspMk1, EngineGenerationType == GenerationType.Mk1 ? LIGHTBLUE : null);
+            guiMaxThrustMk2 = FormatStatistics(powerRequirementMk2, maxThrustMk2, thrustIspMk2, EngineGenerationType == GenerationType.Mk2 ? LIGHTBLUE : null);
+            guiMaxThrustMk3 = FormatStatistics(powerRequirementMk3, maxThrustMk3, thrustIspMk3, EngineGenerationType == GenerationType.Mk3 ? LIGHTBLUE : null);
+            guiMaxThrustMk4 = FormatStatistics(powerRequirementMk4, maxThrustMk4, thrustIspMk4, EngineGenerationType == GenerationType.Mk4 ? LIGHTBLUE : null);
+            guiMaxThrustMk5 = FormatStatistics(powerRequirementMk5, maxThrustMk5, thrustIspMk5, EngineGenerationType == GenerationType.Mk5 ? LIGHTBLUE : null);
+            guiMaxThrustMk6 = FormatStatistics(powerRequirementMk6, maxThrustMk6, thrustIspMk6, EngineGenerationType == GenerationType.Mk6 ? LIGHTBLUE : null);
+            guiMaxThrustMk7 = FormatStatistics(powerRequirementMk7, maxThrustMk7, thrustIspMk7, EngineGenerationType == GenerationType.Mk7 ? LIGHTBLUE : null);
+            guiMaxThrustMk8 = FormatStatistics(powerRequirementMk8, maxThrustMk8, thrustIspMk8, EngineGenerationType == GenerationType.Mk8 ? LIGHTBLUE : null);
+            guiMaxThrustMk9 = FormatStatistics(powerRequirementMk9, maxThrustMk9, thrustIspMk9, EngineGenerationType == GenerationType.Mk9 ? LIGHTBLUE : null);
+        }
+
+        private string FormatStatistics(double powerRequirement,  double value, double isp, string color = null, string format = "F0")
+        {
+            var result = (powerRequirement * powerRequirementMultiplier).ToString(format) + " MWe " + value.ToString(format) + " kN @ " + isp.ToString(format) + "s";
 
             if (String.IsNullOrEmpty(color))
                 return result;
