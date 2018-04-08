@@ -1,4 +1,6 @@
-﻿using FNPlugin.Extensions;
+﻿using System.Linq;
+using System.Text;
+using FNPlugin.Extensions;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
@@ -7,10 +9,10 @@ using KSP.Localization;
 
 namespace FNPlugin
 {
-    [KSPModule("Fusion Engine")]
+    [KSPModule("Confinement Fusion Engine")]
     class FusionEngineController : DaedalusEngineController { }
 
-    [KSPModule("Inertial Confinement Fusion Engine")]
+    [KSPModule("Confinement Fusion Engine")]
     class DaedalusEngineController : ResourceSuppliableModule, IUpgradeableModule 
     {
         // Persistant
@@ -70,8 +72,6 @@ namespace FNPlugin
 
         [KSPField]
         public double universalTime;
-        //[KSPField]
-        //public float powerRequirement = 2500;
 
         [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
         public string translatedTechMk1;
@@ -148,38 +148,19 @@ namespace FNPlugin
         public float wasteheatMk9 = 2500;
 
         [KSPField]
-        public double efficiencyMk1 = 0.55;
+        public double powerRequirementMk1 = 4304;
         [KSPField]
-        public double efficiencyMk2 = 0.60;
+        public double powerRequirementMk2 = 4783;
         [KSPField]
-        public double efficiencyMk3 = 0.65;
+        public double powerRequirementMk3 = 5314;
         [KSPField]
-        public double efficiencyMk4 = 0.70;
+        public double powerRequirementMk4 = 5905;
         [KSPField]
-        public double efficiencyMk5 = 0.75;
+        public double powerRequirementMk5 = 6561;
         [KSPField]
-        public double efficiencyMk6 = 0.80;
+        public double powerRequirementMk6 = 7290;
         [KSPField]
-        public double efficiencyMk7 = 0.85;
-        [KSPField]
-        public double efficiencyMk8 = 0.90;
-        [KSPField]
-        public double efficiencyMk9 = 0.95;
-
-        [KSPField]
-        public double powerRequirementMk1 = 2000;
-        [KSPField]
-        public double powerRequirementMk2 = 3000;
-        [KSPField]
-        public double powerRequirementMk3 = 4000;
-        [KSPField]
-        public double powerRequirementMk4 = 5000;
-        [KSPField]
-        public double powerRequirementMk5 = 6000;
-        [KSPField]
-        public double powerRequirementMk6 = 7000;
-        [KSPField]
-        public double powerRequirementMk7 = 8000;
+        public double powerRequirementMk7 = 8100;
         [KSPField]
         public double powerRequirementMk8 = 9000;
         [KSPField]
@@ -228,21 +209,21 @@ namespace FNPlugin
         public string upgradedName = "Deadalus IC Fusion Engine";
 
         [KSPField]
-        public string upgradeTechReq1;
+        public string upgradeTechReq1 = null;
         [KSPField]
-        public string upgradeTechReq2;
+        public string upgradeTechReq2 = null;
         [KSPField]
-        public string upgradeTechReq3;
+        public string upgradeTechReq3 = null;
         [KSPField]
-        public string upgradeTechReq4;
+        public string upgradeTechReq4 = null;
         [KSPField]
-        public string upgradeTechReq5;
+        public string upgradeTechReq5 = null;
         [KSPField]
-        public string upgradeTechReq6;
+        public string upgradeTechReq6 = null;
         [KSPField]
-        public string upgradeTechReq7;
+        public string upgradeTechReq7 = null;
         [KSPField]
-        public string upgradeTechReq8;
+        public string upgradeTechReq8 = null;
 
         bool radhazard;
         bool warpToReal;
@@ -278,46 +259,9 @@ namespace FNPlugin
             rad_safety_features = true;
         }
 
-        //[KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
-        //public void RetrofitEngine()
-        //{
-        //    if (ResearchAndDevelopment.Instance == null || isupgraded || ResearchAndDevelopment.Instance.Science < upgradeCost) return;
-
-        //    upgradePartModule();
-        //    ResearchAndDevelopment.Instance.AddScience(-upgradeCost, TransactionReasons.RnDPartPurchase);
-        //}
-
         #region IUpgradeableModule
 
         public String UpgradeTechnology { get { return upgradeTechReq1; } }
-
-        private double Efficiency
-        {
-            get
-            {
-                switch (_engineGenerationType)
-                {
-                    case (int)GenerationType.Mk1:
-                        return efficiencyMk1;
-                    case (int)GenerationType.Mk2:
-                        return efficiencyMk2;
-                    case (int)GenerationType.Mk3:
-                        return efficiencyMk3;
-                    case (int)GenerationType.Mk4:
-                        return efficiencyMk4;
-                    case (int)GenerationType.Mk5:
-                        return efficiencyMk5;
-                    case (int)GenerationType.Mk6:
-                        return efficiencyMk6;
-                    case (int)GenerationType.Mk7:
-                        return efficiencyMk7;
-                    case (int)GenerationType.Mk8:
-                        return efficiencyMk8;
-                    default:
-                        return efficiencyMk9;
-                }
-            }
-        }
 
         private float MaximumThrust
         {
@@ -551,8 +495,6 @@ namespace FNPlugin
             {
                 if (HighLogic.LoadedSceneIsEditor)
                 {
-                    //powerUsage = (EffectivePowerRequirement / 1000d).ToString("0.000") + " GW";
-
                     UpdateThrustGui();
 
                     // configure engine for Kerbal Engeneer support
@@ -908,9 +850,6 @@ namespace FNPlugin
             if (CheatOptions.IgnoreMaxTemperature) 
                 return wasteheatFusionRatio;
 
-            // Lasers produce Wasteheat
-            supplyFNResourcePerSecond(recievedPower * (1 - Efficiency), ResourceManager.FNRESOURCE_WASTEHEAT);
-
             // The Aborbed wasteheat from Fusion
             supplyFNResourcePerSecond(FusionWasteHeat * wasteHeatMultiplier * wasteheatFusionRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
 
@@ -967,6 +906,42 @@ namespace FNPlugin
         public override int getPowerPriority() 
         {
             return powerPriority;
+        }
+
+        public override string GetInfo()
+        {
+            DetermineTechLevel();
+
+            var sb = new StringBuilder();
+
+            if (!string.IsNullOrEmpty(upgradeTechReq1))
+            {
+                sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Generic_upgradeTechnologies") + ":</color><size=10>");
+                if (!string.IsNullOrEmpty(upgradeTechReq1)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq1)));
+                if (!string.IsNullOrEmpty(upgradeTechReq2)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq2)));
+                if (!string.IsNullOrEmpty(upgradeTechReq3)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq3)));
+                if (!string.IsNullOrEmpty(upgradeTechReq4)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq4)));
+                if (!string.IsNullOrEmpty(upgradeTechReq5)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq5)));
+                if (!string.IsNullOrEmpty(upgradeTechReq6)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq6)));
+                if (!string.IsNullOrEmpty(upgradeTechReq7)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq7)));
+                if (!string.IsNullOrEmpty(upgradeTechReq8)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(upgradeTechReq8)));
+                sb.Append("</size>");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Generic_EnginePerformance") + ":</color><size=10>");
+            sb.AppendLine(FormatStatistics(powerRequirementMk1, maxThrustMk1, thrustIspMk1));
+            if (!string.IsNullOrEmpty(upgradeTechReq1)) sb.AppendLine(FormatStatistics(powerRequirementMk2, maxThrustMk2, thrustIspMk2));
+            if (!string.IsNullOrEmpty(upgradeTechReq2)) sb.AppendLine(FormatStatistics(powerRequirementMk3, maxThrustMk3, thrustIspMk3));
+            if (!string.IsNullOrEmpty(upgradeTechReq3)) sb.AppendLine(FormatStatistics(powerRequirementMk4, maxThrustMk4, thrustIspMk4));
+            if (!string.IsNullOrEmpty(upgradeTechReq4)) sb.AppendLine(FormatStatistics(powerRequirementMk5, maxThrustMk5, thrustIspMk5));
+            if (!string.IsNullOrEmpty(upgradeTechReq5)) sb.AppendLine(FormatStatistics(powerRequirementMk6, maxThrustMk6, thrustIspMk6));
+            if (!string.IsNullOrEmpty(upgradeTechReq6)) sb.AppendLine(FormatStatistics(powerRequirementMk7, maxThrustMk7, thrustIspMk7));
+            if (!string.IsNullOrEmpty(upgradeTechReq7)) sb.AppendLine(FormatStatistics(powerRequirementMk8, maxThrustMk8, thrustIspMk8));
+            if (!string.IsNullOrEmpty(upgradeTechReq8)) sb.AppendLine(FormatStatistics(powerRequirementMk9, maxThrustMk9, thrustIspMk9));
+            sb.Append("</size>");            
+
+            return sb.ToString();
         }
     }
 }
