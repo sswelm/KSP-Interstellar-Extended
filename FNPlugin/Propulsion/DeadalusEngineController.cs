@@ -23,7 +23,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool rad_safety_features = true;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"), UI_FloatRange(stepIncrement = 1 / 3f, maxValue = 1, minValue = 1 / 3f)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 1, minValue = 0.005f)]
         public float speedLimit = 1;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_fuelLimit", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
         public float fuelLimit = 100;
@@ -199,6 +199,10 @@ namespace FNPlugin
         public float powerRequirementMultiplier = 1;
         [KSPField]
         public float maxTemp = 3200;
+        [KSPField]
+        public double powerThrottleExponent = 0.5;
+        [KSPField]
+        public double ispThrottleExponent = 0.5;
         [KSPField]
         public int powerPriority = 4;
         [KSPField]
@@ -727,12 +731,19 @@ namespace FNPlugin
                     if (part.vessel.geeForce <= 2)
                         part.vessel.IgnoreGForces(1);
 
+                    var thrustPercentage = (double)(decimal)curEngineT.thrustPercentage;
+                    var thrustRatio = Math.Max(thrustPercentage * 0.01, 0.01);
+                    var scaledThrottle = Math.Pow(thrustRatio * throttle, ispThrottleExponent);
+                    effectiveIsp = timeDilation * engineIsp * scaledThrottle;
+
+                    UpdateAtmosphericCurve(effectiveIsp);
+
                     fusionRatio = ProcessPowerAndWasteHeat(throttle);
 
                     // Update FuelFlow
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
                     calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / PluginHelper.GravityConstant;
-                    massFlowRateKgPerSecond = curEngineT.currentThrottle * calculatedFuelflow * 1000;
+                    massFlowRateKgPerSecond = thrustRatio * curEngineT.currentThrottle * calculatedFuelflow * 1000;
 
                     if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
                     {
@@ -836,24 +847,25 @@ namespace FNPlugin
             // Calculate Fusion Ratio
             var effectivePowerRequirement = EffectivePowerRequirement;
             var thrustPercentage = (double)(decimal)curEngineT.thrustPercentage;
-            var requestedPower = (thrustPercentage * 0.01) * throtle * effectivePowerRequirement;
+            var thrustRatio = Math.Max(thrustPercentage * 0.01, 0.01);
+
+            var scaledThrottle = Math.Pow(thrustRatio * throtle, powerThrottleExponent);
+
+            var requestedPower = scaledThrottle * effectivePowerRequirement;
 
             var recievedPower = CheatOptions.InfiniteElectricity 
                 ? requestedPower
                 : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             var plasmaRatio = effectivePowerRequirement > 0 ? recievedPower / requestedPower : 0;
-            var wasteheatFusionRatio = plasmaRatio >= 1 ? 1 : plasmaRatio > 0.01 ? plasmaRatio : 0;
 
-            powerUsage = (recievedPower / 1000d).ToString("0.000") + " GW / " + (effectivePowerRequirement * 0.001).ToString("0.000") + " GW";
+            powerUsage = (recievedPower * 0.001).ToString("0.000") + " GW / " + (requestedPower * 0.001).ToString("0.000") + " GW";
 
-            if (CheatOptions.IgnoreMaxTemperature) 
-                return wasteheatFusionRatio;
+            // The Aborbed wasteheat from Fusion production and reaction
+            if (!CheatOptions.IgnoreMaxTemperature)
+                supplyFNResourcePerSecond(scaledThrottle * FusionWasteHeat * wasteHeatMultiplier * plasmaRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
 
-            // The Aborbed wasteheat from Fusion
-            supplyFNResourcePerSecond(FusionWasteHeat * wasteHeatMultiplier * wasteheatFusionRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
-
-            return wasteheatFusionRatio;
+            return plasmaRatio;
         }
 
         private void KillKerbalsWithRadiation(float throttle)
