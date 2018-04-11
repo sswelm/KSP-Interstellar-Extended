@@ -499,6 +499,7 @@ namespace FNPlugin
 
             KillKerbalsWithRadiation(throttle);
 
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.UpdateBuffers();
 
             if (throttle > 0)
