@@ -109,24 +109,43 @@ namespace FNPlugin
         [KSPField]
         public float maxThrustMk9 = 3500;
 
-        [KSPField(guiActiveEditor = true, guiName = "Mk1")]
-        public string guiMaxThrustMk1;
-        [KSPField(guiActiveEditor = true, guiName = "Mk2")]
-        public string guiMaxThrustMk2;
-        [KSPField(guiActiveEditor = true, guiName = "Mk3")]
-        public string guiMaxThrustMk3;
-        [KSPField(guiActiveEditor = true, guiName = "Mk4")]
-        public string guiMaxThrustMk4;
-        [KSPField(guiActiveEditor = true, guiName = "Mk5")]
-        public string guiMaxThrustMk5;
-        [KSPField(guiActiveEditor = true, guiName = "Mk6")]
-        public string guiMaxThrustMk6;
-        [KSPField(guiActiveEditor = true, guiName = "Mk7")]
-        public string guiMaxThrustMk7;
-        [KSPField(guiActiveEditor = true, guiName = "Mk8")]
-        public string guiMaxThrustMk8;
-        [KSPField(guiActiveEditor = true, guiName = "Mk9")]
-        public string guiMaxThrustMk9;
+        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk1")]
+        public string guiThrustMk1;
+        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk2")]
+        public string guiThrustMk2;
+        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk3")]
+        public string guiThrustMk3;
+        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk4")]
+        public string guiThrustMk4;
+        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk5")]
+        public string guiThrustMk5;
+        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk6")]
+        public string guiThrustMk6;
+        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk7")]
+        public string guiThrustMk7;
+        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk8")]
+        public string guiThrustMk8;
+        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk9")]
+        public string guiThrustMk9;
+
+        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk1")]
+        public string guiPowerMk1;
+        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk2")]
+        public string guiPowerMk2;
+        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk3")]
+        public string guiPowerMk3;
+        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk4")]
+        public string guiPowerMk4;
+        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk5")]
+        public string guiPowerMk5;
+        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk6")]
+        public string guiPowerMk6;
+        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk7")]
+        public string guiPowerMk7;
+        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk8")]
+        public string guiPowerMk8;
+        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk9")]
+        public string guiPowerMk9;
 
         [KSPField]
         public float wasteheatMk1 = 2500;
@@ -526,20 +545,40 @@ namespace FNPlugin
 
         private void UpdateThrustGui()
         {
-            guiMaxThrustMk1 = FormatStatistics(powerRequirementMk1, maxThrustMk1, thrustIspMk1, EngineGenerationType == GenerationType.Mk1 ? LIGHTBLUE : null);
-            guiMaxThrustMk2 = FormatStatistics(powerRequirementMk2, maxThrustMk2, thrustIspMk2, EngineGenerationType == GenerationType.Mk2 ? LIGHTBLUE : null);
-            guiMaxThrustMk3 = FormatStatistics(powerRequirementMk3, maxThrustMk3, thrustIspMk3, EngineGenerationType == GenerationType.Mk3 ? LIGHTBLUE : null);
-            guiMaxThrustMk4 = FormatStatistics(powerRequirementMk4, maxThrustMk4, thrustIspMk4, EngineGenerationType == GenerationType.Mk4 ? LIGHTBLUE : null);
-            guiMaxThrustMk5 = FormatStatistics(powerRequirementMk5, maxThrustMk5, thrustIspMk5, EngineGenerationType == GenerationType.Mk5 ? LIGHTBLUE : null);
-            guiMaxThrustMk6 = FormatStatistics(powerRequirementMk6, maxThrustMk6, thrustIspMk6, EngineGenerationType == GenerationType.Mk6 ? LIGHTBLUE : null);
-            guiMaxThrustMk7 = FormatStatistics(powerRequirementMk7, maxThrustMk7, thrustIspMk7, EngineGenerationType == GenerationType.Mk7 ? LIGHTBLUE : null);
-            guiMaxThrustMk8 = FormatStatistics(powerRequirementMk8, maxThrustMk8, thrustIspMk8, EngineGenerationType == GenerationType.Mk8 ? LIGHTBLUE : null);
-            guiMaxThrustMk9 = FormatStatistics(powerRequirementMk9, maxThrustMk9, thrustIspMk9, EngineGenerationType == GenerationType.Mk9 ? LIGHTBLUE : null);
+            guiThrustMk1 = FormatThrustStatistics(maxThrustMk1, thrustIspMk1, EngineGenerationType == GenerationType.Mk1 ? LIGHTBLUE : null);
+            guiThrustMk2 = FormatThrustStatistics(maxThrustMk2, thrustIspMk2, EngineGenerationType == GenerationType.Mk2 ? LIGHTBLUE : null);
+            guiThrustMk3 = FormatThrustStatistics(maxThrustMk3, thrustIspMk3, EngineGenerationType == GenerationType.Mk3 ? LIGHTBLUE : null);
+            guiThrustMk4 = FormatThrustStatistics(maxThrustMk4, thrustIspMk4, EngineGenerationType == GenerationType.Mk4 ? LIGHTBLUE : null);
+            guiThrustMk5 = FormatThrustStatistics(maxThrustMk5, thrustIspMk5, EngineGenerationType == GenerationType.Mk5 ? LIGHTBLUE : null);
+            guiThrustMk6 = FormatThrustStatistics(maxThrustMk6, thrustIspMk6, EngineGenerationType == GenerationType.Mk6 ? LIGHTBLUE : null);
+            guiThrustMk7 = FormatThrustStatistics(maxThrustMk7, thrustIspMk7, EngineGenerationType == GenerationType.Mk7 ? LIGHTBLUE : null);
+            guiThrustMk8 = FormatThrustStatistics(maxThrustMk8, thrustIspMk8, EngineGenerationType == GenerationType.Mk8 ? LIGHTBLUE : null);
+            guiThrustMk9 = FormatThrustStatistics(maxThrustMk9, thrustIspMk9, EngineGenerationType == GenerationType.Mk9 ? LIGHTBLUE : null);
+
+            guiPowerMk1 = FormatPowerStatistics(powerRequirementMk1, wasteheatMk1, EngineGenerationType == GenerationType.Mk1 ? LIGHTBLUE : null);
+            guiPowerMk2 = FormatPowerStatistics(powerRequirementMk2, wasteheatMk2, EngineGenerationType == GenerationType.Mk2 ? LIGHTBLUE : null);
+            guiPowerMk3 = FormatPowerStatistics(powerRequirementMk3, wasteheatMk3, EngineGenerationType == GenerationType.Mk3 ? LIGHTBLUE : null);
+            guiPowerMk4 = FormatPowerStatistics(powerRequirementMk4, wasteheatMk4, EngineGenerationType == GenerationType.Mk4 ? LIGHTBLUE : null);
+            guiPowerMk5 = FormatPowerStatistics(powerRequirementMk5, wasteheatMk5, EngineGenerationType == GenerationType.Mk5 ? LIGHTBLUE : null);
+            guiPowerMk6 = FormatPowerStatistics(powerRequirementMk6, wasteheatMk6, EngineGenerationType == GenerationType.Mk6 ? LIGHTBLUE : null);
+            guiPowerMk7 = FormatPowerStatistics(powerRequirementMk7, wasteheatMk7, EngineGenerationType == GenerationType.Mk7 ? LIGHTBLUE : null);
+            guiPowerMk8 = FormatPowerStatistics(powerRequirementMk8, wasteheatMk8, EngineGenerationType == GenerationType.Mk8 ? LIGHTBLUE : null);
+            guiPowerMk9 = FormatPowerStatistics(powerRequirementMk9, wasteheatMk9, EngineGenerationType == GenerationType.Mk9 ? LIGHTBLUE : null);
         }
 
-        private string FormatStatistics(double powerRequirement,  double value, double isp, string color = null, string format = "F0")
+        private string FormatThrustStatistics(double value, double isp, string color = null, string format = "F0")
         {
-            var result = (powerRequirement * powerRequirementMultiplier).ToString(format) + " MWe " + value.ToString(format) + " kN @ " + isp.ToString(format) + "s";
+            var result = value.ToString(format) + " kN @ " + isp.ToString(format) + "s";
+
+            if (String.IsNullOrEmpty(color))
+                return result;
+
+            return "<color=" + color + ">" + result + "</color>";
+        }
+
+        private string FormatPowerStatistics(double powerRequirement, double wasteheat, string color = null, string format = "F0")
+        {
+            var result = (powerRequirement * powerRequirementMultiplier).ToString(format) + " MWe / " + wasteheat.ToString(format) + " MJ";
 
             if (String.IsNullOrEmpty(color))
                 return result;
@@ -942,16 +981,30 @@ namespace FNPlugin
             }
 
             sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Generic_EnginePerformance") + ":</color><size=10>");
-            sb.AppendLine(FormatStatistics(powerRequirementMk1, maxThrustMk1, thrustIspMk1));
-            if (!string.IsNullOrEmpty(upgradeTechReq1)) sb.AppendLine(FormatStatistics(powerRequirementMk2, maxThrustMk2, thrustIspMk2));
-            if (!string.IsNullOrEmpty(upgradeTechReq2)) sb.AppendLine(FormatStatistics(powerRequirementMk3, maxThrustMk3, thrustIspMk3));
-            if (!string.IsNullOrEmpty(upgradeTechReq3)) sb.AppendLine(FormatStatistics(powerRequirementMk4, maxThrustMk4, thrustIspMk4));
-            if (!string.IsNullOrEmpty(upgradeTechReq4)) sb.AppendLine(FormatStatistics(powerRequirementMk5, maxThrustMk5, thrustIspMk5));
-            if (!string.IsNullOrEmpty(upgradeTechReq5)) sb.AppendLine(FormatStatistics(powerRequirementMk6, maxThrustMk6, thrustIspMk6));
-            if (!string.IsNullOrEmpty(upgradeTechReq6)) sb.AppendLine(FormatStatistics(powerRequirementMk7, maxThrustMk7, thrustIspMk7));
-            if (!string.IsNullOrEmpty(upgradeTechReq7)) sb.AppendLine(FormatStatistics(powerRequirementMk8, maxThrustMk8, thrustIspMk8));
-            if (!string.IsNullOrEmpty(upgradeTechReq8)) sb.AppendLine(FormatStatistics(powerRequirementMk9, maxThrustMk9, thrustIspMk9));
-            sb.Append("</size>");            
+            sb.AppendLine(FormatThrustStatistics(maxThrustMk1, thrustIspMk1));
+            if (!string.IsNullOrEmpty(upgradeTechReq1)) sb.AppendLine(FormatThrustStatistics(maxThrustMk2, thrustIspMk2));
+            if (!string.IsNullOrEmpty(upgradeTechReq2)) sb.AppendLine(FormatThrustStatistics(maxThrustMk3, thrustIspMk3));
+            if (!string.IsNullOrEmpty(upgradeTechReq3)) sb.AppendLine(FormatThrustStatistics(maxThrustMk4, thrustIspMk4));
+            if (!string.IsNullOrEmpty(upgradeTechReq4)) sb.AppendLine(FormatThrustStatistics(maxThrustMk5, thrustIspMk5));
+            if (!string.IsNullOrEmpty(upgradeTechReq5)) sb.AppendLine(FormatThrustStatistics(maxThrustMk6, thrustIspMk6));
+            if (!string.IsNullOrEmpty(upgradeTechReq6)) sb.AppendLine(FormatThrustStatistics(maxThrustMk7, thrustIspMk7));
+            if (!string.IsNullOrEmpty(upgradeTechReq7)) sb.AppendLine(FormatThrustStatistics(maxThrustMk8, thrustIspMk8));
+            if (!string.IsNullOrEmpty(upgradeTechReq8)) sb.AppendLine(FormatThrustStatistics(maxThrustMk9, thrustIspMk9));
+            
+            sb.Append("</size>");
+            sb.AppendLine();
+
+            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Generic_PowerRequirementAndWasteheat") + ":</color><size=10>");
+            sb.AppendLine(FormatPowerStatistics(powerRequirementMk1, wasteheatMk1));
+            if (!string.IsNullOrEmpty(upgradeTechReq1)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk2, wasteheatMk2));
+            if (!string.IsNullOrEmpty(upgradeTechReq2)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk3, wasteheatMk3));
+            if (!string.IsNullOrEmpty(upgradeTechReq3)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk4, wasteheatMk4));
+            if (!string.IsNullOrEmpty(upgradeTechReq4)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk5, wasteheatMk5));
+            if (!string.IsNullOrEmpty(upgradeTechReq5)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk6, wasteheatMk6));
+            if (!string.IsNullOrEmpty(upgradeTechReq6)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk7, wasteheatMk7));
+            if (!string.IsNullOrEmpty(upgradeTechReq7)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk8, wasteheatMk8));
+            if (!string.IsNullOrEmpty(upgradeTechReq8)) sb.AppendLine(FormatPowerStatistics(powerRequirementMk9, wasteheatMk9));
+            sb.Append("</size>");
 
             return sb.ToString();
         }
