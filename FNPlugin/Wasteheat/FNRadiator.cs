@@ -621,11 +621,8 @@ namespace FNPlugin
             maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature);
 
             resourceBuffers = new ResourceBuffers();
-
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 1.0e+6));
-
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-
             resourceBuffers.Init(this.part);
         }
 
@@ -727,6 +724,7 @@ namespace FNPlugin
                 if (!active)
                     base.OnFixedUpdate();
 
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.UpdateBuffers();
 
                 effectiveRadiatorArea = EffectiveRadiatorArea;

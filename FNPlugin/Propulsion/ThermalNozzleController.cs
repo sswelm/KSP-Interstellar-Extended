@@ -968,6 +968,7 @@ namespace FNPlugin
 
                 if (myAttachedEngine == null) return;
 
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.UpdateBuffers();
 
                 if (AttachedReactor == null)

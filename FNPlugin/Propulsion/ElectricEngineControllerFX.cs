@@ -427,6 +427,7 @@ namespace FNPlugin
 
             if (Current_propellant == null) return;
 
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.UpdateBuffers();
 
             if (!this.vessel.packed && !_warpToReal)

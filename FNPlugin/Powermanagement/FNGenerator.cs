@@ -996,6 +996,7 @@ namespace FNPlugin
             if (!maintainsMegaWattPowerBuffer)
                 return;
 
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             if (maxStableMegaWattPower > 0)
             { 
                 _powerState = PowerStates.PowerOnline;
@@ -1060,6 +1061,7 @@ namespace FNPlugin
                 _powerState = PowerStates.PowerOffline;
 
             var megawattBufferMultiplier = (attachedPowerSource.PowerBufferBonus + 1) * maxStableMegaWattPower;
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferMultiplier * powerDownFraction);
             resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferMultiplier * powerDownFraction);
             resourceBuffers.UpdateBuffers();
