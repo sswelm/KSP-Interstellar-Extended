@@ -47,9 +47,9 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string secondaryResourceNames = string.Empty;
         [KSPField]
-        public double primaryConversionEnergyCost = 1000;
+        public double primaryConversionEnergyCost = 0.001;
         [KSPField]
-        public double secondaryConversionEnergyCost = 1000;
+        public double secondaryConversionEnergyCost = 0.001;
         [KSPField]
         public string primaryConversionEnergyResource = "ElectricCharge";
         [KSPField]
@@ -59,10 +59,24 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public float secondaryConversionEnergMult = 1;
 
-        [KSPField]
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public double primaryconversionRatio;
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public double secondaryconversionRatio;
+
+        [KSPField(guiActive = false)]
+        public double neededAmount;
+        [KSPField(guiActive = false)]
+        public double availableSpaceInTarget;
+        [KSPField(guiActive = false)]
         bool retreivePrimary;
-        [KSPField]
+        [KSPField(guiActive = false)]
         bool retrieveSecondary;
+        [KSPField(guiActive = false)]
+        public double transferRate = 0;
+        [KSPField(guiActive = false)]
+        public double conversionRatio = 0;
+
         [KSPField]
         public double maxPowerPrimary = 10;
         [KSPField]
@@ -77,10 +91,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool secondaryConversionCostPower = true;
 
-        [KSPField]
-        public double transferRate = 0;
-        [KSPField]
-        public double conversionRatio = 0;
+
         [KSPField]
         public double primaryNormalizedDensity = 0.001;
         [KSPField]
@@ -193,6 +204,9 @@ namespace InterstellarFuelSwitch
                 }
             }
 
+            primaryconversionRatio = primaryResources.First().conversionRatio;
+            secondaryconversionRatio = secondaryResources.First().conversionRatio;
+
             primaryResources.ForEach(m => m.transferRate = maxPowerPrimary / primaryConversionEnergyCost / 1000 / m.normalizedDensity);
             secondaryResources.ForEach(m => m.transferRate = maxPowerSecondary / secondaryConversionEnergyCost / 1000 / m.normalizedDensity);
             
@@ -293,13 +307,13 @@ namespace InterstellarFuelSwitch
                 if (secondaryResources.Any(m => percentageRatio > m.amountRatio))
                 {
                     retreivePrimary = true;
-                    var neededAmount = secondaryResources.Min(m => Math.Max(percentageRatio - m.amountRatio, 0) * m.maxAmount / m.conversionRatio);
+                    neededAmount = secondaryResources.Min(m => Math.Max(percentageRatio - m.amountRatio, 0) * m.maxAmount / m.conversionRatio);
                     primaryResources.ForEach(m => m.retrieveAmount = neededAmount);
                 }
                 else if (percentageMinValue < 0)
                 {
                     retrieveSecondary = true;
-                    var availableSpaceInTarget = primaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
+                    availableSpaceInTarget = primaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
                     secondaryResources.ForEach(m => m.retrieveAmount = Math.Min((Math.Max(m.amountRatio - percentageRatio, 0)) * m.maxAmount, availableSpaceInTarget));
                 }
             }
@@ -308,13 +322,13 @@ namespace InterstellarFuelSwitch
                 if (primaryResources.Any(m => percentageRatio > m.amountRatio))
                 {
                     retrieveSecondary = true;
-                    var neededAmount = primaryResources.Min(m => Math.Max(percentageRatio - m.amountRatio, 0) * m.maxAmount / m.conversionRatio);
+                    neededAmount = primaryResources.Min(m => Math.Max(percentageRatio - m.amountRatio, 0) * m.maxAmount / m.conversionRatio);
                     secondaryResources.ForEach(m => m.retrieveAmount = neededAmount);
                 }
                 else if (percentageMaxValue > 0)
                 {
                     retreivePrimary = true;
-                    var availableSpaceInTarget = secondaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
+                    availableSpaceInTarget = secondaryResources.Min(m => (m.maxAmount - m.currentAmount) / m.conversionRatio);
                     primaryResources.ForEach(m => m.retrieveAmount = Math.Min((Math.Max(m.amountRatio - percentageRatio, 0)) * m.maxAmount, availableSpaceInTarget));
                 }
             }
