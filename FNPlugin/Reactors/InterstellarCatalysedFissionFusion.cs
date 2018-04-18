@@ -14,5 +14,7 @@ namespace FNPlugin.Reactors
 
         public double MinimumChargdIspMult { get { return 100; } }
 
+        public double MagneticNozzlePowerMult { get { return 1; } }
+
     }
 }

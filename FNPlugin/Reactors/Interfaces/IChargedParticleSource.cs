@@ -10,5 +10,7 @@ namespace FNPlugin.Reactors.Interfaces
         double MaximumChargedIspMult { get; }
 
         double MinimumChargdIspMult { get; }
+
+        double MagneticNozzlePowerMult { get; }
     }
 }

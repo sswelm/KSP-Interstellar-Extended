@@ -196,7 +196,7 @@ namespace FNPlugin
 
                 var ispPowerCostMultiplier = 1 + max_power_multiplier - Math.Log10(currentIsp / minimum_isp);
 
-                _requestedElectricPower = _charged_particles_received * ispPowerCostMultiplier * 0.005 * Math.Max(_attached_reactor_distance, 1);
+                _requestedElectricPower =  _attached_reactor.MagneticNozzlePowerMult * _charged_particles_received * ispPowerCostMultiplier * 0.005 * Math.Max(_attached_reactor_distance, 1);
 
                 _recievedElectricPower = CheatOptions.InfiniteElectricity
                     ? _requestedElectricPower

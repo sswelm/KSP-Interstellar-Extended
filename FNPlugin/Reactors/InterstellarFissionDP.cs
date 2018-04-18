@@ -10,5 +10,7 @@ namespace FNPlugin.Reactors
         public double MaximumChargedIspMult { get { return (float)maximumChargedIspMult; } }
 
         public double MinimumChargdIspMult { get { return (float)minimumChargdIspMult; } }
+
+        public double MagneticNozzlePowerMult { get { return 1; } }
     }
 }

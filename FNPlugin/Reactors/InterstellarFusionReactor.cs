@@ -81,15 +81,11 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public override double MaximumThermalPower
-        {
-            get { return Math.Max(base.MaximumThermalPower * PlasmaModifier * LithiumModifier, 0); }
-        }
+        public override double MaximumThermalPower {  get { return Math.Max(base.MaximumThermalPower * PlasmaModifier * LithiumModifier, 0); }  }
 
-        public override double MaximumChargedPower
-        {
-            get { return base.MaximumChargedPower * PlasmaModifier; }
-        }
+        public override double MaximumChargedPower { get { return base.MaximumChargedPower * PlasmaModifier; }  }
+
+        public double MagneticNozzlePowerMult { get { return 1; } }
 
         public virtual double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 
