@@ -40,6 +40,8 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)]
         public double ongoing_consumption_rate;
         [KSPField(isPersistant = true)]
+        public double ongoing_wasteheat_rate;
+        [KSPField(isPersistant = true)]
         public bool reactorInit;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_startEnabled"), UI_Toggle(disabledText = "True", enabledText = "False")]
         public bool startDisabled;
@@ -688,7 +690,7 @@ namespace FNPlugin.Reactors
 
         public double ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
 
-		public double PlasmaEnergyEfficiency { get { return plasmaEnergyEfficiency; } }
+        public double PlasmaEnergyEfficiency { get { return plasmaEnergyEfficiency; } }
 
         public double ChargedParticleEnergyEfficiency { get { return chargedParticleEnergyEfficiency; } }
 
@@ -1494,15 +1496,21 @@ namespace FNPlugin.Reactors
 
                 if (!CheatOptions.UnbreakableJoints && CurrentFuelMode.NeutronsRatio > 0 && CurrentFuelMode.NeutronsRatio > 0)
                     neutronEmbrittlementDamage += ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
-                
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourcePerSecondWithMax(ongoing_total_power_generated, NormalisedMaximumPower, ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                ongoing_consumption_rate = ongoing_total_power_generated / maximumPower; 
-
+                ongoing_consumption_rate = ongoing_total_power_generated / maximumPower;
                 PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, 4), pulseAnimation);
-
                 powerPcnt = 100 * ongoing_consumption_rate;
+
+                // produce wasteheat
+                if (!CheatOptions.IgnoreMaxTemperature)
+                {
+                    // skip first frame of wasteheat production
+                    var delayed_wasteheat_rate = ongoing_consumption_rate > ongoing_wasteheat_rate ? Math.Min(ongoing_wasteheat_rate, ongoing_consumption_rate) : ongoing_consumption_rate;
+
+                    supplyFNResourcePerSecondWithMax(delayed_wasteheat_rate * maximumPower, NormalisedMaximumPower, ResourceManager.FNRESOURCE_WASTEHEAT);
+
+                    ongoing_wasteheat_rate = ongoing_consumption_rate;
+                }
 
                 // consume fuel
                 if (!CheatOptions.InfinitePropellant)
