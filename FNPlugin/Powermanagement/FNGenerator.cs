@@ -200,7 +200,7 @@ namespace FNPlugin
         public double electrical_power_currently_needed;
         [KSPField]
         public double maxStableMegaWattPower;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public bool applies_balance;
 
         // Internal
@@ -931,9 +931,10 @@ namespace FNPlugin
 
                         var effectiveMaxThermalPowerRatio = applies_balance
                             ? (1 - attachedPowerSource.ChargedPowerRatio)
-                            : 1;
+                            : (1 - attachedPowerSource.ChargedPowerRatio) + (attachedPowerSource.ChargedPowerRatio * availableChargedPowerRatio);
 
                         maxElectricdtps = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEff * CapacityRatio;
+                        maxElectricdtps =  Math.Max(attachedPowerSource.ProducedThermalHeat * _totalEff , maxElectricdtps);
                     }
                     else // charged particle mode
                     {

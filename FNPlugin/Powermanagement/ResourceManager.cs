@@ -779,7 +779,14 @@ namespace FNPlugin
 
         protected string getPowerFormatString(double power) 
         {
-            if (Math.Abs(power) >= 1000) 
+            if (Math.Abs(power) >= 1000000)
+            {
+                if (Math.Abs(power) > 20000000)
+                    return (power / 1000000).ToString("0.0") + " TW";
+                else
+                    return (power / 1000000).ToString("0.00") + " TW";
+            }
+            else if (Math.Abs(power) >= 1000) 
             {
                 if (Math.Abs(power) > 20000) 
                     return (power / 1000).ToString("0.0") + " GW";

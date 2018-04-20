@@ -9,13 +9,16 @@ namespace FNPlugin
 {
     class InterstellarMagneticNozzleControllerFX : ResourceSuppliableModule, IEngineNoozle
     {
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiUnits = "K", guiName = "Simulated Throttle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
+        public float simulatedThrottle = 0.5f;
+
         //Persistent False
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = "m")]
         public float radius = 2.5f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiUnits = " t")]
         public float partMass = 1;
         [KSPField(isPersistant = false)]
-        public double powerThrustMultiplier = 1.0;
+        public double powerThrustMultiplier = 1;
         [KSPField(isPersistant = false)]
         public float wasteHeatMultiplier = 1;
 
@@ -26,7 +29,6 @@ namespace FNPlugin
         private double _charged_particles_requested;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Recieved Particles", guiUnits = " MW")]
         private double _charged_particles_received;
-
         
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Requested Electricity", guiUnits = " MW")]
         private double _requestedElectricPower;
@@ -34,27 +36,38 @@ namespace FNPlugin
         private double _recievedElectricPower;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Thrust", guiUnits = " kN")]
         private double _engineMaxThrust;
+
         [KSPField(isPersistant = false, guiActive = false, guiName = "Free")]
         private double _hydrogenProduction;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Throtle Exponent")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Throtle Exponent")]
         protected double throtleExponent = 1;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Calculated Isp", guiUnits = " s", guiFormat = "F1")]
+        protected double calculatedIsp;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Maximum ChargedPower", guiUnits = " MW", guiFormat = "F1")]
+        protected double maximumChargedPower;
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Power Thrust Modifier", guiUnits = " MW", guiFormat = "F1")]
+        protected double powerThrustModifier;
 
         //remove then possible
         public bool static_updating = true;
         public bool static_updating2 = true;
 
         //Internal
+        protected UI_FloatRange simulatedThrottleFloatRange;
         protected ModuleEnginesFX _attached_engine;
         protected ModuleEnginesWarp _attached_warpable_engine;
         protected IChargedParticleSource _attached_reactor;
         protected int _attached_reactor_distance;
         protected double exchanger_thrust_divisor;
-        protected double calculatedIsp;
+        
         protected double _previous_charged_particles_received;
         protected ResourceBuffers resourceBuffers;
 
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Minimum isp", guiUnits = " s", guiFormat = "F1")]
         protected double minimum_isp;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Maximum isp", guiUnits = " s", guiFormat = "F1")]
         protected double maximum_isp;
+
         protected double max_power_multiplier;
 
         public double GetNozzleFlowRate()
@@ -67,48 +80,77 @@ namespace FNPlugin
         public bool RequiresChargedPower { get { return true; } }
         
 
-        public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state)
         {
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.Init(this.part);
 
-            if (state == StartState.Editor) return;
-
             _attached_warpable_engine = this.part.FindModuleImplementing<ModuleEnginesWarp>();
             _attached_engine = _attached_warpable_engine;
 
             if (_attached_engine != null)
                 _attached_engine.Fields["finalThrust"].guiFormat = "F5";
-            else
-                Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no ModuleEnginesFX found for MagneticNozzle!");
 
-            // first try to look in part
-            _attached_reactor = this.part.FindModuleImplementing<IChargedParticleSource>();
+            ConnectToReactor();
 
-            // try to find nearest
-            if (_attached_reactor == null)
-                _attached_reactor = BreadthFirstSearchForChargedParticleSource(10, 1);
+            UpdateEngineStats();
+
+            max_power_multiplier = Math.Log10(maximum_isp / minimum_isp);
+
+            throtleExponent = Math.Abs(Math.Log10(_attached_reactor.MinimumChargdIspMult / _attached_reactor.MaximumChargedIspMult));
+
+            simulatedThrottleFloatRange = Fields["simulatedThrottle"].uiControlEditor as UI_FloatRange;
+            simulatedThrottleFloatRange.onFieldChanged += UpdateFromGUI;   
+
+            //if (state == StartState.Editor) return;
 
             if (_attached_reactor == null)
             {
                 Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
                 return;
             }
-
-            double joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
-            calculatedIsp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
-
-            minimum_isp = calculatedIsp * _attached_reactor.MinimumChargdIspMult;
-            maximum_isp = calculatedIsp * _attached_reactor.MaximumChargedIspMult;
-            max_power_multiplier = Math.Log10(maximum_isp / minimum_isp);
-
-            throtleExponent = Math.Abs(Math.Log10(_attached_reactor.MinimumChargdIspMult / _attached_reactor.MaximumChargedIspMult));
-
             exchanger_thrust_divisor = radius > _attached_reactor.Radius
                 ? _attached_reactor.Radius * _attached_reactor.Radius / radius / radius
                 : radius * radius / _attached_reactor.Radius / _attached_reactor.Radius;
+        }
+
+        /// <summary>
+        /// Event handler which is called when part is attached to a new part
+        /// </summary>
+        private void OnEditorAttach()
+        {
+            try
+            {
+                Debug.Log("[KSPI] - attach " + part.partInfo.title);
+
+                if (HighLogic.LoadedSceneIsEditor && _attached_engine != null)
+                {
+                    ConnectToReactor();
+
+                    UpdateEngineStats();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - FNGenerator.OnEditorAttach " + e.Message);
+            }
+        }
+
+        private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
+        {
+            UpdateEngineStats();
+        }
+
+        private void ConnectToReactor()
+        {
+            // first try to look in part
+            _attached_reactor = this.part.FindModuleImplementing<IChargedParticleSource>();
+
+            // try to find nearest
+            if (_attached_reactor == null)
+                _attached_reactor = BreadthFirstSearchForChargedParticleSource(10, 1);
         }
 
         private IChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)
@@ -154,9 +196,42 @@ namespace FNPlugin
 
             return null;
         }
-           
+
+        private void UpdateEngineStats()
+        {
+            if (_attached_reactor == null || _attached_engine == null)
+                return;
+
+             // set Isp
+            double joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
+            calculatedIsp = Math.Sqrt(joules_per_amu * 2.0 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
+
+            minimum_isp = calculatedIsp * _attached_reactor.MinimumChargdIspMult;
+            maximum_isp = calculatedIsp * _attached_reactor.MaximumChargedIspMult;
+
+            var currentIsp = Math.Min(maximum_isp, minimum_isp / Math.Pow(simulatedThrottle / 100, throtleExponent));
+
+            FloatCurve newIsp = new FloatCurve();
+            newIsp.Add(0, (float)currentIsp);
+            //newIsp.Add(1, 0);
+            _attached_engine.atmosphereCurve = newIsp;
+
+            // set maximum fuel flow
+            powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * powerThrustMultiplier;
+            maximumChargedPower = _attached_reactor.MaximumChargedPower;
+
+            _engineMaxThrust = powerThrustModifier * maximumChargedPower / currentIsp / PluginHelper.GravityConstant;
+            var max_fuel_flow_rate = _engineMaxThrust / currentIsp / PluginHelper.GravityConstant;
+            _attached_engine.maxFuelFlow = (float)max_fuel_flow_rate;
+            _attached_engine.maxThrust = (float)_engineMaxThrust;
+        }
+
+        // FixedUpdate is also called in the Editor
         public void FixedUpdate() 
         {
+            if (HighLogic.LoadedSceneIsEditor)
+                return;
+
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.UpdateBuffers();
 
@@ -179,10 +254,10 @@ namespace FNPlugin
                         consumeFNResourcePerSecond(_charged_particles_received, ResourceManager.FNRESOURCE_WASTEHEAT);
                         _previous_charged_particles_received = _charged_particles_received;
                     }
-                    else if (_previous_charged_particles_received > 1)
+                    else if (_previous_charged_particles_received > 0)
                     {
                         consumeFNResourcePerSecond(_previous_charged_particles_received, ResourceManager.FNRESOURCE_WASTEHEAT);
-                        _previous_charged_particles_received /= 2;
+                        _previous_charged_particles_received = 0;
                     }
                     else
                     {

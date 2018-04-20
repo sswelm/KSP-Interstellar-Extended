@@ -178,7 +178,7 @@
     <Compile Include="Beamedpower\VesselRelayPersistence.cs" />
     <Compile Include="Propulsion\VistaEngineController.cs" />
     <Compile Include="Wasteheat\FNRadiator.cs" />
-    <Compile Include="Wasteheat\FNGeneratorAdapter.cs" />
+    <Compile Include="Powermanagement\FNGeneratorAdapter.cs" />
     <Compile Include="Wasteheat\FNSolarPanelWasteHeatModule.cs" />
     <Compile Include="Storage\AntimatterStorageTank.cs" />
     <Compile Include="Propulsion\ModuleSolarSail.cs" />
