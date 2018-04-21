@@ -767,8 +767,7 @@ namespace FNPlugin
 
                 if (throttle > 0 && !this.vessel.packed)
                 {
-                    if (part.vessel.geeForce <= 2)
-                        part.vessel.IgnoreGForces(1);
+                    TimeWarp.GThreshold = 2;
 
                     var thrustPercentage = (double)(decimal)curEngineT.thrustPercentage;
                     var thrustRatio = Math.Max(thrustPercentage * 0.01, 0.01);

@@ -917,8 +917,7 @@ namespace FNPlugin
             }
             else
             {
-                if (part.vessel.geeForce <= 2)
-                    part.vessel.IgnoreGForces(1);
+                TimeWarp.GThreshold = 2;
 
                 var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
                 vesselRegitBody.AddForce(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3, ForceMode.Force);

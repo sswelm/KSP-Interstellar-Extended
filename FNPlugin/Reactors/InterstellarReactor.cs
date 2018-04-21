@@ -97,11 +97,10 @@ namespace FNPlugin.Reactors
         protected double ongoing_thermal_power_generated;
         [KSPField(isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_Reactor_chargedPower ", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
-        
+       
         [KSPField]
         public float minimumPowerPercentage = 10;
         [KSPField]
-
         public string upgradeTechReqMk2 = null;
         [KSPField]
         public string upgradeTechReqMk3 = null;
@@ -396,8 +395,10 @@ namespace FNPlugin.Reactors
         protected double min_throttle;
 
         // Gui
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorMass", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "intended mass", guiUnits = " t")]
         public float partMass = 0;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorMass", guiUnits = " t")]
+        public float currentMass = 0;
         [KSPField]
         public double maximumThermalPowerEffective = 0;
         [KSPField]
@@ -990,7 +991,7 @@ namespace FNPlugin.Reactors
 
         public void DeterminePowerOutput()
         {
-            var powerMultiplier = storedPowerMultiplier * powerOutputMultiplier;
+            var powerMultiplier = storedPowerMultiplier * powerOutputMultiplier * (part.mass / partMass);
 
             powerOutputMk1 = basePowerOutputMk1 * powerMultiplier;
             powerOutputMk2 = basePowerOutputMk2 * powerMultiplier;
@@ -1126,7 +1127,7 @@ namespace FNPlugin.Reactors
             {
                 Debug.Log("[KSPI] - Force activate called on " + part.name);
                 this.part.force_activate();
-                Fields["partMass"].guiActiveEditor = true;
+                Fields["currentMass"].guiActiveEditor = true;
                 Fields["radius"].guiActiveEditor = true;
                 Fields["connectedRecieversStr"].guiActiveEditor = true;
                 Fields["heatTransportationEfficiency"].guiActiveEditor = true;
@@ -1322,6 +1323,7 @@ namespace FNPlugin.Reactors
 
         public virtual void Update()
         {
+            currentMass = part.mass;
             currentRawPowerOutput = RawPowerOutput;
 
             Events["DeactivateReactor"].guiActive = HighLogic.LoadedSceneIsFlight && showShutDownInFlight && IsEnabled;
@@ -1368,7 +1370,7 @@ namespace FNPlugin.Reactors
             }
 
             update_count++;
-            partMass = part.mass;
+            
         }
 
         /// <summary>

@@ -96,11 +96,7 @@ namespace FNPlugin
             // Realtime mode
             if (!vessel.packed)
             {
-                if (this.currentThrottle > 0 && !vessel.packed)
-                {
-                    if (vessel.geeForce <= 2)
-                        vessel.IgnoreGForces(1);
-                }
+                TimeWarp.GThreshold = 2;
 
                 //double mdot = requestedMassFlow;
                 requestedFlow = this.requestedMassFlow;
@@ -122,7 +118,7 @@ namespace FNPlugin
                 }
             }
             else //if (part.vessel.situation != Vessel.Situations.SUB_ORBITAL)
-            { 
+            {
                 // Timewarp mode: perturb orbit using thrust
                 _warpToReal = true; // Set to true for transition to realtime
                 var universalTime = Planetarium.GetUniversalTime(); // Universal time
