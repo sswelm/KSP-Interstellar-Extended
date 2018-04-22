@@ -221,7 +221,7 @@ namespace FNPlugin
         protected double availableThermalPower;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Available C Power ", guiUnits = " MJ")]
         protected double availableChargedPower;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
         protected double airflowHeatModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Supply", guiFormat = "F3")]
         protected double effectiveThermalPower;
@@ -229,6 +229,8 @@ namespace FNPlugin
         protected double effectiveChargedPower;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Wasteheat Efficiency Modifier")]
         public double wasteheatEfficiencyModifier;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
+        public double maximumPowerUsageForPropulsionRatio;
 
         [KSPField]
         int pre_coolers_active;
@@ -265,6 +267,7 @@ namespace FNPlugin
         protected bool hasSetupPropellant = false;
         protected bool _currentpropellant_is_jet = false;
 
+        protected ModuleEnginesWarp timewarpEngine;
         protected ModuleEngines myAttachedEngine;
         protected Guid id = Guid.NewGuid();
         protected ConfigNode[] propellantsConfignodes;
@@ -442,6 +445,7 @@ namespace FNPlugin
                 Debug.Log("[KSPI] - ThermalNozzleController - find module implementing <ModuleEngines>");
 
                 myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
+                timewarpEngine = this.part.FindModuleImplementing<ModuleEnginesWarp>();
 
                 // find attached thermal source
                 ConnectToThermalSource();
@@ -684,6 +688,10 @@ namespace FNPlugin
                         propellantConfigNode.AddValue("DrawGauge", "true");
                     }
                     myAttachedEngine.Load(newPropNode);
+
+                    // update timewarp propellant
+                    if (timewarpEngine != null)
+                        timewarpEngine.resourceDeltaV = list_of_propellants.First().name;
                 }
 
                 if (engineState == true)
@@ -998,7 +1006,7 @@ namespace FNPlugin
                 effectiveThermalPower = getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER);
                 effectiveChargedPower = getResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
-                var maximumPowerUsageForPropulsionRatio = isPlasmaNozzle
+                maximumPowerUsageForPropulsionRatio = isPlasmaNozzle
                     ? AttachedReactor.PlasmaPropulsionEfficiency
                     : AttachedReactor.ThermalPropulsionEfficiency;
 

@@ -241,8 +241,17 @@ namespace FNPlugin.Reactors
         public double emergencyPowerShutdownFraction = 0.99;
         [KSPField]
         public double breedDivider = 100000;
+
         [KSPField]
         public double bonusBufferFactor = 0.05;
+        [KSPField]
+        public double thermalPowerBufferMult = 4;
+        [KSPField]
+        public double chargedPowerBufferMult = 4;
+        [KSPField]
+        public double massCoreTempExp = 0;
+        [KSPField]
+        public double massPowerExp = 0;
         [KSPField]
         public double heatTransportationEfficiency = 0.85;
         [KSPField]
@@ -781,9 +790,7 @@ namespace FNPlugin.Reactors
                         break;
                 }
 
-                var modifiedBaseCoreTemperature = baseCoreTemperature * EffectiveEmbrittlemenEffectRatio;
-
-                return modifiedBaseCoreTemperature;
+                return baseCoreTemperature * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
             }
         }
 
@@ -991,7 +998,7 @@ namespace FNPlugin.Reactors
 
         public void DeterminePowerOutput()
         {
-            var powerMultiplier = storedPowerMultiplier * powerOutputMultiplier * (part.mass / partMass);
+            var powerMultiplier = storedPowerMultiplier * powerOutputMultiplier * Math.Pow(part.mass / partMass, massPowerExp);
 
             powerOutputMk1 = basePowerOutputMk1 * powerMultiplier;
             powerOutputMk2 = basePowerOutputMk2 * powerMultiplier;
@@ -1065,8 +1072,8 @@ namespace FNPlugin.Reactors
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5 * wasteHeatBufferMult, true));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, 1));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, 1));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedPowerBufferMult));
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.Init(this.part);
 
@@ -1447,9 +1454,9 @@ namespace FNPlugin.Reactors
                 thermalThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
                 chargedThrottleRatio = connectedEngines.Any(m => m.RequiresChargedPower) ? connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
 
-                var thermal_propulsion_ratio = thermalPropulsionEfficiency * thermalThrottleRatio;
+                var thermal_propulsion_ratio =  Math.Max(thermalPropulsionEfficiency, plasmaPropulsionEfficiency) * thermalThrottleRatio;
                 var charged_propulsion_ratio = chargedParticlePropulsionEfficiency * chargedThrottleRatio;
-                var thermal_generator_ratio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
+                var thermal_generator_ratio = Math.Max(thermalEnergyEfficiency, chargedParticleEnergyEfficiency) * storedGeneratorThermalEnergyRequestRatio;
                 var charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
 
                 maximum_thermal_request_ratio = Math.Min(thermal_propulsion_ratio + thermal_generator_ratio, 1);

@@ -23,6 +23,11 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool rad_safety_features = true;
 
+        [KSPField]
+        public double massThrustExp = 0;
+        [KSPField]
+        public double massIspExp = 0;
+
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 1, minValue = 0.005f)]
         public float speedLimit = 1;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_fuelLimit", guiUnits = "%"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
@@ -32,8 +37,21 @@ namespace FNPlugin
 
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_powerUsage")]
         public string powerUsage;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_fusionFuel")]
-        public string fusionFuel = "FusionPellets";
+
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_FusionEngine_fusionFuel")]
+        public string fusionFuel1 = "FusionPellets";
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public string fusionFuel2;
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public string fusionFuel3;
+
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public double fusionFuelRatio1 = 1;
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public double fusionFuelRatio2 = 0;
+        [KSPField(guiActive = false, guiActiveEditor = false)]
+        public double fusionFuelRatio3 = 0;
+
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_temperatureStr")]
         public string temperatureStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiUnits = " m/s")]
@@ -253,13 +271,20 @@ namespace FNPlugin
         double engineIsp;
         double percentageFuelRemaining;
 
+        double fusionFuelFactor1 = 0;
+        double fusionFuelFactor2 = 0;
+        double fusionFuelFactor3 = 0;
+
         Stopwatch stopWatch;
         ModuleEngines curEngineT;
         BaseEvent deactivateRadSafetyEvent;
         BaseEvent activateRadSafetyEvent;
         BaseEvent retrofitEngineEvent;
         BaseField radhazardstrField;
-        PartResourceDefinition fusionFuelResourceDefinition;
+
+        PartResourceDefinition fusionFuelResourceDefinition1;
+        PartResourceDefinition fusionFuelResourceDefinition2;
+        PartResourceDefinition fusionFuelResourceDefinition3;
 
         const string LIGHTBLUE = "#7fdfffff";
 
@@ -286,7 +311,7 @@ namespace FNPlugin
 
         public String UpgradeTechnology { get { return upgradeTechReq1; } }
 
-        private float MaximumThrust
+        private float RawMaximumThrust
         {
             get
             {
@@ -313,6 +338,15 @@ namespace FNPlugin
                 }
             }
         }
+
+        private double MaximumThrust
+        {
+            get
+            {
+                return RawMaximumThrust * Math.Pow(part.mass / partMass, massThrustExp);
+            }
+        }
+
         private float FusionWasteHeat
         {
             get
@@ -369,7 +403,7 @@ namespace FNPlugin
             }
         }
 
-        public double EngineIsp
+        public double RawEngineIsp
         {
             get
             {
@@ -397,6 +431,14 @@ namespace FNPlugin
             }
         }
 
+        public double EngineIsp
+        {
+            get
+            {
+                return RawEngineIsp * Math.Pow(part.mass / partMass, massIspExp);
+            }
+        }
+
         private double EffectivePowerRequirement
         {
             get
@@ -418,7 +460,25 @@ namespace FNPlugin
             {
                 stopWatch = new Stopwatch();
                 speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
-                fusionFuelResourceDefinition = PartResourceLibrary.Instance.GetDefinition(fusionFuel);
+
+                if (!String.IsNullOrEmpty(fusionFuel1))
+                    fusionFuelResourceDefinition1 = PartResourceLibrary.Instance.GetDefinition(fusionFuel1);
+                if (!String.IsNullOrEmpty(fusionFuel2))
+                    fusionFuelResourceDefinition2 = PartResourceLibrary.Instance.GetDefinition(fusionFuel2);
+                if (!String.IsNullOrEmpty(fusionFuel3))
+                    fusionFuelResourceDefinition3 = PartResourceLibrary.Instance.GetDefinition(fusionFuel3);
+
+                var ratioSum = 0.0;
+                if (fusionFuelResourceDefinition1 != null)
+                    ratioSum += fusionFuelRatio1;
+                if (fusionFuelResourceDefinition2 != null)
+                    ratioSum += fusionFuelRatio2;
+                if (fusionFuelResourceDefinition3 != null)
+                    ratioSum += fusionFuelRatio3; 
+
+                fusionFuelFactor1 = fusionFuelResourceDefinition1 != null ? fusionFuelRatio1 / ratioSum : 0;
+                fusionFuelFactor2 = fusionFuelResourceDefinition2 != null ? fusionFuelRatio2 / ratioSum : 0;
+                fusionFuelFactor3 = fusionFuelResourceDefinition3 != null ? fusionFuelRatio3 / ratioSum : 0;
 
                 part.maxTemp = maxTemp;
                 part.thermalMass = 1;
@@ -530,12 +590,12 @@ namespace FNPlugin
                     return;
                 }
 
-                double fusionFuelCurrentAmount;
-                double fusionFuelMaxAmount;
-                part.GetConnectedResourceTotals(fusionFuelResourceDefinition.id, out fusionFuelCurrentAmount, out fusionFuelMaxAmount);
+                double fusionFuelCurrentAmount1;
+                double fusionFuelMaxAmount1;
+                part.GetConnectedResourceTotals(fusionFuelResourceDefinition1.id, out fusionFuelCurrentAmount1, out fusionFuelMaxAmount1);
 
-                percentageFuelRemaining = fusionFuelCurrentAmount / fusionFuelMaxAmount * 100;
-                fuelAmountsRatio = percentageFuelRemaining.ToString("0.0000") + "% " + fusionFuelMaxAmount.ToString("0") + " L";
+                percentageFuelRemaining = fusionFuelCurrentAmount1 / fusionFuelMaxAmount1 * 100;
+                fuelAmountsRatio = percentageFuelRemaining.ToString("0.0000") + "% " + fusionFuelMaxAmount1.ToString("0") + " L";
             }
             catch (Exception e)
             {
@@ -861,16 +921,7 @@ namespace FNPlugin
             double demandMass;
             thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, out demandMass);
 
-            var fusionFuelRequestAmount = demandMass / fusionFuelResourceDefinition.density;
-
-            double recievedRatio;
-            if (CheatOptions.InfinitePropellant)
-                recievedRatio = 1;
-            else
-            {
-                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-                recievedRatio = fusionFuelRequestAmount > 0 ? recievedFusionFuel/ fusionFuelRequestAmount : 0;
-            }
+            double recievedRatio = CollectFuel(demandMass);
 
             effectiveMaxThrustInKiloNewton = timeDilationMaximumThrust * recievedRatio;
 
@@ -878,6 +929,34 @@ namespace FNPlugin
 
             var deltaVv = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveMaxThrustInKiloNewton, timeDialationEngineIsp, out demandMass);
             vessel.orbit.Perturb(deltaVv, modifiedUniversalTime);
+        }
+
+        private double CollectFuel(double demandMass)
+        {
+            double recievedRatio = 1;
+
+            if (CheatOptions.InfinitePropellant)
+                return recievedRatio;
+
+            if (fusionFuelFactor1 > 0)
+            {
+                var fusionFuelRequestAmount = (fusionFuelFactor1 * demandMass) / fusionFuelResourceDefinition1.density;
+                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition1.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount > 0 ? recievedFusionFuel / fusionFuelRequestAmount : 0);
+            }
+            if (fusionFuelFactor2 > 0)
+            {
+                var fusionFuelRequestAmount = (fusionFuelFactor2 * demandMass) / fusionFuelResourceDefinition2.density;
+                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition2.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount > 0 ? recievedFusionFuel / fusionFuelRequestAmount : 0);
+            }
+            if (fusionFuelFactor3 > 0)
+            {
+                var fusionFuelRequestAmount = (fusionFuelFactor3 * demandMass) / fusionFuelResourceDefinition3.density;
+                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition3.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount > 0 ? recievedFusionFuel / fusionFuelRequestAmount : 0);
+            }
+            return recievedRatio;
         }
 
         private double ProcessPowerAndWasteHeat(float throtle)

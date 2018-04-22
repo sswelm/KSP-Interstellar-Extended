@@ -47,10 +47,8 @@ namespace FNPlugin
         // Are we transitioning from timewarp to reatime?
         bool _warpToReal = false;
 
-
-
         // Density of resource
-        double _density;
+        double _density = 0.01;
 
         // Update
         public override void OnUpdate()
@@ -84,14 +82,15 @@ namespace FNPlugin
             // Run base OnLoad method
             base.OnLoad(node);
 
-            // Initialize density of propellant used in deltaV and mass calculations
-            _density = PartResourceLibrary.Instance.GetDefinition(resourceDeltaV).density;
+            UpdateDensity();
         }
 
         // Physics update
         public override void OnFixedUpdate()
         {
             if (FlightGlobals.fetch == null || !isEnabled) return;
+
+            UpdateDensity();
 
             // Realtime mode
             if (!vessel.packed)
@@ -161,6 +160,14 @@ namespace FNPlugin
             isp_d = IspPersistent;
             throttle_d = ThrottlePersistent;
             previousThrottle = vessel.ctrlState.mainThrottle;
+        }
+
+        private void UpdateDensity()
+        {
+            // Initialize density of propellant used in deltaV and mass calculations
+            var definition = PartResourceLibrary.Instance.GetDefinition(resourceDeltaV);
+            if (definition != null)
+                _density = PartResourceLibrary.Instance.GetDefinition(resourceDeltaV).density;
         }
 
         // Format thrust into mN, N, kN
