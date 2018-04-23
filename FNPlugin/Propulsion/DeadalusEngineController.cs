@@ -461,26 +461,9 @@ namespace FNPlugin
                 stopWatch = new Stopwatch();
                 speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
 
-                if (!String.IsNullOrEmpty(fusionFuel1))
-                    fusionFuelResourceDefinition1 = PartResourceLibrary.Instance.GetDefinition(fusionFuel1);
-                if (!String.IsNullOrEmpty(fusionFuel2))
-                    fusionFuelResourceDefinition2 = PartResourceLibrary.Instance.GetDefinition(fusionFuel2);
-                if (!String.IsNullOrEmpty(fusionFuel3))
-                    fusionFuelResourceDefinition3 = PartResourceLibrary.Instance.GetDefinition(fusionFuel3);
+                UpdateFuelFactors();
 
-                var ratioSum = 0.0;
-                if (fusionFuelResourceDefinition1 != null)
-                    ratioSum += fusionFuelRatio1;
-                if (fusionFuelResourceDefinition2 != null)
-                    ratioSum += fusionFuelRatio2;
-                if (fusionFuelResourceDefinition3 != null)
-                    ratioSum += fusionFuelRatio3; 
-
-                fusionFuelFactor1 = fusionFuelResourceDefinition1 != null ? fusionFuelRatio1 / ratioSum : 0;
-                fusionFuelFactor2 = fusionFuelResourceDefinition2 != null ? fusionFuelRatio2 / ratioSum : 0;
-                fusionFuelFactor3 = fusionFuelResourceDefinition3 != null ? fusionFuelRatio3 / ratioSum : 0;
-
-                part.maxTemp = maxTemp;
+	            part.maxTemp = maxTemp;
                 part.thermalMass = 1;
                 part.thermalMassModifier = 1;
 
@@ -536,7 +519,29 @@ namespace FNPlugin
             }
         }
 
-        private string DisplayTech(string techid)
+	    private void UpdateFuelFactors()
+	    {
+		    if (!String.IsNullOrEmpty(fusionFuel1))
+			    fusionFuelResourceDefinition1 = PartResourceLibrary.Instance.GetDefinition(fusionFuel1);
+		    if (!String.IsNullOrEmpty(fusionFuel2))
+			    fusionFuelResourceDefinition2 = PartResourceLibrary.Instance.GetDefinition(fusionFuel2);
+		    if (!String.IsNullOrEmpty(fusionFuel3))
+			    fusionFuelResourceDefinition3 = PartResourceLibrary.Instance.GetDefinition(fusionFuel3);
+
+		    var ratioSum = 0.0;
+		    if (fusionFuelResourceDefinition1 != null)
+			    ratioSum += fusionFuelRatio1;
+		    if (fusionFuelResourceDefinition2 != null)
+			    ratioSum += fusionFuelRatio2;
+		    if (fusionFuelResourceDefinition3 != null)
+			    ratioSum += fusionFuelRatio3;
+
+		    fusionFuelFactor1 = fusionFuelResourceDefinition1 != null ? fusionFuelRatio1/ratioSum : 0;
+		    fusionFuelFactor2 = fusionFuelResourceDefinition2 != null ? fusionFuelRatio2/ratioSum : 0;
+		    fusionFuelFactor3 = fusionFuelResourceDefinition3 != null ? fusionFuelRatio3/ratioSum : 0;
+	    }
+
+	    private string DisplayTech(string techid)
         {
             if (String.IsNullOrEmpty(techid))
                 return string.Empty;

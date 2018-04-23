@@ -59,6 +59,20 @@ namespace FNPlugin.Extensions
             return currentAmount;
         }
 
+        public static double GetResourceAvailable(this Part part, ResourceFlowMode flowmode,  PartResourceDefinition definition)
+        {
+            if (definition == null)
+            {
+                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                return 0;
+            }
+
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
+            return currentAmount;
+        }
+
         public static double GetResourceAvailable(this Part part, string name)
         {
             var definition = PartResourceLibrary.Instance.GetDefinition(name);
