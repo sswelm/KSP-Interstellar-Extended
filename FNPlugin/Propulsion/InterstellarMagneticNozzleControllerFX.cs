@@ -263,7 +263,7 @@ namespace FNPlugin
                 // convert reactor product into propellants when possible
                 var chargedParticleRatio = _attached_reactor.MaximumChargedPower > 0 ? _charged_particles_received / _attached_reactor.MaximumChargedPower : 0;
 
-                var consumedByEngine = _attached_warpable_engine != null ? _attached_warpable_engine.propellantUsed : 0;
+                var consumedByEngine = _attached_warpable_engine != null ? _attached_warpable_engine.recievedFusionFuel1 : 0;
                 _hydrogenProduction = !CheatOptions.InfinitePropellant && chargedParticleRatio > 0 ? _attached_reactor.UseProductForPropulsion(chargedParticleRatio, consumedByEngine) : 0;
 
                 if (!CheatOptions.IgnoreMaxTemperature)

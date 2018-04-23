@@ -270,6 +270,7 @@ namespace FNPlugin
         bool warpToReal;
         double engineIsp;
         double percentageFuelRemaining;
+        double averageDensity;
 
         double fusionFuelFactor1 = 0;
         double fusionFuelFactor2 = 0;
@@ -529,12 +530,25 @@ namespace FNPlugin
 			    fusionFuelResourceDefinition3 = PartResourceLibrary.Instance.GetDefinition(fusionFuel3);
 
 		    var ratioSum = 0.0;
-		    if (fusionFuelResourceDefinition1 != null)
-			    ratioSum += fusionFuelRatio1;
-		    if (fusionFuelResourceDefinition2 != null)
-			    ratioSum += fusionFuelRatio2;
-		    if (fusionFuelResourceDefinition3 != null)
-			    ratioSum += fusionFuelRatio3;
+            var densitySum = 0.0;
+
+            if (fusionFuelResourceDefinition1 != null)
+            {
+                ratioSum += fusionFuelRatio1;
+                densitySum += fusionFuelResourceDefinition1.density * fusionFuelRatio1; 
+            }
+            if (fusionFuelResourceDefinition2 != null)
+            {
+                ratioSum += fusionFuelRatio2;
+                densitySum += fusionFuelResourceDefinition2.density * fusionFuelRatio2; 
+            }
+            if (fusionFuelResourceDefinition3 != null)
+            {
+                ratioSum += fusionFuelRatio3;
+                densitySum += fusionFuelResourceDefinition3.density * fusionFuelRatio3; 
+            }
+
+            averageDensity = densitySum / ratioSum;
 
 		    fusionFuelFactor1 = fusionFuelResourceDefinition1 != null ? fusionFuelRatio1/ratioSum : 0;
 		    fusionFuelFactor2 = fusionFuelResourceDefinition2 != null ? fusionFuelRatio2/ratioSum : 0;
@@ -938,28 +952,50 @@ namespace FNPlugin
 
         private double CollectFuel(double demandMass)
         {
-            double recievedRatio = 1;
-
             if (CheatOptions.InfinitePropellant)
-                return recievedRatio;
+                return 1;
 
+            var fusionFuelRequestAmount1 = 0.0;
+            var fusionFuelRequestAmount2 = 0.0;
+            var fusionFuelRequestAmount3 = 0.0;
+
+            var totalAmount = demandMass / averageDensity;
+
+            double availableRatio = 1;
             if (fusionFuelFactor1 > 0)
             {
-                var fusionFuelRequestAmount = (fusionFuelFactor1 * demandMass) / fusionFuelResourceDefinition1.density;
-                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition1.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-                recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount > 0 ? recievedFusionFuel / fusionFuelRequestAmount : 0);
+                fusionFuelRequestAmount1 = fusionFuelFactor1 * totalAmount;
+                availableRatio = Math.Min(fusionFuelRequestAmount1 / part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition1), availableRatio);
             }
             if (fusionFuelFactor2 > 0)
             {
-                var fusionFuelRequestAmount = (fusionFuelFactor2 * demandMass) / fusionFuelResourceDefinition2.density;
-                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition2.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-                recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount > 0 ? recievedFusionFuel / fusionFuelRequestAmount : 0);
+                fusionFuelRequestAmount2 = fusionFuelFactor2 * totalAmount;
+                availableRatio = Math.Min(fusionFuelRequestAmount2 / part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition2), availableRatio);
             }
             if (fusionFuelFactor3 > 0)
             {
-                var fusionFuelRequestAmount = (fusionFuelFactor3 * demandMass) / fusionFuelResourceDefinition3.density;
-                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition3.id, fusionFuelRequestAmount, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-                recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount > 0 ? recievedFusionFuel / fusionFuelRequestAmount : 0);
+                fusionFuelRequestAmount3 = fusionFuelFactor3 * totalAmount;
+                availableRatio = Math.Min(fusionFuelRequestAmount3 / part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition3), availableRatio);
+            }
+
+            if (availableRatio <= float.Epsilon)
+                return 0;
+
+            double recievedRatio = 1;
+            if (fusionFuelFactor1 > 0)
+            {
+                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition1.id, fusionFuelRequestAmount1 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount1 > 0 ? recievedFusionFuel / fusionFuelRequestAmount1 : 0);
+            }
+            if (fusionFuelFactor2 > 0)
+            {
+                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition2.id, fusionFuelRequestAmount2 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount2 > 0 ? recievedFusionFuel / fusionFuelRequestAmount2 : 0);
+            }
+            if (fusionFuelFactor3 > 0)
+            {
+                var recievedFusionFuel = part.RequestResource(fusionFuelResourceDefinition3.id, fusionFuelRequestAmount3 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fusionFuelRequestAmount3 > 0 ? recievedFusionFuel / fusionFuelRequestAmount3 : 0);
             }
             return recievedRatio;
         }

@@ -20,8 +20,16 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Warp Throttle")]
         protected string Throttle = "";
 
-        //[KSPField(guiActive = false, guiName = "Demand")]
+        
         //public double propellantUsed;
+        [KSPField(guiActive = false, guiName = "Demand Fuel 1")]
+        public double recievedFusionFuel1;
+        [KSPField(guiActive = false, guiName = "Demand Fuel 2")]
+        public double recievedFusionFuel2;
+        [KSPField(guiActive = false, guiName = "Demand Fuel 3")]
+        public double recievedFusionFuel3;
+        [KSPField(guiActive = false, guiName = "Demand Fuel 4")]
+        public double recievedFusionFuel4;
 
         // Resource used for deltaV and mass calculations
         //[KSPField]
@@ -239,23 +247,23 @@ namespace FNPlugin
             double recievedRatio = 1;
             if (masslessFuelPercentage1 > 0)
             {
-                var recievedFusionFuel = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount1 > 0 ? recievedFusionFuel / fuelRequestAmount1 : 0);
+                recievedFusionFuel1 = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount1 > 0 ? recievedFusionFuel1 / fuelRequestAmount1 : 0);
             }
             if (masslessFuelPercentage2 > 0)
             {
-                var recievedFusionFuel = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount2 > 0 ? recievedFusionFuel / fuelRequestAmount2 : 0);
+                recievedFusionFuel2 = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount2 > 0 ? recievedFusionFuel2 / fuelRequestAmount2 : 0);
             }
             if (masslessFuelPercentage3 > 0)
             {
-                var recievedFusionFuel = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount3 > 0 ? recievedFusionFuel / fuelRequestAmount3 : 0);
+                recievedFusionFuel3 = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount3 > 0 ? recievedFusionFuel3 / fuelRequestAmount3 : 0);
             }
             if (masslessFuelPercentage4 > 0)
             {
-                var recievedFusionFuel = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount4 > 0 ? recievedFusionFuel / fuelRequestAmount4 : 0);
+                recievedFusionFuel4 = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount4 > 0 ? recievedFusionFuel4 / fuelRequestAmount4 : 0);
             }
 
             return recievedRatio;
@@ -288,7 +296,7 @@ namespace FNPlugin
                 requestedFlow = this.requestedMassFlow;
                 //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
                 //var dm = requestedFlow * TimeWarp.fixedDeltaTime; 
-                //var propellantUsed = dm / _density1; // Resource demand
+                //propellantUsed = dm / _density1; // Resource demand
 
                 // if not transitioning from warp to real
                 // Update values to use during timewarp

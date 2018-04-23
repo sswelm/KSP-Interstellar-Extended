@@ -164,7 +164,7 @@ namespace FNPlugin
                 return;
             }
 
-            targetMass = (((maxTemperature - 30d) / 2000d) + ((double)(decimal)maxGeeforce / 20d)) * storedMassMultiplier;
+            targetMass = (((maxTemperature - 30d) / 2500d) + ((double)(decimal)maxGeeforce / 20d)) * storedMassMultiplier;
             targetMass *= (1d - (0.2 * attachedAntimatterTanksCount));
         }
 

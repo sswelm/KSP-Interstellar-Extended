@@ -691,7 +691,7 @@ namespace FNPlugin
 
                     // update timewarp propellant
                     if (timewarpEngine != null)
-                        timewarpEngine.resourceDeltaV = list_of_propellants.First().name;
+                        timewarpEngine.propellant1 = list_of_propellants.First().name;
                 }
 
                 if (engineState == true)
