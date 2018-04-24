@@ -266,11 +266,17 @@ namespace FNPlugin
         [KSPField]
         public string upgradeTechReq8 = null;
 
+        [KSPField]
+        public double demandMass;
+        [KSPField]
+        public double fuelRatio;
+        [KSPField]
+        double averageDensity;
+
         bool radhazard;
         bool warpToReal;
         double engineIsp;
         double percentageFuelRemaining;
-        double averageDensity;
 
         double fusionFuelFactor1 = 0;
         double fusionFuelFactor2 = 0;
@@ -906,7 +912,7 @@ namespace FNPlugin
                     }
 
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
-                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / PluginHelper.GravityConstant;
+                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / 9.81;
                     massFlowRateKgPerSecond = 0;
                 }
 
@@ -914,7 +920,7 @@ namespace FNPlugin
                 curEngineT.maxThrust = (float)effectiveMaxThrustInKiloNewton;
                 
                 massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
-                thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * PluginHelper.GravityConstant * 1e-12;
+                thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * 9.81 * 1e-12;
 
                 stopWatch.Stop();
             }
@@ -937,14 +943,13 @@ namespace FNPlugin
             var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
             var timeDialationEngineIsp = timeDilation * engineIsp;
 
-            double demandMass;
             thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, out demandMass);
 
-            double recievedRatio = CollectFuel(demandMass);
+            fuelRatio = CollectFuel(demandMass);
 
-            effectiveMaxThrustInKiloNewton = timeDilationMaximumThrust * recievedRatio;
+            effectiveMaxThrustInKiloNewton = timeDilationMaximumThrust * fuelRatio;
 
-            if (!(recievedRatio > 0.01)) return;
+            if (!(fuelRatio > 0.01)) return;
 
             var deltaVv = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveMaxThrustInKiloNewton, timeDialationEngineIsp, out demandMass);
             vessel.orbit.Perturb(deltaVv, modifiedUniversalTime);
@@ -965,17 +970,17 @@ namespace FNPlugin
             if (fusionFuelFactor1 > 0)
             {
                 fusionFuelRequestAmount1 = fusionFuelFactor1 * totalAmount;
-                availableRatio = Math.Min(fusionFuelRequestAmount1 / part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition1), availableRatio);
+                availableRatio = Math.Min(part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition1) / fusionFuelRequestAmount1, availableRatio);
             }
             if (fusionFuelFactor2 > 0)
             {
                 fusionFuelRequestAmount2 = fusionFuelFactor2 * totalAmount;
-                availableRatio = Math.Min(fusionFuelRequestAmount2 / part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition2), availableRatio);
+                availableRatio = Math.Min(part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition2) / fusionFuelRequestAmount2, availableRatio);
             }
             if (fusionFuelFactor3 > 0)
             {
                 fusionFuelRequestAmount3 = fusionFuelFactor3 * totalAmount;
-                availableRatio = Math.Min(fusionFuelRequestAmount3 / part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition3), availableRatio);
+                availableRatio = Math.Min(part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition3) / fusionFuelRequestAmount3, availableRatio);
             }
 
             if (availableRatio <= float.Epsilon)

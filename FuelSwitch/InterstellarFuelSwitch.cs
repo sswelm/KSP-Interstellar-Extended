@@ -329,7 +329,6 @@ namespace InterstellarFuelSwitch
 
                 _chooseField = Fields["selectedTankSetup"];
 
-                var chooseField = Fields["selectedObject"];
                 _chooseField.guiName = Localizer.Format(switcherDescription);
                 _chooseField.guiActiveEditor = hasSwitchChooseOption && availableInEditor && _modularTankList.Count > 1;
                 _chooseField.guiActive = hasSwitchChooseOption && availableInFlight && _modularTankList.Count > 1;
@@ -1140,11 +1139,11 @@ namespace InterstellarFuelSwitch
 
                     // initialiseSwitchName
                     if (currentResourceCounter < tankSwitcherNameArray.Length)
-                        modularTank.SwitchName = tankSwitcherNameArray[currentResourceCounter];
+                        modularTank.SwitchName = Localizer.Format(tankSwitcherNameArray[currentResourceCounter]);
 
                     // initialize Gui name if possible
                     if (currentResourceCounter < tankGuiNameArray.Length)
-                        modularTank.GuiName = tankGuiNameArray[currentResourceCounter];
+                        modularTank.GuiName = Localizer.Format(tankGuiNameArray[currentResourceCounter]);
 
                     // initialise tech requirement but ignore first
                     if (currentResourceCounter != 0 && currentResourceCounter < tankTechReqArray.Length)

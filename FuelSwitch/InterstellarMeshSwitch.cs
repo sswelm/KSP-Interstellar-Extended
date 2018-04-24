@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using KSP.Localization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
-using System;
-using System.Linq;
-using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
@@ -45,7 +45,7 @@ namespace InterstellarFuelSwitch
 
         [KSPField(isPersistant = true, guiActiveEditor = true)]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.Editor, suppressEditorShipModified = true)]
-        public int selectedObject = 0;
+        public int selectedObject;
 
         private List<List<Transform>> objectTransforms = new List<List<Transform>>();
         private List<int> fuelTankSetupList = new List<int>();
@@ -197,9 +197,9 @@ namespace InterstellarFuelSwitch
         private void setCurrentObjectName()
         {
             if (selectedObject > objectDisplayList.Count - 1)
-                currentObjectName = "Unnamed"; 
+                currentObjectName = ""; 
             else
-                currentObjectName = objectDisplayList[selectedObject];
+                currentObjectName = Localizer.Format(objectDisplayList[selectedObject]);
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -237,50 +237,46 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                if (!initialized)
+                if (initialized) return;
+
+                debug = new InterstellarDebugMessages(debugMode, "InterstellarMeshSwitch");
+                // you can't have fuel switching without symmetry, it breaks the editor GUI.
+                if (useFuelSwitchModule)
+                    updateSymmetry = true;
+
+                parseObjectNames();
+                fuelTankSetupList = ParseTools.ParseIntegers(fuelTankSetups);
+                objectDisplayList = ParseTools.ParseNames(objectDisplayNames);
+
+                tankSwitchNamesList = new List<string>();
+
+                // add any missing names
+                var tankSwitchNamesListTmp = ParseTools.ParseNames(tankSwitchNames);
+                for (var i = 0; i < objectDisplayList.Count; i++)
                 {
-                    debug = new InterstellarDebugMessages(debugMode, "InterstellarMeshSwitch");
-                    // you can't have fuel switching without symmetry, it breaks the editor GUI.
-                    if (useFuelSwitchModule)
-                        updateSymmetry = true;
-
-                    parseObjectNames();
-                    fuelTankSetupList = ParseTools.ParseIntegers(fuelTankSetups);
-                    objectDisplayList = ParseTools.ParseNames(objectDisplayNames);
-
-                    tankSwitchNamesList = new List<string>();
-
-                    // add any missing names
-                    var tankSwitchNamesListTmp = ParseTools.ParseNames(tankSwitchNames);
-                    for (int i = 0; i < objectDisplayList.Count; i++)
-                    {
-                        if (i < tankSwitchNamesListTmp.Count)
-                            tankSwitchNamesList.Add(tankSwitchNamesListTmp[i]);
-                        else
-                            tankSwitchNamesList.Add(objectDisplayList[i]);
-                    }
-
-                    if (useFuelSwitchModule)
-                    {
-                        var fuelSwitches = part.FindModulesImplementing<InterstellarFuelSwitch>();
-
-                        if (!String.IsNullOrEmpty(searchTankId))
-                        {
-                            fuelSwitch = fuelSwitches.FirstOrDefault(m => m.tankId == searchTankId);
-                        }
-
-                        if (fuelSwitch == null)
-                            fuelSwitch = fuelSwitches.FirstOrDefault();
-
-                        //searchTankId
-                        if (fuelSwitch == null)
-                        {
-                            useFuelSwitchModule = false;
-                            debug.debugMessage("no FSfuelSwitch module found, despite useFuelSwitchModule being true");
-                        }
-                    }
-                    initialized = true;
+                    tankSwitchNamesList.Add(Localizer.Format(i < tankSwitchNamesListTmp.Count ? tankSwitchNamesListTmp[i] : objectDisplayList[i]));
                 }
+
+                if (useFuelSwitchModule)
+                {
+                    var fuelSwitches = part.FindModulesImplementing<InterstellarFuelSwitch>();
+
+                    if (!String.IsNullOrEmpty(searchTankId))
+                    {
+                        fuelSwitch = fuelSwitches.FirstOrDefault(m => m.tankId == searchTankId);
+                    }
+
+                    if (fuelSwitch == null)
+                        fuelSwitch = fuelSwitches.FirstOrDefault();
+
+                    //searchTankId
+                    if (fuelSwitch == null)
+                    {
+                        useFuelSwitchModule = false;
+                        debug.debugMessage("no FSfuelSwitch module found, despite useFuelSwitchModule being true");
+                    }
+                }
+                initialized = true;
             }
             catch (Exception e)
             {
@@ -293,13 +289,14 @@ namespace InterstellarFuelSwitch
         {
             if (showInfo)
             {
-                List<string> variantList = ParseTools.ParseNames(objectDisplayNames.Length > 0 ? objectDisplayNames : objects);
+                var variantList = ParseTools.ParseNames(objectDisplayNames.Length > 0 ? objectDisplayNames : objects);
 
                 var info = new StringBuilder();
                 info.AppendLine(Localizer.Format("#LOC_IFS_MeshSwitch_GetInfo") + ":");
-                for (int i = 0; i < variantList.Count; i++)
+
+                foreach (var t in variantList)
                 {
-                    info.AppendLine(variantList[i]);
+                    info.AppendLine(t);
                 }
                 return info.ToString();
             }

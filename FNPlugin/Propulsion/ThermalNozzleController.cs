@@ -679,10 +679,11 @@ namespace FNPlugin
                 // update the engine with the new propellants
                 if (PartResourceLibrary.Instance.GetDefinition(list_of_propellants[0].name) != null)
                 {
-                    ConfigNode newPropNode = new ConfigNode();
+                    var newPropNode = new ConfigNode();
+
                     foreach (var prop in list_of_propellants)
                     {
-                        ConfigNode propellantConfigNode = newPropNode.AddNode("PROPELLANT");
+                        var propellantConfigNode = newPropNode.AddNode("PROPELLANT");
                         propellantConfigNode.AddValue("name", prop.name);
                         propellantConfigNode.AddValue("ratio", prop.ratio);
                         propellantConfigNode.AddValue("DrawGauge", "true");
@@ -691,7 +692,28 @@ namespace FNPlugin
 
                     // update timewarp propellant
                     if (timewarpEngine != null)
-                        timewarpEngine.propellant1 = list_of_propellants.First().name;
+                    {
+                        if (list_of_propellants.Count > 0)
+                        {
+                            timewarpEngine.propellant1 = list_of_propellants[0].name;
+                            timewarpEngine.ratio1 = list_of_propellants[0].ratio;
+                        }
+                        if (list_of_propellants.Count > 1)
+                        {
+                            timewarpEngine.propellant2 = list_of_propellants[1].name;
+                            timewarpEngine.ratio2 = list_of_propellants[1].ratio;
+                        }
+                        if (list_of_propellants.Count > 2)
+                        {
+                            timewarpEngine.propellant3 = list_of_propellants[2].name;
+                            timewarpEngine.ratio3 = list_of_propellants[2].ratio;
+                        }
+                        if (list_of_propellants.Count > 3)
+                        {
+                            timewarpEngine.propellant4 = list_of_propellants[3].name;
+                            timewarpEngine.ratio4 = list_of_propellants[3].ratio;
+                        }
+                    }
                 }
 
                 if (engineState == true)
