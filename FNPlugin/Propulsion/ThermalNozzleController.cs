@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
-using FNPlugin.Extensions;
 
 namespace FNPlugin
 {

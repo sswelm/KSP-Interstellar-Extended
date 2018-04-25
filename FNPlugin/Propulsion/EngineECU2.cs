@@ -89,11 +89,12 @@ namespace FNPlugin
         [KSPField]
         public float upgradeCost = 100;
 
-
         [KSPField]
         public float throttle;
 
         public ModuleEngines curEngineT;
+        public ModuleEnginesWarp curEngineWarp;
+
         public bool hasMultipleConfigurations = false;
 
         private IList<FuelConfiguration> _activeConfigurations;
@@ -276,12 +277,50 @@ namespace FNPlugin
             akPropellants.AddValue("maxThrust", 1);
             akPropellants.AddValue("maxFuelFlow", 1);
 
-            curEngineT.Load(akPropellants);
-            curEngineT.atmosphereCurve = CurrentActiveConfiguration.atmosphereCurve;
+            if (curEngineT != null)
+            {
+                curEngineT.Load(akPropellants);
+                curEngineT.atmosphereCurve = CurrentActiveConfiguration.atmosphereCurve;
+            }
+
             if (!isEditor)
             {
                 vessel.ClearStaging();
                 vessel.ResumeStaging();
+            }
+
+            UpdateEngineWarpFuels();
+        }
+
+        private void UpdateEngineWarpFuels()
+        {
+            if (curEngineWarp != null)
+            {
+                var ratios = CurrentActiveConfiguration.Ratios;
+                var fuels = CurrentActiveConfiguration.Fuels;
+
+                var fuelCount = fuels.Count();
+
+                if (fuelCount > 0)
+                {
+                    curEngineWarp.propellant1 = fuels[0];
+                    curEngineWarp.ratio1 = (double)(decimal)ratios[0];
+                }
+                if (fuelCount > 1)
+                {
+                    curEngineWarp.propellant2 = fuels[1];
+                    curEngineWarp.ratio2 = (double)(decimal)ratios[1];
+                }
+                if (fuelCount > 2)
+                {
+                    curEngineWarp.propellant3 = fuels[2];
+                    curEngineWarp.ratio3 = (double)(decimal)ratios[2];
+                }
+                if (fuelCount > 3)
+                {
+                    curEngineWarp.propellant4 = fuels[3];
+                    curEngineWarp.ratio4 = (double)(decimal)ratios[3];
+                }
             }
         }
 
@@ -339,7 +378,6 @@ namespace FNPlugin
             if (tweakableUI != null)
                 tweakableUI.displayDirty = true;
 
-            //     curEngineT.Save(akResources);
             Debug.Log("[KSPI] - Resources Updated");
         }    
 
@@ -456,7 +494,9 @@ namespace FNPlugin
             {
                 Debug.Log("[KSPI] - Start State: " + state.ToString());
                 Debug.Log("[KSPI] - Already Launched: " + Launched);
+
                 curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
+                curEngineWarp = this.part.FindModuleImplementing<ModuleEnginesWarp>();
 
                 InitializeGUI();
 
@@ -674,8 +714,8 @@ namespace FNPlugin
         {
             get
             {
-                if (akRatio.Length == 0) akRatio = StringToFloatArray(ratios);
-
+                if (akRatio.Length == 0) 
+                    akRatio = StringToFloatArray(ratios);
                 return akRatio;
             }
         }

@@ -12,10 +12,13 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = true)]
         public double chargestatus = 1000;
+
         [KSPField(isPersistant = false)]
         public double maxCharge = 1000;
         [KSPField(isPersistant = false)]
         public float massExponent = 3;
+        [KSPField(isPersistant = false)]
+        public float massTargetExponent = 3;
         [KSPField(isPersistant = false)]
         public double chargeNeeded = 100;
         [KSPField(isPersistant = false)]
@@ -48,6 +51,8 @@ namespace FNPlugin
         public float moduleCost = 1;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
         public double storedMassMultiplier = 1;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Target Mass")]
+        public double storedTargetMassMultiplier = 1;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Scaling Factor")]
         public double storedScalingfactor = 1;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Fixed Delta Time")]
@@ -95,7 +100,7 @@ namespace FNPlugin
         double minimimAnimatterAmount = 0;
         double antimatterDensityModifier;
 
-        int startup_timeout = 200;
+        int startup_timeout;
         int power_explode_counter = 0;
         int geeforce_explode_counter = 0;
         int temperature_explode_counter = 0;
@@ -127,7 +132,10 @@ namespace FNPlugin
             try
             {
                 storedScalingfactor = factor.absolute.linear;
+
                 storedMassMultiplier = Math.Pow(storedScalingfactor, massExponent);
+                storedTargetMassMultiplier = Math.Pow(storedScalingfactor, massTargetExponent);
+
                 initialMass = part.prefabMass * storedMassMultiplier;
                 chargestatus = maxCharge;
             }
@@ -164,7 +172,7 @@ namespace FNPlugin
                 return;
             }
 
-            targetMass = (((maxTemperature - 30d) / 2500d) + ((double)(decimal)maxGeeforce / 20d)) * storedMassMultiplier;
+            targetMass = (((maxTemperature - 30d) / 7000d) + ((double)(decimal)maxGeeforce / 20d)) * storedTargetMassMultiplier;
             targetMass *= (1d - (0.2 * attachedAntimatterTanksCount));
         }
 
@@ -241,7 +249,7 @@ namespace FNPlugin
 
             antimatterDefinition = PartResourceLibrary.Instance.GetDefinition(resourceName);
 
-            antimatterDensityModifier = 1e-17 / antimatterDefinition.density;
+            antimatterDensityModifier = 1e-17 / (double)(decimal)antimatterDefinition.density;
 
             antimatterDensity = (double)(decimal)antimatterDefinition.density;
 

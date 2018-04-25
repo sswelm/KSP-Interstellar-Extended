@@ -52,7 +52,7 @@ namespace FNPlugin
         //public double calcualtedFlow;
 
         [KSPField(guiActive = false, guiName = "Mass Flow")]
-        public float requestedFlow;
+        public double requestedFlow;
 
         [KSPField]
         public double demandMass;
@@ -93,9 +93,6 @@ namespace FNPlugin
 
         // Are we transitioning from timewarp to reatime?
         bool _warpToReal = false;
-
-
-
 
         // Update
         public override void OnUpdate()
@@ -265,9 +262,9 @@ namespace FNPlugin
                 // allow throtle to be used up to 2G
                 TimeWarp.GThreshold = GThreshold;
 
-                requestedFlow = this.requestedMassFlow;
+                requestedFlow = (double)(decimal)this.requestedMassFlow;
                 //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
-                demandMass = requestedFlow * TimeWarp.fixedDeltaTime;
+                demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
                 propellantUsed = demandMass / propellantResourceDefinition1.density; // Resource demand
 
                 // if not transitioning from warp to real
@@ -289,9 +286,9 @@ namespace FNPlugin
                 _warpToReal = true; // Set to true for transition to realtime
                 var universalTime = Planetarium.GetUniversalTime(); // Universal time
 
-                requestedFlow = this.requestedMassFlow;
+                requestedFlow = (double)(decimal)this.requestedMassFlow;
                 //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
-                demandMass = requestedFlow * TimeWarp.fixedDeltaTime; // Change in mass over dT
+                demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime; // Change in mass over dT
 
                 fuelRatio =	CollectFuel(demandMass);
 
@@ -312,8 +309,7 @@ namespace FNPlugin
                 {
                     Debug.Log("Propellant depleted");
                 }
-            }
-            
+            }            
 
             // Update display numbers
             thrust_d = ThrustPersistent;
