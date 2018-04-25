@@ -404,6 +404,8 @@ namespace FNPlugin.Reactors
         protected double min_throttle;
 
         // Gui
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "mass difference ratio")]
+        public float massDifference = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "intended mass", guiUnits = " t")]
         public float partMass = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorMass", guiUnits = " t")]
@@ -998,7 +1000,9 @@ namespace FNPlugin.Reactors
 
         public void DeterminePowerOutput()
         {
-            var powerMultiplier = storedPowerMultiplier * powerOutputMultiplier * Math.Pow(part.mass / partMass, massPowerExp);
+            massDifference = part.mass / partMass;
+
+            var powerMultiplier = storedPowerMultiplier * powerOutputMultiplier * Math.Pow(massDifference, massPowerExp);
 
             powerOutputMk1 = basePowerOutputMk1 * powerMultiplier;
             powerOutputMk2 = basePowerOutputMk2 * powerMultiplier;

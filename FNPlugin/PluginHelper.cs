@@ -677,12 +677,19 @@ namespace FNPlugin
 
         public static string getFormattedPowerString(double power, string shortFormat = "0", string longFormat = "0.0")
         {
-            if (power > 1000)
+            if (power > 1e6)
             {
-                if (power > 20000)
-                    return (power / 1000).ToString(shortFormat) + " GW";
+                if (power > 2e7)
+                    return (power / 1e6).ToString(shortFormat) + " TW";
                 else
-                    return (power / 1000).ToString(longFormat) + " GW";
+                    return (power / 1e6).ToString(longFormat) + " TW";
+            }
+            else if (power > 1e3)
+            {
+                if (power > 2e4)
+                    return (power / 1e3).ToString(shortFormat) + " GW";
+                else
+                    return (power / 1e3).ToString(longFormat) + " GW";
             }
             else
             {
