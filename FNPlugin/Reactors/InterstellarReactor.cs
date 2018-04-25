@@ -243,6 +243,9 @@ namespace FNPlugin.Reactors
         public double breedDivider = 100000;
 
         [KSPField]
+        public double effectivePowerMultiplier;
+
+        [KSPField]
         public double bonusBufferFactor = 0.05;
         [KSPField]
         public double thermalPowerBufferMult = 4;
@@ -404,7 +407,7 @@ namespace FNPlugin.Reactors
         protected double min_throttle;
 
         // Gui
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "mass difference ratio")]
+        [KSPField]
         public float massDifference = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "intended mass", guiUnits = " t")]
         public float partMass = 0;
@@ -1002,15 +1005,15 @@ namespace FNPlugin.Reactors
         {
             massDifference = part.mass / partMass;
 
-            var powerMultiplier = storedPowerMultiplier * powerOutputMultiplier * Math.Pow(massDifference, massPowerExp);
+            effectivePowerMultiplier = storedPowerMultiplier * powerOutputMultiplier * Math.Pow(massDifference, massPowerExp);
 
-            powerOutputMk1 = basePowerOutputMk1 * powerMultiplier;
-            powerOutputMk2 = basePowerOutputMk2 * powerMultiplier;
-            powerOutputMk3 = basePowerOutputMk3 * powerMultiplier;
-            powerOutputMk4 = basePowerOutputMk4 * powerMultiplier;
-            powerOutputMk5 = basePowerOutputMk5 * powerMultiplier;
-            powerOutputMk6 = basePowerOutputMk6 * powerMultiplier;
-            powerOutputMk7 = basePowerOutputMk7 * powerMultiplier;
+            powerOutputMk1 = basePowerOutputMk1 * effectivePowerMultiplier;
+            powerOutputMk2 = basePowerOutputMk2 * effectivePowerMultiplier;
+            powerOutputMk3 = basePowerOutputMk3 * effectivePowerMultiplier;
+            powerOutputMk4 = basePowerOutputMk4 * effectivePowerMultiplier;
+            powerOutputMk5 = basePowerOutputMk5 * effectivePowerMultiplier;
+            powerOutputMk6 = basePowerOutputMk6 * effectivePowerMultiplier;
+            powerOutputMk7 = basePowerOutputMk7 * effectivePowerMultiplier;
 
             // initialise power output when missing
             if (powerOutputMk2 == 0)

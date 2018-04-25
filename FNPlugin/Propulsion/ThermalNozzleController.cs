@@ -144,11 +144,14 @@ namespace FNPlugin
         public double _thrustPropellantMultiplier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Base Heat Production")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float baseHeatProduction = 100;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Multiplier")]
+
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Control Heat Production")]
+        public bool controlHeatProduction = true;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Multiplier")]
         public float heatProductionMult = 0.3f;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Exponent")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Exponent")]
         public float heatProductionExponent = 7.1f;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
@@ -1352,13 +1355,14 @@ namespace FNPlugin
                 if (double.IsNaN(airflowHeatModifier)) 
                     airflowHeatModifier = 0;
 
-                engineHeatProduction = (max_fuel_flow_rate >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.001)
-                    ? Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / max_fuel_flow_rate / _maxISP / part.mass 
-                    : 100;
-
-                engineHeatProduction *= (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult);
-
-                myAttachedEngine.heatProduction = (float)engineHeatProduction;
+                if (controlHeatProduction)
+                {
+                    engineHeatProduction = (max_fuel_flow_rate >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.001)
+                        ? Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / max_fuel_flow_rate / _maxISP / part.mass
+                        : 100;
+                    engineHeatProduction *= (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult);
+                    myAttachedEngine.heatProduction = (float)engineHeatProduction;
+                }
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                 {
