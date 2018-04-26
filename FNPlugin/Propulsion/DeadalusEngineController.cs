@@ -1,11 +1,10 @@
-﻿using System.Linq;
-using System.Text;
-using FNPlugin.Extensions;
-using UnityEngine;
+﻿using FNPlugin.Extensions;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using KSP.Localization;
+using System.Text;
+using UnityEngine;
 
 namespace FNPlugin
 {
@@ -18,8 +17,6 @@ namespace FNPlugin
         // Persistant
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
-        //[KSPField(isPersistant = true)]
-        //public bool isupgraded;
         [KSPField(isPersistant = true)]
         public bool rad_safety_features = true;
 
@@ -278,9 +275,9 @@ namespace FNPlugin
         double engineIsp;
         double percentageFuelRemaining;
 
-        double fusionFuelFactor1 = 0;
-        double fusionFuelFactor2 = 0;
-        double fusionFuelFactor3 = 0;
+        double fusionFuelFactor1;
+	    double fusionFuelFactor2;
+	    double fusionFuelFactor3;
 
         Stopwatch stopWatch;
         ModuleEngines curEngineT;
@@ -294,6 +291,8 @@ namespace FNPlugin
         PartResourceDefinition fusionFuelResourceDefinition3;
 
         const string LIGHTBLUE = "#7fdfffff";
+
+        private int totalNumberOfGenerations; 
 
         private int _engineGenerationType;
         public GenerationType EngineGenerationType
@@ -470,7 +469,7 @@ namespace FNPlugin
 
                 UpdateFuelFactors();
 
-	            part.maxTemp = maxTemp;
+                part.maxTemp = maxTemp;
                 part.thermalMass = 1;
                 part.thermalMassModifier = 1;
 
@@ -519,6 +518,26 @@ namespace FNPlugin
                 Fields["translatedTechMk6"].guiActiveEditor = !String.IsNullOrEmpty(translatedTechMk6);
                 Fields["translatedTechMk7"].guiActiveEditor = !String.IsNullOrEmpty(translatedTechMk7);
                 Fields["translatedTechMk8"].guiActiveEditor = !String.IsNullOrEmpty(translatedTechMk8);
+
+                Fields["guiThrustMk1"].guiActiveEditor = totalNumberOfGenerations > 0;
+                Fields["guiThrustMk2"].guiActiveEditor = totalNumberOfGenerations > 1;
+                Fields["guiThrustMk3"].guiActiveEditor = totalNumberOfGenerations > 2;
+                Fields["guiThrustMk4"].guiActiveEditor = totalNumberOfGenerations > 3;
+                Fields["guiThrustMk5"].guiActiveEditor = totalNumberOfGenerations > 4;
+                Fields["guiThrustMk6"].guiActiveEditor = totalNumberOfGenerations > 5;
+                Fields["guiThrustMk7"].guiActiveEditor = totalNumberOfGenerations > 6;
+                Fields["guiThrustMk8"].guiActiveEditor = totalNumberOfGenerations > 7;
+                Fields["guiThrustMk9"].guiActiveEditor = totalNumberOfGenerations > 8;
+
+                Fields["guiPowerMk1"].guiActiveEditor = totalNumberOfGenerations > 0;
+                Fields["guiPowerMk2"].guiActiveEditor = totalNumberOfGenerations > 1;
+                Fields["guiPowerMk3"].guiActiveEditor = totalNumberOfGenerations > 2;
+                Fields["guiPowerMk4"].guiActiveEditor = totalNumberOfGenerations > 3;
+                Fields["guiPowerMk5"].guiActiveEditor = totalNumberOfGenerations > 4;
+                Fields["guiPowerMk6"].guiActiveEditor = totalNumberOfGenerations > 5;
+                Fields["guiPowerMk7"].guiActiveEditor = totalNumberOfGenerations > 6;
+                Fields["guiPowerMk8"].guiActiveEditor = totalNumberOfGenerations > 7;
+                Fields["guiPowerMk9"].guiActiveEditor = totalNumberOfGenerations > 8;
             }
             catch (Exception e)
             {
@@ -526,16 +545,16 @@ namespace FNPlugin
             }
         }
 
-	    private void UpdateFuelFactors()
-	    {
-		    if (!String.IsNullOrEmpty(fusionFuel1))
-			    fusionFuelResourceDefinition1 = PartResourceLibrary.Instance.GetDefinition(fusionFuel1);
-		    if (!String.IsNullOrEmpty(fusionFuel2))
-			    fusionFuelResourceDefinition2 = PartResourceLibrary.Instance.GetDefinition(fusionFuel2);
-		    if (!String.IsNullOrEmpty(fusionFuel3))
-			    fusionFuelResourceDefinition3 = PartResourceLibrary.Instance.GetDefinition(fusionFuel3);
+        private void UpdateFuelFactors()
+        {
+            if (!String.IsNullOrEmpty(fusionFuel1))
+                fusionFuelResourceDefinition1 = PartResourceLibrary.Instance.GetDefinition(fusionFuel1);
+            if (!String.IsNullOrEmpty(fusionFuel2))
+                fusionFuelResourceDefinition2 = PartResourceLibrary.Instance.GetDefinition(fusionFuel2);
+            if (!String.IsNullOrEmpty(fusionFuel3))
+                fusionFuelResourceDefinition3 = PartResourceLibrary.Instance.GetDefinition(fusionFuel3);
 
-		    var ratioSum = 0.0;
+            var ratioSum = 0.0;
             var densitySum = 0.0;
 
             if (fusionFuelResourceDefinition1 != null)
@@ -556,12 +575,12 @@ namespace FNPlugin
 
             averageDensity = densitySum / ratioSum;
 
-		    fusionFuelFactor1 = fusionFuelResourceDefinition1 != null ? fusionFuelRatio1/ratioSum : 0;
-		    fusionFuelFactor2 = fusionFuelResourceDefinition2 != null ? fusionFuelRatio2/ratioSum : 0;
-		    fusionFuelFactor3 = fusionFuelResourceDefinition3 != null ? fusionFuelRatio3/ratioSum : 0;
-	    }
+            fusionFuelFactor1 = fusionFuelResourceDefinition1 != null ? fusionFuelRatio1/ratioSum : 0;
+            fusionFuelFactor2 = fusionFuelResourceDefinition2 != null ? fusionFuelRatio2/ratioSum : 0;
+            fusionFuelFactor3 = fusionFuelResourceDefinition3 != null ? fusionFuelRatio3/ratioSum : 0;
+        }
 
-	    private string DisplayTech(string techid)
+        private string DisplayTech(string techid)
         {
             if (String.IsNullOrEmpty(techid))
                 return string.Empty;
@@ -576,6 +595,24 @@ namespace FNPlugin
 
         private void DetermineTechLevel()
         {
+            totalNumberOfGenerations = 1;
+            if (!string.IsNullOrEmpty(upgradeTechReq1))
+                totalNumberOfGenerations++;
+            if (!string.IsNullOrEmpty(upgradeTechReq2))
+                totalNumberOfGenerations++;
+            if (!string.IsNullOrEmpty(upgradeTechReq3))
+                totalNumberOfGenerations++;
+            if (!string.IsNullOrEmpty(upgradeTechReq4))
+                totalNumberOfGenerations++;
+            if (!string.IsNullOrEmpty(upgradeTechReq5))
+                totalNumberOfGenerations++;
+            if (!string.IsNullOrEmpty(upgradeTechReq6))
+                totalNumberOfGenerations++;
+            if (!string.IsNullOrEmpty(upgradeTechReq7))
+                totalNumberOfGenerations++;
+            if (!string.IsNullOrEmpty(upgradeTechReq8))
+                totalNumberOfGenerations++;
+
             numberOfAvailableUpgradeTechs = 0;
             if (PluginHelper.UpgradeAvailable(upgradeTechReq1))
                 numberOfAvailableUpgradeTechs++;
