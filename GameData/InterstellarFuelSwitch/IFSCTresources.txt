@@ -1,0 +1,26 @@
+100;LqdAmmonia;14NH3,l;Liquid Ammonia
+105;LqdArgon;40Ar,l;Liquid Argon
+110;LqdCO2;12CO2,l;Liquid Carbondioxide
+115;LqdCO;12CO,l;Liquid Carbonmonoxide
+120;LqdDeuterium;2D,l;Liquid Deuterium
+125;Diborane;B2H6,l;Liquid Diborane
+130;LqdFluorine;19F,l;Liquid Fluorine
+135;FusionPellets;3He2D,p;Fusionpellets
+140;LqdHe3;3He,l;Liquid Helium-3
+145;LqdHelium;4He,l;Liquid Helium
+150;Hexaborane;B6H10,l;Liquid Hexaborane
+155;Hydrazine;14N2H4,l;Liquid Hydrazine
+160;SolidHydrogen;1H,s;Solid Hydrogen
+165;HTP;H202,l;Liquid Hydrogenperoxide
+170;Kerosene;Kerosene,l;Liquid Kerosene
+175;LqdKrypton;84Kr,l;Liquid Krypton
+180;LqdNeon;20Ne,l;Liquid Neon
+185;LqdMethane;12CH4,l;Liquid Methane
+190;LqdNitrogen;14N,l;Liquid Nitrogen
+195;LqdNitrogen15;15N,l;Liquid Nitrogen-15
+200;LqdOxygen;16O,l;Liquid Oxygen
+205;LqdOxygen18;18O,l;Liquid Oxygen-18
+210;LqdTritium;3T,l;Liquid Tritium<color=red>*</color>
+215;LqdWater;H20,l;Liquid Water
+220;HeavyWater;D2O,l;Liquid Heavy Water
+225;LqdXenon;131Xe,l;Liquid Xenon

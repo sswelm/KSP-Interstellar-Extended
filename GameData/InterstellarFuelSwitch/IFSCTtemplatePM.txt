@@ -1,0 +1,13 @@
+PatchManager
+{
+	modName = IFSCT
+	patchName = IFSCTbatVar01batVar02
+	srcPath = InterstellarFuelSwitch/PatchManager/PluginData/IFSCTbatVar01batVar02.cfg
+	shortDescr = #LOC_IFSCT_PM_batVar02_short
+	longDescr = #LOC_IFSCT_PM_batVar02_long
+//	dependencies = 
+//	exclusions = 
+//	icon = 
+	installedWithMod = false
+//	author = Eleusis La Arwall 
+}
