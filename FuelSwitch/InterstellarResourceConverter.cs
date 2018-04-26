@@ -259,8 +259,9 @@ namespace InterstellarFuelSwitch
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
-            foreach (var resource in primaryResources)
+            for (var i = 0; i < primaryResources.Count; i++)
             {
+                var resource = primaryResources[i];
                 double currentAmount;
                 double maxAmount;
 
@@ -276,8 +277,9 @@ namespace InterstellarFuelSwitch
                 resource.maxAmount = maxAmount;
             }
 
-            foreach (var resource in secondaryResources)
+            for (var i = 0; i < secondaryResources.Count; i++)
             {
+                var resource = secondaryResources[i];
                 double currentAmount;
                 double maxAmount;
                 part.GetConnectedResourceTotals(resource.definition.id, out currentAmount, out maxAmount);
@@ -344,8 +346,9 @@ namespace InterstellarFuelSwitch
 
             if (retreivePrimary && primaryResources.Any(r => r.retrieveAmount > 0))
             {
-                foreach (var primaryResource in primaryResources)
+                for (var i = 0; i < primaryResources.Count; i++)
                 {
+                    var primaryResource = primaryResources[i];
                     transferRate = primaryResource.transferRate;
                     var fixedTransferRate = transferRate * TimeWarp.fixedDeltaTime;
 
@@ -374,8 +377,10 @@ namespace InterstellarFuelSwitch
                     var receivedSourceAmountFixed = part.RequestResource(primaryResource.definition.id, fixedRequest * powerReceivedRatio);
 
                     double createdAmount = 0;
-                    foreach(var secondary in secondaryResources)
+
+                    for (var j = 0; j < secondaryResources.Count; j++)
                     {
+                        var secondary = secondaryResources[j];
                         conversionRatio = secondary.conversionRatio;
                         var requestedTargetAmount = -receivedSourceAmountFixed * conversionRatio;
                         var receivedTargetAmount = part.RequestResource(secondary.definition.id, requestedTargetAmount) / conversionRatio;
@@ -388,8 +393,9 @@ namespace InterstellarFuelSwitch
             }
             else if (retrieveSecondary && secondaryResources.Any(r => r.retrieveAmount > 0))
             {
-                foreach (var secondaryResource in secondaryResources)
+                for (var i = 0; i < secondaryResources.Count; i++)
                 {
+                    var secondaryResource = secondaryResources[i];
                     transferRate = secondaryResource.transferRate;
 
                     var fixedTransferRate = transferRate * TimeWarp.fixedDeltaTime;
@@ -419,8 +425,10 @@ namespace InterstellarFuelSwitch
                     var receivedSourceAmountFixed = part.RequestResource(secondaryResource.definition.id, fixedRequest * powerReceiverRatio);
 
                     double createdAmount = 0;
-                    foreach (var primary in primaryResources)
+
+                    for (var j = 0; j < primaryResources.Count; j++)
                     {
+                        var primary = primaryResources[j];
                         conversionRatio = primary.conversionRatio;
                         var requestedTargetAmount = -receivedSourceAmountFixed * conversionRatio;
                         var receivedTargetAmount = part.RequestResource(primary.definition.id, requestedTargetAmount) / conversionRatio;

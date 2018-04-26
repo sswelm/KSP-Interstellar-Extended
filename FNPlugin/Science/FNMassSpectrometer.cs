@@ -47,8 +47,8 @@ namespace FNPlugin
 
         private void Window(int windowID) 
         {
-            bold_label = new GUIStyle(GUI.skin.label);
-            bold_label.fontStyle = FontStyle.Bold;
+            bold_label = new GUIStyle(GUI.skin.label) {fontStyle = FontStyle.Bold};
+
             if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x")) 
                 render_window = false;
 
@@ -62,19 +62,19 @@ namespace FNPlugin
                     GUILayout.Label("Abundance", bold_label, GUILayout.Width(150));
                     GUILayout.EndHorizontal();
                     GUILayout.Space(5);
-                    foreach (AtmosphericResource atmospheric_resource in AtmosphericResourceHandler.GetAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex).Values) 
+                    foreach (var atmospheric_resource in AtmosphericResourceHandler.GetAtmosphericCompositionForBody(vessel.mainBody.flightGlobalsIndex).Values) 
                     {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(atmospheric_resource.DisplayName, GUILayout.Width(150));
                         string resource_abundance_str;
                         if (atmospheric_resource.ResourceAbundance > 0.001) 
-                            resource_abundance_str = (atmospheric_resource.ResourceAbundance * 100.0).ToString() + "%";
+                            resource_abundance_str = (atmospheric_resource.ResourceAbundance * 100.0) + "%";
                         else 
                         {
                             if (atmospheric_resource.ResourceAbundance > 0.000001) 
-                                resource_abundance_str = (atmospheric_resource.ResourceAbundance * 1e6).ToString() + " ppm";
+                                resource_abundance_str = (atmospheric_resource.ResourceAbundance * 1e6) + " ppm";
                             else 
-                                resource_abundance_str = (atmospheric_resource.ResourceAbundance * 1e9).ToString() + " ppb";
+                                resource_abundance_str = (atmospheric_resource.ResourceAbundance * 1e9)+ " ppb";
                         }
                         GUILayout.Label(resource_abundance_str, GUILayout.Width(150));
                         GUILayout.EndHorizontal();

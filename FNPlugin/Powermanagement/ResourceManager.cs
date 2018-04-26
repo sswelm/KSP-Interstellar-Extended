@@ -812,48 +812,60 @@ namespace FNPlugin
         {
             if (left_bold_label == null)
             {
-                left_bold_label = new GUIStyle(GUI.skin.label);
-                left_bold_label.fontStyle = FontStyle.Bold;
-                left_bold_label.font = PluginHelper.MainFont;
+                left_bold_label = new GUIStyle(GUI.skin.label)
+                {
+                    fontStyle = FontStyle.Bold,
+                    font = PluginHelper.MainFont
+                };
             }
 
             if (right_bold_label == null)
             {
-                right_bold_label = new GUIStyle(GUI.skin.label);
-                right_bold_label.fontStyle = FontStyle.Bold;
-                right_bold_label.font = PluginHelper.MainFont;
-                right_bold_label.alignment = TextAnchor.MiddleRight;
+                right_bold_label = new GUIStyle(GUI.skin.label)
+                {
+                    fontStyle = FontStyle.Bold,
+                    font = PluginHelper.MainFont,
+                    alignment = TextAnchor.MiddleRight
+                };
             }
 
             if (green_label == null)
             {
-                green_label = new GUIStyle(GUI.skin.label);
-                green_label.normal.textColor = resource_name == ResourceManager.FNRESOURCE_WASTEHEAT ? Color.red : Color.green;
-                green_label.font = PluginHelper.MainFont;
-                green_label.alignment = TextAnchor.MiddleRight;
+                green_label = new GUIStyle(GUI.skin.label)
+                {
+                    normal = {textColor = resource_name == ResourceManager.FNRESOURCE_WASTEHEAT ? Color.red : Color.green},
+                    font = PluginHelper.MainFont,
+                    alignment = TextAnchor.MiddleRight
+                };
             }
 
             if (red_label == null)
             {
-                red_label = new GUIStyle(GUI.skin.label);
-                red_label.normal.textColor = resource_name == ResourceManager.FNRESOURCE_WASTEHEAT ? Color.green : Color.red;
-                red_label.font = PluginHelper.MainFont;
-                red_label.alignment = TextAnchor.MiddleRight;
+                red_label = new GUIStyle(GUI.skin.label)
+                {
+                    normal = {textColor = resource_name == ResourceManager.FNRESOURCE_WASTEHEAT ? Color.green : Color.red},
+                    font = PluginHelper.MainFont,
+                    alignment = TextAnchor.MiddleRight
+                };
             }
 
             if (left_aligned_label == null)
             {
-                left_aligned_label = new GUIStyle(GUI.skin.label);
-                left_aligned_label.fontStyle = FontStyle.Normal;
-                left_aligned_label.font = PluginHelper.MainFont;
+                left_aligned_label = new GUIStyle(GUI.skin.label)
+                {
+                    fontStyle = FontStyle.Normal,
+                    font = PluginHelper.MainFont
+                };
             }
 
             if (right_aligned_label == null)
             {
-                right_aligned_label = new GUIStyle(GUI.skin.label);
-                right_aligned_label.fontStyle = FontStyle.Normal;
-                right_aligned_label.font = PluginHelper.MainFont;
-                right_aligned_label.alignment = TextAnchor.MiddleRight;
+                right_aligned_label = new GUIStyle(GUI.skin.label)
+                {
+                    fontStyle = FontStyle.Normal,
+                    font = PluginHelper.MainFont,
+                    alignment = TextAnchor.MiddleRight
+                };
             }
 
             if (render_window && GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
@@ -918,7 +930,7 @@ namespace FNPlugin
 
                 var groupedPowerSupply = power_supply_list_archive.GroupBy(m => m.Key.getResourceManagerDisplayName());
 
-                List<PowerProduction> sumarizedList = new List<PowerProduction>();
+                var sumarizedList = new List<PowerProduction>();
                 
                 foreach (var group in groupedPowerSupply)
                 {
@@ -957,7 +969,7 @@ namespace FNPlugin
                 GUILayout.Label("Rank", right_bold_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(priorityWidth));
                 GUILayout.EndHorizontal();
 
-                List<PowerConsumption> sumarizedList = new List<PowerConsumption>();
+                var sumarizedList = new List<PowerConsumption>();
 
                 var groupedPowerDraws = power_draw_list_archive.GroupBy(m => m.Key.getResourceManagerDisplayName());
 
@@ -967,7 +979,7 @@ namespace FNPlugin
                     var sumOfPowerConsume = group.Sum(m => m.Value.Power_consume);
                     var sumOfConsumePercentage = sumOfPowerDraw > 0 ? sumOfPowerConsume / sumOfPowerDraw * 100 : 0;
 
-                    string name = group.Key;
+                    var name = group.Key;
                     var count = group.Count();
                     if (count > 1)
                         name = count + " " + name;

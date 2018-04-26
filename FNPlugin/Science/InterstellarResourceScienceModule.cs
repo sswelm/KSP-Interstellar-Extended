@@ -71,7 +71,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            UnityEngine.Debug.Log("[KSPI] - InterstellarResourceScienceModule - OnStart " + state.ToString());
+            Debug.Log("[KSPI] - InterstellarResourceScienceModule - OnStart " + state.ToString());
 
             //this.Events["Deploy"].guiActive = false;
             Events["activateGenerator"].guiName = generatorActivateName;
@@ -90,7 +90,7 @@ namespace FNPlugin
                 double time_diff = Planetarium.GetUniversalTime() - last_active_time;
                 
                 var minutes = time_diff / 60;
-                UnityEngine.Debug.Log("[KSPI] - InterstellarResourceScienceModule - time difference " + minutes + " minutes");
+                Debug.Log("[KSPI] - InterstellarResourceScienceModule - time difference " + minutes + " minutes");
                 ScreenMessages.PostScreenMessage("Generated Science Data for " + minutes.ToString("0.00") + " minutes", 5.0f, ScreenMessageStyle.LOWER_CENTER);
 
                 GenerateScience(time_diff, true);

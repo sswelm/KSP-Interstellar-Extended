@@ -70,13 +70,13 @@ namespace FNPlugin
                         GUILayout.Label(oceanic_resource.DisplayName, GUILayout.Width(150));
                         string resource_abundance_str;
                         if (oceanic_resource.ResourceAbundance > 0.001)
-                            resource_abundance_str = (oceanic_resource.ResourceAbundance * 100.0).ToString() + "%";
+                            resource_abundance_str = (oceanic_resource.ResourceAbundance * 100.0) + "%";
                         else 
                         {
                             if (oceanic_resource.ResourceAbundance > 0.000001)
-                                resource_abundance_str = (oceanic_resource.ResourceAbundance * 1e6).ToString() + " ppm";
+                                resource_abundance_str = (oceanic_resource.ResourceAbundance * 1e6) + " ppm";
                             else
-                                resource_abundance_str = (oceanic_resource.ResourceAbundance * 1e9).ToString() + " ppb";
+                                resource_abundance_str = (oceanic_resource.ResourceAbundance * 1e9) + " ppb";
                         }
                         GUILayout.Label(resource_abundance_str, GUILayout.Width(150));
                         GUILayout.EndHorizontal();

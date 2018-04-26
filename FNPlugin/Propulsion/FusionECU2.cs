@@ -398,7 +398,7 @@ namespace FNPlugin
             }
 
             var kerbalHazardCount = 0;
-            foreach (Vessel vess in FlightGlobals.Vessels)
+            foreach (var vess in FlightGlobals.Vessels)
             {
                 var distance = (float)Vector3d.Distance(vessel.transform.position, vess.transform.position);
                 if (distance < leathalDistance && vess != this.vessel)

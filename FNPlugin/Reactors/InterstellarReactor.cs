@@ -1470,7 +1470,7 @@ namespace FNPlugin.Reactors
                 maximum_charged_request_ratio = Math.Min(charged_propulsion_ratio + charged_generator_ratio, 1);
                 maximum_reactor_request_ratio = Math.Max(maximum_thermal_request_ratio, maximum_charged_request_ratio);
 
-                var power_access_modifier = Math.Max(
+                var powerAccessModifier = Math.Max(
                     Math.Max(
                         connectedEngines.Any(m => !m.RequiresChargedPower) ? 1 : 0,
                         connectedEngines.Any(m => m.RequiresChargedPower) ? 1 : 0),
@@ -1485,7 +1485,7 @@ namespace FNPlugin.Reactors
                 power_request_ratio = Math.Max(Math.Max(thermalThrottleRatio, chargedThrottleRatio), Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorChargedEnergyRequestRatio));
 
                 var safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
-                max_charged_to_supply_per_second = maximumChargedPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
+                max_charged_to_supply_per_second = maximumChargedPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * powerAccessModifier;
                 requested_charged_to_supply_per_second = max_charged_to_supply_per_second * power_request_ratio * maximum_charged_request_ratio;
 
                 var chargedParticlesManager = getManagerForVessel(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
@@ -1495,7 +1495,7 @@ namespace FNPlugin.Reactors
                 var neededChargedPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(max_charged_to_supply_per_second, min_throttle, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
                 charged_power_ratio = Math.Min(maximum_charged_request_ratio, maximumChargedPower > 0 ? neededChargedPowerPerSecond / maximumChargedPower : 0);
                          
-                max_thermal_to_supply_per_second = maximumThermalPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * power_access_modifier;
+                max_thermal_to_supply_per_second = maximumThermalPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * powerAccessModifier;
                 requested_thermal_to_supply_per_second = max_thermal_to_supply_per_second * power_request_ratio * maximum_thermal_request_ratio;
 
                 var neededThermalPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(max_thermal_to_supply_per_second, min_throttle, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
@@ -1531,17 +1531,19 @@ namespace FNPlugin.Reactors
                 // consume fuel
                 if (!CheatOptions.InfinitePropellant)
                 {
-                    foreach (ReactorFuel fuel in current_fuel_variant.ReactorFuels)
+                    for (var i = 0; i < current_fuel_variant.ReactorFuels.Count; i++)
                     {
-                        ConsumeReactorFuel(fuel, totalPowerReceivedFixed / geeForceModifier);
+                        ConsumeReactorFuel(current_fuel_variant.ReactorFuels[i], totalPowerReceivedFixed / geeForceModifier);
                     }
 
                     // refresh production list
                     reactorProduction.Clear();
 
+
                     // produce reactor products
-                    foreach (ReactorProduct product in current_fuel_variant.ReactorProducts)
+                    for (var i = 0; i < current_fuel_variant.ReactorProducts.Count; i++)
                     {
+                        var product = current_fuel_variant.ReactorProducts[i];
                         var massProduced = ProduceReactorProduct(product, totalPowerReceivedFixed / geeForceModifier);
                         reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
                     }
@@ -2289,7 +2291,7 @@ namespace FNPlugin.Reactors
                         var resourceVariantsDefinitions = CurrentFuelMode.ResourceGroups.First(m => m.name == fuel.FuelName).resourceVariantsMetaData;
 
                         var availableRessources = resourceVariantsDefinitions
-                            .Select(m => new {resourceDefinition = m.resourceDefinition, ratio = m.ratio}).Distinct()
+                            .Select(m => new {m.resourceDefinition, m.ratio}).Distinct()
                             .Select(d => new { definition = d.resourceDefinition, amount = GetFuelAvailability(d.resourceDefinition), effectiveDensity = d.resourceDefinition.density * d.ratio})
                             .Where(m => m.amount > 0).ToList();
 

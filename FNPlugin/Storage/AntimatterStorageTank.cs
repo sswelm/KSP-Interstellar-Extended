@@ -619,14 +619,14 @@ namespace FNPlugin
             TimeWarp.SetRate(0, true);
             vessel.GoOffRails();
 
-            Vessel[] list_of_vessels_to_explode = FlightGlobals.Vessels.ToArray();
-            foreach (Vessel vess_to_explode in list_of_vessels_to_explode)
+            var list_of_vessels_to_explode = FlightGlobals.Vessels.ToArray();
+            foreach (var vess_to_explode in list_of_vessels_to_explode)
             {
                 if (Vector3d.Distance(vess_to_explode.transform.position, vessel.transform.position) > explosion_size) continue;
 
                 if (vess_to_explode.packed) continue;
 
-                Part[] parts_to_explode = vess_to_explode.Parts.ToArray();
+                var parts_to_explode = vess_to_explode.Parts.ToArray();
                 foreach (Part part_to_explode in parts_to_explode)
                 {
                     if (part_to_explode != null)
@@ -634,7 +634,7 @@ namespace FNPlugin
                 }
             }
 
-            Part[] explode_parts = vessel.Parts.ToArray();
+            var explode_parts = vessel.Parts.ToArray();
             foreach (Part explode_part in explode_parts)
             {
                 if (explode_part != vessel.rootPart && explode_part != this.part)

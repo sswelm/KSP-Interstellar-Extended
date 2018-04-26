@@ -279,11 +279,11 @@ namespace InterstellarFuelSwitch
                         initialTankSetup = String.Join(";", part.Resources.Select(m => m.resourceName).ToArray());
                     }
 
-                    for (int i = 0; i < _modularTankList.Count; i++)
+                    for (var i = 0; i < _modularTankList.Count; i++)
                     {
                         var modularTank = _modularTankList[i];
 
-                        bool isSimilar = true;
+                        var isSimilar = true;
                         foreach (var resource in modularTank.Resources)
                         {
                             if (!part.Resources.Contains(resource.name))
@@ -544,7 +544,7 @@ namespace InterstellarFuelSwitch
 
                 if (HighLogic.LoadedSceneIsEditor && affectSymCounterparts)
                 {
-                    foreach (Part symPart in part.symmetryCounterparts)
+                    foreach (var symPart in part.symmetryCounterparts)
                     {
                         InterstellarFuelSwitch symSwitch = String.IsNullOrEmpty(tankId)
                             ? symPart.FindModulesImplementing<InterstellarFuelSwitch>().FirstOrDefault()

@@ -1,10 +1,6 @@
-﻿using System;
+﻿using FNPlugin.Reactors.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Reflection;
-using FNPlugin.Reactors.Interfaces;
-using UnityEngine;
 
 namespace FNPlugin
 {
@@ -22,11 +18,10 @@ namespace FNPlugin
             {
                 totalmass += currentPart.mass;
                 var module = currentPart.FindModuleImplementing<T>();
-                if (module != null)
-                {
-                    modulemass += currentPart.mass;
-                    modulelist.Add(module);
-                }
+                if (module == null) continue;
+
+                modulemass += currentPart.mass;
+                modulelist.Add(module);
             }
             return modulelist;
         }

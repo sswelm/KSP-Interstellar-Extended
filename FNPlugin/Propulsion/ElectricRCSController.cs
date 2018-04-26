@@ -427,13 +427,17 @@ namespace FNPlugin
             if (rcsStates == null) return;
 
             rcsIsOn = this.vessel.ActionGroups.groups[3];
-            foreach (ModuleRCS rcs in part.FindModulesImplementing<ModuleRCS>())
+
+            var moduleImplementingRcs = part.FindModuleImplementing<ModuleRCS>();
+            if (moduleImplementingRcs != null)
             {
-                rcsPartActive = rcs.isEnabled;
+                rcsPartActive = moduleImplementingRcs.isEnabled;
             }
 
-            foreach (AnimationState anim in rcsStates)
+            var rcsStatesCount = rcsStates.Count();
+            for (var i = 0; i < rcsStatesCount; i++)
             {
+                var anim = rcsStates[i];
                 if (attachedRCS.rcsEnabled && rcsIsOn && rcsPartActive && anim.normalizedTime < 1) { anim.speed = 1; }
                 if (attachedRCS.rcsEnabled && rcsIsOn && rcsPartActive && anim.normalizedTime >= 1)
                 {
@@ -467,10 +471,12 @@ namespace FNPlugin
 
             if (!vessel.ActionGroups[KSPActionGroup.RCS]) return;
 
-            foreach (var force in attachedRCS.thrustForces)
+            var thrustForcesCount = thrustForcesStr.Count();
+
+            for (var i = 0; i < thrustForcesCount; i++)
             {
-                thrustForcesStr += force.ToString("0.00") + "kN ";
-            }           
+                thrustForcesStr += attachedRCS.thrustForces[i].ToString("0.00") + "kN ";
+            }
 
             if (powerEnabled && currentThrust > 0)
             {
@@ -486,11 +492,11 @@ namespace FNPlugin
                         : 0;
                 }
 
-                double heat_to_produce = power_recieved_f * (1 - efficiency);
+                var heatToProduce = power_recieved_f * (1 - efficiency);
 
                 heat_production_f = CheatOptions.IgnoreMaxTemperature 
-                    ? heat_to_produce
-                    : supplyFNResourcePerSecond(heat_to_produce, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    ? heatToProduce
+                    : supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 power_ratio = power_requested_f > 0 ? Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
             }

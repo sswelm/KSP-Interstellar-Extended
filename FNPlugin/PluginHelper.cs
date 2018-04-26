@@ -42,54 +42,17 @@ namespace FNPlugin
             PluginHelper.LoadSaveFile();
         }
 
-        //void OnVesselLoaded(Vessel vessel)
-        //{
-        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnVesselLoaded");
-        //}
-
-        //void OnTechnologyResearched(GameEvents.HostTargetAction<RDTech, RDTech.OperationResult> change)
-        //{
-        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnTechnologyResearched");
-        //}
-
-        //void OnSetSpeedModeChange(FlightGlobals.SpeedDisplayModes evt)
-        //{
-        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnSetSpeedModeChange");
-        //}
-
-        //void OnVesselGoOnRails(Vessel vessel)
-        //{
-        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnVesselGoOnRails");
-        //}
-
-        //void OnVesselGoOffRails(Vessel vessel)
-        //{
-        //    Debug.Log("[KSPI] - GameEventSubscriber - detected OnVesselGoOffRails");
-        //}
-
         void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
         {
             bool shouldReinitialise = (change.from == Vessel.Situations.DOCKED || change.to == Vessel.Situations.DOCKED);
 
             if (shouldReinitialise)
             {
-                //ORSHelper.removeVesselFromCache(change.host);
-
                 Debug.Log("[KSPI] - GameEventSubscriber - OnVesselSituationChange reinitialising");
 
-                //var generators = change.host.FindPartModulesImplementing<FNGenerator>();
-                //generators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
-
                 FNRadiator.Reset();
-                //var radiators = change.host.FindPartModulesImplementing<FNRadiator>();
-                //radiators.ForEach(g => g.OnStart(PartModule.StartState.Docked));
             }
         }
-
-        //void OnVesselChange(Vessel v)
-        //{
-        //    Debug.Log("[KSPI] - OnVesselChange is called");
-        //}
     }
 
 

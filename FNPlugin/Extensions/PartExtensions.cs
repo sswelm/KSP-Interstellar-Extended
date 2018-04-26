@@ -212,15 +212,14 @@ namespace FNPlugin.Extensions
             if (currentPart.parent != null && currentPart.parent != previousPart)
                 amount += FindAmountOfAvailableFuel(currentPart.parent, resourcename, maxChildDepth, currentPart);
 
-            if (maxChildDepth > 0)
-            {
-                foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
-                {
-                    amount += FindAmountOfAvailableFuel(child, resourcename, (maxChildDepth - 1), currentPart);
-                }
-            }
+	        if (maxChildDepth <= 0) return amount;
 
-            return amount;
+	        foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
+	        {
+		        amount += FindAmountOfAvailableFuel(child, resourcename, (maxChildDepth - 1), currentPart);
+	        }
+
+	        return amount;
         }
 
         public static double FindMaxAmountOfAvailableFuel(this Part currentPart, String resourcename, int maxChildDepth, Part previousPart = null)
