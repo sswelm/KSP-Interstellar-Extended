@@ -152,7 +152,12 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool showTankName = true;
         [KSPField]
-        public bool showInfo = true; // if false, does not feed info to the part list pop up info menu
+        public bool showInfo = true;    // if false, does not feed info to the part list pop up info menu
+        [KSPField]
+        public string moduleInfoTemplate;      
+        [KSPField]
+        public string moduleInfoParams;         
+
         [KSPField]
         public string resourcesFormat = "0.0000";
         [KSPField]
@@ -1246,30 +1251,62 @@ namespace InterstellarFuelSwitch
 
             var info = new StringBuilder();
 
+            if (!String.IsNullOrEmpty(moduleInfoTemplate))
+            {
+                List<string> parameters = new List<string>();
+
+                if (!String.IsNullOrEmpty(moduleInfoParams))
+                {
+                    parameters = moduleInfoParams.Split(';').ToList();
+
+                    // translate parameters
+                    for (var i = 0; i < parameters.Count; i++)
+                    {
+                        parameters[i] = Localizer.Format(parameters[i]);
+                    }
+                }
+
+                var lines = moduleInfoTemplate.Split(new[] { "<br/>" }, StringSplitOptions.None).ToList();
+
+                var parameterArray = parameters.ToArray();
+
+                lines.ForEach(line => info.AppendLine(Localizer.Format(line, parameterArray)));
+
+
+                return info.ToString();
+            }
+
+
             info.AppendLine(Localizer.Format("#LOC_IFS_FuelSwitch_GetInfo") + ":");
+            info.Append("<size=10>");
             info.AppendLine();
 
             foreach (var module in _modularTankList)
             {
-                var count = 0;
-                info.Append("* ");
+                var multi = (module.Resources.Count > 1);
+
+                if (multi)
+                {
+                    info.Append("<color=#00ff00ff>");
+                    info.Append(module.SwitchName);
+                    info.Append("</color>");
+                    info.AppendLine();
+                }
 
                 foreach (var resource in module.Resources)
                 {
-                    if (count > 0)
-                        info.Append(" + ");
-                    if (resource.maxAmount > 0)
-                    {
-                        info.Append(resource.maxAmount);
-                        info.Append(" ");
-                    }
+                    if (multi)
+                        info.Append("* ");
+
+                    info.Append(Math.Round(resource.maxAmount, 0));
+                    info.Append(" ");
+                    info.Append("<color=#00ffffff>");
                     info.Append(resource.name);
-
-                    count++;
+                    info.Append("</color>");
+                    info.AppendLine();
                 }
-
-                info.AppendLine();
             }
+            info.Append("</size>");
             return info.ToString();
         }
 
