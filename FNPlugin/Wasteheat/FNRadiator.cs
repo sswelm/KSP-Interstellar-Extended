@@ -123,7 +123,7 @@ namespace FNPlugin
         // persitant
         [KSPField(isPersistant = true, guiActive = true, guiName = "Radiator Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts= UI_Scene.All)]
         public bool radiatorIsEnabled = false;
-        [KSPField(isPersistant = true, guiActive = false)]
+        [KSPField(isPersistant = true)]
         public bool canRadiateHeat = true;
         [KSPField(isPersistant = true)]
         public bool radiatorInit;
@@ -133,102 +133,96 @@ namespace FNPlugin
         public bool pivotEnabled = true;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Prevent Shielded Deploy"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool preventShieldedDeploy = true;
-
-        [KSPField(isPersistant = false)]
-        public bool showColorHeat = true;
         [KSPField(isPersistant = true)]
         public bool showRetractButton = false;
         [KSPField(isPersistant = true)]
         public bool showControls = true;
 
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
-        public float maxVacuumTemperature = 3700;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
-        public float maxAtmosphereTemperature = 1200;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
-        public double maxCurrentTemperature = 1200;
-
-        [KSPField(isPersistant = false)]
-        public string radiatorTypeMk1 = "NaK Loop Radiator";
-        [KSPField(isPersistant = false)]
-        public string radiatorTypeMk2 = "Mo Li Heat Pipe Mk1";
-        [KSPField(isPersistant = false)]
-        public string radiatorTypeMk3 = "Mo Li Heat Pipe Mk2";
-        [KSPField(isPersistant = false)]
-        public string radiatorTypeMk4 = "Graphene Radiator Mk1";
-        [KSPField(isPersistant = false)]
-        public string radiatorTypeMk5 = "Graphene Radiator Mk2";
-
-        [KSPField(isPersistant = false, guiActive = false)]
-        public string surfaceAreaUpgradeTechReq = null;
-        [KSPField(isPersistant = false, guiActive = false)]
-        public double surfaceAreaUpgradeMult = 1.6;
-
         // non persistant
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Mass", guiUnits = " t")]
+        [KSPField(guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
+        public float maxVacuumTemperature = 3700;
+        [KSPField(guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
+        public float maxAtmosphereTemperature = 1200;
+        [KSPField(guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
+        public double maxCurrentTemperature = 1200;
+        [KSPField]
+        public string radiatorTypeMk1 = "NaK Loop Radiator";
+        [KSPField]
+        public string radiatorTypeMk2 = "Mo Li Heat Pipe Mk1";
+        [KSPField]
+        public string radiatorTypeMk3 = "Mo Li Heat Pipe Mk2";
+        [KSPField]
+        public string radiatorTypeMk4 = "Graphene Radiator Mk1";
+        [KSPField]
+        public string radiatorTypeMk5 = "Graphene Radiator Mk2";
+        [KSPField]
+        public bool showColorHeat = true;
+        [KSPField]
+        public string surfaceAreaUpgradeTechReq = null;
+        [KSPField]
+        public double surfaceAreaUpgradeMult = 1.6;
+        [KSPField(guiName = "Mass", guiUnits = " t")]
         public float partMass;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool isDeployable = false;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiName = "Converction Bonus")]
+        [KSPField(guiName = "Converction Bonus")]
         public float convectiveBonus = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string animName = "";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string thermalAnim = "";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string originalName = "";
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float upgradeCost = 100;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float temperatureColorDivider = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float emissiveColorPower = 3;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public double wasteHeatMultiplier = 1;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public string colorHeat = "_EmissiveColor";
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField]
         public double dynamic_pressure;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Type")]
+        [KSPField(guiName = "Type")]
         public string radiatorType;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Rad Temp")]
+        [KSPField(guiActive = true, guiName = "Rad Temp")]
         public string radiatorTempStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Part Temp")]
+        [KSPField(guiActive = true, guiName = "Part Temp")]
         public string partTempStr;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
+        [KSPField(guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double radiatorArea = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
+        [KSPField(guiName = "Eff Surface Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double effectiveRadiativeArea = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false)]
+        [KSPField]
         public double areaMultiplier = 1;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Effective Area", guiFormat = "F2", guiUnits = " m\xB2")]
+        [KSPField(guiName = "Effective Area", guiFormat = "F2", guiUnits = " m\xB2")]
         public double effectiveRadiatorArea;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Power Radiated")]
+        [KSPField(guiActive = true, guiName = "Power Radiated")]
         public string thermalPowerDissipStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Power Convected")]
+        [KSPField(guiActive = true, guiName = "Power Convected")]
         public string thermalPowerConvStr;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Rad Upgrade Cost")]
+        [KSPField(guiName = "Rad Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Radiator Start Temp")]
+        [KSPField(guiName = "Radiator Start Temp")]
         public double radiator_temperature_temp_val;
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField]
         public double instantaneous_rad_temp;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "WasteHeat Ratio")]
+        [KSPField(guiName = "WasteHeat Ratio")]
         public double wasteheatRatio;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Energy Transfer", guiFormat = "F2")]
+        [KSPField(guiName = "Max Energy Transfer", guiFormat = "F2")]
         private double _maxEnergyTransfer;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
+        [KSPField(guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
         public float maxRadiatorTemperature = 3700;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Base Wasteheat")]
-        public double partBaseWasteheat;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Upgrade Techs")]
+        [KSPField(guiName = "Upgrade Techs")]
         public int nrAvailableUpgradeTechs;
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Has Surface Upgrade")]
+        [KSPField(guiName = "Has Surface Upgrade")]
         public bool hasSurfaceAreaUpgradeTechReq;
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public float atmosphereToleranceModifier = 1;
 
-        const String kspShader = "KSP/Emissive/Bumped Specular";
+        const string kspShader = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
         const int FRAME_DELAY = 9;
         const int DEPLOYMENT_DELAY = 6;
@@ -237,6 +231,10 @@ namespace FNPlugin
         private double thermalPowerDissipPerSecond;
         private double radiatedThermalPower;
         private double convectedThermalPower;
+        private double normalizedAtmosphere;
+        private double external_temperature;
+        private double temperatureDifferenceCurrentWithExternal;
+        private double temperatureDifferenceMaximumWithExternal;
 
         private bool active;
         private long update_count;
@@ -421,7 +419,8 @@ namespace FNPlugin
             if (radiator_deploy_delay == 0)
                 Debug.Log("[KSPI] - Deploy Called ");
 
-            if (preventShieldedDeploy && (part.ShieldedFromAirstream || radiator_deploy_delay < RADIATOR_DELAY)) {
+            if (preventShieldedDeploy && (part.ShieldedFromAirstream || radiator_deploy_delay < RADIATOR_DELAY)) 
+            {
                 radiator_deploy_delay++;
                 return;
             }
@@ -653,8 +652,10 @@ namespace FNPlugin
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDING 
                 || _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTING;
 
-            deployRadiatorEvent.active = showControls && !radiatorIsEnabled && isDeployable && isDeployStateUndefined;
-            retractRadiatorEvent.active = showControls && radiatorIsEnabled && isDeployable && isDeployStateUndefined;
+            var canbeActive = showControls && isDeployable && isDeployStateUndefined;
+
+            deployRadiatorEvent.active = canbeActive && !radiatorIsEnabled;
+            retractRadiatorEvent.active = canbeActive && radiatorIsEnabled;
         }
 
         public override void OnUpdate() // is called while in flight
@@ -675,7 +676,16 @@ namespace FNPlugin
                 radiatorState = _moduleDeployableRadiator.deployState;
             }
 
+            external_temperature = FlightGlobals.getExternalTemperature(part.transform.position);
+            normalizedAtmosphere = Math.Min(vessel.atmDensity, 1);
+            effectiveRadiatorArea = EffectiveRadiatorArea;
+            maxCurrentTemperature = maxAtmosphereTemperature * Math.Max(normalizedAtmosphere, 0) + maxVacuumTemperature * Math.Max(Math.Min(1 - vessel.atmDensity, 1), 0);
+            
+            temperatureDifferenceCurrentWithExternal = maxCurrentTemperature - external_temperature;
+            temperatureDifferenceMaximumWithExternal = maxRadiatorTemperature - external_temperature;
+
             thermalPowerConvStrField.guiActive = convectedThermalPower > 0;
+
 
             // synchronize states
             if (_moduleDeployableRadiator != null && pivotEnabled && showControls)
@@ -733,13 +743,8 @@ namespace FNPlugin
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.UpdateBuffers();
 
-                effectiveRadiatorArea = EffectiveRadiatorArea;
-
-                var external_temperature = FlightGlobals.getExternalTemperature(part.transform.position);
-
-                wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
-
                 // get resource bar ratio at start of frame
+                wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
                 wasteheatRatio = wasteheatManager.ResourceBarRatioBegin;
 
                 if (Double.IsNaN(wasteheatRatio))
@@ -748,13 +753,8 @@ namespace FNPlugin
                     return;
                 }
 
-                var normalizedAtmosphere = Math.Min(vessel.atmDensity, 1);
+                radiator_temperature_temp_val = external_temperature + Math.Min(temperatureDifferenceMaximumWithExternal * Math.Sqrt(wasteheatRatio), temperatureDifferenceCurrentWithExternal);
 
-                maxCurrentTemperature = maxAtmosphereTemperature * Math.Max(normalizedAtmosphere, 0) + maxVacuumTemperature * Math.Max(Math.Min(1 - vessel.atmDensity, 1), 0);
-
-                radiator_temperature_temp_val = external_temperature + Math.Min((maxRadiatorTemperature - external_temperature) * Math.Sqrt(wasteheatRatio), maxCurrentTemperature - external_temperature);
-
-                var efficiency = 1 - Math.Pow(1 - wasteheatRatio, 400);
                 var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * normalizedAtmosphere, 2.7), 0);
 
                 if (radiatorIsEnabled)
@@ -768,6 +768,7 @@ namespace FNPlugin
                     else
                         explode_counter = 0;
 
+                    var efficiency = CalculateEfficiency();
                     thermalPowerDissipPerSecond = efficiency * Math.Pow(deltaTemp, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6;
 
                     if (Double.IsNaN(thermalPowerDissipPerSecond))
@@ -778,10 +779,7 @@ namespace FNPlugin
                     if (Double.IsNaN(radiatedThermalPower))
                         Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermalPowerDissipPerSecond + ")");
 
-                    instantaneous_rad_temp = Math.Max(radiator_temperature_temp_val, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
-
-                    if (Double.IsNaN(instantaneous_rad_temp))
-                        Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
+                    instantaneous_rad_temp = CalculateInstantaniousRadTemp();
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
 
@@ -790,11 +788,12 @@ namespace FNPlugin
                 }
                 else
                 {
+                    var efficiency = CalculateEfficiency();
                     thermalPowerDissipPerSecond = efficiency * Math.Pow(Math.Max(deltaTemp - external_temperature, 0), 4) * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7;
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond) : 0;
-                    
-                    instantaneous_rad_temp = Math.Max(radiator_temperature_temp_val, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
+
+                    instantaneous_rad_temp = CalculateInstantaniousRadTemp();
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
                 }
@@ -804,6 +803,7 @@ namespace FNPlugin
                     dynamic_pressure = 0.60205 * vessel.atmDensity * vessel.srf_velocity.sqrMagnitude / 101325;
                     vessel.atmDensity += dynamic_pressure;
 
+                    var efficiency = CalculateEfficiency();
                     var convPowerDissip = efficiency * vessel.atmDensity * Math.Max(0, CurrentRadiatorTemperature - external_temperature) * effectiveRadiatorArea * 0.001 * convectiveBonus * Math.Max(part.submergedPortion * 10, 1);
 
                     if (!radiatorIsEnabled)
@@ -830,6 +830,21 @@ namespace FNPlugin
             {
                 Debug.LogError("[KSPI] - Exception on " +  part.name + " durring FNRadiator.FixedUpdate with message " + e.Message);
             }
+        }
+
+        private double CalculateInstantaniousRadTemp()
+        {
+            var result = Math.Max(radiator_temperature_temp_val, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
+
+            if (Double.IsNaN(result))
+                Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
+
+            return result;
+        }
+
+        private double CalculateEfficiency()
+        {
+            return 1 - Math.Pow(1 - wasteheatRatio, 400);
         }
 
         private void DeployMentControl(double dynamic_pressure)

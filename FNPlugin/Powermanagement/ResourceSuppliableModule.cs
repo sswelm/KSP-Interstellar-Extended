@@ -15,6 +15,7 @@ namespace FNPlugin
         protected Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
         protected String[] resources_to_supply;
         protected double timeWarpFixedDeltaTime;
+        protected double previousFixedDeltaTime;
 
         public void receiveFNResource(double power, String resourcename)
         {
@@ -538,6 +539,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
+            previousFixedDeltaTime = timeWarpFixedDeltaTime;
             timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
 
             updateCounter++;

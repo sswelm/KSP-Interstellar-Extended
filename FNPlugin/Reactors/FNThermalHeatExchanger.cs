@@ -45,6 +45,7 @@ namespace FNPlugin.Reactors
         public double MinimumThrottle { get { return 0; } }
 
         public double PowerRatio { get { return 1; } }
+        public double ConsumedFuelFixed { get { return 0; } }
 
         public double RawTotalPowerProduced { get { return _thermalpower * TimeWarp.fixedDeltaTime; } }
 

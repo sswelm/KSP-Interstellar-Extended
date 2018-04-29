@@ -93,9 +93,9 @@ namespace FNPlugin.Reactors
         public float powerPercentage = 100;
         [KSPField(isPersistant = true)]
         public double ongoing_total_power_generated;
-        [KSPField(isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_Reactor_thermalPower", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_Reactor_thermalPower", guiFormat = "F6")]
         protected double ongoing_thermal_power_generated;
-        [KSPField(isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_Reactor_chargedPower ", guiFormat = "F6")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_Reactor_chargedPower ", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
        
         [KSPField]
@@ -407,9 +407,9 @@ namespace FNPlugin.Reactors
         protected double min_throttle;
 
         // Gui
-        [KSPField]
+        [KSPField(guiActive = false, guiActiveEditor = false)]
         public float massDifference = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "intended mass", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "calibrated mass", guiUnits = " t")]
         public float partMass = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorMass", guiUnits = " t")]
         public float currentMass = 0;
@@ -417,6 +417,10 @@ namespace FNPlugin.Reactors
         public double maximumThermalPowerEffective = 0;
         [KSPField]
         public double geeForceModifier;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Requested", guiUnits = " kg/s")]
+        public double hydrogenProductionRequest;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
+        public double hydrogenProductionReceived;
 
         // shared variabels
         protected bool decay_ongoing = false;
@@ -442,6 +446,7 @@ namespace FNPlugin.Reactors
         PartResourceDefinition tritium_def;
         PartResourceDefinition helium_def;
 
+        PartResourceDefinition hydrogenDefinition;
         ResourceBuffers resourceBuffers;
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
@@ -449,6 +454,7 @@ namespace FNPlugin.Reactors
         Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
         Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
 
+        double requestedPropellantMassPerSecond;
         double connectedRecieversSum;
 
         double tritiumBreedingMassAdjustment;
@@ -497,6 +503,10 @@ namespace FNPlugin.Reactors
             } 
         }
 
+        private double _consumedFuelTotalFixed;
+
+        public double ConsumedFuelFixed { get { return _consumedFuelTotalFixed; } }
+
         public bool SupportMHD { get { return supportMHD; } }
 
         public double ProducedThermalHeat { get { return ongoing_thermal_power_generated; } }
@@ -507,22 +517,22 @@ namespace FNPlugin.Reactors
 
         public double RawTotalPowerProduced  { get { return ongoing_total_power_generated; } }
 
-        public double UseProductForPropulsion(double ratio, double consumedAmount)
+        public void UseProductForPropulsion(double ratio, double propellantMassPerSecond)
         {
-            if (ratio == 0) return 0;
+            if (ratio <= 0) return;
 
-            var hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
+            //var hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
 
-            double hydrogenMassSum = 0;
+            //double hydrogenMassSum = 0;
 
             foreach (var product in reactorProduction)
             {
-                if (product.mass == 0) continue;
+                if (product.mass <= 0) continue;
 
                 var effectiveMass = ratio * product.mass;
 
-                // sum product mass
-                hydrogenMassSum += effectiveMass;
+                //// sum product mass
+                //hydrogenMassSum += effectiveMass;
 
                 // remove product from store
                 var fuelAmount = product.fuelmode.DensityInTon > 0 ? (effectiveMass / product.fuelmode.DensityInTon) : 0;
@@ -531,13 +541,18 @@ namespace FNPlugin.Reactors
                 part.RequestResource(product.fuelmode.ResourceName, fuelAmount);
             }
 
-            var hydrogenAmount = Math.Min(hydrogenMassSum / hydrogenDefinition.density, consumedAmount);
+            requestedPropellantMassPerSecond = propellantMassPerSecond;
 
-            // at real time we need twise
-            if (!this.vessel.packed)
-                hydrogenAmount *= 2;
+            //var productionFixed = part.RequestResource(hydrogenDefinition.id, -TimeWarp.fixedDeltaTime * propellantMassPerSecond / hydrogenDefinition.density);
+            //hydrogenProduction = -1000 * productionFixed / TimeWarp.fixedDeltaTime;
 
-            return part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
+            //var hydrogenAmount = Math.Min(hydrogenMassSum / hydrogenDefinition.density, consumedAmount);
+
+            //// at real time we need twise
+            //if (!this.vessel.packed)
+            //    hydrogenAmount *= 2;
+
+            //return part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
         }
 
         public void ConnectWithEngine(IEngineNoozle engine)
@@ -1049,6 +1064,8 @@ namespace FNPlugin.Reactors
         {
             UpdateReactorCharacteristics();
 
+            hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition("LqdHydrogen");
+
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
             hasBimodelUpgradeTechReq = PluginHelper.HasTechRequirementOrEmpty(bimodelUpgradeTechReq);
             staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
@@ -1337,6 +1354,8 @@ namespace FNPlugin.Reactors
 
         public virtual void Update()
         {
+            DeterminePowerOutput();
+
             currentMass = part.mass;
             currentRawPowerOutput = RawPowerOutput;
 
@@ -1444,6 +1463,8 @@ namespace FNPlugin.Reactors
 
                 current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
+
+
                 
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
 
@@ -1531,21 +1552,33 @@ namespace FNPlugin.Reactors
                 // consume fuel
                 if (!CheatOptions.InfinitePropellant)
                 {
+                    _consumedFuelTotalFixed = 0;
+
+                    if (requestedPropellantMassPerSecond > 0)
+                    {
+                        hydrogenProductionRequest = requestedPropellantMassPerSecond * 1000;
+                        var resultFixed = part.RequestResource(hydrogenDefinition.name, -requestedPropellantMassPerSecond * TimeWarp.fixedDeltaTime / hydrogenDefinition.density, ResourceFlowMode.ALL_VESSEL);
+                        hydrogenProductionReceived = -1000 * hydrogenDefinition.density * resultFixed / TimeWarp.fixedDeltaTime;
+                        requestedPropellantMassPerSecond = 0;
+                    }
+
                     for (var i = 0; i < current_fuel_variant.ReactorFuels.Count; i++)
                     {
-                        ConsumeReactorFuel(current_fuel_variant.ReactorFuels[i], totalPowerReceivedFixed / geeForceModifier);
+                        var consumedMass = ConsumeReactorFuel(current_fuel_variant.ReactorFuels[i], totalPowerReceivedFixed / geeForceModifier);
+
+                        _consumedFuelTotalFixed += consumedMass;
                     }
 
                     // refresh production list
                     reactorProduction.Clear();
-
 
                     // produce reactor products
                     for (var i = 0; i < current_fuel_variant.ReactorProducts.Count; i++)
                     {
                         var product = current_fuel_variant.ReactorProducts[i];
                         var massProduced = ProduceReactorProduct(product, totalPowerReceivedFixed / geeForceModifier);
-                        reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
+                        if (product.IsPropellant)
+                            reactorProduction.Add(new ReactorProduction() { fuelmode = product, mass = massProduced });
                     }
                 }
 
@@ -2030,13 +2063,13 @@ namespace FNPlugin.Reactors
             var consumeAmountInUnitOfStorage = mJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
 
             if (fuel.ConsumeGlobal)
-                return part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.ALL_VESSEL);
+                return part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage) * fuel.Definition.density;
 
             if (part.Resources.Contains(fuel.ResourceName))
             {
-                double amount = Math.Min(consumeAmountInUnitOfStorage, part.Resources[fuel.ResourceName].amount);
-                part.Resources[fuel.ResourceName].amount -= amount;
-                return amount;
+                double reduction = Math.Min(consumeAmountInUnitOfStorage, part.Resources[fuel.ResourceName].amount);
+                part.Resources[fuel.ResourceName].amount -= reduction;
+                return reduction * fuel.Definition.density;
             }
             else
                 return 0;
@@ -2291,7 +2324,7 @@ namespace FNPlugin.Reactors
                         var resourceVariantsDefinitions = CurrentFuelMode.ResourceGroups.First(m => m.name == fuel.FuelName).resourceVariantsMetaData;
 
                         var availableRessources = resourceVariantsDefinitions
-                            .Select(m => new {m.resourceDefinition, m.ratio}).Distinct()
+                            .Select(m => new { m.resourceDefinition, m.ratio }).Distinct()
                             .Select(d => new { definition = d.resourceDefinition, amount = GetFuelAvailability(d.resourceDefinition), effectiveDensity = d.resourceDefinition.density * d.ratio})
                             .Where(m => m.amount > 0).ToList();
 

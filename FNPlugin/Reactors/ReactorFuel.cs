@@ -99,7 +99,7 @@ namespace FNPlugin.Reactors
         double _density;
         double _densityInKg;
         string _unit;
-
+        bool _isPropellant;
         bool _produceGlobal;
         double _amountProductUsePerMJ;
 
@@ -108,6 +108,7 @@ namespace FNPlugin.Reactors
             _fuel_name = node.GetValue("name");
             _resource_name = node.HasValue("resource") ? node.GetValue("resource") : _fuel_name;
             _unit = node.GetValue("Unit");
+            _isPropellant = node.HasValue("isPropellant") ? Boolean.Parse(node.GetValue("isPropellant")) : true;
             _produceGlobal = node.HasValue("produceGlobal") ? Boolean.Parse(node.GetValue("produceGlobal")) : true;
             _tons_product_usage_per_mw = Convert.ToDouble(node.GetValue("ProductionPerMW"));
 
@@ -125,6 +126,8 @@ namespace FNPlugin.Reactors
         public PartResourceDefinition Definition { get; private set; }
 
         public bool ProduceGlobal { get { return _produceGlobal; } }
+
+        public bool IsPropellant { get { return _isPropellant; } }
 
         public double DensityInTon { get { return _density; } }
 
@@ -146,8 +149,5 @@ namespace FNPlugin.Reactors
         {
             return AmountProductUsePerMJ * productionPerMJMult * megajoules / efficiency;
         }
-
     }
-
-
 }

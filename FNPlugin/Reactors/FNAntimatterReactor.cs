@@ -1,4 +1,5 @@
-﻿using FNPlugin.Reactors.Interfaces;
+﻿using System;
+using FNPlugin.Reactors.Interfaces;
 
 namespace FNPlugin.Reactors
 {
@@ -11,11 +12,15 @@ namespace FNPlugin.Reactors
         public double maximumChargedIspMult = 100;
         [KSPField]
         public double minimumChargdIspMult = 10;
-
+        [KSPField]
+        public double chargedProductMult = 1;
+        [KSPField]
+        public double chargedProductExp = 0;
 
         public override string TypeName { get { return (isupgraded ? upgradedName != "" ? upgradedName : originalName : originalName) + " Antimatter Reactor"; } }
 
-        public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
+        public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct * chargedProductMult * Math.Pow(massDifference, chargedProductExp) : 0; } }
+        //public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 
         public double MaximumChargedIspMult { get { return maximumChargedIspMult; } }
 

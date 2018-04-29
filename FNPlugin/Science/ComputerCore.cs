@@ -11,8 +11,7 @@ namespace FNPlugin
         public string nameStr = "";
         [KSPField(guiActive = true, guiName = "Data Collection Rate")]
         public string scienceRate;
-        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = false),
-            UI_Toggle(disabledText = "Off", enabledText = "On", scene = UI_Scene.Flight)]
+        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On", scene = UI_Scene.Flight)]
         public bool IsEnabled = false;
         [KSPField(isPersistant = true, guiName = "Powered", guiActive = true, guiActiveEditor = false)]
         public bool IsPowered = false;
@@ -112,13 +111,9 @@ namespace FNPlugin
             moduleCommand = part.FindModuleImplementing<ModuleCommand>();
 
             if (isupgraded || !PluginHelper.TechnologyIsInUse)
-            {
                 upgradePartModule();
-            }
             else
-            {
                 computercoreType = originalName;
-            }
 
             if (IsEnabled)
             {
@@ -250,8 +245,8 @@ namespace FNPlugin
         public override string GetInfo()
         {
             string desc = "Power Requirements: " + megajouleRate.ToString("0.0") + " MW\n";
-            desc = desc + "Upgraded Power Requirements: " + upgradedMegajouleRate.ToString("0.0") + " MW\n";
-            return desc;
+            return desc + "Upgraded Power Requirements: " + upgradedMegajouleRate.ToString("0.0") + " MW\n";
+
         }
 
         // IUpgradeableModule
@@ -288,8 +283,6 @@ namespace FNPlugin
                 return " has detected a glitch in the universe and recommends checking your installation of KSPInterstellar.";
             }
         }
-
-
     }
 }
 

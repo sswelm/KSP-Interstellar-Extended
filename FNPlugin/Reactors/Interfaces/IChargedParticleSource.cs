@@ -5,7 +5,7 @@ namespace FNPlugin.Reactors.Interfaces
     {
         double CurrentMeVPerChargedProduct { get; }
 
-        double  UseProductForPropulsion(double ratio, double consumedAmount);
+        void UseProductForPropulsion(double ratio, double propellantMassPerSecond);
 
         double MaximumChargedIspMult { get; }
 

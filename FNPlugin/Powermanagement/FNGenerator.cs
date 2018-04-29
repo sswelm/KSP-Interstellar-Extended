@@ -41,6 +41,7 @@ namespace FNPlugin
     [KSPModule(" Generator")]
     class FNGenerator : ResourceSuppliableModule, IUpgradeableModule, IElectricPowerGeneratorSource, IPartMassModifier, IRescalable<FNGenerator>
     {
+        // Persistent
         [KSPField(isPersistant = true)]
         public bool IsEnabled = true;
         [KSPField(isPersistant = true)]
@@ -51,13 +52,12 @@ namespace FNPlugin
         public bool chargedParticleMode = false;
         [KSPField(isPersistant = true)]
         public float storedMassMultiplier;
-
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_powerCapacity"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerCapacity = 100;
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
 
-        // Persistent False
+        // Settins
         [KSPField]
         public bool isMHD = false;
         [KSPField]
@@ -884,9 +884,10 @@ namespace FNPlugin
 
                         var availableChargedPowerRatio = Math.Max(Math.Min(2 * chargedBufferRatio - 0.25, 1), 0);
 
-                        adjusted_thermal_power_needed = applies_balance
-                            ? effectiveThermalPowerNeededForElectricity
-                            : effectiveThermalPowerNeededForElectricity * (1 - attachedPowerSource.ChargedPowerRatio * availableChargedPowerRatio);
+                        adjusted_thermal_power_needed = effectiveThermalPowerNeededForElectricity;
+                        //adjusted_thermal_power_needed = applies_balance
+                        //    ? effectiveThermalPowerNeededForElectricity
+                        //    : (effectiveThermalPowerNeededForElectricity * (1 - attachedPowerSource.ChargedPowerRatio)) + (effectiveThermalPowerNeededForElectricity * attachedPowerSource.ChargedPowerRatio * availableChargedPowerRatio);
 
                         var thermalPowerRequested = Math.Max(Math.Min(maxThermalPower, adjusted_thermal_power_needed), attachedPowerSource.MinimumPower * (1 - attachedPowerSource.ChargedPowerRatio));
                         var reactorPowerRequested = Math.Max(Math.Min(maxReactorPower, effectiveThermalPowerNeededForElectricity), attachedPowerSource.MinimumPower);
@@ -1010,7 +1011,11 @@ namespace FNPlugin
             { 
                 _powerState = PowerStates.PowerOnline;
 
-                var megawattBufferMultiplier = (attachedPowerSource.PowerBufferBonus + 1) * maxStableMegaWattPower;
+                var stablePowerForBuffer = chargedParticleMode 
+                       ? attachedPowerSource.ChargedPowerRatio * maxStableMegaWattPower 
+                       : (1 - attachedPowerSource.ChargedPowerRatio) * maxStableMegaWattPower;
+
+                var megawattBufferMultiplier = (attachedPowerSource.PowerBufferBonus + 1) * stablePowerForBuffer;
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferMultiplier);
                 resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferMultiplier);
             }

@@ -341,6 +341,8 @@ namespace FNPlugin
 
         public int ProviderPowerPriority { get { return 1; } }
 
+        public double ConsumedFuelFixed { get { return 0; } }
+
         public double ProducedThermalHeat { get { return powerInputMegajoules + solarInputMegajoules; } }
 
         private double _requestedThermalHeat;
@@ -1569,7 +1571,7 @@ namespace FNPlugin
             {
                 if (receiverIsEnabled && !radiatorMode)
                 {
-                    if (wasteheatRatio >= 0.95 && !isThermalReceiver)
+                    if (wasteheatRatio >= 0.95 && !isThermalReceiver && !solarPowerMode )
                     {
                         receiverIsEnabled = false;
                         deactivate_timer++;
