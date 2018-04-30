@@ -1,10 +1,10 @@
-﻿using System;
+﻿using KSP.Localization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 using TweakScale;
-using KSP.Localization;
+using UnityEngine;
 
 namespace InterstellarFuelSwitch
 {
@@ -26,12 +26,12 @@ namespace InterstellarFuelSwitch
             ID = name.GetHashCode();
             this.name = name;
             PartResourceDefinition resourceDefinition = PartResourceLibrary.Instance.GetDefinition(name);
-            if (resourceDefinition != null)
-            {
-                this.density = resourceDefinition.density;
-                this.unitCost = resourceDefinition.unitCost;
-                this.specificHeatCapacity = resourceDefinition.specificHeatCapacity;
-            }
+
+            if (resourceDefinition == null) return;
+
+            this.density = resourceDefinition.density;
+            this.unitCost = resourceDefinition.unitCost;
+            this.specificHeatCapacity = resourceDefinition.specificHeatCapacity;
         }
 
         public double FullMass { get { return maxAmount * density; } }
@@ -110,11 +110,8 @@ namespace InterstellarFuelSwitch
         public string tankResourceMassDividerAddition = string.Empty;
         [KSPField]
         public bool overrideMassWithTankDividers = false;
-
         [KSPField]
         public bool orderBySwitchName = false;
-        [KSPField]
-        public float initialPrefabAmount = 0;
         [KSPField]
         public string tankMass = "";
         [KSPField]
@@ -124,10 +121,6 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string boilOffTemp = "";
         [KSPField]
-        public string latendHeatVaporation = "";
-        [KSPField]
-        public bool displayCurrentBoilOffTemp = false;
-        [KSPField]
         public bool displayTankCost = false;
         [KSPField]
         public bool displayWetDryMass = true;
@@ -135,8 +128,6 @@ namespace InterstellarFuelSwitch
         public bool hasSwitchChooseOption = true;
         [KSPField]
         public bool hasGUI = true;
-        [KSPField]
-        public bool boiloffActive = false;
         [KSPField]
         public bool availableInFlight = false;
         [KSPField]
@@ -157,19 +148,12 @@ namespace InterstellarFuelSwitch
         public string moduleInfoTemplate;      
         [KSPField]
         public string moduleInfoParams;         
-
         [KSPField]
         public string resourcesFormat = "0.0000";
         [KSPField]
         public bool canSwitchWithFullTanks = false;
         [KSPField]
         public bool allowedToSwitch;
-
-        //dummyvalues
-        [KSPField]
-        public float volumeMultiplier;
-        [KSPField]
-        public float massMultiplier;
 
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_tankGuiName")] // Tank name
@@ -200,7 +184,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public float massExponent = 3;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F4")] // Total mass
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F4")]			// Total mass
         public double totalMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_maxResourceCost", guiFormat = "F3", guiUnits = " Ѵ")]  // Max Wet cost
         public double maxResourceCost = 0;
@@ -211,9 +195,11 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiFormat = "F3", guiUnits = " Ѵ")]         // Total Tank cost
         public double totalCost = 0;
 
-        InterstellarTextureSwitch2 textureSwitch;
+        
         List<string> currentResources;
         List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
+
+        InterstellarTextureSwitch2 textureSwitch;
         IFSmodularTank selectedTank;
         UIPartActionWindow tweakableUI;
         HashSet<string> activeResourceList = new HashSet<string>();
@@ -294,10 +280,10 @@ namespace InterstellarFuelSwitch
                             }
                             else if (adaptiveTankSelection && selectedTankSetup != -1)
                             {
-	                            if (Math.Abs(part.Resources[resource.name].maxAmount - resource.maxAmount) < 0.000001) continue;
+                                if (Math.Abs(part.Resources[resource.name].maxAmount - resource.maxAmount) < 0.000001) continue;
 
-	                            isSimilar = false;
-	                            break;
+                                isSimilar = false;
+                                break;
                             }
                         }
                         if (isSimilar)
