@@ -183,7 +183,7 @@ namespace InterstellarFuelSwitch
             if (useFuelSwitchModule)
             {
                 debug.debugMessage("InterstellarMeshSwitch: calling on InterstellarFuelSwitch tank setup " + objectNumber);
-                if (objectNumber < fuelTankSetupList.Count)
+                if (fuelSwitch != null &&  objectNumber < fuelTankSetupList.Count)
                     fuelSwitch.SelectTankSetup(fuelTankSetupList[objectNumber], calledByPlayer);
                 else
                     debug.debugMessage("InterstellarMeshSwitch: no such fuel tank setup");
@@ -273,6 +273,13 @@ namespace InterstellarFuelSwitch
                         useFuelSwitchModule = false;
                         debug.debugMessage("no FSfuelSwitch module found, despite useFuelSwitchModule being true");
                     }
+                    else
+                    {
+                        var recommendedSetup = fuelSwitch.FindMatchingConfig();
+                        if (recommendedSetup != -1)
+                            selectedObject = recommendedSetup;
+                    }
+
                 }
                 initialized = true;
             }

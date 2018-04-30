@@ -175,6 +175,9 @@ namespace InterstellarFuelSwitch
         public float defaultMass;
 
         [KSPField]
+        public string defaultTank;
+
+        [KSPField]
         public string resourceAmountStr0 = "";
         [KSPField]
         public string resourceAmountStr1 = "";
@@ -246,6 +249,63 @@ namespace InterstellarFuelSwitch
             }
         }
 
+        public int FindMatchingConfig()
+        {
+            Debug.Log("[IFS] - FindMatchingConfig Called");
+
+            InitializeData();
+
+            var matchingGuiTank = _modularTankList.FirstOrDefault(m => m.GuiName == selectedTankSetupTxt);
+
+            if (matchingGuiTank != null)
+            {
+                Debug.Log("[IFS] - found matching tank for GuiName " + selectedTankSetupTxt);
+                return _modularTankList.IndexOf(matchingGuiTank);
+            }
+
+            var numberOfResources = part.Resources.Where(r => activeResourceList.Contains(r.resourceName)).Count();
+
+            Debug.Log("[IFS] - Tank contains " + numberOfResources + " relevant resouces");
+
+            for (var i = 0; i < _modularTankList.Count; i++)
+            {
+                var modularTank = _modularTankList[i];
+
+                Debug.Log("[IFS] - Checking " + modularTank.SwitchName);
+
+                var isSimilar = true;
+
+                // check if number of resources match
+                if (modularTank.Resources.Count != part.Resources.Where(r => activeResourceList.Contains(r.resourceName)).Count())
+                {
+                    Debug.Log("[IFS] - Tank " + modularTank.SwitchName + " has " + modularTank.Resources.Count + " resources");
+                    isSimilar = false;
+                }
+                else
+                {
+                    // check if all tank resources are present
+                    foreach (var resource in modularTank.Resources)
+                    {
+                        if (!part.Resources.Contains(resource.name))
+                        {
+                            Debug.Log("[IFS] - Tank is missing " + resource.name);
+                            isSimilar = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (isSimilar)
+                {
+                    Debug.Log("[IFS] - Found match config with " + i);
+                    return i;
+                }
+            }
+
+            Debug.Log("[IFS] - Failed to find Called");
+            return -1;
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             try
@@ -269,32 +329,47 @@ namespace InterstellarFuelSwitch
                         var modularTank = _modularTankList[i];
 
                         var isSimilar = true;
-                        foreach (var resource in modularTank.Resources)
-                        {
-                            if (!part.Resources.Contains(resource.name))
-                            {
-                                isSimilar = false;
-                                break;
-                            }
-                            else if (adaptiveTankSelection && selectedTankSetup != -1)
-                            {
-                                if (Math.Abs(part.Resources[resource.name].maxAmount - resource.maxAmount) < 0.000001) continue;
 
-                                isSimilar = false;
-                                break;
+                        // check if number of resources match
+                        if (_modularTankList.Count != part.Resources.Where(r => activeResourceList.Contains(r.resourceName)).Count())
+                        {
+                            isSimilar = false;
+                        }
+                        else
+                        {
+                            // check if all tank resources are present
+                            foreach (var resource in modularTank.Resources)
+                            {
+                                if (!part.Resources.Contains(resource.name))
+                                {
+                                    isSimilar = false;
+                                    break;
+                                }
                             }
                         }
+
                         if (isSimilar)
                         {
-                            selectedTankSetup = i;
-                            if (adaptiveTankSelection)
-                                selectedTankSetupTxt = _modularTankList[selectedTankSetup].GuiName;
-                            break;
+                            if (selectedTankSetup != i)
+                            {
+                                selectedTankSetup = i;
+                                if (adaptiveTankSelection)
+                                    selectedTankSetupTxt = _modularTankList[selectedTankSetup].GuiName;
+                                break;
+                            }
                         }
 
                         if (selectedTankSetup == -1)
                         {
-                            selectedTankSetup = 0;
+                            if (!String.IsNullOrEmpty(defaultTank))
+                            {
+                                var matchingTank = _modularTankList.FirstOrDefault(m => m.GuiName == defaultTank || m.SwitchName == defaultTank);
+                                if (matchingTank != null)
+                                    selectedTankSetup = _modularTankList.IndexOf(matchingTank);
+                            }
+
+                            if (selectedTankSetup == -1)
+                                selectedTankSetup = 0;
                         }
                     }
                 }
