@@ -1,9 +1,10 @@
-﻿using System;
+﻿using KSP.Localization;
+using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using UnityEngine;
-using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
@@ -66,14 +67,14 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool updateSymmetry = true;
 
-        private List<Transform> targetObjectTransforms = new List<Transform>();
         private List<List<Material>> targetMats = new List<List<Material>>();
-        private List<List<String>> texList = new List<List<string>>();
+        private List<List<string>> texList = new List<List<string>>();
 
-        private List<String> mapList = new List<string>();
-        private List<String> objectList = new List<string>();
-        private List<String> textureDisplayList = new List<string>();
-        private List<int> fuelTankSetupList = new List<int>();
+        private List<string> mapList = new List<string>();
+        private List<string> objectList = new List<string>();
+        private List<string> textureDisplayList = new List<string>();
+        private List<string> fuelTankSetupList = new List<string>();
+
         private InterstellarFuelSwitch fuelSwitch;
 
         private bool initialized = false;
@@ -93,7 +94,6 @@ namespace InterstellarFuelSwitch
             }
         }
 
-
         List<Transform> ListChildren(Transform a)
         {
             List<Transform> childList = new List<Transform>();
@@ -111,7 +111,7 @@ namespace InterstellarFuelSwitch
             selectedTexture++;
             if (selectedTexture >= texList.Count && selectedTexture >= mapList.Count)
                 selectedTexture = 0;
-            useTextureAll(true);
+            UseTextureAll(true);
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_TextureSwitch_previousSetup")]
@@ -120,16 +120,16 @@ namespace InterstellarFuelSwitch
             selectedTexture--;
             if (selectedTexture < 0)
                 selectedTexture = Mathf.Max(texList.Count - 1, mapList.Count - 1);
-            useTextureAll(true);
+            UseTextureAll(true);
         }
 
         // Called by external classes
         public void SelectTankSetup(int newTankIndex, bool calledByPlayer)
         {
-            bool found = false;
+            var found = false;
             if (fuelTankSetupList != null)
             {
-                var index = fuelTankSetupList.IndexOf(newTankIndex);
+                var index = fuelTankSetupList.IndexOf(newTankIndex.ToString(CultureInfo.InvariantCulture));
                 if (index >= 0)
                 {
                     selectedTexture = index;
@@ -142,7 +142,7 @@ namespace InterstellarFuelSwitch
                 selectedTexture = newTankIndex;
             }
 
-            useTextureAll(calledByPlayer);
+            UseTextureAll(calledByPlayer);
         }
 
         [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 5f, guiActive = false, guiActiveEditor = false, guiName = "Repaint")]
@@ -151,70 +151,68 @@ namespace InterstellarFuelSwitch
             nextTextureEvent();
         }
 
-        public void useTextureAll(bool calledByPlayer)
+        public void UseTextureAll(bool calledByPlayer)
         {
-            applyTexToPart(calledByPlayer);
+            ApplyTexToPart(calledByPlayer);
 
             if (!updateSymmetry) return;
 
-            for (int i = 0; i < part.symmetryCounterparts.Count; i++)
+            for (var i = 0; i < part.symmetryCounterparts.Count; i++)
             {
                 // check that the moduleID matches to make sure we don't target the wrong tex switcher
                 InterstellarTextureSwitch2[] symSwitch = part.symmetryCounterparts[i].GetComponents<InterstellarTextureSwitch2>();
                 for (int j = 0; j < symSwitch.Length; j++)
                 {
-                    if (symSwitch[j].moduleID == moduleID)
-                    {
-                        symSwitch[j].selectedTexture = selectedTexture;
-                        symSwitch[j].applyTexToPart(calledByPlayer);
-                    }
+                    if (symSwitch[j].moduleID != moduleID) continue;
+
+                    symSwitch[j].selectedTexture = selectedTexture;
+                    symSwitch[j].ApplyTexToPart(calledByPlayer);
                 }
             }
 
         }
 
-        private void applyTexToPart(bool calledByPlayer)
+        private void ApplyTexToPart(bool calledByPlayer)
         {
-            initializeData();
+            InitializeData();
 
-            for (int objectIndex = 0; objectIndex < targetMats.Count; objectIndex++)
+            for (var objectIndex = 0; objectIndex < targetMats.Count; objectIndex++)
             {
                 foreach (Material mat in targetMats[objectIndex])
                 {
-                    useTextureOrMap(mat, objectIndex);
+                    UseTextureOrMap(mat, objectIndex);
                 }
             }
 
-            if (useFuelSwitchModule)
+            if (!useFuelSwitchModule) return;
+
+            debug.debugMessage("calling on InterstellarFuelSwitch tank setup " + selectedTexture);
+            if (selectedTexture < fuelTankSetupList.Count)
             {
-                debug.debugMessage("calling on InterstellarFuelSwitch tank setup " + selectedTexture);
-                if (selectedTexture < fuelTankSetupList.Count)
-                {
-                    var tankSelectionReult = fuelSwitch.SelectTankSetup(fuelTankSetupList[selectedTexture], calledByPlayer);
-                    if (tankSelectionReult != selectedTexture)
-                    {
-                        selectedTexture = tankSelectionReult;
-                        useTextureAll(calledByPlayer);
-                    }
-                }
-                else
-                    debug.debugMessage("no such fuel tank setup");
+                var tankSelectionReult = fuelSwitch.SelectTankSetup(fuelTankSetupList[selectedTexture], calledByPlayer);
+
+                if (tankSelectionReult == selectedTexture) return;
+
+                selectedTexture = tankSelectionReult;
+                UseTextureAll(calledByPlayer);
             }
+            else
+                debug.debugMessage("no such fuel tank setup");
         }
 
-        public void useTextureOrMap(Material targetMat, int objectIndex)
+        public void UseTextureOrMap(Material targetMat, int objectIndex)
         {
             if (targetMat != null)
             {
-                useTexture(targetMat, objectIndex);
+                UseTexture(targetMat, objectIndex);
 
-                useMap(targetMat);
+                UseMap(targetMat);
             }
             else
                 debug.debugMessage("No target material in object.");
         }
 
-        private void useMap(Material targetMat)
+        private void UseMap(Material targetMat)
         {
             debug.debugMessage("maplist count: " + mapList.Count + ", selectedTexture: " + selectedTexture + ", texlist Count: " + texList.Count);
             if (mapList.Count > selectedTexture)
@@ -245,7 +243,7 @@ namespace InterstellarFuelSwitch
                 else
                 {
                     debug.debugMessage("useMap, index out of range error, maplist count: " + mapList.Count + ", selectedTexture: " + selectedTexture);
-                    for (int i = 0; i < mapList.Count; i++)
+                    for (var i = 0; i < mapList.Count; i++)
                     {
                         debug.debugMessage("map " + i + ": " + mapList[i]);
                     }
@@ -253,7 +251,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        private void useTexture(Material targetMat, int objectIndex)
+        private void UseTexture(Material targetMat, int objectIndex)
         {
             if (texList.Count <= selectedTexture)
                 return;
@@ -261,7 +259,7 @@ namespace InterstellarFuelSwitch
             var texListGroupData = texList[selectedTexture];
 
             var effectiveObjectIndex = texListGroupData.Count > objectIndex ? objectIndex : 0;
-            string texture = texListGroupData[effectiveObjectIndex];
+            var texture = texListGroupData[effectiveObjectIndex];
 
             if (GameDatabase.Instance.ExistsTexture(texture))
             {
@@ -281,26 +279,21 @@ namespace InterstellarFuelSwitch
         {
             if (showInfo)
             {
-                List<string> variantList;
-                if (textureNames.Length > 0)
-                    variantList = ParseTools.ParseNames(textureNames);
-                else
-                    variantList = ParseTools.ParseNames(mapNames);
+                var variantList = ParseTools.ParseNames(textureNames.Length > 0 ? textureNames : mapNames);
 
                 textureDisplayList = ParseTools.ParseNames(textureDisplayNames);
-                StringBuilder info = new StringBuilder();
+                var info = new StringBuilder();
                 info.AppendLine("Alternate textures available:");
                 if (variantList.Count == 0)
                 {
                     if (variantList.Count == 0)
                         info.AppendLine("None");
                 }
-                for (int i = 0; i < variantList.Count; i++)
+                for (var i = 0; i < variantList.Count; i++)
                 {
-                    if (i > textureDisplayList.Count - 1)
-                        info.AppendLine(getTextureDisplayName(variantList[i]));
-                    else
-                        info.AppendLine(textureDisplayList[i]);
+                    info.AppendLine(i > textureDisplayList.Count - 1
+                        ? getTextureDisplayName(variantList[i])
+                        : textureDisplayList[i]);
                 }
                 info.AppendLine("\nUse the Next Texture button on the right click menu.");
                 return info.ToString();
@@ -311,15 +304,15 @@ namespace InterstellarFuelSwitch
 
         private string getTextureDisplayName(string longName)
         {
-            string[] splitString = longName.Split('/');
+            var splitString = longName.Split('/');
             return splitString[splitString.Length - 1];
         }
 
         public override void OnStart(PartModule.StartState state)
         {
-            initializeData();
+            InitializeData();
 
-            useTextureAll(false);
+            UseTextureAll(false);
 
             if (showListButton) Events["listAllObjects"].guiActiveEditor = true;
             if (!repaintableEVA) Events["nextTextureEVAEvent"].guiActiveUnfocused = false;
@@ -353,11 +346,11 @@ namespace InterstellarFuelSwitch
 
         private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
         {
-            useTextureAll(true);
+            UseTextureAll(true);
         }
 
         // runs the kind of commands that would normally be in OnStart, if they have not already been run. In case a method is called upon externally, but values have not been set up yet
-        private void initializeData()
+        private void InitializeData()
         {
             if (initialized) return;
 
@@ -370,11 +363,11 @@ namespace InterstellarFuelSwitch
             objectList = ParseTools.ParseNames(objectNames, true);
             mapList = ParseTools.ParseNames(mapNames, true, true, textureRootFolder);
             textureDisplayList = ParseTools.ParseNames(textureDisplayNames);
-            fuelTankSetupList = ParseTools.ParseIntegers(fuelTankSetups);
+            fuelTankSetupList = ParseTools.ParseNames(fuelTankSetups);
 
             var textureNameGroups = textureNames.Split(';').ToArray();
 
-            for (int i = 0; i < textureNameGroups.Count(); i++)
+            for (var i = 0; i < textureNameGroups.Count(); i++)
             {
                 var texListGroup = ParseTools.ParseNames(textureNameGroups[i], true, true, textureRootFolder);
 
@@ -383,11 +376,11 @@ namespace InterstellarFuelSwitch
 
             debug.debugMessage("found " + texList.Count + " textures, using number " + selectedTexture + ", found " + objectList.Count + " objects, " + mapList.Count + " maps");
 
-            for (int i = 0; i < objectList.Count(); i++)
+            for (var i = 0; i < objectList.Count(); i++)
             {
                 Transform[] targetObjectTransformArray = part.FindModelTransforms(objectList[i]);
 
-                List<Material> matList = new List<Material>();
+                var matList = new List<Material>();
 
                 foreach (Transform t in targetObjectTransformArray)
                 {
@@ -397,12 +390,11 @@ namespace InterstellarFuelSwitch
                     var renderer = t.gameObject.GetComponent<Renderer>();
 
                     // check for if the object even has a mesh. otherwise part list loading crashes
-                    if (renderer != null)
-                    {
-                        Material targetMat = renderer.material;
-                        if (targetMat != null && !matList.Contains(targetMat))
-                            matList.Add(targetMat);
-                    }
+                    if (renderer == null) continue;
+
+                    Material targetMat = renderer.material;
+                    if (targetMat != null && !matList.Contains(targetMat))
+                        matList.Add(targetMat);
                 }
 
                 targetMats.Add(matList);

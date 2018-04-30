@@ -1,6 +1,7 @@
 ﻿using KSP.Localization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using TweakScale;
@@ -25,7 +26,7 @@ namespace InterstellarFuelSwitch
         {
             ID = name.GetHashCode();
             this.name = name;
-            PartResourceDefinition resourceDefinition = PartResourceLibrary.Instance.GetDefinition(name);
+            var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(name);
 
             if (resourceDefinition == null) return;
 
@@ -195,10 +196,7 @@ namespace InterstellarFuelSwitch
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalCost", guiFormat = "F3", guiUnits = " Ѵ")]         // Total Tank cost
         public double totalCost = 0;
 
-        
-        List<string> currentResources;
         List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
-
         InterstellarTextureSwitch2 textureSwitch;
         IFSmodularTank selectedTank;
         UIPartActionWindow tweakableUI;
@@ -356,16 +354,34 @@ namespace InterstellarFuelSwitch
         // Called by external classes
         public int SelectTankSetup(int newTankIndex, bool calledByPlayer)
         {
+            return SelectTankSetup(newTankIndex.ToString(CultureInfo.InvariantCulture), calledByPlayer);
+        }
+
+        // Called by external classes
+        public int SelectTankSetup(string newTankName, bool calledByPlayer)
+        {
             try
             {
                 InitializeData();
 
-                if (selectedTankSetup == newTankIndex)
-                    return newTankIndex;
+                var desiredTank = _modularTankList.FirstOrDefault(m => m.GuiName == newTankName) ??
+                                  _modularTankList.FirstOrDefault(m => m.SwitchName == newTankName);
+
+                if (desiredTank == null)
+                {
+                    int index;
+                    if (int.TryParse(newTankName, out index))
+                        desiredTank = index < _modularTankList.Count ? _modularTankList[index] : null;
+                }
+
+                if (desiredTank == null)
+                    return -1;
 
                 var oldSelectedTankSetup = selectedTankSetup;
-                selectedTankSetup = newTankIndex;
+                selectedTankSetup = _modularTankList.IndexOf(desiredTank);
+                selectedTankSetupTxt = desiredTank.GuiName;
 
+                // check if we are allowed to select this tank
                 if (!_modularTankList[selectedTankSetup].hasTech)
                 {
                     if (oldSelectedTankSetup < selectedTankSetup || (oldSelectedTankSetup == _modularTankList.Count - 1 && selectedTankSetup == 0))
@@ -515,7 +531,7 @@ namespace InterstellarFuelSwitch
             try
             {
                 // destroying a resource messes up the gui in editor, but not in flight.
-                currentResources = SetupTankInPart(part, calledByPlayer);
+                var currentResources = SetupTankInPart(part, calledByPlayer);
 
                 // update GUI part
                 ConfigureResourceMassGui(currentResources);
