@@ -11,28 +11,19 @@ namespace InterstellarFuelSwitch
 {
     public class IFSresource
     {
-        public int ID;
         public string name;
-        public double currentSupply;
         public double amount;
         public double maxAmount;
-        public double boiloffTemp;
         public double density;
-        public double unitCost;
-        public double latendHeatVaporation;
-        public double specificHeatCapacity;
 
         public IFSresource(string name)
         {
-            ID = name.GetHashCode();
             this.name = name;
             var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(name);
 
             if (resourceDefinition == null) return;
 
-            this.density = resourceDefinition.density;
-            this.unitCost = resourceDefinition.unitCost;
-            this.specificHeatCapacity = resourceDefinition.specificHeatCapacity;
+            density = resourceDefinition.density;
         }
 
         public double FullMass { get { return maxAmount * density; } }
@@ -40,10 +31,10 @@ namespace InterstellarFuelSwitch
 
     public class IFSmodularTank
     {
+        public bool hasTech;
         public string GuiName = String.Empty;
         public string SwitchName = String.Empty;
         public string techReq;
-        public bool hasTech;
         public double tankCost;
         public double tankMass;
         public double resourceMassDivider;
@@ -232,7 +223,7 @@ namespace InterstellarFuelSwitch
 
         static HashSet<string> _researchedTechs;
 
-        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        public virtual void OnRescale(ScalingFactor factor)
         {
             try
             {
@@ -255,7 +246,8 @@ namespace InterstellarFuelSwitch
 
             InitializeData();
 
-            var matchingGuiTank = _modularTankList.FirstOrDefault(m => m.GuiName == selectedTankSetupTxt);
+            var matchingGuiTank = _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt) ??
+               _modularTankList.FirstOrDefault(t => t.SwitchName == selectedTankSetupTxt);
 
             if (matchingGuiTank != null)
             {
@@ -263,7 +255,7 @@ namespace InterstellarFuelSwitch
                 return _modularTankList.IndexOf(matchingGuiTank);
             }
 
-            var numberOfResources = part.Resources.Where(r => activeResourceList.Contains(r.resourceName)).Count();
+            var numberOfResources = part.Resources.Count(r => activeResourceList.Contains(r.resourceName));
 
             Debug.Log("[IFS] - Tank contains " + numberOfResources + " relevant resouces");
 
@@ -276,7 +268,7 @@ namespace InterstellarFuelSwitch
                 var isSimilar = true;
 
                 // check if number of resources match
-                if (modularTank.Resources.Count != part.Resources.Where(r => activeResourceList.Contains(r.resourceName)).Count())
+                if (modularTank.Resources.Count != part.Resources.Count(r => activeResourceList.Contains(r.resourceName)))
                 {
                     Debug.Log("[IFS] - Tank " + modularTank.SwitchName + " has " + modularTank.Resources.Count + " resources");
                     isSimilar = false;
@@ -286,12 +278,11 @@ namespace InterstellarFuelSwitch
                     // check if all tank resources are present
                     foreach (var resource in modularTank.Resources)
                     {
-                        if (!part.Resources.Contains(resource.name))
-                        {
-                            Debug.Log("[IFS] - Tank is missing " + resource.name);
-                            isSimilar = false;
-                            break;
-                        }
+                        if (part.Resources.Contains(resource.name)) continue;
+
+                        Debug.Log("[IFS] - Tank is missing " + resource.name);
+                        isSimilar = false;
+                        break;
                     }
                 }
 
@@ -324,53 +315,16 @@ namespace InterstellarFuelSwitch
                         initialTankSetup = String.Join(";", part.Resources.Select(m => m.resourceName).ToArray());
                     }
 
-                    for (var i = 0; i < _modularTankList.Count; i++)
+                    var matchingIndex = FindMatchingConfig();
+                    if (matchingIndex != -1)
                     {
-                        var modularTank = _modularTankList[i];
-
-                        var isSimilar = true;
-
-                        // check if number of resources match
-                        if (_modularTankList.Count != part.Resources.Where(r => activeResourceList.Contains(r.resourceName)).Count())
-                        {
-                            isSimilar = false;
-                        }
-                        else
-                        {
-                            // check if all tank resources are present
-                            foreach (var resource in modularTank.Resources)
-                            {
-                                if (!part.Resources.Contains(resource.name))
-                                {
-                                    isSimilar = false;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (isSimilar)
-                        {
-                            if (selectedTankSetup != i)
-                            {
-                                selectedTankSetup = i;
-                                if (adaptiveTankSelection)
-                                    selectedTankSetupTxt = _modularTankList[selectedTankSetup].GuiName;
-                                break;
-                            }
-                        }
-
-                        if (selectedTankSetup == -1)
-                        {
-                            if (!String.IsNullOrEmpty(defaultTank))
-                            {
-                                var matchingTank = _modularTankList.FirstOrDefault(m => m.GuiName == defaultTank || m.SwitchName == defaultTank);
-                                if (matchingTank != null)
-                                    selectedTankSetup = _modularTankList.IndexOf(matchingTank);
-                            }
-
-                            if (selectedTankSetup == -1)
-                                selectedTankSetup = 0;
-                        }
+                        selectedTank = _modularTankList[matchingIndex];
+                        selectedTankSetupTxt = selectedTank.GuiName;
+                    }
+                    else if (state == StartState.Editor)
+                    {
+                        selectedTank = _modularTankList[0];
+                        selectedTankSetupTxt = selectedTank.GuiName;
                     }
                 }
 
@@ -667,28 +621,7 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                // find selected tank
-                selectedTank = null;
-
-                if (!calledByPlayer && !String.IsNullOrEmpty(selectedTankSetupTxt))
-                {
-                    // first find based on gui name
-                    selectedTank = _modularTankList.FirstOrDefault(t => t.GuiName == selectedTankSetupTxt);
-
-                    // otherwise find based on switch name
-                    if (selectedTank == null)
-                        selectedTank = _modularTankList.FirstOrDefault(t => t.SwitchName == selectedTankSetupTxt);
-
-                    // otherwise find basided on similarity with switch name
-                    if (selectedTank == null)
-                        selectedTank = _modularTankList.FirstOrDefault(t => selectedTankSetupTxt.Contains(t.SwitchName));
-                }
-
-                // if still no tank selected, do it based on index or pick the first one if invalid
-                if (selectedTank == null)
-                    selectedTank = selectedTankSetup < _modularTankList.Count
-                        ? _modularTankList[selectedTankSetup]
-                        : _modularTankList[0];
+                FindSelectedTank(calledByPlayer);
 
                 // update txt and index for future
                 selectedTankSetupTxt = selectedTank.GuiName;
@@ -835,6 +768,46 @@ namespace InterstellarFuelSwitch
             {
                 Debug.LogError("[IFS] - SetupTankInPart Error: " + e.Message);
                 throw;
+            }
+        }
+
+        private void FindSelectedTank(bool calledByPlayer)
+        {
+            // dirst find selected tank on index
+            selectedTank = calledByPlayer && selectedTankSetup != -1 && selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : null;
+
+            // find based on guiname, switchname or contents
+            if (selectedTank == null)
+            {
+                var matchingIndex = FindMatchingConfig();
+                if (matchingIndex != -1)
+                    selectedTank = _modularTankList[matchingIndex];
+            }
+
+            // otherwise find basided on similarity with switch name
+            if (selectedTank == null && !String.IsNullOrEmpty(selectedTankSetupTxt))
+                selectedTank = _modularTankList.FirstOrDefault(t => selectedTankSetupTxt.Contains(t.SwitchName));
+
+            // if still no tank found create a tank based on current tank contents
+            if (selectedTank == null)
+            {
+                var ifsResources = part.Resources.Select(r => new IFSresource(r.resourceName)
+                {
+                    amount = r.amount/storedVolumeMultiplier,
+                    maxAmount = r.maxAmount/storedVolumeMultiplier
+                }
+                    ).ToList();
+
+                selectedTank = new IFSmodularTank()
+                {
+                    SwitchName = "Unknown",
+                    GuiName = "Unknown",
+                    tankMass = part.prefabMass / storedMassMultiplier,
+                    tankCost = part.partInfo.cost,
+                    Resources = ifsResources
+                };
+
+                _modularTankList.Add(selectedTank);
             }
         }
 
@@ -1245,13 +1218,6 @@ namespace InterstellarFuelSwitch
                             newResource.maxAmount = resourceList[currentResourceCounter][nameCounter];
                             newResource.amount = initialResourceList[currentResourceCounter][nameCounter];
                         }
-
-                        // add boiloff data
-                        if (currentResourceCounter < boilOffTempList.Count && boilOffTempList[currentResourceCounter] != null && boilOffTempList[currentResourceCounter].Count > nameCounter)
-                            newResource.boiloffTemp = boilOffTempList[currentResourceCounter][nameCounter];
-
-                        if (currentResourceCounter < latendHeatVaporationList.Count && latendHeatVaporationList[currentResourceCounter] != null && latendHeatVaporationList[currentResourceCounter].Count > nameCounter)
-                            newResource.latendHeatVaporation = latendHeatVaporationList[currentResourceCounter][nameCounter];
 
                         modularTank.Resources.Add(newResource);
                     }

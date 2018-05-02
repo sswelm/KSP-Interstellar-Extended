@@ -120,7 +120,7 @@ namespace InterstellarFuelSwitch
             if (!updateSymmetry)
                 return;
 
-            for (int i = 0; i < part.symmetryCounterparts.Count; i++)
+            for (var i = 0; i < part.symmetryCounterparts.Count; i++)
             {
                 var symSwitch = part.symmetryCounterparts[i].GetComponents<InterstellarMeshSwitch>();
                 for (var j = 0; j < symSwitch.Length; j++)
@@ -275,9 +275,11 @@ namespace InterstellarFuelSwitch
                     }
                     else
                     {
-                        var recommendedSetup = fuelSwitch.FindMatchingConfig();
-                        if (recommendedSetup != -1)
-                            selectedObject = recommendedSetup;
+                        var selectedObject = fuelSwitch.FindMatchingConfig();
+
+                        // when unknown, set to invalid onject index
+                        if (selectedObject == -1)
+                            selectedObject = objectTransforms.Count;
                     }
 
                 }
