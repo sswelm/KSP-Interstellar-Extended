@@ -275,10 +275,10 @@ namespace InterstellarFuelSwitch
                     }
                     else
                     {
-                        var selectedObject = fuelSwitch.FindMatchingConfig();
+                        var matchingObject = fuelSwitch.FindMatchingConfig();
 
                         // when unknown, set to invalid onject index
-                        if (selectedObject == -1)
+                        if (matchingObject == -1)
                             selectedObject = objectTransforms.Count;
                     }
 

@@ -773,7 +773,7 @@ namespace InterstellarFuelSwitch
 
         private void FindSelectedTank(bool calledByPlayer)
         {
-            // dirst find selected tank on index
+            // first find selected tank on index
             selectedTank = calledByPlayer && selectedTankSetup != -1 && selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : null;
 
             // find based on guiname, switchname or contents
@@ -784,19 +784,18 @@ namespace InterstellarFuelSwitch
                     selectedTank = _modularTankList[matchingIndex];
             }
 
-            // otherwise find basided on similarity with switch name
+            // otherwise find based on similarity with switch name
             if (selectedTank == null && !String.IsNullOrEmpty(selectedTankSetupTxt))
                 selectedTank = _modularTankList.FirstOrDefault(t => selectedTankSetupTxt.Contains(t.SwitchName));
 
             // if still no tank found create a tank based on current tank contents
-            if (selectedTank == null)
+            if (selectedTank == null && HighLogic.LoadedSceneIsFlight)
             {
                 var ifsResources = part.Resources.Select(r => new IFSresource(r.resourceName)
                 {
-                    amount = r.amount/storedVolumeMultiplier,
-                    maxAmount = r.maxAmount/storedVolumeMultiplier
-                }
-                    ).ToList();
+                    amount = r.amount / storedVolumeMultiplier,
+                    maxAmount = r.maxAmount/ storedVolumeMultiplier
+                }).ToList();
 
                 selectedTank = new IFSmodularTank()
                 {
@@ -808,6 +807,12 @@ namespace InterstellarFuelSwitch
                 };
 
                 _modularTankList.Add(selectedTank);
+            }
+
+            // otherwise select first tank
+            if (selectedTank == null)
+            {
+                selectedTank = _modularTankList[0];
             }
         }
 
