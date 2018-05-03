@@ -1,9 +1,0 @@
-100;Actinides;An;Solid Radioactive Actinides
-105;DepletedFuel;DPL,Fuel;Solid Radioactive Depleted Fuel
-110;DepletedUranium;DPL,U;Solid Radioactive Depleted Uranium
-115;EnrichedUranium;U;Solid Radioactive Enriched Uranium
-120;Plutonium-238;Pu;Solid Radioactive Plutonium-238
-125;Thorium;Th;Solid Radioactive Thorium
-130;ThF4;ThF4;Solid Radioactive Thoriumtetrafluoride
-135;UF4;UF4;Solid Radioactive Uraniumtetrafluoride
-140;UraniumNitride;UxNy;Solid Radioactive Uraniumnitride
