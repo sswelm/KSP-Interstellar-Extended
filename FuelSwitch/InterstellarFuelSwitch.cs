@@ -242,7 +242,7 @@ namespace InterstellarFuelSwitch
 
         public int FindMatchingConfig()
         {
-            Debug.Log("[IFS] - FindMatchingConfig Called");
+            //Debug.Log("[IFS] - FindMatchingConfig Called");
 
             InitializeData();
 
@@ -251,7 +251,7 @@ namespace InterstellarFuelSwitch
 
             if (matchingGuiTank != null)
             {
-                Debug.Log("[IFS] - found matching tank for GuiName " + selectedTankSetupTxt);
+                //Debug.Log("[IFS] - found matching tank for GuiName " + selectedTankSetupTxt);
                 return _modularTankList.IndexOf(matchingGuiTank);
             }
 
@@ -260,20 +260,20 @@ namespace InterstellarFuelSwitch
             if (numberOfResources == 0)
                 return -1;
 
-            Debug.Log("[IFS] - Tank contains " + numberOfResources + " relevant resouces");
+            //Debug.Log("[IFS] - Tank contains " + numberOfResources + " relevant resouces");
 
             for (var i = 0; i < _modularTankList.Count; i++)
             {
                 var modularTank = _modularTankList[i];
 
-                Debug.Log("[IFS] - Checking " + modularTank.SwitchName);
+                //Debug.Log("[IFS] - Checking " + modularTank.SwitchName);
 
                 var isSimilar = true;
 
                 // check if number of resources match
                 if (modularTank.Resources.Count != part.Resources.Count(r => activeResourceList.Contains(r.resourceName)))
                 {
-                    Debug.Log("[IFS] - Tank " + modularTank.SwitchName + " has " + modularTank.Resources.Count + " resources");
+                    //Debug.Log("[IFS] - Tank " + modularTank.SwitchName + " has " + modularTank.Resources.Count + " resources");
                     isSimilar = false;
                 }
                 else
@@ -283,7 +283,7 @@ namespace InterstellarFuelSwitch
                     {
                         if (part.Resources.Contains(resource.name)) continue;
 
-                        Debug.Log("[IFS] - Tank is missing " + resource.name);
+                        //Debug.Log("[IFS] - Tank is missing " + resource.name);
                         isSimilar = false;
                         break;
                     }
@@ -291,12 +291,12 @@ namespace InterstellarFuelSwitch
 
                 if (isSimilar)
                 {
-                    Debug.Log("[IFS] - Found matching config with tank index " + i);
+                    //Debug.Log("[IFS] - Found matching config with tank index " + i);
                     return i;
                 }
             }
 
-            Debug.Log("[IFS] - Failed to find Called");
+            //Debug.Log("[IFS] - Failed to find Called");
             return -1;
         }
 
@@ -465,7 +465,7 @@ namespace InterstellarFuelSwitch
                 if (_initialized)
                     return;
 
-                Debug.Log("[IFS] - InsterstellarFuelSwitch bind with resourceAmountStr");
+                //Debug.Log("[IFS] - InsterstellarFuelSwitch bind with resourceAmountStr");
                 _field0 = Fields["resourceAmountStr0"];
                 _field1 = Fields["resourceAmountStr1"];
                 _field2 = Fields["resourceAmountStr2"];
@@ -478,7 +478,7 @@ namespace InterstellarFuelSwitch
 
                 if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
                 {
-                    Debug.Log("[IFS] - InsterstellarFuelSwitch Verify Tank Tech Requirements ");
+                    //Debug.Log("[IFS] - InsterstellarFuelSwitch Verify Tank Tech Requirements ");
                     foreach (var modularTank in _modularTankList)
                     {
                         modularTank.hasTech = HasTech(modularTank.techReq);
@@ -486,32 +486,32 @@ namespace InterstellarFuelSwitch
                     _numberOfAvailableTanks = _modularTankList.Count(m => m.hasTech);
                 }
 
-                Debug.Log("[IFS] - InsterstellarFuelSwitch set nextTankSetupEvent");
+                //Debug.Log("[IFS] - InsterstellarFuelSwitch set nextTankSetupEvent");
                 _nextTankSetupEvent = Events["nextTankSetupEvent"];
                 _nextTankSetupEvent.guiActive = hasGUI && availableInFlight;
 
-                Debug.Log("[IFS] - InsterstellarFuelSwitch set previousTankSetupEvent");
+                //Debug.Log("[IFS] - InsterstellarFuelSwitch set previousTankSetupEvent");
                 _previousTankSetupEvent = Events["previousTankSetupEvent"];
                 _previousTankSetupEvent.guiActive = hasGUI && availableInFlight;
 
-                Debug.Log("[IFS] - InsterstellarFuelSwitch bind with remaining fields");
+                //Debug.Log("[IFS] - InsterstellarFuelSwitch bind with remaining fields");
                 Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["resourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["maxResourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["totalCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
 
-                Debug.Log("[IFS] - InsterstellarFuelSwitch check InterstellarTextureSwitch2");
+                //Debug.Log("[IFS] - InsterstellarFuelSwitch check InterstellarTextureSwitch2");
                 if (useTextureSwitchModule)
                 {
-                    Debug.Log("[IFS] - InsterstellarFuelSwitch part.GetComponent<InterstellarTextureSwitch2>");
+                    //Debug.Log("[IFS] - InsterstellarFuelSwitch part.GetComponent<InterstellarTextureSwitch2>");
                     textureSwitch = part.GetComponent<InterstellarTextureSwitch2>(); // only looking for first, not supporting multiple fuel switchers
                     if (textureSwitch == null)
                     {
                         useTextureSwitchModule = false;
-                        Debug.Log("[IFS] - no InterstellarTextureSwitch2 module found, despite useTextureSwitchModule being true");
+                        //Debug.Log("[IFS] - no InterstellarTextureSwitch2 module found, despite useTextureSwitchModule being true");
                     }
                 }
-                Debug.Log("[IFS] - InsterstellarFuelSwitch Finished InitializeData");
+                //Debug.Log("[IFS] - InsterstellarFuelSwitch Finished InitializeData");
 
                 _initialized = true;
             }
@@ -763,7 +763,7 @@ namespace InterstellarFuelSwitch
                 // add new or exisitng resources
                 if (finalResourceNodes.Count > 0)
                 {
-                    Debug.Log("[IFS] - InsterstellarFuelSwitch SetupTankInPart adding resources: " + ParseTools.Print(newResources));
+                    //Debug.Log("[IFS] - InsterstellarFuelSwitch SetupTankInPart adding resources: " + ParseTools.Print(newResources));
                     foreach (var resourceNode in finalResourceNodes)
                     {
                         currentPart.AddResource(resourceNode);
@@ -783,7 +783,7 @@ namespace InterstellarFuelSwitch
 
         private void FindSelectedTank(bool calledByPlayer)
         {
-            Debug.Log("[IFS] - InsterstellarFuelSwitch FindSelectedTank cakked with calledByPlayer = " + calledByPlayer + " with current selectedTankSetup = " + selectedTankSetup);
+            //Debug.Log("[IFS] - InsterstellarFuelSwitch FindSelectedTank called with calledByPlayer = " + calledByPlayer + " with current selectedTankSetup = " + selectedTankSetup);
 
             // first find selected tank on index
             selectedTank = calledByPlayer && selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : null;
@@ -795,7 +795,7 @@ namespace InterstellarFuelSwitch
                 if (matchingIndex >= 0)
                 {
                     selectedTank = _modularTankList[matchingIndex];
-                    Debug.Log("[IFS] - InsterstellarFuelSwitch set selectedTank to " + selectedTank.GuiName + " after calling FindMatchingConfig");
+                    Debug.LogWarning("[IFS] - InsterstellarFuelSwitch set selectedTank to " + selectedTank.GuiName + " after calling FindMatchingConfig");
                 }
             }
 
@@ -806,7 +806,7 @@ namespace InterstellarFuelSwitch
 
                 var concatinatedGuiName = string.Join("+", resourcesWithMass.Select(r => r.info.displayName).ToArray());
 
-                Debug.Log("[IFS] - Constructing new tank definition for " + concatinatedGuiName);
+                Debug.LogWarning("[IFS] - Constructing new tank definition for " + concatinatedGuiName);
 
                 var ifsResources = resourcesWithMass.Select(r => new IFSresource(r.resourceName)
                 {
@@ -820,8 +820,8 @@ namespace InterstellarFuelSwitch
                 {
                     SwitchName = concatinatedSwitchName,
                     GuiName = concatinatedGuiName,
-                    tankMass = part.prefabMass / storedMassMultiplier,
-                    tankCost = part.partInfo.cost,
+                    //tankMass = part.prefabMass / storedMassMultiplier,
+                    //tankCost = part.partInfo.cost,
                     Resources = ifsResources
                 };
 
@@ -839,7 +839,7 @@ namespace InterstellarFuelSwitch
         // only called after tank switching
         public void ConfigureResourceMassGui(List<string> newResources)
         {
-            Debug.Log("[IFS] - ConfigureResourceMassGui called with " + newResources.Count + " resources");
+            //Debug.Log("[IFS] - ConfigureResourceMassGui called with " + newResources.Count + " resources");
 
             _partRresourceDefinition0 = newResources.Count > 0 ? PartResourceLibrary.Instance.GetDefinition(newResources[0]) : null;
             _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinition(newResources[1]) : null;

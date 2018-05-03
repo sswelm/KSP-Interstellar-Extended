@@ -117,16 +117,16 @@ namespace InterstellarFuelSwitch
 
         private void SwitchToObject(int objectNumber, bool calledByPlayer)
         {
-            Debug.Log("[IFS] - InterstellarMeshSwitch SwitchToObject(int objectNumber = " + objectNumber + ", bool calledByPlayer = " + calledByPlayer + ") ");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch SwitchToObject(int objectNumber = " + objectNumber + ", bool calledByPlayer = " + calledByPlayer + ") ");
 
             SetObject(objectNumber, calledByPlayer);
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch SwitchToObject if (!updateSymmetry)");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch SwitchToObject if (!updateSymmetry)");
 
             if (!updateSymmetry)
                 return;
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch SwitchToObject for (var i = 0; i < part.symmetryCounterparts.Count; i++)");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch SwitchToObject for (var i = 0; i < part.symmetryCounterparts.Count; i++)");
             for (var i = 0; i < part.symmetryCounterparts.Count; i++)
             {
                 var symSwitch = part.symmetryCounterparts[i].GetComponents<InterstellarMeshSwitch>();
@@ -143,11 +143,11 @@ namespace InterstellarFuelSwitch
 
         private void SetObject(int objectNumber, bool calledByPlayer)
         {
-            Debug.Log("[IFS] - InterstellarMeshSwitch SetObject(int objectNumber = " + objectNumber + ", bool calledByPlayer = " + calledByPlayer + ") ");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch SetObject(int objectNumber = " + objectNumber + ", bool calledByPlayer = " + calledByPlayer + ") ");
 
             InitializeData();
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch SetObject for (var i = 0; i < objectTransforms.Count; i++)");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch SetObject for (var i = 0; i < objectTransforms.Count; i++)");
             // first disable all transforms
             for (var i = 0; i < objectTransforms.Count; i++)
             {
@@ -169,7 +169,7 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch SetObject if (objectNumber >= 0 && objectNumber < objectTransforms.Count)");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch SetObject if (objectNumber >= 0 && objectNumber < objectTransforms.Count)");
             // enable the selected one last because there might be several entries with the same object, and we don't want to disable it after it's been enabled.
             if (objectNumber >= 0 && objectNumber < objectTransforms.Count)
             {
@@ -191,7 +191,7 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch SetObject if (useFuelSwitchModule)");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch SetObject if (useFuelSwitchModule)");
             if (useFuelSwitchModule)
             {
                 if (fuelSwitch != null && objectNumber >= 0 && objectNumber < fuelTankSetupList.Count)
@@ -205,9 +205,9 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch SetObject SetCurrentObjectName())");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch SetObject SetCurrentObjectName())");
             SetCurrentObjectName();
-            Debug.Log("[IFS] - InterstellarMeshSwitch Finished SetObject)");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch Finished SetObject)");
         }
 
         private void SetCurrentObjectName()
@@ -219,21 +219,21 @@ namespace InterstellarFuelSwitch
         {
             InitializeData();
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch SwitchToObject(selectedObject, false)");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch SwitchToObject(selectedObject, false)");
             SwitchToObject(selectedObject, false);
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch bind with currentObjectName");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch bind with currentObjectName");
             Fields["currentObjectName"].guiActiveEditor = showCurrentObjectName;
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch bind with nextObjectEvent");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch bind with nextObjectEvent");
             var nextButton = Events["nextObjectEvent"];
             nextButton.guiActiveEditor = showSwitchButtons;
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch bind with previousObjectEvent");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch bind with previousObjectEvent");
             var prevButton = Events["previousObjectEvent"];
             prevButton.guiActiveEditor = showSwitchButtons;
 
-            Debug.Log("[IFS] - InterstellarMeshSwitch bind with selectedObject");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch bind with selectedObject");
             var chooseField = Fields["selectedObject"];
             chooseField.guiName = Localizer.Format(switcherDescription);
             chooseField.guiActiveEditor = hasSwitchChooseOption;
@@ -251,7 +251,7 @@ namespace InterstellarFuelSwitch
 
         private void UpdateFromGUI(BaseField field, object oldFieldValueObj)
         {
-            Debug.Log("[IFS] - InterstellarMeshSwitch UpdateFromGUI(BaseField field, object oldFieldValueObj");
+            //Debug.Log("[IFS] - InterstellarMeshSwitch UpdateFromGUI(BaseField field, object oldFieldValueObj");
             SwitchToObject(selectedObject, true);
         }
 
@@ -261,7 +261,7 @@ namespace InterstellarFuelSwitch
             {
                 if (initialized) return;
 
-                Debug.Log("[IFS] - InterstellarMeshSwitch InitializeData()");
+                //Debug.Log("[IFS] - InterstellarMeshSwitch InitializeData()");
 
 
                 //debug = new InterstellarDebugMessages(debugMode, "InterstellarMeshSwitch");
@@ -270,34 +270,34 @@ namespace InterstellarFuelSwitch
                 if (useFuelSwitchModule)
                     updateSymmetry = true;
 
-                Debug.Log("[IFS] - InterstellarMeshSwitch ParseObjectNames");
+                //Debug.Log("[IFS] - InterstellarMeshSwitch ParseObjectNames");
                 ParseObjectNames();
 
-                Debug.Log("[IFS] - InterstellarMeshSwitch ParseTools.ParseNames(fuelTankSetups)");
+                //Debug.Log("[IFS] - InterstellarMeshSwitch ParseTools.ParseNames(fuelTankSetups)");
                 fuelTankSetupList = ParseTools.ParseNames(fuelTankSetups);
 
-                Debug.Log("[IFS] - InterstellarMeshSwitch ParseTools.ParseNames(objectDisplayNames)");
+                //Debug.Log("[IFS] - InterstellarMeshSwitch ParseTools.ParseNames(objectDisplayNames)");
                 objectDisplayList = ParseTools.ParseNames(objectDisplayNames);
 
 
                 tankSwitchNamesList = new List<string>();
 
                 // add any missing names
-                Debug.Log("[IFS] - InterstellarMeshSwitch ParseTools.ParseNames(tankSwitchNames)");
+                //Debug.Log("[IFS] - InterstellarMeshSwitch ParseTools.ParseNames(tankSwitchNames)");
                 var tankSwitchNamesListTmp = ParseTools.ParseNames(tankSwitchNames);
 
-                Debug.Log("[IFS] - InterstellarMeshSwitch for (var i = 0; i < objectDisplayList.Count; i++)");
+                //Debug.Log("[IFS] - InterstellarMeshSwitch for (var i = 0; i < objectDisplayList.Count; i++)");
                 for (var i = 0; i < objectDisplayList.Count; i++)
                 {
                     tankSwitchNamesList.Add(Localizer.Format(i < tankSwitchNamesListTmp.Count ? tankSwitchNamesListTmp[i] : objectDisplayList[i]));
                 }
 
-                Debug.Log("[IFS] - InterstellarMeshSwitch if (useFuelSwitchModule)");
+                //Debug.Log("[IFS] - InterstellarMeshSwitch if (useFuelSwitchModule)");
                 if (useFuelSwitchModule)
                 {
                     var fuelSwitches = part.FindModulesImplementing<InterstellarFuelSwitch>();
 
-                    if (fuelSwitches.Any() && !String.IsNullOrEmpty(searchTankId))
+                    if (fuelSwitches.Any() && !string.IsNullOrEmpty(searchTankId))
                     {
                          fuelSwitch = fuelSwitches.FirstOrDefault(m => m.tankId == searchTankId);
                     }
@@ -312,7 +312,7 @@ namespace InterstellarFuelSwitch
                     }
                     else //if (HighLogic.LoadedSceneIsFlight)
                     {
-                        Debug.Log("[IFS] - caling fuelSwitch FindMatchingConfig");
+                        //Debug.Log("[IFS] - caling fuelSwitch FindMatchingConfig");
                         //debug.debugMessage("[IFS] - caling fuelSwitch FindMatchingConfig");
 
 
@@ -321,7 +321,7 @@ namespace InterstellarFuelSwitch
                         if (HighLogic.LoadedSceneIsFlight || matchingObject >= 0)
                         {
                             selectedObject = matchingObject;
-                            Debug.Log("[IFS] - selectedObject set to " + selectedObject);
+                            Debug.LogWarning("[IFS] - selectedObject set to " + selectedObject);
                         }
                         //debug.debugMessage("[IFS] - selectedObject set to " + selectedObject);
                     }

@@ -4,8 +4,8 @@
     "DOWNLOAD":"http://forum.kerbalspaceprogram.com/index.php?/topic/106243-111-interstellar-fuel-switch-126-updated-30-4-2016-new-auto-mass-ratio-support/",
     "VERSION":
     {
-        "MAJOR":2,
-        "MINOR":14,
+        "MAJOR":3,
+        "MINOR":0,
         "PATCH":0,
         "BUILD":0
     },
@@ -13,6 +13,6 @@
     {
         "MAJOR":1,
         "MINOR":4,
-        "PATCH":2
+        "PATCH":3
     }
 }
