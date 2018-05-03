@@ -55,7 +55,7 @@ namespace InterstellarFuelSwitch
                     debugMessage(input, true, postToScreenDuration);
                     break;
                 case OutputMode.log:
-                    debugMessage(input, true, 0f);
+                    //debugMessage(input, true, 0f);
                     break;
                 case OutputMode.screen:
                     debugMessage(input, false, postToScreenDuration);

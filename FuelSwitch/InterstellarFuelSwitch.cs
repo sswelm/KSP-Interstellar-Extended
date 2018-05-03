@@ -257,6 +257,9 @@ namespace InterstellarFuelSwitch
 
             var numberOfResources = part.Resources.Count(r => activeResourceList.Contains(r.resourceName));
 
+            if (numberOfResources == 0)
+                return -1;
+
             Debug.Log("[IFS] - Tank contains " + numberOfResources + " relevant resouces");
 
             for (var i = 0; i < _modularTankList.Count; i++)
@@ -462,6 +465,7 @@ namespace InterstellarFuelSwitch
                 if (_initialized)
                     return;
 
+                Debug.Log("[IFS] - InsterstellarFuelSwitch bind with resourceAmountStr");
                 _field0 = Fields["resourceAmountStr0"];
                 _field1 = Fields["resourceAmountStr1"];
                 _field2 = Fields["resourceAmountStr2"];
@@ -482,19 +486,24 @@ namespace InterstellarFuelSwitch
                     _numberOfAvailableTanks = _modularTankList.Count(m => m.hasTech);
                 }
 
+                Debug.Log("[IFS] - InsterstellarFuelSwitch set nextTankSetupEvent");
                 _nextTankSetupEvent = Events["nextTankSetupEvent"];
                 _nextTankSetupEvent.guiActive = hasGUI && availableInFlight;
 
+                Debug.Log("[IFS] - InsterstellarFuelSwitch set previousTankSetupEvent");
                 _previousTankSetupEvent = Events["previousTankSetupEvent"];
                 _previousTankSetupEvent.guiActive = hasGUI && availableInFlight;
 
+                Debug.Log("[IFS] - InsterstellarFuelSwitch bind with remaining fields");
                 Fields["dryCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["resourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["maxResourceCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
                 Fields["totalCost"].guiActiveEditor = displayTankCost && HighLogic.LoadedSceneIsEditor;
 
+                Debug.Log("[IFS] - InsterstellarFuelSwitch check InterstellarTextureSwitch2");
                 if (useTextureSwitchModule)
                 {
+                    Debug.Log("[IFS] - InsterstellarFuelSwitch part.GetComponent<InterstellarTextureSwitch2>");
                     textureSwitch = part.GetComponent<InterstellarTextureSwitch2>(); // only looking for first, not supporting multiple fuel switchers
                     if (textureSwitch == null)
                     {
@@ -502,6 +511,7 @@ namespace InterstellarFuelSwitch
                         Debug.Log("[IFS] - no InterstellarTextureSwitch2 module found, despite useTextureSwitchModule being true");
                     }
                 }
+                Debug.Log("[IFS] - InsterstellarFuelSwitch Finished InitializeData");
 
                 _initialized = true;
             }
@@ -789,28 +799,22 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            // otherwise find based on similarity with switch name
-            if (selectedTank == null && !string.IsNullOrEmpty(selectedTankSetupTxt))
-            {
-                selectedTank = _modularTankList.FirstOrDefault(t => selectedTankSetupTxt.Contains(t.SwitchName));
-                if (selectedTank!= null)
-                    Debug.Log("[IFS] - InsterstellarFuelSwitch found tank based on similarity in name between " + selectedTankSetupTxt + " and " + selectedTank.SwitchName);
-            }
-
             // if still no tank found create a tank based on current tank contents
-            if (selectedTank == null && HighLogic.LoadedSceneIsFlight)
+            if (selectedTank == null && (HighLogic.LoadedSceneIsFlight || _modularTankList.Count == 0) && part.Resources.Any(m => m.info.density > 0))
             {
-                var concatinatedGuiName = string.Join("+", part.Resources.Select(r => r.info.displayName).ToArray());
+                var resourcesWithMass = part.Resources.Where(m => m.info.density > 0);
+
+                var concatinatedGuiName = string.Join("+", resourcesWithMass.Select(r => r.info.displayName).ToArray());
 
                 Debug.Log("[IFS] - Constructing new tank definition for " + concatinatedGuiName);
 
-                var ifsResources = part.Resources.Select(r => new IFSresource(r.resourceName)
+                var ifsResources = resourcesWithMass.Select(r => new IFSresource(r.resourceName)
                 {
                     amount = r.amount / storedVolumeMultiplier,
                     maxAmount = r.maxAmount/ storedVolumeMultiplier
                 }).ToList();
 
-                var concatinatedSwitchName = string.Join("+", part.Resources.Select(r => r.info.abbreviation).ToArray());
+                var concatinatedSwitchName = string.Join("+", resourcesWithMass.Select(r => r.info.abbreviation).ToArray());
 
                 selectedTank = new IFSmodularTank
                 {
@@ -835,6 +839,8 @@ namespace InterstellarFuelSwitch
         // only called after tank switching
         public void ConfigureResourceMassGui(List<string> newResources)
         {
+            Debug.Log("[IFS] - ConfigureResourceMassGui called with " + newResources.Count + " resources");
+
             _partRresourceDefinition0 = newResources.Count > 0 ? PartResourceLibrary.Instance.GetDefinition(newResources[0]) : null;
             _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinition(newResources[1]) : null;
             _partRresourceDefinition2 = newResources.Count > 2 ? PartResourceLibrary.Instance.GetDefinition(newResources[2]) : null;
@@ -948,7 +954,7 @@ namespace InterstellarFuelSwitch
 
         private void UpdateDryMass()
         {
-            if (dryMass <= 0 && !HighLogic.LoadedSceneIsEditor) return;
+            if (dryMass != 0 && !HighLogic.LoadedSceneIsEditor) return;
 
             // update Dry Mass
             dryMass = CalculateDryMass();
@@ -1376,29 +1382,38 @@ namespace InterstellarFuelSwitch
 
         private static bool HasTech(string techid)
         {
-            if (String.IsNullOrEmpty(techid))
-                return true;
-
-            if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
-                return true;
-
-            if ((HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX))
-                return true;
-
-            if (ResearchAndDevelopment.Instance == null)
+            try
             {
-                if (_researchedTechs == null)
-                    LoadSaveFile();
 
-                return _researchedTechs != null && _researchedTechs.Contains(techid);
-            }
-            else
-            {
-                var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
-                if (techstate != null)
-                    return techstate.state == RDTech.State.Available;
+                if (String.IsNullOrEmpty(techid))
+                    return true;
+
+                if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight)
+                    return true;
+
+                if ((HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX))
+                    return true;
+
+                if (ResearchAndDevelopment.Instance == null)
+                {
+                    if (_researchedTechs == null)
+                        LoadSaveFile();
+
+                    return _researchedTechs != null && _researchedTechs.Contains(techid);
+                }
                 else
-                    return false;
+                {
+                    var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
+                    if (techstate != null)
+                        return techstate.state == RDTech.State.Available;
+                    else
+                        return false;
+                }
+            }
+            catch
+            {
+                Debug.LogError("[IFS] - Verify HasTech: " + techid);
+                throw;
             }
         }
 
