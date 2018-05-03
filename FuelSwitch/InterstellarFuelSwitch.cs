@@ -288,7 +288,7 @@ namespace InterstellarFuelSwitch
 
                 if (isSimilar)
                 {
-                    Debug.Log("[IFS] - Found match config with " + i);
+                    Debug.Log("[IFS] - Found matching config with tank index " + i);
                     return i;
                 }
             }
@@ -577,7 +577,7 @@ namespace InterstellarFuelSwitch
                 {
                     foreach (var symPart in part.symmetryCounterparts)
                     {
-                        var symSwitch = String.IsNullOrEmpty(tankId)
+                        var symSwitch = string.IsNullOrEmpty(tankId)
                             ? symPart.FindModulesImplementing<InterstellarFuelSwitch>().FirstOrDefault()
                             : symPart.FindModulesImplementing<InterstellarFuelSwitch>().FirstOrDefault(m => m.tankId == tankId);
 
@@ -773,34 +773,49 @@ namespace InterstellarFuelSwitch
 
         private void FindSelectedTank(bool calledByPlayer)
         {
+            Debug.Log("[IFS] - InsterstellarFuelSwitch FindSelectedTank cakked with calledByPlayer = " + calledByPlayer + " with current selectedTankSetup = " + selectedTankSetup);
+
             // first find selected tank on index
-            selectedTank = calledByPlayer && selectedTankSetup != -1 && selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : null;
+            selectedTank = calledByPlayer && selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count ? _modularTankList[selectedTankSetup] : null;
 
             // find based on guiname, switchname or contents
             if (selectedTank == null)
             {
                 var matchingIndex = FindMatchingConfig();
-                if (matchingIndex != -1)
+                if (matchingIndex >= 0)
+                {
                     selectedTank = _modularTankList[matchingIndex];
+                    Debug.Log("[IFS] - InsterstellarFuelSwitch set selectedTank to " + selectedTank.GuiName + " after calling FindMatchingConfig");
+                }
             }
 
             // otherwise find based on similarity with switch name
-            if (selectedTank == null && !String.IsNullOrEmpty(selectedTankSetupTxt))
+            if (selectedTank == null && !string.IsNullOrEmpty(selectedTankSetupTxt))
+            {
                 selectedTank = _modularTankList.FirstOrDefault(t => selectedTankSetupTxt.Contains(t.SwitchName));
+                if (selectedTank!= null)
+                    Debug.Log("[IFS] - InsterstellarFuelSwitch found tank based on similarity in name between " + selectedTankSetupTxt + " and " + selectedTank.SwitchName);
+            }
 
             // if still no tank found create a tank based on current tank contents
             if (selectedTank == null && HighLogic.LoadedSceneIsFlight)
             {
+                var concatinatedGuiName = string.Join("+", part.Resources.Select(r => r.info.displayName).ToArray());
+
+                Debug.Log("[IFS] - Constructing new tank definition for " + concatinatedGuiName);
+
                 var ifsResources = part.Resources.Select(r => new IFSresource(r.resourceName)
                 {
                     amount = r.amount / storedVolumeMultiplier,
                     maxAmount = r.maxAmount/ storedVolumeMultiplier
                 }).ToList();
 
-                selectedTank = new IFSmodularTank()
+                var concatinatedSwitchName = string.Join("+", part.Resources.Select(r => r.info.abbreviation).ToArray());
+
+                selectedTank = new IFSmodularTank
                 {
-                    SwitchName = "Unknown",
-                    GuiName = "Unknown",
+                    SwitchName = concatinatedSwitchName,
+                    GuiName = concatinatedGuiName,
                     tankMass = part.prefabMass / storedMassMultiplier,
                     tankCost = part.partInfo.cost,
                     Resources = ifsResources
@@ -812,6 +827,7 @@ namespace InterstellarFuelSwitch
             // otherwise select first tank
             if (selectedTank == null)
             {
+                Debug.Log("[IFS] - Defaulting selected tank to first tank in collection" );
                 selectedTank = _modularTankList[0];
             }
         }
@@ -839,9 +855,9 @@ namespace InterstellarFuelSwitch
             _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources[newResources[1]];
             _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources[newResources[2]];
 
-            _partResourceMaxAmountFraction0 = _partResource0 == null ? 0 : _partResource0.maxAmount / 1000;
-            _partResourceMaxAmountFraction1 = _partResource1 == null ? 0 : _partResource1.maxAmount / 1000;
-            _partResourceMaxAmountFraction2 = _partResource2 == null ? 0 : _partResource2.maxAmount / 1000;
+            _partResourceMaxAmountFraction0 = _partResource0 == null ? 0 : _partResource0.maxAmount * 0.001;
+            _partResourceMaxAmountFraction1 = _partResource1 == null ? 0 : _partResource1.maxAmount * 0.001;
+            _partResourceMaxAmountFraction2 = _partResource2 == null ? 0 : _partResource2.maxAmount * 0.001;
         }
 
         private double UpdateCost()
@@ -861,7 +877,7 @@ namespace InterstellarFuelSwitch
             }
 
             var preserveInitialCost = false;
-            if (!ignoreInitialCost && !String.IsNullOrEmpty(initialTankSetup))
+            if (!ignoreInitialCost && !string.IsNullOrEmpty(initialTankSetup))
             {
                 preserveInitialCost = true;
                 var initialTankSetupArray = initialTankSetup.Split(';');
@@ -932,7 +948,7 @@ namespace InterstellarFuelSwitch
 
         private void UpdateDryMass()
         {
-            if (dryMass != 0 && !HighLogic.LoadedSceneIsEditor) return;
+            if (dryMass <= 0 && !HighLogic.LoadedSceneIsEditor) return;
 
             // update Dry Mass
             dryMass = CalculateDryMass();
@@ -969,7 +985,7 @@ namespace InterstellarFuelSwitch
             }
 
             // prevent 0 mass
-            if (mass == 0)
+            if (mass <= 0)
                 mass = part.prefabMass;
 
             return mass * storedMassMultiplier;
@@ -1299,11 +1315,11 @@ namespace InterstellarFuelSwitch
 
             var info = new StringBuilder();
 
-            if (!String.IsNullOrEmpty(moduleInfoTemplate))
+            if (!string.IsNullOrEmpty(moduleInfoTemplate))
             {
-                List<string> parameters = new List<string>();
+                var parameters = new List<string>();
 
-                if (!String.IsNullOrEmpty(moduleInfoParams))
+                if (!string.IsNullOrEmpty(moduleInfoParams))
                 {
                     parameters = moduleInfoParams.Split(';').ToList();
 
@@ -1358,7 +1374,7 @@ namespace InterstellarFuelSwitch
             return info.ToString();
         }
 
-        private bool HasTech(string techid)
+        private static bool HasTech(string techid)
         {
             if (String.IsNullOrEmpty(techid))
                 return true;
@@ -1374,21 +1390,19 @@ namespace InterstellarFuelSwitch
                 if (_researchedTechs == null)
                     LoadSaveFile();
 
-                if (_researchedTechs != null)
-                    return _researchedTechs.Contains(techid);
-            }
-
-            var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
-            if (techstate != null)
-            {
-                var available = techstate.state == RDTech.State.Available;
-                return available;
+                return _researchedTechs != null && _researchedTechs.Contains(techid);
             }
             else
-                return false;
+            {
+                var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
+                if (techstate != null)
+                    return techstate.state == RDTech.State.Available;
+                else
+                    return false;
+            }
         }
 
-        private void LoadSaveFile()
+        private static void LoadSaveFile()
         {
             _researchedTechs = new HashSet<string>();
 

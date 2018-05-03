@@ -138,30 +138,30 @@ namespace InterstellarFuelSwitch
         {
             InitializeData();
 
+            // first disable all transforms
             for (var i = 0; i < objectTransforms.Count; i++)
             {
                 for (var j = 0; j < objectTransforms[i].Count; j++)
                 {
-                    debug.debugMessage("InterstellarMeshSwitch: Setting object enabled");
+                    debug.debugMessage("[IFS] - InterstellarMeshSwitch: Setting object enabled");
 
                     Transform transform = objectTransforms[i][j];
-                    if (transform != null)
-                    {
-                        transform.gameObject.SetActive(false);
+                    if (transform == null) continue;
 
-                        if (!affectColliders) continue;
+                    transform.gameObject.SetActive(false);
 
-                        debug.debugMessage("InterstellarMeshSwitch: setting collider states");
-                        var collider = objectTransforms[i][j].gameObject.GetComponent<Collider>();
-                        if (collider != null)
-                            collider.enabled = false;
-                    }
+                    if (!affectColliders) continue;
+
+                    debug.debugMessage("[IFS] - InterstellarMeshSwitch: setting collider states");
+                    var collider = objectTransforms[i][j].gameObject.GetComponent<Collider>();
+                    if (collider != null)
+                        collider.enabled = false;
                 }
             }
 
-            if (objectNumber < objectTransforms.Count)
+            // enable the selected one last because there might be several entries with the same object, and we don't want to disable it after it's been enabled.
+            if (objectNumber >= 0 && objectNumber < objectTransforms.Count)
             {
-                // enable the selected one last because there might be several entries with the same object, and we don't want to disable it after it's been enabled.
                 for (var i = 0; i < objectTransforms[objectNumber].Count; i++)
                 {
                     Transform transform = objectTransforms[objectNumber][i];
@@ -175,18 +175,21 @@ namespace InterstellarFuelSwitch
 
                     if (colloder == null) continue;
 
-                    debug.debugMessage("InterstellarMeshSwitch: Setting collider true on new active object");
+                    debug.debugMessage("[IFS] - InterstellarMeshSwitch: Setting collider true on new active object");
                     colloder.enabled = true;
                 }
             }
 
             if (useFuelSwitchModule)
             {
-                debug.debugMessage("InterstellarMeshSwitch: calling on InterstellarFuelSwitch tank setup " + objectNumber);
-                if (fuelSwitch != null &&  objectNumber < fuelTankSetupList.Count)
+
+                if (fuelSwitch != null && objectNumber >= 0 && objectNumber < fuelTankSetupList.Count)
+                {
+                    debug.debugMessage("[IFS] - InterstellarMeshSwitch: calling on InterstellarFuelSwitch tank setup " + objectNumber);
                     fuelSwitch.SelectTankSetup(fuelTankSetupList[objectNumber], calledByPlayer);
+                }
                 else
-                    debug.debugMessage("InterstellarMeshSwitch: no such fuel tank setup");
+                    debug.debugMessage("[IFS] - InterstellarMeshSwitch: no such fuel tank setup");
             }
 
             SetCurrentObjectName();
@@ -194,7 +197,7 @@ namespace InterstellarFuelSwitch
 
         private void SetCurrentObjectName()
         {
-            currentObjectName = selectedObject > objectDisplayList.Count - 1 ? "" : Localizer.Format(objectDisplayList[selectedObject]);
+            currentObjectName = selectedObject >= 0 || selectedObject < objectDisplayList.Count  ? Localizer.Format(objectDisplayList[selectedObject]) : "";
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -216,8 +219,11 @@ namespace InterstellarFuelSwitch
             chooseField.guiActiveEditor = hasSwitchChooseOption;
 
             var chooseOption = chooseField.uiControlEditor as UI_ChooseOption;
-            chooseOption.options = tankSwitchNamesList.ToArray();
-            chooseOption.onFieldChanged = UpdateFromGUI;
+            if (chooseOption != null)
+            {
+                chooseOption.options = tankSwitchNamesList.ToArray();
+                chooseOption.onFieldChanged = UpdateFromGUI;
+            }
 
             if (!showPreviousButton) 
                 Events["previousObjectEvent"].guiActiveEditor = false;
@@ -232,6 +238,8 @@ namespace InterstellarFuelSwitch
         {
             try
             {
+                debug.debugMessage("[IFS] - InitializeData called for " + part.name);
+
                 if (initialized) return;
 
                 debug = new InterstellarDebugMessages(debugMode, "InterstellarMeshSwitch");
@@ -267,19 +275,16 @@ namespace InterstellarFuelSwitch
                     if (fuelSwitch == null)
                         fuelSwitch = fuelSwitches.FirstOrDefault();
 
-                    //searchTankId
                     if (fuelSwitch == null)
                     {
                         useFuelSwitchModule = false;
-                        debug.debugMessage("no FSfuelSwitch module found, despite useFuelSwitchModule being true");
+                        debug.debugMessage("[IFS] - no FSfuelSwitch module found, despite useFuelSwitchModule being true");
                     }
                     else
                     {
-                        var matchingObject = fuelSwitch.FindMatchingConfig();
-
-                        // when unknown, set to invalid onject index
-                        if (matchingObject == -1)
-                            selectedObject = objectTransforms.Count;
+                        debug.debugMessage("[IFS] - caling fuelSwitch FindMatchingConfig");
+                        selectedObject = fuelSwitch.FindMatchingConfig();
+                        debug.debugMessage("[IFS] - selectedObject set to " + selectedObject);
                     }
 
                 }
