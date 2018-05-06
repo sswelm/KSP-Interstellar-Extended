@@ -207,6 +207,8 @@ namespace FNPlugin
         public int connectParentdepth = 2;
         [KSPField]
         public int connectSurfacedepth = 2;
+        [KSPField]
+        public double thermalPropulsionWasteheatModifier = 1;
 
         //GUI
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
@@ -345,12 +347,7 @@ namespace FNPlugin
 
         public double ProducedThermalHeat { get { return powerInputMegajoules + solarInputMegajoules; } }
 
-        private double _requestedThermalHeat;
-        public double RequestedThermalHeat
-        {
-            get { return _requestedThermalHeat; }
-            set { _requestedThermalHeat = value; }
-        }
+        public double ProducedChargedPower { get { return 0; } }
 
         public double PowerRatio { get { return receiptPower / 100.0; } }
 
@@ -431,6 +428,8 @@ namespace FNPlugin
         public double ReactorSpeedMult { get { return 1; } }
 
         public double ThermalProcessingModifier { get { return thermalProcessingModifier; } }
+
+        public double ThermalPropulsionWasteheatModifier { get { return thermalPropulsionWasteheatModifier; } }
 
         public double EfficencyConnectedThermalEnergyGenerator { get { return storedIsThermalEnergyGeneratorEfficiency; } }
 

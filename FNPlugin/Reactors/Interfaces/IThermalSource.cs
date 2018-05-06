@@ -47,7 +47,9 @@ namespace FNPlugin.Reactors.Interfaces
 
         double ProducedThermalHeat { get; }
 
-        double RequestedThermalHeat { get; set; }
+        double ProducedChargedPower { get; }
+
+        //double RequestedThermalHeat { get; set; }
 
         double ProducedWasteHeat { get; }
 
@@ -94,6 +96,8 @@ namespace FNPlugin.Reactors.Interfaces
         bool IsThermalSource { get; }
 
         double ConsumedFuelFixed { get; }
+
+        double ThermalPropulsionWasteheatModifier { get; }
 
         double ThermalPropulsionEfficiency { get; }
         double PlasmaPropulsionEfficiency { get; }

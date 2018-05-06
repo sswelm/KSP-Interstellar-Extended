@@ -612,13 +612,6 @@ namespace FNPlugin
                     return;
                 }
 
-                // verify if mass calculation is active
-                if (!calculatedMass)
-                {
-                    targetMass = initialMass;
-                    return;
-                }
-
                 if (chargedParticleMode && attachedPowerSource.ChargedParticleEnergyEfficiency > 0)
                     powerUsageEfficiency = attachedPowerSource.ChargedParticleEnergyEfficiency;
                 else if (isMHD && attachedPowerSource.PlasmaEnergyEfficiency > 0)
@@ -630,6 +623,13 @@ namespace FNPlugin
 
                 rawMaximumPower = attachedPowerSource.RawMaximumPower * powerUsageEfficiency;
                 maximumTheoreticalPower = rawMaximumPower * CapacityRatio * maxEfficiency;
+
+                // verify if mass calculation is active
+                if (!calculatedMass)
+                {
+                    targetMass = initialMass;
+                    return;
+                }
 
                 // update part mass
                 if (rawMaximumPower > 0 && rawPowerToMassDivider > 0)
@@ -968,8 +968,8 @@ namespace FNPlugin
                 {
                     generatorInit = true;
 
-                    if (attachedPowerSource != null)
-                        attachedPowerSource.RequestedThermalHeat = 0;
+                    //if (attachedPowerSource != null)
+                    //    attachedPowerSource.RequestedThermalHeat = 0;
 
                     if (IsEnabled && !vessel.packed)
                     {

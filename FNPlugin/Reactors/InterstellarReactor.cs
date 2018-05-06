@@ -307,6 +307,8 @@ namespace FNPlugin.Reactors
         public double hotBathTemperature = 0;
         [KSPField]
         public bool hasAlternator = false;
+        [KSPField]
+        public double thermalPropulsionWasteheatModifier = 1;
 
         [KSPField]
         public double thermalPropulsionEfficiency = 1;
@@ -405,6 +407,8 @@ namespace FNPlugin.Reactors
         protected double max_charged_to_supply_per_second;
         [KSPField]
         protected double min_throttle;
+        [KSPField(guiActive = true)]
+        protected double safetyThrotleModifier;
 
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false)]
@@ -505,15 +509,17 @@ namespace FNPlugin.Reactors
 
         private double _consumedFuelTotalFixed;
 
+        public double ThermalPropulsionWasteheatModifier { get { return thermalPropulsionWasteheatModifier; } }
+
         public double ConsumedFuelFixed { get { return _consumedFuelTotalFixed; } }
 
         public bool SupportMHD { get { return supportMHD; } }
 
         public double ProducedThermalHeat { get { return ongoing_thermal_power_generated; } }
 
-        public int ProviderPowerPriority { get { return (int)electricPowerPriority; } }
+        public double ProducedChargedPower { get { return ongoing_charged_power_generated; } }
 
-        public double RequestedThermalHeat { get;  set; }
+        public int ProviderPowerPriority { get { return (int)electricPowerPriority; } }
 
         public double RawTotalPowerProduced  { get { return ongoing_total_power_generated; } }
 
@@ -1505,7 +1511,7 @@ namespace FNPlugin.Reactors
 
                 power_request_ratio = Math.Max(Math.Max(thermalThrottleRatio, chargedThrottleRatio), Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorChargedEnergyRequestRatio));
 
-                var safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
+                safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
                 max_charged_to_supply_per_second = maximumChargedPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * powerAccessModifier;
                 requested_charged_to_supply_per_second = max_charged_to_supply_per_second * power_request_ratio * maximum_charged_request_ratio;
 
@@ -1523,7 +1529,7 @@ namespace FNPlugin.Reactors
                 thermal_power_ratio = Math.Min(maximum_thermal_request_ratio, maximumThermalPower > 0 ? neededThermalPowerPerSecond / maximumThermalPower : 0);
 
                 var speedDivider = reactorSpeedMult > 0 ? 20 / reactorSpeedMult : 20;
-                reactor_power_ratio = Math.Min(maximum_reactor_request_ratio, (maximum_reactor_request_ratio + Math.Min(maximum_reactor_request_ratio, Math.Max(charged_power_ratio, thermal_power_ratio)) * speedDivider) / (speedDivider + 1));
+                reactor_power_ratio = safetyThrotleModifier * Math.Min(maximum_reactor_request_ratio, (maximum_reactor_request_ratio + Math.Min(maximum_reactor_request_ratio, Math.Max(charged_power_ratio, thermal_power_ratio)) * speedDivider) / (speedDivider + 1));
 
                 ongoing_charged_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requested_charged_to_supply_per_second, max_charged_to_supply_per_second, reactor_power_ratio, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
                 ongoing_thermal_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requested_thermal_to_supply_per_second, max_thermal_to_supply_per_second, reactor_power_ratio, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);

@@ -157,7 +157,7 @@ namespace FNPlugin
         public double engineHeatProduction;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F5")]
         public double pressureThreshold;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested Heat", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested ThermalHeat", guiUnits = " MJ", guiFormat = "F3")]
         public double requested_thermal_power;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested Charge", guiUnits = " MJ")]
         public double requested_charge_particles;
@@ -440,7 +440,7 @@ namespace FNPlugin
                 Debug.Log("[KSPI] - ThermalNozzleController - calculate WasteHeat Capacity");
 
                 resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4 * wasteHeatBufferMult, true));
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5 * wasteHeatBufferMult, true));
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
 
@@ -1034,8 +1034,8 @@ namespace FNPlugin
                     ? AttachedReactor.PlasmaPropulsionEfficiency
                     : AttachedReactor.ThermalPropulsionEfficiency;
 
-                currentMaxThermalPower = Math.Min(effectiveThermalPower, AttachedReactor.MaximumThermalPower * maximumPowerUsageForPropulsionRatio * myAttachedEngine.currentThrottle);
-                currentMaxChargedPower = Math.Min(effectiveChargedPower, AttachedReactor.MaximumChargedPower * maximumPowerUsageForPropulsionRatio * myAttachedEngine.currentThrottle);
+                currentMaxThermalPower = Math.Min(effectiveThermalPower, Math.Max(AttachedReactor.ProducedThermalHeat, AttachedReactor.MaximumThermalPower * maximumPowerUsageForPropulsionRatio * myAttachedEngine.currentThrottle));
+                currentMaxChargedPower = Math.Min(effectiveChargedPower, Math.Max(AttachedReactor.ProducedChargedPower, AttachedReactor.MaximumChargedPower * maximumPowerUsageForPropulsionRatio * myAttachedEngine.currentThrottle));
 
                 thermalRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_THERMALPOWER);
                 chargedParticleRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
@@ -1224,6 +1224,8 @@ namespace FNPlugin
                         ? wasteheatEfficiencyHighTemperature
                         : wasteheatEfficiencyLowTemperature;
 
+                    wasteheatEfficiencyModifier = 1 - (1 - wasteheatEfficiencyModifier) * _myAttachedReactor.ThermalPropulsionWasteheatModifier;
+
                     consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
@@ -1357,10 +1359,10 @@ namespace FNPlugin
 
                 if (controlHeatProduction)
                 {
-                    engineHeatProduction = (max_fuel_flow_rate >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.001)
-                        ? Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / max_fuel_flow_rate / _maxISP / part.mass
+                    engineHeatProduction = (max_fuel_flow_rate >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.001 && myAttachedEngine.currentThrottle > 0.01)
+                        ? myAttachedEngine.currentThrottle * Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / max_fuel_flow_rate / _maxISP / part.mass
                         : 100;
-                    engineHeatProduction *= (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult);
+                    engineHeatProduction = Math.Min(engineHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 9999);
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;
                 }
 

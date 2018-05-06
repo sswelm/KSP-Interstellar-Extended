@@ -40,6 +40,8 @@ namespace FNPlugin.Reactors
 
         public Part Part { get { return this.part; } }
 
+        public double ThermalPropulsionWasteheatModifier { get { return 1; } }
+
         public int ProviderPowerPriority { get { return 2; } }
 
         public double MinimumThrottle { get { return 0; } }
@@ -122,6 +124,8 @@ namespace FNPlugin.Reactors
         }
 
         public double ProducedThermalHeat { get { return 0; } }
+
+        public double ProducedChargedPower { get { return 0; } }
 
         private double _consumedThermalHeat;
         public double RequestedThermalHeat

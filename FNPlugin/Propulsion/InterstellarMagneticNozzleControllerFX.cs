@@ -21,6 +21,8 @@ namespace FNPlugin
         [KSPField(guiActiveEditor = true, guiUnits = " t")]
         public float partMass = 1;
         [KSPField]
+        public bool showPartMass = true;
+        [KSPField]
         public double powerThrustMultiplier = 1;
         [KSPField]
         public float wasteHeatMultiplier = 1;
@@ -96,7 +98,9 @@ namespace FNPlugin
             throtleExponent = Math.Abs(Math.Log10(_attached_reactor.MinimumChargdIspMult / _attached_reactor.MaximumChargedIspMult));
 
             simulatedThrottleFloatRange = Fields["simulatedThrottle"].uiControlEditor as UI_FloatRange;
-            simulatedThrottleFloatRange.onFieldChanged += UpdateFromGUI;   
+            simulatedThrottleFloatRange.onFieldChanged += UpdateFromGUI;  
+ 
+            Fields["partMass"].guiActiveEditor = showPartMass;
 
             if (_attached_reactor == null)
             {
