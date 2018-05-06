@@ -82,22 +82,24 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_maxEffectivePower", guiFormat = "F3", guiUnits = " MW")]
         public double maxEffectivePower;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_maxThrottlePower", guiFormat = "F3", guiUnits = " MW")]
-        public double maxThrottlePower;
+        public double maxThrottlePower;        
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
+        public double lightSpeedRatio;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
+        public double timeDilation;
 
         protected ResourceBuffers resourceBuffers;
 
         // privates
         const double OneThird = 1.0 / 3.0;
 
+        double _currentPropellantEfficiency;
+        double _speedOfLight;
         double _g0 = PluginHelper.GravityConstant;
         double _modifiedEngineBaseIsp;
         double _electrical_share_f;
         double _electrical_consumption_f;
-        double _previousAvailablePower = 0;
         double _heat_production_f;
-        double _thrust_d = 0;
-        double _isp_d = 0;
-        double _throttle_d = 0;
         double _modifiedCurrentPropellantIspMultiplier;
         double _maxIsp;
         double _maxFuelFlowRate;
@@ -109,6 +111,7 @@ namespace FNPlugin
         bool _hasGearTechnology;
         bool _warpToReal;
 
+        FloatCurve _ispFloatCurve;
         List<ElectricEnginePropellant> _propellants;
         ModuleEngines _attachedEngine;
 
@@ -163,11 +166,16 @@ namespace FNPlugin
                 var atmDensity = HighLogic.LoadedSceneIsFlight ? vessel.atmDensity : 0;
 
                 if (type == (int)ElectricEngineType.ARCJET)
-                    return 0.87 * Current_propellant.Efficiency;
+                    _currentPropellantEfficiency = 0.87 * Current_propellant.Efficiency;
                 else if (type == (int)ElectricEngineType.VASIMR)
-                    return Math.Max(1 - atmDensity, 0.00001) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency));
+                    _currentPropellantEfficiency =  Math.Max(1 - atmDensity, 0.00001) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency));
                 else
-                    return Current_propellant.Efficiency;
+                    _currentPropellantEfficiency = Current_propellant.Efficiency;
+
+                if (Current_propellant.PropellantName == "QVP")
+                    _currentPropellantEfficiency += lightSpeedRatio;
+
+                return _currentPropellantEfficiency;
             }
         }
 
@@ -231,7 +239,10 @@ namespace FNPlugin
                 base.OnStart(state);
                 AttachToEngine();
 
+                _ispFloatCurve = new FloatCurve();
+                _ispFloatCurve.Add(0, baseISP);
                 _g0 = PluginHelper.GravityConstant;
+                _speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
                 _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.UpgradeAvailable(gearsTechReq);
                 _modifiedEngineBaseIsp = baseISP * PluginHelper.ElectricEngineIspMult;
                 _hasrequiredupgrade = this.HasTechsRequiredToUpgrade();
@@ -261,7 +272,15 @@ namespace FNPlugin
         {
             _attachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
             if (_attachedEngine != null)
-                _attachedEngine.Fields["finalThrust"].guiFormat = "F5";
+            {
+                var finalTrustField = _attachedEngine.Fields["finalThrust"];
+                finalTrustField.guiActive = false;
+
+                var realIspField = _attachedEngine.Fields["realIsp"];
+                realIspField.guiActive = false;
+
+                //_attachedEngine.Fields["finalThrust"].guiFormat = "F5";
+            }
         }
 
         private void SetupPropellants(bool moveNext)
@@ -294,7 +313,7 @@ namespace FNPlugin
                         ConfigNode propellantConfigNode = newPropNode.AddNode("PROPELLANT");
                         propellantConfigNode.AddValue("name", prop.name);
                         propellantConfigNode.AddValue("ratio", prop.ratio);
-                        propellantConfigNode.AddValue("DrawGauge", "true");
+                        propellantConfigNode.AddValue("DrawGauge", prop.drawStackGauge);
                     }
                     _attachedEngine.Load(newPropNode);
 
@@ -352,6 +371,11 @@ namespace FNPlugin
                 Fields["upgradeCostStr"].guiActive = false;
             }
 
+            var isQVP = _current_propellant.PropellantName == "QVP";
+
+            Fields["engineIsp"].guiActive = !isQVP;
+            Fields["propNameStr"].guiActive = !isQVP;
+
             if (this.IsOperational)
             {
                 Fields["electricalPowerShareStr"].guiActive = true;
@@ -387,12 +411,12 @@ namespace FNPlugin
             propNameStr = Current_propellant != null ? Current_propellant.PropellantGUIName : "";
         }
 
-        private float IspGears
+        private double IspGears
         {
             get { return _hasGearTechnology ? ispGears : 1; }
         }
 
-        private float ModifiedThrotte
+        private double ModifiedThrotte
         {
             get
             {
@@ -402,13 +426,15 @@ namespace FNPlugin
             }
         }
 
-        private float ThrottleModifiedIsp()
+        private double ThrottleModifiedIsp()
         {
+            var currentThrottle = (double)(decimal)_attachedEngine.currentThrottle;
+
             return Current_propellant.SupportedEngines == 8
                 ? 1
-                : _attachedEngine.currentThrottle < (1f / IspGears)
+                : currentThrottle < (1 / IspGears)
                     ? IspGears
-                    : IspGears - ((_attachedEngine.currentThrottle - (1f / IspGears)) * IspGears);
+                    : IspGears - ((currentThrottle - (1 / IspGears)) * IspGears);
         }
 
 
@@ -419,6 +445,8 @@ namespace FNPlugin
                 _initializationCountdown--;
 
             if (!HighLogic.LoadedSceneIsFlight) return;
+
+            CalculateTimeDialation();
 
             if (_attachedEngine == null) return;
 
@@ -473,7 +501,7 @@ namespace FNPlugin
 
             var effectiveIsp = _modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseIsp * ThrottleModifiedIsp();
 
-            var maxThrustInSpace = currentPropellantEfficiency * CurrentPropellantThrustMultiplier * ModifiedThrotte * GetPowerThrustModifier() * powerReceived / (effectiveIsp * PluginHelper.GravityConstant);
+            var maxThrustInSpace = timeDilation * timeDilation * currentPropellantEfficiency * CurrentPropellantThrustMultiplier * ModifiedThrotte * GetPowerThrustModifier() * powerReceived / (effectiveIsp * PluginHelper.GravityConstant);
 
             _maxIsp = _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
             _maxFuelFlowRate = _maxIsp <= 0 ? 0 : maxThrustInSpace / _maxIsp / PluginHelper.GravityConstant;
@@ -531,7 +559,25 @@ namespace FNPlugin
             var vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
             {
+                var calculatedConsumptionInTon = this.vessel.packed ? 0 : throtle_max_thrust / engineIsp / PluginHelper.GravityConstant;
+                vacuumPlasmaResource.maxAmount = Math.Max(0.0000001, calculatedConsumptionInTon * 200 * TimeWarp.fixedDeltaTime);
                 part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, - vacuumPlasmaResource.maxAmount);
+            }
+        }
+
+        private void CalculateTimeDialation()
+        {
+            try
+            {
+                var worldSpaceVelocity = vessel.orbit.GetFrameVel().magnitude;
+
+                lightSpeedRatio = Math.Min(worldSpaceVelocity / _speedOfLight, 0.9999999999);
+
+                timeDilation = Math.Sqrt(1 - (lightSpeedRatio * lightSpeedRatio));
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
             }
         }
 
@@ -554,7 +600,7 @@ namespace FNPlugin
             double demandMass;
 
             // determine fuel availability
-            if (!CheatOptions.InfinitePropellant && propellantAverageDensity > 0)
+            if (Current_propellant.PropellantName != "QVP" && !CheatOptions.InfinitePropellant && propellantAverageDensity > 0)
             {
                 thrustDirection.CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, out demandMass);
 
@@ -668,10 +714,10 @@ namespace FNPlugin
 
         private void UpdateIsp(double ispEfficiency)
         {
-            var newIsp = new FloatCurve();
-            engineIsp = ispEfficiency * _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
-            newIsp.Add(0, (float)engineIsp);
-            _attachedEngine.atmosphereCurve = newIsp;
+            _ispFloatCurve.Curve.RemoveKey(0);
+            engineIsp = timeDilation * ispEfficiency * _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
+            _ispFloatCurve.Add(0, (float)engineIsp);
+            _attachedEngine.atmosphereCurve = _ispFloatCurve;
         }
 
         private double GetPowerThrustModifier()

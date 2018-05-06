@@ -200,7 +200,7 @@ namespace FNPlugin
         public double electrical_power_currently_needed;
         [KSPField]
         public double maxStableMegaWattPower;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public bool applies_balance;
 
         // Internal
