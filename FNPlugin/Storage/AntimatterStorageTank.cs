@@ -15,7 +15,7 @@ namespace FNPlugin
         public double chargestatus = 1000;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "K", guiName = "Maximum Temperature"), UI_FloatRange(stepIncrement = 10f, maxValue = 1000f, minValue = 40f)]
         public float maxTemperature = 340;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "g", guiName = "Maximum Acceleration"), UI_FloatRange(stepIncrement = 0.1f, maxValue = 10f, minValue = 0.1f)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "g", guiName = "Maximum Acceleration"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 10f, minValue = 0.05f)]
         public float maxGeeforce = 1;
         [KSPField(isPersistant = true, guiName = "Module Cost")]
         public float moduleCost = 1;
@@ -594,26 +594,28 @@ namespace FNPlugin
                 effectiveMaxGeeforce = resourceRatio > 0 ? Math.Min(10, (double)(decimal)maxGeeforce / resourceRatio) : 10;
                 if (!CheatOptions.UnbreakableJoints && canExplodeFromGeeForce)
                 {
-                    if (currentGeeForce > effectiveMaxGeeforce - 0.1)
-                    {
-                        if (TimeWarp.CurrentRateIndex > maximumTimewarpWithGeeforceWarning)
-                        {
-                            TimeWarp.SetRate(maximumTimewarpWithGeeforceWarning, true);
-                            ScreenMessages.PostScreenMessage("ALERT: Cannot Time Warp faster than " + TimeWarp.CurrentRate + "x while geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
-                        }
-                        else
-                            ScreenMessages.PostScreenMessage("ALERT: geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
-                    }
-                    else if (currentGeeForce > effectiveMaxGeeforce)
+                    if (currentGeeForce > effectiveMaxGeeforce)
                     {
                         if (vessel.missionTime > 0)
-                            ScreenMessages.PostScreenMessage("Warning: geeforce tolerance exceeded but sustanable while the mission timer has not started", 1, ScreenMessageStyle.UPPER_CENTER);
-                        else
                         {
+                            ScreenMessages.PostScreenMessage("ALERT: geeforce at critical!", 1, ScreenMessageStyle.UPPER_CENTER);
                             geeforce_explode_counter++;
                             if (geeforce_explode_counter > 20)
                                 DoExplode("Antimatter container exploded due to reaching critical geeforce");
                         }
+                        else
+                        {
+                            ScreenMessages.PostScreenMessage("Warning: geeforce tolerance exceeded but sustanable while the mission timer has not started", 1, ScreenMessageStyle.UPPER_CENTER);
+                        }
+                    }
+                    else if (TimeWarp.CurrentRateIndex > maximumTimewarpWithGeeforceWarning && currentGeeForce > effectiveMaxGeeforce - 0.02)
+                    {
+                        TimeWarp.SetRate(maximumTimewarpWithGeeforceWarning, true);
+                        ScreenMessages.PostScreenMessage("ALERT: Cannot Time Warp faster than " + TimeWarp.CurrentRate + "x while geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
+                    }
+                    else if (currentGeeForce > effectiveMaxGeeforce - 0.05)
+                    {
+                        ScreenMessages.PostScreenMessage("ALERT: geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
                     }
                     else
                         geeforce_explode_counter = 0;

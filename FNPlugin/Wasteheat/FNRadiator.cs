@@ -961,7 +961,7 @@ namespace FNPlugin
         {
             if (heatStates != null && heatStates.Any())
             {
-                var radiatorTempRatio = Mathf.Min((float)CurrentRadiatorTemperature / maxRadiatorTemperature, 1);
+                var radiatorTempRatio = Mathf.Min((float)Math.Pow(CurrentRadiatorTemperature / maxRadiatorTemperature, 2), 1);
                 SetHeatAnimationRatio(radiatorTempRatio);
             }
             else if (!string.IsNullOrEmpty(colorHeat))
