@@ -46,6 +46,8 @@ namespace FNPlugin
 
         //settings
         [KSPField]
+        public int maximumTimewarpWithGeeforceWarning = 3;
+        [KSPField]
         public double maxCharge = 1000;
         [KSPField]
         public float massExponent = 3;
@@ -133,7 +135,7 @@ namespace FNPlugin
             should_charge = false;
         }
 
-        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        public virtual void OnRescale(ScalingFactor factor)
         {
             try
             {
@@ -200,7 +202,7 @@ namespace FNPlugin
             return moduleMassDelta;
         }
 
-        public void doExplode(string reason = null)
+        public void DoExplode(string reason = null)
         {
             var antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null || antimatterResource.amount <= minimimAnimatterAmount) return;
@@ -226,7 +228,7 @@ namespace FNPlugin
             renderer.material.shader = Shader.Find("Unlit/Transparent");
             renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/explode", false);
             renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 0.9f);
-            Light light = lightGameObject.GetComponent<Light>();
+            var light = lightGameObject.GetComponent<Light>();
             lightGameObject.transform.position = part.transform.position;
             light.type = LightType.Point;
             light.color = Color.white;
@@ -237,7 +239,7 @@ namespace FNPlugin
             exploding = true;
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             deploymentAnimation = part.FindModuleImplementing<ModuleAnimateGeneric>();
 
@@ -351,13 +353,13 @@ namespace FNPlugin
             }
 
             if (part.temperature >= part.maxTemp)
-                doExplode("Antimatter container exploded because antimatter melted and breached containment");
+                DoExplode("Antimatter container exploded because antimatter melted and breached containment");
             else if (part.vessel.geeForce >= part.gTolerance)
-                doExplode("Antimatter container exploded because exceeding gee force Tolerance");
+                DoExplode("Antimatter container exploded because exceeding gee force Tolerance");
             else if (chargestatus <= 0)
-                doExplode("Antimatter container exploded because containment was unpowered");
+                DoExplode("Antimatter container exploded because containment was unpowered");
             else
-                doExplode("Antimatter container exploded for unknown reason");
+                DoExplode("Antimatter container exploded for unknown reason");
 
             part.OnJustAboutToBeDestroyed -= OnJustAboutToBeDestroyed;
 
@@ -383,7 +385,7 @@ namespace FNPlugin
         {
             if (part.attachNodes == null) return;
 
-            attachedAntimatterTanksCount = part.attachNodes.Where(m => m.nodeType == AttachNode.NodeType.Stack && m.attachedPart != null).Select(m => m.attachedPart.FindModuleImplementing<AntimatterStorageTank>()).Where(m => m != null).Count();
+            attachedAntimatterTanksCount = part.attachNodes.Where(m => m.nodeType == AttachNode.NodeType.Stack && m.attachedPart != null).Select(m => m.attachedPart.FindModuleImplementing<AntimatterStorageTank>()).Count(m => m != null);
             UpdateTargetMass();
         }
 
@@ -461,31 +463,14 @@ namespace FNPlugin
                 ScreenMessages.PostScreenMessage("Warning!: Antimatter storage unpowered, tank explosion in: " + chargestatus.ToString("0") + "s", 0.5f, ScreenMessageStyle.UPPER_CENTER);
 
             if (antimatterResource.amount > minimimAnimatterAmount)
-            {
-                if (charging)
-                    statusStr = "Charging.";
-                else
-                    statusStr = "Discharging!";
-            }
+                statusStr = charging ? "Charging." : "Discharging!";
             else
-            {
-                if (should_charge)
-                    statusStr = "Charging.";
-                else
-                    statusStr = "No Power Required.";
-            }
+                statusStr = should_charge ? "Charging." : "No Power Required.";
         }
 
         private void UpdateTolerances()
         {
             var significantAntimatter = HasSignificantAountOfAntimatter();
-
-            //if (canExplodeFromGeeForce && significantAntimatter)
-            //{
-            //    part.crashTolerance = maxGeeforce;
-            //    part.gTolerance = maxGeeforce;
-            //}
-
             if (canExplodeFromHeat && significantAntimatter)
                 part.maxTemp = (double)(decimal)maxTemperature;
         }
@@ -498,17 +483,16 @@ namespace FNPlugin
             if (!vessel.packed)
             {
                 var newGeeForce = vessel.geeForce;
-                currentGeeForce = geeforceQueue.Where(m => m > 0).Any() ?  geeforceQueue.Where(m => m > 0).Min() : geeforceQueue.Average();
+                currentGeeForce = geeforceQueue.Any(m => m > 0) ?  geeforceQueue.Where(m => m > 0).Min() : geeforceQueue.Average();
                 geeforceQueue.Enqueue(newGeeForce);
                 if (geeforceQueue.Count > 20)
                     geeforceQueue.Dequeue();
             }
             else
             {
-                var acceration = Math.Max(0, (Math.Abs(previousSpeed - vessel.obt_speed) / (Math.Max(TimeWarp.fixedDeltaTime, previousFixedTime))));
-                var newGeeForce = acceration / GameConstants.STANDARD_GRAVITY;
-                currentGeeForce = geeforceQueue.Where(m => m > 0).Any() ? geeforceQueue.Where(m => m > 0).Min() : geeforceQueue.Average();
-                geeforceQueue.Enqueue(newGeeForce);
+                var acceleration = Math.Max(0, (Math.Abs(previousSpeed - vessel.obt_speed) / (Math.Max(TimeWarp.fixedDeltaTime, previousFixedTime))));
+                currentGeeForce = geeforceQueue.Any(m => m > 0) ? geeforceQueue.Where(m => m > 0).Min() : geeforceQueue.Average();
+                geeforceQueue.Enqueue(acceleration / GameConstants.STANDARD_GRAVITY);
                 if (geeforceQueue.Count > 20)
                     geeforceQueue.Dequeue();
             }
@@ -529,7 +513,7 @@ namespace FNPlugin
 
             if (HighLogic.LoadedSceneIsEditor || antimatterResource.amount <= minimimAnimatterAmount) return;
 
-            doExplode("Antimatter container exploded because self destruct was activated");
+            DoExplode("Antimatter container exploded because self destruct was activated");
         }
 
         private void MaintainContainment()
@@ -555,30 +539,30 @@ namespace FNPlugin
                 var powerRequest = mult * 2 * effectivePowerNeeded / 1000 * TimeWarp.fixedDeltaTime;
 
                 // first try to accespower  megajoules
-                double charge_to_add = CheatOptions.InfiniteElectricity
+                var chargeToAdd = CheatOptions.InfiniteElectricity
                     ? powerRequest
                     : consumeFNResource(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES) * 1000 / effectivePowerNeeded;
 
-                chargestatus += charge_to_add;
+                chargestatus += chargeToAdd;
 
                 // alternatively  just look for any reserves of stored megajoules
-                if (charge_to_add == 0 && effectivePowerNeeded > 0)
+                if (chargeToAdd == 0 && effectivePowerNeeded > 0)
                 {
-                    double more_charge_to_add = part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, powerRequest) * 1000 / effectivePowerNeeded;
+                    var moreChargeToAdd = part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, powerRequest) * 1000 / effectivePowerNeeded;
 
-                    charge_to_add += more_charge_to_add;
-                    chargestatus += more_charge_to_add;
+                    chargeToAdd += moreChargeToAdd;
+                    chargestatus += moreChargeToAdd;
                 }
 
                 // if still not found any power attempt to find any electricc charge to survive
-                if (charge_to_add < TimeWarp.fixedDeltaTime && effectivePowerNeeded > 0)
+                if (chargeToAdd < TimeWarp.fixedDeltaTime && effectivePowerNeeded > 0)
                 {
-                    double more_charge_to_add = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2 * effectivePowerNeeded * TimeWarp.fixedDeltaTime) / effectivePowerNeeded;
-                    charge_to_add += more_charge_to_add;
-                    chargestatus += more_charge_to_add;
+                    var moreChargeToAdd = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2 * effectivePowerNeeded * TimeWarp.fixedDeltaTime) / effectivePowerNeeded;
+                    chargeToAdd += moreChargeToAdd;
+                    chargestatus += moreChargeToAdd;
                 }
 
-                if (charge_to_add >= TimeWarp.fixedDeltaTime)
+                if (chargeToAdd >= TimeWarp.fixedDeltaTime)
                     charging = true;
                 else
                 {
@@ -586,7 +570,7 @@ namespace FNPlugin
                     if (TimeWarp.CurrentRateIndex > 3 && (antimatterResource.amount > minimimAnimatterAmount))
                     {
                         TimeWarp.SetRate(3, true);
-                        ScreenMessages.PostScreenMessage("Cannot Time Warp faster than 50x while " + antimatterResource.resourceName + " Tank is Unpowered", 1, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage("Cannot Time Warp faster than " + + TimeWarp.CurrentRate + "x while " + antimatterResource.resourceName + " Tank is Unpowered", 1, ScreenMessageStyle.UPPER_CENTER);
                     }
                 }
             }
@@ -600,19 +584,39 @@ namespace FNPlugin
                 if (!CheatOptions.IgnoreMaxTemperature &&  canExplodeFromHeat && part.temperature > maxTemperature)
                 {
                     temperature_explode_counter++;
-                    if (temperature_explode_counter > 10)
-                        doExplode("Antimatter container exploded due to reaching critical temperature");
+                    if (temperature_explode_counter > 20)
+                        DoExplode("Antimatter container exploded due to reaching critical temperature");
                 }
                 else
                     temperature_explode_counter = 0;
 
                 //verify geeforce
                 effectiveMaxGeeforce = resourceRatio > 0 ? Math.Min(10, (double)(decimal)maxGeeforce / resourceRatio) : 10;
-                if (!CheatOptions.UnbreakableJoints && canExplodeFromGeeForce && currentGeeForce > effectiveMaxGeeforce)
+                if (!CheatOptions.UnbreakableJoints && canExplodeFromGeeForce)
                 {
-                    geeforce_explode_counter++;
-                    if (geeforce_explode_counter > 20)
-                        doExplode("Antimatter container exploded due to reaching critical geeforce");
+                    if (currentGeeForce > effectiveMaxGeeforce - 0.1)
+                    {
+                        if (TimeWarp.CurrentRateIndex > maximumTimewarpWithGeeforceWarning)
+                        {
+                            TimeWarp.SetRate(maximumTimewarpWithGeeforceWarning, true);
+                            ScreenMessages.PostScreenMessage("ALERT: Cannot Time Warp faster than " + TimeWarp.CurrentRate + "x while geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
+                        }
+                        else
+                            ScreenMessages.PostScreenMessage("ALERT: geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
+                    }
+                    else if (currentGeeForce > effectiveMaxGeeforce)
+                    {
+                        if (vessel.missionTime > 0)
+                            ScreenMessages.PostScreenMessage("Warning: geeforce tolerance exceeded but sustanable while the mission timer has not started", 1, ScreenMessageStyle.UPPER_CENTER);
+                        else
+                        {
+                            geeforce_explode_counter++;
+                            if (geeforce_explode_counter > 20)
+                                DoExplode("Antimatter container exploded due to reaching critical geeforce");
+                        }
+                    }
+                    else
+                        geeforce_explode_counter = 0;
                 }
                 else
                     geeforce_explode_counter = 0;
@@ -624,8 +628,8 @@ namespace FNPlugin
                     if (!CheatOptions.InfiniteElectricity && antimatterResource.amount > 0.00001 * antimatterResource.maxAmount)
                     {
                         power_explode_counter++;
-                        if (power_explode_counter > 10)
-                            doExplode("Antimatter container exploded due to running out of power");
+                        if (power_explode_counter > 20)
+                            DoExplode("Antimatter container exploded due to running out of power");
                     }
                 }
                 else
@@ -652,7 +656,7 @@ namespace FNPlugin
 
             explosion_size = Mathf.Sqrt((float)antimatterResource.amount) * 5;
 
-            cur_explosion_size += (float)TimeWarp.fixedDeltaTime * explosion_size * explosion_size / explosion_time;
+            cur_explosion_size += TimeWarp.fixedDeltaTime * explosion_size * explosion_size / explosion_time;
             lightGameObject.transform.localScale = new Vector3(Mathf.Sqrt(cur_explosion_size), Mathf.Sqrt(cur_explosion_size), Mathf.Sqrt(cur_explosion_size));
             lightGameObject.GetComponent<Light>().range = Mathf.Sqrt(cur_explosion_size) * 15f;
             lightGameObject.GetComponent<Collider>().enabled = false;
@@ -660,26 +664,24 @@ namespace FNPlugin
             TimeWarp.SetRate(0, true);
             vessel.GoOffRails();
 
-            var list_of_vessels_to_explode = FlightGlobals.Vessels.ToArray();
-            foreach (var vess_to_explode in list_of_vessels_to_explode)
+            var listOfVesselsToExplode = FlightGlobals.Vessels.ToArray();
+            foreach (var vessToExplode in listOfVesselsToExplode)
             {
-                if (Vector3d.Distance(vess_to_explode.transform.position, vessel.transform.position) > explosion_size) continue;
+                if (Vector3d.Distance(vessToExplode.transform.position, vessel.transform.position) > explosion_size) continue;
 
-                if (vess_to_explode.packed) continue;
+                if (vessToExplode.packed) continue;
 
-                var parts_to_explode = vess_to_explode.Parts.ToArray();
-                foreach (Part part_to_explode in parts_to_explode)
+                var partsToExplode = vessToExplode.Parts.ToArray();
+                foreach (var partToExplode in partsToExplode.Where(partToExplode => partToExplode != null))
                 {
-                    if (part_to_explode != null)
-                        part_to_explode.explode();
+                    partToExplode.explode();
                 }
             }
 
-            var explode_parts = vessel.Parts.ToArray();
-            foreach (Part explode_part in explode_parts)
+            var explodeParts = vessel.Parts.ToArray();
+            foreach (var explodePart in explodeParts.Where(explodePart => explodePart != vessel.rootPart && explodePart != this.part))
             {
-                if (explode_part != vessel.rootPart && explode_part != this.part)
-                    explode_part.explode();
+                explodePart.explode();
             }
             vessel.rootPart.explode();
             this.part.explode();
