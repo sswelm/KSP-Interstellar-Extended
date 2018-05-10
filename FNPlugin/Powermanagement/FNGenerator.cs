@@ -134,8 +134,8 @@ namespace FNPlugin
         public double massModifier = 1;
         [KSPField]
         public double rawMaximumPower;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxTheoreticalPower", guiUnits = " MW", guiFormat = "F3")]
-        public double maximumTheoreticalPower;
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxTheoreticalPower", guiFormat = "F3")]
+        public string maximumTheoreticalPower;
         [KSPField]
         public double coreTemperateHotBathExponent = 0.75;
         [KSPField]
@@ -622,7 +622,7 @@ namespace FNPlugin
                     powerUsageEfficiency = 1;
 
                 rawMaximumPower = attachedPowerSource.RawMaximumPower * powerUsageEfficiency;
-                maximumTheoreticalPower = rawMaximumPower * CapacityRatio * maxEfficiency;
+                maximumTheoreticalPower = PluginHelper.getFormattedPowerString(rawMaximumPower * CapacityRatio * maxEfficiency);
 
                 // verify if mass calculation is active
                 if (!calculatedMass)
@@ -822,7 +822,7 @@ namespace FNPlugin
 
             maxThermalPower = Math.Min(maxReactorPower, potentialThermalPower);
             maxChargedPower = Math.Min(maxChargedPower, (maxChargedPower / attachedPowerSourceRatio) * attachedPowerSource.ChargedParticleEnergyEfficiency);
-            maxReactorPower = chargedParticleMode ? maxChargedPower : maxThermalPower;
+            maxReactorPower = (chargedParticleMode ? maxChargedPower : maxThermalPower) * maximumPowerUsageRatio;
         }
 
         // Update is called in the editor 

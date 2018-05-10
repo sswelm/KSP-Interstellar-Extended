@@ -600,7 +600,7 @@ namespace FNPlugin
                         {
                             ScreenMessages.PostScreenMessage("ALERT: geeforce at critical!", 1, ScreenMessageStyle.UPPER_CENTER);
                             geeforce_explode_counter++;
-                            if (geeforce_explode_counter > 20)
+                            if (geeforce_explode_counter > 30)
                                 DoExplode("Antimatter container exploded due to reaching critical geeforce");
                         }
                         else
@@ -613,9 +613,9 @@ namespace FNPlugin
                         TimeWarp.SetRate(maximumTimewarpWithGeeforceWarning, true);
                         ScreenMessages.PostScreenMessage("ALERT: Cannot Time Warp faster than " + TimeWarp.CurrentRate + "x while geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
                     }
-                    else if (currentGeeForce > effectiveMaxGeeforce - 0.05)
+                    else if (currentGeeForce > effectiveMaxGeeforce - 0.04)
                     {
-                        ScreenMessages.PostScreenMessage("ALERT: geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage("ALERT: geeforce at " +  (currentGeeForce / effectiveMaxGeeforce * 100).ToString("F2") + "%  tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
                     }
                     else
                         geeforce_explode_counter = 0;

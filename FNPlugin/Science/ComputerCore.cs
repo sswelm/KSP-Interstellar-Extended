@@ -11,11 +11,11 @@ namespace FNPlugin
         public string nameStr = "";
         [KSPField(guiActive = true, guiName = "Data Collection Rate")]
         public string scienceRate;
-        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On", scene = UI_Scene.Flight)]
+        [KSPField(isPersistant = true, guiName = "AI Online", guiActive = true, guiActiveEditor = true), UI_Toggle(disabledText = "Off", enabledText = "On", scene = UI_Scene.All)]
         public bool IsEnabled = false;
         [KSPField(isPersistant = true, guiName = "Powered", guiActive = true, guiActiveEditor = false)]
         public bool IsPowered = false;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActiveEditor = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         public double electrical_power_ratio;
@@ -142,12 +142,14 @@ namespace FNPlugin
                 _retrofitCoreEvent.active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost;
             else
                 _retrofitCoreEvent.active = false;
-            
-            _isEnabledField.guiActive = isupgraded;
+
+            var isUpgradedOrNoActiveScience = isupgraded || !PluginHelper.TechnologyIsInUse;
+
+            _isEnabledField.guiActive = isUpgradedOrNoActiveScience;
             _upgradeCostStrField.guiActive = !isupgraded;
-            _nameStrField.guiActive = isupgraded;
-            _scienceRateField.guiActive = isupgraded;
-            _isPoweredField.guiActive = isupgraded;
+            _nameStrField.guiActive = isUpgradedOrNoActiveScience;
+            _scienceRateField.guiActive = isUpgradedOrNoActiveScience;
+            _isPoweredField.guiActive = isUpgradedOrNoActiveScience;
 
             double scienceratetmp =  science_rate_f * GameConstants.KEBRIN_DAY_SECONDS * PluginHelper.getScienceMultiplier(vessel);
             scienceRate = scienceratetmp.ToString("0.000") + "/ Day";
