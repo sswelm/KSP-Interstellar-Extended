@@ -67,7 +67,9 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public float storedVolumeMultiplier = 1;
         [KSPField(isPersistant = true)]
-        public float storedMassMultiplier = 1;
+        public double baseMassMultiplier = 1;
+        [KSPField(isPersistant = true)]
+        public double initialMassMultiplier = 1;
 
         // Config properties
         [KSPField]
@@ -178,6 +180,10 @@ namespace InterstellarFuelSwitch
         public float volumeExponent = 3;
         [KSPField]
         public float massExponent = 3;
+        [KSPField]
+        public float baseMassExponent = 0;
+        [KSPField]
+        public float tweakscaleMassExponent = 3;
 
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F4")]			// Total mass
         public double totalMass;
@@ -229,9 +235,11 @@ namespace InterstellarFuelSwitch
             {
                 storedFactorMultiplier = factor.absolute.linear;
                 storedVolumeMultiplier = Mathf.Pow(factor.absolute.linear, volumeExponent);
-                storedMassMultiplier = Mathf.Pow(factor.absolute.linear, massExponent);
 
-                initialMass = part.prefabMass * storedMassMultiplier;
+                baseMassMultiplier = Math.Pow(factor.absolute.linear, baseMassExponent == 0 ? massExponent : baseMassExponent);
+                initialMassMultiplier = Math.Pow(factor.absolute.linear, tweakscaleMassExponent);
+
+                initialMass = part.prefabMass * initialMassMultiplier;
             }
             catch (Exception e)
             {
@@ -304,7 +312,7 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                initialMass = part.prefabMass * storedMassMultiplier;
+                initialMass = part.prefabMass * initialMassMultiplier;
 
                 if (initialMass == 0)
                     initialMass = part.prefabMass;
@@ -820,8 +828,6 @@ namespace InterstellarFuelSwitch
                 {
                     SwitchName = concatinatedSwitchName,
                     GuiName = concatinatedGuiName,
-                    //tankMass = part.prefabMass / storedMassMultiplier,
-                    //tankCost = part.partInfo.cost,
                     Resources = ifsResources
                 };
 
@@ -868,10 +874,10 @@ namespace InterstellarFuelSwitch
 
         private double UpdateCost()
         {
-            dryCost = part.partInfo.cost * storedMassMultiplier;
+            dryCost = part.partInfo.cost * initialMassMultiplier;
 
             if (selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
-                dryCost += _modularTankList[selectedTankSetup].tankCost * storedMassMultiplier;
+                dryCost += _modularTankList[selectedTankSetup].tankCost * initialMassMultiplier;
 
             resourceCost = 0;
             maxResourceCost = 0;
@@ -954,7 +960,7 @@ namespace InterstellarFuelSwitch
 
         private void UpdateDryMass()
         {
-            if (dryMass != 0 && !HighLogic.LoadedSceneIsEditor) return;
+            if (dryMass != 0 && HighLogic.LoadedSceneIsFlight) return;
 
             // update Dry Mass
             dryMass = CalculateDryMass();
@@ -969,32 +975,32 @@ namespace InterstellarFuelSwitch
                 selectedTank = _modularTankList[selectedTankSetup];
             }
 
-            double mass = basePartMass;
+            double mass = basePartMass * baseMassMultiplier;
             if (selectedTank != null)
             {
                 var totalTankResourceMassDivider = selectedTank.resourceMassDivider + selectedTank.resourceMassDividerAddition;
 
                 if (overrideMassWithTankDividers && totalTankResourceMassDivider > 0)
-                    mass = selectedTank.FullResourceMass / totalTankResourceMassDivider;
+                    mass = selectedTank.FullResourceMass / totalTankResourceMassDivider * initialMassMultiplier;
                 else
                 {
-                    mass += selectedTank.tankMass;
+                    mass += selectedTank.tankMass * baseMassMultiplier;
 
                     // use baseResourceMassDivider if specified
                     if (baseResourceMassDivider > 0)
-                        mass += selectedTank.FullResourceMass / baseResourceMassDivider;
+                        mass += (selectedTank.FullResourceMass / baseResourceMassDivider * initialMassMultiplier);
 
                     // use resourceMassDivider if specified
                     if (totalTankResourceMassDivider > 0)
-                        mass += selectedTank.FullResourceMass / totalTankResourceMassDivider;
+                        mass += (selectedTank.FullResourceMass / totalTankResourceMassDivider) * initialMassMultiplier;
                 }
             }
 
             // prevent 0 mass
             if (mass <= 0)
-                mass = part.prefabMass;
+                mass = part.prefabMass * initialMassMultiplier;
 
-            return mass * storedMassMultiplier;
+            return mass;
         }
 
         private string FormatMassStr(double amount)
@@ -1296,7 +1302,7 @@ namespace InterstellarFuelSwitch
 
         public ModifierChangeWhen GetModuleMassChangeWhen()
         {
-            return ModifierChangeWhen.STAGED;
+            return HighLogic.LoadedSceneIsFlight ? ModifierChangeWhen.STAGED : ModifierChangeWhen.CONSTANTLY;
         }
 
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
@@ -1309,6 +1315,8 @@ namespace InterstellarFuelSwitch
             }
             else
             {
+                UpdateDryMass();
+
                 moduleMassDelta = dryMass - initialMass;
 
                 return (float)moduleMassDelta;
