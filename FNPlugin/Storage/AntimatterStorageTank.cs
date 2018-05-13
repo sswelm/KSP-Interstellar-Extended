@@ -452,7 +452,9 @@ namespace FNPlugin
 
             chargeStatusStr = chargestatus.ToString("0.0") + " / " + maxCharge.ToString("0.0");
             TemperatureStr = part.temperature.ToString("0") + " / " + maxTemperature.ToString("0");
-            GeeforceStr = currentGeeForce.ToString("0.000") + " / " + effectiveMaxGeeforce.ToString("0.000");
+            GeeforceStr = effectiveMaxGeeforce == 0
+                ? maxGeeforce.ToString("0.0") + " when full" 
+                : currentGeeForce.ToString("0.000") + " / " + effectiveMaxGeeforce.ToString("0.000");
 
             minimimAnimatterAmount = antimatterDensityModifier * antimatterResource.maxAmount;
 
@@ -594,31 +596,27 @@ namespace FNPlugin
                 effectiveMaxGeeforce = resourceRatio > 0 ? Math.Min(10, (double)(decimal)maxGeeforce / resourceRatio) : 10;
                 if (!CheatOptions.UnbreakableJoints && canExplodeFromGeeForce)
                 {
-                    if (currentGeeForce > effectiveMaxGeeforce)
+                    if (vessel.missionTime > 0)
                     {
-                        if (vessel.missionTime > 0)
+                        if (currentGeeForce > effectiveMaxGeeforce)
                         {
                             ScreenMessages.PostScreenMessage("ALERT: geeforce at critical!", 1, ScreenMessageStyle.UPPER_CENTER);
                             geeforce_explode_counter++;
                             if (geeforce_explode_counter > 30)
                                 DoExplode("Antimatter container exploded due to reaching critical geeforce");
                         }
-                        else
+                        else if (TimeWarp.CurrentRateIndex > maximumTimewarpWithGeeforceWarning && currentGeeForce > effectiveMaxGeeforce - 0.02)
                         {
-                            ScreenMessages.PostScreenMessage("Warning: geeforce tolerance exceeded but sustanable while the mission timer has not started", 1, ScreenMessageStyle.UPPER_CENTER);
+                            TimeWarp.SetRate(maximumTimewarpWithGeeforceWarning, true);
+                            ScreenMessages.PostScreenMessage("ALERT: Cannot Time Warp faster than " + TimeWarp.CurrentRate + "x while geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
                         }
+                        else if (currentGeeForce > effectiveMaxGeeforce - 0.04)
+                            ScreenMessages.PostScreenMessage("ALERT: geeforce at " + (currentGeeForce / effectiveMaxGeeforce * 100).ToString("F2") + "%  tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
+                        else
+                            geeforce_explode_counter = 0;
                     }
-                    else if (TimeWarp.CurrentRateIndex > maximumTimewarpWithGeeforceWarning && currentGeeForce > effectiveMaxGeeforce - 0.02)
-                    {
-                        TimeWarp.SetRate(maximumTimewarpWithGeeforceWarning, true);
-                        ScreenMessages.PostScreenMessage("ALERT: Cannot Time Warp faster than " + TimeWarp.CurrentRate + "x while geeforce near maximum tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
-                    }
-                    else if (currentGeeForce > effectiveMaxGeeforce - 0.04)
-                    {
-                        ScreenMessages.PostScreenMessage("ALERT: geeforce at " +  (currentGeeForce / effectiveMaxGeeforce * 100).ToString("F2") + "%  tolerance!", 1, ScreenMessageStyle.UPPER_CENTER);
-                    }
-                    else
-                        geeforce_explode_counter = 0;
+                    else if (currentGeeForce > effectiveMaxGeeforce)
+                        ScreenMessages.PostScreenMessage("Warning: geeforce tolerance exceeded but sustanable while the mission timer has not started", 1, ScreenMessageStyle.UPPER_CENTER);
                 }
                 else
                     geeforce_explode_counter = 0;
@@ -639,6 +637,7 @@ namespace FNPlugin
             }
             else
             {
+                effectiveMaxGeeforce = 0;
                 temperature_explode_counter = 0;
                 geeforce_explode_counter = 0;
                 power_explode_counter = 0;

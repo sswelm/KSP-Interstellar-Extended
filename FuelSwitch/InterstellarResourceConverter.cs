@@ -142,14 +142,14 @@ namespace InterstellarFuelSwitch
                 {
                     resource.normalizedDensity = resource.definition.density;
                 }
-                else if (resource.definition.density == 0)
-                {
-                    Debug.LogWarning("[IFS] - " + resource + " have ZERO density");
-                }
-                else
-                {
-                    Debug.LogError("[IFS] - " + resource + " have " + resource.definition.density + " density");
-                }
+                //else if (resource.definition.density == 0)
+                //{
+                //    Debug.LogWarning("[IFS] - " + resource + " have ZERO density");
+                //}
+                //else
+                //{
+                //    Debug.LogError("[IFS] - " + resource + " have " + resource.definition.density + " density");
+                //}
             }
 
             foreach (var resource in secondaryResources)
@@ -158,14 +158,14 @@ namespace InterstellarFuelSwitch
                 {
                     resource.normalizedDensity = resource.definition.density;
                 }
-                else if (resource.definition.density == 0)
-                {
-                    Debug.LogWarning("[IFS] - " + resource + " have ZERO density");
-                }
-                else
-                {
-                    Debug.LogError("[IFS] - " + resource + " have " + resource.definition.density + " density");
-                }
+                //else if (resource.definition.density == 0)
+                //{
+                //    Debug.LogWarning("[IFS] - " + resource + " have ZERO density");
+                //}
+                //else
+                //{
+                //    Debug.LogError("[IFS] - " + resource + " have " + resource.definition.density + " density");
+                //}
             }
 
             if (primaryResources.Count == 1 && secondaryResources.Count == 1)

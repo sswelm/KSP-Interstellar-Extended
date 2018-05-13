@@ -784,10 +784,7 @@ namespace InterstellarFuelSwitch
             {
                 var matchingIndex = FindMatchingConfig();
                 if (matchingIndex >= 0)
-                {
                     selectedTank = _modularTankList[matchingIndex];
-                    Debug.LogWarning("[IFS] - InsterstellarFuelSwitch set selectedTank to " + selectedTank.GuiName + " after calling FindMatchingConfig");
-                }
             }
 
             // if still no tank found create a tank based on current tank contents

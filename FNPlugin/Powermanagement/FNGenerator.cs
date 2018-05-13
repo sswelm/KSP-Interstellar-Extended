@@ -57,7 +57,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
 
-        // Settins
+        // Settings
         [KSPField]
         public bool isMHD = false;
         [KSPField]

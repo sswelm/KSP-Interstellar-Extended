@@ -275,10 +275,7 @@ namespace InterstellarFuelSwitch
                         var matchingObject = fuelSwitch.FindMatchingConfig();
 
                         if (HighLogic.LoadedSceneIsFlight || matchingObject >= 0)
-                        {
                             selectedObject = matchingObject;
-                            Debug.LogWarning("[IFS] - selectedObject set to " + selectedObject);
-                        }
                     }
 
                 }
