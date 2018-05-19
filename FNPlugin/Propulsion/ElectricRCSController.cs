@@ -180,7 +180,12 @@ namespace FNPlugin
                 //var effectiveThrust = (thrustLimiter / 100) * Current_propellant.ThrustMultiplier * baseThrust / effectiveIspMultiplier;
 
                 var moduleConfig = new ConfigNode("MODULE");
-                moduleConfig.AddValue("name", "FNModuleRCSFX");
+
+                if (attachedModuleRCSFX != null)
+                    moduleConfig.AddValue("name", "FNModuleRCSFX");
+                else
+                    moduleConfig.AddValue("name", "ModuleRCS");
+
                 moduleConfig.AddValue("thrusterPower", attachedRCS.thrusterPower.ToString("0.000"));
                 moduleConfig.AddValue("resourceName", new_propellant.name);
                 moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
@@ -195,8 +200,14 @@ namespace FNPlugin
 
                 var atmosphereCurve = new ConfigNode("atmosphereCurve");
                 atmosphereCurve.AddValue("key", "0 " + (maxPropellantIsp).ToString("0.000"));
-                atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp * 0.5).ToString("0.000"));
-                atmosphereCurve.AddValue("key", "4 " + (maxPropellantIsp * 0.00001).ToString("0.000"));
+                if (type != 8)
+                {
+                    atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp * 0.5).ToString("0.000"));
+                    atmosphereCurve.AddValue("key", "4 " + (maxPropellantIsp * 0.00001).ToString("0.000"));
+                }
+                else
+                    atmosphereCurve.AddValue("key", "1 " + (maxPropellantIsp).ToString("0.000"));
+
                 moduleConfig.AddNode(atmosphereCurve);
 
                 attachedRCS.Load(moduleConfig);

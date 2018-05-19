@@ -576,7 +576,6 @@ namespace FNPlugin
                 _moduleActiveRadiator.Events["Activate"].guiActive = false;
                 _moduleActiveRadiator.Events["Shutdown"].guiActive = false;
             }
-
             _moduleDeployableRadiator = part.FindModuleImplementing<ModuleDeployableRadiator>();
             if (_moduleDeployableRadiator != null)
                 radiatorState = _moduleDeployableRadiator.deployState;
@@ -594,10 +593,12 @@ namespace FNPlugin
             pivotfield.guiActive = showControls;
             pivotfield.guiActiveEditor = showControls;
 
-            _maxEnergyTransfer = radiatorArea * 1000 * Math.Pow(1 + ((int)CurrentGenerationType), 1.5);
-
             if (_moduleActiveRadiator != null)
+            {
+                _maxEnergyTransfer = radiatorArea * 1000 * Math.Pow(1 + ((int)CurrentGenerationType), 2);
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
+                _moduleActiveRadiator.overcoolFactor = 0.20 + ((int)CurrentGenerationType * 0.025);
+            }
 
             if (state == StartState.Editor) return;
 
