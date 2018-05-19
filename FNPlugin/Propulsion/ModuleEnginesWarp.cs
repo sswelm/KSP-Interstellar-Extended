@@ -6,30 +6,23 @@ namespace FNPlugin
 {
     public class ModuleEnginesWarp : ModuleEnginesFX
     {
-        // GUI display values
-        // Thrust
         [KSPField(isPersistant = true)]
         bool IsForceActivated;
 
+        // GUI display values
         [KSPField(guiActive = true, guiName = "Warp Thrust")]
         protected string Thrust = "";
-        // Isp
         [KSPField(guiActive = true, guiName = "Warp Isp")]
         protected string Isp = "";
-        // Throttle
         [KSPField(guiActive = true, guiName = "Warp Throttle")]
         protected string Throttle = "";
-
         [KSPField(guiActive = false, guiName = "Demand")]
         public double propellantUsed;
+        [KSPField(guiActive = false, guiName = "Mass Flow")]
+        public double requestedFlow;
 
         [KSPField]
         public double GThreshold = 2;
-
-        // Resource used for deltaV and mass calculations
-        //[KSPField]
-        //public string resourceDeltaV = "LqdHydrogen";
-
         [KSPField]
         public string propellant1 = "LqdHydrogen";
         [KSPField]
@@ -47,12 +40,6 @@ namespace FNPlugin
         public double ratio3;
         [KSPField]
         public double ratio4;
-
-        //[KSPField(guiActive = false, guiName = "Calc Flow")]
-        //public double calcualtedFlow;
-
-        [KSPField(guiActive = false, guiName = "Mass Flow")]
-        public double requestedFlow;
 
         [KSPField]
         public double demandMass;
