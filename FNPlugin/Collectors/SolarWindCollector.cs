@@ -250,9 +250,9 @@ namespace FNPlugin
             lqdHelium4ResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdHelium4);
             solarWindResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.SolarWind);
             hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
-            
 
-            localStar = GetCurrentStar();
+
+            localStar = PluginHelper.GetCurrentStar();
             homeworld = FlightGlobals.GetHomeBody();
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
@@ -296,7 +296,7 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            localStar = GetCurrentStar();
+            localStar = PluginHelper.GetCurrentStar();
             verticalSpeed = vessel.mainBody == localStar ? vessel.verticalSpeed : 0;
             helioSphereFactor = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar, homeworld));
             interstellarDensityFactor = helioSphereFactor == 0 ? 0 : Math.Max(0, AtmosphericFloatCurves.Instance.InterstellarDensityRatio.Evaluate((float)helioSphereFactor * 100));
@@ -428,28 +428,6 @@ namespace FNPlugin
             dLastMagnetoStrength = GetMagnetosphereRatio(vessel.altitude, PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody));
         }
 
-        /** 
-         * This function should allow this module to work in solar systems other than the vanilla KSP one as well. Credit to Freethinker's MicrowavePowerReceiver code.
-         * It checks current reference body's temperature at 0 altitude. If it is less than 2k K, it checks this body's reference body next and so on.
-         */
-        protected static CelestialBody GetCurrentStar()
-        {
-            var iDepth = 0;
-            var star = FlightGlobals.currentMainBody;
-
-            while ((iDepth < 10) && (star.GetTemperature(0) < 2000))
-            {
-                if (star.name == "Valentine")
-                    return star;
-
-                star = star.referenceBody;
-                iDepth++;
-            }
-            if ((star.GetTemperature(0) < 2000) || (star.name == "Galactic Core"))
-                star = null;
-
-            return star;
-        }
 
         /* Calculates the strength of the magnetosphere. Will return 1 if in atmosphere, otherwise a ratio of max atmospheric altitude to current 
          * altitude - so the ratio slowly lowers the higher the vessel is. Once above 10 times the max atmo altitude, 

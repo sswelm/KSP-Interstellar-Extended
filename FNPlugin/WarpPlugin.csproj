@@ -54,6 +54,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Beamedpower\BeamedPowerHelper.cs" />
+    <Compile Include="Beamedpower\ModuleSolarSail.cs" />
     <Compile Include="Collectors\RegolithCollector.cs" />
     <Compile Include="Collectors\SolarWindCollector.cs" />
     <Compile Include="Collectors\UniversalCrustExtractor.cs" />

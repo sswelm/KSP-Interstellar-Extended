@@ -317,6 +317,29 @@ namespace FNPlugin
 
         #endregion
 
+        /** 
+         * This function should allow this module to work in solar systems other than the vanilla KSP one as well. Credit to Freethinker's MicrowavePowerReceiver code.
+         * It checks current reference body's temperature at 0 altitude. If it is less than 2k K, it checks this body's reference body next and so on.
+         */
+        public static CelestialBody GetCurrentStar()
+        {
+            var iDepth = 0;
+            var star = FlightGlobals.currentMainBody;
+
+            while ((iDepth < 10) && (star.GetTemperature(0) < 2000))
+            {
+                if (star.name == "Valentine")
+                    return star;
+
+                star = star.referenceBody;
+                iDepth++;
+            }
+            if ((star.GetTemperature(0) < 2000) || (star.name == "Galactic Core"))
+                star = null;
+
+            return star;
+        }
+
 
         public static string formatMassStr(double mass, string format = "0.0000000")
         {
