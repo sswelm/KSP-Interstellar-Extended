@@ -247,9 +247,8 @@ namespace FNPlugin
         public double kerbalismPowerOutput;
         [KSPField(guiActiveEditor = false, guiActive = true, guiFormat = "F2")]
         public double thermal_power_ratio;
-
+        [KSPField]
         public double powerCapacityEfficiency;
-
         [KSPField]
         public double powerMult = 1;
         [KSPField]

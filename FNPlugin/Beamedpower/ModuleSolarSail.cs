@@ -12,9 +12,11 @@ namespace FNPlugin.Beamedpower
         [KSPField(isPersistant = true)]
         public bool IsEnabled = false;
         [KSPField(isPersistant = true)]
-        protected double previousPeA;
+        public double previousPeA;
         [KSPField(isPersistant = true)]
-        protected double previousAeA;
+        public double previousAeA;
+        [KSPField(isPersistant = true)]
+        public float previousFixedDeltaTime;
 
         // Persistent False
         [KSPField]
@@ -26,8 +28,12 @@ namespace FNPlugin.Beamedpower
 
         // GUI
         // Force and Acceleration
-        [KSPField(guiActive = true, guiName = "Solar Force")]
+        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F3")]
+        public double averageSolarFluxInWatt;
+        [KSPField(guiActive = true, guiName = "Calculated Solar Force")]
         public string solarForceAtDistance;
+        [KSPField(guiActive = true, guiName = "Measured Solar Force")]
+        public string solarForceBasedOnFlux;
         [KSPField(guiActive = true, guiName = "Sail Force")]
         public string forceAcquired = "";
         [KSPField(guiActive = true, guiName = "Acceleration")]
@@ -37,6 +43,8 @@ namespace FNPlugin.Beamedpower
 
         [KSPField(guiActive = true, guiName = "Cosine Angle", guiFormat = "F6")]
         public double cosConeAngle;
+        [KSPField(guiActive = true, guiName = "Orbital Force Angle", guiFormat = "F6")]
+        public double orbitalHeadingForceAngle;
 
         [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F5")]
         public double periapsisChange;
@@ -45,36 +53,41 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = true, guiName = "Orbit size Change", guiFormat = "F5")]
         public double orbitSizeChange;
 
+
+
         protected Transform surfaceTransform = null;
         protected Animation solarSailAnim = null;
 
         // Reference distance for calculating thrust: sun to Kerbin (m)
         const double kerbin_distance = 13599840256;
-        // Solar pressure N/m^2 at reference distance
-        const double thrust_coeff = 9.08e-6;
+        // average solar radiance at earth in W/m2
+        const double solarConstant = 1360.8;
+        // Solar Presure  P = W / c =  9.08e-6;
+        const double thrust_coeff = 2 * solarConstant / GameConstants.speedOfLight;		
 
         // Display numbers for force and acceleration
         protected double solar_force_d = 0;
         protected double solar_acc_d = 0;
         protected double solarForceAtDistance_d = 0;
-
-
+        protected double solarForceBasedOnFlux_d = 0;
 
         protected CelestialBody localStar;
 
         private Queue<double> periapsisChangeQueue = new Queue<double>(10);
         private Queue<double> apapsisChangeQueue = new Queue<double>(10);
+        private Queue<double> solarFluxQueue = new Queue<double>(100);
 
         // GUI to deploy sail
         [KSPEvent(guiActive = true, guiName = "Deploy Sail", active = true)]
         public void DeploySail()
         {
-            if (animName != null && solarSailAnim != null)
-            {
-                solarSailAnim[animName].speed = 1f;
-                solarSailAnim[animName].normalizedTime = 0f;
-                solarSailAnim.Blend(animName, 2f);
-            }
+            if (animName == null || solarSailAnim == null)
+                return;
+
+            solarSailAnim[animName].speed = 1f;
+            solarSailAnim[animName].normalizedTime = 0f;
+            solarSailAnim.Blend(animName, 0.1f);
+
             IsEnabled = true;
         }
 
@@ -82,32 +95,34 @@ namespace FNPlugin.Beamedpower
         [KSPEvent(guiActive = true, guiName = "Retract Sail", active = false)]
         public void RetractSail()
         {
-            if (animName != null && solarSailAnim != null)
-            {
-                solarSailAnim[animName].speed = -1f;
-                solarSailAnim[animName].normalizedTime = 1f;
-                solarSailAnim.Blend(animName, 2f);
-            }
+            if (animName == null || solarSailAnim == null)
+                return;
+
+            solarSailAnim[animName].speed = -1f;
+            solarSailAnim[animName].normalizedTime = 1f;
+            solarSailAnim.Blend(animName, 0.1f);
+
             IsEnabled = false;
         }
 
         // Initialization
         public override void OnStart(PartModule.StartState state)
         {
-            if (state != StartState.None && state != StartState.Editor)
+            if (state == StartState.None || state == StartState.Editor)
+                return;
+
+            if (animName != null)
+                solarSailAnim = part.FindModelAnimators(animName).FirstOrDefault();
+
+            // start with deployed sail  when enabled
+            if (IsEnabled)
             {
-                if (animName != null)
-                    solarSailAnim = part.FindModelAnimators(animName).FirstOrDefault();
-
-                if (IsEnabled)
-                {
-                    solarSailAnim[animName].speed = 1f;
-                    solarSailAnim[animName].normalizedTime = 0f;
-                    solarSailAnim.Blend(animName, 0.1f);
-                }
-
-                this.part.force_activate();
+                solarSailAnim[animName].speed = 1f;
+                solarSailAnim[animName].normalizedTime = 1f;
+                solarSailAnim.Sample();
             }
+
+            this.part.force_activate();
         }
 
         /// <summary>
@@ -128,10 +143,13 @@ namespace FNPlugin.Beamedpower
             forceAcquired = solar_force_d.ToString("E") + " N";
             solarAcc = solar_acc_d.ToString("E") + " m/s";
             solarForceAtDistance = solarForceAtDistance_d.ToString("E") + " N/m\xB2";
+            solarForceBasedOnFlux = solarForceBasedOnFlux_d.ToString("E") + " N/m\xB2";
         }
 
         public override void OnFixedUpdate()
         {
+            UpdateSolarFlux();
+
             solarForceAtDistance_d = 0;
             solar_force_d = 0;
             solar_acc_d = 0;
@@ -142,42 +160,51 @@ namespace FNPlugin.Beamedpower
 
             UpdateChangeGui();
 
-            double UT = Planetarium.GetUniversalTime();
-            Vector3d positionSun = localStar.getPositionAtUT(UT);
-            Vector3d positionVessel = vessel.orbit.getPositionAtUT(UT);
+
+            double universalTime = Planetarium.GetUniversalTime();
+            Vector3d positionSun = localStar.getPositionAtUT(universalTime);
+            Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
             // Not in sunlight
-            if (!inSun(UT, positionSun, positionVessel))
+            if (!inSun(universalTime, positionSun, positionVessel))
                 return;
 
+            // calculate vector between vessel and star
             Vector3d ownsunPosition = positionVessel - positionSun;
+
+            // take part vector 
             Vector3d partNormal = this.part.transform.up;
 
             // If normal points away from sun, negate so our force is always away from the sun
             // so that turning the backside towards the sun thrusts correctly
-            if (Vector3d.Dot(this.part.transform.up, ownsunPosition) < 0)
+            if (Vector3d.Dot(partNormal, ownsunPosition) < 0)
                 partNormal = -partNormal;
 
             // Magnitude of force proportional to cosine-squared of angle between sun-line and normal
-            cosConeAngle = Vector3.Dot(ownsunPosition.normalized, partNormal);
+            cosConeAngle = Vector3d.Dot(ownsunPosition.normalized, partNormal);
 
+            // calculate solar light force at current location
             solarForceAtDistance_d = SolarForceAtDistance(positionSun, positionVessel);
+            solarForceBasedOnFlux_d = averageSolarFluxInWatt / GameConstants.speedOfLight;
 
             // Force from sunlight
-            Vector3d solarForce = CalculateSolarForce(this, partNormal, cosConeAngle, solarForceAtDistance_d);
+            Vector3d solarForce = CalculateSolarForce(this, partNormal, cosConeAngle, solarForceBasedOnFlux_d);
 
-            // Acceleration from sunlight
+            // calculate angle between current vessel orbital heading and solarForce
+            orbitalHeadingForceAngle = Vector3d.Dot(vessel.orbit.getOrbitalVelocityAtUT(universalTime).normalized, solarForce);
+
+            // Calculate acceleration from sunlight
             Vector3d solarAccel = solarForce / vessel.GetTotalMass() / 1000d;
 
-            // Add To Sailed DeltaV
+            // Add To overal Sailed Delta V
             sailedDeltaV += solarAccel.magnitude;
 
-            // Acceleration from sunlight pr second
+            // Acceleration from sunlight per second
             Vector3d fixedSolatAccel = solarAccel * TimeWarp.fixedDeltaTime;
 
             // Apply acceleration
             if (this.vessel.packed)
-                vessel.orbit.Perturb(fixedSolatAccel, UT);
+                vessel.orbit.Perturb(fixedSolatAccel, universalTime);
             else
                 vessel.ChangeWorldVelocity(fixedSolatAccel);
 
@@ -186,14 +213,33 @@ namespace FNPlugin.Beamedpower
             solar_acc_d = solarAccel.magnitude;
         }
 
+        private void UpdateSolarFlux()
+        {
+            if (vessel.solarFlux > 0)
+            {
+                solarFluxQueue.Enqueue(vessel.solarFlux);
+                if (solarFluxQueue.Count > 100)
+                    solarFluxQueue.Dequeue();
+                averageSolarFluxInWatt = solarFluxQueue.Average();
+            }
+            else
+            {
+                if (solarFluxQueue.Count > 0)
+                    solarFluxQueue.Dequeue();
+                averageSolarFluxInWatt = 0;
+            }
+        }
+
         private void UpdateChangeGui()
         {
-            periapsisChangeQueue.Enqueue((vessel.orbit.PeA - previousPeA) / TimeWarp.fixedDeltaTime);
+            var averageFixedDeltaTime = (previousFixedDeltaTime + TimeWarp.fixedDeltaTime) / 2f;
+
+            periapsisChangeQueue.Enqueue((vessel.orbit.PeA - previousPeA) / averageFixedDeltaTime);
             if (periapsisChangeQueue.Count > 10)
                 periapsisChangeQueue.Dequeue();
             periapsisChange = periapsisChangeQueue.Average();
 
-            apapsisChangeQueue.Enqueue((vessel.orbit.ApA - previousAeA) / TimeWarp.fixedDeltaTime);
+            apapsisChangeQueue.Enqueue((vessel.orbit.ApA - previousAeA) / averageFixedDeltaTime);
             if (apapsisChangeQueue.Count > 10)
                 apapsisChangeQueue.Dequeue();
             apapsisChange = apapsisChangeQueue.Average();
@@ -202,6 +248,7 @@ namespace FNPlugin.Beamedpower
 
             previousPeA = vessel.orbit.PeA;
             previousAeA = vessel.orbit.ApA;
+            previousFixedDeltaTime = TimeWarp.fixedDeltaTime;
         }
 
         // Test if an orbit at UT is in sunlight

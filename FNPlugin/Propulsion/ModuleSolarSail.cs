@@ -5,7 +5,7 @@ using System.Text;
 using UnityEngine;
 
 namespace FNPlugin {
-    class ModuleSolarSail : PartModule 
+    class ModuleSolarSailOld : PartModule 
     {
         // Persistent True
         [KSPField(isPersistant = true)]

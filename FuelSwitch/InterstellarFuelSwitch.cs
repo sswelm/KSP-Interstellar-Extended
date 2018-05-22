@@ -176,6 +176,9 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string resourceAmountStr2 = "";
         [KSPField]
+        public string resourceAmountStr3 = "";
+
+        [KSPField]
         public float volumeExponent = 3;
         [KSPField]
         public float massExponent = 3;
@@ -207,18 +210,22 @@ namespace InterstellarFuelSwitch
         double _partResourceMaxAmountFraction0;
         double _partResourceMaxAmountFraction1;
         double _partResourceMaxAmountFraction2;
+        double _partResourceMaxAmountFraction3;
 
         PartResource _partResource0;
         PartResource _partResource1;
         PartResource _partResource2;
+        PartResource _partResource3;
 
         PartResourceDefinition _partRresourceDefinition0;
         PartResourceDefinition _partRresourceDefinition1;
         PartResourceDefinition _partRresourceDefinition2;
+        PartResourceDefinition _partRresourceDefinition3;
 
         BaseField _field0;
         BaseField _field1;
         BaseField _field2;
+        BaseField _field3;
 
         BaseField _tankGuiNameField;
         BaseField _chooseField;
@@ -473,6 +480,7 @@ namespace InterstellarFuelSwitch
                 _field0 = Fields["resourceAmountStr0"];
                 _field1 = Fields["resourceAmountStr1"];
                 _field2 = Fields["resourceAmountStr2"];
+                _field3 = Fields["resourceAmountStr3"];
                 _tankGuiNameField = Fields["tankGuiName"];
 
                 availableInEditor = String.IsNullOrEmpty(inEditorSwitchingTechReq) ? availableInEditor : HasTech(inEditorSwitchingTechReq);
@@ -829,26 +837,32 @@ namespace InterstellarFuelSwitch
             _partRresourceDefinition0 = newResources.Count > 0 ? PartResourceLibrary.Instance.GetDefinition(newResources[0]) : null;
             _partRresourceDefinition1 = newResources.Count > 1 ? PartResourceLibrary.Instance.GetDefinition(newResources[1]) : null;
             _partRresourceDefinition2 = newResources.Count > 2 ? PartResourceLibrary.Instance.GetDefinition(newResources[2]) : null;
+            _partRresourceDefinition3 = newResources.Count > 3 ? PartResourceLibrary.Instance.GetDefinition(newResources[3]) : null;
 
             _field0.guiName = _partRresourceDefinition0 != null ? _partRresourceDefinition0.name : ":";
             _field1.guiName = _partRresourceDefinition1 != null ? _partRresourceDefinition1.name : ":";
             _field2.guiName = _partRresourceDefinition2 != null ? _partRresourceDefinition2.name : ":";
+            _field3.guiName = _partRresourceDefinition3 != null ? _partRresourceDefinition3.name : ":";
 
             _field0.guiActive = _partRresourceDefinition0 != null;
             _field1.guiActive = _partRresourceDefinition1 != null;
             _field2.guiActive = _partRresourceDefinition2 != null;
+            _field3.guiActive = _partRresourceDefinition3 != null;
 
             _field0.guiActiveEditor = _partRresourceDefinition0 != null;
             _field1.guiActiveEditor = _partRresourceDefinition1 != null;
             _field2.guiActiveEditor = _partRresourceDefinition2 != null;
+            _field3.guiActiveEditor = _partRresourceDefinition3 != null;
 
             _partResource0 = _partRresourceDefinition0 == null ? null : part.Resources[newResources[0]];
             _partResource1 = _partRresourceDefinition1 == null ? null : part.Resources[newResources[1]];
             _partResource2 = _partRresourceDefinition2 == null ? null : part.Resources[newResources[2]];
+            _partResource3 = _partRresourceDefinition3 == null ? null : part.Resources[newResources[3]];
 
             _partResourceMaxAmountFraction0 = _partResource0 == null ? 0 : _partResource0.maxAmount * 0.001;
             _partResourceMaxAmountFraction1 = _partResource1 == null ? 0 : _partResource1.maxAmount * 0.001;
             _partResourceMaxAmountFraction2 = _partResource2 == null ? 0 : _partResource2.maxAmount * 0.001;
+            _partResourceMaxAmountFraction3 = _partResource3 == null ? 0 : _partResource3.maxAmount * 0.001;
         }
 
         private double UpdateCost()
@@ -923,7 +937,24 @@ namespace InterstellarFuelSwitch
             }
 
             resourceCost += _partRresourceDefinition2.unitCost * _partResource2.amount;
-            maxResourceCost = _partRresourceDefinition2.unitCost * _partResource2.maxAmount;
+            maxResourceCost += _partRresourceDefinition2.unitCost * _partResource2.maxAmount;
+
+            if (_partRresourceDefinition3 == null || _partResource3 == null)
+            {
+                if (preserveInitialCost)
+                {
+                    totalCost = dryCost - maxResourceCost + resourceCost;
+                    return 0;
+                }
+                else
+                {
+                    totalCost = dryCost + resourceCost;
+                    return !isSmaller && !isLarger ? maxResourceCost : (isSmaller ? -dryCost * storedFactorMultiplier : dryCost * storedFactorMultiplier * 0.125);
+                }
+            }
+
+            resourceCost += _partRresourceDefinition3.unitCost * _partResource3.amount;
+            maxResourceCost += _partRresourceDefinition3.unitCost * _partResource3.maxAmount;
 
             if (preserveInitialCost)
             {
@@ -999,16 +1030,19 @@ namespace InterstellarFuelSwitch
             var missing0 = _partRresourceDefinition0 == null || _partResource0 == null;
             var missing1 = _partRresourceDefinition1 == null || _partResource1 == null;
             var missing2 = _partRresourceDefinition2 == null || _partResource2 == null;
+            var missing3 = _partRresourceDefinition3 == null || _partResource3 == null;
 
             var currentResourceMassAmount0 = missing0 ? 0 : _partRresourceDefinition0.density * _partResource0.amount;
             var currentResourceMassAmount1 = missing1 ? 0 : _partRresourceDefinition1.density * _partResource1.amount;
             var currentResourceMassAmount2 = missing2 ? 0 : _partRresourceDefinition2.density * _partResource2.amount;
+            var currentResourceMassAmount3 = missing3 ? 0 : _partRresourceDefinition3.density * _partResource3.amount;
 
-            totalMass = dryMass + currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2;
+            totalMass = dryMass + currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2 + currentResourceMassAmount3;
 
             resourceAmountStr0 = missing0 ? String.Empty : FormatMassStr(currentResourceMassAmount0);
             resourceAmountStr1 = missing1 ? String.Empty : FormatMassStr(currentResourceMassAmount1);
             resourceAmountStr2 = missing2 ? String.Empty : FormatMassStr(currentResourceMassAmount2);
+            resourceAmountStr3 = missing3 ? String.Empty : FormatMassStr(currentResourceMassAmount3);
         }
 
         private void UpdateMassRatio()
@@ -1016,10 +1050,11 @@ namespace InterstellarFuelSwitch
             var maxResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.maxAmount;
             var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
             var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource2.maxAmount;
+            var maxResourceMassAmount3 = _partRresourceDefinition3 == null || _partResource3 == null ? 0 : _partRresourceDefinition3.density * _partResource3.maxAmount;
 
             if (!displayWetDryMass) return;
 
-            var wetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2;
+            var wetMass = maxResourceMassAmount0 + maxResourceMassAmount1 + maxResourceMassAmount2 + maxResourceMassAmount3;
 
             if (wetMass > 0 && dryMass > 0)
                 massRatioStr = ToRoundedString(1 / (dryMass / wetMass));
@@ -1070,7 +1105,8 @@ namespace InterstellarFuelSwitch
                                     (canSwitchWithFullTanks || (
                                       (_partResource0 == null || _partResource0.amount < _partResourceMaxAmountFraction0) &&
                                       (_partResource1 == null || _partResource1.amount < _partResourceMaxAmountFraction1) &&
-                                      (_partResource2 == null || _partResource2.amount < _partResourceMaxAmountFraction2))
+                                      (_partResource2 == null || _partResource2.amount < _partResourceMaxAmountFraction2) &&
+                                      (_partResource3 == null || _partResource3.amount < _partResourceMaxAmountFraction3))
                                     );
 
                 // show/hide choose option
