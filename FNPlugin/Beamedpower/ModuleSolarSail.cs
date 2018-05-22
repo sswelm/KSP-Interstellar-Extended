@@ -21,10 +21,14 @@ namespace FNPlugin.Beamedpower
         // Persistent False
         [KSPField]
         public double reflectedPhotonRatio = 1f;
-        [KSPField(guiActiveEditor = true, guiUnits = " m\xB2")]
+        [KSPField(guiActiveEditor = true, guiName = "Surface Area", guiUnits = " m\xB2")]
         public double surfaceArea = 144400;
         [KSPField]
         public string animName;
+        [KSPField]
+        public float effectSize1 = 2.5f;
+        [KSPField]
+        public float effectSize2 = 5;
 
         // GUI
         // Force and Acceleration
@@ -53,8 +57,6 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = true, guiName = "Orbit size Change", guiFormat = "F5")]
         public double orbitSizeChange;
 
-
-
         protected Transform surfaceTransform = null;
         protected Animation solarSailAnim = null;
 
@@ -76,6 +78,10 @@ namespace FNPlugin.Beamedpower
         private Queue<double> periapsisChangeQueue = new Queue<double>(10);
         private Queue<double> apapsisChangeQueue = new Queue<double>(10);
         private Queue<double> solarFluxQueue = new Queue<double>(100);
+
+        private GameObject force_effect;
+        private Renderer force_effect_renderer;
+        private Collider force_effect_collider;
 
         // GUI to deploy sail
         [KSPEvent(guiActive = true, guiName = "Deploy Sail", active = true)]
@@ -118,11 +124,33 @@ namespace FNPlugin.Beamedpower
             if (IsEnabled)
             {
                 solarSailAnim[animName].speed = 1f;
-                solarSailAnim[animName].normalizedTime = 1f;
-                solarSailAnim.Sample();
+                solarSailAnim[animName].normalizedTime = 0f;
+                solarSailAnim.Blend(animName, 0.1f);
             }
 
             this.part.force_activate();
+
+            InitializeBeam();
+        }
+
+        private void InitializeBeam()
+        {
+            force_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            force_effect_renderer = force_effect.GetComponent<Renderer>();
+            force_effect_collider = force_effect.GetComponent<Collider>();
+            force_effect_collider.enabled = false;
+
+            var zero = Vector3.zero;
+
+            force_effect.transform.localScale = new Vector3(0, 0, 0);
+            force_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
+            force_effect.transform.rotation = part.transform.rotation;
+            force_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
+            force_effect_renderer.material.color = new Color(Color.cyan.r, Color.cyan.g, Color.cyan.b, 0.5f);
+
+            force_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
+            force_effect_renderer.receiveShadows = false;
+            force_effect_renderer.material.renderQueue = 1000;
         }
 
         /// <summary>
@@ -159,7 +187,6 @@ namespace FNPlugin.Beamedpower
                 return;
 
             UpdateChangeGui();
-
 
             double universalTime = Planetarium.GetUniversalTime();
             Vector3d positionSun = localStar.getPositionAtUT(universalTime);
@@ -211,6 +238,20 @@ namespace FNPlugin.Beamedpower
             // Update displayed force & acceleration
             solar_force_d = solarForce.magnitude;
             solar_acc_d = solarAccel.magnitude;
+
+            UpdateBeams(solarForce, ownsunPosition);
+        }
+
+        private void UpdateBeams(Vector3d force3d, Vector3d ownsunPosition)
+        {
+            var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
+
+            var force3 = new Vector3((float)force3d.x, (float)force3d.y, (float)force3d.z);
+            var forceEndBeamPos = shipPos + force3 * 1000;
+
+            force_effect.transform.rotation = part.transform.rotation;
+            force_effect.transform.localScale = new Vector3(effectSize1, forceEndBeamPos.magnitude, effectSize1);
+            force_effect.transform.position = new Vector3(shipPos.x + forceEndBeamPos.x, shipPos.y + forceEndBeamPos.y, shipPos.z + forceEndBeamPos.z);
         }
 
         private void UpdateSolarFlux()
