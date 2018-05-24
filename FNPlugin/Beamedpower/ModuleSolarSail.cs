@@ -83,6 +83,10 @@ namespace FNPlugin.Beamedpower
         private Renderer force_effect_renderer;
         private Collider force_effect_collider;
 
+        //private GameObject solar_effect;
+        //private Renderer solar_effect_renderer;
+        //private Collider solar_effect_collider;
+
         // GUI to deploy sail
         [KSPEvent(guiActive = true, guiName = "Deploy Sail", active = true)]
         public void DeploySail()
@@ -135,12 +139,12 @@ namespace FNPlugin.Beamedpower
 
         private void InitializeBeam()
         {
+            var zero = Vector3.zero;
+
             force_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             force_effect_renderer = force_effect.GetComponent<Renderer>();
             force_effect_collider = force_effect.GetComponent<Collider>();
             force_effect_collider.enabled = false;
-
-            var zero = Vector3.zero;
 
             force_effect.transform.localScale = new Vector3(0, 0, 0);
             force_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
@@ -151,6 +155,23 @@ namespace FNPlugin.Beamedpower
             force_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
             force_effect_renderer.receiveShadows = false;
             force_effect_renderer.material.renderQueue = 1000;
+
+            //-----------
+
+            //solar_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            //solar_effect_renderer = force_effect.GetComponent<Renderer>();
+            //solar_effect_collider = force_effect.GetComponent<Collider>();
+            //solar_effect_collider.enabled = false;
+
+            //solar_effect.transform.localScale = new Vector3(0, 0, 0);
+            //solar_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
+            //solar_effect.transform.rotation = part.transform.rotation;
+            //solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
+            //solar_effect_renderer.material.color = new Color(Color.yellow.r, Color.yellow.g, Color.yellow.b, 0.5f);
+
+            //solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
+            //solar_effect_renderer.receiveShadows = false;
+            //solar_effect_renderer.material.renderQueue = 1001;
         }
 
         /// <summary>
@@ -198,6 +219,8 @@ namespace FNPlugin.Beamedpower
 
             // calculate vector between vessel and star
             Vector3d ownsunPosition = positionVessel - positionSun;
+
+            
 
             // take part vector 
             Vector3d partNormal = this.part.transform.up;
@@ -252,6 +275,17 @@ namespace FNPlugin.Beamedpower
             force_effect.transform.rotation = part.transform.rotation;
             force_effect.transform.localScale = new Vector3(effectSize1, forceEndBeamPos.magnitude, effectSize1);
             force_effect.transform.position = new Vector3(shipPos.x + forceEndBeamPos.x, shipPos.y + forceEndBeamPos.y, shipPos.z + forceEndBeamPos.z);
+
+            //---------------
+
+            //Vector3d solarFluxDirectionVector = localStar.transform.position - vessel.transform.position;
+
+            //var solar3 = new Vector3((float)solarFluxDirectionVector.x, (float)solarFluxDirectionVector.y, (float)solarFluxDirectionVector.z);
+            //var solarEndBeamPos = shipPos + solar3 * 1000;
+
+            //solar_effect.transform.rotation = part.transform.rotation;
+            //solar_effect.transform.localScale = new Vector3(effectSize1, solarEndBeamPos.magnitude, effectSize1);
+            //solar_effect.transform.position = new Vector3(shipPos.x + solarEndBeamPos.x, shipPos.y + solarEndBeamPos.y, shipPos.z + solarEndBeamPos.z);
         }
 
         private void UpdateSolarFlux()

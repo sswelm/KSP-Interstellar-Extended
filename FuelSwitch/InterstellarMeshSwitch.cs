@@ -63,7 +63,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true, guiActiveEditor = true)]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.Editor, suppressEditorShipModified = true)]
         public int selectedObject;
-
+        
         private List<List<Transform>> objectTransforms = new List<List<Transform>>();
         private List<meshConfiguration> meshConfigurationList = new List<meshConfiguration>();
         private InterstellarFuelSwitch fuelSwitch;
@@ -195,7 +195,7 @@ namespace InterstellarFuelSwitch
 
         public override void OnStart(PartModule.StartState state)
         {
-            InitializeData();
+            InitializeData(true);
 
             SwitchToObject(selectedObject, false);
 
@@ -227,12 +227,12 @@ namespace InterstellarFuelSwitch
             SwitchToObject(selectedObject, true);
         }
 
-        public void InitializeData()
+        public void InitializeData(bool forced = false)
         {
             try
             {
-                if (initialized) return;
-                
+                if (initialized && !forced) return;
+
                 // you can't have fuel switching without symmetry, it breaks the editor GUI.
                 if (useFuelSwitchModule)
                     updateSymmetry = true;
@@ -277,7 +277,6 @@ namespace InterstellarFuelSwitch
                         if (HighLogic.LoadedSceneIsFlight || matchingObject >= 0)
                             selectedObject = matchingObject;
                     }
-
                 }
                 initialized = true;
             }
