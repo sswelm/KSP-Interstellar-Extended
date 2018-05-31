@@ -45,10 +45,17 @@ namespace FNPlugin.Beamedpower
         [KSPField(isPersistant = true, guiActive = true, guiName = "Sailed Delta V", guiFormat = "F3", guiUnits = " m/s")]
         public double sailedDeltaV;
 
-        [KSPField(guiActive = true, guiName = "Cosine Angle", guiFormat = "F6")]
+        [KSPField(guiActive = true, guiName = "solarVector X", guiFormat = "F6")]
+        public double solarVectorX;
+        [KSPField(guiActive = true, guiName = "solarVector Y", guiFormat = "F6")]
+        public double solarVectorY;
+        [KSPField(guiActive = true, guiName = "solarVector Z", guiFormat = "F6")]
+        public double solarVectorZ;
+
+        [KSPField(guiActive = false, guiName = "Sail Cos", guiFormat = "F6")]
         public double cosConeAngle;
-        [KSPField(guiActive = true, guiName = "Orbital Force Angle", guiFormat = "F6")]
-        public double orbitalHeadingForceAngle;
+        [KSPField(guiActive = true, guiName = "Sail Angle", guiFormat = "F6")]
+        public double sailAngle;
 
         [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F5")]
         public double periapsisChange;
@@ -79,13 +86,13 @@ namespace FNPlugin.Beamedpower
         private Queue<double> apapsisChangeQueue = new Queue<double>(10);
         private Queue<double> solarFluxQueue = new Queue<double>(100);
 
-        private GameObject force_effect;
-        private Renderer force_effect_renderer;
-        private Collider force_effect_collider;
+        //private GameObject force_effect;
+        //private Renderer force_effect_renderer;
+        //private Collider force_effect_collider;
 
-        //private GameObject solar_effect;
-        //private Renderer solar_effect_renderer;
-        //private Collider solar_effect_collider;
+        private GameObject solar_effect;
+        private Renderer solar_effect_renderer;
+        private Collider solar_effect_collider;
 
         // GUI to deploy sail
         [KSPEvent(guiActive = true, guiName = "Deploy Sail", active = true)]
@@ -141,37 +148,37 @@ namespace FNPlugin.Beamedpower
         {
             var zero = Vector3.zero;
 
-            force_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            force_effect_renderer = force_effect.GetComponent<Renderer>();
-            force_effect_collider = force_effect.GetComponent<Collider>();
-            force_effect_collider.enabled = false;
+            //force_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            //force_effect_renderer = force_effect.GetComponent<Renderer>();
+            //force_effect_collider = force_effect.GetComponent<Collider>();
+            //force_effect_collider.enabled = false;
 
-            force_effect.transform.localScale = new Vector3(0, 0, 0);
-            force_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
-            force_effect.transform.rotation = part.transform.rotation;
-            force_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
-            force_effect_renderer.material.color = new Color(Color.cyan.r, Color.cyan.g, Color.cyan.b, 0.5f);
+            //force_effect.transform.localScale = new Vector3(0, 0, 0);
+            //force_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
+            //force_effect.transform.rotation = part.transform.rotation;
+            //force_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
+            //force_effect_renderer.material.color = new Color(Color.cyan.r, Color.cyan.g, Color.cyan.b, 0.5f);
 
-            force_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
-            force_effect_renderer.receiveShadows = false;
-            force_effect_renderer.material.renderQueue = 1000;
+            //force_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
+            //force_effect_renderer.receiveShadows = false;
+            //force_effect_renderer.material.renderQueue = 1000;
 
             //-----------
 
-            //solar_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            //solar_effect_renderer = force_effect.GetComponent<Renderer>();
-            //solar_effect_collider = force_effect.GetComponent<Collider>();
-            //solar_effect_collider.enabled = false;
+            solar_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            solar_effect_renderer = solar_effect.GetComponent<Renderer>();
+            solar_effect_collider = solar_effect.GetComponent<Collider>();
+            solar_effect_collider.enabled = false;
 
-            //solar_effect.transform.localScale = new Vector3(0, 0, 0);
-            //solar_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
-            //solar_effect.transform.rotation = part.transform.rotation;
-            //solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
-            //solar_effect_renderer.material.color = new Color(Color.yellow.r, Color.yellow.g, Color.yellow.b, 0.5f);
+            solar_effect.transform.localScale = new Vector3(0, 0, 0);
+            solar_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
+            solar_effect.transform.rotation = part.transform.rotation;
+            solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
+            solar_effect_renderer.material.color = new Color(Color.yellow.r, Color.yellow.g, Color.yellow.b, 0.5f);
 
-            //solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
-            //solar_effect_renderer.receiveShadows = false;
-            //solar_effect_renderer.material.renderQueue = 1001;
+            solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
+            solar_effect_renderer.receiveShadows = false;
+            solar_effect_renderer.material.renderQueue = 1001;
         }
 
         /// <summary>
@@ -220,8 +227,6 @@ namespace FNPlugin.Beamedpower
             // calculate vector between vessel and star
             Vector3d ownsunPosition = positionVessel - positionSun;
 
-            
-
             // take part vector 
             Vector3d partNormal = this.part.transform.up;
 
@@ -233,6 +238,9 @@ namespace FNPlugin.Beamedpower
             // Magnitude of force proportional to cosine-squared of angle between sun-line and normal
             cosConeAngle = Vector3d.Dot(ownsunPosition.normalized, partNormal);
 
+            // convert to angle in degree
+            sailAngle = cosConeAngle * 90;
+
             // calculate solar light force at current location
             solarForceAtDistance_d = SolarForceAtDistance(positionSun, positionVessel);
             solarForceBasedOnFlux_d = averageSolarFluxInWatt / GameConstants.speedOfLight;
@@ -240,8 +248,8 @@ namespace FNPlugin.Beamedpower
             // Force from sunlight
             Vector3d solarForce = CalculateSolarForce(this, partNormal, cosConeAngle, solarForceBasedOnFlux_d);
 
-            // calculate angle between current vessel orbital heading and solarForce
-            orbitalHeadingForceAngle = Vector3d.Dot(vessel.orbit.getOrbitalVelocityAtUT(universalTime).normalized, solarForce);
+            //// calculate angle between current vessel orbital heading and solarForce
+            //orbitalHeadingForceAngle = Vector3d.Dot(vessel.orbit.getOrbitalVelocityAtUT(universalTime).normalized, solarForce);
 
             // Calculate acceleration from sunlight
             Vector3d solarAccel = solarForce / vessel.GetTotalMass() / 1000d;
@@ -267,25 +275,15 @@ namespace FNPlugin.Beamedpower
 
         private void UpdateBeams(Vector3d force3d, Vector3d ownsunPosition)
         {
-            var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
+            solarVectorX = ownsunPosition.normalized.x * 90;
+            solarVectorY = ownsunPosition.normalized.y * 90 - 90;
+            solarVectorZ = ownsunPosition.normalized.z * 90;
 
-            var force3 = new Vector3((float)force3d.x, (float)force3d.y, (float)force3d.z);
-            var forceEndBeamPos = shipPos + force3 * 1000;
+            solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
+            solar_effect.transform.localScale = new Vector3(effectSize1, 1000, effectSize1);
 
-            force_effect.transform.rotation = part.transform.rotation;
-            force_effect.transform.localScale = new Vector3(effectSize1, forceEndBeamPos.magnitude, effectSize1);
-            force_effect.transform.position = new Vector3(shipPos.x + forceEndBeamPos.x, shipPos.y + forceEndBeamPos.y, shipPos.z + forceEndBeamPos.z);
-
-            //---------------
-
-            //Vector3d solarFluxDirectionVector = localStar.transform.position - vessel.transform.position;
-
-            //var solar3 = new Vector3((float)solarFluxDirectionVector.x, (float)solarFluxDirectionVector.y, (float)solarFluxDirectionVector.z);
-            //var solarEndBeamPos = shipPos + solar3 * 1000;
-
-            //solar_effect.transform.rotation = part.transform.rotation;
-            //solar_effect.transform.localScale = new Vector3(effectSize1, solarEndBeamPos.magnitude, effectSize1);
-            //solar_effect.transform.position = new Vector3(shipPos.x + solarEndBeamPos.x, shipPos.y + solarEndBeamPos.y, shipPos.z + solarEndBeamPos.z);
+            var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);  
+            solar_effect.transform.position = new Vector3(shipPos.x, shipPos.y, shipPos.z);
         }
 
         private void UpdateSolarFlux()
