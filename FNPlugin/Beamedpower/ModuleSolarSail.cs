@@ -45,11 +45,11 @@ namespace FNPlugin.Beamedpower
         [KSPField(isPersistant = true, guiActive = true, guiName = "Sailed Delta V", guiFormat = "F3", guiUnits = " m/s")]
         public double sailedDeltaV;
 
-        [KSPField(guiActive = true, guiName = "solarVector X", guiFormat = "F6")]
+        [KSPField(guiActive = false, guiName = "solarVector X", guiFormat = "F6")]
         public double solarVectorX;
-        [KSPField(guiActive = true, guiName = "solarVector Y", guiFormat = "F6")]
+        [KSPField(guiActive = false, guiName = "solarVector Y", guiFormat = "F6")]
         public double solarVectorY;
-        [KSPField(guiActive = true, guiName = "solarVector Z", guiFormat = "F6")]
+        [KSPField(guiActive = false, guiName = "solarVector Z", guiFormat = "F6")]
         public double solarVectorZ;
 
         [KSPField(guiActive = false, guiName = "Sail Cos", guiFormat = "F6")]
@@ -63,6 +63,9 @@ namespace FNPlugin.Beamedpower
         public double apapsisChange;
         [KSPField(guiActive = true, guiName = "Orbit size Change", guiFormat = "F5")]
         public double orbitSizeChange;
+
+        [KSPField(guiActive = true, guiName = "UniversalTime", guiFormat = "F0")]
+        public double universalTime;
 
         protected Transform surfaceTransform = null;
         protected Animation solarSailAnim = null;
@@ -216,7 +219,13 @@ namespace FNPlugin.Beamedpower
 
             UpdateChangeGui();
 
-            double universalTime = Planetarium.GetUniversalTime();
+            universalTime = Planetarium.GetUniversalTime();
+
+            //if (TimeWarp.CurrentRate > 1)
+            //{
+            //    universalTime -= TimeWarp.CurrentRate + 1;
+            //}
+
             Vector3d positionSun = localStar.getPositionAtUT(universalTime);
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
@@ -248,9 +257,6 @@ namespace FNPlugin.Beamedpower
             // Force from sunlight
             Vector3d solarForce = CalculateSolarForce(this, partNormal, cosConeAngle, solarForceBasedOnFlux_d);
 
-            //// calculate angle between current vessel orbital heading and solarForce
-            //orbitalHeadingForceAngle = Vector3d.Dot(vessel.orbit.getOrbitalVelocityAtUT(universalTime).normalized, solarForce);
-
             // Calculate acceleration from sunlight
             Vector3d solarAccel = solarForce / vessel.GetTotalMass() / 1000d;
 
@@ -275,15 +281,18 @@ namespace FNPlugin.Beamedpower
 
         private void UpdateBeams(Vector3d force3d, Vector3d ownsunPosition)
         {
+            var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
+            var endBeamPos = shipPos + ownsunPosition.normalized * 10000;
+            var midPos = shipPos - endBeamPos;
+            var timeCorrection = TimeWarp.CurrentRate > 1 ? -vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
+
             solarVectorX = ownsunPosition.normalized.x * 90;
             solarVectorY = ownsunPosition.normalized.y * 90 - 90;
             solarVectorZ = ownsunPosition.normalized.z * 90;
 
             solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
-            solar_effect.transform.localScale = new Vector3(effectSize1, 1000, effectSize1);
-
-            var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);  
-            solar_effect.transform.position = new Vector3(shipPos.x, shipPos.y, shipPos.z);
+            solar_effect.transform.localScale = new Vector3(effectSize1, 10000, effectSize1);
+            solar_effect.transform.position = new Vector3(shipPos.x + (float)midPos.x + (float)timeCorrection.x, shipPos.y + (float)midPos.y + (float)timeCorrection.y, shipPos.z + (float)midPos.z + (float)timeCorrection.z);
         }
 
         private void UpdateSolarFlux()
