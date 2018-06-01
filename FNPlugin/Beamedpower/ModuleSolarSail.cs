@@ -6,7 +6,7 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin.Beamedpower
 {
-    class ModuleSolarSail : PartModule
+    class ModuleSolarSail : PartModule, IBeamedPowerReceiver
     {
         // Persistent Variables
         [KSPField(isPersistant = true)]
@@ -23,6 +23,8 @@ namespace FNPlugin.Beamedpower
         public double reflectedPhotonRatio = 1f;
         [KSPField(guiActiveEditor = true, guiName = "Surface Area", guiUnits = " m\xB2")]
         public double surfaceArea = 144400;
+        [KSPField(guiActiveEditor = true, guiName = "Diameter", guiUnits = " m")]
+        public double diameter;
         [KSPField]
         public string animName;
         [KSPField]
@@ -45,13 +47,6 @@ namespace FNPlugin.Beamedpower
         [KSPField(isPersistant = true, guiActive = true, guiName = "Sailed Delta V", guiFormat = "F3", guiUnits = " m/s")]
         public double sailedDeltaV;
 
-        [KSPField(guiActive = false, guiName = "solarVector X", guiFormat = "F6")]
-        public double solarVectorX;
-        [KSPField(guiActive = false, guiName = "solarVector Y", guiFormat = "F6")]
-        public double solarVectorY;
-        [KSPField(guiActive = false, guiName = "solarVector Z", guiFormat = "F6")]
-        public double solarVectorZ;
-
         [KSPField(guiActive = false, guiName = "Sail Cos", guiFormat = "F6")]
         public double cosConeAngle;
         [KSPField(guiActive = true, guiName = "Sail Angle", guiFormat = "F6")]
@@ -63,9 +58,6 @@ namespace FNPlugin.Beamedpower
         public double apapsisChange;
         [KSPField(guiActive = true, guiName = "Orbit size Change", guiFormat = "F5")]
         public double orbitSizeChange;
-
-        [KSPField(guiActive = true, guiName = "UniversalTime", guiFormat = "F0")]
-        public double universalTime;
 
         protected Transform surfaceTransform = null;
         protected Animation solarSailAnim = null;
@@ -83,7 +75,9 @@ namespace FNPlugin.Beamedpower
         protected double solarForceAtDistance_d = 0;
         protected double solarForceBasedOnFlux_d = 0;
 
-        protected CelestialBody localStar;
+        CelestialBody _localStar;
+
+        IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitData;
 
         private Queue<double> periapsisChangeQueue = new Queue<double>(10);
         private Queue<double> apapsisChangeQueue = new Queue<double>(10);
@@ -96,6 +90,33 @@ namespace FNPlugin.Beamedpower
         private GameObject solar_effect;
         private Renderer solar_effect_renderer;
         private Collider solar_effect_collider;
+
+
+        public int ReceiverType { get { return 7; } }                       // receiver from either top or bottom
+
+        public double Diameter { get { return diameter; } }
+
+        public double ApertureMultiplier { get { return 1; } }
+
+        public double MinimumWavelength { get { return 0.000000620; } }     // receive optimally from red visible light
+
+        public double MaximumWavelength { get { return 0.001; } }           // receive up to maximum infrared
+
+        public double HighSpeedAtmosphereFactor { get { return 1; } }
+
+        public double FacingThreshold { get { return 0; } }
+
+        public double FacingSurfaceExponent { get { return 1; } }
+
+        public double FacingEfficiencyExponent { get { return 1; } }
+
+        public double SpotsizeNormalizationExponent { get { return 0.9; } }
+
+        public bool CanBeActiveInAtmosphere { get { return false; } }
+
+        public Vessel Vessel { get { return vessel; } }
+
+        public Part Part { get { return part; } }
 
         // GUI to deploy sail
         [KSPEvent(guiActive = true, guiName = "Deploy Sail", active = true)]
@@ -128,6 +149,8 @@ namespace FNPlugin.Beamedpower
         // Initialization
         public override void OnStart(PartModule.StartState state)
         {
+            diameter = Math.Sqrt(surfaceArea);
+            
             if (state == StartState.None || state == StartState.Editor)
                 return;
 
@@ -188,8 +211,10 @@ namespace FNPlugin.Beamedpower
         /// Is called by KSP while the part is active
         /// </summary>
         public override void OnUpdate()
-        {
-            localStar = PluginHelper.GetCurrentStar();            
+        {   // update local star
+            _localStar = PluginHelper.GetCurrentStar();
+            // update available beamed power transmitters
+            _transmitData = BeamedPowerHelper.GetConnectedTransmitters(this);
 
             // Sail deployment GUI
             Events["DeploySail"].active = !IsEnabled;
@@ -214,19 +239,14 @@ namespace FNPlugin.Beamedpower
             solar_acc_d = 0;
             cosConeAngle = 0;
 
-            if (FlightGlobals.fetch == null || localStar == null || part == null || vessel == null ||  !IsEnabled)
+            if (FlightGlobals.fetch == null || _localStar == null || part == null || vessel == null || !IsEnabled)
                 return;
 
             UpdateChangeGui();
 
-            universalTime = Planetarium.GetUniversalTime();
+            var universalTime = Planetarium.GetUniversalTime();
 
-            //if (TimeWarp.CurrentRate > 1)
-            //{
-            //    universalTime -= TimeWarp.CurrentRate + 1;
-            //}
-
-            Vector3d positionSun = localStar.getPositionAtUT(universalTime);
+            Vector3d positionSun = _localStar.getPositionAtUT(universalTime);
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
             // Not in sunlight
@@ -286,9 +306,9 @@ namespace FNPlugin.Beamedpower
             var midPos = shipPos - endBeamPos;
             var timeCorrection = TimeWarp.CurrentRate > 1 ? -vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
 
-            solarVectorX = ownsunPosition.normalized.x * 90;
-            solarVectorY = ownsunPosition.normalized.y * 90 - 90;
-            solarVectorZ = ownsunPosition.normalized.z * 90;
+            var solarVectorX = ownsunPosition.normalized.x * 90;
+            var solarVectorY = ownsunPosition.normalized.y * 90 - 90;
+            var solarVectorZ = ownsunPosition.normalized.z * 90;
 
             solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
             solar_effect.transform.localScale = new Vector3(effectSize1, 10000, effectSize1);

@@ -13,11 +13,11 @@ namespace FNPlugin.Beamedpower
 
         double Diameter { get; }
 
-        double ApertureMultiplier { get; }
-
-        double MaximumWavelength { get; }
+        double ApertureMultiplier { get; }        
 
         double MinimumWavelength { get; }
+
+        double MaximumWavelength { get; }
 
         double HighSpeedAtmosphereFactor { get; }
 
@@ -85,6 +85,10 @@ namespace FNPlugin.Beamedpower
 
             switch (receiver.ReceiverType)
             {
+                case 0:
+                    //Scale energy reception based on angle of reciever to transmitter from top
+                    facingFactor = Math.Max(0, Vector3d.Dot(receiver.Part.transform.up, directionVector));
+                    break;
                 case 1:
                     // recieve from sides
                     facingFactor = Math.Min(1 - Math.Abs(Vector3d.Dot(receiver.Part.transform.up, directionVector)), 1);
@@ -107,6 +111,10 @@ namespace FNPlugin.Beamedpower
                     break;
                 case 6:
                     facingFactor = Math.Min(1, Math.Abs(Vector3d.Dot(receiver.Part.transform.forward, directionVector)));
+                    break;
+                case 7:
+                    //Scale energy reception based on angle of reciever to transmitter from top or bottom
+                    facingFactor = Math.Max(0, Math.Abs(Vector3d.Dot(receiver.Part.transform.up, directionVector)));
                     break;
                 default:
                     //Scale energy reception based on angle of reciever to transmitter from top
