@@ -115,6 +115,17 @@ namespace FNPlugin
         public double baseMaxIsp;
         [KSPField]
         public double wasteHeatBufferMult = 1;
+        [KSPField]
+
+        public bool overrideAtmCurve = true;
+        [KSPField]
+        public bool overrideVelocityCurve = true;
+        [KSPField]
+        public bool overrideAtmosphereCurve = true;
+        [KSPField]
+        public bool overrideAccelerationSpeed = true;
+        [KSPField]
+        public bool overrideDecelerationSpeed = true;
 
         [KSPField]
         public bool isPlasmaNozzle = false;
@@ -274,6 +285,13 @@ namespace FNPlugin
         protected Guid id = Guid.NewGuid();
         protected ConfigNode[] propellantsConfignodes;
 
+        protected FloatCurve originalAtmCurve;
+        protected FloatCurve originalAtmosphereCurve;
+        protected FloatCurve originalVelocityCurve;
+
+        protected float originalEngineAccelerationSpeed;
+        protected float originalEngineDecelerationSpeed;
+
         protected Animation deployAnim;
         protected AnimationState[] pulseAnimationState;
         protected AnimationState[] emiAnimationState;
@@ -290,6 +308,8 @@ namespace FNPlugin
         protected float jetTechBonus;
         protected float jetTechBonusPercentage;
         protected float jetTechBonusCurveChange;
+
+
 
         private IPowerSource _myAttachedReactor;
         public IPowerSource AttachedReactor
@@ -449,6 +469,16 @@ namespace FNPlugin
                 myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
                 timewarpEngine = this.part.FindModuleImplementing<ModuleEnginesWarp>();
 
+                if (myAttachedEngine != null)
+                {
+                    originalAtmCurve = myAttachedEngine.atmCurve;
+                    originalAtmosphereCurve = myAttachedEngine.atmosphereCurve;
+                    originalVelocityCurve = myAttachedEngine.velCurve;
+
+                    originalEngineAccelerationSpeed = myAttachedEngine.engineAccelerationSpeed;
+                    originalEngineDecelerationSpeed = myAttachedEngine.engineDecelerationSpeed;
+                }
+
                 // find attached thermal source
                 ConnectToThermalSource();
 
@@ -500,8 +530,8 @@ namespace FNPlugin
                 jetTechBonusCurveChange = jetTechBonus / 9.92992f;
                 jetTechBonusPercentage = jetTechBonus / 49.6496f;
 
-                effectiveJetengineAccelerationSpeed = jetengineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonusCurveChange * 5;
-                effectiveJetengineDecelerationSpeed = jetengineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonusCurveChange * 5;
+                effectiveJetengineAccelerationSpeed = overrideAccelerationSpeed ?  jetengineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonusCurveChange * 5 : originalEngineAccelerationSpeed;
+                effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ?  jetengineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonusCurveChange * 5 : originalEngineDecelerationSpeed;
 
                 Fields["temperatureStr"].guiActive = showPartTemperature;
             }
@@ -885,49 +915,67 @@ namespace FNPlugin
             }
             else
             {
-                if (jetPerformanceProfile == 0)
+                if (overrideVelocityCurve)
                 {
-                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, (float)PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4f / 5f, (float)PluginHelper.MaxThermalNozzleIsp));
-
-                    velCurve.Add(0, 0.05f + jetTechBonusPercentage / 2);
-                    velCurve.Add(2.5f - jetTechBonusCurveChange, 1);
-                    velCurve.Add(5f + jetTechBonusCurveChange, 1);
-                    velCurve.Add(50, 0 + jetTechBonusPercentage);
+                    if (jetPerformanceProfile == 0)
+                    {
+                        velCurve.Add(0, 0.05f + jetTechBonusPercentage / 2);
+                        velCurve.Add(2.5f - jetTechBonusCurveChange, 1);
+                        velCurve.Add(5f + jetTechBonusCurveChange, 1);
+                        velCurve.Add(50, 0 + jetTechBonusPercentage);
+                    }
+                    else if (jetPerformanceProfile == 1)
+                    {
+                        velCurve.Add(0f, 0.50f + jetTechBonusPercentage);
+                        velCurve.Add(1f, 1.00f);
+                        velCurve.Add(2f, 0.75f + jetTechBonusPercentage);
+                        velCurve.Add(3f, 0.50f + jetTechBonusPercentage);
+                        velCurve.Add(4f, 0.25f + jetTechBonusPercentage);
+                        velCurve.Add(5f, 0.00f + jetTechBonusPercentage);
+                        velCurve.Add(6f, 0.00f);
+                    }
                 }
-                else if (jetPerformanceProfile == 1)
+                else
+                    velCurve = originalVelocityCurve;
+
+                if (overrideAtmosphereCurve)
                 {
-                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5.0f / 4.0f, (float)PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-
-                    velCurve.Add(0f, 0.50f + jetTechBonusPercentage);
-                    velCurve.Add(1f, 1.00f);
-                    velCurve.Add(2f, 0.75f + jetTechBonusPercentage);
-                    velCurve.Add(3f, 0.50f + jetTechBonusPercentage);
-                    velCurve.Add(4f, 0.25f + jetTechBonusPercentage);
-                    velCurve.Add(5f, 0.00f + jetTechBonusPercentage);
-                    velCurve.Add(6f, 0.00f);
+                    if (jetPerformanceProfile == 0)
+                    {
+                        atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, (float)PluginHelper.MaxThermalNozzleIsp));
+                        atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                        atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                        atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4f / 5f, (float)PluginHelper.MaxThermalNozzleIsp));
+                    }
+                    else if (jetPerformanceProfile == 1)
+                    {
+                        atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, (float)PluginHelper.MaxThermalNozzleIsp));
+                        atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                        atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                        atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
+                    }
                 }
+                else
+                    atmosphereIspCurve = originalAtmosphereCurve;
 
-                // configure atmCurve
-                atmCurve.Add(0, 0);
-                atmCurve.Add(0.045f, 0.25f);
-                atmCurve.Add(0.16f, 0.55f);
-                atmCurve.Add(0.5f, 0.8f);
-                atmCurve.Add(1f, 1f);
+                if (overrideAtmCurve)
+                {
+                    atmCurve.Add(0, 0);
+                    atmCurve.Add(0.045f, 0.25f);
+                    atmCurve.Add(0.16f, 0.55f);
+                    atmCurve.Add(0.5f, 0.8f);
+                    atmCurve.Add(1f, 1f);
+                }
+                else
+                    atmCurve = originalAtmCurve;
 
                 myAttachedEngine.atmCurve = atmCurve;
-                myAttachedEngine.useAtmCurve = true;
-
-                myAttachedEngine.ignitionThreshold = 0.01f;
-                myAttachedEngine.useVelCurve = true;
                 myAttachedEngine.velCurve = velCurve;
                 myAttachedEngine.engineAccelerationSpeed = effectiveJetengineAccelerationSpeed;
                 myAttachedEngine.engineDecelerationSpeed = effectiveJetengineDecelerationSpeed;
+
+                myAttachedEngine.useAtmCurve = true;
+                myAttachedEngine.useVelCurve = true;
                 myAttachedEngine.useEngineResponseTime = true;
             }
 
