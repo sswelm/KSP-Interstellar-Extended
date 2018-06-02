@@ -25,16 +25,24 @@ namespace FNPlugin.Beamedpower
         public double surfaceArea = 144400;
         [KSPField(guiActiveEditor = true, guiName = "Diameter", guiUnits = " m")]
         public double diameter;
-        [KSPField]
-        public string animName;
+
         [KSPField]
         public float effectSize1 = 2.5f;
         [KSPField]
         public float effectSize2 = 5;
 
+        [KSPField]
+        public string animName;
+        [KSPField]
+        public float initialAnimationSpeed = 1;
+        [KSPField]
+        public float initialAnimationNormalizedTime = 0.5f;
+        [KSPField]
+        public float initialAnimationTargetWeight = 0.01f;
+
         // GUI
         // Force and Acceleration
-        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F3", guiUnits = " W/m\xB2")]
         public double averageSolarFluxInWatt;
         [KSPField(guiActive = true, guiName = "Calculated Solar Force")]
         public string solarForceAtDistance;
@@ -49,14 +57,14 @@ namespace FNPlugin.Beamedpower
 
         [KSPField(guiActive = false, guiName = "Sail Cos", guiFormat = "F6")]
         public double cosConeAngle;
-        [KSPField(guiActive = true, guiName = "Sail Angle", guiFormat = "F6")]
+        [KSPField(guiActive = true, guiName = "Sun Incedense", guiFormat = "F4", guiUnits = "°")]
         public double sailAngle;
 
-        [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F5")]
+        [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F4")]
         public double periapsisChange;
-        [KSPField(guiActive = true, guiName = "Abs Apapsis Change", guiFormat = "F5")]
+        [KSPField(guiActive = true, guiName = "Abs Apapsis Change", guiFormat = "F4")]
         public double apapsisChange;
-        [KSPField(guiActive = true, guiName = "Orbit size Change", guiFormat = "F5")]
+        [KSPField(guiActive = true, guiName = "Orbit size Change", guiFormat = "F4")]
         public double orbitSizeChange;
 
         protected Transform surfaceTransform = null;
@@ -76,11 +84,10 @@ namespace FNPlugin.Beamedpower
         protected double solarForceBasedOnFlux_d = 0;
 
         CelestialBody _localStar;
-
         IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitData;
 
-        private Queue<double> periapsisChangeQueue = new Queue<double>(10);
-        private Queue<double> apapsisChangeQueue = new Queue<double>(10);
+        private Queue<double> periapsisChangeQueue = new Queue<double>(20);
+        private Queue<double> apapsisChangeQueue = new Queue<double>(20);
         private Queue<double> solarFluxQueue = new Queue<double>(100);
 
         //private GameObject force_effect;
@@ -110,7 +117,7 @@ namespace FNPlugin.Beamedpower
 
         public double FacingEfficiencyExponent { get { return 1; } }
 
-        public double SpotsizeNormalizationExponent { get { return 0.9; } }
+        public double SpotsizeNormalizationExponent { get { return 1; } }
 
         public bool CanBeActiveInAtmosphere { get { return false; } }
 
@@ -122,10 +129,12 @@ namespace FNPlugin.Beamedpower
         [KSPEvent(guiActive = true, guiName = "Deploy Sail", active = true)]
         public void DeploySail()
         {
+            //_genericAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));
+
             if (animName == null || solarSailAnim == null)
                 return;
 
-            solarSailAnim[animName].speed = 1f;
+            solarSailAnim[animName].speed = 0.5f;
             solarSailAnim[animName].normalizedTime = 0f;
             solarSailAnim.Blend(animName, 0.1f);
 
@@ -136,10 +145,12 @@ namespace FNPlugin.Beamedpower
         [KSPEvent(guiActive = true, guiName = "Retract Sail", active = false)]
         public void RetractSail()
         {
+            //_genericAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Deactivate));
+
             if (animName == null || solarSailAnim == null)
                 return;
 
-            solarSailAnim[animName].speed = -1f;
+            solarSailAnim[animName].speed = -0.5f;
             solarSailAnim[animName].normalizedTime = 1f;
             solarSailAnim.Blend(animName, 0.1f);
 
@@ -160,9 +171,9 @@ namespace FNPlugin.Beamedpower
             // start with deployed sail  when enabled
             if (IsEnabled)
             {
-                solarSailAnim[animName].speed = 1f;
-                solarSailAnim[animName].normalizedTime = 0f;
-                solarSailAnim.Blend(animName, 0.1f);
+                solarSailAnim[animName].speed = initialAnimationSpeed;
+                solarSailAnim[animName].normalizedTime = initialAnimationNormalizedTime;
+                solarSailAnim.Blend(animName, initialAnimationTargetWeight);
             }
 
             this.part.force_activate();
@@ -268,7 +279,7 @@ namespace FNPlugin.Beamedpower
             cosConeAngle = Vector3d.Dot(ownsunPosition.normalized, partNormal);
 
             // convert to angle in degree
-            sailAngle = cosConeAngle * 90;
+            sailAngle = Math.Acos(cosConeAngle) * (180d / Math.PI);
 
             // calculate solar light force at current location
             solarForceAtDistance_d = SolarForceAtDistance(positionSun, positionVessel);
@@ -337,12 +348,12 @@ namespace FNPlugin.Beamedpower
             var averageFixedDeltaTime = (previousFixedDeltaTime + TimeWarp.fixedDeltaTime) / 2f;
 
             periapsisChangeQueue.Enqueue((vessel.orbit.PeA - previousPeA) / averageFixedDeltaTime);
-            if (periapsisChangeQueue.Count > 10)
+            if (periapsisChangeQueue.Count > 20)
                 periapsisChangeQueue.Dequeue();
             periapsisChange = periapsisChangeQueue.Average();
 
             apapsisChangeQueue.Enqueue((vessel.orbit.ApA - previousAeA) / averageFixedDeltaTime);
-            if (apapsisChangeQueue.Count > 10)
+            if (apapsisChangeQueue.Count > 20)
                 apapsisChangeQueue.Dequeue();
             apapsisChange = apapsisChangeQueue.Average();
 
