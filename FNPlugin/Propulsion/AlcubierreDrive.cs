@@ -79,9 +79,9 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_totalWarpPower", guiFormat = "F1", guiUnits = " t")]
         public float totalWarpPower;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_vesselTotalMass", guiFormat = "F4", guiUnits = " t")]
-        public float vesselTotalMass;
+        public double vesselTotalMass;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpToMassRatio", guiFormat = "F4")]
-        public float warpToMassRatio;
+        public double warpToMassRatio;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_gravityAtSeaLevel", guiUnits = " m/s\xB2", guiFormat = "F5")]
         public double gravityAtSeaLevel;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_gravityVesselPull", guiUnits = " m/s\xB2", guiFormat = "F5")]
@@ -801,7 +801,7 @@ namespace FNPlugin
         {
             if (!HighLogic.LoadedSceneIsEditor) return;
 
-            float massOfAlcubiereDrives;
+            double massOfAlcubiereDrives;
             var warpdriveList = vessel.GetVesselAndModuleMass<AlcubierreDrive>(out vesselTotalMass, out massOfAlcubiereDrives);
 
             totalWarpPower = warpdriveList.Sum(w => w.warpStrength * (w.isupgraded ? w.warpPowerMultTech1 : w.warpPowerMultTech0));
@@ -820,9 +820,9 @@ namespace FNPlugin
 
             if (moduleReactionWheel != null)
             {
-                moduleReactionWheel.PitchTorque = IsEnabled ? reactionWheelStrength * warpToMassRatio : reactionWheelStrength;
-                moduleReactionWheel.YawTorque = IsEnabled ? reactionWheelStrength * warpToMassRatio : reactionWheelStrength;
-                moduleReactionWheel.RollTorque = IsEnabled ? reactionWheelStrength * warpToMassRatio : reactionWheelStrength;
+                moduleReactionWheel.PitchTorque = IsEnabled ? (float)(reactionWheelStrength * warpToMassRatio) : reactionWheelStrength;
+                moduleReactionWheel.YawTorque = IsEnabled ? (float)(reactionWheelStrength * warpToMassRatio) : reactionWheelStrength;
+                moduleReactionWheel.RollTorque = IsEnabled ? (float)(reactionWheelStrength * warpToMassRatio) : reactionWheelStrength;
             }
 
             if (ResearchAndDevelopment.Instance != null)
@@ -885,7 +885,7 @@ namespace FNPlugin
             if (alcubierreDrives != null)
                 totalWarpPower = alcubierreDrives.Sum(p => p.warpStrength * (p.isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)); 
 
-            vesselTotalMass = vessel.GetTotalMass();
+            vesselTotalMass = vessel.totalMass;
             if (totalWarpPower != 0 && vesselTotalMass != 0)
             {
                 warpToMassRatio = totalWarpPower / vesselTotalMass;

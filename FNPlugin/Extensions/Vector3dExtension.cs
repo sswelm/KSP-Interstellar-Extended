@@ -8,7 +8,7 @@ namespace FNPlugin.Extensions
     public static class Vector3dExtension
     {
         // Calculate DeltaV vector and update resource demand from mass (demandMass)
-        public static Vector3d CalculateDeltaVV(this Vector3d thrustDirection, float totalMass, float deltaTime, double thrust, double isp, out double demandMass)
+        public static Vector3d CalculateDeltaVV(this Vector3d thrustDirection, double totalMass, float deltaTime, double thrust, double isp, out double demandMass)
         {
             // Mass flow rate
             var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);

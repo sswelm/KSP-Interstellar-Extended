@@ -282,9 +282,8 @@ namespace FNPlugin
                 // Calculate thrust and deltaV if demand output > 0
                 if (fuelRatio > 0)
                 {
-                    var vesselMass = this.vessel.GetTotalMass(); // Current mass
-                    var remainingMass = vesselMass - demandMass; // Mass at end of burn
-                    var deltaV = IspPersistent * PluginHelper.GravityConstant * Math.Log(vesselMass / remainingMass); // Delta V from burn
+                    var remainingMass = this.vessel.totalMass - demandMass; // Mass at end of burn
+                    var deltaV = IspPersistent * PluginHelper.GravityConstant * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
 
                     Vector3d thrustV = this.part.transform.up; // Thrust direction
                     var deltaVV = deltaV * thrustV; // DeltaV vector

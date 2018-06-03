@@ -534,7 +534,7 @@ namespace FNPlugin
             {
                 _warpToReal = true; // Set to true for transition to realtime
 
-                PersistantThrust(TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), this.part.transform.up, this.vessel.GetTotalMass());
+                PersistantThrust(TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), this.part.transform.up, this.vessel.totalMass);
             }
             else
             {
@@ -592,7 +592,7 @@ namespace FNPlugin
             return !(value <= 0);
         }
 
-        private void PersistantThrust(float fixedDeltaTime, double universalTime, Vector3d thrustDirection, float vesselMass)
+        private void PersistantThrust(float fixedDeltaTime, double universalTime, Vector3d thrustDirection, double vesselMass)
         {
             var propellantAverageDensity = Current_propellant.ResourceDefinition.density;
 

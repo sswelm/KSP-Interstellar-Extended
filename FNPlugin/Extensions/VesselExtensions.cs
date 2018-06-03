@@ -6,7 +6,7 @@ namespace FNPlugin
 {
     public static class VesselExtensions
     {
-        public static List<T> GetVesselAndModuleMass<T>(this Vessel vessel, out float totalmass, out float modulemass) where T : class
+        public static List<T> GetVesselAndModuleMass<T>(this Vessel vessel, out double totalmass, out double modulemass) where T : class
         {
             totalmass = 0;
             modulemass = 0;

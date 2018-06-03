@@ -931,12 +931,12 @@ namespace FNPlugin
 
                         for (var step = 0; step < deltaCalculations; step++)
                         {
-                            PersistantThrust(deltaTimeStep, universalTime + (step * deltaTimeStep), this.part.transform.up, this.vessel.GetTotalMass());
+                            PersistantThrust(deltaTimeStep, universalTime + (step * deltaTimeStep), this.part.transform.up, this.vessel.totalMass);
                             CalculateTimeDialation();
                         }
                     }
                     else
-                        PersistantThrust(TimeWarp.fixedDeltaTime, universalTime, this.part.transform.up, this.vessel.GetTotalMass());
+                        PersistantThrust(TimeWarp.fixedDeltaTime, universalTime, this.part.transform.up, this.vessel.totalMass);
                 }
                 else
                 {
@@ -975,7 +975,7 @@ namespace FNPlugin
             curEngineT.atmosphereCurve = newAtmosphereCurve;
         }
 
-        private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, float vesselMass)
+        private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
             var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
             var timeDialationEngineIsp = timeDilation * engineIsp;

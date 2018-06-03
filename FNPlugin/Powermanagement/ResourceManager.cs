@@ -692,7 +692,7 @@ namespace FNPlugin
             if (resourceDefinition.id == wasteheatResourceDefinition.id)
             {
                 // passive dissip of waste heat - a little bit of this
-                double vessel_mass = my_vessel.GetTotalMass();
+                double vessel_mass = my_vessel.totalMass;
                 double passive_dissip = 2947.295521 * GameConstants.stefan_const * vessel_mass * 2;
                 internl_power_extract_fixed += passive_dissip * TimeWarp.fixedDeltaTime;
 

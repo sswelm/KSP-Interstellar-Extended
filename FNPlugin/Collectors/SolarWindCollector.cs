@@ -879,7 +879,7 @@ namespace FNPlugin
 
             if (vessel.packed)
             {
-                var totalVesselMassInKg = part.vessel.GetTotalMass() * 1000;
+                var totalVesselMassInKg = part.vessel.totalMass * 1000;
                 if (totalVesselMassInKg <= 0)
                     return;
 

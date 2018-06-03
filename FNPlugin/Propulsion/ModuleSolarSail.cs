@@ -105,7 +105,7 @@ namespace FNPlugin {
                 Vector3d solarForce = CalculateSolarForce() * sunlightFactor;
                 //print(surfaceArea);
 
-                Vector3d solar_accel = solarForce / vessel.GetTotalMass() / 1000.0 * TimeWarp.fixedDeltaTime;
+                Vector3d solar_accel = solarForce / vessel.totalMass / 1000.0 * TimeWarp.fixedDeltaTime;
                 if (!this.vessel.packed) 
                 {
                     vessel.ChangeWorldVelocity(solar_accel);
