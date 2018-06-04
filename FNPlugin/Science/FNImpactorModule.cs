@@ -55,11 +55,9 @@ namespace FNPlugin
                 return;
             }
 
-            //vesselMass = vessel.GetTotalMass();
-
             // Do nothing if we aren't very near the terrain.  Note that using heightFromTerrain probably allows
             // impactors against the ocean floor... good luck.
-            double vesselDimension = vessel.MOI.magnitude / vessel.totalMass;
+            double vesselDimension = vessel.MOI.magnitude / vessel.GetTotalMass();
             if (vessel.heightFromSurface > Math.Max(vesselDimension, 0.75f)) 
             {
                 Debug.Log("[KSPI] - Impactor: Ignored due to vessel altitude being too high.");
@@ -87,7 +85,7 @@ namespace FNPlugin
              * to be much faster, but that heavier impactors may be slower.
              * 
              * */
-            if ((Math.Pow(vessel.verticalSpeed, 2d) * vessel.totalMass / 2d < 800d) && vessel.verticalSpeed > 20d) 
+            if ((Math.Pow(vessel.verticalSpeed, 2d) * vessel.GetTotalMass() / 2d < 800d) && vessel.verticalSpeed > 20d) 
             {
                 Debug.Log("[KSPI] - Impactor: Ignored due to vessel imparting too little impact energy.");
                 return;
