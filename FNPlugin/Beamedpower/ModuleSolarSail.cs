@@ -65,6 +65,9 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = true, guiName = "Orbit size Change", guiFormat = "F4")]
         public double orbitSizeChange;
 
+        //[KSPField(guiActive = true, guiName = "Core Temperure Offset Exponent"), UI_FloatRange(stepIncrement = 1, maxValue = 30, minValue = -30)]
+        //public float coreTemperureOffsetExponent = 0;
+
         protected Transform surfaceTransform = null;
         protected Animation solarSailAnim = null;
 
@@ -210,6 +213,7 @@ namespace FNPlugin.Beamedpower
         public override void OnUpdate()
         {   // update local star
             _localStar = PluginHelper.GetCurrentStar();
+
             // update available beamed power transmitters
             _transmitData = BeamedPowerHelper.GetConnectedTransmitters(this);
 
@@ -287,12 +291,7 @@ namespace FNPlugin.Beamedpower
             if (this.vessel.packed)
                 vessel.orbit.Perturb(fixedSolatAccel, universalTime);
             else
-            {
                 vessel.ChangeWorldVelocity(fixedSolatAccel);
-
-                //var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
-                //vesselRegitBody.AddForceAtPosition(fixedSolatAccel, vessel.CoM, ForceMode.Force);
-            }
 
             // Update displayed force & acceleration
             solar_force_d = solarForce.magnitude;

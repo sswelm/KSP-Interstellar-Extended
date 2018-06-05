@@ -167,8 +167,8 @@ namespace FNPlugin
         double dHydrogenSpareCapacity;
         double dShieldedEffectiveness = 0;
 
-        float effectiveIonisationFactor;
-        float effectiveNonIonisationFactor;
+        double effectiveIonisationFactor;
+        double effectiveNonIonisationFactor;
         float newNormalTime;
         float previousIonisationPercentage;
 
@@ -847,11 +847,17 @@ namespace FNPlugin
             var interstellarDustDragInNewton = minimumInterstellarMomentumChange + (SquareDragFactor * vessel.obt_speed * minimumInterstellarMomentumChange);
 
             ionisationFacingFactor = Math.Max(0, Vector3d.Dot(part.transform.up, part.vessel.obt_velocity.normalized) - 0.5) * 2;
-            effectiveIonisationFactor = (float)ionisationFacingFactor * Mathf.Pow(ionisationPercentage * 0.01f, 2);
+
+            var atmosphereModifier = Math.Max(0, 1 - Math.Pow(vessel.atmDensity, 0.2));
+
+            effectiveIonisationFactor = ionisationFacingFactor * atmosphereModifier * Math.Pow(ionisationPercentage * 0.01, 2);
             effectiveNonIonisationFactor = 1 - effectiveIonisationFactor;
 
             var effectiveSolidVesselDrag = !bIsExtended ? 0 : surfaceArea * vessel.obt_speed * vessel.obt_speed * (atmosphericGasKgPerSquareMeter + interstellarDustKgPerSquareMeter);
-            var effectiveMagneticAtmosphereDrag = effectiveIonisationFactor * atmosphericGasDragInNewton + effectiveNonIonisationFactor * atmosphericIonDragInNewton;
+
+            var cosAngleToGravityVector = 1 - Math.Abs(Vector3d.Dot(part.vessel.gravityTrue.normalized, part.vessel.obt_velocity.normalized));
+
+            var effectiveMagneticAtmosphereDrag = cosAngleToGravityVector * (effectiveIonisationFactor * atmosphericGasDragInNewton + effectiveNonIonisationFactor * atmosphericIonDragInNewton);
             var effectiveInterstellarDrag = interstellarDustDragInNewton * (effectiveIonisationFactor + effectiveNonIonisationFactor * interstellarIonRatio);
 
             var dEffectiveOrbitalVesselDragInNewton = effectiveSolidVesselDrag + effectiveMagneticSurfaceAreaInSquareMeter * (effectiveMagneticAtmosphereDrag + effectiveInterstellarDrag);
@@ -877,64 +883,37 @@ namespace FNPlugin
             fSolarWindDragInNewtonPerSquareMeter = (float)solarwindDragInNewtonPerSquareMeter;
             fSolarWindVesselForceInNewton = (float)dSolarWindVesselForceInNewton;
 
-            if (vessel.packed)
+            var totalVesselMassInKg = part.vessel.totalMass * 1000;
+            if (totalVesselMassInKg <= 0)
+                return;
+
+            var universalTime = Planetarium.GetUniversalTime();
+            if (universalTime <= 0)
+                return;
+            
+            var orbitalDragDeltaVv = TimeWarp.fixedDeltaTime * part.vessel.obt_velocity.normalized * -dEffectiveOrbitalVesselDragInNewton / totalVesselMassInKg;
+            var solarPushDeltaVv = TimeWarp.fixedDeltaTime * solarWindDirectionVector.normalized * -fSolarWindVesselForceInNewton / totalVesselMassInKg;
+            TimeWarp.GThreshold = 2;
+
+            if (!double.IsNaN(orbitalDragDeltaVv.x) && !double.IsNaN(orbitalDragDeltaVv.y) && !double.IsNaN(orbitalDragDeltaVv.z))
             {
-                var totalVesselMassInKg = part.vessel.totalMass * 1000;
-                if (totalVesselMassInKg <= 0)
-                    return;
-
-                var universalTime = Planetarium.GetUniversalTime();
-                if (universalTime <= 0)
-                    return;
-
-                var orbitalDragDeltaVv = TimeWarp.fixedDeltaTime * part.vessel.obt_velocity.normalized * -dEffectiveOrbitalVesselDragInNewton / totalVesselMassInKg;
-                vessel.orbit.Perturb(orbitalDragDeltaVv, universalTime);
-
-                var solarPushDeltaVv = TimeWarp.fixedDeltaTime * solarWindDirectionVector.normalized * -fSolarWindVesselForceInNewton / totalVesselMassInKg;
-                vessel.orbit.Perturb(solarPushDeltaVv, universalTime);
+                if (vessel.packed)
+                    vessel.orbit.Perturb(orbitalDragDeltaVv, universalTime);
+                else
+                    vessel.ChangeWorldVelocity(orbitalDragDeltaVv);
             }
-            else
+
+            if (!double.IsNaN(solarPushDeltaVv.x) && !double.IsNaN(solarPushDeltaVv.y) && !double.IsNaN(solarPushDeltaVv.z))
             {
-                TimeWarp.GThreshold = 2;
-
-                var orbitalDragAccel = part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3;
-                var solarWindAccel = solarWindDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3;
-
-                var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
-                vesselRegitBody.AddForce(orbitalDragAccel, ForceMode.Force);
-                vesselRegitBody.AddForce(solarWindAccel, ForceMode.Force);
-
-                //vessel.ChangeWorldVelocity(orbitalDragAccel);
-                //vessel.ChangeWorldVelocity(solarWindAccel);
-
-                //vesselRegitBody.AddForceAtPosition(orbitalDragAccel, vessel.CoM, ForceMode.Force);
-                //vesselRegitBody.AddForceAtPosition(solarWindAccel, vessel.CoM, ForceMode.Force);
-
-                //vesselRegitBody.AddForceAtPosition(vesselRegitBody.centerOfMass, (part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3));
-                //var totalMass = part.vessel.totalMass;
-                //totalVesselMass = part.vessel.GetTotalMass();
-
-                //foreach (Part currentPart in part.vessel.Parts)
-                //{
-                    //var partRegitBody = currentPart.vessel.GetComponent<Rigidbody>();
-                    //var partDirection = Part.VesselToPartSpaceDir(part.vel, part, part.vessel, PartSpaceMode.Pristine);
-                    //var partHeading = new Vector3d(currentPart.transform.up.x, currentPart.transform.up.y, currentPart.transform.up.z);
-
-                    //var vesselHeading =   new Vector3((float)part.vessel.velocityD.x, (float)part.vessel.velocityD.y, (float)part.vessel.velocityD.z);
-
-                    //var transformedHeading = currentPart.transform.TransformDirection(vesselHeading);
-
-                    //var partHeading = new Vector3d(currentPart.transform.forward.x, currentPart.transform.forward.z, currentPart.transform.forward.y);
-                    //var partHeading = new Vector3d(currentPart.transform.up.x, currentPart.transform.up.y, currentPart.transform.up.z);
-
-                    //var partVesselHeading = Vector3d.RotateTowards(partHeading, part.vessel.velocityD, (float)Math.PI, 1);
-
-                    //var transformedForce = currentPart.transform.TransformDirection(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3 * (part.mass / totalVesselMass));
-                    //var transformedForce = partHeading.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3 * (part.mass / totalVesselMass);
-
-                    //currentPart.AddForce(transformedForce);
-                //}
+                if (vessel.packed)
+                    vessel.orbit.Perturb(solarPushDeltaVv, universalTime);
+                else
+                    vessel.ChangeWorldVelocity(solarPushDeltaVv);
             }
+
+            //var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
+            //vesselRegitBody.AddForce(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3, ForceMode.Force);
+            //vesselRegitBody.AddForce(solarWindDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3, ForceMode.Force);
 
         }
 
