@@ -897,9 +897,18 @@ namespace FNPlugin
             {
                 TimeWarp.GThreshold = 2;
 
+                var orbitalDragAccel = part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3;
+                var solarWindAccel = solarWindDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3;
+
                 var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
-                vesselRegitBody.AddForce(part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3, ForceMode.Force);
-                vesselRegitBody.AddForce(solarWindDirectionVector.normalized * -dSolarWindVesselForceInNewton * 1e-3, ForceMode.Force);
+                vesselRegitBody.AddForce(orbitalDragAccel, ForceMode.Force);
+                vesselRegitBody.AddForce(solarWindAccel, ForceMode.Force);
+
+                //vessel.ChangeWorldVelocity(orbitalDragAccel);
+                //vessel.ChangeWorldVelocity(solarWindAccel);
+
+                //vesselRegitBody.AddForceAtPosition(orbitalDragAccel, vessel.CoM, ForceMode.Force);
+                //vesselRegitBody.AddForceAtPosition(solarWindAccel, vessel.CoM, ForceMode.Force);
 
                 //vesselRegitBody.AddForceAtPosition(vesselRegitBody.centerOfMass, (part.vessel.velocityD.normalized * -dEffectiveOrbitalVesselDragInNewton * 1e-3));
                 //var totalMass = part.vessel.totalMass;

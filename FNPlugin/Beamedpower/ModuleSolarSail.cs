@@ -287,7 +287,12 @@ namespace FNPlugin.Beamedpower
             if (this.vessel.packed)
                 vessel.orbit.Perturb(fixedSolatAccel, universalTime);
             else
+            {
                 vessel.ChangeWorldVelocity(fixedSolatAccel);
+
+                //var vesselRegitBody = part.vessel.GetComponent<Rigidbody>();
+                //vesselRegitBody.AddForceAtPosition(fixedSolatAccel, vessel.CoM, ForceMode.Force);
+            }
 
             // Update displayed force & acceleration
             solar_force_d = solarForce.magnitude;

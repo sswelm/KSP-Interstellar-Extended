@@ -323,6 +323,13 @@ namespace FNPlugin
          */
         public static CelestialBody GetCurrentStar()
         {
+            //if (Sun.Instance != null && Sun.Instance.sun != null)
+            //    return Sun.Instance.sun;
+
+            //var planetarium = Planetarium.fetch;
+            //if (planetarium != null)
+            //	return planetarium.Sun;
+
             var iDepth = 0;
             var star = FlightGlobals.currentMainBody;
 
