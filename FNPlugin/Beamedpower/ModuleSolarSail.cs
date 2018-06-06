@@ -65,8 +65,10 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = true, guiName = "Orbit size Change", guiFormat = "F4")]
         public double orbitSizeChange;
 
-        //[KSPField(guiActive = true, guiName = "Core Temperure Offset Exponent"), UI_FloatRange(stepIncrement = 1, maxValue = 30, minValue = -30)]
-        //public float coreTemperureOffsetExponent = 0;
+        [KSPField(guiActive = true, guiName = "Max Network power", guiFormat = "F4", guiUnits = " MW")]
+        public double maxNetworkPower;
+        [KSPField(guiActive = true, guiName = "Available beamed power", guiFormat = "F4", guiUnits = " MW")]
+        public double availableBeamedPower;
 
         protected Transform surfaceTransform = null;
         protected Animation solarSailAnim = null;
@@ -86,7 +88,7 @@ namespace FNPlugin.Beamedpower
         double solarForceBasedOnFlux_d = 0;
 
         CelestialBody _localStar;
-        IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitData;
+        IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
 
         Queue<double> periapsisChangeQueue = new Queue<double>(20);
         Queue<double> apapsisChangeQueue = new Queue<double>(20);
@@ -112,7 +114,7 @@ namespace FNPlugin.Beamedpower
 
         public double FacingSurfaceExponent { get { return 1; } }
 
-        public double FacingEfficiencyExponent { get { return 1; } }
+        public double FacingEfficiencyExponent { get { return 0; } }    // can receive beamed power from any angle
 
         public double SpotsizeNormalizationExponent { get { return 1; } }
 
@@ -211,11 +213,35 @@ namespace FNPlugin.Beamedpower
         /// Is called by KSP while the part is active
         /// </summary>
         public override void OnUpdate()
-        {   // update local star
+        {
+            maxNetworkPower = 0;
+            availableBeamedPower = 0;
+            
+            // update local star
             _localStar = PluginHelper.GetCurrentStar();
 
             // update available beamed power transmitters
-            _transmitData = BeamedPowerHelper.GetConnectedTransmitters(this);
+            _transmitDataCollection = BeamedPowerHelper.GetConnectedTransmitters(this);
+
+            foreach (var transmitData in _transmitDataCollection)
+            {
+                VesselMicrowavePersistence transmitter = transmitData.Key;
+                KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>> routeRelayData = transmitData.Value;
+
+                MicrowaveRoute route = routeRelayData.Key;
+                //var relays = routeRelayData.Value;
+
+                foreach(var wavelengthData in transmitter.SupportedTransmitWavelengths)
+                {
+                    var transmittedPower = (wavelengthData.nuclearPower + wavelengthData.solarPower) / 1000d;
+
+                    maxNetworkPower += transmittedPower;
+
+                    var currentWavelengthBeamedPower = transmittedPower * route.Efficiency;
+
+                    availableBeamedPower += currentWavelengthBeamedPower;
+                }
+            }
 
             // Text fields (acc & force)
             Fields["solarAcc"].guiActive = IsEnabled;
