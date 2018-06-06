@@ -89,6 +89,9 @@ namespace FNPlugin.Beamedpower
 
         CelestialBody _localStar;
         IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
+        Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
+
+        ReceivedPowerData mostDominantTransmitter;
 
         Queue<double> periapsisChangeQueue = new Queue<double>(20);
         Queue<double> apapsisChangeQueue = new Queue<double>(20);
@@ -231,17 +234,39 @@ namespace FNPlugin.Beamedpower
                 MicrowaveRoute route = routeRelayData.Key;
                 //var relays = routeRelayData.Value;
 
+                ReceivedPowerData beamedPowerData;
+                if (!received_power.TryGetValue(transmitter.Vessel, out beamedPowerData))
+                {
+                    beamedPowerData = new ReceivedPowerData
+                    {
+                        Receiver = this,
+                        Transmitter = transmitter
+                    };
+                    received_power[beamedPowerData.Transmitter.Vessel] = beamedPowerData;
+                }
+
+                beamedPowerData.NetworkPower = 0;
+                beamedPowerData.AvailablePower = 0;
+                beamedPowerData.Distance = route.Distance;
+
                 foreach(var wavelengthData in transmitter.SupportedTransmitWavelengths)
                 {
                     var transmittedPower = (wavelengthData.nuclearPower + wavelengthData.solarPower) / 1000d;
 
                     maxNetworkPower += transmittedPower;
 
+                    beamedPowerData.NetworkPower += transmittedPower;
+
                     var currentWavelengthBeamedPower = transmittedPower * route.Efficiency;
 
                     availableBeamedPower += currentWavelengthBeamedPower;
+
+                    beamedPowerData.AvailablePower += currentWavelengthBeamedPower; 
                 }
             }
+
+            var orderedPowerList = received_power.Values.OrderByDescending(m => m.AvailablePower).ThenBy(m => m.Distance);
+            mostDominantTransmitter = orderedPowerList.FirstOrDefault();
 
             // Text fields (acc & force)
             Fields["solarAcc"].guiActive = IsEnabled;
@@ -269,22 +294,22 @@ namespace FNPlugin.Beamedpower
 
             var universalTime = Planetarium.GetUniversalTime();
 
-            Vector3d positionSun = _localStar.getPositionAtUT(universalTime);
+            Vector3d positionPowerSource = mostDominantTransmitter != null ? mostDominantTransmitter.Transmitter.Vessel.GetWorldPos3D() :  _localStar.getPositionAtUT(universalTime);
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
-            // calculate vector between vessel and star
-            Vector3d ownsunPosition = positionVessel - positionSun;
+            // calculate vector between vessel and star/transmitter
+            Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
 
             // take part vector 
             Vector3d partNormal = this.part.transform.up;
 
             // Magnitude of force proportional to cosine-squared of angle between sun-line and normal
-            cosConeAngle = Vector3d.Dot(ownsunPosition.normalized, partNormal);
+            cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, partNormal);
 
             // convert to angle in degree
             sailAngle = Math.Acos(cosConeAngle) * radToDegreeMult;
             // add negative
-            if (Vector3d.Dot(this.part.transform.right, ownsunPosition) < 0)
+            if (Vector3d.Dot(this.part.transform.right, powerSourceToVesselVector) < 0)
                 sailAngle = -sailAngle;
 
             // If normal points away from sun, negate so our force is always away from the sun
@@ -293,22 +318,26 @@ namespace FNPlugin.Beamedpower
             {
                 // recalculate Magnitude of force proportional to cosine-squared of angle between sun-line and normal
                 partNormal = -partNormal;
-                cosConeAngle = Vector3d.Dot(ownsunPosition.normalized, partNormal);
+                cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, partNormal);
             }
 
             // calculate solar light force at current location
-            solarForceBasedOnFlux_d = averageSolarFluxInWatt / GameConstants.speedOfLight;
+            solarForceBasedOnFlux_d = 2 * averageSolarFluxInWatt / GameConstants.speedOfLight;
 
-            // Force from sunlight
-            Vector3d solarForce = CalculateSolarForce(this, partNormal, cosConeAngle, solarForceBasedOnFlux_d);
+            var maximumForce = mostDominantTransmitter == null 
+                ? reflectedPhotonRatio * solarForceBasedOnFlux_d * surfaceArea  
+                : reflectedPhotonRatio * availableBeamedPower / 150;
 
-            UpdateBeams(solarForce, ownsunPosition);
+            // effective Force from power source
+            Vector3d effectiveForce = partNormal * cosConeAngle * cosConeAngle * maximumForce;
+
+            UpdateBeams(effectiveForce, powerSourceToVesselVector);
 
             if (!IsEnabled)
                 return;
 
             // Calculate acceleration from sunlight
-            Vector3d solarAccel = solarForce / vessel.totalMass / 1000d;
+            Vector3d solarAccel = effectiveForce / vessel.totalMass / 1000d;
 
             // Acceleration from sunlight per second
             Vector3d fixedSolatAccel = solarAccel * TimeWarp.fixedDeltaTime;
@@ -320,19 +349,19 @@ namespace FNPlugin.Beamedpower
                 vessel.ChangeWorldVelocity(fixedSolatAccel);
 
             // Update displayed force & acceleration
-            solar_force_d = solarForce.magnitude;
+            solar_force_d = effectiveForce.magnitude;
             solar_acc_d = solarAccel.magnitude;
         }
 
-        private void UpdateBeams(Vector3d force3d, Vector3d ownsunPosition)
+        private void UpdateBeams(Vector3d force3d, Vector3d powerSourceToVesselVector)
         {
-            var endBeamPos = part.transform.position + ownsunPosition.normalized * 10000;
+            var endBeamPos = part.transform.position + powerSourceToVesselVector.normalized * 10000;
             var midPos = part.transform.position - endBeamPos;
             var timeCorrection = TimeWarp.CurrentRate > 1 ? -vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
 
-            var solarVectorX = ownsunPosition.normalized.x * 90;
-            var solarVectorY = ownsunPosition.normalized.y * 90 - 90;
-            var solarVectorZ = ownsunPosition.normalized.z * 90;
+            var solarVectorX = powerSourceToVesselVector.normalized.x * 90;
+            var solarVectorY = powerSourceToVesselVector.normalized.y * 90 - 90;
+            var solarVectorZ = powerSourceToVesselVector.normalized.z * 90;
 
             solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
             solar_effect.transform.localScale = new Vector3(effectSize1, 10000, effectSize1);
@@ -379,13 +408,6 @@ namespace FNPlugin.Beamedpower
             previousPeA = vessel.orbit.PeA;
             previousAeA = vessel.orbit.ApA;
             previousFixedDeltaTime = TimeWarp.fixedDeltaTime;
-        }
-
-        // Calculate solar force as function of
-        // sail, orbit, transform, and UT
-        public static Vector3d CalculateSolarForce(ModuleSolarSail sail, Vector3d partNormal, double cosConeAngle, double solarForceAtDistance)
-        {
-            return partNormal * cosConeAngle * cosConeAngle * sail.surfaceArea * sail.reflectedPhotonRatio * solarForceAtDistance;
         }
     }
 }

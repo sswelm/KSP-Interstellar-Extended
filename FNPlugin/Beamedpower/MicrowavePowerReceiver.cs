@@ -11,21 +11,21 @@ using FNPlugin.Beamedpower;
 
 namespace FNPlugin
 {
-    class MonitorData
-    {
-        public Guid partId { get; set; }
-        public double spotsize { get; set; }
-        public double receivedPower { get; set; }
-        public double distanceToSpot { get; set; }
-        public double aperture { get; set; }
-        public float wavelength { get; set; }
-        public Vessel receivingVessel { get; set; }
-        public Vessel sendingVessel { get; set; }
-    }
+    //class MonitorData
+    //{
+    //    public Guid partId { get; set; }
+    //    public double spotsize { get; set; }
+    //    public double receivedPower { get; set; }
+    //    public double distanceToSpot { get; set; }
+    //    public double aperture { get; set; }
+    //    public float wavelength { get; set; }
+    //    public Vessel receivingVessel { get; set; }
+    //    public Vessel sendingVessel { get; set; }
+    //}
 
     class ReceivedPowerData
     {
-        public MicrowavePowerReceiver Receiver { get; set; }
+        public IBeamedPowerReceiver Receiver { get; set; }
         public double CurrentRecievedPower { get; set; }
         public double MaximumReceivedPower { get; set; }
         public double AvailablePower { get; set; }
@@ -38,6 +38,8 @@ namespace FNPlugin
         public double PowerUsageOthers { get; set; }
         public double RemainingPower { get; set; }
         public string Wavelengths { get; set; }
+        public double Distance { get; set; }
+
         public MicrowaveRoute Route { get; set; }
         public IList<VesselRelayPersistence> Relays { get; set; }
         public VesselMicrowavePersistence Transmitter { get; set; }
