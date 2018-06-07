@@ -68,7 +68,7 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = true, guiName = "Max Network power", guiFormat = "F4", guiUnits = " MW")]
         public double maxNetworkPower;
         [KSPField(guiActive = true, guiName = "Available beamed power", guiFormat = "F4", guiUnits = " MW")]
-        public double availableBeamedPower;
+        public double availableBeamedPhotonPower;
 
         protected Transform surfaceTransform = null;
         protected Animation solarSailAnim = null;
@@ -85,7 +85,7 @@ namespace FNPlugin.Beamedpower
         // Display numbers for force and acceleration
         double solar_force_d = 0;
         double solar_acc_d = 0;
-        double solarForceBasedOnFlux_d = 0;
+        double maximumPhotonForceInNewton = 0;
 
         CelestialBody _localStar;
         IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
@@ -218,7 +218,7 @@ namespace FNPlugin.Beamedpower
         public override void OnUpdate()
         {
             maxNetworkPower = 0;
-            availableBeamedPower = 0;
+            availableBeamedPhotonPower = 0;
             
             // update local star
             _localStar = PluginHelper.GetCurrentStar();
@@ -259,7 +259,7 @@ namespace FNPlugin.Beamedpower
 
                     var currentWavelengthBeamedPower = transmittedPower * route.Efficiency;
 
-                    availableBeamedPower += currentWavelengthBeamedPower;
+                    availableBeamedPhotonPower += currentWavelengthBeamedPower;
 
                     beamedPowerData.AvailablePower += currentWavelengthBeamedPower; 
                 }
@@ -274,7 +274,7 @@ namespace FNPlugin.Beamedpower
 
             forceAcquired = solar_force_d.ToString("E") + " N";
             solarAcc = solar_acc_d.ToString("E") + " m/s";
-            solarForceBasedOnFlux = solarForceBasedOnFlux_d.ToString("E") + " N/m\xB2";
+            solarForceBasedOnFlux = maximumPhotonForceInNewton.ToString("E") + " N/m\xB2";
         }
 
         public override void OnFixedUpdate()
@@ -321,15 +321,16 @@ namespace FNPlugin.Beamedpower
                 cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, partNormal);
             }
 
-            // calculate solar light force at current location
-            solarForceBasedOnFlux_d = 2 * averageSolarFluxInWatt / GameConstants.speedOfLight;
+            // calculate energy on photon sail
+            var availableEnergyInWatt = mostDominantTransmitter == null 
+                ? averageSolarFluxInWatt * surfaceArea  
+                : availableBeamedPhotonPower * 1e6;
 
-            var maximumForce = mostDominantTransmitter == null 
-                ? reflectedPhotonRatio * solarForceBasedOnFlux_d * surfaceArea  
-                : reflectedPhotonRatio * availableBeamedPower / 150;
+            // calculate solar light force at current location
+            maximumPhotonForceInNewton = 2 * reflectedPhotonRatio * availableEnergyInWatt / GameConstants.speedOfLight;
 
             // effective Force from power source
-            Vector3d effectiveForce = partNormal * cosConeAngle * cosConeAngle * maximumForce;
+            Vector3d effectiveForce = partNormal * cosConeAngle * cosConeAngle * maximumPhotonForceInNewton;
 
             UpdateBeams(effectiveForce, powerSourceToVesselVector);
 
@@ -337,20 +338,23 @@ namespace FNPlugin.Beamedpower
                 return;
 
             // Calculate acceleration from sunlight
-            Vector3d solarAccel = effectiveForce / vessel.totalMass / 1000d;
+            Vector3d photonAccel = effectiveForce / vessel.totalMass / 1000d;
 
             // Acceleration from sunlight per second
-            Vector3d fixedSolatAccel = solarAccel * TimeWarp.fixedDeltaTime;
+            Vector3d fixedPhotonAccel = photonAccel * TimeWarp.fixedDeltaTime;
 
-            // Apply acceleration
-            if (this.vessel.packed)
-                vessel.orbit.Perturb(fixedSolatAccel, universalTime);
-            else
-                vessel.ChangeWorldVelocity(fixedSolatAccel);
+            // Apply acceleration when valid
+            if (!double.IsNaN(fixedPhotonAccel.x) && !double.IsNaN(fixedPhotonAccel.y) && !double.IsNaN(fixedPhotonAccel.z))
+            {                
+                if (this.vessel.packed)
+                    vessel.orbit.Perturb(fixedPhotonAccel, universalTime);
+                else
+                    vessel.ChangeWorldVelocity(fixedPhotonAccel);
+            }
 
             // Update displayed force & acceleration
             solar_force_d = effectiveForce.magnitude;
-            solar_acc_d = solarAccel.magnitude;
+            solar_acc_d = photonAccel.magnitude;
         }
 
         private void UpdateBeams(Vector3d force3d, Vector3d powerSourceToVesselVector)
