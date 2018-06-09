@@ -44,48 +44,58 @@ namespace FNPlugin.Beamedpower
 
         // GUI
         // Force and Acceleration
-        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F3", guiUnits = " W/m\xB2")]
+        [KSPField(guiActive = true, guiName = "Solar Flux Energy", guiFormat = "F3", guiUnits = " W/m\xB2")]
         public double averageSolarFluxInWatt;
-        [KSPField(guiActive = true, guiName = "Solar Force")]
+        [KSPField(guiActive = true, guiName = "Solar Flux Force")]
         public string solarForceBasedOnFlux;
-        [KSPField(guiActive = true, guiName = "Sail Force")]
+        [KSPField(guiActive = true, guiName = "Solar Sail Force")]
         public string forceAcquired = "";
-        [KSPField(guiActive = true, guiName = "Acceleration")]
+        [KSPField(guiActive = true, guiName = "Solar Acceleration")]
         public string solarAcc = "";
+        [KSPField(guiActive = true, guiName = "Solar Incedense", guiFormat = "F3", guiUnits = "°")]
+        public double solarSailAngle = 0;
 
-        [KSPField(guiActive = true, guiName = "Sun Incedense", guiFormat = "F4", guiUnits = "°")]
-        public double sailAngle;
-
-        [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F4")]
-        public double periapsisChange;
-        [KSPField(guiActive = true, guiName = "Abs Apapsis Change", guiFormat = "F4")]
-        public double apapsisChange;
-        [KSPField(guiActive = true, guiName = "Orbit size Change", guiFormat = "F4")]
-        public double orbitSizeChange;
-
-        [KSPField(guiActive = true, guiName = "Max Network power", guiFormat = "F4", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "Network power", guiFormat = "F4", guiUnits = " MW")]
         public double maxNetworkPower;
-        [KSPField(guiActive = true, guiName = "Available beamed power", guiFormat = "F4", guiUnits = " MW")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Photon Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 1)]
+        public float beamedPowerThrottle = 100;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Direction"), UI_Toggle(disabledText = "Backward", enabledText = "Forward")]
+        public bool beamedPowerForwardDirection = true;
+        [KSPField(guiActive = true, guiName = "Beamed Power Energy", guiFormat = "F4", guiUnits = " MW")]
         public double availableBeamedPhotonPower;
+        [KSPField(guiActive = true, guiName = "Beamed Potential Force", guiFormat = "F4", guiUnits = " N")]
+        public double totalForceInNewtonFromBeamedPower = 0;
+        [KSPField(guiActive = true, guiName = "Beamed Sail Force")]
+        public string beamedForceAcquired = "";
+        [KSPField(guiActive = true, guiName = "Beamed Acceleration")]
+        public string beamedSolarAcc = "";
 
-        protected Transform surfaceTransform = null;
-        protected Animation solarSailAnim = null;
+        [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F3", guiUnits = " m/s")]
+        public double periapsisChange;
+        [KSPField(guiActive = true, guiName = "Abs Apapsis Change", guiFormat = "F3", guiUnits = " m/s")]
+        public double apapsisChange;
+        [KSPField(guiActive = true, guiName = "Orbit Diameter Change", guiFormat = "F3", guiUnits = " m/s")]
+        public double orbitSizeChange;
 
         // Reference distance for calculating thrust: sun to Kerbin (m)
         const double kerbin_distance = 13599840256;
         // average solar radiance at earth in W/m2
         const double solarConstant = 1360.8;
-        // Solar Presure  P = W / c =  9.08e-6;
-        const double thrust_coeff = 2 * solarConstant / GameConstants.speedOfLight;
-
+        // conversion from rad to degree
         const double radToDegreeMult = 180d / Math.PI;
 
         // Display numbers for force and acceleration
         double solar_force_d = 0;
         double solar_acc_d = 0;
-        double totalMaximumPhotonForceInNewton = 0;
 
+        double beamed_force_d = 0;
+        double beamed_acc_d = 0;
+
+        double totalForceInNewtonFromSolarEnergy = 0;
+
+        Animation solarSailAnim = null;
         CelestialBody _localStar;
+
         IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
         Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
 
@@ -269,19 +279,23 @@ namespace FNPlugin.Beamedpower
             // Text fields (acc & force)
             Fields["solarAcc"].guiActive = IsEnabled;
             Fields["forceAcquired"].guiActive = IsEnabled;
-
             forceAcquired = solar_force_d.ToString("E") + " N";
             solarAcc = solar_acc_d.ToString("E") + " m/s";
-            solarForceBasedOnFlux = totalMaximumPhotonForceInNewton.ToString("E") + " N/m\xB2";
+
+            beamedForceAcquired = beamed_force_d.ToString("E") + " N";
+            beamedSolarAcc = beamed_acc_d.ToString("E") + " N";
+
+            solarForceBasedOnFlux = totalForceInNewtonFromSolarEnergy.ToString("E") + " N/m\xB2";
         }
 
         public override void OnFixedUpdate()
         {
-            UpdateSolarFlux();
-
-            totalMaximumPhotonForceInNewton = 0;
+            totalForceInNewtonFromSolarEnergy = 0;
+            totalForceInNewtonFromBeamedPower = 0;
             solar_force_d = 0;
             solar_acc_d = 0;
+            beamed_force_d = 0;
+            beamed_acc_d = 0;
 
             if (FlightGlobals.fetch == null || _localStar == null || part == null || vessel == null)
                 return;
@@ -293,16 +307,21 @@ namespace FNPlugin.Beamedpower
             var universalTime = Planetarium.GetUniversalTime();
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
-            Vector3d beamedPowerSource = mostDominantTransmitter.Transmitter.Vessel.GetWorldPos3D();
+            int beamcounter = 1;
+            foreach (var receivedPowerData in received_power.Values)
+            {
+                Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
+                var availablePowerInWatt = receivedPowerData.AvailablePower * 1e6;
+                var showbeam = beamcounter-- > 0;
+                GenerateForce(beamedPowerSource, positionVessel, availablePowerInWatt, universalTime, showbeam, false);
+            }
 
-            GenerateForce(beamedPowerSource, positionVessel, availableBeamedPhotonPower * 1e6, universalTime, true);
-
+            UpdateSolarFlux();
             Vector3d localStarPosition =  _localStar.getPositionAtUT(universalTime);
-
-            GenerateForce(localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, false);
+            GenerateForce(localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, false, true);
         }
 
-        private void GenerateForce(Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool showBeam)
+        private void GenerateForce(Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool showBeam, bool isSun)
         {
             // calculate vector between vessel and star/transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
@@ -313,31 +332,46 @@ namespace FNPlugin.Beamedpower
             // Magnitude of force proportional to cosine-squared of angle between sun-line and normal
             var cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, partNormal);
 
-            // convert to angle in degree
-            var sailAngle = Math.Acos(cosConeAngle) * radToDegreeMult;
-            // add negative
-            if (Vector3d.Dot(this.part.transform.right, powerSourceToVesselVector) < 0)
-                sailAngle = -sailAngle;
+            var cosConeAngleIsNegative = cosConeAngle < 0;
 
             // If normal points away from sun, negate so our force is always away from the sun
             // so that turning the backside towards the sun thrusts correctly
-            if (cosConeAngle < 0)
+            if (cosConeAngleIsNegative)
             {
                 // recalculate Magnitude of force proportional to cosine-squared of angle between sun-line and normal
                 partNormal = -partNormal;
                 cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, partNormal);
             }
 
-            // calculate solar light force at current location
-            var maximumPhotonForceInNewton = 2 * reflectedPhotonRatio * availableEnergyInWatt / GameConstants.speedOfLight;
+            if (isSun)
+            {
+                // convert to angle in degree
+                solarSailAngle = Math.Acos(cosConeAngle) * radToDegreeMult;
+            }
+            else
+            {
+                if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
+                {
+                    if (showBeam)
+                        UpdateBeams(powerSourceToVesselVector, 0);
+                    return;
+                }
+            }
 
-            totalMaximumPhotonForceInNewton += maximumPhotonForceInNewton;
+            // calculate solar light force at current location
+            var maximumPhotonForceInNewton = (isSun ? 2 : beamedPowerThrottle / 50) * reflectedPhotonRatio * availableEnergyInWatt / GameConstants.speedOfLight;
+
+            // register force 
+            if (isSun)
+                totalForceInNewtonFromSolarEnergy += maximumPhotonForceInNewton * sign(cosConeAngleIsNegative);
+            else
+                totalForceInNewtonFromBeamedPower += maximumPhotonForceInNewton * sign(cosConeAngleIsNegative);
 
             // effective Force from power source
             Vector3d effectiveForce = partNormal * cosConeAngle * cosConeAngle * maximumPhotonForceInNewton;
 
             if (showBeam)
-                UpdateBeams(effectiveForce, powerSourceToVesselVector);
+                UpdateBeams(powerSourceToVesselVector);
 
             if (!IsEnabled)
                 return;
@@ -358,13 +392,26 @@ namespace FNPlugin.Beamedpower
             }
 
             // Update displayed force & acceleration
-            solar_force_d += effectiveForce.magnitude;
-            solar_acc_d += photonAccel.magnitude;
+            if (isSun)
+            {
+                solar_force_d += effectiveForce.magnitude * sign(cosConeAngleIsNegative);
+                solar_acc_d += photonAccel.magnitude * sign(cosConeAngleIsNegative);
+            }
+            else
+            {
+                beamed_force_d += effectiveForce.magnitude * sign(cosConeAngleIsNegative);
+                beamed_acc_d += photonAccel.magnitude * sign(cosConeAngleIsNegative);
+            }
         }
 
-        private void UpdateBeams(Vector3d force3d, Vector3d powerSourceToVesselVector)
+        private static int sign(bool cosConeAngleIsNegative)
         {
-            var endBeamPos = part.transform.position + powerSourceToVesselVector.normalized * 10000;
+            return (cosConeAngleIsNegative ? -1 : 1);
+        }
+
+        private void UpdateBeams(Vector3d powerSourceToVesselVector, float scaleModifer = 1)
+        {
+            var endBeamPos = part.transform.position + (powerSourceToVesselVector.normalized * 10000);
             var midPos = part.transform.position - endBeamPos;
             var timeCorrection = TimeWarp.CurrentRate > 1 ? -vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
 
@@ -373,7 +420,7 @@ namespace FNPlugin.Beamedpower
             var solarVectorZ = powerSourceToVesselVector.normalized.z * 90;
 
             solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
-            solar_effect.transform.localScale = new Vector3(effectSize1, 10000, effectSize1);
+            solar_effect.transform.localScale = new Vector3(effectSize1, 10000 * scaleModifer, effectSize1);
             solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
         }
 
