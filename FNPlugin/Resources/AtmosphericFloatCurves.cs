@@ -1,4 +1,6 @@
-﻿namespace FNPlugin.Resources
+﻿using System;
+
+namespace FNPlugin.Resources
 {
     public class AtmosphericFloatCurves
     {
@@ -446,6 +448,44 @@
             MassDensityAtmosphereGramPerCubeCm.Add(900, 9.114E-18f);
             MassDensityAtmosphereGramPerCubeCm.Add(950, 7.211E-18f);
             MassDensityAtmosphereGramPerCubeCm.Add(1000, 5.849E-18f);
+        }
+
+        public static double CalculateCurrentAtmosphereConcentration(Vessel vessel)
+        {
+            if (!vessel.mainBody.atmosphere || vessel.mainBody.atmosphereDepth <= 0)
+                return 0;
+
+            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
+            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
+            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
+
+            var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0
+                : comparibleEarthAltitudeInKm <= 1000
+                    ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesAtmosphereCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm))
+                    : 2.06e+11f * (1 / (Math.Pow(20, (comparibleEarthAltitudeInKm - 1000) / 1000)));
+
+            var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+
+            return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
+        }
+
+        public static double GetAtmosphericGasDensityKgPerCubicMeter(Vessel vessel)
+        {
+            if (!vessel.mainBody.atmosphere)
+                return 0;
+
+            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
+            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
+            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
+
+            var atmosphericDensityGramPerSquareCm = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0
+                : comparibleEarthAltitudeInKm <= 1000
+                    ? Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereGramPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
+                    : 5.849E-18f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
+
+            var atmosphereConcentration = 1e+3 * atmosphereMultiplier * atmosphericDensityGramPerSquareCm;
+
+            return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
     }
 }

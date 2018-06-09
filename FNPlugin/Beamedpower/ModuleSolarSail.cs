@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 
 namespace FNPlugin.Beamedpower
 {
@@ -34,7 +35,7 @@ namespace FNPlugin.Beamedpower
         public float effectSize2 = 5;
 
         [KSPField]
-        public string animName;
+        public string animName = "";
         [KSPField]
         public float initialAnimationSpeed = 1;
         [KSPField]
@@ -46,29 +47,40 @@ namespace FNPlugin.Beamedpower
         // Force and Acceleration
         [KSPField(guiActive = true, guiName = "Solar Flux Energy", guiFormat = "F3", guiUnits = " W/m\xB2")]
         public double averageSolarFluxInWatt;
-        [KSPField(guiActive = true, guiName = "Solar Flux Force")]
-        public string solarForceBasedOnFlux;
-        [KSPField(guiActive = true, guiName = "Solar Sail Force")]
-        public string forceAcquired = "";
+        [KSPField(guiActive = true, guiName = "Solar Flux Force", guiFormat = "F4", guiUnits = " N")]
+        public double totalForceInNewtonFromSolarEnergy = 0;
+        [KSPField(guiActive = true, guiName = "Solar Sail Force", guiFormat = "F4", guiUnits = " N")]
+        public double solar_force_d = 0;
         [KSPField(guiActive = true, guiName = "Solar Acceleration")]
-        public string solarAcc = "";
+        public string solarAcc;
         [KSPField(guiActive = true, guiName = "Solar Incedense", guiFormat = "F3", guiUnits = "°")]
         public double solarSailAngle = 0;
 
         [KSPField(guiActive = false, guiName = "Network power", guiFormat = "F4", guiUnits = " MW")]
         public double maxNetworkPower;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Photon Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Photon Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0)]
         public float beamedPowerThrottle = 100;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Direction"), UI_Toggle(disabledText = "Backward", enabledText = "Forward")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Push Direction"), UI_Toggle(disabledText = "Backward", enabledText = "Forward")]
         public bool beamedPowerForwardDirection = true;
         [KSPField(guiActive = true, guiName = "Beamed Power Energy", guiFormat = "F4", guiUnits = " MW")]
         public double availableBeamedPhotonPower;
         [KSPField(guiActive = true, guiName = "Beamed Potential Force", guiFormat = "F4", guiUnits = " N")]
         public double totalForceInNewtonFromBeamedPower = 0;
-        [KSPField(guiActive = true, guiName = "Beamed Sail Force")]
-        public string beamedForceAcquired = "";
+        [KSPField(guiActive = true, guiName = "Beamed Sail Force", guiFormat = "F4", guiUnits = " N")]
+        public double beamed_force_d = 0;
         [KSPField(guiActive = true, guiName = "Beamed Acceleration")]
-        public string beamedSolarAcc = "";
+        public string beamedAcc;
+
+        [KSPField(guiActive = false, guiName = "Atmospheric Gas", guiUnits = " kg/m2")]
+        public double atmosphericGasKgPerSquareMeter;
+        [KSPField(guiActive = true, guiName = "Atmospheric Drag", guiUnits = " N/m2")]
+        public float maximumDragPerSquareMeter;
+        [KSPField(guiActive = false, guiName = "Drag Coefficient")]
+        public double dragCoefficient;
+        [KSPField(guiActive = false, guiName = "Cosine Orbital Drag", guiFormat = "F3")]
+        public double cosObitalDrag;
+        [KSPField(guiActive = true, guiName = "Atmospheric Sail Drag", guiFormat = "F3", guiUnits = " N")]
+        public double sailDragInNewton;
 
         [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F3", guiUnits = " m/s")]
         public double periapsisChange;
@@ -76,30 +88,21 @@ namespace FNPlugin.Beamedpower
         public double apapsisChange;
         [KSPField(guiActive = true, guiName = "Orbit Diameter Change", guiFormat = "F3", guiUnits = " m/s")]
         public double orbitSizeChange;
+        [KSPField(guiActive = true, guiName = "Low Orbit Modifier")]
+        public double lowOrbitModifier;
 
-        // Reference distance for calculating thrust: sun to Kerbin (m)
-        const double kerbin_distance = 13599840256;
-        // average solar radiance at earth in W/m2
-        const double solarConstant = 1360.8;
         // conversion from rad to degree
         const double radToDegreeMult = 180d / Math.PI;
 
         // Display numbers for force and acceleration
-        double solar_force_d = 0;
         double solar_acc_d = 0;
-
-        double beamed_force_d = 0;
         double beamed_acc_d = 0;
-
-        double totalForceInNewtonFromSolarEnergy = 0;
 
         Animation solarSailAnim = null;
         CelestialBody _localStar;
 
         IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
         Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
-
-        ReceivedPowerData mostDominantTransmitter;
 
         Queue<double> periapsisChangeQueue = new Queue<double>(20);
         Queue<double> apapsisChangeQueue = new Queue<double>(20);
@@ -139,7 +142,7 @@ namespace FNPlugin.Beamedpower
         [KSPEvent(guiActiveEditor = true,  guiActive = true, guiName = "Deploy Sail", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]
         public void DeploySail()
         {
-            if (animName == null || solarSailAnim == null)
+            if (string.IsNullOrEmpty(animName) || solarSailAnim == null)
                 return;
 
             solarSailAnim[animName].speed = 0.5f;
@@ -273,19 +276,12 @@ namespace FNPlugin.Beamedpower
                 }
             }
 
-            var orderedPowerList = received_power.Values.OrderByDescending(m => m.AvailablePower).ThenBy(m => m.Distance);
-            mostDominantTransmitter = orderedPowerList.FirstOrDefault();
-
             // Text fields (acc & force)
             Fields["solarAcc"].guiActive = IsEnabled;
-            Fields["forceAcquired"].guiActive = IsEnabled;
-            forceAcquired = solar_force_d.ToString("E") + " N";
+            Fields["beamedAcc"].guiActive = IsEnabled;
+
             solarAcc = solar_acc_d.ToString("E") + " m/s";
-
-            beamedForceAcquired = beamed_force_d.ToString("E") + " N";
-            beamedSolarAcc = beamed_acc_d.ToString("E") + " N";
-
-            solarForceBasedOnFlux = totalForceInNewtonFromSolarEnergy.ToString("E") + " N/m\xB2";
+            beamedAcc = beamed_acc_d.ToString("E") + " m/s"; ;
         }
 
         public override void OnFixedUpdate()
@@ -319,6 +315,26 @@ namespace FNPlugin.Beamedpower
             UpdateSolarFlux();
             Vector3d localStarPosition =  _localStar.getPositionAtUT(universalTime);
             GenerateForce(localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, false, true);
+
+            // calculate drag
+            atmosphericGasKgPerSquareMeter = part.vessel.atmDensity > 0 ? 0 :  AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel);
+            cosObitalDrag = Math.Abs( Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized));
+            lowOrbitModifier = Math.Max(0, Math.Min(1, (vessel.altitude - vessel.mainBody.atmosphereDepth) / vessel.mainBody.atmosphereDepth));
+            dragCoefficient = lowOrbitModifier * (2 + cosObitalDrag * cosObitalDrag * 1.3);
+            var maximumDragPerSquareMeter_d = dragCoefficient * 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
+            maximumDragPerSquareMeter = (float)maximumDragPerSquareMeter_d;
+            sailDragInNewton = maximumDragPerSquareMeter_d * cosObitalDrag * surfaceArea * (IsEnabled ? 1 : 0);
+
+            var dragForce = part.vessel.obt_velocity.normalized * sailDragInNewton;
+            var dragDeceleration = -dragForce / vessel.totalMass / 1000d;
+
+            if (!double.IsNaN(dragDeceleration.x) && !double.IsNaN(dragDeceleration.y) && !double.IsNaN(dragDeceleration.z))
+            {
+                if (this.vessel.packed)
+                    vessel.orbit.Perturb(dragDeceleration * TimeWarp.fixedDeltaTime, universalTime);
+                else
+                    vessel.ChangeWorldVelocity(dragDeceleration * TimeWarp.fixedDeltaTime);
+            }
         }
 
         private void GenerateForce(Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool showBeam, bool isSun)
@@ -371,7 +387,7 @@ namespace FNPlugin.Beamedpower
             Vector3d effectiveForce = partNormal * cosConeAngle * cosConeAngle * maximumPhotonForceInNewton;
 
             if (showBeam)
-                UpdateBeams(powerSourceToVesselVector);
+                UpdateBeams(powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1: 0 );
 
             if (!IsEnabled)
                 return;

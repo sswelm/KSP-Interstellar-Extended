@@ -313,7 +313,7 @@ namespace FNPlugin
 
             if (vessel.mainBody != localStar)
             {
-                var dAtmosphereConcentration = CalculateCurrentAtmosphereConcentration(vessel);
+                var dAtmosphereConcentration = AtmosphericFloatCurves.CalculateCurrentAtmosphereConcentration(vessel);
                 var dHydrogenParticleConcentration = CalculateCurrentHydrogenParticleConcentration(vessel);
                 var dHeliumParticleConcentration = CalculateCurrentHeliumParticleConcentration(vessel);
                 var dIonizedHydrogenConcentration = CalculateCurrentHydrogenIonsConcentration(vessel);
@@ -556,25 +556,6 @@ namespace FNPlugin
             return influenceRatio;
         }
 
-        private static double CalculateCurrentAtmosphereConcentration(Vessel vessel)
-        {
-            if (!vessel.mainBody.atmosphere || vessel.mainBody.atmosphereDepth <= 0)
-                return 0;
-
-            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
-            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
-
-            var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 
-                : comparibleEarthAltitudeInKm <= 1000 
-                    ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesAtmosphereCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm))
-                    :  2.06e+11f * (1 / (Math.Pow(20,(comparibleEarthAltitudeInKm - 1000) / 1000 ))) ;            
-
-            var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
-
-            return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
-        }
-
         private static double CalculateCurrentHydrogenParticleConcentration(Vessel vessel)
         {
             if (!vessel.mainBody.atmosphere || vessel.mainBody.atmosphereDepth <= 0)
@@ -644,25 +625,6 @@ namespace FNPlugin
                 : 6.46e+9f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1240) / 1240)));            
 
             var atmosphereConcentration = 0.5 * 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
-
-            return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
-        }
-
-        private static double GetAtmosphericGasDensityKgPerCubicMeter(Vessel vessel)
-        {
-            if (!vessel.mainBody.atmosphere)
-                return 0;
-
-            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
-            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
-
-            var atmosphericDensityGramPerSquareCm = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 
-                : comparibleEarthAltitudeInKm <= 1000
-                    ? Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereGramPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
-                    : 5.849E-18f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
-
-            var atmosphereConcentration =  1e+3 * atmosphereMultiplier * atmosphericDensityGramPerSquareCm;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -834,7 +796,7 @@ namespace FNPlugin
                 ScreenMessages.PostScreenMessage("We collected " + dHeliumResourceFlow.ToString(strNumberFormat) + " units of " + helium4GasResourceDefinition.name, 10, ScreenMessageStyle.LOWER_CENTER);
             }
 
-            var atmosphericGasKgPerSquareMeter = GetAtmosphericGasDensityKgPerCubicMeter(vessel);
+            var atmosphericGasKgPerSquareMeter = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel);
             var minAtmosphericGasMassMomentumChange = vessel.obt_speed * atmosphericGasKgPerSquareMeter;
             var atmosphericGasDragInNewton = minAtmosphericGasMassMomentumChange + (SquareDragFactor * vessel.obt_speed * minAtmosphericGasMassMomentumChange);
 
