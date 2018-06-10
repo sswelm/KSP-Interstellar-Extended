@@ -115,7 +115,7 @@ namespace FNPlugin.Beamedpower
         Queue<double> apapsisChangeQueue = new Queue<double>(20);
         Queue<double> solarFluxQueue = new Queue<double>(100);
 
-        BeamEffect beamEffect;
+        BeamEffect []beamEffectArray;
 
         public int ReceiverType { get { return 7; } }                       // receiver from either top or bottom
 
@@ -192,10 +192,15 @@ namespace FNPlugin.Beamedpower
 
             this.part.force_activate();
 
-            beamEffect = InitializeBeam();
+            beamEffectArray = new BeamEffect[10];
+
+            for (var i = 0; i < beamEffectArray.Length; i++)
+            {
+                beamEffectArray[i] = InitializeBeam(1001 + i);
+            }
         }
 
-        private BeamEffect InitializeBeam()
+        private BeamEffect InitializeBeam(int renderQueue)
         {
             var beam = new BeamEffect();
 
@@ -214,7 +219,7 @@ namespace FNPlugin.Beamedpower
 
             beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
             beam.solar_effect_renderer.receiveShadows = false;
-            beam.solar_effect_renderer.material.renderQueue = 1001;
+            beam.solar_effect_renderer.material.renderQueue = renderQueue;
 
             return beam;
         }
@@ -309,23 +314,25 @@ namespace FNPlugin.Beamedpower
 
             UpdateChangeGui();
 
-            UpdateBeams(beamEffect, Vector3d.zero, 0, 0);
+            for (var i = 0; i < beamEffectArray.Length; i++)
+            {
+                UpdateBeams(beamEffectArray[i], Vector3d.zero, 0, 0);
+            }
 
             var universalTime = Planetarium.GetUniversalTime();
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
-            int beamcounter = 1;
+            int beamcounter = 0;
             foreach (var receivedPowerData in received_power.Values)
             {
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
                 var availablePowerInWatt = receivedPowerData.AvailablePower * 1e6;
-                var showbeam = beamcounter-- > 0;
-                GenerateForce(beamedPowerSource, positionVessel, availablePowerInWatt, universalTime, showbeam, false);
+                GenerateForce(beamcounter++, beamedPowerSource, positionVessel, availablePowerInWatt, universalTime, false);
             }
 
             UpdateSolarFlux();
             Vector3d localStarPosition =  _localStar.getPositionAtUT(universalTime);
-            GenerateForce(localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, false, true);
+            GenerateForce(0, localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, true);
 
             // calculate drag
             atmosphericGasKgPerSquareMeter = part.vessel.atmDensity > 0 ? 0 :  AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel);
@@ -349,7 +356,7 @@ namespace FNPlugin.Beamedpower
             }
         }
 
-        private void GenerateForce(Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool showBeam, bool isSun)
+        private void GenerateForce(int index, Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool isSun)
         {
             // calculate vector between vessel and star/transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
@@ -399,8 +406,10 @@ namespace FNPlugin.Beamedpower
             if (!IsEnabled)
                 return;
 
-            if (showBeam)
-                UpdateBeams(beamEffect, powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1 : 0, beamedPowerThrottle > 0 ? 1 : 0);
+            if (!isSun)
+            {
+                UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1 : 0, beamedPowerThrottle > 0 ? 1 : 0);
+            }
 
             // Calculate acceleration from sunlight
             Vector3d photonAccel = effectiveForce / vessel.totalMass / 1000d;
