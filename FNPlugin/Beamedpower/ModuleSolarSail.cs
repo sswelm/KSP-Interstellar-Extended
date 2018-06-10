@@ -300,6 +300,8 @@ namespace FNPlugin.Beamedpower
 
             UpdateChangeGui();
 
+            UpdateBeams(Vector3d.zero, 0, 0);
+
             var universalTime = Planetarium.GetUniversalTime();
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
@@ -368,8 +370,6 @@ namespace FNPlugin.Beamedpower
             {
                 if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
                 {
-                    if (showBeam)
-                        UpdateBeams(powerSourceToVesselVector, 0);
                     return;
                 }
             }
@@ -386,11 +386,11 @@ namespace FNPlugin.Beamedpower
             // effective Force from power source
             Vector3d effectiveForce = partNormal * cosConeAngle * cosConeAngle * maximumPhotonForceInNewton;
 
-            if (showBeam)
-                UpdateBeams(powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1: 0 );
-
             if (!IsEnabled)
                 return;
+
+            if (showBeam)
+                UpdateBeams(powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1 : 0, beamedPowerThrottle > 0 ? 1 : 0);
 
             // Calculate acceleration from sunlight
             Vector3d photonAccel = effectiveForce / vessel.totalMass / 1000d;
@@ -425,7 +425,7 @@ namespace FNPlugin.Beamedpower
             return (cosConeAngleIsNegative ? -1 : 1);
         }
 
-        private void UpdateBeams(Vector3d powerSourceToVesselVector, float scaleModifer = 1)
+        private void UpdateBeams(Vector3d powerSourceToVesselVector, float scaleModifer = 1, float sizeModifier = 1)
         {
             var endBeamPos = part.transform.position + (powerSourceToVesselVector.normalized * 10000);
             var midPos = part.transform.position - endBeamPos;
@@ -436,7 +436,7 @@ namespace FNPlugin.Beamedpower
             var solarVectorZ = powerSourceToVesselVector.normalized.z * 90;
 
             solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
-            solar_effect.transform.localScale = new Vector3(effectSize1, 10000 * scaleModifer, effectSize1);
+            solar_effect.transform.localScale = new Vector3(effectSize1 * sizeModifier, 10000 * scaleModifer, effectSize1 * sizeModifier);
             solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
         }
 
