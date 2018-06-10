@@ -7,6 +7,13 @@ using FNPlugin.Resources;
 
 namespace FNPlugin.Beamedpower
 {
+    class BeamEffect
+    {
+        public GameObject solar_effect;
+        public Renderer solar_effect_renderer;
+        public Collider solar_effect_collider;
+    }
+
     class ModuleSolarSail : PartModule, IBeamedPowerReceiver
     {
         // Persistent Variables
@@ -79,8 +86,8 @@ namespace FNPlugin.Beamedpower
         public double dragCoefficient;
         [KSPField(guiActive = false, guiName = "Cosine Orbital Drag", guiFormat = "F3")]
         public double cosObitalDrag;
-        [KSPField(guiActive = true, guiName = "Atmospheric Sail Drag", guiFormat = "F3", guiUnits = " N")]
-        public double sailDragInNewton;
+        [KSPField(guiActive = true, guiName = "Atmospheric Sail Drag", guiUnits = " N")]
+        public float sailDragInNewton;
 
         [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F3", guiUnits = " m/s")]
         public double periapsisChange;
@@ -88,7 +95,7 @@ namespace FNPlugin.Beamedpower
         public double apapsisChange;
         [KSPField(guiActive = true, guiName = "Orbit Diameter Change", guiFormat = "F3", guiUnits = " m/s")]
         public double orbitSizeChange;
-        [KSPField(guiActive = true, guiName = "Low Orbit Modifier")]
+        [KSPField(guiActive = false, guiName = "Low Orbit Modifier")]
         public double lowOrbitModifier;
 
         // conversion from rad to degree
@@ -108,9 +115,7 @@ namespace FNPlugin.Beamedpower
         Queue<double> apapsisChangeQueue = new Queue<double>(20);
         Queue<double> solarFluxQueue = new Queue<double>(100);
 
-        GameObject solar_effect;
-        Renderer solar_effect_renderer;
-        Collider solar_effect_collider;
+        BeamEffect beamEffect;
 
         public int ReceiverType { get { return 7; } }                       // receiver from either top or bottom
 
@@ -187,27 +192,31 @@ namespace FNPlugin.Beamedpower
 
             this.part.force_activate();
 
-            InitializeBeam();
+            beamEffect = InitializeBeam();
         }
 
-        private void InitializeBeam()
+        private BeamEffect InitializeBeam()
         {
+            var beam = new BeamEffect();
+
             var zero = Vector3.zero;
 
-            solar_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            solar_effect_renderer = solar_effect.GetComponent<Renderer>();
-            solar_effect_collider = solar_effect.GetComponent<Collider>();
-            solar_effect_collider.enabled = false;
+            beam.solar_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            beam.solar_effect_renderer = beam.solar_effect.GetComponent<Renderer>();
+            beam.solar_effect_collider = beam.solar_effect.GetComponent<Collider>();
+            beam.solar_effect_collider.enabled = false;
 
-            solar_effect.transform.localScale = new Vector3(0, 0, 0);
-            solar_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
-            solar_effect.transform.rotation = part.transform.rotation;
-            solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
-            solar_effect_renderer.material.color = new Color(Color.yellow.r, Color.yellow.g, Color.yellow.b, 0.5f);
+            beam.solar_effect.transform.localScale = new Vector3(0, 0, 0);
+            beam.solar_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
+            beam.solar_effect.transform.rotation = part.transform.rotation;
+            beam.solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
+            beam.solar_effect_renderer.material.color = new Color(Color.yellow.r, Color.yellow.g, Color.yellow.b, 0.5f);
 
-            solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
-            solar_effect_renderer.receiveShadows = false;
-            solar_effect_renderer.material.renderQueue = 1001;
+            beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
+            beam.solar_effect_renderer.receiveShadows = false;
+            beam.solar_effect_renderer.material.renderQueue = 1001;
+
+            return beam;
         }
 
         public void Update()
@@ -300,7 +309,7 @@ namespace FNPlugin.Beamedpower
 
             UpdateChangeGui();
 
-            UpdateBeams(Vector3d.zero, 0, 0);
+            UpdateBeams(beamEffect, Vector3d.zero, 0, 0);
 
             var universalTime = Planetarium.GetUniversalTime();
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
@@ -325,17 +334,18 @@ namespace FNPlugin.Beamedpower
             dragCoefficient = lowOrbitModifier * (2 + cosObitalDrag * cosObitalDrag * 1.3);
             var maximumDragPerSquareMeter_d = dragCoefficient * 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
             maximumDragPerSquareMeter = (float)maximumDragPerSquareMeter_d;
-            sailDragInNewton = maximumDragPerSquareMeter_d * cosObitalDrag * surfaceArea * (IsEnabled ? 1 : 0);
+            var sailDragInNewton_d = maximumDragPerSquareMeter_d * cosObitalDrag * surfaceArea * (IsEnabled ? 1 : 0);
+            sailDragInNewton = (float)sailDragInNewton_d;
 
-            var dragForce = part.vessel.obt_velocity.normalized * sailDragInNewton;
+            var dragForce = part.vessel.obt_velocity.normalized * sailDragInNewton_d * TimeWarp.fixedDeltaTime;
             var dragDeceleration = -dragForce / vessel.totalMass / 1000d;
 
             if (!double.IsNaN(dragDeceleration.x) && !double.IsNaN(dragDeceleration.y) && !double.IsNaN(dragDeceleration.z))
             {
                 if (this.vessel.packed)
-                    vessel.orbit.Perturb(dragDeceleration * TimeWarp.fixedDeltaTime, universalTime);
+                    vessel.orbit.Perturb(dragDeceleration, universalTime);
                 else
-                    vessel.ChangeWorldVelocity(dragDeceleration * TimeWarp.fixedDeltaTime);
+                    vessel.ChangeWorldVelocity(dragDeceleration);
             }
         }
 
@@ -390,7 +400,7 @@ namespace FNPlugin.Beamedpower
                 return;
 
             if (showBeam)
-                UpdateBeams(powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1 : 0, beamedPowerThrottle > 0 ? 1 : 0);
+                UpdateBeams(beamEffect, powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1 : 0, beamedPowerThrottle > 0 ? 1 : 0);
 
             // Calculate acceleration from sunlight
             Vector3d photonAccel = effectiveForce / vessel.totalMass / 1000d;
@@ -425,7 +435,7 @@ namespace FNPlugin.Beamedpower
             return (cosConeAngleIsNegative ? -1 : 1);
         }
 
-        private void UpdateBeams(Vector3d powerSourceToVesselVector, float scaleModifer = 1, float sizeModifier = 1)
+        private void UpdateBeams(BeamEffect beameffect,  Vector3d powerSourceToVesselVector, float scaleModifer = 1, float sizeModifier = 1)
         {
             var endBeamPos = part.transform.position + (powerSourceToVesselVector.normalized * 10000);
             var midPos = part.transform.position - endBeamPos;
@@ -435,9 +445,9 @@ namespace FNPlugin.Beamedpower
             var solarVectorY = powerSourceToVesselVector.normalized.y * 90 - 90;
             var solarVectorZ = powerSourceToVesselVector.normalized.z * 90;
 
-            solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
-            solar_effect.transform.localScale = new Vector3(effectSize1 * sizeModifier, 10000 * scaleModifer, effectSize1 * sizeModifier);
-            solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
+            beameffect.solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
+            beameffect.solar_effect.transform.localScale = new Vector3(effectSize1 * sizeModifier, 10000 * scaleModifer, effectSize1 * sizeModifier);
+            beameffect.solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
         }
 
         private void UpdateSolarFlux()
