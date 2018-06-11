@@ -60,13 +60,13 @@ namespace FNPlugin.Beamedpower
         public double solar_force_d = 0;
         [KSPField(guiActive = true, guiName = "Solar Acceleration")]
         public string solarAcc;
-        [KSPField(guiActive = true, guiName = "Solar Incedense", guiFormat = "F3", guiUnits = "°")]
+        [KSPField(guiActive = true, guiName = "Solar Pitch Angle", guiFormat = "F3", guiUnits = "°")]
         public double solarSailAngle = 0;
 
         [KSPField(guiActive = false, guiName = "Network power", guiFormat = "F4", guiUnits = " MW")]
         public double maxNetworkPower;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Photon Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0)]
-        public float beamedPowerThrottle = 100;
+        public float beamedPowerThrottle = 0;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Push Direction"), UI_Toggle(disabledText = "Backward", enabledText = "Forward")]
         public bool beamedPowerForwardDirection = true;
         [KSPField(guiActive = true, guiName = "Beamed Power Energy", guiFormat = "F4", guiUnits = " MW")]
@@ -344,13 +344,13 @@ namespace FNPlugin.Beamedpower
                 : atmosphereDensity;
 
             var effectiveSurfaceArea = surfaceArea * (IsEnabled ? 1 : 0);
-            var vesselMassInKg = vessel.totalMass / 1000;
+            var vesselMassInKg = vessel.totalMass * 1000;
             var specularRatio = Math.Max(0, Math.Min(1, part.skinTemperature / part.skinMaxTemp));
             var diffuseRatio = 1 - specularRatio;
             var maximumDragCcoefficient = (4 * specularRatio) + (3.3 * diffuseRatio);
             var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized);
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
-            var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;            
+            var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
             lowOrbitModifier = Math.Max(0, Math.Min(1, (1000 + simulatedAltitude - vessel.mainBody.atmosphereDepth) / vessel.mainBody.atmosphereDepth));			
             maximumDragPerSquareMeter = (float)(lowOrbitModifier * baseDragForce * maximumDragCcoefficient);
             
@@ -372,8 +372,8 @@ namespace FNPlugin.Beamedpower
             var diffuseDragCoefficient = lowOrbitModifier * (2 + cosObitalDrag * cosObitalDrag * 1.3);
             var diffuseDragPerSquareMeter = diffuseDragCoefficient * baseDragForce * diffuseRatio;
             var diffuseDragInNewton = diffuseDragPerSquareMeter * cosObitalDrag * effectiveSurfaceArea;
-            diffuseSailDragInNewton = (float)diffuseSailDragInNewton;
-            var diffuseDragForceFixed = diffuseSailDragInNewton * TimeWarp.fixedDeltaTime * part.vessel.obt_velocity.normalized;
+            diffuseSailDragInNewton = (float)diffuseDragInNewton;
+            var diffuseDragForceFixed = diffuseDragInNewton * TimeWarp.fixedDeltaTime * part.vessel.obt_velocity.normalized;
             var diffuseDragDeceleration = -diffuseDragForceFixed / vesselMassInKg;
 
             ChangeVesselVelocity(this.vessel, universalTime, diffuseDragDeceleration);
@@ -411,6 +411,9 @@ namespace FNPlugin.Beamedpower
                 partNormal = -partNormal;
                 cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, partNormal);
             }
+
+            // calculate the vector at 90 degree angle in the direction of the vector
+            var tangant = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
 
             if (isSun)
                 solarSailAngle = Math.Acos(cosConeAngle) * radToDegreeMult;
