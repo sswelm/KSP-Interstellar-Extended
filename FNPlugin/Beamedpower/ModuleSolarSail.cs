@@ -432,6 +432,10 @@ namespace FNPlugin.Beamedpower
             // effective Force from power source
             Vector3d effectiveForce = partNormal * cosConeAngle * cosConeAngle * maximumPhotonForceInNewton;
 
+            // ToDo: replace F = 2 PA cos α cos α n, by
+            // F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t] 
+            // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficien
+
             if (!IsEnabled)
                 return;
 
