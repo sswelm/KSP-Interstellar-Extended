@@ -253,9 +253,7 @@ namespace FNPlugin.Beamedpower
             {
                 VesselMicrowavePersistence transmitter = transmitData.Key;
                 KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>> routeRelayData = transmitData.Value;
-
                 MicrowaveRoute route = routeRelayData.Key;
-                //var relays = routeRelayData.Value;
 
                 ReceivedPowerData beamedPowerData;
                 if (!received_power.TryGetValue(transmitter.Vessel, out beamedPowerData))
@@ -345,46 +343,51 @@ namespace FNPlugin.Beamedpower
                 ? (1 - (part.vessel.atmDensity / vessel.mainBody.atmospherePressureSeaLevel)) * atmosphereDensity 
                 : atmosphereDensity;
 
-
+            var effectiveSurfaceArea = surfaceArea * (IsEnabled ? 1 : 0);
+            var vesselMassInKg = vessel.totalMass / 1000;
+            var specularRatio = Math.Max(0, Math.Min(1, part.skinTemperature / part.skinMaxTemp));
+            var diffuseRatio = 1 - specularRatio;
+            var maximumDragCcoefficient = (4 * specularRatio) + (3.3 * diffuseRatio);
             var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized);
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
-            var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
-            maximumDragPerSquareMeter = (float)(baseDragForce * 4);
-            lowOrbitModifier = Math.Max(0, Math.Min(1, (1000 + simulatedAltitude - vessel.mainBody.atmosphereDepth) / vessel.mainBody.atmosphereDepth));
+            var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;            
+            lowOrbitModifier = Math.Max(0, Math.Min(1, (1000 + simulatedAltitude - vessel.mainBody.atmosphereDepth) / vessel.mainBody.atmosphereDepth));			
+            maximumDragPerSquareMeter = (float)(lowOrbitModifier * baseDragForce * maximumDragCcoefficient);
             
             // apply specular Drag
             Vector3d partNormal = this.part.transform.up;
             if (cosOrbitRaw < 0)
                 partNormal = -partNormal;
 
-            var specularRatio = Math.Min(0,  part.skinTemperature / part.skinMaxTemp);
-            var specularDragInNewton = lowOrbitModifier * 4 * cosObitalDrag * cosObitalDrag * surfaceArea * baseDragForce * specularRatio;
+            var specularDragCoefficient = lowOrbitModifier * 4 * cosObitalDrag * cosObitalDrag;
+            var specularDragPerSquareMeter =  specularDragCoefficient * baseDragForce * specularRatio;
+            var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea * baseDragForce * specularRatio;
             specularSailDragInNewton = (float)specularDragInNewton;
-            var specularDragForceFixed = partNormal * specularDragInNewton * TimeWarp.fixedDeltaTime;
-            var specularDragDeceleration = -specularDragForceFixed / vessel.totalMass / 1000;
+            var specularDragForceFixed = specularDragInNewton * TimeWarp.fixedDeltaTime * partNormal;
+            var specularDragDeceleration = -specularDragForceFixed / vesselMassInKg;
 
             ChangeVesselVelocity(this.vessel, universalTime, specularDragDeceleration);
 
             // apply Diffuse Drag
             var diffuseDragCoefficient = lowOrbitModifier * (2 + cosObitalDrag * cosObitalDrag * 1.3);
-            var diffuseDragPerSquareMeter_d = diffuseDragCoefficient * baseDragForce * (1 - specularRatio);
-            var sailDragInNewton_d = diffuseDragPerSquareMeter_d * cosObitalDrag * surfaceArea * (IsEnabled ? 1 : 0);
-            diffuseSailDragInNewton = (float)sailDragInNewton_d;
-            var diffuseDragForceFixed = part.vessel.obt_velocity.normalized * sailDragInNewton_d * TimeWarp.fixedDeltaTime;
-            var diffuseDragDeceleration = -diffuseDragForceFixed / vessel.totalMass / 1000;
+            var diffuseDragPerSquareMeter = diffuseDragCoefficient * baseDragForce * diffuseRatio;
+            var diffuseDragInNewton = diffuseDragPerSquareMeter * cosObitalDrag * effectiveSurfaceArea;
+            diffuseSailDragInNewton = (float)diffuseSailDragInNewton;
+            var diffuseDragForceFixed = diffuseSailDragInNewton * TimeWarp.fixedDeltaTime * part.vessel.obt_velocity.normalized;
+            var diffuseDragDeceleration = -diffuseDragForceFixed / vesselMassInKg;
 
             ChangeVesselVelocity(this.vessel, universalTime, diffuseDragDeceleration);
         }
 
-        private static void ChangeVesselVelocity(Vessel vessel, double universalTime, Vector3d diffuseDragDeceleration)
+        private static void ChangeVesselVelocity(Vessel vessel, double universalTime, Vector3d acceleration)
         {
-            if (!double.IsNaN(diffuseDragDeceleration.x) && !double.IsNaN(diffuseDragDeceleration.y) && !double.IsNaN(diffuseDragDeceleration.z))
-            {
-                if (vessel.packed)
-                    vessel.orbit.Perturb(diffuseDragDeceleration, universalTime);
-                else
-                    vessel.ChangeWorldVelocity(diffuseDragDeceleration);
-            }
+            if (double.IsNaN(acceleration.x) || double.IsNaN(acceleration.y) || double.IsNaN(acceleration.z))
+                return;
+
+            if (vessel.packed)
+                vessel.orbit.Perturb(acceleration, universalTime);
+            else
+                vessel.ChangeWorldVelocity(acceleration);
         }
 
         private void GenerateForce(int index, Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool isSun)
