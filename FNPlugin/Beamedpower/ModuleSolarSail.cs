@@ -78,16 +78,14 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = true, guiName = "Beamed Acceleration")]
         public string beamedAcc;
 
-        [KSPField(guiActive = false, guiName = "Atmospheric Gas", guiUnits = " kg/m2")]
+        [KSPField(guiActive = false, guiName = "Atmospheric Density", guiUnits = " kg/m2")]
         public double atmosphericGasKgPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "Atmospheric Drag", guiUnits = " N/m2")]
+        [KSPField(guiActive = true, guiName = "Maximum Drag", guiUnits = " N/m2")]
         public float maximumDragPerSquareMeter;
-        [KSPField(guiActive = false, guiName = "Drag Coefficient")]
-        public double dragCoefficient;
-        [KSPField(guiActive = false, guiName = "Cosine Orbital Drag", guiFormat = "F3")]
-        public double cosObitalDrag;
-        [KSPField(guiActive = true, guiName = "Atmospheric Sail Drag", guiUnits = " N")]
-        public float sailDragInNewton;
+        [KSPField(guiActive = true, guiName = "Diffuse Drag", guiUnits = " N")]
+        public float diffuseSailDragInNewton;
+        [KSPField(guiActive = true, guiName = "Specular Drag", guiUnits = " N")]
+        public float specularSailDragInNewton;
 
         [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F3", guiUnits = " m/s")]
         public double periapsisChange;
@@ -335,24 +333,57 @@ namespace FNPlugin.Beamedpower
             GenerateForce(0, localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, true);
 
             // calculate drag
-            atmosphericGasKgPerSquareMeter = part.vessel.atmDensity > 0 ? 0 :  AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel);
-            cosObitalDrag = Math.Abs( Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized));
-            lowOrbitModifier = Math.Max(0, Math.Min(1, (vessel.altitude - vessel.mainBody.atmosphereDepth) / vessel.mainBody.atmosphereDepth));
-            dragCoefficient = lowOrbitModifier * (2 + cosObitalDrag * cosObitalDrag * 1.3);
-            var maximumDragPerSquareMeter_d = dragCoefficient * 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
-            maximumDragPerSquareMeter = (float)maximumDragPerSquareMeter_d;
-            var sailDragInNewton_d = maximumDragPerSquareMeter_d * cosObitalDrag * surfaceArea * (IsEnabled ? 1 : 0);
-            sailDragInNewton = (float)sailDragInNewton_d;
+            ApplyDrag(universalTime);
+        }
 
-            var dragForce = part.vessel.obt_velocity.normalized * sailDragInNewton_d * TimeWarp.fixedDeltaTime;
-            var dragDeceleration = -dragForce / vessel.totalMass / 1000d;
+        private void ApplyDrag(double universalTime)
+        {
+            var simulatedAltitude = Math.Max(vessel.mainBody.atmosphereDepth,  vessel.altitude);
+            var atmosphereDensity = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel.mainBody, simulatedAltitude);
 
-            if (!double.IsNaN(dragDeceleration.x) && !double.IsNaN(dragDeceleration.y) && !double.IsNaN(dragDeceleration.z))
+            atmosphericGasKgPerSquareMeter = part.vessel.atmDensity > 0
+                ? (1 - (part.vessel.atmDensity / vessel.mainBody.atmospherePressureSeaLevel)) * atmosphereDensity 
+                : atmosphereDensity;
+
+
+            var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized);
+            var cosObitalDrag = Math.Abs(cosOrbitRaw);
+            var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
+            maximumDragPerSquareMeter = (float)(baseDragForce * 4);
+            lowOrbitModifier = Math.Max(0, Math.Min(1, (1000 + simulatedAltitude - vessel.mainBody.atmosphereDepth) / vessel.mainBody.atmosphereDepth));
+            
+            // apply specular Drag
+            Vector3d partNormal = this.part.transform.up;
+            if (cosOrbitRaw < 0)
+                partNormal = -partNormal;
+
+            var specularRatio = Math.Min(0,  part.skinTemperature / part.skinMaxTemp);
+            var specularDragInNewton = lowOrbitModifier * 4 * cosObitalDrag * cosObitalDrag * surfaceArea * baseDragForce * specularRatio;
+            specularSailDragInNewton = (float)specularDragInNewton;
+            var specularDragForceFixed = partNormal * specularDragInNewton * TimeWarp.fixedDeltaTime;
+            var specularDragDeceleration = -specularDragForceFixed / vessel.totalMass / 1000;
+
+            ChangeVesselVelocity(this.vessel, universalTime, specularDragDeceleration);
+
+            // apply Diffuse Drag
+            var diffuseDragCoefficient = lowOrbitModifier * (2 + cosObitalDrag * cosObitalDrag * 1.3);
+            var diffuseDragPerSquareMeter_d = diffuseDragCoefficient * baseDragForce * (1 - specularRatio);
+            var sailDragInNewton_d = diffuseDragPerSquareMeter_d * cosObitalDrag * surfaceArea * (IsEnabled ? 1 : 0);
+            diffuseSailDragInNewton = (float)sailDragInNewton_d;
+            var diffuseDragForceFixed = part.vessel.obt_velocity.normalized * sailDragInNewton_d * TimeWarp.fixedDeltaTime;
+            var diffuseDragDeceleration = -diffuseDragForceFixed / vessel.totalMass / 1000;
+
+            ChangeVesselVelocity(this.vessel, universalTime, diffuseDragDeceleration);
+        }
+
+        private static void ChangeVesselVelocity(Vessel vessel, double universalTime, Vector3d diffuseDragDeceleration)
+        {
+            if (!double.IsNaN(diffuseDragDeceleration.x) && !double.IsNaN(diffuseDragDeceleration.y) && !double.IsNaN(diffuseDragDeceleration.z))
             {
-                if (this.vessel.packed)
-                    vessel.orbit.Perturb(dragDeceleration, universalTime);
+                if (vessel.packed)
+                    vessel.orbit.Perturb(diffuseDragDeceleration, universalTime);
                 else
-                    vessel.ChangeWorldVelocity(dragDeceleration);
+                    vessel.ChangeWorldVelocity(diffuseDragDeceleration);
             }
         }
 
@@ -379,17 +410,9 @@ namespace FNPlugin.Beamedpower
             }
 
             if (isSun)
-            {
-                // convert to angle in degree
                 solarSailAngle = Math.Acos(cosConeAngle) * radToDegreeMult;
-            }
-            else
-            {
-                if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
-                {
-                    return;
-                }
-            }
+            else if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
+                return;
 
             // calculate solar light force at current location
             var maximumPhotonForceInNewton = (isSun ? 2 : beamedPowerThrottle / 50) * reflectedPhotonRatio * availableEnergyInWatt / GameConstants.speedOfLight;
@@ -407,9 +430,7 @@ namespace FNPlugin.Beamedpower
                 return;
 
             if (!isSun)
-            {
                 UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1 : 0, beamedPowerThrottle > 0 ? 1 : 0);
-            }
 
             // Calculate acceleration from sunlight
             Vector3d photonAccel = effectiveForce / vessel.totalMass / 1000d;
@@ -418,13 +439,7 @@ namespace FNPlugin.Beamedpower
             Vector3d fixedPhotonAccel = photonAccel * TimeWarp.fixedDeltaTime;
 
             // Apply acceleration when valid
-            if (!double.IsNaN(fixedPhotonAccel.x) && !double.IsNaN(fixedPhotonAccel.y) && !double.IsNaN(fixedPhotonAccel.z))
-            {
-                if (this.vessel.packed)
-                    vessel.orbit.Perturb(fixedPhotonAccel, universalTime);
-                else
-                    vessel.ChangeWorldVelocity(fixedPhotonAccel);
-            }
+            ChangeVesselVelocity(this.vessel, universalTime, fixedPhotonAccel);
 
             // Update displayed force & acceleration
             if (isSun)

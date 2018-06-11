@@ -469,23 +469,23 @@ namespace FNPlugin.Resources
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
 
-        public static double GetAtmosphericGasDensityKgPerCubicMeter(Vessel vessel)
-        {
-            if (!vessel.mainBody.atmosphere)
-                return 0;
+		public static double GetAtmosphericGasDensityKgPerCubicMeter(CelestialBody celestialBody, double altitude)
+		{
+			if (!celestialBody.atmosphere)
+				return 0;
 
-            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereMultiplier = vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
-            var radiusModifier = vessel.mainBody.Radius / GameConstants.EarthRadius;
+			var comparibleEarthAltitudeInKm = altitude / celestialBody.atmosphereDepth * 84;
+			var atmosphereMultiplier = celestialBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel;
+			var radiusModifier = celestialBody.Radius / GameConstants.EarthRadius;
 
-            var atmosphericDensityGramPerSquareCm = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0
-                : comparibleEarthAltitudeInKm <= 1000
-                    ? Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereGramPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
-                    : 5.849E-18f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
+			var atmosphericDensityGramPerSquareCm = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0
+				: comparibleEarthAltitudeInKm <= 1000
+					? Math.Max(0, AtmosphericFloatCurves.Instance.MassDensityAtmosphereGramPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
+					: 5.849E-18f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
 
-            var atmosphereConcentration = 1e+3 * atmosphereMultiplier * atmosphericDensityGramPerSquareCm;
+			var atmosphereConcentration = 1e+3 * atmosphereMultiplier * atmosphericDensityGramPerSquareCm;
 
-            return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
-        }
+			return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
+		}
     }
 }

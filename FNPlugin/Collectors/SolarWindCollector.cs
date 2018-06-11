@@ -796,7 +796,7 @@ namespace FNPlugin
                 ScreenMessages.PostScreenMessage("We collected " + dHeliumResourceFlow.ToString(strNumberFormat) + " units of " + helium4GasResourceDefinition.name, 10, ScreenMessageStyle.LOWER_CENTER);
             }
 
-            var atmosphericGasKgPerSquareMeter = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel);
+            var atmosphericGasKgPerSquareMeter = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel.mainBody, vessel.altitude);
             var minAtmosphericGasMassMomentumChange = vessel.obt_speed * atmosphericGasKgPerSquareMeter;
             var atmosphericGasDragInNewton = minAtmosphericGasMassMomentumChange + (SquareDragFactor * vessel.obt_speed * minAtmosphericGasMassMomentumChange);
 
