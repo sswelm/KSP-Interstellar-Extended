@@ -14,6 +14,12 @@ namespace FNPlugin.Beamedpower
         public Collider solar_effect_collider;
     }
 
+    class ReceivedBeamedPower
+    {
+        public double receivedPower;
+        public double pitchAngle;
+    }
+
     class ModuleSolarSail : PartModule, IBeamedPowerReceiver
     {
         // Persistent Variables
@@ -73,6 +79,8 @@ namespace FNPlugin.Beamedpower
         public double availableBeamedPhotonPower;
         [KSPField(guiActive = true, guiName = "Beamed Potential Force", guiFormat = "F4", guiUnits = " N")]
         public double totalForceInNewtonFromBeamedPower = 0;
+        [KSPField(guiActive = true, guiName = "Beamed Pitch Angle", guiFormat = "F3", guiUnits = "°")]
+        public double weightedBeamPowerPitch;
         [KSPField(guiActive = true, guiName = "Beamed Sail Force", guiFormat = "F4", guiUnits = " N")]
         public double beamed_force_d = 0;
         [KSPField(guiActive = true, guiName = "Beamed Acceleration")]
@@ -106,6 +114,7 @@ namespace FNPlugin.Beamedpower
         Animation solarSailAnim = null;
         CelestialBody _localStar;
 
+        List<ReceivedBeamedPower> receivedBeamedPowerList = new List<ReceivedBeamedPower>();
         IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
         Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
 
@@ -306,6 +315,8 @@ namespace FNPlugin.Beamedpower
             if (FlightGlobals.fetch == null || _localStar == null || part == null || vessel == null)
                 return;
 
+            receivedBeamedPowerList.Clear();
+
             TimeWarp.GThreshold = 2;
 
             UpdateChangeGui();
@@ -315,6 +326,7 @@ namespace FNPlugin.Beamedpower
                 UpdateBeams(beamEffectArray[i], Vector3d.zero, 0, 0);
             }
 
+            var vesselMassInKg = vessel.totalMass * 1000;
             var universalTime = Planetarium.GetUniversalTime();
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
@@ -323,18 +335,22 @@ namespace FNPlugin.Beamedpower
             {
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
                 var availablePowerInWatt = receivedPowerData.AvailablePower * 1e6;
-                GenerateForce(beamcounter++, beamedPowerSource, positionVessel, availablePowerInWatt, universalTime, false);
+                GenerateForce(beamcounter++, beamedPowerSource, positionVessel, availablePowerInWatt, universalTime, false, vesselMassInKg);
             }
+
+            var totalBeamedPower = receivedBeamedPowerList.Sum(m => m.receivedPower);
+            var totalPitch = receivedBeamedPowerList.Sum(m => m.pitchAngle * m.receivedPower / totalBeamedPower);
+            weightedBeamPowerPitch = totalPitch / receivedBeamedPowerList.Count;
 
             UpdateSolarFlux();
             Vector3d localStarPosition =  _localStar.getPositionAtUT(universalTime);
-            GenerateForce(0, localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, true);
+            GenerateForce(0, localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, true, vesselMassInKg);
 
             // calculate drag
-            ApplyDrag(universalTime);
+            ApplyDrag(universalTime, vesselMassInKg);
         }
 
-        private void ApplyDrag(double universalTime)
+        private void ApplyDrag(double universalTime, double vesselMassInKg)
         {
             var simulatedAltitude = Math.Max(vessel.mainBody.atmosphereDepth,  vessel.altitude);
             var atmosphereDensity = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel.mainBody, simulatedAltitude);
@@ -344,7 +360,6 @@ namespace FNPlugin.Beamedpower
                 : atmosphereDensity;
 
             var effectiveSurfaceArea = surfaceArea * (IsEnabled ? 1 : 0);
-            var vesselMassInKg = vessel.totalMass * 1000;
             var specularRatio = Math.Max(0, Math.Min(1, part.skinTemperature / part.skinMaxTemp));
             var diffuseRatio = 1 - specularRatio;
             var maximumDragCcoefficient = (4 * specularRatio) + (3.3 * diffuseRatio);
@@ -390,7 +405,7 @@ namespace FNPlugin.Beamedpower
                 vessel.ChangeWorldVelocity(acceleration);
         }
 
-        private void GenerateForce(int index, Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool isSun)
+        private void GenerateForce(int index, Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool isSun, double vesselMassInKg)
         {
             // calculate vector between vessel and star/transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
@@ -418,6 +433,7 @@ namespace FNPlugin.Beamedpower
             // convert radian into angle in degree
             var pitchAngleInDegree = pitchAngleInRad * radToDegreeMult;
 
+            // skip beamed power in undesireable direction
             if (isSun)
                 solarSailAngle = pitchAngleInDegree;
             else if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
@@ -438,24 +454,23 @@ namespace FNPlugin.Beamedpower
             else
                 totalForceInNewtonFromBeamedPower += maximumPhotonForceInNewton * sign(cosConeAngleIsNegative);
 
-            // effective Force from power source
-            Vector3d effectiveForceOld = partNormal * cosConeAngle * cosConeAngle * maximumPhotonForceInNewton;
+            if (!IsEnabled)
+                return;
+
+            // draw beamed power rays
+            if (!isSun && index < 10)
+                UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1 : 0, beamedPowerThrottle > 0 ? 1 : 0);
 
             // calculate the vector at 90 degree angle in the direction of the vector
             var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
 
-            // F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t] 
+            // old : F = 2 PA cos α cos α n
+            // new F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t] 
             // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficien
             var effectiveForce = radiationPresureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
 
-            if (!IsEnabled)
-                return;
-
-            if (!isSun)
-                UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1 : 0, beamedPowerThrottle > 0 ? 1 : 0);
-
             // Calculate acceleration from sunlight
-            Vector3d photonAccel = effectiveForce / vessel.totalMass / 1000d;
+            Vector3d photonAccel = effectiveForce / vesselMassInKg;
 
             // Acceleration from sunlight per second
             Vector3d fixedPhotonAccel = photonAccel * TimeWarp.fixedDeltaTime;
@@ -471,6 +486,8 @@ namespace FNPlugin.Beamedpower
             }
             else
             {
+                receivedBeamedPowerList.Add(new ReceivedBeamedPower { pitchAngle = pitchAngleInDegree, receivedPower = availableEnergyInWatt });
+
                 beamed_force_d += effectiveForce.magnitude * sign(cosConeAngleIsNegative);
                 beamed_acc_d += photonAccel.magnitude * sign(cosConeAngleIsNegative);
             }
