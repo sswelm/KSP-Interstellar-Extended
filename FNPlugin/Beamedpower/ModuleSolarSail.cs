@@ -28,7 +28,7 @@ namespace FNPlugin.Beamedpower
 
         // Persistent False
         [KSPField]
-        public double reflectedPhotonRatio = 1f;
+        public double reflectedPhotonRatio = 0.975f;
         [KSPField(guiActiveEditor = true, guiName = "Surface Area", guiUnits = " m\xB2")]
         public double surfaceArea = 144400;
         [KSPField(guiActiveEditor = true, guiName = "Diameter", guiUnits = " m")]
@@ -412,16 +412,25 @@ namespace FNPlugin.Beamedpower
                 cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, partNormal);
             }
 
-            // calculate the vector at 90 degree angle in the direction of the vector
-            var tangant = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
+            // convert cosine angle  into angle in radian
+            var pitchAngleInRad = Math.Acos(cosConeAngle);
+
+            // convert radian into angle in degree
+            var pitchAngleInDegree = pitchAngleInRad * radToDegreeMult;
 
             if (isSun)
-                solarSailAngle = Math.Acos(cosConeAngle) * radToDegreeMult;
+                solarSailAngle = pitchAngleInDegree;
             else if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
                 return;
 
+            // convert energy into momentum
+            var radiationPresure = (isSun ? 2 : beamedPowerThrottle / 50) * availableEnergyInWatt / GameConstants.speedOfLight;
+
             // calculate solar light force at current location
-            var maximumPhotonForceInNewton = (isSun ? 2 : beamedPowerThrottle / 50) * reflectedPhotonRatio * availableEnergyInWatt / GameConstants.speedOfLight;
+            var maximumPhotonForceInNewton = reflectedPhotonRatio * radiationPresure;
+
+            // calculate effective radiation presure on solarsail
+            var radiationPresureOnSail = isSun ? radiationPresure * cosConeAngle : radiationPresure;
 
             // register force 
             if (isSun)
@@ -430,11 +439,14 @@ namespace FNPlugin.Beamedpower
                 totalForceInNewtonFromBeamedPower += maximumPhotonForceInNewton * sign(cosConeAngleIsNegative);
 
             // effective Force from power source
-            Vector3d effectiveForce = partNormal * cosConeAngle * cosConeAngle * maximumPhotonForceInNewton;
+            Vector3d effectiveForceOld = partNormal * cosConeAngle * cosConeAngle * maximumPhotonForceInNewton;
 
-            // ToDo: replace F = 2 PA cos α cos α n, by
+            // calculate the vector at 90 degree angle in the direction of the vector
+            var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
+
             // F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t] 
             // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficien
+            var effectiveForce = radiationPresureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
 
             if (!IsEnabled)
                 return;
