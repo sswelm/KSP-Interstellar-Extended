@@ -209,30 +209,28 @@ namespace FNPlugin.Beamedpower
 
             for (var i = 0; i < beamEffectArray.Length; i++)
             {
-                beamEffectArray[i] = InitializeBeam(1001 + i);
+                beamEffectArray[i] = CreateBeam(1001 + i);
             }
         }
 
-        private BeamEffect InitializeBeam(int renderQueue)
+        private BeamEffect CreateBeam(int renderQueue)
         {
             var beam = new BeamEffect();
 
-            var zero = Vector3.zero;
-
             beam.solar_effect = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            beam.solar_effect_renderer = beam.solar_effect.GetComponent<Renderer>();
+            beam.solar_effect.transform.localScale = Vector3.zero;
+            beam.solar_effect.transform.position = Vector3.zero;
+            beam.solar_effect.transform.rotation = part.transform.rotation;
+            
             beam.solar_effect_collider = beam.solar_effect.GetComponent<Collider>();
             beam.solar_effect_collider.enabled = false;
 
-            beam.solar_effect.transform.localScale = new Vector3(0, 0, 0);
-            beam.solar_effect.transform.position = new Vector3(zero.x, zero.y + zero.y, zero.z);
-            beam.solar_effect.transform.rotation = part.transform.rotation;
+            beam.solar_effect_renderer = beam.solar_effect.GetComponent<Renderer>();
             beam.solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
-            beam.solar_effect_renderer.material.color = new Color(Color.yellow.r, Color.yellow.g, Color.yellow.b, 0.5f);
-
-            beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp2", false);
-            beam.solar_effect_renderer.receiveShadows = false;
+            beam.solar_effect_renderer.material.color = new Color(Color.red.r, Color.red.g, Color.red.b, 0.5f);
+            beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/infrared", false);
             beam.solar_effect_renderer.material.renderQueue = renderQueue;
+            beam.solar_effect_renderer.receiveShadows = false;            
 
             return beam;
         }
@@ -338,17 +336,11 @@ namespace FNPlugin.Beamedpower
             var universalTime = Planetarium.GetUniversalTime();
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
-            //availableBeamedPhotonPowerEnergy1 = 0;
-            //availableBeamedPhotonPowerEnergy2 = 0;
+			receivedBeamedPowerList.Clear();
 
             int beamcounter = 0;
             foreach (var receivedPowerData in received_power.Values.Where(m => m.AvailablePower > 1))
             {
-                //if (beamcounter == 0)
-                //    availableBeamedPhotonPowerEnergy1 = receivedPowerData.Route.Spotsize;
-                //if (beamcounter == 1)
-                //    availableBeamedPhotonPowerEnergy2 = receivedPowerData.Route.Spotsize;
-
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
                 GenerateForce(beamcounter++, beamedPowerSource, positionVessel, receivedPowerData.AvailablePower * 1e6, universalTime, false, vesselMassInKg, Math.Max(effectSize1, receivedPowerData.Route.Spotsize / 4));
             }
