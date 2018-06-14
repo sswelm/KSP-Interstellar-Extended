@@ -35,18 +35,18 @@ namespace FNPlugin.Beamedpower
         // Persistent False
         [KSPField]
         public double reflectedPhotonRatio = 0.975;
+        [KSPField(guiActiveEditor = true, guiName = "Photovoltaic film Area", guiUnits = " m\xB2")]
+        public double photovoltaicArea = 1;
         [KSPField(guiActiveEditor = true, guiName = "Surface Area", guiUnits = " m\xB2")]
         public double surfaceArea = 144400;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Diameter", guiUnits = " m")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Diameter", guiUnits = " m", guiFormat = "F3")]
         public double diameter;
         [KSPField(guiActiveEditor = true, guiName = "Mass", guiUnits = " t", guiFormat = "F3")]
         public double partMass;
+        
 
         [KSPField]
-        public float effectSize1 = 2.5f;
-        [KSPField]
-        public float effectSize2 = 5;
-
+        public float effectSize1 = 1.25f;
         [KSPField]
         public string animName = "";
         [KSPField]
@@ -78,15 +78,12 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = true, guiName = "Beamed Power Energy", guiFormat = "F4", guiUnits = " MW")]
         public double availableBeamedPhotonPower;
 
-        //[KSPField(guiActive = true, guiName = "Beamed Spot Size 1", guiFormat = "F4", guiUnits = " m")]
-        //public double availableBeamedPhotonPowerEnergy1;
-        //[KSPField(guiActive = true, guiName = "Beamed Spot Size 2", guiFormat = "F4", guiUnits = " m")]
-        //public double availableBeamedPhotonPowerEnergy2;
-
         [KSPField(guiActive = true, guiName = "Beamed Potential Force", guiFormat = "F4", guiUnits = " N")]
         public double totalForceInNewtonFromBeamedPower = 0;
         [KSPField(guiActive = true, guiName = "Beamed Pitch Angle", guiFormat = "F3", guiUnits = "°")]
         public double weightedBeamPowerPitch;
+        [KSPField(guiActive = true, guiName = "Beamed Spotsize", guiFormat = "F3", guiUnits = " m")]
+        public double averageSpotsize;
         [KSPField(guiActive = true, guiName = "Beamed Sail Force", guiFormat = "F4", guiUnits = " N")]
         public double beamed_force_d = 0;
         [KSPField(guiActive = true, guiName = "Beamed Acceleration")]
@@ -116,6 +113,7 @@ namespace FNPlugin.Beamedpower
         // Display numbers for force and acceleration
         double solar_acc_d = 0;
         double beamed_acc_d = 0;
+        float animationNormalizedTime;
 
         Animation solarSailAnim = null;
         CelestialBody _localStar;
@@ -188,9 +186,6 @@ namespace FNPlugin.Beamedpower
         public override void OnStart(PartModule.StartState state)
         {
             diameter = Math.Sqrt(surfaceArea);
-            
-            if (state == StartState.None || state == StartState.Editor)
-                return;
 
             if (animName != null)
                 solarSailAnim = part.FindModelAnimators(animName).FirstOrDefault();
@@ -202,6 +197,9 @@ namespace FNPlugin.Beamedpower
                 solarSailAnim[animName].normalizedTime = initialAnimationNormalizedTime;
                 solarSailAnim.Blend(animName, initialAnimationTargetWeight);
             }
+
+            if (state == StartState.None || state == StartState.Editor)
+                return;
 
             this.part.force_activate();
 
@@ -227,7 +225,7 @@ namespace FNPlugin.Beamedpower
 
             beam.solar_effect_renderer = beam.solar_effect.GetComponent<Renderer>();
             beam.solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
-            beam.solar_effect_renderer.material.color = new Color(Color.red.r, Color.red.g, Color.red.b, 0.5f);
+            beam.solar_effect_renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 0.1f);
             beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/infrared", false);
             beam.solar_effect_renderer.material.renderQueue = renderQueue;
             beam.solar_effect_renderer.receiveShadows = false;            
@@ -255,6 +253,7 @@ namespace FNPlugin.Beamedpower
         {
             maxNetworkPower = 0;
             availableBeamedPhotonPower = 0;
+            animationNormalizedTime = solarSailAnim[animName].normalizedTime;
             
             // update local star
             _localStar = PluginHelper.GetCurrentStar();
@@ -341,6 +340,8 @@ namespace FNPlugin.Beamedpower
             int beamcounter = 0;
             foreach (var receivedPowerData in received_power.Values.Where(m => m.AvailablePower > 1))
             {
+                averageSpotsize = receivedPowerData.Route.Spotsize;
+
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
                 GenerateForce(beamcounter++, beamedPowerSource, positionVessel, receivedPowerData.AvailablePower * 1e6, universalTime, false, vesselMassInKg, Math.Max(effectSize1, receivedPowerData.Route.Spotsize / 4));
             }
@@ -350,6 +351,7 @@ namespace FNPlugin.Beamedpower
             weightedBeamPowerPitch = totalPitch / receivedBeamedPowerList.Count;
 
             UpdateSolarFlux();
+
             Vector3d localStarPosition =  _localStar.getPositionAtUT(universalTime);
             GenerateForce(0, localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, true, vesselMassInKg, 1);
 
@@ -412,7 +414,7 @@ namespace FNPlugin.Beamedpower
                 vessel.ChangeWorldVelocity(acceleration);
         }
 
-        private void GenerateForce(int index, Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool isSun, double vesselMassInKg, double spotsize)
+        private void GenerateForce(int index, Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, bool isSun, double vesselMassInKg, double beamspotsize)
         {
             // calculate vector between vessel and star/transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
@@ -442,7 +444,11 @@ namespace FNPlugin.Beamedpower
 
             // skip beamed power in undesireable direction
             if (isSun)
+            {
                 solarSailAngle = pitchAngleInDegree;
+
+                part.RequestResource("ElectricCharge", -photovoltaicArea * averageSolarFluxInWatt * 0.2 * cosConeAngle * TimeWarp.fixedDeltaTime);  
+            }
             else if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
                 return;
 
@@ -466,7 +472,12 @@ namespace FNPlugin.Beamedpower
 
             // draw beamed power rays
             if (!isSun && index < 10)
-                UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, beamedPowerThrottle > 0 ? 1 : 0, beamedPowerThrottle > 0 ? (float)spotsize : 0);
+            {
+                var scaleModifier = beamedPowerThrottle > 0 ? (beamspotsize * 4 > diameter ? 4 : 1) : 0;
+                var animationModifier = animationNormalizedTime > 0 ? (animationNormalizedTime > 0.6 ? (animationNormalizedTime - 0.6) * 2.5 : 0) : 1;
+                var beamSpotsize = beamedPowerThrottle > 0 ? Mathf.Max((float)(animationModifier * cosConeAngle * diameter / 4), (float)beamspotsize) : 0;
+                UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, beamSpotsize);
+            }
 
             // calculate the vector at 90 degree angle in the direction of the vector
             var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
@@ -505,7 +516,7 @@ namespace FNPlugin.Beamedpower
             return (cosConeAngleIsNegative ? -1 : 1);
         }
 
-        private void UpdateBeams(BeamEffect beameffect,  Vector3d powerSourceToVesselVector, float scaleModifer = 1, float sizeModifier = 1)
+        private void UpdateBeams(BeamEffect beameffect,  Vector3d powerSourceToVesselVector, float scaleModifer = 1, float beamSize = 1)
         {
             var endBeamPos = part.transform.position + (powerSourceToVesselVector.normalized * 10000);
             var midPos = part.transform.position - endBeamPos;
@@ -516,7 +527,7 @@ namespace FNPlugin.Beamedpower
             var solarVectorZ = powerSourceToVesselVector.normalized.z * 90;
 
             beameffect.solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
-            beameffect.solar_effect.transform.localScale = new Vector3(sizeModifier, 10000 * scaleModifer, sizeModifier);
+            beameffect.solar_effect.transform.localScale = new Vector3(beamSize, 10000 * scaleModifer, beamSize);
             beameffect.solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
         }
 
