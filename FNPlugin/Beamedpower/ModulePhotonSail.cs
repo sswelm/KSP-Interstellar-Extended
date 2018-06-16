@@ -20,7 +20,7 @@ namespace FNPlugin.Beamedpower
         public double pitchAngle;
     }
 
-    class ModuleSolarSail : PartModule, IBeamedPowerReceiver
+    class ModulePhotonSail : PartModule, IBeamedPowerReceiver
     {
         // Persistent Variables
         [KSPField(isPersistant = true)]
@@ -57,12 +57,13 @@ namespace FNPlugin.Beamedpower
         public float initialAnimationTargetWeight = 0.01f;
 
         // GUI
-        // Force and Acceleration
-        [KSPField(guiActive = true, guiName = "Solar Flux Energy", guiFormat = "F3", guiUnits = " W/m\xB2")]
-        public double averageSolarFluxInWatt;
-        [KSPField(guiActive = true, guiName = "Solar Flux Force", guiFormat = "F4", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "Solar Flux Part", guiFormat = "F4", guiUnits = " W/m\xB2")]
+        public double solarFluxMeasured;
+        [KSPField(guiActive = true, guiName = "Solar Flux Vessel", guiFormat = "F4", guiUnits = " W/m\xB2")]
+        public double solarFluxInWatt;
+        [KSPField(guiActive = true, guiName = "Solar Force Max", guiFormat = "F4", guiUnits = " N")]
         public double totalForceInNewtonFromSolarEnergy = 0;
-        [KSPField(guiActive = true, guiName = "Solar Sail Force", guiFormat = "F4", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "Solar Force Sail", guiFormat = "F4", guiUnits = " N")]
         public double solar_force_d = 0;
         [KSPField(guiActive = true, guiName = "Solar Acceleration")]
         public string solarAcc;
@@ -125,6 +126,8 @@ namespace FNPlugin.Beamedpower
         Queue<double> periapsisChangeQueue = new Queue<double>(20);
         Queue<double> apapsisChangeQueue = new Queue<double>(20);
         Queue<double> solarFluxQueue = new Queue<double>(100);
+
+        private static Dictionary<string, float> starLuminosity = new Dictionary<string, float>();
 
         BeamEffect []beamEffectArray;
 
@@ -203,6 +206,48 @@ namespace FNPlugin.Beamedpower
 
             this.part.force_activate();
 
+            CreateBeamArray();
+
+            CompileStarData();
+        }
+
+        // Scan the Kopernicus config nodes and extract luminosity values
+        protected void CompileStarData()
+        {
+            // Only need to do this once 
+            if (starLuminosity.Count > 0)
+                return;
+
+            ConfigNode[] nodeLevel1 = GameDatabase.Instance.GetConfigNodes("Kopernicus");
+
+            if (nodeLevel1.Length > 0)
+                Debug.Log("[KSPI] - Loading Kopernicus Configuration Data");
+            else
+                Debug.LogWarning("[KSPI] - Failed to find Kopernicus Configuration Data");
+
+            for (int i = 0; i < nodeLevel1.Length; i++)
+            {
+                ConfigNode[] nodeLevel2 = nodeLevel1[i].GetNodes("Body");
+                for (int j = 0; j < nodeLevel2.Length; j++)
+                {
+                    string bodyName = nodeLevel2[j].GetValue("name");
+                    ConfigNode[] nodeLevel3 = nodeLevel2[j].GetNodes("Properties");
+                    for (int k = 0; k < nodeLevel3.Length; k++)
+                    {
+                        string stLum = nodeLevel3[k].GetValue("starLuminosity");
+                        if (stLum != null)
+                        {
+                            float Lum;
+                            float.TryParse(stLum, out Lum);
+                            starLuminosity.Add(bodyName, Lum);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void CreateBeamArray()
+        {
             beamEffectArray = new BeamEffect[10];
 
             for (var i = 0; i < beamEffectArray.Length; i++)
@@ -257,6 +302,8 @@ namespace FNPlugin.Beamedpower
             
             // update local star
             _localStar = PluginHelper.GetCurrentStar();
+
+            
 
             // update available beamed power transmitters
             _transmitDataCollection = BeamedPowerHelper.GetConnectedTransmitters(this);
@@ -350,13 +397,23 @@ namespace FNPlugin.Beamedpower
             var totalPitch = receivedBeamedPowerList.Sum(m => m.pitchAngle * m.receivedPower / totalBeamedPower);
             weightedBeamPowerPitch = totalPitch / receivedBeamedPowerList.Count;
 
+            // update solar flux
             UpdateSolarFlux();
 
             Vector3d localStarPosition =  _localStar.getPositionAtUT(universalTime);
-            GenerateForce(0, localStarPosition, positionVessel, averageSolarFluxInWatt * surfaceArea, universalTime, true, vesselMassInKg, 1);
+            GenerateForce(0, localStarPosition, positionVessel, solarFluxInWatt * surfaceArea, universalTime, true, vesselMassInKg, 1);
 
             // calculate drag
             ApplyDrag(universalTime, vesselMassInKg);
+        }
+
+        private void UpdateSolarFlux()
+        {
+            solarFluxMeasured = vessel.solarFlux;
+            float lumonisity;
+            if (!starLuminosity.TryGetValue(_localStar.name, out lumonisity))
+                lumonisity = 1;
+            solarFluxInWatt = solarFluxMeasured > 0 ? solarFluxAtDistance(part.vessel, _localStar, lumonisity) : 0;
         }
 
         private void ApplyDrag(double universalTime, double vesselMassInKg)
@@ -447,7 +504,7 @@ namespace FNPlugin.Beamedpower
             {
                 solarSailAngle = pitchAngleInDegree;
 
-                part.RequestResource("ElectricCharge", -photovoltaicArea * averageSolarFluxInWatt * 0.2 * cosConeAngle * TimeWarp.fixedDeltaTime);  
+                part.RequestResource("ElectricCharge", -photovoltaicArea * solarFluxInWatt * 0.2 * cosConeAngle * TimeWarp.fixedDeltaTime);  
             }
             else if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
                 return;
@@ -531,23 +588,6 @@ namespace FNPlugin.Beamedpower
             beameffect.solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
         }
 
-        private void UpdateSolarFlux()
-        {
-            if (vessel.solarFlux > 0)
-            {
-                solarFluxQueue.Enqueue(vessel.solarFlux);
-                if (solarFluxQueue.Count > 100)
-                    solarFluxQueue.Dequeue();
-                averageSolarFluxInWatt = solarFluxQueue.Average();
-            }
-            else
-            {
-                if (solarFluxQueue.Count > 0)
-                    solarFluxQueue.Dequeue();
-                averageSolarFluxInWatt = 0;
-            }
-        }
-
         private void UpdateChangeGui()
         {
             var averageFixedDeltaTime = (previousFixedDeltaTime + TimeWarp.fixedDeltaTime) / 2f;
@@ -572,5 +612,17 @@ namespace FNPlugin.Beamedpower
             previousAeA = vessel.orbit.ApA;
             previousFixedDeltaTime = TimeWarp.fixedDeltaTime;
         }
+
+        private static double solarFluxAtDistance(Vessel vessel, CelestialBody star, double luminosity)
+        {
+            const double kerbin_distance = 13599840256;
+
+            var toStar = vessel.CoMD - star.position;
+            var distance = toStar.magnitude - star.Radius;
+            var distAU = distance / kerbin_distance;
+            return luminosity * 1360 / (distAU * distAU);
+        }
+
+
     }
 }
