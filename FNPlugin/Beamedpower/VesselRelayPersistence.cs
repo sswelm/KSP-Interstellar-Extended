@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using FNPlugin.Redist;
 
 namespace FNPlugin 
 {
@@ -23,7 +24,7 @@ namespace FNPlugin
         }
     }
 
-    class VesselRelayPersistence 
+    class VesselRelayPersistence : IVesselRelayPersistence 
     {
         Vessel vessel;
         bool isActive;

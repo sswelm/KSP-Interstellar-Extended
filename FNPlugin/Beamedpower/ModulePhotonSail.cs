@@ -57,9 +57,9 @@ namespace FNPlugin.Beamedpower
         public float initialAnimationTargetWeight = 0.01f;
 
         // GUI
-        [KSPField(guiActive = true, guiName = "Solar Flux Part", guiFormat = "F4", guiUnits = " W/m\xB2")]
+        [KSPField(guiActive = false, guiName = "Solar Flux Measured", guiFormat = "F4", guiUnits = " W/m\xB2")]
         public double solarFluxMeasured;
-        [KSPField(guiActive = true, guiName = "Solar Flux Vessel", guiFormat = "F4", guiUnits = " W/m\xB2")]
+        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F4", guiUnits = " W/m\xB2")]
         public double solarFluxInWatt;
         [KSPField(guiActive = true, guiName = "Solar Force Max", guiFormat = "F4", guiUnits = " N")]
         public double totalForceInNewtonFromSolarEnergy = 0;

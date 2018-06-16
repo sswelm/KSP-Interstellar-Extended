@@ -2,13 +2,34 @@
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin
+namespace FNPlugin.Redist
 {
+    interface IVesselMicrowavePersistence {
+
+        double getAvailablePowerInKW();
+
+        bool IsActive { get; }
+    }
+    interface IVesselRelayPersistence {
+
+        bool IsActive { get; }    
+    }
+
+    delegate IVesselMicrowavePersistence GetVesselMicrowavePersistanceForProtoVessel(Vessel vessel);
+    delegate IVesselRelayPersistence GetVesselRelayPersistanceForProtoVessel(Vessel vessel);
+    delegate IVesselMicrowavePersistence GetVesselMicrowavePersistanceForVessel(Vessel vessel);
+    delegate IVesselRelayPersistence GetVesselRelayPersistenceForVessel(Vessel vessel);
+
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     class MicrowaveSources : MonoBehaviour
     {
-        public Dictionary<Vessel, VesselMicrowavePersistence> globalTransmitters = new Dictionary<Vessel, VesselMicrowavePersistence>();
-        public Dictionary<Vessel, VesselRelayPersistence> globalRelays = new Dictionary<Vessel, VesselRelayPersistence>();
+        public Dictionary<Vessel, IVesselMicrowavePersistence> globalTransmitters = new Dictionary<Vessel, IVesselMicrowavePersistence>();
+        public Dictionary<Vessel, IVesselRelayPersistence> globalRelays = new Dictionary<Vessel, IVesselRelayPersistence>();
+
+        public static GetVesselMicrowavePersistanceForProtoVessel getVesselMicrowavePersistanceForProtoVesselCallback;
+        public static GetVesselRelayPersistanceForProtoVessel getVesselRelayPersistanceForProtoVesselCallback;
+        public static GetVesselMicrowavePersistanceForVessel getVesselMicrowavePersistanceForVesselCallback;
+        public static GetVesselRelayPersistenceForVessel getVesselRelayPersistenceForVesselCallback;
 
         public static MicrowaveSources instance
         {
@@ -58,8 +79,12 @@ namespace FNPlugin
                     if (initialized && i != unloaded_counter)
                         continue;
 
+                    if (getVesselMicrowavePersistanceForProtoVesselCallback == null)
+                        continue;
+
                     // add if vessel can act as a transmitter or relay
-                    var trans_pers = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForProtoVessel(vessel);
+                    //var trans_pers = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForProtoVessel(vessel);
+                    var trans_pers = getVesselMicrowavePersistanceForProtoVesselCallback(vessel);
 
                     var hasAnyPower = trans_pers.getAvailablePowerInKW() > 0.001;
                     if (trans_pers.IsActive && hasAnyPower)
@@ -83,8 +108,13 @@ namespace FNPlugin
                         }
                     }
 
+                    if (getVesselRelayPersistanceForProtoVesselCallback == null)
+                        continue; ;
+
                     // only add if vessel can act as a relay
-                    var relayPower = MicrowavePowerTransmitter.getVesselRelayPersistanceForProtoVessel(vessel);
+                    //var relayPower = MicrowavePowerTransmitter.getVesselRelayPersistanceForProtoVessel(vessel);
+                    var relayPower = getVesselRelayPersistanceForProtoVesselCallback(vessel);
+
                     if (relayPower.IsActive)
                         globalRelays[vessel] = relayPower;
                     else
@@ -96,25 +126,32 @@ namespace FNPlugin
                 // if vessel is loaded
                 if (vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>().Any())
                 {
-                    // add if vessel can act as a transmitter or relay
-                    var transmitterPower = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel(vessel);
-                    if (transmitterPower != null && transmitterPower.IsActive && transmitterPower.getAvailablePowerInKW() > 0.001)
+                    if (getVesselMicrowavePersistanceForVesselCallback != null)
                     {
-                        if (!globalTransmitters.ContainsKey(vessel))
-                        {
-                            Debug.Log("[KSPI] - Added loaded Transmitter for vessel " + vessel.name + " " + vessel.id);
-                        }
-                        globalTransmitters[vessel] = transmitterPower;
-                    }
-                    else
-                        globalTransmitters.Remove(vessel);
+                        // add if vessel can act as a transmitter or relay
+                        //var transmitterPower = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel(vessel);
+                        var transmitterPower = getVesselMicrowavePersistanceForVesselCallback(vessel);
 
-                    // only add if vessel can act as a relay otherwise remove
-                    var relayPower = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel(vessel);
-                    if (relayPower != null && relayPower.IsActive)
-                        globalRelays[vessel] = relayPower;
-                    else
-                        globalRelays.Remove(vessel);
+                        if (transmitterPower != null && transmitterPower.IsActive && transmitterPower.getAvailablePowerInKW() > 0.001)
+                        {
+                            if (!globalTransmitters.ContainsKey(vessel))
+                            {
+                                Debug.Log("[KSPI] - Added loaded Transmitter for vessel " + vessel.name + " " + vessel.id);
+                            }
+                            globalTransmitters[vessel] = transmitterPower;
+                        }
+                        else
+                            globalTransmitters.Remove(vessel);
+
+                        // only add if vessel can act as a relay otherwise remove
+                        //var relayPower = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel(vessel);
+                        var relayPower = getVesselRelayPersistenceForVesselCallback(vessel);
+
+                        if (relayPower != null && relayPower.IsActive)
+                            globalRelays[vessel] = relayPower;
+                        else
+                            globalRelays.Remove(vessel);
+                    }
                 }
             }
             initialized = true;

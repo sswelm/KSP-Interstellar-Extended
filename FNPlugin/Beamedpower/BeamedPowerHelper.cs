@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using FNPlugin.Extensions;
 using FNPlugin.Microwave;
+using FNPlugin.Redist;
 
 namespace FNPlugin.Beamedpower
 {

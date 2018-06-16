@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using FNPlugin.Redist;
 
 namespace FNPlugin
 {
-    class VesselMicrowavePersistence
+    class VesselMicrowavePersistence : IVesselMicrowavePersistence
     {
         Vessel vessel;
         private bool isactive;

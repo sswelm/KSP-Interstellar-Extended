@@ -4,6 +4,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Redist;
 
 namespace FNPlugin
 {
@@ -752,7 +753,7 @@ namespace FNPlugin
             return IsEnabled;
         }
 
-        public static VesselRelayPersistence getVesselRelayPersistenceForVessel(Vessel vessel)
+        public static IVesselRelayPersistence getVesselRelayPersistenceForVessel(Vessel vessel)
         {
             // find all active tranmitters configured for relay
             var relays = vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>().Where(m => m.IsRelay || m.mergingBeams).ToList();
@@ -804,7 +805,7 @@ namespace FNPlugin
             return relayPersistance;
         }
 
-        public static VesselMicrowavePersistence getVesselMicrowavePersistanceForVessel(Vessel vessel)
+        public static IVesselMicrowavePersistence getVesselMicrowavePersistanceForVessel(Vessel vessel)
         {
             var transmitters = vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>().Where(m => m.IsEnabled).ToList();
             if (transmitters.Count == 0)
@@ -861,7 +862,7 @@ namespace FNPlugin
         /// </summary>
         /// <param name="vessel"></param>
         /// <returns></returns>
-        public static VesselMicrowavePersistence getVesselMicrowavePersistanceForProtoVessel(Vessel vessel)
+        public static IVesselMicrowavePersistence getVesselMicrowavePersistanceForProtoVessel(Vessel vessel)
         {
             var transmitter = new VesselMicrowavePersistence(vessel);
             int totalCount = 0;
@@ -935,7 +936,7 @@ namespace FNPlugin
             return transmitter;
         }
 
-        public static VesselRelayPersistence getVesselRelayPersistanceForProtoVessel(Vessel vessel)
+        public static IVesselRelayPersistence getVesselRelayPersistanceForProtoVessel(Vessel vessel)
         {
             var relayVessel = new VesselRelayPersistence(vessel);
             int totalCount = 0;

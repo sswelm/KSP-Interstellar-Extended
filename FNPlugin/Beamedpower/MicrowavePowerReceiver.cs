@@ -3,26 +3,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using FNPlugin.Reactors.Interfaces;
-using UnityEngine;
 using FNPlugin.Propulsion;
 using FNPlugin.Extensions;
 using FNPlugin.Microwave;
 using FNPlugin.Beamedpower;
+using FNPlugin.Redist;
+using UnityEngine;
 
 namespace FNPlugin
 {
-    //class MonitorData
-    //{
-    //    public Guid partId { get; set; }
-    //    public double spotsize { get; set; }
-    //    public double receivedPower { get; set; }
-    //    public double distanceToSpot { get; set; }
-    //    public double aperture { get; set; }
-    //    public float wavelength { get; set; }
-    //    public Vessel receivingVessel { get; set; }
-    //    public Vessel sendingVessel { get; set; }
-    //}
-
     class ReceivedPowerData
     {
         public IBeamedPowerReceiver Receiver { get; set; }

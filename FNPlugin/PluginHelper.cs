@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using KSP.UI.Screens;
+using FNPlugin.Redist;
 
 namespace FNPlugin
 {
@@ -16,6 +17,11 @@ namespace FNPlugin
             //GameEvents.onSetSpeedMode.Add(OnSetSpeedModeChange);
             //GameEvents.onVesselLoaded.Add(OnVesselLoaded);
             //GameEvents.OnTechnologyResearched.Add(OnTechnologyResearched);
+
+            MicrowaveSources.getVesselMicrowavePersistanceForProtoVesselCallback = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForProtoVessel;
+            MicrowaveSources.getVesselRelayPersistanceForProtoVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistanceForProtoVessel;
+            MicrowaveSources.getVesselMicrowavePersistanceForVesselCallback = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel;
+            MicrowaveSources.getVesselRelayPersistenceForVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel;
 
             GameEvents.onGameStateSaved.Add(onGameStateSaved);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
