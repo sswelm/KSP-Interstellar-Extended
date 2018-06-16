@@ -69,7 +69,6 @@ namespace FNPlugin.Beamedpower
         public string solarAcc;
         [KSPField(guiActive = true, guiName = "Solar Pitch Angle", guiFormat = "F3", guiUnits = "°")]
         public double solarSailAngle = 0;
-
         [KSPField(guiActive = false, guiName = "Network power", guiFormat = "F4", guiUnits = " MW")]
         public double maxNetworkPower;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Photon Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0)]
@@ -303,8 +302,6 @@ namespace FNPlugin.Beamedpower
             // update local star
             _localStar = PluginHelper.GetCurrentStar();
 
-            
-
             // update available beamed power transmitters
             _transmitDataCollection = BeamedPowerHelper.GetConnectedTransmitters(this);
 
@@ -398,7 +395,7 @@ namespace FNPlugin.Beamedpower
             weightedBeamPowerPitch = totalPitch / receivedBeamedPowerList.Count;
 
             // update solar flux
-            UpdateSolarFlux();
+            UpdateSolarFluxLocalStar(universalTime);
 
             Vector3d localStarPosition =  _localStar.getPositionAtUT(universalTime);
             GenerateForce(0, localStarPosition, positionVessel, solarFluxInWatt * surfaceArea, universalTime, true, vesselMassInKg, 1);
@@ -407,13 +404,21 @@ namespace FNPlugin.Beamedpower
             ApplyDrag(universalTime, vesselMassInKg);
         }
 
-        private void UpdateSolarFlux()
+        private void UpdateSolarFluxLocalStar(double universalTime)
         {
             solarFluxMeasured = vessel.solarFlux;
+
+            var vesselIsSun = inSun(vessel.orbit, _localStar, universalTime);
+
+            solarFluxInWatt = vesselIsSun ? solarFluxAtDistance(part.vessel, _localStar, GetLuminosity()) : 0;
+        }
+
+        private float GetLuminosity()
+        {
             float lumonisity;
             if (!starLuminosity.TryGetValue(_localStar.name, out lumonisity))
                 lumonisity = 1;
-            solarFluxInWatt = solarFluxMeasured > 0 ? solarFluxAtDistance(part.vessel, _localStar, lumonisity) : 0;
+            return lumonisity;
         }
 
         private void ApplyDrag(double universalTime, double vesselMassInKg)
@@ -431,6 +436,7 @@ namespace FNPlugin.Beamedpower
             var maximumDragCcoefficient = (4 * specularRatio) + (3.3 * diffuseRatio);
             var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized);
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
+            var squaredCosOrbitalDrag = cosObitalDrag * cosObitalDrag;
             var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
             lowOrbitModifier = Math.Max(0, Math.Min(1, (1000 + simulatedAltitude - vessel.mainBody.atmosphereDepth) / vessel.mainBody.atmosphereDepth));			
             maximumDragPerSquareMeter = (float)(lowOrbitModifier * baseDragForce * maximumDragCcoefficient);
@@ -440,7 +446,7 @@ namespace FNPlugin.Beamedpower
             if (cosOrbitRaw < 0)
                 partNormal = -partNormal;
 
-            var specularDragCoefficient = lowOrbitModifier * 4 * cosObitalDrag * cosObitalDrag;
+            var specularDragCoefficient = lowOrbitModifier * 4 * squaredCosOrbitalDrag;
             var specularDragPerSquareMeter =  specularDragCoefficient * baseDragForce * specularRatio;
             var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea * baseDragForce * specularRatio;
             specularSailDragInNewton = (float)specularDragInNewton;
@@ -450,7 +456,7 @@ namespace FNPlugin.Beamedpower
             ChangeVesselVelocity(this.vessel, universalTime, specularDragDeceleration);
 
             // apply Diffuse Drag
-            var diffuseDragCoefficient = lowOrbitModifier * (2 + cosObitalDrag * cosObitalDrag * 1.3);
+            var diffuseDragCoefficient = lowOrbitModifier * (2 + squaredCosOrbitalDrag * 1.3);
             var diffuseDragPerSquareMeter = diffuseDragCoefficient * baseDragForce * diffuseRatio;
             var diffuseDragInNewton = diffuseDragPerSquareMeter * cosObitalDrag * effectiveSurfaceArea;
             diffuseSailDragInNewton = (float)diffuseDragInNewton;
@@ -621,6 +627,38 @@ namespace FNPlugin.Beamedpower
             var distance = toStar.magnitude - star.Radius;
             var distAU = distance / kerbin_distance;
             return luminosity * 1360 / (distAU * distAU);
+        }
+
+        // Test if an orbit at UT is in sunlight
+        public bool inSun(Orbit orbit, CelestialBody sun,  double UT)
+        {
+            Vector3d vesselPosition = orbit.getPositionAtUT(UT);
+            Vector3d sunPosition = sun.getPositionAtUT(UT);
+            Vector3d bminusa = sunPosition - vesselPosition;
+
+            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
+            {
+                // the sun should not block line of sight to the sun
+                if (referenceBody.name == sun.name)
+                    continue;
+
+                Vector3d refminusa = referenceBody.getPositionAtUT(UT) - vesselPosition;
+
+                if (Vector3d.Dot(refminusa, bminusa) <= 0)
+                    continue;
+
+                var normalizedBminusa = bminusa.normalized;
+
+                var cosReferenceSunNormB = Vector3d.Dot(refminusa, normalizedBminusa);
+
+                if (cosReferenceSunNormB >= bminusa.magnitude)
+                    continue;
+
+                Vector3d tang = refminusa - cosReferenceSunNormB * normalizedBminusa;
+                if (tang.magnitude < referenceBody.Radius)
+                    return false;
+            }
+            return true;
         }
 
 
