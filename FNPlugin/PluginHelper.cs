@@ -18,10 +18,10 @@ namespace FNPlugin
             //GameEvents.onVesselLoaded.Add(OnVesselLoaded);
             //GameEvents.OnTechnologyResearched.Add(OnTechnologyResearched);
 
-            MicrowaveSources.getVesselMicrowavePersistanceForProtoVesselCallback = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForProtoVessel;
-            MicrowaveSources.getVesselRelayPersistanceForProtoVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistanceForProtoVessel;
-            MicrowaveSources.getVesselMicrowavePersistanceForVesselCallback = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel;
-            MicrowaveSources.getVesselRelayPersistenceForVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel;
+            BeamedPowerSources.getVesselMicrowavePersistanceForProtoVesselCallback = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForProtoVessel;
+            BeamedPowerSources.getVesselRelayPersistanceForProtoVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistanceForProtoVessel;
+            BeamedPowerSources.getVesselMicrowavePersistanceForVesselCallback = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel;
+            BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel;
 
             GameEvents.onGameStateSaved.Add(onGameStateSaved);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);

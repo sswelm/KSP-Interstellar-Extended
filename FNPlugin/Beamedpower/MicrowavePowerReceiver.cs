@@ -1299,8 +1299,8 @@ namespace FNPlugin
             else
                 beamedpower = "Offline.";
 
-            connectedsats = string.Format("{0}/{1}", connectedsatsi, MicrowaveSources.instance.globalTransmitters.Count);
-            connectedrelays = string.Format("{0}/{1}", connectedrelaysi, MicrowaveSources.instance.globalRelays.Count);
+            connectedsats = string.Format("{0}/{1}", connectedsatsi, BeamedPowerSources.instance.globalTransmitters.Count);
+            connectedrelays = string.Format("{0}/{1}", connectedrelaysi, BeamedPowerSources.instance.globalRelays.Count);
             networkDepthString = networkDepth.ToString();
             //toteff = efficiencyPercentage.ToString("0.00") + "%";
 

@@ -4,24 +4,26 @@ using UnityEngine;
 
 namespace FNPlugin.Redist
 {
-    interface IVesselMicrowavePersistence {
+    public interface IMicrowavePowerTransmitter { };
+
+    public interface IVesselMicrowavePersistence {
 
         double getAvailablePowerInKW();
 
         bool IsActive { get; }
     }
-    interface IVesselRelayPersistence {
+    public interface IVesselRelayPersistence {
 
         bool IsActive { get; }    
     }
 
-    delegate IVesselMicrowavePersistence GetVesselMicrowavePersistanceForProtoVessel(Vessel vessel);
-    delegate IVesselRelayPersistence GetVesselRelayPersistanceForProtoVessel(Vessel vessel);
-    delegate IVesselMicrowavePersistence GetVesselMicrowavePersistanceForVessel(Vessel vessel);
-    delegate IVesselRelayPersistence GetVesselRelayPersistenceForVessel(Vessel vessel);
+    public delegate IVesselMicrowavePersistence GetVesselMicrowavePersistanceForProtoVessel(Vessel vessel);
+    public delegate IVesselRelayPersistence GetVesselRelayPersistanceForProtoVessel(Vessel vessel);
+    public delegate IVesselMicrowavePersistence GetVesselMicrowavePersistanceForVessel(Vessel vessel);
+    public delegate IVesselRelayPersistence GetVesselRelayPersistenceForVessel(Vessel vessel);
 
     [KSPAddon(KSPAddon.Startup.Flight, false)]
-    class MicrowaveSources : MonoBehaviour
+    public class BeamedPowerSources : MonoBehaviour
     {
         public Dictionary<Vessel, IVesselMicrowavePersistence> globalTransmitters = new Dictionary<Vessel, IVesselMicrowavePersistence>();
         public Dictionary<Vessel, IVesselRelayPersistence> globalRelays = new Dictionary<Vessel, IVesselRelayPersistence>();
@@ -31,7 +33,7 @@ namespace FNPlugin.Redist
         public static GetVesselMicrowavePersistanceForVessel getVesselMicrowavePersistanceForVesselCallback;
         public static GetVesselRelayPersistenceForVessel getVesselRelayPersistenceForVesselCallback;
 
-        public static MicrowaveSources instance
+        public static BeamedPowerSources instance
         {
             get;
             private set;
@@ -44,15 +46,15 @@ namespace FNPlugin.Redist
             Debug.Log("[KSPI] - MicrowaveSources initialized");
         }
 
-        int unloaded_counter = -1;
+        int counter = -1;
         bool initialized = false;
 
         public void calculateTransmitters()
         {
-            unloaded_counter++;
+            counter++;
 
-            if (unloaded_counter > FlightGlobals.Vessels.Count)
-                unloaded_counter = 0;
+            if (counter > FlightGlobals.Vessels.Count)
+                counter = 0;
 
             //foreach (var vessel in FlightGlobals.Vessels)
             for (int i = 0; i < FlightGlobals.Vessels.Count; i++ )
@@ -74,62 +76,57 @@ namespace FNPlugin.Redist
                 // if vessel is offloaded on rails, parse file system
                 if (!vessel.loaded)
                 {
-                    //if (unloaded_counter % 101 != 1)                // sometimes rebuild unloaded vessels as transmitters and relays
-                    //    continue;
-                    if (initialized && i != unloaded_counter)
+                    if (initialized && i != counter)
                         continue;
 
-                    if (getVesselMicrowavePersistanceForProtoVesselCallback == null)
-                        continue;
-
-                    // add if vessel can act as a transmitter or relay
-                    //var trans_pers = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForProtoVessel(vessel);
-                    var trans_pers = getVesselMicrowavePersistanceForProtoVesselCallback(vessel);
-
-                    var hasAnyPower = trans_pers.getAvailablePowerInKW() > 0.001;
-                    if (trans_pers.IsActive && hasAnyPower)
+                    if (getVesselMicrowavePersistanceForProtoVesselCallback != null)
                     {
-                        if (!globalTransmitters.ContainsKey(vessel))
+                        // add if vessel can act as a transmitter or relay
+                        var trans_pers = getVesselMicrowavePersistanceForProtoVesselCallback(vessel);
+
+                        var hasAnyPower = trans_pers.getAvailablePowerInKW() > 0.001;
+                        if (trans_pers.IsActive && hasAnyPower)
                         {
-                            Debug.Log("[KSPI] - Added unloaded Transmitter for vessel " + vessel.name);
+                            if (!globalTransmitters.ContainsKey(vessel))
+                            {
+                                Debug.Log("[KSPI] - Added unloaded Transmitter for vessel " + vessel.name);
+                            }
+                            globalTransmitters[vessel] = trans_pers;
                         }
-                        globalTransmitters[vessel] = trans_pers;
-                    }
-                    else
-                    {
-                        if (globalTransmitters.Remove(vessel))
+                        else
                         {
-                            if (!trans_pers.IsActive && !hasAnyPower)
-                                Debug.Log("[KSPI] - Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active and has no power!");
-                            else if (!trans_pers.IsActive)
-                                Debug.Log("[KSPI] - Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active!");
-                            else if (!hasAnyPower)
-                                Debug.Log("[KSPI] - Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is has no power");
+                            if (globalTransmitters.Remove(vessel))
+                            {
+                                if (!trans_pers.IsActive && !hasAnyPower)
+                                    Debug.Log("[KSPI] - Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active and has no power!");
+                                else if (!trans_pers.IsActive)
+                                    Debug.Log("[KSPI] - Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active!");
+                                else if (!hasAnyPower)
+                                    Debug.Log("[KSPI] - Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is has no power");
+                            }
                         }
                     }
 
-                    if (getVesselRelayPersistanceForProtoVesselCallback == null)
-                        continue; ;
+                    if (getVesselRelayPersistanceForProtoVesselCallback != null)
+                    {
+                        // only add if vessel can act as a relay
+                        var relayPower = getVesselRelayPersistanceForProtoVesselCallback(vessel);
 
-                    // only add if vessel can act as a relay
-                    //var relayPower = MicrowavePowerTransmitter.getVesselRelayPersistanceForProtoVessel(vessel);
-                    var relayPower = getVesselRelayPersistanceForProtoVesselCallback(vessel);
-
-                    if (relayPower.IsActive)
-                        globalRelays[vessel] = relayPower;
-                    else
-                        globalRelays.Remove(vessel);
+                        if (relayPower.IsActive)
+                            globalRelays[vessel] = relayPower;
+                        else
+                            globalRelays.Remove(vessel);
+                    }
 
                     continue;
                 }
 
                 // if vessel is loaded
-                if (vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>().Any())
+                if (vessel.FindPartModulesImplementing<IMicrowavePowerTransmitter>().Any())
                 {
                     if (getVesselMicrowavePersistanceForVesselCallback != null)
                     {
                         // add if vessel can act as a transmitter or relay
-                        //var transmitterPower = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel(vessel);
                         var transmitterPower = getVesselMicrowavePersistanceForVesselCallback(vessel);
 
                         if (transmitterPower != null && transmitterPower.IsActive && transmitterPower.getAvailablePowerInKW() > 0.001)
@@ -144,7 +141,6 @@ namespace FNPlugin.Redist
                             globalTransmitters.Remove(vessel);
 
                         // only add if vessel can act as a relay otherwise remove
-                        //var relayPower = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel(vessel);
                         var relayPower = getVesselRelayPersistenceForVesselCallback(vessel);
 
                         if (relayPower != null && relayPower.IsActive)
@@ -158,11 +154,9 @@ namespace FNPlugin.Redist
 
         }
 
-        uint counter = 0;
         void Update()                  
         {
-            // update every 41e frame
-            if (counter++ % 41 == 0 && HighLogic.LoadedSceneIsFlight)
+            if (HighLogic.LoadedSceneIsFlight)
                 calculateTransmitters();
         }
     }

@@ -111,6 +111,7 @@ namespace FNPlugin.Beamedpower
         const double radToDegreeMult = 180d / Math.PI;
 
         // Display numbers for force and acceleration
+        bool scaleBeamToAnimation = false;
         double solar_acc_d = 0;
         double beamed_acc_d = 0;
         float animationNormalizedTime;
@@ -124,7 +125,6 @@ namespace FNPlugin.Beamedpower
 
         Queue<double> periapsisChangeQueue = new Queue<double>(20);
         Queue<double> apapsisChangeQueue = new Queue<double>(20);
-        Queue<double> solarFluxQueue = new Queue<double>(100);
 
         private static Dictionary<string, float> starLuminosity = new Dictionary<string, float>();
 
@@ -163,6 +163,7 @@ namespace FNPlugin.Beamedpower
             if (string.IsNullOrEmpty(animName) || solarSailAnim == null)
                 return;
 
+            scaleBeamToAnimation = true;
             solarSailAnim[animName].speed = 0.5f;
             solarSailAnim[animName].normalizedTime = 0f;
             solarSailAnim.Blend(animName, 0.1f);
@@ -177,6 +178,7 @@ namespace FNPlugin.Beamedpower
             if (animName == null || solarSailAnim == null)
                 return;
 
+            scaleBeamToAnimation = true;
             solarSailAnim[animName].speed = -0.5f;
             solarSailAnim[animName].normalizedTime = 1f;
             solarSailAnim.Blend(animName, 0.1f);
@@ -390,9 +392,12 @@ namespace FNPlugin.Beamedpower
                 GenerateForce(beamcounter++, beamedPowerSource, positionVessel, receivedPowerData.AvailablePower * 1e6, universalTime, false, vesselMassInKg, Math.Max(effectSize1, receivedPowerData.Route.Spotsize / 4));
             }
 
-            var totalBeamedPower = receivedBeamedPowerList.Sum(m => m.receivedPower);
-            var totalPitch = receivedBeamedPowerList.Sum(m => m.pitchAngle * m.receivedPower / totalBeamedPower);
-            weightedBeamPowerPitch = totalPitch / receivedBeamedPowerList.Count;
+            if (receivedBeamedPowerList.Count > 0)
+            {
+                var totalBeamedPower = receivedBeamedPowerList.Sum(m => m.receivedPower);
+                var totalPitch = receivedBeamedPowerList.Sum(m => m.pitchAngle * m.receivedPower / totalBeamedPower);
+                weightedBeamPowerPitch = totalPitch / receivedBeamedPowerList.Count;
+            }
 
             // update solar flux
             UpdateSolarFluxLocalStar(universalTime);
@@ -536,7 +541,7 @@ namespace FNPlugin.Beamedpower
             // draw beamed power rays
             if (!isSun && index < 10)
             {
-                var scaleModifier = beamedPowerThrottle > 0 ? (beamspotsize * 4 > diameter ? 4 : 1) : 0;
+                var scaleModifier = beamedPowerThrottle > 0 ? (scaleBeamToAnimation || beamspotsize * 4 <= diameter ? 1 : 4) : 0;
                 var animationModifier = animationNormalizedTime > 0 ? (animationNormalizedTime > 0.6 ? (animationNormalizedTime - 0.6) * 2.5 : 0) : 1;
                 var beamSpotsize = beamedPowerThrottle > 0 ? Mathf.Max((float)(animationModifier * cosConeAngle * diameter / 4), (float)beamspotsize) : 0;
                 UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, beamSpotsize);

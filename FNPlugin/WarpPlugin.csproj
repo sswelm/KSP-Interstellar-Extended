@@ -124,7 +124,6 @@
     <Compile Include="Refinery\WaterGasShift.cs" />
     <Compile Include="Refinery\CarbonDioxideElectroliser.cs" />
     <Compile Include="Science\InterstellarResourceScienceModule.cs" />
-    <Compile Include="Beamedpower\MicrowaveSources.cs" />
     <Compile Include="Refinery\HaberProcess.cs" />
     <Compile Include="Refinery\PeroxideProcess.cs" />
     <Compile Include="Reactors\Interfaces\IChargedParticleSource.cs" />

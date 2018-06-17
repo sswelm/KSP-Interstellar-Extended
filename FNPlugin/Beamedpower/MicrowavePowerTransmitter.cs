@@ -8,7 +8,7 @@ using FNPlugin.Redist;
 
 namespace FNPlugin
 {
-    class MicrowavePowerTransmitter : ResourceSuppliableModule, IScalarModule
+    class MicrowavePowerTransmitter : ResourceSuppliableModule, IMicrowavePowerTransmitter, IScalarModule
     {
         //Persistent 
         [KSPField(isPersistant = true)]

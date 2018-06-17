@@ -52,6 +52,7 @@
     <Compile Include="IEngineNoozle.cs" />
     <Compile Include="INuclearFuelReprocessable.cs" />
     <Compile Include="IPowerSupply.cs" />
+    <Compile Include="BeamedPowerSources.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

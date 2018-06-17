@@ -203,7 +203,7 @@ namespace FNPlugin.Beamedpower
 
             var recieverAtmosphericPresure = FlightGlobals.getStaticPressure(receiver.Vessel.transform.position) * 0.01;
 
-            foreach (VesselMicrowavePersistence transmitter in MicrowaveSources.instance.globalTransmitters.Values)
+            foreach (VesselMicrowavePersistence transmitter in BeamedPowerSources.instance.globalTransmitters.Values)
             {
                 //ignore if no power or transmitter is on the same vessel
                 if (transmitter.Vessel == receiver.Vessel)
@@ -265,7 +265,7 @@ namespace FNPlugin.Beamedpower
             var currentRelayGroup = new List<KeyValuePair<VesselRelayPersistence, int>>();//relays which are in line of sight, and we have not yet checked what they can see. Their index in relaysToCheck is also stored
 
             int relayIndex = 0;
-            foreach (VesselRelayPersistence relay in MicrowaveSources.instance.globalRelays.Values)
+            foreach (VesselRelayPersistence relay in BeamedPowerSources.instance.globalRelays.Values)
             {
                 if (!relay.IsActive) continue;
 
