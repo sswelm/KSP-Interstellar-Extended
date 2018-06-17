@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using FNPlugin.Redist;
+using FNPlugin.Extensions;
 
-namespace FNPlugin
+namespace FNPlugin.Beamedpower
 {
-    class VesselMicrowavePersistence : IVesselMicrowavePersistence
+    public class VesselMicrowavePersistence : IVesselMicrowavePersistence
     {
         Vessel vessel;
         private bool isactive;
@@ -13,6 +14,19 @@ namespace FNPlugin
         private double nuclear_power;
         private double solar_power;
         private double power_capacity;
+
+        private CelestialBody localStar;
+        public CelestialBody LocalStar
+        {
+            get
+            {
+                if (localStar == null)
+                {
+                    localStar = vessel.GetLocalStar();
+                }
+                return localStar;
+            }
+        }
 
         public VesselMicrowavePersistence(Vessel vessel)
         {
@@ -31,11 +45,10 @@ namespace FNPlugin
         public double getAvailablePowerInKW()
         {
             double power = 0;
-            if (solar_power > 0.001 && PluginHelper.lineOfSightToSun(vessel))
+            if (solar_power > 0.001 && vessel.LineOfSightToSun(LocalStar))
             {
-                var distanceBetweenVesselAndSun = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
-                var distanceBetweenSunAndKerbin = Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
-                double inv_square_mult = Math.Pow(distanceBetweenVesselAndSun, 2) / Math.Pow(distanceBetweenSunAndKerbin, 2);
+                var distanceBetweenVesselAndSun = Vector3d.Distance(vessel.GetVesselPos(), LocalStar.position);
+                double inv_square_mult = Math.Pow(distanceBetweenVesselAndSun, 2) / Math.Pow(Constants.GameConstants.kerbin_sun_distance, 2);
                 power = solar_power / inv_square_mult;
             }
 

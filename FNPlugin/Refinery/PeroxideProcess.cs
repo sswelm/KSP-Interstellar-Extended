@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Extensions;
+using FNPlugin.Constants;
 
 namespace FNPlugin.Refinery
 {

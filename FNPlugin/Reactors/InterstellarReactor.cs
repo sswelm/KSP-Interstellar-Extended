@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using FNPlugin.Extensions;
-using FNPlugin.Propulsion;
-using FNPlugin.Reactors.Interfaces;
 using KSP.Localization;
 using TweakScale;
 using UnityEngine;
+using FNPlugin.Extensions;
+using FNPlugin.Propulsion;
+using FNPlugin.Redist;
+using FNPlugin.Constants;
 
 namespace FNPlugin.Reactors
 {

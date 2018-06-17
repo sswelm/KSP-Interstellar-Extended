@@ -54,22 +54,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Beamedpower\BeamedPowerHelper.cs" />
-    <Compile Include="Beamedpower\ModulePhotonSail.cs" />
     <Compile Include="Collectors\RegolithCollector.cs" />
     <Compile Include="Collectors\SolarWindCollector.cs" />
     <Compile Include="Collectors\UniversalCrustExtractor.cs" />
     <Compile Include="RDColoredUpgradeIcon.cs" />
     <Compile Include="Extensions\ResourceBuffers.cs" />
-    <Compile Include="Resources\AtmosphericFloatCurves.cs" />
     <Compile Include="Resources\CrustalResource.cs" />
     <Compile Include="Resources\CrustalResourceHandler.cs" />
     <Compile Include="Resources\MagneticFieldDefinition.cs" />
-    <Compile Include="Extensions\Numbers.cs" />
     <Compile Include="Resources\MagneticFieldDefinitionsHandler.cs" />
     <Compile Include="Resources\OceanicResource.cs" />
     <Compile Include="Resources\OceanicResourceHandler.cs" />
-    <Compile Include="Extensions\OrbitExtensions.cs" />
     <Compile Include="Resources\AtmosphericResourceHandler.cs" />
     <Compile Include="Resources\AtmosphericResource.cs" />
     <Compile Include="Extensions\ParseTools.cs" />
@@ -78,7 +73,6 @@
     <Compile Include="Beamedpower\BeamConfiguration.cs" />
     <Compile Include="Beamedpower\BeamGenerator.cs" />
     <Compile Include="Beamedpower\BandwidthConverter.cs" />
-    <Compile Include="Extensions\Vector3dExtension.cs" />
     <Compile Include="IUpgradeableModule.cs" />
     <Compile Include="Powermanagement\ResourceManager.cs" />
     <Compile Include="Powermanagement\ResourceOvermanager.cs" />
@@ -99,7 +93,6 @@
     <Compile Include="Propulsion\VistaEngineControllerAdvanced.cs" />
     <Compile Include="Propulsion\DeadalusEngineController.cs" />
     <Compile Include="Propulsion\VistaEngineControllerAdvanced2.cs" />
-    <Compile Include="Reactors\Interfaces\IElectricPowerSource.cs" />
     <Compile Include="Reactors\InterstellarFissionDP.cs" />
     <Compile Include="Reactors\InterstellarFissionPB.cs" />
     <Compile Include="Refinery\AluminiumElectrolyser.cs" />
@@ -126,7 +119,6 @@
     <Compile Include="Science\InterstellarResourceScienceModule.cs" />
     <Compile Include="Refinery\HaberProcess.cs" />
     <Compile Include="Refinery\PeroxideProcess.cs" />
-    <Compile Include="Reactors\Interfaces\IChargedParticleSource.cs" />
     <Compile Include="Reactors\InterstellarCatalysedFissionFusion.cs" />
     <Compile Include="Extensions\CelestialBodyExtensions.cs" />
     <Compile Include="Reactors\InterstellarFissionMSRGC.cs" />
@@ -151,13 +143,11 @@
     <Compile Include="Science\InterstellarTelescope.cs" />
     <Compile Include="Science\ITelescopeController.cs" />
     <Compile Include="Refinery\NuclearFuelReprocessor.cs" />
-    <Compile Include="GameConstants.cs" />
     <Compile Include="Reactors\InterstellarReactor.cs" />
     <Compile Include="Reactors\InterstellarTokomakFusionReator.cs" />
     <Compile Include="Collectors\ISRUScoop.cs" />
     <Compile Include="Beamedpower\MicrowavePowerReceiver.cs" />
     <Compile Include="Beamedpower\MicrowavePowerTransmitter.cs" />
-    <Compile Include="Beamedpower\MicrowaveRoute.cs" />
     <Compile Include="Science\ModableExperimentResultDialogPage.cs" />
     <Compile Include="Science\ModuleModableScienceGenerator.cs" />
     <Compile Include="Storage\ModuleElementRadioactiveDecay.cs" />
@@ -174,16 +164,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Science\ComputerCore.cs" />
     <Compile Include="Propulsion\InterstellarRCSModule.cs" />
-    <Compile Include="Extensions\VesselExtensions.cs" />
-    <Compile Include="Beamedpower\VesselMicrowavePersistence.cs" />
-    <Compile Include="Beamedpower\VesselRelayPersistence.cs" />
     <Compile Include="Propulsion\VistaEngineController.cs" />
     <Compile Include="Wasteheat\FNRadiator.cs" />
     <Compile Include="Powermanagement\FNGeneratorAdapter.cs" />
     <Compile Include="Wasteheat\FNSolarPanelWasteHeatModule.cs" />
     <Compile Include="Storage\AntimatterStorageTank.cs" />
     <Compile Include="Propulsion\ModuleSolarSail.cs" />
-    <Compile Include="Reactors\Interfaces\IThermalSource.cs" />
     <Compile Include="Refinery\WaterElectroliser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

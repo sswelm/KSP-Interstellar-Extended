@@ -3,7 +3,6 @@ using System.Linq;
 using FNPlugin.Resources;
 using FNPlugin.Extensions;
 
-
 namespace FNPlugin 
 {
     class ISRUScoop : ResourceSuppliableModule 

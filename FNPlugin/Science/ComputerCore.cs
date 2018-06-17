@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Constants;
+
 
 namespace FNPlugin
 {

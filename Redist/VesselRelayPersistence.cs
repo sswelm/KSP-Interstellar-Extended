@@ -2,29 +2,9 @@
 using System.Collections.Generic;
 using FNPlugin.Redist;
 
-namespace FNPlugin 
+namespace FNPlugin.Beamedpower 
 {
-    class WaveLengthData
-    {
-        public Guid partId { get; set; }
-        public bool isMirror { get; set; }
-        public int count { get; set; }
-        public double apertureSum { get; set; }
-        public double wavelength { get; set; }
-        public double minWavelength { get; set; }
-        public double maxWavelength { get; set; }
-        public double atmosphericAbsorption { get; set; }
-        public double nuclearPower { get; set; }
-        public double solarPower { get; set; }
-        public double powerCapacity { get; set; }
-
-        public override int GetHashCode()
-        {
-            return this.wavelength.GetHashCode();
-        }
-    }
-
-    class VesselRelayPersistence : IVesselRelayPersistence 
+    public class VesselRelayPersistence : IVesselRelayPersistence 
     {
         Vessel vessel;
         bool isActive;

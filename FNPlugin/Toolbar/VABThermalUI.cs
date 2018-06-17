@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using FNPlugin.Reactors.Interfaces;
+using FNPlugin.Constants;
+using FNPlugin.Redist;
 using UnityEngine;
 
 namespace FNPlugin 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Constants;
 
 namespace FNPlugin
 {

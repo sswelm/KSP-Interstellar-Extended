@@ -3,41 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Extensions;
-using FNPlugin.Microwave;
 using FNPlugin.Redist;
 
 namespace FNPlugin.Beamedpower
 {
-    interface IBeamedPowerReceiver
-    {
-        int ReceiverType { get; }
-
-        double Diameter { get; }
-
-        double ApertureMultiplier { get; }        
-
-        double MinimumWavelength { get; }
-
-        double MaximumWavelength { get; }
-
-        double HighSpeedAtmosphereFactor { get; }
-
-        double FacingThreshold { get; }
-
-        double FacingSurfaceExponent { get; }
-
-        double FacingEfficiencyExponent { get; }
-
-        double SpotsizeNormalizationExponent { get; }
-
-        bool CanBeActiveInAtmosphere { get; }
-
-        Vessel Vessel { get; }
-
-        Part Part { get; }
-    }
-
-    static class BeamedPowerHelper
+    public static class BeamedPowerHelper
     {
         private static double ComputeSpotSize(WaveLengthData waveLengthData, double distanceToSpot, double transmitterAperture, Vessel receivingVessel, Vessel sendingVessel, double apertureMultiplier = 1)
         {
@@ -48,10 +18,10 @@ namespace FNPlugin.Beamedpower
                 waveLengthData.wavelength = 1;
 
             var effectiveAperureBonus = waveLengthData.wavelength >= 0.001
-                ? PluginHelper.MicrowaveApertureDiameterMult * apertureMultiplier
+                ? 10 * apertureMultiplier
                 : apertureMultiplier;
 
-            var spotsize = (PluginHelper.SpotsizeMult * distanceToSpot * waveLengthData.wavelength) / (transmitterAperture * effectiveAperureBonus);
+            var spotsize = (1.22 * distanceToSpot * waveLengthData.wavelength) / (transmitterAperture * effectiveAperureBonus);
 
             return spotsize;
         }
@@ -76,13 +46,13 @@ namespace FNPlugin.Beamedpower
             if (receiver.HighSpeedAtmosphereFactor == 0 && !receiver.CanBeActiveInAtmosphere)
                 return 0;
 
-            return ComputeFacingFactor(PluginHelper.getVesselPos(transmitterVessel), receiver);
+            return ComputeFacingFactor(transmitterVessel.GetVesselPos(), receiver);
         }
 
         private static double ComputeFacingFactor(Vector3d transmitPosition, IBeamedPowerReceiver receiver)
         {
             double facingFactor;
-            Vector3d directionVector = (transmitPosition - receiver.Vessel.transform.position).normalized;
+            Vector3d directionVector = (transmitPosition - receiver.Vessel.GetVesselPos()).normalized;
 
             switch (receiver.ReceiverType)
             {
@@ -136,8 +106,8 @@ namespace FNPlugin.Beamedpower
 
         private static double ComputeVisibilityAndDistance(VesselRelayPersistence relay, Vessel targetVessel)
         {
-            var result = PluginHelper.HasLineOfSightWith(relay.Vessel, targetVessel, 0)
-                ? Vector3d.Distance(PluginHelper.getVesselPos(relay.Vessel), PluginHelper.getVesselPos(targetVessel))
+            var result = relay.Vessel.HasLineOfSightWith(targetVessel, 0)
+                ? Vector3d.Distance(relay.Vessel.GetVesselPos(), targetVessel.GetVesselPos())
                 : -1;
 
             return result;
@@ -145,12 +115,12 @@ namespace FNPlugin.Beamedpower
 
         private static double ComputeDistance(Vessel v1, Vessel v2)
         {
-            return Vector3d.Distance(PluginHelper.getVesselPos(v1), PluginHelper.getVesselPos(v2));
+            return Vector3d.Distance(v1.GetVesselPos(), v2.GetVesselPos());
         }
 
         private static double GetAtmosphericEfficiency(Vessel v)
         {
-            return Math.Exp(-(FlightGlobals.getStaticPressure(v.transform.position) / 100) / 5);
+            return Math.Exp(-(FlightGlobals.getStaticPressure(v.GetVesselPos()) / 100) / 5);
         }
 
         private static double GetAtmosphericEfficiency(double transmitterPresure, double recieverPressure, double waveLengthAbsorbtion, double distanceInMeter, Vessel recieverVessel, Vessel transmitterVessel)
@@ -201,7 +171,7 @@ namespace FNPlugin.Beamedpower
 
             var transmittersToCheck = new List<VesselMicrowavePersistence>();//stores all transmiters to which we want to connect
 
-            var recieverAtmosphericPresure = FlightGlobals.getStaticPressure(receiver.Vessel.transform.position) * 0.01;
+            var recieverAtmosphericPresure = FlightGlobals.getStaticPressure(receiver.Vessel.GetVesselPos()) * 0.01;
 
             foreach (VesselMicrowavePersistence transmitter in BeamedPowerSources.instance.globalTransmitters.Values)
             {
@@ -219,7 +189,7 @@ namespace FNPlugin.Beamedpower
                     continue;
                 }
 
-                if (PluginHelper.HasLineOfSightWith(receiver.Vessel, transmitter.Vessel))
+                if (receiver.Vessel.HasLineOfSightWith(transmitter.Vessel))
                 {
                     double facingFactor = ComputeFacingFactor(transmitter.Vessel, receiver);
                     if (facingFactor <= 0)
@@ -228,7 +198,7 @@ namespace FNPlugin.Beamedpower
                     var possibleWavelengths = new List<MicrowaveRoute>();
                     double distanceInMeter = ComputeDistance(receiver.Vessel, transmitter.Vessel);
 
-                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.transform.position) * 0.01;
+                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.GetVesselPos()) * 0.01;
 
                     foreach (WaveLengthData wavelenghtData in transmitter.SupportedTransmitWavelengths)
                     {
@@ -269,14 +239,14 @@ namespace FNPlugin.Beamedpower
             {
                 if (!relay.IsActive) continue;
 
-                if (PluginHelper.HasLineOfSightWith(receiver.Vessel, relay.Vessel))
+                if (receiver.Vessel.HasLineOfSightWith(relay.Vessel))
                 {
                     var facingFactor = ComputeFacingFactor(relay.Vessel, receiver);
                     if (facingFactor <= 0)
                         continue;
 
                     double distanceInMeter = ComputeDistance(receiver.Vessel, relay.Vessel);
-                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.transform.position) * 0.01;
+                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.GetVesselPos()) * 0.01;
 
                     var possibleWavelengths = new List<MicrowaveRoute>();
 
@@ -341,7 +311,7 @@ namespace FNPlugin.Beamedpower
                         VesselRelayPersistence relayPersistance = relayEntry.Key;
                         MicrowaveRoute relayRoute = relayRouteDictionary[relayPersistance];// current best route for this relay
                         double relayRouteFacingFactor = relayRoute.FacingFactor;// it's always facing factor from the beggining of the route
-                        double relayAtmosphericPresure = FlightGlobals.getStaticPressure(relayPersistance.Vessel.transform.position) / 100;
+                        double relayAtmosphericPresure = FlightGlobals.getStaticPressure(relayPersistance.Vessel.GetVesselPos()) / 100;
 
                         for (int t = 0; t < transmittersToCheck.Count; t++)//check if this relay can connect to transmitters
                         {
@@ -352,7 +322,7 @@ namespace FNPlugin.Beamedpower
 
                             VesselMicrowavePersistence transmitterToCheck = transmittersToCheck[t];
                             double newDistance = relayRoute.Distance + distanceInMeter;// total distance from receiver by this relay to transmitter
-                            double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitterToCheck.Vessel.transform.position) / 100;
+                            double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitterToCheck.Vessel.GetVesselPos()) / 100;
                             var possibleWavelengths = new List<MicrowaveRoute>();
 
                             foreach (var transmitterWavelenghtData in transmitterToCheck.SupportedTransmitWavelengths)

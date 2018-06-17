@@ -3,7 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using KSP.UI.Screens;
+using FNPlugin.Constants;
 using FNPlugin.Redist;
+using FNPlugin.Beamedpower;
+using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -61,17 +64,13 @@ namespace FNPlugin
         }
     }
 
-
-
-
     [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
     public class PluginHelper : MonoBehaviour
     {
         const string WARP_PLUGIN_SETTINGS_FILEPATH = "WarpPlugin/WarpPluginSettings/WarpPluginSettings";
 
-        public const double FIXED_SAT_ALTITUDE = 13599840256;
-        public const int REF_BODY_KERBOL = 0;
-        public const int REF_BODY_KERBIN = 1;
+        //public const int REF_BODY_KERBOL = 0;
+        //public const int REF_BODY_KERBIN = 1;
         public const int REF_BODY_MUN = 2;
         public const int REF_BODY_MINMUS = 3;
         public const int REF_BODY_MOHO = 4;
@@ -109,7 +108,7 @@ namespace FNPlugin
 
         public static ConfigNode PluginSettingsConfig
         {
-            get { return GameDatabase.Instance.GetConfigNode("WarpPlugin/WarpPluginSettings/WarpPluginSettings"); }
+            get { return GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH); }
         }
 
         public static string PluginSaveFilePath
@@ -322,37 +321,6 @@ namespace FNPlugin
         public static double RadiatorTemperatureMk5 { get { return _radiatorTemperatureMk5; } private set { _radiatorTemperatureMk5 = value; } }
 
         #endregion
-
-        /** 
-         * This function should allow this module to work in solar systems other than the vanilla KSP one as well. Credit to Freethinker's MicrowavePowerReceiver code.
-         * It checks current reference body's temperature at 0 altitude. If it is less than 2k K, it checks this body's reference body next and so on.
-         */
-        public static CelestialBody GetCurrentStar()
-        {
-            //if (Sun.Instance != null && Sun.Instance.sun != null)
-            //    return Sun.Instance.sun;
-
-            //var planetarium = Planetarium.fetch;
-            //if (planetarium != null)
-            //	return planetarium.Sun;
-
-            var iDepth = 0;
-            var star = FlightGlobals.currentMainBody;
-
-            while ((iDepth < 10) && (star.GetTemperature(0) < 2000))
-            {
-                if (star.name == "Valentine")
-                    return star;
-
-                star = star.referenceBody;
-                iDepth++;
-            }
-            if ((star.GetTemperature(0) < 2000) || (star.name == "Galactic Core"))
-                star = null;
-
-            return star;
-        }
-
 
         public static string formatMassStr(double mass, string format = "0.0000000")
         {
@@ -607,47 +575,6 @@ namespace FNPlugin
                 config = new ConfigNode();
             }
             return config;
-        }
-
-
-        public static bool lineOfSightToSun(Vessel vess)
-        {
-            Vector3d a = PluginHelper.getVesselPos(vess);
-            Vector3d b = FlightGlobals.Bodies[0].transform.position;
-
-            return lineOfSightToSun(a, b);
-        }
-
-        public static bool lineOfSightToSun(Vector3d vessel, Vector3d star)
-        {
-            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
-            {
-                if (referenceBody.flightGlobalsIndex == 0)
-                { // the sun should not block line of sight to the sun
-                    continue;
-                }
-
-                Vector3d refminusa = referenceBody.position - vessel;
-                Vector3d bminusa = star - vessel;
-                if (Vector3d.Dot(refminusa, bminusa) > 0)
-                {
-                    if (Vector3d.Dot(refminusa, bminusa.normalized) < bminusa.magnitude)
-                    {
-                        Vector3d tang = refminusa - Vector3d.Dot(refminusa, bminusa.normalized) * bminusa.normalized;
-                        if (tang.magnitude < referenceBody.Radius)
-                            return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        public static Vector3d getVesselPos(Vessel v)
-        {
-            Vector3d v1p = (v.state == Vessel.State.ACTIVE) 
-                ? (Vector3d)v.transform.position 
-                : v.GetWorldPos3D();
-            return v1p;
         }
 
         public static double getMaxAtmosphericAltitude(CelestialBody body)
@@ -1121,40 +1048,6 @@ namespace FNPlugin
                 warning_displayed = true;
             }
         }
-
-        /// <summary>Tests whether two vessels have line of sight to each other</summary>
-        /// <returns><c>true</c> if a straight line from a to b is not blocked by any celestial body; 
-        /// otherwise, <c>false</c>.</returns>
-        public static bool HasLineOfSightWith(Vessel vessA, Vessel vessB, double freeDistance = 2500, double min_height = 5)
-        {
-            Vector3d vesselA = vessA.transform.position;
-            Vector3d vesselB = vessB.transform.position;
-
-            if (freeDistance > 0 && Vector3d.Distance(vesselA, vesselB) < freeDistance)           // if both vessels are within active view
-                return true;
-
-            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
-            {
-                Vector3d bodyFromA = referenceBody.position - vesselA;
-                Vector3d bFromA = vesselB - vesselA;
-
-                // Is body at least roughly between satA and satB?
-                if (Vector3d.Dot(bodyFromA, bFromA) <= 0) continue;
-
-                Vector3d bFromANorm = bFromA.normalized;
-
-                if (Vector3d.Dot(bodyFromA, bFromANorm) >= bFromA.magnitude) continue;
-
-                // Above conditions guarantee that Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm 
-                // lies between the origin and bFromA
-                Vector3d lateralOffset = bodyFromA - Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm;
-
-                if (lateralOffset.magnitude < referenceBody.Radius - min_height) return false;
-            }
-            return true;
-        }
-
-
 
         public static AnimationState[] SetUpAnimation(string animationName, Part part)
         {

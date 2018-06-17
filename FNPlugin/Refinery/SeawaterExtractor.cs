@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using FNPlugin.Resources;
 using FNPlugin.Extensions;
+using FNPlugin.Constants;
 
 namespace FNPlugin.Refinery
 {

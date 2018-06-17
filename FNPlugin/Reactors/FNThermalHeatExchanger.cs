@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FNPlugin.Propulsion;
-using FNPlugin.Reactors.Interfaces;
+using FNPlugin.Constants;
+using FNPlugin.Redist;
 
 namespace FNPlugin.Reactors
 {

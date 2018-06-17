@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WarpPlugin", "FNPlugin\WarpPlugin.csproj", "{AD686AF3-DDDC-4991-909F-EAD9C16C469B}"
 EndProject
@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{82CD03
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interstellar_Redist", "Redist\Interstellar_Redist.csproj", "{EBF9A4EC-4F9A-4E80-9BD1-13316309EA69}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhotonSail", "PhotonSail\PhotonSail.csproj", "{34403539-F4E1-4D16-A771-DE807067761C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{EBF9A4EC-4F9A-4E80-9BD1-13316309EA69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBF9A4EC-4F9A-4E80-9BD1-13316309EA69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBF9A4EC-4F9A-4E80-9BD1-13316309EA69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34403539-F4E1-4D16-A771-DE807067761C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34403539-F4E1-4D16-A771-DE807067761C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34403539-F4E1-4D16-A771-DE807067761C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34403539-F4E1-4D16-A771-DE807067761C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

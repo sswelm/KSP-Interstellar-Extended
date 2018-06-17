@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Extensions;
+using FNPlugin.Redist;
+using FNPlugin.Constants;
 using FNPlugin.Resources;
 
 namespace FNPlugin.Beamedpower
@@ -302,7 +304,7 @@ namespace FNPlugin.Beamedpower
             animationNormalizedTime = solarSailAnim[animName].normalizedTime;
             
             // update local star
-            _localStar = PluginHelper.GetCurrentStar();
+            _localStar = vessel.GetLocalStar();
 
             // update available beamed power transmitters
             _transmitDataCollection = BeamedPowerHelper.GetConnectedTransmitters(this);
@@ -311,7 +313,6 @@ namespace FNPlugin.Beamedpower
             {
                 VesselMicrowavePersistence transmitter = transmitData.Key;
                 KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>> routeRelayData = transmitData.Value;
-                //MicrowaveRoute route = routeRelayData.Key;
 
                 ReceivedPowerData beamedPowerData;
                 if (!received_power.TryGetValue(transmitter.Vessel, out beamedPowerData))
@@ -372,10 +373,7 @@ namespace FNPlugin.Beamedpower
 
             UpdateChangeGui();
 
-            for (var i = 0; i < beamEffectArray.Length; i++)
-            {
-                UpdateBeams(beamEffectArray[i], Vector3d.zero, 0, 0);
-            }
+            ResetBeams();
 
             var vesselMassInKg = vessel.totalMass * 1000;
             var universalTime = Planetarium.GetUniversalTime();
@@ -409,11 +407,19 @@ namespace FNPlugin.Beamedpower
             ApplyDrag(universalTime, vesselMassInKg);
         }
 
+        private void ResetBeams()
+        {
+            for (var i = 0; i < beamEffectArray.Length; i++)
+            {
+                UpdateBeams(beamEffectArray[i], Vector3d.zero, 0, 0);
+            }
+        }
+
         private void UpdateSolarFluxLocalStar(double universalTime)
         {
             solarFluxMeasured = vessel.solarFlux;
 
-            var vesselIsSun = inSun(vessel.orbit, _localStar, universalTime);
+            var vesselIsSun = InSun(vessel.orbit, _localStar, universalTime);
 
             solarFluxInWatt = vesselIsSun ? solarFluxAtDistance(part.vessel, _localStar, GetLuminosity()) : 0;
         }
@@ -626,46 +632,20 @@ namespace FNPlugin.Beamedpower
 
         private static double solarFluxAtDistance(Vessel vessel, CelestialBody star, double luminosity)
         {
-            const double kerbin_distance = 13599840256;
-
             var toStar = vessel.CoMD - star.position;
             var distance = toStar.magnitude - star.Radius;
-            var distAU = distance / kerbin_distance;
+            var distAU = distance / Constants.GameConstants.kerbin_sun_distance;
             return luminosity * 1360 / (distAU * distAU);
         }
 
         // Test if an orbit at UT is in sunlight
-        public bool inSun(Orbit orbit, CelestialBody sun,  double UT)
+        public static bool InSun(Orbit orbit, CelestialBody sun, double UT)
         {
             Vector3d vesselPosition = orbit.getPositionAtUT(UT);
             Vector3d sunPosition = sun.getPositionAtUT(UT);
-            Vector3d bminusa = sunPosition - vesselPosition;
 
-            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
-            {
-                // the sun should not block line of sight to the sun
-                if (referenceBody.name == sun.name)
-                    continue;
-
-                Vector3d refminusa = referenceBody.getPositionAtUT(UT) - vesselPosition;
-
-                if (Vector3d.Dot(refminusa, bminusa) <= 0)
-                    continue;
-
-                var normalizedBminusa = bminusa.normalized;
-
-                var cosReferenceSunNormB = Vector3d.Dot(refminusa, normalizedBminusa);
-
-                if (cosReferenceSunNormB >= bminusa.magnitude)
-                    continue;
-
-                Vector3d tang = refminusa - cosReferenceSunNormB * normalizedBminusa;
-                if (tang.magnitude < referenceBody.Radius)
-                    return false;
-            }
-            return true;
+            return vesselPosition.LineOfSightToSun(sunPosition);
         }
-
 
     }
 }

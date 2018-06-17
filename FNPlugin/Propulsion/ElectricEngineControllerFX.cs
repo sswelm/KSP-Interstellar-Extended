@@ -1,9 +1,10 @@
-﻿using FNPlugin.Extensions;
-using KSP.Localization;
+﻿using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Extensions;
+using FNPlugin.Constants;
 
 namespace FNPlugin
 {

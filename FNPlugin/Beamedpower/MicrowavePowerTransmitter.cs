@@ -1,12 +1,12 @@
-﻿using FNPlugin.Microwave;
-using System;
+﻿using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Microwave;
 using FNPlugin.Redist;
 
-namespace FNPlugin
+namespace FNPlugin.Beamedpower
 {
     class MicrowavePowerTransmitter : ResourceSuppliableModule, IMicrowavePowerTransmitter, IScalarModule
     {

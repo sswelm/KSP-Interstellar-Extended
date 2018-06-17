@@ -1,4 +1,4 @@
-﻿namespace FNPlugin.Reactors.Interfaces
+﻿namespace FNPlugin.Redist
 {
     public interface IElectricPowerGeneratorSource
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using FNPlugin.Reactors.Interfaces;
+using FNPlugin.Redist;
 using UnityEngine;
 
 namespace FNPlugin.Reactors

@@ -29,7 +29,6 @@ namespace FNPlugin
 
         private double _effectiveFlux;
         private double _offlineResource;
-
         
         public override void OnStart(PartModule.StartState state) 
         {

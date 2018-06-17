@@ -1,9 +1,9 @@
-﻿namespace FNPlugin
+﻿namespace FNPlugin.Beamedpower
 {
     /// <summary>
     /// Storage class required for relay route calculation
     /// </summary>
-    class MicrowaveRoute
+    public class MicrowaveRoute
     {
         public double Efficiency { get; set; }
         public WaveLengthData WavelengthData { get; private set; }

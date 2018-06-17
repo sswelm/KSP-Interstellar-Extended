@@ -2,38 +2,16 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using FNPlugin.Reactors.Interfaces;
+using FNPlugin.Redist;
 using FNPlugin.Propulsion;
 using FNPlugin.Extensions;
 using FNPlugin.Microwave;
 using FNPlugin.Beamedpower;
-using FNPlugin.Redist;
+using FNPlugin.Constants;
 using UnityEngine;
 
 namespace FNPlugin
 {
-    class ReceivedPowerData
-    {
-        public IBeamedPowerReceiver Receiver { get; set; }
-        public double CurrentRecievedPower { get; set; }
-        public double MaximumReceivedPower { get; set; }
-        public double AvailablePower { get; set; }
-        public double ConsumedPower { get; set; }
-        public bool IsAlive { get; set; }
-        public double NetworkPower { get; set; }
-        public double NetworkCapacity { get; set; }
-        public double TransmitPower { get; set; }
-        public double ReceiverEfficiency { get; set; }
-        public double PowerUsageOthers { get; set; }
-        public double RemainingPower { get; set; }
-        public string Wavelengths { get; set; }
-        public double Distance { get; set; }
-
-        public MicrowaveRoute Route { get; set; }
-        public IList<VesselRelayPersistence> Relays { get; set; }
-        public VesselMicrowavePersistence Transmitter { get; set; }
-    }
-
     class SolarBeamedPowerReceiverDish : MicrowavePowerReceiver { } // receives less of a power cpacity nerve in NF mode
 
     class SolarBeamedPowerReceiver : MicrowavePowerReceiver {} // receives less of a power cpacity nerve in NF mode
@@ -1227,7 +1205,7 @@ namespace FNPlugin
                     if (animation == null)
                         return true;
 
-                    var pressure = FlightGlobals.getStaticPressure(vessel.transform.position) / 100;
+                    var pressure = FlightGlobals.getStaticPressure(vessel.GetVesselPos()) / 100;
                     var dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325;
 
                     if (dynamic_pressure <= 0) return true;
@@ -1364,7 +1342,7 @@ namespace FNPlugin
 
         private double GetAtmosphericEfficiency(Vessel v)
         {
-            return Math.Exp(-(FlightGlobals.getStaticPressure(v.transform.position) / 100) / 5);
+            return Math.Exp(-(FlightGlobals.getStaticPressure(v.GetVesselPos()) / 100) / 5);
         }
 
         public void FixedUpdate()

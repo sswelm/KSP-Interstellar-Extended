@@ -1,5 +1,5 @@
 ﻿
-using FNPlugin.Reactors.Interfaces;
+using FNPlugin.Redist;
 
 namespace FNPlugin.Reactors
 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FNPlugin.Extensions;
+using FNPlugin.Constants;
 
 namespace FNPlugin
 {
@@ -134,6 +135,34 @@ namespace FNPlugin
             science_awaiting_addition = 0;
         }
 
+        private CelestialBody localStar;
+        public CelestialBody LocalStar
+        {
+            get
+            {
+                if (localStar == null)
+                {
+                    localStar = vessel.GetLocalStar();
+                }
+                return localStar;
+            }
+        }
+
+        private CelestialBody homeworld;
+        public CelestialBody Homeworld
+        {
+            get
+            {
+                if (homeworld == null)
+                {
+                    var planetarium = Planetarium.fetch;
+                    if (planetarium != null)
+                        homeworld = planetarium.Home;
+                }
+                return homeworld;
+            }
+        }
+
         public override void OnUpdate()
         {
             if (vessel.IsInAtmosphere()) telescopeIsEnabled = false;
@@ -143,7 +172,9 @@ namespace FNPlugin
             Fields["sciencePerDay"].guiActive = telescopeIsEnabled;
             performPcnt = (perform_factor_d * 100).ToString("0.0") + "%";
             sciencePerDay = (science_rate * 28800 * PluginHelper.getScienceMultiplier(vessel)).ToString("0.00") + " Science/Day";
-            double current_au = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position) / Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
+
+            double current_au = Vector3d.Distance(vessel.transform.position, LocalStar.position) / Vector3d.Distance(Homeworld.position, LocalStar.position);
+            
             List<ITelescopeController> telescope_controllers = vessel.FindPartModulesImplementing<ITelescopeController>();
 
             if (telescope_controllers.Any(tscp => tscp.CanProvideTelescopeControl))

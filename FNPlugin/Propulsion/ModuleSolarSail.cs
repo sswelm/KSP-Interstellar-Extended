@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
+using FNPlugin.Constants;
 
-namespace FNPlugin {
+namespace FNPlugin 
+{
     class ModuleSolarSail : PartModule 
     {
         // Persistent True
@@ -28,7 +31,6 @@ namespace FNPlugin {
         protected Transform surfaceTransform = null;
         protected Animation solarSailAnim = null;
 
-        const double kerbin_distance = 13599840256;
         const double thrust_coeff = 9.08e-6;
 
         protected double solar_force_d = 0;
@@ -86,6 +88,19 @@ namespace FNPlugin {
             solarAcc = solar_acc_d.ToString("E") + " m/s";
         }
 
+        private CelestialBody localStar;
+        public CelestialBody LocalStar
+        {
+            get
+            {
+                if (localStar == null)
+                {
+                    localStar = vessel.GetLocalStar();
+                }
+                return localStar;
+            }
+        }
+
         public override void OnFixedUpdate() 
         {
             if (FlightGlobals.fetch != null) 
@@ -96,15 +111,12 @@ namespace FNPlugin {
                 double sunlightFactor = 1;
                 Vector3 sunVector = FlightGlobals.fetch.bodies[0].position - part.orgPos;
 
-                if (!PluginHelper.lineOfSightToSun(vessel)) 
+                if (!vessel.LineOfSightToSun(LocalStar)) 
                 {
                     sunlightFactor = 0.0;
                 }
 
-                //Debug.Log("Detecting sunlight: " + sunlightFactor.ToString());
                 Vector3d solarForce = CalculateSolarForce() * sunlightFactor;
-                //print(surfaceArea);
-
                 Vector3d solar_accel = solarForce / vessel.totalMass / 1000.0 * TimeWarp.fixedDeltaTime;
                 if (!this.vessel.packed) 
                 {
@@ -189,8 +201,8 @@ namespace FNPlugin {
 
         private double solarForceAtDistance() 
         {
-            double distance_from_sun = Vector3.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position, vessel.transform.position);
-            double force_to_return = thrust_coeff * kerbin_distance * kerbin_distance / distance_from_sun / distance_from_sun;
+            double distance_from_sun = Vector3.Distance(LocalStar.position, vessel.CoMD);
+            double force_to_return = thrust_coeff * GameConstants.kerbin_sun_distance * GameConstants.kerbin_sun_distance / distance_from_sun / distance_from_sun;
             return force_to_return;
         }
 

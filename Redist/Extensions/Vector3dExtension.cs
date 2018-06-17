@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FNPlugin.Constants;
 
 namespace FNPlugin.Extensions
 {
@@ -25,6 +26,36 @@ namespace FNPlugin.Extensions
 
             // Return deltaV vector
             return deltaV * thrustDirection;
+        }
+
+        public static bool LineOfSightToSun(this Vector3d vesselPosition, Vector3d starPosition)
+        {
+            Vector3d bminusa = starPosition - vesselPosition;
+
+            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
+            {
+                if (referenceBody.flightGlobalsIndex == 0)
+                { // the sun should not block line of sight to the sun
+                    continue;
+                }
+
+                Vector3d refminusa = referenceBody.position - vesselPosition;
+
+                if (Vector3d.Dot(refminusa, bminusa) <= 0)
+                    continue;
+
+                var normalizedBminusa = bminusa.normalized;
+
+                var cosReferenceSunNormB = Vector3d.Dot(refminusa, normalizedBminusa);
+
+                if (cosReferenceSunNormB >= bminusa.magnitude)
+                    continue;
+
+                Vector3d tang = refminusa - cosReferenceSunNormB * normalizedBminusa;
+                if (tang.magnitude < referenceBody.Radius)
+                    return false;
+            }
+            return true;
         }
     }
 }

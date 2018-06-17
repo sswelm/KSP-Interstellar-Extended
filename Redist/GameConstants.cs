@@ -1,8 +1,8 @@
-﻿
-namespace FNPlugin 
+﻿namespace FNPlugin.Constants 
 {
-    class GameConstants
+    public class GameConstants
     {
+        public const double kerbin_sun_distance = 13599840256;
         public const double averageKerbinSolarFlux = 1409.285;  // this seems to be the average flux at Kerbin just above the atmosphere (from my tests)
         public const double avogadroConstant = 6.022140857e+23; // number of atoms in 1 mol
         public const double basePowerConsumption = 5;

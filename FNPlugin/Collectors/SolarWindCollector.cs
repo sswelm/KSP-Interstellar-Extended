@@ -1,8 +1,10 @@
 using FNPlugin.Resources;
 using FNPlugin.Extensions;
+using FNPlugin.Redist;
 using System;
 using System.Linq;
 using UnityEngine;
+using FNPlugin.Constants;
 
 namespace FNPlugin
 {
@@ -252,7 +254,7 @@ namespace FNPlugin
             hydrogenResourceDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
 
 
-            localStar = PluginHelper.GetCurrentStar();
+            localStar = vessel.GetLocalStar();
             homeworld = FlightGlobals.GetHomeBody();
 
             // this bit goes through parts that contain animations and disables the "Status" field in GUI so that it's less crowded
@@ -296,7 +298,7 @@ namespace FNPlugin
 
         public override void OnUpdate()
         {
-            localStar = PluginHelper.GetCurrentStar();
+            localStar = vessel.GetLocalStar();
             verticalSpeed = vessel.mainBody == localStar ? vessel.verticalSpeed : 0;
             helioSphereFactor = Math.Min(1, CalculateHelioSphereRatio(vessel, localStar, homeworld));
             interstellarDensityFactor = helioSphereFactor == 0 ? 0 : Math.Max(0, AtmosphericFloatCurves.Instance.InterstellarDensityRatio.Evaluate((float)helioSphereFactor * 100));

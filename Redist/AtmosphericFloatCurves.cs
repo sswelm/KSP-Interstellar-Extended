@@ -1,4 +1,6 @@
 ﻿using System;
+using FNPlugin.Constants;
+
 
 namespace FNPlugin.Resources
 {

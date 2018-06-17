@@ -2,21 +2,8 @@
 using System.Linq;
 using UnityEngine;
 
-namespace FNPlugin.Redist
+namespace FNPlugin.Beamedpower
 {
-    public interface IMicrowavePowerTransmitter { };
-
-    public interface IVesselMicrowavePersistence {
-
-        double getAvailablePowerInKW();
-
-        bool IsActive { get; }
-    }
-    public interface IVesselRelayPersistence {
-
-        bool IsActive { get; }    
-    }
-
     public delegate IVesselMicrowavePersistence GetVesselMicrowavePersistanceForProtoVessel(Vessel vessel);
     public delegate IVesselRelayPersistence GetVesselRelayPersistanceForProtoVessel(Vessel vessel);
     public delegate IVesselMicrowavePersistence GetVesselMicrowavePersistanceForVessel(Vessel vessel);

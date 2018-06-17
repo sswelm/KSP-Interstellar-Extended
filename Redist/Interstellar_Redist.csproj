@@ -49,11 +49,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IEngineNoozle.cs" />
-    <Compile Include="INuclearFuelReprocessable.cs" />
-    <Compile Include="IPowerSupply.cs" />
+    <Compile Include="AtmosphericFloatCurves.cs" />
+    <Compile Include="BeamedPowerHelper.cs" />
+    <Compile Include="Extensions\OrbitExtensions.cs" />
+    <Compile Include="GameConstants.cs" />
+    <Compile Include="Interfaces\IBeamedPowerReceiver.cs" />
+    <Compile Include="Interfaces\IEngineNoozle.cs" />
+    <Compile Include="Interfaces\IChargedParticleSource.cs" />
+    <Compile Include="Interfaces\IElectricPowerSource.cs" />
+    <Compile Include="Interfaces\IMicrowavePowerTransmitter.cs" />
+    <Compile Include="Interfaces\IPowerSource.cs" />
+    <Compile Include="Interfaces\IThermalSource.cs" />
+    <Compile Include="Interfaces\INuclearFuelReprocessable.cs" />
+    <Compile Include="Interfaces\IPowerSupply.cs" />
     <Compile Include="BeamedPowerSources.cs" />
+    <Compile Include="MicrowaveRoute.cs" />
+    <Compile Include="Extensions\Numbers.cs" />
+    <Compile Include="Extensions\Vector3dExtension.cs" />
+    <Compile Include="Extensions\VesselExtensions.cs" />
+    <Compile Include="ReceivedPowerData.cs" />
+    <Compile Include="VesselMicrowavePersistence.cs" />
+    <Compile Include="VesselRelayPersistence.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WaveLengthData.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

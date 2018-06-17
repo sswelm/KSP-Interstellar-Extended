@@ -1,22 +1,11 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using FNPlugin.Propulsion;
 
-namespace FNPlugin.Reactors.Interfaces
+namespace FNPlugin.Redist
 {
-    public enum ElectricGeneratorType { unknown = 0, thermal = 1, charged_particle = 2 };
-
-    public interface IThermalReciever
-    {
-        void AttachThermalReciever(Guid key, double radius);
-
-        void DetachThermalReciever(Guid key);
-
-        double GetFractionThermalReciever(Guid key);
-
-        double ThermalTransportationEfficiency { get; }
-    }
-
-
     public interface IPowerSource : IThermalReciever
     {
         Part Part { get; }
@@ -81,7 +70,7 @@ namespace FNPlugin.Reactors.Interfaces
 
         bool IsVolatileSource { get; }
 
-        double Radius {get; }
+        double Radius { get; }
 
         bool IsNuclear { get; }
 
@@ -101,10 +90,10 @@ namespace FNPlugin.Reactors.Interfaces
 
         double ThermalPropulsionEfficiency { get; }
         double PlasmaPropulsionEfficiency { get; }
-		double ChargedParticlePropulsionEfficiency { get; }
+        double ChargedParticlePropulsionEfficiency { get; }
 
         double ThermalEnergyEfficiency { get; }
-		double PlasmaEnergyEfficiency { get; }
+        double PlasmaEnergyEfficiency { get; }
         double ChargedParticleEnergyEfficiency { get; }
 
         double EfficencyConnectedThermalEnergyGenerator { get; }
@@ -126,8 +115,5 @@ namespace FNPlugin.Reactors.Interfaces
         void ConnectWithEngine(IEngineNoozle engine);
 
         void DisconnectWithEngine(IEngineNoozle engine);
-
-        
     }
 }
-
