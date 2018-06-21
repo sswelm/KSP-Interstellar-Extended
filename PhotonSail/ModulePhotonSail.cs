@@ -114,7 +114,9 @@ namespace FNPlugin.Beamedpower
         bool scaleBeamToAnimation = false;
         double solar_acc_d = 0;
         double beamed_acc_d = 0;
+        double sailSurfaceModifier;
         float animationNormalizedTime;
+
 
         Animation solarSailAnim = null;
         CelestialBody _localStar;
@@ -379,6 +381,8 @@ namespace FNPlugin.Beamedpower
 
             receivedBeamedPowerList.Clear();
 
+            sailSurfaceModifier = animationNormalizedTime > 0 ? (animationNormalizedTime > 0.6 ? (animationNormalizedTime - 0.6) * 2.5 : 0) : 1;
+
             int beamcounter = 0;
             foreach (var receivedPowerData in received_power.Values.Where(m => m.AvailablePower > 1))
             {
@@ -432,12 +436,7 @@ namespace FNPlugin.Beamedpower
 
         private void ApplyDrag(double universalTime, double vesselMassInKg)
         {
-            var simulatedAltitude = Math.Max(vessel.mainBody.atmosphereDepth,  vessel.altitude);
-            var atmosphereDensity = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel.mainBody, simulatedAltitude);
-
-            atmosphericGasKgPerSquareMeter = part.vessel.atmDensity > 0
-                ? (1 - (part.vessel.atmDensity / vessel.mainBody.atmospherePressureSeaLevel)) * atmosphereDensity 
-                : atmosphereDensity;
+            atmosphericGasKgPerSquareMeter = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel);
 
             var effectiveSurfaceArea = surfaceArea * (IsEnabled ? 1 : 0);
             var specularRatio = Math.Max(0, Math.Min(1, part.skinTemperature / part.skinMaxTemp));
@@ -446,7 +445,8 @@ namespace FNPlugin.Beamedpower
             var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized);
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
             var squaredCosOrbitalDrag = cosObitalDrag * cosObitalDrag;
-            var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
+            var effectiveSpeed = Math.Max(0, vessel.obt_speed - 300);
+            var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * Math.Pow(sailSurfaceModifier, 2) * effectiveSpeed * effectiveSpeed;
             maximumDragPerSquareMeter = (float)(baseDragForce * maximumDragCcoefficient);
             
             // apply specular Drag
@@ -545,8 +545,7 @@ namespace FNPlugin.Beamedpower
             if (!isSun && index < 10)
             {
                 var scaleModifier = beamedPowerThrottle > 0 ? (scaleBeamToAnimation || beamspotsize * 4 <= diameter ? 1 : 4) : 0;
-                var animationModifier = animationNormalizedTime > 0 ? (animationNormalizedTime > 0.6 ? (animationNormalizedTime - 0.6) * 2.5 : 0) : 1;
-                var beamSpotsize = beamedPowerThrottle > 0 ? Mathf.Max((float)(animationModifier * cosConeAngle * diameter / 4), (float)beamspotsize) : 0;
+                var beamSpotsize = beamedPowerThrottle > 0 ? Mathf.Max((float)(sailSurfaceModifier * cosConeAngle * diameter / 4), (float)beamspotsize) : 0;
                 UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, beamSpotsize);
             }
 

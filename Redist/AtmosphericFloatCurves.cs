@@ -457,9 +457,9 @@ namespace FNPlugin.Resources
             if (!vessel.mainBody.atmosphere || vessel.mainBody.atmosphereDepth <= 0)
                 return 0;
 
-            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 90;
+            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 85;
             var atmosphereMultiplier = vessel.altitude > vessel.mainBody.atmosphereDepth ? 1
-                : (1 - vessel.altitude / vessel.mainBody.atmosphereDepth) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+                : Math.Max(0, vessel.altitude / vessel.mainBody.atmosphereDepth) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
             var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > 64000 ? 0
                 : comparibleEarthAltitudeInKm <= 1000
@@ -471,14 +471,19 @@ namespace FNPlugin.Resources
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
 
+        public static double GetAtmosphericGasDensityKgPerCubicMeter(Vessel vessel)
+        {
+            return GetAtmosphericGasDensityKgPerCubicMeter(vessel.mainBody, vessel.altitude);
+        }
+
         public static double GetAtmosphericGasDensityKgPerCubicMeter(CelestialBody celestialBody, double altitude)
         {
             if (!celestialBody.atmosphere)
                 return 0;
 
-            var comparibleEarthAltitudeInKm = altitude / celestialBody.atmosphereDepth * 90;
-            var atmosphereMultiplier = altitude > celestialBody.atmosphereDepth ? 1 
-                : (1 - altitude / celestialBody.atmosphereDepth) * (celestialBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var comparibleEarthAltitudeInKm = altitude / celestialBody.atmosphereDepth * 85;
+            var atmosphereMultiplier = altitude > celestialBody.atmosphereDepth ? 1
+                : Math.Max(0, altitude / celestialBody.atmosphereDepth) * (celestialBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
             var atmosphericDensityGramPerSquareCm = comparibleEarthAltitudeInKm > 64000 ? 0
                 : comparibleEarthAltitudeInKm <= 1000
