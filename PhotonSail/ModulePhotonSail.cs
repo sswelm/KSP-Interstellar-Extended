@@ -379,7 +379,7 @@ namespace FNPlugin.Beamedpower
             var universalTime = Planetarium.GetUniversalTime();
             Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
 
-			receivedBeamedPowerList.Clear();
+            receivedBeamedPowerList.Clear();
 
             int beamcounter = 0;
             foreach (var receivedPowerData in received_power.Values.Where(m => m.AvailablePower > 1))
@@ -449,7 +449,8 @@ namespace FNPlugin.Beamedpower
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
             var squaredCosOrbitalDrag = cosObitalDrag * cosObitalDrag;
             var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * vessel.obt_speed * vessel.obt_speed;
-            lowOrbitModifier = Math.Max(0, Math.Min(1, (1000 + simulatedAltitude - vessel.mainBody.atmosphereDepth) / vessel.mainBody.atmosphereDepth));			
+            var orbitModifierBase = vessel.mainBody.atmosphereDepth / 10;
+            lowOrbitModifier = Math.Max(0, Math.Min(1, (orbitModifierBase + simulatedAltitude - vessel.mainBody.atmosphereDepth) / vessel.mainBody.atmosphereDepth));
             maximumDragPerSquareMeter = (float)(lowOrbitModifier * baseDragForce * maximumDragCcoefficient);
             
             // apply specular Drag
@@ -459,7 +460,7 @@ namespace FNPlugin.Beamedpower
 
             var specularDragCoefficient = lowOrbitModifier * 4 * squaredCosOrbitalDrag;
             var specularDragPerSquareMeter =  specularDragCoefficient * baseDragForce * specularRatio;
-            var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea * baseDragForce * specularRatio;
+            var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea * specularRatio;
             specularSailDragInNewton = (float)specularDragInNewton;
             var specularDragForceFixed = specularDragInNewton * TimeWarp.fixedDeltaTime * partNormal;
             var specularDragDeceleration = -specularDragForceFixed / vesselMassInKg;
