@@ -457,7 +457,7 @@ namespace FNPlugin.Resources
             if (!vessel.mainBody.atmosphere || vessel.mainBody.atmosphereDepth <= 0)
                 return 0;
 
-            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 109;
+            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 90;
             var atmosphereMultiplier = vessel.altitude > vessel.mainBody.atmosphereDepth ? 1
                 : (1 - vessel.altitude / vessel.mainBody.atmosphereDepth) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
@@ -476,7 +476,7 @@ namespace FNPlugin.Resources
             if (!celestialBody.atmosphere)
                 return 0;
 
-            var comparibleEarthAltitudeInKm = altitude / celestialBody.atmosphereDepth * 109;
+            var comparibleEarthAltitudeInKm = altitude / celestialBody.atmosphereDepth * 90;
             var atmosphereMultiplier = altitude > celestialBody.atmosphereDepth ? 1 
                 : (1 - altitude / celestialBody.atmosphereDepth) * (celestialBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
