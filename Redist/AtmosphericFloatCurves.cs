@@ -457,9 +457,9 @@ namespace FNPlugin.Resources
             if (!vessel.mainBody.atmosphere || vessel.mainBody.atmosphereDepth <= 0)
                 return 0;
 
-            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 84;
-            var atmosphereMultiplier = altitude > celestialBody.atmosphereDepth ? 1
-                : (altitude / celestialBody.atmosphereDepth) * (celestialBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+            var comparibleEarthAltitudeInKm = vessel.altitude / vessel.mainBody.atmosphereDepth * 109;
+            var atmosphereMultiplier = vessel.altitude > vessel.mainBody.atmosphereDepth ? 1
+                : (1 - vessel.altitude / vessel.mainBody.atmosphereDepth) * (vessel.mainBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
             var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > 64000 ? 0
                 : comparibleEarthAltitudeInKm <= 1000
@@ -476,9 +476,9 @@ namespace FNPlugin.Resources
             if (!celestialBody.atmosphere)
                 return 0;
 
-            var comparibleEarthAltitudeInKm = altitude / celestialBody.atmosphereDepth * 84;
+            var comparibleEarthAltitudeInKm = altitude / celestialBody.atmosphereDepth * 109;
             var atmosphereMultiplier = altitude > celestialBody.atmosphereDepth ? 1 
-                : (altitude /  celestialBody.atmosphereDepth) * (celestialBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
+                : (1 - altitude / celestialBody.atmosphereDepth) * (celestialBody.atmospherePressureSeaLevel / GameConstants.EarthAtmospherePressureAtSeaLevel);
 
             var atmosphericDensityGramPerSquareCm = comparibleEarthAltitudeInKm > 64000 ? 0
                 : comparibleEarthAltitudeInKm <= 1000
