@@ -117,7 +117,6 @@ namespace FNPlugin.Beamedpower
         double sailSurfaceModifier;
         float animationNormalizedTime;
 
-
         Animation solarSailAnim = null;
         CelestialBody _localStar;
 
@@ -441,13 +440,13 @@ namespace FNPlugin.Beamedpower
             var effectiveSurfaceArea = surfaceArea * (IsEnabled ? 1 : 0);
             var specularRatio = Math.Max(0, Math.Min(1, part.skinTemperature / part.skinMaxTemp));
             var diffuseRatio = 1 - specularRatio;
-            var maximumDragCcoefficient = (4 * specularRatio) + (3.3 * diffuseRatio);
+            var maximumDragCoefficient = 4 * specularRatio + 3.3 * diffuseRatio;
             var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized);
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
             var squaredCosOrbitalDrag = cosObitalDrag * cosObitalDrag;
-            var effectiveSpeed = Math.Max(0, vessel.obt_speed - 300);
-            var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * Math.Pow(sailSurfaceModifier, 2) * effectiveSpeed * effectiveSpeed;
-            maximumDragPerSquareMeter = (float)(baseDragForce * maximumDragCcoefficient);
+            var effectiveSpeedForDrag = Math.Max(0, vessel.obt_speed - ( Math.Min(1, vessel.mainBody.atmosphereDepth / vessel.altitude) * 300));
+            var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * Math.Pow(sailSurfaceModifier, 2) * effectiveSpeedForDrag * effectiveSpeedForDrag;
+            maximumDragPerSquareMeter = (float)(baseDragForce * maximumDragCoefficient);
             
             // apply specular Drag
             Vector3d partNormal = this.part.transform.up;
@@ -545,8 +544,8 @@ namespace FNPlugin.Beamedpower
             if (!isSun && index < 10)
             {
                 var scaleModifier = beamedPowerThrottle > 0 ? (scaleBeamToAnimation || beamspotsize * 4 <= diameter ? 1 : 4) : 0;
-                var beamSpotsize = beamedPowerThrottle > 0 ? Mathf.Max((float)(sailSurfaceModifier * cosConeAngle * diameter / 4), (float)beamspotsize) : 0;
-                UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, beamSpotsize);
+                var beamSpotsize = beamedPowerThrottle > 0 ? Math.Max((sailSurfaceModifier * cosConeAngle * diameter / 4), beamspotsize) : 0;
+                UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, (float)beamSpotsize);
             }
 
             // calculate the vector at 90 degree angle in the direction of the vector
