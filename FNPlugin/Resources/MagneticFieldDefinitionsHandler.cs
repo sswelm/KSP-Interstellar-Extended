@@ -52,7 +52,7 @@ namespace FNPlugin.Resources
                 else
                 {
                     var magneticFieldDefinitionModels = magneticFieldDefinitionsRoot.nodes.Cast<ConfigNode>()
-                        .Select(m => new MagneticFieldDefinition(m.GetValue("celestialBodyName"), double.Parse(m.GetValue("celestialBodyName")))).ToList();
+                        .Select(m => new MagneticFieldDefinition(m.GetValue("celestialBodyName"), double.Parse(m.GetValue("strengthMult")))).ToList();
 
                     Debug.Log("[KSPI] - found " + magneticFieldDefinitionModels.Count + " Magnetic Field Definitions");
 
