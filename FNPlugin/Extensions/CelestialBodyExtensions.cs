@@ -12,7 +12,6 @@ namespace FNPlugin.Extensions
         {
             public double density;
             public double ampere;
-            public double strengthMult;
         }
 
         public static double GetBeltAntiparticles(this CelestialBody body, CelestialBody homeworld, double altitude, double lat)
@@ -24,25 +23,19 @@ namespace FNPlugin.Extensions
 
             if (!BeltDataCache.TryGetValue(body.name, out beltdata))
             {
-                double mp = body.Mass;
-                double rp = body.Radius;
-                double rt = body.rotationPeriod;
-                double relmp = mp / homeworld.Mass;
-                double relrp = rp / homeworld.Radius;
-                double relrt = rt / homeworld.rotationPeriod;
-                double peakbelt = 1.5 * homeworld.Radius * relrp;
+                double relrp = body.Radius / homeworld.Radius;
+                double relrt = body.rotationPeriod / homeworld.rotationPeriod;
 
                 beltdata = new BeltData() 
                 {
-                    density = relmp * relrp / relrt * 50,
-                    ampere = peakbelt / Math.Sqrt(2), 
-                    strengthMult = MagneticFieldDefinitionsHandler.GetMagneticFieldDefinitionForBody(body.name).StrengthMult 
+                    density = body.Mass / homeworld.Mass * relrp / relrt * 50,
+                    ampere = 1.5 * homeworld.Radius * relrp / Math.Sqrt(2), 
                 };
 
                 BeltDataCache.Add(body.name, beltdata);
             }
 
-            double beltparticles = beltdata.strengthMult * beltdata.density
+            double beltparticles = beltdata.density
                 * Math.Sqrt(2 / Math.PI) 
                 * Math.Pow(altitude, 2)
                 * Math.Exp(-Math.Pow(altitude, 2) / (2 * Math.Pow(beltdata.ampere, 2))) 
@@ -59,16 +52,9 @@ namespace FNPlugin.Extensions
         {
             lat = lat / 180 * Math.PI;
 
-            double atmosphere = FlightGlobals.getStaticPressure(altitude, body) / 100;
-            double atmosphere_height = PluginHelper.getMaxAtmosphericAltitude(body);
-            double atmosphere_scaling = Math.Exp(-atmosphere);
-
-            double mp = body.Mass;
-            double rp = body.Radius;
-            double rt = body.rotationPeriod;
-            double relrp = rp / homeworld.Radius;
-            double relrt = rt / homeworld.rotationPeriod;
-
+            double atmosphere = FlightGlobals.getStaticPressure(altitude, body) / 101.325;
+            double relrp = body.Radius / homeworld.Radius;
+            double relrt = body.rotationPeriod / homeworld.rotationPeriod;
             double peakbelt = body.GetPeakProtonBeltAltitude(homeworld, altitude, lat);
             double altituded = altitude;
             double a = peakbelt / Math.Sqrt(2);
@@ -78,7 +64,7 @@ namespace FNPlugin.Extensions
             if (body.flightGlobalsIndex == 0)
                 beltparticles = beltparticles / 1000;
 
-            beltparticles = beltparticles * Math.Abs(Math.Cos(lat)) * body.specialMagneticFieldScaling() * atmosphere_scaling;
+            beltparticles = beltparticles * Math.Abs(Math.Cos(lat)) * body.specialMagneticFieldScaling() * Math.Exp(-atmosphere);
 
             return beltparticles;
         }
@@ -86,8 +72,7 @@ namespace FNPlugin.Extensions
         public static double GetPeakProtonBeltAltitude(this CelestialBody body, CelestialBody homeworld, double altitude, double lat)
         {
             lat = lat / 180 * Math.PI;
-            double rp = body.Radius;
-            double relrp = rp / homeworld.Radius;
+            double relrp = body.Radius / homeworld.Radius;
             double peakbelt = 1.5 * homeworld.Radius * relrp;
             return peakbelt;
         }
@@ -99,11 +84,8 @@ namespace FNPlugin.Extensions
             double atmosphere_height = PluginHelper.getMaxAtmosphericAltitude(body);
             double atmosphere_scaling = Math.Exp(-atmosphere);
 
-            double mp = body.Mass;
-            double rp = body.Radius;
-            double rt = body.rotationPeriod;
-            double relrp = rp / homeworld.Radius;
-            double relrt = rt / homeworld.rotationPeriod;
+            double relrp = body.Radius / homeworld.Radius;
+            double relrt = body.rotationPeriod / homeworld.rotationPeriod;
 
             double peakbelt2 = body.GetPeakElectronBeltAltitude(homeworld, altitude, lat);
             double altituded = altitude;
@@ -124,60 +106,26 @@ namespace FNPlugin.Extensions
         public static double GetPeakElectronBeltAltitude(this CelestialBody body, CelestialBody homeworld, double altitude, double lat)
         {
             lat = lat / 180 * Math.PI;
-            //CelestialBody crefkerbin = FlightGlobals.fetch.bodies[1];
-            double rp = body.Radius;
-            double relrp = rp / homeworld.Radius;
+            double relrp = body.Radius / homeworld.Radius;
             double peakbelt = 6.0 * homeworld.Radius * relrp;
             return peakbelt;
         }
 
         public static double specialMagneticFieldScaling(this CelestialBody body)
         {
-            double special_scaling = 1;
-            switch (body.flightGlobalsIndex)
-            {
-                case (PluginHelper.REF_BODY_TYLO):
-                    special_scaling = 7;
-                    break;
-                case(PluginHelper.REF_BODY_LAYTHE):
-                    special_scaling = 5;
-                    break;
-                case(PluginHelper.REF_BODY_MOHO):
-                case(PluginHelper.REF_BODY_EVE):
-                    special_scaling = 2;
-                    break;
-                case(PluginHelper.REF_BODY_JOOL):
-                    special_scaling = 3;
-                    break;
-                case(PluginHelper.REF_BODY_MUN):
-                case(PluginHelper.REF_BODY_IKE):
-                    special_scaling = 0.2;
-                    break;
-                case(PluginHelper.REF_BODY_GILLY):
-                case(PluginHelper.REF_BODY_BOP):
-                case(PluginHelper.REF_BODY_POL):
-                    special_scaling = 0.05;
-                    break;
-                default:
-                    special_scaling = 1.0;
-                    break;
-            }
-            return special_scaling;
+            return MagneticFieldDefinitionsHandler.GetMagneticFieldDefinitionForBody(body.name).StrengthMult; 
         }
 
         public static double GetBeltMagneticFieldMagnitude(this CelestialBody body, CelestialBody homeworld, double altitude, double lat)
         {
             double mlat = lat / 180 * Math.PI + Math.PI / 2;
 
-            double mp = body.Mass;
-            double rp = body.Radius;
-            double rt = body.rotationPeriod;
-            double relmp = mp / homeworld.Mass;
-            double relrp = rp / homeworld.Radius;
-            double relrt = rt / homeworld.rotationPeriod;
+            double relmp = body.Mass / homeworld.Mass;
+            double relrp = body.Radius / homeworld.Radius;
+            double relrt = body.rotationPeriod / homeworld.rotationPeriod;
 
-            double altituded = ((double)altitude) + rp;
-            double Bmag = VanAllen.B0 / relrt * relmp * Math.Pow((rp / altituded), 3) * Math.Sqrt(1 + 3 * Math.Pow(Math.Cos(mlat), 2)) * body.specialMagneticFieldScaling();
+            double altituded = altitude + body.Radius;
+            double Bmag = VanAllen.B0 / relrt * relmp * Math.Pow((body.Radius / altituded), 3) * Math.Sqrt(1 + 3 * Math.Pow(Math.Cos(mlat), 2)) * body.specialMagneticFieldScaling();
 
             return Bmag;
         }
@@ -186,15 +134,12 @@ namespace FNPlugin.Extensions
         {
             double mlat = lat / 180 * Math.PI + Math.PI / 2;
 
-            double mp = body.Mass;
-            double rp = body.Radius;
-            double rt = body.rotationPeriod;
-            double relmp = mp / homeworld.Mass;
-            double relrp = rp / homeworld.Radius;
-            double relrt = rt / homeworld.rotationPeriod;
+            double relmp = body.Mass / homeworld.Mass;
+            double relrp = body.Radius / homeworld.Radius;
+            double relrt = body.rotationPeriod / homeworld.rotationPeriod;
 
-            double altituded = ((double)altitude) + rp;
-            double Bmag = -2 / relrt * relmp * VanAllen.B0 * Math.Pow((rp / altituded), 3) * Math.Cos(mlat) * body.specialMagneticFieldScaling();
+            double altituded = altitude + body.Radius;
+            double Bmag = -2 / relrt * relmp * VanAllen.B0 * Math.Pow((body.Radius / altituded), 3) * Math.Cos(mlat) * body.specialMagneticFieldScaling();
 
             return Bmag;
         }
@@ -203,15 +148,12 @@ namespace FNPlugin.Extensions
         {
             double mlat = lat / 180 * Math.PI + Math.PI / 2;
 
-            double mp = body.Mass;
-            double rp = body.Radius;
-            double rt = body.rotationPeriod;
-            double relmp = mp / homeworld.Mass;
-            double relrp = rp / homeworld.Radius;
-            double relrt = rt / homeworld.rotationPeriod;
+            double relmp = body.Mass / homeworld.Mass;
+            double relrp = body.Radius / homeworld.Radius;
+            double relrt = body.rotationPeriod / homeworld.rotationPeriod;
 
-            double altituded = ((double)altitude) + rp;
-            double Bmag = -relmp * VanAllen.B0 / relrt * Math.Pow((rp / altituded), 3) * Math.Sin(mlat) * body.specialMagneticFieldScaling();
+            double altituded = altitude + body.Radius;
+            double Bmag = -relmp * VanAllen.B0 / relrt * Math.Pow((body.Radius / altituded), 3) * Math.Sin(mlat) * body.specialMagneticFieldScaling();
 
             return Bmag;
         }

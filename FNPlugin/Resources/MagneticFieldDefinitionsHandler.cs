@@ -11,7 +11,7 @@ namespace FNPlugin.Resources
 
         public static MagneticFieldDefinition GetMagneticFieldDefinitionForBody(string celestialBodyName) // function for getting or creating Crustal composition
         {
-            MagneticFieldDefinition magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding all the resources
+			MagneticFieldDefinition magneticFieldDefinition;
             try
             {
                 LoadMagneticfiedDefinition();
@@ -20,11 +20,13 @@ namespace FNPlugin.Resources
                 if (!magneticFieldDefinitions_by_name.TryGetValue(celestialBodyName, out magneticFieldDefinition))
                 {
                     Debug.LogWarning("[KSPI] - Failed to find magneticFieldDefinition for: " + celestialBodyName);
+					magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding all the resources
                 }
             }
             catch (Exception ex)
             {
                 Debug.Log("[KSPI] - Exception while retrieving MagneticFieldDefinition : " + ex.ToString());
+				magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding all the resources
             }
             return magneticFieldDefinition;
         }
