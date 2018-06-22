@@ -1,13 +1,13 @@
 ﻿using System;
 using FNPlugin.Constants;
-
+using UnityEngine;
 
 namespace FNPlugin.Resources
 {
     public class AtmosphericFloatCurves
     {
-        public FloatCurve MassDensityAtmosphereGramPerCubeCm { get; private set; }
-        public FloatCurve ParticlesAtmosphereCubePerMeter { get; private set; }
+        public AnimationCurve MassDensityAtmosphereGramPerCubeCm { get; private set; }
+        public AnimationCurve ParticlesAtmosphereCubePerMeter { get; private set; }
         public FloatCurve ParticlesHydrogenCubePerMeter { get; private set; }
         public FloatCurve ParticlesHeliumnPerCubePerCm { get; private set; }
         public FloatCurve HydrogenIonsPerCubeCm { get; private set; }
@@ -316,140 +316,152 @@ namespace FNPlugin.Resources
         {
             if (ParticlesAtmosphereCubePerMeter != null) return;
 
-            ParticlesAtmosphereCubePerMeter = new FloatCurve();
+            ParticlesAtmosphereCubePerMeter = new AnimationCurve();
 
-            ParticlesAtmosphereCubePerMeter.Add(0, 2.55e+25f);
-            ParticlesAtmosphereCubePerMeter.Add(2, 2.09e+25f);
-            ParticlesAtmosphereCubePerMeter.Add(4, 1.70e+25f);
-            ParticlesAtmosphereCubePerMeter.Add(6, 1.37e+25f);
-            ParticlesAtmosphereCubePerMeter.Add(8, 1.09e+25f);
-            ParticlesAtmosphereCubePerMeter.Add(10, 8.60e+24f);
-            ParticlesAtmosphereCubePerMeter.Add(12, 6.49e+24f);
-            ParticlesAtmosphereCubePerMeter.Add(14, 4.74e+24f);
-            ParticlesAtmosphereCubePerMeter.Add(16, 3.46e+24f);
-            ParticlesAtmosphereCubePerMeter.Add(18, 2.53e+24f);
-            ParticlesAtmosphereCubePerMeter.Add(20, 1.85e+24f);
-            ParticlesAtmosphereCubePerMeter.Add(22, 1.34e+24f);
-            ParticlesAtmosphereCubePerMeter.Add(24, 9.76e+23f);
-            ParticlesAtmosphereCubePerMeter.Add(26, 7.12e+23f);
-            ParticlesAtmosphereCubePerMeter.Add(28, 5.21e+23f);
-            ParticlesAtmosphereCubePerMeter.Add(30, 3.83e+23f);
-            ParticlesAtmosphereCubePerMeter.Add(32, 2.81e+23f);
-            ParticlesAtmosphereCubePerMeter.Add(34, 2.06e+23f);
-            ParticlesAtmosphereCubePerMeter.Add(36, 1.51e+23f);
-            ParticlesAtmosphereCubePerMeter.Add(38, 1.12e+23f);
-            ParticlesAtmosphereCubePerMeter.Add(40, 8.31e+22f);
-            ParticlesAtmosphereCubePerMeter.Add(42, 6.23e+22f);
-            ParticlesAtmosphereCubePerMeter.Add(44, 4.70e+22f);
-            ParticlesAtmosphereCubePerMeter.Add(46, 3.56e+22f);
-            ParticlesAtmosphereCubePerMeter.Add(48, 2.74e+22f);
-            ParticlesAtmosphereCubePerMeter.Add(50, 2.14e+22f);
-            ParticlesAtmosphereCubePerMeter.Add(52, 1.68e+22f);
-            ParticlesAtmosphereCubePerMeter.Add(54, 1.33e+22f);
-            ParticlesAtmosphereCubePerMeter.Add(56, 1.05e+22f);
-            ParticlesAtmosphereCubePerMeter.Add(58, 8.24e+21f);
-            ParticlesAtmosphereCubePerMeter.Add(60, 6.44e+21f);
-            ParticlesAtmosphereCubePerMeter.Add(65, 3.39e+21f);
-            ParticlesAtmosphereCubePerMeter.Add(70, 1.72e+21f);
-            ParticlesAtmosphereCubePerMeter.Add(75, 8.30e+20f);
-            ParticlesAtmosphereCubePerMeter.Add(80, 3.84e+20f);
-            ParticlesAtmosphereCubePerMeter.Add(85, 1.71e+20f);
-            ParticlesAtmosphereCubePerMeter.Add(90, 7.12e+19f);
-            ParticlesAtmosphereCubePerMeter.Add(95, 2.92e+19f);
-            ParticlesAtmosphereCubePerMeter.Add(100, 1.19e+19f);
-            ParticlesAtmosphereCubePerMeter.Add(110, 2.45e+18f);
-            ParticlesAtmosphereCubePerMeter.Add(120, 5.11e+17f);
-            ParticlesAtmosphereCubePerMeter.Add(140, 9.32e+16f);
-            ParticlesAtmosphereCubePerMeter.Add(160, 3.16e+16f);
-            ParticlesAtmosphereCubePerMeter.Add(180, 1.40e+16f);
-            ParticlesAtmosphereCubePerMeter.Add(200, 7.18e+15f);
-            ParticlesAtmosphereCubePerMeter.Add(300, 6.51e+14f);
-            ParticlesAtmosphereCubePerMeter.Add(400, 9.13e+13f);
-            ParticlesAtmosphereCubePerMeter.Add(500, 2.19e+13f);
-            ParticlesAtmosphereCubePerMeter.Add(600, 4.89e+12f);
-            ParticlesAtmosphereCubePerMeter.Add(700, 1.14e+12f);
-            ParticlesAtmosphereCubePerMeter.Add(800, 5.86e+11f);
-            ParticlesAtmosphereCubePerMeter.Add(1000, 2.06e+11f);
+            ParticlesAtmosphereCubePerMeter.AddKey(0, 2.55e+25f);
+            ParticlesAtmosphereCubePerMeter.AddKey(2, 2.09e+25f);
+            ParticlesAtmosphereCubePerMeter.AddKey(4, 1.70e+25f);
+            ParticlesAtmosphereCubePerMeter.AddKey(6, 1.37e+25f);
+            ParticlesAtmosphereCubePerMeter.AddKey(8, 1.09e+25f);
+            ParticlesAtmosphereCubePerMeter.AddKey(10, 8.60e+24f);
+            ParticlesAtmosphereCubePerMeter.AddKey(12, 6.49e+24f);
+            ParticlesAtmosphereCubePerMeter.AddKey(14, 4.74e+24f);
+            ParticlesAtmosphereCubePerMeter.AddKey(16, 3.46e+24f);
+            ParticlesAtmosphereCubePerMeter.AddKey(18, 2.53e+24f);
+            ParticlesAtmosphereCubePerMeter.AddKey(20, 1.85e+24f);
+            ParticlesAtmosphereCubePerMeter.AddKey(22, 1.34e+24f);
+            ParticlesAtmosphereCubePerMeter.AddKey(24, 9.76e+23f);
+            ParticlesAtmosphereCubePerMeter.AddKey(26, 7.12e+23f);
+            ParticlesAtmosphereCubePerMeter.AddKey(28, 5.21e+23f);
+            ParticlesAtmosphereCubePerMeter.AddKey(30, 3.83e+23f);
+            ParticlesAtmosphereCubePerMeter.AddKey(32, 2.81e+23f);
+            ParticlesAtmosphereCubePerMeter.AddKey(34, 2.06e+23f);
+            ParticlesAtmosphereCubePerMeter.AddKey(36, 1.51e+23f);
+            ParticlesAtmosphereCubePerMeter.AddKey(38, 1.12e+23f);
+            ParticlesAtmosphereCubePerMeter.AddKey(40, 8.31e+22f);
+            ParticlesAtmosphereCubePerMeter.AddKey(42, 6.23e+22f);
+            ParticlesAtmosphereCubePerMeter.AddKey(44, 4.70e+22f);
+            ParticlesAtmosphereCubePerMeter.AddKey(46, 3.56e+22f);
+            ParticlesAtmosphereCubePerMeter.AddKey(48, 2.74e+22f);
+            ParticlesAtmosphereCubePerMeter.AddKey(50, 2.14e+22f);
+            ParticlesAtmosphereCubePerMeter.AddKey(52, 1.68e+22f);
+            ParticlesAtmosphereCubePerMeter.AddKey(54, 1.33e+22f);
+            ParticlesAtmosphereCubePerMeter.AddKey(56, 1.05e+22f);
+            ParticlesAtmosphereCubePerMeter.AddKey(58, 8.24e+21f);
+            ParticlesAtmosphereCubePerMeter.AddKey(60, 6.44e+21f);
+            ParticlesAtmosphereCubePerMeter.AddKey(65, 3.39e+21f);
+            ParticlesAtmosphereCubePerMeter.AddKey(70, 1.72e+21f);
+            ParticlesAtmosphereCubePerMeter.AddKey(75, 8.30e+20f);
+            ParticlesAtmosphereCubePerMeter.AddKey(80, 3.84e+20f);
+            ParticlesAtmosphereCubePerMeter.AddKey(85, 1.71e+20f);
+            ParticlesAtmosphereCubePerMeter.AddKey(90, 7.12e+19f);
+            ParticlesAtmosphereCubePerMeter.AddKey(95, 2.92e+19f);
+            ParticlesAtmosphereCubePerMeter.AddKey(100, 1.19e+19f);
+            ParticlesAtmosphereCubePerMeter.AddKey(110, 2.45e+18f);
+            ParticlesAtmosphereCubePerMeter.AddKey(120, 5.11e+17f);
+            ParticlesAtmosphereCubePerMeter.AddKey(140, 9.32e+16f);
+            ParticlesAtmosphereCubePerMeter.AddKey(160, 3.16e+16f);
+            ParticlesAtmosphereCubePerMeter.AddKey(180, 1.40e+16f);
+            ParticlesAtmosphereCubePerMeter.AddKey(200, 7.18e+15f);
+            ParticlesAtmosphereCubePerMeter.AddKey(300, 6.51e+14f);
+            ParticlesAtmosphereCubePerMeter.AddKey(400, 9.13e+13f);
+            ParticlesAtmosphereCubePerMeter.AddKey(500, 2.19e+13f);
+            ParticlesAtmosphereCubePerMeter.AddKey(600, 4.89e+12f);
+            ParticlesAtmosphereCubePerMeter.AddKey(700, 1.14e+12f);
+            ParticlesAtmosphereCubePerMeter.AddKey(800, 5.86e+11f);
+            ParticlesAtmosphereCubePerMeter.AddKey(1000, 2.06e+11f);
+
+            // smooth the tangents
+            for (int i = 0; i < ParticlesAtmosphereCubePerMeter.keys.Length; i++)
+            {
+                ParticlesAtmosphereCubePerMeter.SmoothTangents(i, 0);
+            }
         }
-
+        
         private void InitializeDensityAtmosphereCubeCm()
         {
             if (MassDensityAtmosphereGramPerCubeCm != null) return;
 
-            MassDensityAtmosphereGramPerCubeCm = new FloatCurve();
+            MassDensityAtmosphereGramPerCubeCm = new AnimationCurve();
 
-            MassDensityAtmosphereGramPerCubeCm.Add(000, 1.340E-03f);
-            MassDensityAtmosphereGramPerCubeCm.Add(001, 1.195E-03f);
-            MassDensityAtmosphereGramPerCubeCm.Add(002, 1.072E-03f);
-            MassDensityAtmosphereGramPerCubeCm.Add(003, 9.649E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(004, 8.681E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(005, 7.790E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(006, 6.959E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(007, 6.179E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(008, 5.446E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(009, 4.762E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(010, 4.128E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(012, 3.035E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(014, 2.203E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(016, 1.605E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(018, 1.175E-04f);
-            MassDensityAtmosphereGramPerCubeCm.Add(020, 8.573E-05f);
-            MassDensityAtmosphereGramPerCubeCm.Add(025, 3.756E-05f);
-            MassDensityAtmosphereGramPerCubeCm.Add(030, 1.611E-05f);
-            MassDensityAtmosphereGramPerCubeCm.Add(035, 7.028E-06f);
-            MassDensityAtmosphereGramPerCubeCm.Add(040, 3.262E-06f);
-            MassDensityAtmosphereGramPerCubeCm.Add(045, 1.627E-06f);
-            MassDensityAtmosphereGramPerCubeCm.Add(050, 8.602E-07f);
-            MassDensityAtmosphereGramPerCubeCm.Add(055, 4.593E-07f);
-            MassDensityAtmosphereGramPerCubeCm.Add(060, 1.214E-07f);
-            MassDensityAtmosphereGramPerCubeCm.Add(065, 6.017E-08f);
-            MassDensityAtmosphereGramPerCubeCm.Add(070, 6.017E-08f);
-            MassDensityAtmosphereGramPerCubeCm.Add(075, 2.943E-08f);
-            MassDensityAtmosphereGramPerCubeCm.Add(080, 1.439E-08f);
-            MassDensityAtmosphereGramPerCubeCm.Add(085, 6.826E-09f);
-            MassDensityAtmosphereGramPerCubeCm.Add(090, 3.080E-09f);
-            MassDensityAtmosphereGramPerCubeCm.Add(095, 1.316E-09f);
-            MassDensityAtmosphereGramPerCubeCm.Add(100, 5.357E-10f);
-            MassDensityAtmosphereGramPerCubeCm.Add(105, 2.133E-10f);
-            MassDensityAtmosphereGramPerCubeCm.Add(110, 8.711E-11f);
-            MassDensityAtmosphereGramPerCubeCm.Add(115, 3.780E-11f);
-            MassDensityAtmosphereGramPerCubeCm.Add(120, 1.844E-11f);
-            MassDensityAtmosphereGramPerCubeCm.Add(130, 7.383E-12f);
-            MassDensityAtmosphereGramPerCubeCm.Add(140, 3.781E-12f);
-            MassDensityAtmosphereGramPerCubeCm.Add(150, 2.185E-12f);
-            MassDensityAtmosphereGramPerCubeCm.Add(160, 1.364E-12f);
-            MassDensityAtmosphereGramPerCubeCm.Add(170, 8.974E-13f);
-            MassDensityAtmosphereGramPerCubeCm.Add(180, 6.145E-13f);
-            MassDensityAtmosphereGramPerCubeCm.Add(190, 4.333E-13f);
-            MassDensityAtmosphereGramPerCubeCm.Add(200, 3.127E-13f);
-            MassDensityAtmosphereGramPerCubeCm.Add(210, 2.300E-13f);
-            MassDensityAtmosphereGramPerCubeCm.Add(220, 1.718E-13f);
-            MassDensityAtmosphereGramPerCubeCm.Add(230, 1.300E-13f);
-            MassDensityAtmosphereGramPerCubeCm.Add(240, 9.954E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(250, 7.698E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(260, 6.007E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(270, 4.725E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(280, 3.744E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(290, 2.987E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(300, 2.397E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(310, 1.934E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(320, 1.569E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(330, 1.278E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(340, 1.046E-14f);
-            MassDensityAtmosphereGramPerCubeCm.Add(350, 8.594E-15f);
-            MassDensityAtmosphereGramPerCubeCm.Add(400, 3.377E-15f);
-            MassDensityAtmosphereGramPerCubeCm.Add(450, 1.412E-15f);
-            MassDensityAtmosphereGramPerCubeCm.Add(500, 6.205E-16f);
-            MassDensityAtmosphereGramPerCubeCm.Add(550, 2.854E-16f);
-            MassDensityAtmosphereGramPerCubeCm.Add(600, 1.385E-16f);
-            MassDensityAtmosphereGramPerCubeCm.Add(650, 7.176E-17f);
-            MassDensityAtmosphereGramPerCubeCm.Add(700, 4.031E-17f);
-            MassDensityAtmosphereGramPerCubeCm.Add(750, 2.477E-17f);
-            MassDensityAtmosphereGramPerCubeCm.Add(800, 1.660E-17f);
-            MassDensityAtmosphereGramPerCubeCm.Add(850, 1.197E-17f);
-            MassDensityAtmosphereGramPerCubeCm.Add(900, 9.114E-18f);
-            MassDensityAtmosphereGramPerCubeCm.Add(950, 7.211E-18f);
-            MassDensityAtmosphereGramPerCubeCm.Add(1000, 5.849E-18f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(000, 1.340E-03f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(001, 1.195E-03f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(002, 1.072E-03f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(003, 9.649E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(004, 8.681E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(005, 7.790E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(006, 6.959E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(007, 6.179E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(008, 5.446E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(009, 4.762E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(010, 4.128E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(012, 3.035E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(014, 2.203E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(016, 1.605E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(018, 1.175E-04f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(020, 8.573E-05f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(025, 3.756E-05f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(030, 1.611E-05f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(035, 7.028E-06f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(040, 3.262E-06f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(045, 1.627E-06f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(050, 8.602E-07f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(055, 4.593E-07f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(060, 1.214E-07f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(065, 6.017E-08f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(070, 6.017E-08f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(075, 2.943E-08f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(080, 1.439E-08f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(085, 6.826E-09f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(090, 3.080E-09f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(095, 1.316E-09f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(100, 5.357E-10f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(105, 2.133E-10f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(110, 8.711E-11f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(115, 3.780E-11f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(120, 1.844E-11f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(130, 7.383E-12f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(140, 3.781E-12f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(150, 2.185E-12f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(160, 1.364E-12f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(170, 8.974E-13f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(180, 6.145E-13f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(190, 4.333E-13f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(200, 3.127E-13f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(210, 2.300E-13f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(220, 1.718E-13f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(230, 1.300E-13f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(240, 9.954E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(250, 7.698E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(260, 6.007E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(270, 4.725E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(280, 3.744E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(290, 2.987E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(300, 2.397E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(310, 1.934E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(320, 1.569E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(330, 1.278E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(340, 1.046E-14f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(350, 8.594E-15f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(400, 3.377E-15f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(450, 1.412E-15f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(500, 6.205E-16f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(550, 2.854E-16f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(600, 1.385E-16f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(650, 7.176E-17f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(700, 4.031E-17f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(750, 2.477E-17f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(800, 1.660E-17f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(850, 1.197E-17f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(900, 9.114E-18f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(950, 7.211E-18f);
+            MassDensityAtmosphereGramPerCubeCm.AddKey(1000, 5.849E-18f);
+
+            // smooth the tangents
+            for (int i = 0; i < MassDensityAtmosphereGramPerCubeCm.keys.Length; i++)
+            {
+                 MassDensityAtmosphereGramPerCubeCm.SmoothTangents(i, 0);
+            }
         }
 
         public static double CalculateCurrentAtmosphereConcentration(Vessel vessel)
