@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using FNPlugin.Extensions;
+using FNPlugin.Resources;
 
 namespace FNPlugin 
 {
@@ -12,8 +13,10 @@ namespace FNPlugin
         public string ParticleFlux;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Rate", guiFormat = "F4", guiUnits = " mg/hour")]
         public double collectionRate;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Multiplier")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Collection Multiplier")]
         public double collectionMultiplier = 1;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Field Strength Multiplier", guiFormat = "F2")]
+        public double celestrialBodyFieldStrengthMod = 1;
         [KSPField(isPersistant = true)]
         public double last_active_time;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Can collect")]
@@ -53,6 +56,7 @@ namespace FNPlugin
         public override void OnUpdate() 
         {
             var lat = vessel.mainBody.GetLatitude(this.vessel.GetWorldPos3D());
+            celestrialBodyFieldStrengthMod = MagneticFieldDefinitionsHandler.GetMagneticFieldDefinitionForBody(vessel.mainBody).StrengthMult;
             flux = collectionMultiplier * vessel.mainBody.GetBeltAntiparticles(_homeworld, vessel.altitude, lat);
             ParticleFlux = flux.ToString("E");
             collectionRate = _effectiveFlux * PluginHelper.SecondsInHour;

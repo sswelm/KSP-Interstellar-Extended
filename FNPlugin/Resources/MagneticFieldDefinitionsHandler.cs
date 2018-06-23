@@ -9,6 +9,11 @@ namespace FNPlugin.Resources
     {
         protected static Dictionary<string, MagneticFieldDefinition> magneticFieldDefinitions_by_name = null;
 
+        public static MagneticFieldDefinition GetMagneticFieldDefinitionForBody(CelestialBody celestialBodyName)
+        {
+            return GetMagneticFieldDefinitionForBody(celestialBodyName.name);
+        }
+
         public static MagneticFieldDefinition GetMagneticFieldDefinitionForBody(string celestialBodyName) // function for getting or creating Crustal composition
         {
 			MagneticFieldDefinition magneticFieldDefinition;

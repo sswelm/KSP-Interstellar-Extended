@@ -21,6 +21,7 @@ namespace FNPlugin.Beamedpower
         public double RemainingPower { get; set; }
         public string Wavelengths { get; set; }
         public double Distance { get; set; }
+        public long UpdateCounter { get; set; }
 
         public MicrowaveRoute Route { get; set; }
         public IList<VesselRelayPersistence> Relays { get; set; }
