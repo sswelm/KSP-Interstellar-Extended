@@ -444,7 +444,10 @@ namespace FNPlugin.Beamedpower
             var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized);
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
             var squaredCosOrbitalDrag = cosObitalDrag * cosObitalDrag;
-            var effectiveSpeedForDrag = Math.Max(0, vessel.obt_speed - ( Math.Min(1, vessel.mainBody.atmosphereDepth / vessel.altitude) * 300));
+            var siderealSpeed = 2 * vessel.mainBody.Radius * Math.PI / vessel.mainBody.rotationPeriod;
+            var lowSpaceAtmosphereModifier = Math.Min(1, vessel.mainBody.atmosphereDepth / vessel.altitude);
+            var highSpaceAtmosphereModifier = 1 - lowSpaceAtmosphereModifier;
+            var effectiveSpeedForDrag = Math.Max(0, vessel.obt_speed - siderealSpeed * lowSpaceAtmosphereModifier);
             var baseDragForce = 0.5 * atmosphericGasKgPerSquareMeter * Math.Pow(sailSurfaceModifier, 2) * effectiveSpeedForDrag * effectiveSpeedForDrag;
             maximumDragPerSquareMeter = (float)(baseDragForce * maximumDragCoefficient);
             
@@ -453,7 +456,7 @@ namespace FNPlugin.Beamedpower
             if (cosOrbitRaw < 0)
                 partNormal = -partNormal;
 
-            var specularDragCoefficient = 4 * squaredCosOrbitalDrag;
+            var specularDragCoefficient = 2 * squaredCosOrbitalDrag + 2 * squaredCosOrbitalDrag * highSpaceAtmosphereModifier;
             var specularDragPerSquareMeter =  specularDragCoefficient * baseDragForce * specularRatio;
             var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea * specularRatio;
             specularSailDragInNewton = (float)specularDragInNewton;
@@ -463,7 +466,7 @@ namespace FNPlugin.Beamedpower
             ChangeVesselVelocity(this.vessel, universalTime, specularDragDeceleration);
 
             // apply Diffuse Drag
-            var diffuseDragCoefficient = 2 + squaredCosOrbitalDrag * 1.3;
+            var diffuseDragCoefficient = 2 + squaredCosOrbitalDrag * 1.3 * highSpaceAtmosphereModifier;
             var diffuseDragPerSquareMeter = diffuseDragCoefficient * baseDragForce * diffuseRatio;
             var diffuseDragInNewton = diffuseDragPerSquareMeter * cosObitalDrag * effectiveSurfaceArea;
             diffuseSailDragInNewton = (float)diffuseDragInNewton;
