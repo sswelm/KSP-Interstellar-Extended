@@ -112,6 +112,9 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = true, guiName = "Orbit Diameter Change", guiFormat = "F3", guiUnits = " m/s")]
         public double orbitSizeChange;
 
+        //[KSPField(isPersistant = true, guiActive = true, guiName = "Global Deceleration", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = -100)]
+        //public float globalModifier = 0;
+
         // conversion from rad to degree
         const double radToDegreeMult = 180d / Math.PI;
 
@@ -426,6 +429,17 @@ namespace FNPlugin.Beamedpower
 
             // calculate drag
             ApplyDrag(universalTime, vesselMassInKg);
+
+            //// apply deceleration to all vessels
+            //foreach (var currentvessel in FlightGlobals.Vessels)
+            //{
+            //    var vesselHeading = currentvessel.GetOrbitDriver().orbit.GetWorldSpaceVel();
+            //    //var vesselHeading = currentvessel.up;
+
+            //    var vesselDeceleration = vesselHeading.normalized * globalModifier;
+
+            //    ChangeVesselVelocity(currentvessel, universalTime, vesselDeceleration * TimeWarp.fixedDeltaTime);
+            //}
         }
 
         private void ResetBeams()
@@ -480,25 +494,28 @@ namespace FNPlugin.Beamedpower
             var specularDragPerSquareMeter =  specularDragCoefficient * baseDragForce * specularRatio;
             var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea * specularRatio;
             specularSailDragInNewton = (float)specularDragInNewton;
-            var specularDragForceFixed = specularDragInNewton * TimeWarp.fixedDeltaTime * partNormal;
+            var specularDragForceFixed = specularDragInNewton * partNormal;
             var specularDragDeceleration = -specularDragForceFixed / vesselMassInKg;
 
-            ChangeVesselVelocity(this.vessel, universalTime, specularDragDeceleration);
+            ChangeVesselVelocity(this.vessel, universalTime, specularDragDeceleration * TimeWarp.fixedDeltaTime);
 
             // apply Diffuse Drag
             var diffuseDragCoefficient = 2 + squaredCosOrbitalDrag * 1.3 * highSpaceAtmosphereModifier;
             var diffuseDragPerSquareMeter = diffuseDragCoefficient * baseDragForce * diffuseRatio;
             var diffuseDragInNewton = diffuseDragPerSquareMeter * cosObitalDrag * effectiveSurfaceArea;
             diffuseSailDragInNewton = (float)diffuseDragInNewton;
-            var diffuseDragForceFixed = diffuseDragInNewton * TimeWarp.fixedDeltaTime * part.vessel.obt_velocity.normalized;
+            var diffuseDragForceFixed = diffuseDragInNewton * part.vessel.obt_velocity.normalized;
             var diffuseDragDeceleration = -diffuseDragForceFixed / vesselMassInKg;
 
-            ChangeVesselVelocity(this.vessel, universalTime, diffuseDragDeceleration);
+            ChangeVesselVelocity(this.vessel, universalTime, diffuseDragDeceleration * TimeWarp.fixedDeltaTime);
         }
 
         private static void ChangeVesselVelocity(Vessel vessel, double universalTime, Vector3d acceleration)
         {
             if (double.IsNaN(acceleration.x) || double.IsNaN(acceleration.y) || double.IsNaN(acceleration.z))
+                return;
+
+            if (double.IsInfinity(acceleration.x) || double.IsInfinity(acceleration.y) || double.IsInfinity(acceleration.z))
                 return;
 
             if (vessel.packed)
