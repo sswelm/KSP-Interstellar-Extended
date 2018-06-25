@@ -430,14 +430,14 @@ namespace FNPlugin.Beamedpower
             // calculate drag
             ApplyDrag(universalTime, vesselMassInKg);
 
-            //// apply deceleration to all vessels
+            //// apply solarsail effect to all vessels
             //foreach (var currentvessel in FlightGlobals.Vessels)
             //{
             //    var vesselHeading = currentvessel.GetOrbitDriver().orbit.GetWorldSpaceVel();
             //    //var vesselHeading = currentvessel.up;
-
-            //    var vesselDeceleration = vesselHeading.normalized * globalModifier;
-
+			//    var vectorToSun = vessel.orbit.getPositionAtUT(universalTime) -  Sun.Instance.getPositionAtUT(universalTime) -
+			//    var desiredVesselHeading =  Vector3d.RotateTowards( vesselHeading, vectorToSun,  45 / radToDegreeMult, 1)
+			//    var vesselDeceleration = desiredVesselHeading.normalized * globalModifier;
             //    ChangeVesselVelocity(currentvessel, universalTime, vesselDeceleration * TimeWarp.fixedDeltaTime);
             //}
         }
@@ -446,7 +446,7 @@ namespace FNPlugin.Beamedpower
         {
             for (var i = 0; i < beamEffectArray.Length; i++)
             {
-                UpdateBeams(beamEffectArray[i], Vector3d.zero, 0, 0);
+                UpdateVisibleBeam(beamEffectArray[i], Vector3d.zero, 0, 0);
             }
         }
 
@@ -529,6 +529,7 @@ namespace FNPlugin.Beamedpower
             // calculate vector between vessel and star/transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
 
+
             // take part vector 
             Vector3d partNormal = this.part.transform.up;
 
@@ -585,7 +586,7 @@ namespace FNPlugin.Beamedpower
             {
                 var scaleModifier = beamedPowerThrottle > 0 ? (scaleBeamToAnimation || beamspotsize * 4 <= diameter ? 1 : 4) : 0;
                 var beamSpotsize = beamedPowerThrottle > 0 ? Math.Max((sailSurfaceModifier * cosConeAngle * diameter / 4), beamspotsize) : 0;
-                UpdateBeams(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, (float)beamSpotsize);
+                UpdateVisibleBeam(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, (float)beamSpotsize);
             }
 
             // calculate the vector at 90 degree angle in the direction of the vector
@@ -625,15 +626,16 @@ namespace FNPlugin.Beamedpower
             return (cosConeAngleIsNegative ? -1 : 1);
         }
 
-        private void UpdateBeams(BeamEffect beameffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamlength = short.MaxValue)
+        private void UpdateVisibleBeam(BeamEffect beameffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamlength = short.MaxValue)
         {
-            var endBeamPos = part.transform.position + (powerSourceToVesselVector.normalized * beamlength);
+            var normalizedPowerSourceToVesselVector = powerSourceToVesselVector.normalized;
+            var endBeamPos = part.transform.position + normalizedPowerSourceToVesselVector * beamlength;
             var midPos = part.transform.position - endBeamPos;
             var timeCorrection = TimeWarp.CurrentRate > 1 ? -vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
 
-            var solarVectorX = powerSourceToVesselVector.normalized.x * 90;
-            var solarVectorY = powerSourceToVesselVector.normalized.y * 90 - 90;
-            var solarVectorZ = powerSourceToVesselVector.normalized.z * 90;
+            var solarVectorX = normalizedPowerSourceToVesselVector.x * 90;
+            var solarVectorY = normalizedPowerSourceToVesselVector.y * 90 - 90;
+            var solarVectorZ = normalizedPowerSourceToVesselVector.z * 90;
 
             beameffect.solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
             beameffect.solar_effect.transform.localScale = new Vector3(beamSize, (float)(beamlength * scaleModifer), beamSize);
@@ -645,17 +647,17 @@ namespace FNPlugin.Beamedpower
             var averageFixedDeltaTime = (previousFixedDeltaTime + TimeWarp.fixedDeltaTime) / 2f;
 
             periapsisChangeQueue.Enqueue((vessel.orbit.PeA - previousPeA) / averageFixedDeltaTime);
-            if (periapsisChangeQueue.Count > 20)
+            if (periapsisChangeQueue.Count > 30)
                 periapsisChangeQueue.Dequeue();
-            periapsisChange = periapsisChangeQueue.Count > 10 
-                ?  periapsisChangeQueue.OrderBy(m => m).Skip(5).Take(10).Average() 
+            periapsisChange = periapsisChangeQueue.Count > 20 
+                ?  periapsisChangeQueue.OrderBy(m => m).Skip(5).Take(20).Average() 
                 : periapsisChangeQueue.Average();
 
             apapsisChangeQueue.Enqueue((vessel.orbit.ApA - previousAeA) / averageFixedDeltaTime);
-            if (apapsisChangeQueue.Count > 20)
+            if (apapsisChangeQueue.Count > 30)
                 apapsisChangeQueue.Dequeue();
-            apapsisChange = apapsisChangeQueue.Count > 10
-                ? apapsisChangeQueue.OrderBy(m => m).Skip(5).Take(10).Average()
+            apapsisChange = apapsisChangeQueue.Count > 20
+                ? apapsisChangeQueue.OrderBy(m => m).Skip(5).Take(20).Average()
                 : apapsisChangeQueue.Average();
 
             orbitSizeChange = periapsisChange + apapsisChange;
