@@ -653,12 +653,14 @@ namespace FNPlugin.Beamedpower
             }
 
             // calculate the vector at 90 degree angle in the direction of the vector
-            var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
+            //var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
 
             // old : F = 2 PA cos α cos α n
+            var effectiveForce = radiationPresureOnSail * reflectedPhotonRatio * cosConeAngle * partNormal;
+
             // new F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t] 
             // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficien
-            var effectiveForce = radiationPresureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
+            //var effectiveForce = radiationPresureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
 
             // Calculate acceleration from sunlight
             Vector3d photonAccel = effectiveForce / vesselMassInKg;
@@ -689,7 +691,7 @@ namespace FNPlugin.Beamedpower
             return (cosConeAngleIsNegative ? -1 : 1);
         }
 
-        private void UpdateVisibleBeam(BeamEffect beameffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamlength = short.MaxValue)
+        private void UpdateVisibleBeam(BeamEffect beameffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamlength = 200000)
         {
             var normalizedPowerSourceToVesselVector = powerSourceToVesselVector.normalized;
             var endBeamPos = part.transform.position + normalizedPowerSourceToVesselVector * beamlength;
@@ -735,7 +737,7 @@ namespace FNPlugin.Beamedpower
             var toStar = vessel.CoMD - star.position;
             var distance = toStar.magnitude - star.Radius;
             var distAU = distance / Constants.GameConstants.kerbin_sun_distance;
-            return luminosity * PhysicsGlobals.SolarInsolationAtHome / (distAU * distAU);
+            return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (distAU * distAU);
         }
     }
 }
