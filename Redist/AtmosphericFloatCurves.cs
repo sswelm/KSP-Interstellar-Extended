@@ -478,7 +478,7 @@ namespace FNPlugin.Resources
                     ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesAtmosphereCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm))
                     : 2.06e+11f * (1 / (Math.Pow(20, (comparibleEarthAltitudeInKm - 1000) / 1000)));
 
-            var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+			var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }

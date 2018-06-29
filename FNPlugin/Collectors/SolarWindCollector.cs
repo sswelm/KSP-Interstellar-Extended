@@ -532,7 +532,7 @@ namespace FNPlugin
         // calculates solar wind concentration
         private static double CalculateSolarwindIonMolesPerSquareMeter(double solarWindPerCubM, Vessel vessel, double solarWindSpeed)
         {
-            var dMolalSolarConcentration = (vessel.solarFlux / GameConstants.averageKerbinSolarFlux) * solarWindPerCubM * solarWindSpeed / GameConstants.avogadroConstant;
+            var dMolalSolarConcentration = (vessel.solarFlux / GameConstants.averageKerbinSolarFlux) * solarWindPerCubM * solarWindSpeed / PhysicsGlobals.AvogadroConstant;
 
             return Math.Abs(dMolalSolarConcentration); // in mol / m2 / sec
         }
@@ -541,7 +541,7 @@ namespace FNPlugin
         {
             double dAverageInterstellarHydrogenPerCubM = densityInterstellarDencityCubeCm * 1000000;
 
-            var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM / GameConstants.avogadroConstant;
+			var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM / PhysicsGlobals.AvogadroConstant;
 
             var interstellarDensityModifier = Math.Max(0, interstellarDensity);
 
@@ -569,9 +569,9 @@ namespace FNPlugin
 
             var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 : comparibleEarthAltitudeInKm <= 1000
                 ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHydrogenCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm))
-                : 2.101e+13f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));            
+                : 2.101e+13f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
 
-            var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+			var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -589,7 +589,7 @@ namespace FNPlugin
                 ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHeliumnPerCubePerCm.Evaluate((float)comparibleEarthAltitudeInKm))
                 : 8.196E+05f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
 
-            var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+			var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -607,7 +607,7 @@ namespace FNPlugin
                 ? Math.Max(0, AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
                 : 6.46e+9f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1240) / 1240)));
 
-            var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+			var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -624,9 +624,9 @@ namespace FNPlugin
 
             var atmosphereParticlesPerCubM = comparibleEarthAltitudeInKm > (64000 * radiusModifier) ? 0 : comparibleEarthAltitudeInKm <= 1240
                 ? Math.Max(0, AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
-                : 6.46e+9f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1240) / 1240)));            
+                : 6.46e+9f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1240) / 1240)));
 
-            var atmosphereConcentration = 0.5 * 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / GameConstants.avogadroConstant;
+			var atmosphereConcentration = 0.5 * 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -645,7 +645,7 @@ namespace FNPlugin
                     ? Math.Max(0, AtmosphericFloatCurves.Instance.IonSolarMinimumDayTimeCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
                     : 1.17724306767693e+004f * (1 / (Math.Pow(20, (comparibleEarthAltitudeInKm - 1000) / 1000)));
 
-            var atmosphereConcentration = 1e+3 * atmosphereMultiplier * atmosphereIonsPerCubCm / GameConstants.avogadroConstant;
+			var atmosphereConcentration = 1e+3 * atmosphereMultiplier * atmosphereIonsPerCubCm / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
