@@ -132,13 +132,10 @@ namespace FNPlugin.Beamedpower
         // conversion from rad to degree
         const double radToDegreeMult = 180d / Math.PI;
 
-        // Display numbers for force and acceleration
         bool scaleBeamToAnimation = false;
         double solar_acc_d = 0;
         double beamed_acc_d = 0;
         double sailSurfaceModifier;
-        double photovoltalicRatio;
-        float animationNormalizedTime;
         int updateCounter;
 
         Animation solarSailAnim = null;
@@ -146,12 +143,12 @@ namespace FNPlugin.Beamedpower
         IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
         Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
 
+        BeamEffect[] beamEffectArray;
+
         Queue<double> periapsisChangeQueue = new Queue<double>(20);
         Queue<double> apapsisChangeQueue = new Queue<double>(20);
 
         static List<StarLight> starLights = new List<StarLight>();
-
-        BeamEffect []beamEffectArray;
 
         public int ReceiverType { get { return 7; } }                       // receiver from either top or bottom
 
@@ -183,14 +180,8 @@ namespace FNPlugin.Beamedpower
         [KSPEvent(guiActiveEditor = true,  guiActive = true, guiName = "Deploy Sail", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]
         public void DeploySail()
         {
-            if (string.IsNullOrEmpty(animName) || solarSailAnim == null)
-                return;
-
             scaleBeamToAnimation = true;
-            solarSailAnim[animName].speed = 0.5f;
-            solarSailAnim[animName].normalizedTime = 0f;
-            solarSailAnim.Blend(animName, 0.1f);
-
+            runAnimation(animName, solarSailAnim, 0.5f, 0);
             IsEnabled = true;
         }
 
@@ -198,14 +189,8 @@ namespace FNPlugin.Beamedpower
         [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "Retract Sail", active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]
         public void RetractSail()
         {
-            if (animName == null || solarSailAnim == null)
-                return;
-
             scaleBeamToAnimation = true;
-            solarSailAnim[animName].speed = -0.5f;
-            solarSailAnim[animName].normalizedTime = 1f;
-            solarSailAnim.Blend(animName, 0.1f);
-
+            runAnimation(animName, solarSailAnim, -0.5f, 1);
             IsEnabled = false;
         }
 
@@ -230,8 +215,6 @@ namespace FNPlugin.Beamedpower
 
             this.part.force_activate();
 
-            photovoltalicRatio = photovoltaicArea / surfaceArea;
-
             CreateBeamArray();
 
             CompileStarData();
@@ -249,7 +232,7 @@ namespace FNPlugin.Beamedpower
             ConfigNode[] nodeLevel1 = GameDatabase.Instance.GetConfigNodes("Kopernicus");
 
             if (nodeLevel1.Length > 0)
-                Debug.Log("[KSPI] - Loading Kopernicus Configuration Data");
+                Debug.Log("[KSPI] - Loading Kopernicus Configuration Data, found " + nodeLevel1.Length + " nodes");
             else
                 Debug.LogWarning("[KSPI] - Failed to find Kopernicus Configuration Data");
 
@@ -273,7 +256,12 @@ namespace FNPlugin.Beamedpower
                         CelestialBody celestialBody;
 
                         if (luminocity > 0 && celestrialBodies.TryGetValue(bodyName, out celestialBody))
+                        {
+                            Debug.Log("[KSPI] - Added Star " + celestialBody.name + " with luminocity " + luminocity);
                             starLights.Add(new StarLight() { star = celestialBody, luminocity = luminocity });
+                        }
+                        else
+                            Debug.LogWarning("[KSPI] - Failed to initialize star " + bodyName);
                     }
                 }
             }
@@ -338,7 +326,9 @@ namespace FNPlugin.Beamedpower
             updateCounter++;
             maxNetworkPower = 0;
             availableBeamedPhotonPower = 0;
-            animationNormalizedTime = solarSailAnim[animName].normalizedTime;
+
+            var animationNormalizedTime = solarSailAnim[animName].normalizedTime;
+            sailSurfaceModifier = Math.Pow(animationNormalizedTime > 0 ? (animationNormalizedTime > 0.54 ? (animationNormalizedTime - 0.54) * (1 / 0.46) : 0) : 1, 2);
 
             // update available beamed power transmitters
             _transmitDataCollection = BeamedPowerHelper.GetConnectedTransmitters(this);
@@ -443,13 +433,10 @@ namespace FNPlugin.Beamedpower
 
             var vesselMassInKg = vessel.totalMass * 1000;
             var universalTime = Planetarium.GetUniversalTime();
-            Vector3d positionVessel = vessel.orbit.getPositionAtUT(universalTime);
-
-            sailSurfaceModifier = animationNormalizedTime > 0 ? (animationNormalizedTime > 0.6 ? (animationNormalizedTime - 0.6) * 2.5 : 0) : 1;
-
+            var positionVessel = vessel.orbit.getPositionAtUT(universalTime);
             var connectedTransmitters = received_power.Values.Where(m => m.AvailablePower > 0).ToList();
-            connectedTransmittersCount = connectedTransmitters.Count;
 
+            connectedTransmittersCount = connectedTransmitters.Count;
             if (connectedTransmittersCount > 0)
                 TimeWarp.GThreshold = part.gTolerance;
             else
@@ -460,7 +447,8 @@ namespace FNPlugin.Beamedpower
             {
                 var receivedPowerData = connectedTransmitters[beamcounter];
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
-                GenerateForce(beamedPowerSource, positionVessel, receivedPowerData.AvailablePower * 1e6, universalTime, vesselMassInKg, 0, false, Math.Max(effectSize1, receivedPowerData.Route.Spotsize / 4), beamcounter);
+                var beamSpotsize = Math.Max(effectSize1, receivedPowerData.Route.Spotsize / 4);
+                GenerateForce(beamedPowerSource, positionVessel, receivedPowerData.AvailablePower * 1e6, universalTime, vesselMassInKg, 0, false, beamSpotsize, beamcounter);
             }
 
             // process statistical data
@@ -477,7 +465,7 @@ namespace FNPlugin.Beamedpower
             // apply solarflux presure for every star
             foreach (var starLight in starLights)
             {
-                GenerateForce(starLight.position, positionVessel, starLight.solarFlux * surfaceArea, universalTime, vesselMassInKg, starLight.solarFlux);
+                GenerateForce(starLight.position, positionVessel, starLight.solarFlux * surfaceArea * sailSurfaceModifier, universalTime, vesselMassInKg, starLight.solarFlux);
             }
 
             // calculate drag
@@ -533,7 +521,7 @@ namespace FNPlugin.Beamedpower
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
             var squaredCosOrbitalDrag = cosObitalDrag * cosObitalDrag;
             var siderealSpeed = 2 * vessel.mainBody.Radius * Math.PI / vessel.mainBody.rotationPeriod;
-            var effectiveSurfaceArea = cosObitalDrag * Math.Pow(sailSurfaceModifier, 2) * surfaceArea * (IsEnabled ? 1 : 0);
+            var effectiveSurfaceArea = cosObitalDrag * sailSurfaceModifier * surfaceArea * (IsEnabled ? 1 : 0);
 
             var highAtmosphereModifier = Math.Pow(Math.Min(1, vessel.altitude / vessel.mainBody.atmosphereDepth), 3);
             var lowOrbitModifier = Math.Min(1, vessel.mainBody.atmosphereDepth / vessel.altitude);
@@ -648,16 +636,15 @@ namespace FNPlugin.Beamedpower
             if (!isSun && index < 10)
             {
                 var scaleModifier = beamedPowerThrottle > 0 ? (scaleBeamToAnimation || beamspotsize * 4 <= diameter ? 1 : 4) : 0;
-                var beamSpotsize = beamedPowerThrottle > 0 ? Math.Max((sailSurfaceModifier * cosConeAngle * diameter / 4), beamspotsize) : 0;
-                UpdateVisibleBeam(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, (float)beamSpotsize);
+                var beamSpotsize = beamedPowerThrottle > 0 ? (float)Math.Max((sailSurfaceModifier * cosConeAngle * diameter / 4), beamspotsize) : 0;
+                UpdateVisibleBeam(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, beamSpotsize);
             }
-
-            // calculate the vector at 90 degree angle in the direction of the vector
-            //var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
 
             // old : F = 2 PA cos α cos α n
             var effectiveForce = radiationPresureOnSail * reflectedPhotonRatio * cosConeAngle * partNormal;
 
+            // calculate the vector at 90 degree angle in the direction of the vector
+            //var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
             // new F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t] 
             // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficien
             //var effectiveForce = radiationPresureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
@@ -738,6 +725,21 @@ namespace FNPlugin.Beamedpower
             var distance = toStar.magnitude - star.Radius;
             var distAU = distance / Constants.GameConstants.kerbin_sun_distance;
             return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (distAU * distAU);
+        }
+
+
+        private void runAnimation(string animationMame, Animation anim, float speed, float aTime)
+        {
+            if (anim == null || string.IsNullOrEmpty(animName))
+                return;
+
+            anim[animationMame].speed = speed;
+            if (anim.IsPlaying(animationMame))
+                return;
+
+            anim[animationMame].wrapMode = WrapMode.Default;
+            anim[animationMame].normalizedTime = aTime;
+            anim.Blend(animationMame, 1);
         }
     }
 }
