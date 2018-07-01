@@ -82,8 +82,7 @@ namespace FNPlugin
             unitScalar = _moduleResourceIntake.unitScalar;
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(
-                new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed));
             resourceBuffers.Init(this.part);
 
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
