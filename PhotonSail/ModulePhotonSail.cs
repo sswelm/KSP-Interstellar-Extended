@@ -54,7 +54,11 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Diameter", guiUnits = " m", guiFormat = "F3")]
         public double diameter;
         [KSPField(guiActiveEditor = true, guiName = "Mass", guiUnits = " t", guiFormat = "F3")]
-        public double partMass;        
+        public double partMass;
+        [KSPField(guiActiveEditor = true, guiName = "Min wavelength", guiUnits = " m")]
+        public double minimumWavelength = 0.000000620;
+        [KSPField(guiActiveEditor = true, guiName = "Max wavelength", guiUnits = " m")]
+        public double maximumWavelength = 0.01;
 
         [KSPField]
         public float effectSize1 = 1.25f;
@@ -155,9 +159,9 @@ namespace FNPlugin.Beamedpower
 
         public double ApertureMultiplier { get { return 1; } }
 
-        public double MinimumWavelength { get { return 0.000000620; } }     // receive optimally from red visible light
+        public double MinimumWavelength { get { return minimumWavelength; } }     // receive optimally from red visible light
 
-        public double MaximumWavelength { get { return 0.001; } }           // receive up to maximum infrared
+        public double MaximumWavelength { get { return maximumWavelength; } }           // receive up to maximum infrared
 
         public double HighSpeedAtmosphereFactor { get { return 1; } }
 
