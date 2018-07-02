@@ -762,8 +762,10 @@ namespace FNPlugin.Beamedpower
         private static double solarFluxAtDistance(Vessel vessel, CelestialBody star, double luminosity)
         {
             var toStar = vessel.CoMD - star.position;
-            var distance = Math.Max(toStar.magnitude - star.Radius, star.Radius);
-            var distAU = distance / Constants.GameConstants.kerbin_sun_distance;
+            var distanceToSurfaceStar = oStar.magnitude - star.Radius;
+			var nearStarDistance = star.Radius / 4 * (1 + 3 * Math.Min(1, distanceToSurfaceStar / star.Radius));
+            var distanceForeffectiveDistance = Math.Max(distanceToSurfaceStar, nearStarDistance);
+            var distAU = distanceForeffectiveDistance / Constants.GameConstants.kerbin_sun_distance;
             return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (distAU * distAU);
         }
 
