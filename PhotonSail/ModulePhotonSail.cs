@@ -763,7 +763,7 @@ namespace FNPlugin.Beamedpower
         {
             var toStar = vessel.CoMD - star.position;
             var distanceToSurfaceStar = oStar.magnitude - star.Radius;
-			var nearStarDistance = star.Radius / 4 * (1 + 3 * Math.Min(1, distanceToSurfaceStar / star.Radius));
+            var nearStarDistance = star.Radius / 4 * Math.Pow(1 + Math.Min(1, distanceToSurfaceStar / star.Radius),2);
             var distanceForeffectiveDistance = Math.Max(distanceToSurfaceStar, nearStarDistance);
             var distAU = distanceForeffectiveDistance / Constants.GameConstants.kerbin_sun_distance;
             return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (distAU * distAU);
