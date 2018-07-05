@@ -61,6 +61,8 @@ namespace FNPlugin.Beamedpower
         public double maximumWavelength = 0.01;
 
         [KSPField]
+        public double heatMultiplier = 10;
+        [KSPField]
         public float effectSize1 = 1.25f;
         [KSPField]
         public string animName = "";
@@ -124,6 +126,19 @@ namespace FNPlugin.Beamedpower
         public double apapsisChange;
         [KSPField(guiActive = true, guiName = "Orbit Diameter Change", guiFormat = "F3", guiUnits = " m/s")]
         public double orbitSizeChange;
+
+
+        [KSPField(guiActive = true, guiName = "Vessel Latitude", guiFormat = "F5")]
+        public double vesselLatitude;
+        [KSPField(guiActive = true, guiName = "Vessel Longitude", guiFormat = "F5")]
+        public double vesselLongitude;
+        [KSPField(guiActive = true, guiName = "Vessel Height", guiFormat = "F5")]
+        public double vesselHeight;
+        [KSPField(guiActive = true, guiName = "rotation Angle", guiFormat = "F5")]
+        public double rotationAngle;
+
+        [KSPField(guiActive = true, guiName = "Can See KTC")]
+        public bool hasLineOfSightToKtc;
 
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Global Acceleration", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = -100)]
         //public float globalAcceleration = 0;
@@ -363,6 +378,12 @@ namespace FNPlugin.Beamedpower
         /// </summary>
         public override void OnUpdate()
         {
+            vesselLatitude = vessel.latitude;
+            vesselLongitude = vessel.longitude;
+            vesselHeight = vessel.altitude;
+
+            rotationAngle = vessel.mainBody.rotationAngle;
+
             updateCounter++;
             maxNetworkPower = 0;
             availableBeamedPhotonPower = 0;
@@ -421,7 +442,7 @@ namespace FNPlugin.Beamedpower
                 }
             }
 
-            var showBeamedPowerFields = IsEnabled && connectedTransmittersCount > 0;
+            var showBeamedPowerFields = IsEnabled && (connectedTransmittersCount > 0 || hasLineOfSightToKtc);
             Fields["availableBeamedPhotonPower"].guiActive = showBeamedPowerFields;
             Fields["connectedTransmittersCount"].guiActive = showBeamedPowerFields;
             Fields["totalForceInNewtonFromBeamedPower"].guiActive = showBeamedPowerFields;
@@ -482,8 +503,23 @@ namespace FNPlugin.Beamedpower
             else
                 TimeWarp.GThreshold = 2;
 
+            //Math functions take radians.
+            //ouble latRadians = -0.123 * Mathf.Deg2Rad;
+            //double longRadians = (-74.611 + -vessel.mainBody.rotationAngle) * Mathf.Deg2Rad;
+            //Vector3d ktcPosition = vessel.mainBody.GetWorldSurfacePosition(latRadians, longRadians, 50);
+            Vector3d kscDishes = Planetarium.fetch.Home.GetWorldSurfacePosition(-0.123, -74.611, 50);
+            //Vector3d landingPadPosition = Planetarium.fetch.Home.GetWorldSurfacePosition(-0.0971978130377757, 285.44237039111, 60);
+            //Vector3d kscPosition = Planetarium.fetch.Home.GetWorldSurfacePosition(-0.102668048654, -74.5753856554, 60);
+
+            hasLineOfSightToKtc = LineOfSightToTransmitter(positionVessel, kscDishes);
+            if (hasLineOfSightToKtc)
+            {
+                var beamSpotsize = Math.Max(effectSize1, 1);
+                GenerateForce(kscDishes, positionVessel, 1000 * 1e6, universalTime, vesselMassInKg, 0, false, beamSpotsize, 0);
+            }
+
             // apply photon pressure from every potential laser source
-            for (var beamcounter = 0; beamcounter < connectedTransmitters.Count; beamcounter++)
+            for (var beamcounter = 1; beamcounter < connectedTransmitters.Count; beamcounter++)
             {
                 var receivedPowerData = connectedTransmitters[beamcounter];
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
@@ -510,6 +546,8 @@ namespace FNPlugin.Beamedpower
 
             // calculate drag
             ApplyDrag(universalTime, vesselMassInKg);
+
+
 
             // apply solarsail effect to all vessels
             //foreach (var currentvessel in FlightGlobals.Vessels)
@@ -597,8 +635,7 @@ namespace FNPlugin.Beamedpower
             ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * diffuseDragDeceleration * TimeWarp.fixedDeltaTime);
 
             // increase temperature skin
-            var heatingDragCoeficient = 4 - weightedDragCoefficient;
-            var dragEnergyInKiloJoule = heatingDragCoeficient * highAtmosphereModifier * dragForcePerSquareMeter * effectiveSurfaceArea;
+            var dragEnergyInKiloJoule = highAtmosphereModifier * dragForcePerSquareMeter * effectiveSurfaceArea * heatMultiplier * (0.1 + cosObitalDrag);
             part.skinTemperature += TimeWarp.fixedDeltaTime * dragEnergyInKiloJoule / (part.mass * 1000);
         }
 
@@ -762,7 +799,7 @@ namespace FNPlugin.Beamedpower
         private static double solarFluxAtDistance(Vessel vessel, CelestialBody star, double luminosity)
         {
             var toStar = vessel.CoMD - star.position;
-            var distanceToSurfaceStar = oStar.magnitude - star.Radius;
+            var distanceToSurfaceStar = toStar.magnitude - star.Radius;
             var nearStarDistance = star.Radius / 4 * Math.Pow(1 + Math.Min(1, distanceToSurfaceStar / star.Radius),2);
             var distanceForeffectiveDistance = Math.Max(distanceToSurfaceStar, nearStarDistance);
             var distAU = distanceForeffectiveDistance / Constants.GameConstants.kerbin_sun_distance;
@@ -811,5 +848,32 @@ namespace FNPlugin.Beamedpower
             }
             return true;
         }
+
+        public static bool LineOfSightToTransmitter(Vector3d vesselPosition, Vector3d transmitterPosition)
+        {
+            Vector3d bminusa = transmitterPosition - vesselPosition;
+
+            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
+            {
+                Vector3d refminusa = referenceBody.position - vesselPosition;
+
+                if (Vector3d.Dot(refminusa, bminusa) <= 0)
+                    continue;
+
+                var normalizedBminusa = bminusa.normalized;
+
+                var cosReferenceSunNormB = Vector3d.Dot(refminusa, normalizedBminusa);
+
+                if (cosReferenceSunNormB >= bminusa.magnitude)
+                    continue;
+
+                Vector3d tang = refminusa - cosReferenceSunNormB * normalizedBminusa;
+                if (tang.magnitude < referenceBody.Radius)
+                    return false;
+            }
+            return true;
+        }
+
+
     }
 }
