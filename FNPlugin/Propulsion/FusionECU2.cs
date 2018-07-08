@@ -489,7 +489,7 @@ namespace FNPlugin
 
             if (throttle > 0)
             {
-                if (vessel.atmDensity > maxAtmosphereDensity)
+                if (maxAtmosphereDensity => 0 && vessel.atmDensity > maxAtmosphereDensity)
                     ShutDown("Inertial Fusion cannot operate in atmosphere!");
 
                 if (radhazard && rad_safety_features)
