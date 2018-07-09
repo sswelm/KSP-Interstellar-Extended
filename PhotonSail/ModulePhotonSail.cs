@@ -611,7 +611,7 @@ namespace FNPlugin.Beamedpower
             // apply solarflux presure for every star
             foreach (var starLight in starLights)
             {
-                GenerateForce(starLight.position, positionVessel, starLight.solarFlux * surfaceArea * sailSurfaceModifier, universalTime, vesselMassInKg);
+                GenerateForce(starLight.position, positionVessel, starLight.solarFlux, universalTime, vesselMassInKg);
             }
 
             // generate electric power
@@ -652,18 +652,19 @@ namespace FNPlugin.Beamedpower
         private void ProcesWasteHeat()
         {
             var effectiveDeltaTime = Math.Min(100, TimeWarp.fixedDeltaTime);
+            var thermalMass = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e+3;
 
             // process heating
             solarfluxWasteheatInMegaJoule = (1 - reflectedPhotonRatio) * totalSolarEnergyReceivedInMJ;
             beamPowerWasteheatInMegaJoule = kscLaserAbsorbtion * totalReceivedBeamedPower;
             var totalHeating = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
-            part.skinTemperature += totalHeating * effectiveDeltaTime / part.mass;
+            part.skinTemperature += totalHeating * effectiveDeltaTime / thermalMass;
 
             // process dissipation
             var externalTemperature = FlightGlobals.getExternalTemperature(part.transform.position);
             var temperatureDelta = Math.Max(0, part.skinTemperature - externalTemperature);
-            dissipationInMegaJoule = GetBlackBodyDissipation(surfaceArea, temperatureDelta) * 1e-6;
-            part.skinTemperature = Math.Max(externalTemperature,  part.skinTemperature - dissipationInMegaJoule * effectiveDeltaTime / part.mass);
+            dissipationInMegaJoule = GetBlackBodyDissipation(surfaceArea, temperatureDelta) * 1e-6;            
+            part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - dissipationInMegaJoule * effectiveDeltaTime / thermalMass);
         }
 
         private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)
@@ -785,15 +786,19 @@ namespace FNPlugin.Beamedpower
             var pitchAngleInDegree = pitchAngleInRad * Mathf.Rad2Deg;
 
             double maxPhotovotalicEnergy;
+            double energyOnSail;
 
             if (isSun)
             {
                 solarSailAngle = pitchAngleInDegree;
                 maxPhotovotalicEnergy = photovoltaicArea * Math.Max(0, availableEnergyInWatt - 1);
-                totalSolarEnergyReceivedInMJ = surfaceArea * availableEnergyInWatt * cosConeAngle * 1e-6;
+                energyOnSail = surfaceArea * sailSurfaceModifier * availableEnergyInWatt;
+                totalSolarEnergyReceivedInMJ = energyOnSail * cosConeAngle * 1e-6;
+                
             }
             else
             {
+                energyOnSail = availableEnergyInWatt * sailSurfaceModifier;
                 maxPhotovotalicEnergy = (photovoltaicArea / surfaceArea) * availableEnergyInWatt;
                 // skip beamed power in undesireable direction
                 if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
@@ -803,7 +808,7 @@ namespace FNPlugin.Beamedpower
             photovoltalicFlowRate += Math.Min(photovoltaicArea * cosConeAngle,  maxPhotovotalicEnergy * 0.2 * cosConeAngle * 0.001);
 
             // convert energy into momentum
-            var radiationPresure = 2 * availableEnergyInWatt / GameConstants.speedOfLight;
+            var radiationPresure = 2 * energyOnSail / GameConstants.speedOfLight;
 
             // calculate solar light force at current location
             var maximumPhotonForceInNewton = reflectedPhotonRatio * radiationPresure;
