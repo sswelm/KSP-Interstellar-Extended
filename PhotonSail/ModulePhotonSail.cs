@@ -6,6 +6,7 @@ using FNPlugin.Extensions;
 using FNPlugin.Redist;
 using FNPlugin.Constants;
 using FNPlugin.Resources;
+using TweakScale;
 
 namespace FNPlugin.Beamedpower
 {
@@ -32,7 +33,7 @@ namespace FNPlugin.Beamedpower
         public bool hasLineOfSight; 
     }
 
-    class ModulePhotonSail : PartModule, IBeamedPowerReceiver
+    class ModulePhotonSail : PartModule, IBeamedPowerReceiver, IPartMassModifier, IRescalable<ModulePhotonSail>
     {
         // Persistent Variables
         [KSPField(isPersistant = true)]
@@ -43,18 +44,22 @@ namespace FNPlugin.Beamedpower
         public double previousAeA;
         [KSPField(isPersistant = true)]
         public float previousFixedDeltaTime;
+        [KSPField(isPersistant = true)]
+        public float storedMassMultiplier;
 
         // Persistent False
         [KSPField]
         public double reflectedPhotonRatio = 0.975;
         [KSPField(guiActiveEditor = true, guiName = "Photovoltaic film Area", guiUnits = " m\xB2")]
         public double photovoltaicArea = 1;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Surface Area", guiUnits = " m\xB2", guiFormat = "F0")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Surface Area", guiUnits = " m\xB2", guiFormat = "F0")]
         public double surfaceArea = 144400;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Diameter", guiUnits = " m", guiFormat = "F3")]
         public double diameter;
-        [KSPField(guiActiveEditor = true, guiName = "Mass", guiUnits = " t", guiFormat = "F3")]
-        public double partMass;
+        [KSPField]
+        public float initialMass;
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Mass", guiUnits = " t")]
+        public float partMass;
         [KSPField(guiActiveEditor = true, guiName = "Min wavelength", guiUnits = " m")]
         public double minimumWavelength = 0.000000620;
         [KSPField(guiActiveEditor = true, guiName = "Max wavelength", guiUnits = " m")]
@@ -66,6 +71,8 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActiveEditor = true, guiName = "Geeforce Tolerance", guiUnits = " G", guiFormat = "F0")]
         public double gTolerance;
 
+        [KSPField]
+        public double massTechMultiplier = 1;
         [KSPField]
         public double heatMultiplier = 10;
         [KSPField]
@@ -92,10 +99,19 @@ namespace FNPlugin.Beamedpower
         [KSPField]
         public string kscLaserTech6 = "ultraHighEnergyPhysics";
 
-        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "Max Available KCS Power", guiUnits = " GW", guiFormat = "F3")]
-        public double kscLaserPowerInGigaWatt = 1000;
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "Max Available KCS Power", guiUnits = " W", guiFormat = "F0")]
+        [KSPField]
+        public string massReductionTech1 = "metaMaterials";
+        [KSPField]
+        public string massReductionTech2 = "orbitalAssembly";
+        [KSPField]
+        public string massReductionTech3 = "orbitalMegastructures";
+
+        [KSPField(guiActiveEditor = true, guiName = "Max Available KCS Power", guiUnits = " GW", guiFormat = "F3")]
+        public double kscLaserPowerInGigaWatt;
+        [KSPField(guiActiveEditor = false, guiName = "Max Available KCS Power", guiUnits = " W", guiFormat = "F0")]
         public double kscLaserPowerInWatt = 2e12;
+
+
         [KSPField]
         public double kscLaserLatitude = -0.13133150339126601;
         [KSPField]
@@ -114,7 +130,9 @@ namespace FNPlugin.Beamedpower
         public double skinTemperature;
         [KSPField(guiActive = true, guiName = "#autoLOC_6001421", guiFormat = "F4", guiUnits = " EC/s")]
         public double photovoltalicFlowRate;
-        [KSPField(guiActive = false, guiName = "Skin Dissipation", guiFormat = "F4", guiUnits = " MJ")]
+        [KSPField(guiActive = true, guiName = "External Temperature", guiFormat = "F4", guiUnits = " K°")]
+        public double externalTemperature;
+        [KSPField(guiActive = true, guiName = "Skin Dissipation", guiFormat = "F4", guiUnits = " MJ")]
         public double dissipationInMegaJoule;
         [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F4", guiUnits = " W/m\xB2")]
         public double totalSolarFluxInWatt;
@@ -188,7 +206,10 @@ namespace FNPlugin.Beamedpower
 
         double solar_acc_d = 0;
         double beamed_acc_d = 0;
+
+        [KSPField(guiActive = true)]
         double sailSurfaceModifier;
+
         int updateCounter;
 
         Animation solarSailAnim = null;
@@ -246,6 +267,20 @@ namespace FNPlugin.Beamedpower
             IsEnabled = false;
         }
 
+        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        {
+            try
+            {
+                Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
+                storedMassMultiplier = Mathf.Pow(factor.absolute.linear, 2);
+                initialMass = part.prefabMass * storedMassMultiplier;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - FNGenerator.OnRescale " + e.Message);
+            }
+        }
+
         // Initialization
         public override void OnStart(PartModule.StartState state)
         {
@@ -269,7 +304,11 @@ namespace FNPlugin.Beamedpower
 
             DetermineKscLaserPower();
 
+            DermineMassTechMultiplier();
+
             kscLaserPowerInGigaWatt = kscLaserPowerInWatt * 1e-9;
+
+            InitializeMassVariables();
 
             if (state == StartState.None || state == StartState.Editor)
                 return;
@@ -279,6 +318,16 @@ namespace FNPlugin.Beamedpower
             CreateBeamArray();
 
             CompileStarData();
+        }
+
+        private void InitializeMassVariables()
+        {
+            initialMass = part.prefabMass * storedMassMultiplier;
+            if (initialMass == 0)
+            {
+                initialMass = part.mass;
+                storedMassMultiplier = initialMass / part.prefabMass;
+            }
         }
 
         private void DetermineKscLaserPower()
@@ -292,6 +341,29 @@ namespace FNPlugin.Beamedpower
             kscLaserPowerInWatt += GetTechCost(kscLaserTech4) * 1e8;
             kscLaserPowerInWatt += (GetTechCost(kscLaserTech5) + 700) * 1e8;
             kscLaserPowerInWatt += GetTechCost(kscLaserTech6) * 1e8;
+        }
+
+        private void DermineMassTechMultiplier()
+        {
+            if (ResearchAndDevelopment.Instance == null)
+            {
+                massTechMultiplier = 1d/27d;
+                return;
+            }
+
+            massTechMultiplier /= HasTech(massReductionTech1) ? 3 : 1;
+            massTechMultiplier /= HasTech(massReductionTech2) ? 3 : 1;
+            massTechMultiplier /= HasTech(massReductionTech3) ? 3 : 1;
+        }
+
+        public ModifierChangeWhen GetModuleMassChangeWhen()
+        {
+            return ModifierChangeWhen.STAGED;
+        }
+
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
+        {
+            return (float)(initialMass * massTechMultiplier) - initialMass;
         }
 
         // Scan the Kopernicus config nodes and extract luminosity values
@@ -421,13 +493,12 @@ namespace FNPlugin.Beamedpower
             // Sail deployment GUI
             Events["DeploySail"].active = !IsEnabled;
             Events["RetractSail"].active = IsEnabled;
+            partMass = part.mass;
 
             if (HighLogic.LoadedSceneIsFlight)
                 return;
 
             diameter = Math.Sqrt(surfaceArea);
-            partMass = part.mass;
-
             maxLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp - 300) / kscLaserAbsorbtion;
             maxLaserPowerInGigaWatt = maxLaserPowerInWatt * 1e-9;
         }
@@ -445,6 +516,8 @@ namespace FNPlugin.Beamedpower
 
             var animationNormalizedTime = solarSailAnim[animName].normalizedTime;
             sailSurfaceModifier = Math.Pow(animationNormalizedTime > 0 ? (animationNormalizedTime > 0.54 ? (animationNormalizedTime - 0.54) * (1 / 0.46) : 0) : 1, 2);
+
+            part.emissiveConstant = sailSurfaceModifier > 0 ? 0 : 1 - reflectedPhotonRatio;
 
             // update available beamed power transmitters
             _transmitDataCollection = BeamedPowerHelper.GetConnectedTransmitters(this);
@@ -644,27 +717,36 @@ namespace FNPlugin.Beamedpower
         private void UpdateGeforceThreshold()
         {
             if (connectedTransmittersCount > 0)
-                TimeWarp.GThreshold = part.gTolerance;
+                TimeWarp.GThreshold = 10000;
             else
                 TimeWarp.GThreshold = 2;
         }
 
         private void ProcesWasteHeat()
         {
+            dissipationInMegaJoule = 0;
             var effectiveDeltaTime = Math.Min(100, TimeWarp.fixedDeltaTime);
-            var thermalMass = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e+3;
+            var thermalMass = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
+            externalTemperature = FlightGlobals.getExternalTemperature(part.transform.position, vessel.mainBody);
 
-            // process heating
+            // calculate heating
             solarfluxWasteheatInMegaJoule = (1 - reflectedPhotonRatio) * totalSolarEnergyReceivedInMJ;
             beamPowerWasteheatInMegaJoule = kscLaserAbsorbtion * totalReceivedBeamedPower;
             var totalHeating = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
-            part.skinTemperature += totalHeating * effectiveDeltaTime / thermalMass;
+            var temperatureIncrease = totalHeating * effectiveDeltaTime / thermalMass;
+            var iterationTemperatureIncrease = temperatureIncrease * 1e-3;
 
-            // process dissipation
-            var externalTemperature = FlightGlobals.getExternalTemperature(part.transform.position);
-            var temperatureDelta = Math.Max(0, part.skinTemperature - externalTemperature);
-            dissipationInMegaJoule = GetBlackBodyDissipation(surfaceArea, temperatureDelta) * 1e-6;            
-            part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - dissipationInMegaJoule * effectiveDeltaTime / thermalMass);
+            for (int i = 0; i < 1000; i++)
+            {
+                // process heating
+                part.skinTemperature += iterationTemperatureIncrease;
+
+                // process dissipation
+                var temperatureDelta = Math.Max(0, part.skinTemperature - externalTemperature);
+                var iterationDissipation  = GetBlackBodyDissipation(surfaceArea, temperatureDelta) * 1e-9 * sailSurfaceModifier;
+                dissipationInMegaJoule += iterationDissipation;
+                part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - iterationDissipation * effectiveDeltaTime / thermalMass);
+            }
         }
 
         private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)
@@ -859,9 +941,7 @@ namespace FNPlugin.Beamedpower
             }
             else
             {
-                var availableEnergyInMW = availableEnergyInWatt * 1e-6;
-
-                receivedBeamedPowerList.Add(new ReceivedBeamedPower { pitchAngle = pitchAngleInDegree, receivedPower = availableEnergyInMW, spotsize = beamspotsize });
+                receivedBeamedPowerList.Add(new ReceivedBeamedPower { pitchAngle = pitchAngleInDegree, receivedPower = energyOnSail * 1e-6, spotsize = beamspotsize });
 
                 beamedSailForce += effectiveForce.magnitude * sign(cosConeAngleIsNegative);
                 beamed_acc_d += photonAccel.magnitude * sign(cosConeAngleIsNegative);
@@ -989,6 +1069,11 @@ namespace FNPlugin.Beamedpower
             }
 
             return 0;
+        }
+
+        public static bool HasTech(string techid)
+        {
+            return ResearchAndDevelopment.Instance.GetTechState(techid) != null;
         }
 
 
