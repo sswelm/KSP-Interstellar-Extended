@@ -746,7 +746,7 @@ namespace FNPlugin.Beamedpower
 
                 // process dissipation
                 var temperatureDelta = Math.Max(0, part.skinTemperature - externalTemperature);
-                var iterationDissipation = effectiveSurfaceArea * Math.Pow(temperatureDelta, 4);
+				var iterationDissipation = effectiveSurfaceArea * temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
                 dissipationInMegaJoule += iterationDissipation;
                 part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - iterationDissipation * fixedThermalMass);
             }
