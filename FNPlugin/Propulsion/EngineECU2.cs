@@ -676,7 +676,7 @@ namespace FNPlugin
         public string ignoreForThrustCurve = "";
 
         [KSPField(isPersistant = true)]
-        public float Scale = 1;
+        public double Scale = 1;
         [KSPField(isPersistant = true)]
         private string akConfigName = "";
         [KSPField(isPersistant = true)]
@@ -788,7 +788,8 @@ namespace FNPlugin
                 int I = 0;
                 while (I < akFloat.Length)
                 {
-                    akTweaked[I] = (float)(akFloat[I] * Math.Pow(Scale, 3));
+                    var scaleToPowerThree = Scale * Scale * Scale;
+                    akTweaked[I] = (float)(akFloat[I] * scaleToPowerThree);
                     I++;
                 }
                 akFloat = akTweaked.ToArray();

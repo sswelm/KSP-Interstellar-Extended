@@ -417,7 +417,7 @@ namespace FNPlugin
                     : consumeFNResourcePerSecond(enginePowerRequirement, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 var plasma_ratio = recievedPower / enginePowerRequirement;
-                fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? Math.Pow(plasma_ratio, 6) : 0;
+				fusionRatio = plasma_ratio >= 1 ? 1 : plasma_ratio > 0.75 ? plasma_ratio * plasma_ratio * plasma_ratio * plasma_ratio * plasma_ratio * plasma_ratio : 0;
 
                 laserWasteheat = recievedPower * (1 - LaserEfficiency);
 

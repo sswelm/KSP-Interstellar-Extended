@@ -776,7 +776,7 @@ namespace FNPlugin
 
             if (!chargedParticleMode) // thermal or plasma mode
             {
-                var chargedPowerModifier = Math.Pow(attachedPowerSource.ChargedPowerRatio, 2);
+                var chargedPowerModifier = attachedPowerSource.ChargedPowerRatio * attachedPowerSource.ChargedPowerRatio;
 
                 var plasmaTemperature = attachedPowerSource.CoreTemperature <= attachedPowerSource.HotBathTemperature
                     ? attachedPowerSource.CoreTemperature

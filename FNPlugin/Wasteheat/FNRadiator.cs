@@ -596,7 +596,8 @@ namespace FNPlugin
 
             if (_moduleActiveRadiator != null)
             {
-                _maxEnergyTransfer = radiatorArea * 1000 * Math.Pow(1 + ((int)CurrentGenerationType), 2);
+                var generationValue = 1 + ((int)CurrentGenerationType);
+                _maxEnergyTransfer = radiatorArea * 1000 * generationValue * generationValue;
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
                 _moduleActiveRadiator.overcoolFactor = 0.20 + ((int)CurrentGenerationType * 0.025);
             }
@@ -758,6 +759,7 @@ namespace FNPlugin
                 radiator_temperature_temp_val = external_temperature + Math.Min(temperatureDifferenceMaximumWithExternal * Math.Sqrt(wasteheatRatio), temperatureDifferenceCurrentWithExternal);
 
                 var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * normalizedAtmosphere, 2.7), 0);
+                var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
                 {
@@ -771,7 +773,8 @@ namespace FNPlugin
                         explode_counter = 0;
 
                     var efficiency = CalculateEfficiency();
-                    thermalPowerDissipPerSecond = efficiency * Math.Pow(deltaTemp, 4) * GameConstants.stefan_const * effectiveRadiatorArea / 1e6;
+
+                    thermalPowerDissipPerSecond = efficiency * deltaTempToPowerFour * GameConstants.stefan_const * effectiveRadiatorArea / 1e6;
 
                     if (Double.IsNaN(thermalPowerDissipPerSecond))
                         Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in fixed_thermal_power_dissip");
@@ -791,7 +794,7 @@ namespace FNPlugin
                 else
                 {
                     var efficiency = CalculateEfficiency();
-                    thermalPowerDissipPerSecond = efficiency * Math.Pow(Math.Max(deltaTemp - external_temperature, 0), 4) * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7;
+                    thermalPowerDissipPerSecond = efficiency * deltaTempToPowerFour * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7;
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond) : 0;
 
@@ -963,7 +966,8 @@ namespace FNPlugin
         {
             if (heatStates != null && heatStates.Any())
             {
-                var radiatorTempRatio = Mathf.Min((float)Math.Pow(CurrentRadiatorTemperature / maxRadiatorTemperature, 2), 1);
+				var colorRatio = CurrentRadiatorTemperature / maxRadiatorTemperature;
+				var radiatorTempRatio = Mathf.Min((float)(colorRatio * colorRatio), 1);
                 SetHeatAnimationRatio(radiatorTempRatio);
             }
             else if (!string.IsNullOrEmpty(colorHeat))

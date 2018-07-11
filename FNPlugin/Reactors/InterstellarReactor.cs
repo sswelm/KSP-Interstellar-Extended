@@ -700,8 +700,8 @@ namespace FNPlugin.Reactors
         {
             if (connectedRecievers == null) return;
 
-            connectedRecieversSum = connectedRecievers.Sum(r => Math.Pow(r.Value, 2));
-            connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => Math.Pow(a.Value, 2) / connectedRecieversSum);
+            connectedRecieversSum = connectedRecievers.Sum(r => r.Value * r.Value);
+            connectedRecieversFraction = connectedRecievers.ToDictionary(a => a.Key, a => a.Value * a.Value / connectedRecieversSum);
 
             reactorSurface = Math.Pow(radius, 2);
             connectedRecieversStr = connectedRecievers.Count() + " (" + connectedRecieversSum.ToString("0.000") + " m2)";
@@ -1370,7 +1370,7 @@ namespace FNPlugin.Reactors
 
             if (HighLogic.LoadedSceneIsEditor)
             {
-                reactorSurface = Math.Pow(radius, 2);
+                reactorSurface = radius * radius;
             }
         }
 
@@ -1542,7 +1542,7 @@ namespace FNPlugin.Reactors
                     neutronEmbrittlementDamage += ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
 
                 ongoing_consumption_rate = ongoing_total_power_generated / maximumPower;
-                PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, 4), pulseAnimation);
+                PluginHelper.SetAnimationRatio((float)(ongoing_consumption_rate * ongoing_consumption_rate * ongoing_consumption_rate * ongoing_consumption_rate), pulseAnimation);
                 powerPcnt = 100 * ongoing_consumption_rate;
 
                 // produce wasteheat

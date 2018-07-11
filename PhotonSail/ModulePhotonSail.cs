@@ -746,7 +746,8 @@ namespace FNPlugin.Beamedpower
 
                 // process dissipation
                 var temperatureDelta = Math.Max(0, part.skinTemperature - externalTemperature);
-				var iterationDissipation = effectiveSurfaceArea * temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
+                var tempToPowerFour = temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
+                var iterationDissipation = effectiveSurfaceArea * tempToPowerFour;
                 dissipationInMegaJoule += iterationDissipation;
                 part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - iterationDissipation * fixedThermalMass);
             }
@@ -754,7 +755,7 @@ namespace FNPlugin.Beamedpower
 
         private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)
         {
-            return surfaceArea * PhysicsGlobals.StefanBoltzmanConstant * Math.Pow(temperatureDelta, 4);
+            return surfaceArea * PhysicsGlobals.StefanBoltzmanConstant * temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
         }
 
         private void ResetBeams()
@@ -791,7 +792,8 @@ namespace FNPlugin.Beamedpower
             var siderealSpeed = 2 * vessel.mainBody.Radius * Math.PI / vessel.mainBody.rotationPeriod;
             var effectiveSurfaceArea = cosObitalDrag * sailSurfaceModifier * surfaceArea * (IsEnabled ? 1 : 0);
 
-            var highAtmosphereModifier = Math.Pow(Math.Min(1, vessel.altitude / vessel.mainBody.atmosphereDepth), 3);
+            var highAltitudeDistance = Math.Min(1, vessel.altitude / vessel.mainBody.atmosphereDepth);
+            var highAtmosphereModifier = highAltitudeDistance * highAltitudeDistance * highAltitudeDistance;
             var lowOrbitModifier = Math.Min(1, vessel.mainBody.atmosphereDepth / vessel.altitude);
             var highOrbitModifier = Math.Sqrt(1 - lowOrbitModifier);
             var effectiveSpeedForDrag = Math.Max(0, vessel.obt_speed - siderealSpeed * lowOrbitModifier);
@@ -1003,7 +1005,8 @@ namespace FNPlugin.Beamedpower
         {
             var toStar = vessel.CoMD - star.position;
             var distanceToSurfaceStar = toStar.magnitude - star.Radius;
-            var nearStarDistance = star.Radius / 4 * Math.Pow(1 + Math.Min(1, distanceToSurfaceStar / star.Radius),2);
+            var scaledDistance = 1 + Math.Min(1, distanceToSurfaceStar / star.Radius);
+            var nearStarDistance = star.Radius / 4 * scaledDistance * scaledDistance;
             var distanceForeffectiveDistance = Math.Max(distanceToSurfaceStar, nearStarDistance);
             var distAU = distanceForeffectiveDistance / Constants.GameConstants.kerbin_sun_distance;
             return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (distAU * distAU);

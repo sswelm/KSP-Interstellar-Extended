@@ -90,7 +90,8 @@ namespace FNPlugin
                 double temp = radiator.MaxRadiatorTemperature;
                 temp = Math.Min(temp, source_temp_at_100pc);
                 n_rads += 1;
-                rad_max_dissip += GameConstants.stefan_const * area * Math.Pow(temp, 4) / 1e6;
+                var tempToPowerFour = temp * temp * temp * temp;
+                rad_max_dissip += GameConstants.stefan_const * area * tempToPowerFour / 1e6;
                 average_rad_temp += temp;
             }
             average_rad_temp = average_rad_temp / n_rads;
