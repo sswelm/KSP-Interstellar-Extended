@@ -724,7 +724,7 @@ namespace FNPlugin.Beamedpower
 
         private void ProcesThermalDynamics()
         {
-            int iterations = (int)Math.Round(50000 * TimeWarp.fixedDeltaTime, 0);
+            int iterations = (int)Math.Round(10000 * Math.Min(100, TimeWarp.fixedDeltaTime), 0);
 
             dissipationInMegaJoule = 0;
             var thermalMass = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
