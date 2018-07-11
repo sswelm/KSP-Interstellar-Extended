@@ -694,7 +694,7 @@ namespace FNPlugin.Beamedpower
             ApplyDrag(universalTime, vesselMassInKg);
 
             // apply wasteheat
-            ProcesWasteHeat();
+            ProcesThermalDynamics();
 
             // apply solarsail effect to all vessels
             //foreach (var currentvessel in FlightGlobals.Vessels)
@@ -722,10 +722,11 @@ namespace FNPlugin.Beamedpower
                 TimeWarp.GThreshold = 2;
         }
 
-        private void ProcesWasteHeat()
+        private void ProcesThermalDynamics()
         {
+            int iterations = (int)Math.Round(50000 * TimeWarp.fixedDeltaTime, 0);
+
             dissipationInMegaJoule = 0;
-            var effectiveDeltaTime = Math.Min(100, TimeWarp.fixedDeltaTime);
             var thermalMass = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
             externalTemperature = FlightGlobals.getExternalTemperature(part.transform.position, vessel.mainBody);
 
@@ -733,19 +734,21 @@ namespace FNPlugin.Beamedpower
             solarfluxWasteheatInMegaJoule = (1 - reflectedPhotonRatio) * totalSolarEnergyReceivedInMJ;
             beamPowerWasteheatInMegaJoule = kscLaserAbsorbtion * totalReceivedBeamedPower;
             var totalHeating = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
-            var temperatureIncrease = totalHeating * effectiveDeltaTime / thermalMass;
-            var iterationTemperatureIncrease = temperatureIncrease * 1e-3;
+            var fixedThermalMass = TimeWarp.fixedDeltaTime / thermalMass;
+            var temperatureIncrease = totalHeating * fixedThermalMass;
+            var iterationTemperatureIncrease = temperatureIncrease / iterations;
+            var effectiveSurfaceArea = surfaceArea * sailSurfaceModifier * PhysicsGlobals.StefanBoltzmanConstant * 1e-6 / iterations;
 
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < iterations; i++)
             {
                 // process heating
                 part.skinTemperature += iterationTemperatureIncrease;
 
                 // process dissipation
                 var temperatureDelta = Math.Max(0, part.skinTemperature - externalTemperature);
-                var iterationDissipation  = GetBlackBodyDissipation(surfaceArea, temperatureDelta) * 1e-9 * sailSurfaceModifier;
+                var iterationDissipation = effectiveSurfaceArea * Math.Pow(temperatureDelta, 4);
                 dissipationInMegaJoule += iterationDissipation;
-                part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - iterationDissipation * effectiveDeltaTime / thermalMass);
+                part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - iterationDissipation * fixedThermalMass);
             }
         }
 
