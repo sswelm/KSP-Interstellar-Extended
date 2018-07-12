@@ -496,7 +496,7 @@ namespace FNPlugin.Beamedpower
             beam.solar_effect_renderer = beam.solar_effect.GetComponent<Renderer>();
             beam.solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
             beam.solar_effect_renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 0.1f);
-            beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/infrared", false);
+			beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("PhotonSail/ParticleFX/infrared", false);
             beam.solar_effect_renderer.material.renderQueue = renderQueue;
             beam.solar_effect_renderer.receiveShadows = false;            
 
