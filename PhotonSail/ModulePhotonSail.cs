@@ -223,8 +223,10 @@ namespace FNPlugin.Beamedpower
         double sailSurfaceModifier = 0;
         double initialMass;
 
+        const double colors = 30;
+
         int updateCounter;
-        int buttonPressedTime = 10;
+        int buttonPressedTime = 10;        
 
         Animation solarSailAnim = null;
         List<ReceivedBeamedPower> receivedBeamedPowerList = new List<ReceivedBeamedPower>();
@@ -473,7 +475,7 @@ namespace FNPlugin.Beamedpower
 
         private void CreateBeamArray()
         {
-            beamEffectArray = new BeamEffect[20];
+            beamEffectArray = new BeamEffect[(int)colors * 10];
 
             for (var i = 0; i < beamEffectArray.Length; i++)
             {
@@ -496,7 +498,7 @@ namespace FNPlugin.Beamedpower
             beam.solar_effect_renderer = beam.solar_effect.GetComponent<Renderer>();
             beam.solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
             beam.solar_effect_renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 0.1f);
-			beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("PhotonSail/ParticleFX/infrared", false);
+			beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("PhotonSail/ParticleFX/infrared2", false);
             beam.solar_effect_renderer.material.renderQueue = renderQueue;
             beam.solar_effect_renderer.receiveShadows = false;            
 
@@ -675,7 +677,7 @@ namespace FNPlugin.Beamedpower
                     var spotsizeRatio = Math.Min(1, cosConeAngle * diameter / spotSize);
                     availableBeamedPowerFromKtc = rentedBeamedPowerThrottleRatio * beamedPowerThrottleRatio * Math.Min(kscLaserPowerInWatt, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt)) * Math.Pow(spotsizeRatio, 0.3 + (0.5 * (1 - spotsizeRatio)));
 
-                    receivedBeamedPowerInWatt += GenerateForce(positionKscLaser, positionVessel, availableBeamedPowerFromKtc, universalTime, vesselMassInKg, false, spotSize / 4, 19);
+                    receivedBeamedPowerInWatt += GenerateForce(positionKscLaser, positionVessel, availableBeamedPowerFromKtc, universalTime, vesselMassInKg, false, spotSize / 4, 0);
                 }
             }
 
@@ -685,7 +687,7 @@ namespace FNPlugin.Beamedpower
                 var receivedPowerData = connectedTransmitters[beamcounter];
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
                 var availableBeamedPowerFromTransmitter = beamedPowerThrottleRatio * Math.Min(receivedPowerData.AvailablePower * 1e+6, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt));
-                receivedBeamedPowerInWatt += GenerateForce(beamedPowerSource, positionVessel, availableBeamedPowerFromTransmitter, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize / 4, beamcounter);
+                receivedBeamedPowerInWatt += GenerateForce(beamedPowerSource, positionVessel, availableBeamedPowerFromTransmitter, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize / 4, beamcounter + 1);
             }
 
             // process statistical data
@@ -933,13 +935,16 @@ namespace FNPlugin.Beamedpower
                 return 0;
 
             // draw beamed power rays
-            if (!isSun && index < 20 && index >= 0)
+            if (!isSun && index < 10 && index >= 0)
             {
                 if (!receivedBeamedPowerList.Any(m => Math.Abs(m.cosConeAngle - cosConeAngle) < 0.0001))
                 {
-                    var scaleModifier = beamedPowerThrottle > 0 ? (beamspotsize * 4 < diameter ? 1 : 2) : 0;
-                    var beamSpotsize = beamedPowerThrottle > 0 ? (float)Math.Max((sailSurfaceModifier * cosConeAngle * diameter / 4), beamspotsize) : 0;
-                    UpdateVisibleBeam(beamEffectArray[index], powerSourceToVesselVector, scaleModifier, Math.Max(effectSize1, beamSpotsize));
+                    for (int i = 0; i < (int)colors; i++)
+                    {
+                        var scale = beamedPowerThrottle > 0 ? (beamspotsize * 4 * ((colors - i) / colors) < diameter ? 1 : 2) : 0;
+                        var spotsize = beamedPowerThrottle > 0 ? (float)Math.Max((sailSurfaceModifier * cosConeAngle * diameter * 0.25 * ((colors - i) / colors)), beamspotsize * ((colors - i) / colors)) : 0;
+                        UpdateVisibleBeam(beamEffectArray[index * (int)colors + i], powerSourceToVesselVector, scale, spotsize);
+                    }
                 }
             }
 
