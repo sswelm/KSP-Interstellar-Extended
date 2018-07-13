@@ -223,8 +223,9 @@ namespace FNPlugin.Beamedpower
         double sailSurfaceModifier = 0;
         double initialMass;
 
-        const double colors = 30;
+        const int beamRays = 200;
 
+        int beamCounter;
         int updateCounter;
         int buttonPressedTime = 10;        
 
@@ -475,7 +476,7 @@ namespace FNPlugin.Beamedpower
 
         private void CreateBeamArray()
         {
-            beamEffectArray = new BeamEffect[(int)colors * 10];
+            beamEffectArray = new BeamEffect[beamRays];
 
             for (var i = 0; i < beamEffectArray.Length; i++)
             {
@@ -525,6 +526,7 @@ namespace FNPlugin.Beamedpower
         /// </summary>
         public override void OnUpdate()
         {
+            beamCounter = 0;
             updateCounter++;
             maxNetworkPower = 0;
 
@@ -939,11 +941,16 @@ namespace FNPlugin.Beamedpower
             {
                 if (!receivedBeamedPowerList.Any(m => Math.Abs(m.cosConeAngle - cosConeAngle) < 0.0001))
                 {
+                    var colors = Math.Ceiling(2 * Math.Sqrt(availableEnergyInWatt * 1e-9));
+
                     for (int i = 0; i < (int)colors; i++)
                     {
-                        var scale = beamedPowerThrottle > 0 ? (beamspotsize * 4 * ((colors - i) / colors) < diameter ? 1 : 2) : 0;
-                        var spotsize = beamedPowerThrottle > 0 ? (float)Math.Max((sailSurfaceModifier * cosConeAngle * diameter * 0.25 * ((colors - i) / colors)), beamspotsize * ((colors - i) / colors)) : 0;
-                        UpdateVisibleBeam(beamEffectArray[index * (int)colors + i], powerSourceToVesselVector, scale, spotsize);
+                        if (beamCounter < beamRays)
+                        {
+                            var scale = beamedPowerThrottle > 0 ? (beamspotsize * 4 * ((colors - i) / colors) < diameter ? 1 : 2) : 0;
+                            var spotsize = beamedPowerThrottle > 0 ? (float)Math.Max((sailSurfaceModifier * cosConeAngle * diameter * 0.25 * ((colors - i) / colors)), beamspotsize * ((colors - i) / colors)) : 0;
+                            UpdateVisibleBeam(beamEffectArray[beamCounter++], powerSourceToVesselVector, scale, spotsize);
+                        }
                     }
                 }
             }
