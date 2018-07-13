@@ -219,11 +219,6 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = false, guiName = "Beamed Energy from TCS", guiFormat = "F0", guiUnits = " W")]
         public double availableBeamedPowerFromKtc;
 
-        [KSPField(guiActive = true, guiName = "final Beam Count")]
-        public int finalBeamCount;
-        [KSPField(guiActive = true, guiName = "beam Ray Count")]
-        public int beamrayCount;
-
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Global Acceleration", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = -100)]
         //public float globalAcceleration = 0;
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Global Angle", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 180, minValue = 0)]
@@ -511,7 +506,7 @@ namespace FNPlugin.Beamedpower
             beam.solar_effect.transform.localScale = Vector3.zero;
             beam.solar_effect.transform.position = Vector3.zero;
             beam.solar_effect.transform.rotation = part.transform.rotation;
-            
+           
             beam.solar_effect_collider = beam.solar_effect.GetComponent<Collider>();
             beam.solar_effect_collider.enabled = false;
 
@@ -520,7 +515,7 @@ namespace FNPlugin.Beamedpower
             beam.solar_effect_renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 1);
             beam.solar_effect_renderer.material.mainTexture = beamTexture;
             beam.solar_effect_renderer.material.renderQueue = renderQueue;
-            beam.solar_effect_renderer.receiveShadows = false;            
+            beam.solar_effect_renderer.receiveShadows = false;
 
             return beam;
         }
@@ -697,9 +692,16 @@ namespace FNPlugin.Beamedpower
                     var spotSize = powerSourceToVesselVector.magnitude * kscLaserWavelength / kscLaserAperture;
 
                     var spotsizeRatio = Math.Min(1, cosConeAngle * diameter / spotSize);
-                    availableBeamedPowerFromKtc = rentedBeamedPowerThrottleRatio * beamedPowerThrottleRatio * Math.Min(kscLaserPowerInWatt, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt)) * Math.Pow(spotsizeRatio, 0.3 + (0.5 * (1 - spotsizeRatio)));
 
-                    receivedBeamedPowerInWatt += GenerateForce(positionKscLaser, positionVessel, availableBeamedPowerFromKtc, universalTime, vesselMassInKg, false, spotSize / 4);
+                    var availablePower = CheatOptions.IgnoreMaxTemperature 
+                        ? kscLaserPowerInWatt 
+                        : Math.Min(kscLaserPowerInWatt, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt));
+
+                    availableBeamedPowerFromKtc = rentedBeamedPowerThrottleRatio * beamedPowerThrottleRatio * availablePower * Math.Pow(spotsizeRatio, 0.3 + (0.5 * (1 - spotsizeRatio)));
+
+                    receivedBeamedPowerInWatt += GenerateForce(positionKscLaser, positionVessel, availableBeamedPowerFromKtc, universalTime, vesselMassInKg, false, spotSize * 0.25);
+
+
                 }
             }
 
@@ -708,8 +710,13 @@ namespace FNPlugin.Beamedpower
             {
                 var receivedPowerData = connectedTransmitters[transmitter];
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
-                var availableBeamedPowerFromTransmitter = beamedPowerThrottleRatio * Math.Min(receivedPowerData.AvailablePower * 1e+6, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt));
-                receivedBeamedPowerInWatt += GenerateForce(beamedPowerSource, positionVessel, availableBeamedPowerFromTransmitter, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize / 4);
+
+                var availablePower = CheatOptions.IgnoreMaxTemperature 
+                    ? receivedPowerData.AvailablePower * 1e+6 
+                    : Math.Min(receivedPowerData.AvailablePower * 1e+6, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt));
+
+                var availableBeamedPowerFromTransmitter = beamedPowerThrottleRatio * availablePower;
+                receivedBeamedPowerInWatt += GenerateForce(beamedPowerSource, positionVessel, availableBeamedPowerFromTransmitter, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize * 0.25);
             }
 
             // process statistical data
@@ -742,9 +749,6 @@ namespace FNPlugin.Beamedpower
 
             // display beamed rays
             AnimateRays();
-
-            finalBeamCount = beamCounter;
-            beamrayCount = beamRays.Count;
 
             // apply solarsail effect to all vessels
             //foreach (var currentvessel in FlightGlobals.Vessels)
@@ -794,7 +798,7 @@ namespace FNPlugin.Beamedpower
 
         private void ProcesThermalDynamics()
         {
-            int iterations = (int)Math.Round(10000 * Math.Min(100, TimeWarp.fixedDeltaTime), 0);
+            var iterations = (int)Math.Round(10000 * Math.Min(100, TimeWarp.fixedDeltaTime), 0);
 
             dissipationInMegaJoule = 0;
             var thermalMass = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
@@ -812,14 +816,17 @@ namespace FNPlugin.Beamedpower
             for (int i = 0; i < iterations; i++)
             {
                 // process heating
-                part.skinTemperature += iterationTemperatureIncrease;
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    part.skinTemperature += iterationTemperatureIncrease;
 
                 // process dissipation
                 var temperatureDelta = Math.Max(0, part.skinTemperature - externalTemperature);
                 var tempToPowerFour = temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
                 var iterationDissipation = effectiveSurfaceArea * tempToPowerFour;
                 dissipationInMegaJoule += iterationDissipation;
-                part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - iterationDissipation * fixedThermalMass);
+
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - iterationDissipation * fixedThermalMass);
             }
         }
 
