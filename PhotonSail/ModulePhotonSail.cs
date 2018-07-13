@@ -179,6 +179,12 @@ namespace FNPlugin.Beamedpower
         public float beamedPowerThrottle = 0;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Push Direction"), UI_Toggle(disabledText = "Backward", enabledText = "Forward", requireFullControl = false)]
         public bool beamedPowerForwardDirection = true;
+
+        [KSPField(guiActive = true, guiName = "Energy Available from KSC", guiFormat = "F2", guiUnits = " W")]
+        public double availableBeamedKscEnergy;
+        [KSPField(guiActive = false, guiName = "Energy Received from KSC", guiFormat = "F2", guiUnits = " W")]
+        public double receivedBeamedPowerFromKsc;
+
         [KSPField(guiActive = true, guiName = "Beamed Energy", guiFormat = "F4", guiUnits = " MJ/s")]
         public double totalReceivedBeamedPower;
         [KSPField(guiActive = true, guiName = "Beamed Connections")]
@@ -216,8 +222,6 @@ namespace FNPlugin.Beamedpower
         public double orbitSizeChange;
         [KSPField(guiActive = false, guiName = "Can See KCS")]
         public bool hasLineOfSightToKtc;
-        [KSPField(guiActive = false, guiName = "Beamed Energy from TCS", guiFormat = "F0", guiUnits = " W")]
-        public double availableBeamedPowerFromKtc;
 
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Global Acceleration", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = -100)]
         //public float globalAcceleration = 0;
@@ -613,6 +617,7 @@ namespace FNPlugin.Beamedpower
             Fields["weightedBeamedPowerSpotsize"].guiActive = showBeamedPowerFields;
             Fields["beamedSailForce"].guiActive = showBeamedPowerFields;
             Fields["beamedAcc"].guiActive = showBeamedPowerFields;
+            Fields["availableBeamedKscEnergy"].guiActive = availableBeamedKscEnergy > 0;  
 
             Fields["weightedDragCoefficient"].guiActive = maximumDragPerSquareMeter > 0;
             Fields["maximumDragPerSquareMeter"].guiActive = maximumDragPerSquareMeter > 0;
@@ -640,7 +645,7 @@ namespace FNPlugin.Beamedpower
 
         public override void OnFixedUpdate()
         {
-            availableBeamedPowerFromKtc = 0;
+            receivedBeamedPowerFromKsc = 0;
             totalReceivedBeamedPower = 0;
             photovoltalicFlowRate = 0;
             totalSolarEnergyReceivedInMJ = 0;
@@ -679,29 +684,48 @@ namespace FNPlugin.Beamedpower
             if (kscLaserPowerInWatt > 0)
             {
                 Vector3d positionKscLaser = Planetarium.fetch.Home.GetWorldSurfacePosition(kscLaserLatitude, kscLaserLongitude, kscLaserAltitude);
-                hasLineOfSightToKtc = LineOfSightToTransmitter(positionVessel, positionKscLaser);
-                if (hasLineOfSightToKtc && rentedBeamedPowerThrottleRatio > 0)
-                {
-                    connectedTransmittersCount++;
+                Vector3d centerOfHomeworld = Planetarium.fetch.Home.position;
 
+                hasLineOfSightToKtc = LineOfSightToTransmitter(positionVessel, positionKscLaser);
+
+                if (hasLineOfSightToKtc)
+                {
                     // calculate spotsize and received power From Ktc
                     Vector3d powerSourceToVesselVector = positionVessel - positionKscLaser;
-                    var cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, this.part.transform.up);
-                    if (cosConeAngle < 0)
-                        cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, -this.part.transform.up);
-                    var spotSize = powerSourceToVesselVector.magnitude * kscLaserWavelength / kscLaserAperture;
+                    Vector3d centerPlanetToVesselVector = positionVessel - centerOfHomeworld;
 
-                    var spotsizeRatio = Math.Min(1, cosConeAngle * diameter / spotSize);
+                    var beamAngleKscToCenterInDegree = Vector3d.Angle(powerSourceToVesselVector, centerPlanetToVesselVector);
+                    var distanceToKsc = powerSourceToVesselVector.magnitude;
 
-                    var availablePower = CheatOptions.IgnoreMaxTemperature 
-                        ? kscLaserPowerInWatt 
+                    Vector3d powerSourceTocenterOfHomeworldVector = centerOfHomeworld - positionKscLaser;
+                    Vector3d positionVesselTocenterOfHomeworldVector = centerOfHomeworld - positionVessel;
+
+                    var beamAngleKscToVesselInDegree = Vector3d.Angle(powerSourceTocenterOfHomeworldVector, positionVesselTocenterOfHomeworldVector);
+                    var angleKscAtmosphere = 90 - beamAngleKscToCenterInDegree - Vector3d.Angle(powerSourceTocenterOfHomeworldVector, positionVesselTocenterOfHomeworldVector);
+                    var kscAtmosphereMultiplier = 1 / (Math.Sin(angleKscAtmosphere * Mathf.Deg2Rad));
+                    var kscAtmosphereAbsorbtionEfficiency = Math.Max(0, 1 - kscAtmosphereMultiplier * 0.02);
+
+                    var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature
+                        ? kscLaserPowerInWatt
                         : Math.Min(kscLaserPowerInWatt, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt));
 
-                    availableBeamedPowerFromKtc = rentedBeamedPowerThrottleRatio * beamedPowerThrottleRatio * availablePower * Math.Pow(spotsizeRatio, 0.3 + (0.5 * (1 - spotsizeRatio)));
+                    availableBeamedKscEnergy = kscAtmosphereAbsorbtionEfficiency * surfaceKscEnergy;
 
-                    receivedBeamedPowerInWatt += GenerateForce(positionKscLaser, positionVessel, availableBeamedPowerFromKtc, universalTime, vesselMassInKg, false, spotSize * 0.25);
+                    if (rentedBeamedPowerThrottleRatio > 0)
+                    {
+                        connectedTransmittersCount++;
 
+                        var cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, this.part.transform.up);
+                        if (cosConeAngle < 0)
+                            cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, -this.part.transform.up);
+                        var spotSize = distanceToKsc * kscLaserWavelength / kscLaserAperture;
 
+                        var spotsizeRatio = Math.Min(1, cosConeAngle * diameter / spotSize);
+
+                        receivedBeamedPowerFromKsc = availableBeamedKscEnergy * rentedBeamedPowerThrottleRatio * beamedPowerThrottleRatio * Math.Pow(spotsizeRatio, 0.3 + (0.6 * (1 - spotsizeRatio)));
+
+                        receivedBeamedPowerInWatt += GenerateForce(positionKscLaser, positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, spotSize * 0.25);
+                    }
                 }
             }
 
@@ -780,7 +804,7 @@ namespace FNPlugin.Beamedpower
                     if (beamCounter < animatedRays)
                     {
                         var effectRatio = (effect - i) / effect;
-                        var scale = ray.spotsize * 4 * ((effect - i) / effect) < diameter ? 1 : 2;
+                        var scale = ray.spotsize * 4 * effectRatio < diameter ? 1 : 2;
                         var spotsize = (float)Math.Max((sailSurfaceModifier * ray.cosConeAngle * diameter * 0.25 * effectRatio), ray.spotsize * effectRatio);
                         UpdateVisibleBeam(part, beamEffectArray[beamCounter++], ray.powerSourceToVesselVector, scale, spotsize);
                     }
@@ -904,7 +928,7 @@ namespace FNPlugin.Beamedpower
             ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * diffuseDragDeceleration * TimeWarp.fixedDeltaTime);
 
             // increase temperature skin
-            dragHeatInMegajoule = highAtmosphereModifier * dragForcePerSquareMeter * effectiveSurfaceArea * heatMultiplier * (0.1 + cosObitalDrag) / 1e3;
+            dragHeatInMegajoule = highAtmosphereModifier * dragForcePerSquareMeter * effectiveSurfaceArea * heatMultiplier * (0.1 + cosObitalDrag) * 1e-3;
         }
 
         private static void ChangeVesselVelocity(Vessel vessel, double universalTime, Vector3d acceleration)
@@ -1099,7 +1123,7 @@ namespace FNPlugin.Beamedpower
             var toStar = vessel.CoMD - star.position;
             var distanceToSurfaceStar = toStar.magnitude - star.Radius;
             var scaledDistance = 1 + Math.Min(1, distanceToSurfaceStar / star.Radius);
-            var nearStarDistance = star.Radius / 4 * scaledDistance * scaledDistance;
+            var nearStarDistance = star.Radius * 0.25 * scaledDistance * scaledDistance;
             var distanceForeffectiveDistance = Math.Max(distanceToSurfaceStar, nearStarDistance);
             var distAU = distanceForeffectiveDistance / Constants.GameConstants.kerbin_sun_distance;
             return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (distAU * distAU);
