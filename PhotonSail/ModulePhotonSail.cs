@@ -249,6 +249,7 @@ namespace FNPlugin.Beamedpower
         List<BeamRay> beamRays = new List<BeamRay>();
         BeamEffect[] beamEffectArray;
         Texture2D beamTexture;
+        Shader transparentShader;
 
         Queue<double> periapsisChangeQueue = new Queue<double>(30);
         Queue<double> apapsisChangeQueue = new Queue<double>(30);
@@ -333,6 +334,7 @@ namespace FNPlugin.Beamedpower
                 solarSailAnim.Blend(animName, initialAnimationTargetWeight);
             }
 
+            transparentShader = Shader.Find("Unlit/Transparent");
             beamTexture = GameDatabase.Instance.GetTexture("PhotonSail/ParticleFX/infrared2", false);
 
             DetermineKscLaserPower();
@@ -514,8 +516,8 @@ namespace FNPlugin.Beamedpower
             beam.solar_effect_collider.enabled = false;
 
             beam.solar_effect_renderer = beam.solar_effect.GetComponent<Renderer>();
-            beam.solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
-            beam.solar_effect_renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 0.1f);
+            beam.solar_effect_renderer.material.shader = transparentShader;
+            beam.solar_effect_renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 1);
             beam.solar_effect_renderer.material.mainTexture = beamTexture;
             beam.solar_effect_renderer.material.renderQueue = renderQueue;
             beam.solar_effect_renderer.receiveShadows = false;            
