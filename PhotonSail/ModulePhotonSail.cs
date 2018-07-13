@@ -34,6 +34,14 @@ namespace FNPlugin.Beamedpower
         public bool hasLineOfSight; 
     }
 
+    class BeamRay
+    {
+        public double energyInGigaWatt;
+        public double spotsize;
+        public double cosConeAngle;
+        public Vector3d powerSourceToVesselVector;
+    }
+
     class ModulePhotonSail : PartModule, IBeamedPowerReceiver, IPartMassModifier, IRescalable<ModulePhotonSail>
     {
         // Persistent Variables
@@ -211,6 +219,11 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActive = false, guiName = "Beamed Energy from TCS", guiFormat = "F0", guiUnits = " W")]
         public double availableBeamedPowerFromKtc;
 
+        [KSPField(guiActive = true, guiName = "final Beam Count")]
+        public int finalBeamCount;
+        [KSPField(guiActive = true, guiName = "beam Ray Count")]
+        public int beamrayCount;
+
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Global Acceleration", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = -100)]
         //public float globalAcceleration = 0;
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Global Angle", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 180, minValue = 0)]
@@ -223,7 +236,7 @@ namespace FNPlugin.Beamedpower
         double sailSurfaceModifier = 0;
         double initialMass;
 
-        const int beamRays = 200;
+        const int animatedRays = 400;
 
         int beamCounter;
         int updateCounter;
@@ -233,7 +246,9 @@ namespace FNPlugin.Beamedpower
         List<ReceivedBeamedPower> receivedBeamedPowerList = new List<ReceivedBeamedPower>();
         IDictionary<VesselMicrowavePersistence, KeyValuePair<MicrowaveRoute, IList<VesselRelayPersistence>>> _transmitDataCollection;
         Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
+        List<BeamRay> beamRays = new List<BeamRay>();
         BeamEffect[] beamEffectArray;
+        Texture2D beamTexture;
 
         Queue<double> periapsisChangeQueue = new Queue<double>(30);
         Queue<double> apapsisChangeQueue = new Queue<double>(30);
@@ -317,6 +332,8 @@ namespace FNPlugin.Beamedpower
                 solarSailAnim[animName].normalizedTime = initialAnimationNormalizedTime;
                 solarSailAnim.Blend(animName, initialAnimationTargetWeight);
             }
+
+            beamTexture = GameDatabase.Instance.GetTexture("PhotonSail/ParticleFX/infrared2", false);
 
             DetermineKscLaserPower();
 
@@ -476,7 +493,7 @@ namespace FNPlugin.Beamedpower
 
         private void CreateBeamArray()
         {
-            beamEffectArray = new BeamEffect[beamRays];
+            beamEffectArray = new BeamEffect[animatedRays];
 
             for (var i = 0; i < beamEffectArray.Length; i++)
             {
@@ -499,7 +516,7 @@ namespace FNPlugin.Beamedpower
             beam.solar_effect_renderer = beam.solar_effect.GetComponent<Renderer>();
             beam.solar_effect_renderer.material.shader = Shader.Find("Unlit/Transparent");
             beam.solar_effect_renderer.material.color = new Color(Color.white.r, Color.white.g, Color.white.b, 0.1f);
-			beam.solar_effect_renderer.material.mainTexture = GameDatabase.Instance.GetTexture("PhotonSail/ParticleFX/infrared2", false);
+            beam.solar_effect_renderer.material.mainTexture = beamTexture;
             beam.solar_effect_renderer.material.renderQueue = renderQueue;
             beam.solar_effect_renderer.receiveShadows = false;            
 
@@ -526,7 +543,6 @@ namespace FNPlugin.Beamedpower
         /// </summary>
         public override void OnUpdate()
         {
-            beamCounter = 0;
             updateCounter++;
             maxNetworkPower = 0;
 
@@ -635,8 +651,10 @@ namespace FNPlugin.Beamedpower
             totalForceInNewtonFromBeamedPower = 0;
             solar_force_d = 0;
             solar_acc_d = 0;
+            beamCounter = 0;
             beamedSailForce = 0;
             beamed_acc_d = 0;
+            beamRays.Clear();
 
             if (FlightGlobals.fetch == null || part == null || vessel == null)
                 return;
@@ -679,17 +697,17 @@ namespace FNPlugin.Beamedpower
                     var spotsizeRatio = Math.Min(1, cosConeAngle * diameter / spotSize);
                     availableBeamedPowerFromKtc = rentedBeamedPowerThrottleRatio * beamedPowerThrottleRatio * Math.Min(kscLaserPowerInWatt, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt)) * Math.Pow(spotsizeRatio, 0.3 + (0.5 * (1 - spotsizeRatio)));
 
-                    receivedBeamedPowerInWatt += GenerateForce(positionKscLaser, positionVessel, availableBeamedPowerFromKtc, universalTime, vesselMassInKg, false, spotSize / 4, 0);
+                    receivedBeamedPowerInWatt += GenerateForce(positionKscLaser, positionVessel, availableBeamedPowerFromKtc, universalTime, vesselMassInKg, false, spotSize / 4);
                 }
             }
 
             // apply photon pressure from every potential laser source
-            for (var beamcounter = 0; beamcounter < connectedTransmitters.Count; beamcounter++)
+            for (var transmitter = 0; transmitter < connectedTransmitters.Count; transmitter++)
             {
-                var receivedPowerData = connectedTransmitters[beamcounter];
+                var receivedPowerData = connectedTransmitters[transmitter];
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
                 var availableBeamedPowerFromTransmitter = beamedPowerThrottleRatio * Math.Min(receivedPowerData.AvailablePower * 1e+6, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt));
-                receivedBeamedPowerInWatt += GenerateForce(beamedPowerSource, positionVessel, availableBeamedPowerFromTransmitter, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize / 4, beamcounter + 1);
+                receivedBeamedPowerInWatt += GenerateForce(beamedPowerSource, positionVessel, availableBeamedPowerFromTransmitter, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize / 4);
             }
 
             // process statistical data
@@ -720,6 +738,12 @@ namespace FNPlugin.Beamedpower
             // apply wasteheat
             ProcesThermalDynamics();
 
+            // display beamed rays
+            AnimateRays();
+
+            finalBeamCount = beamCounter;
+            beamrayCount = beamRays.Count;
+
             // apply solarsail effect to all vessels
             //foreach (var currentvessel in FlightGlobals.Vessels)
             //{
@@ -736,6 +760,26 @@ namespace FNPlugin.Beamedpower
             //    var vesselDeceleration = desiredVesselHeading.normalized * globalAcceleration;
             //    ChangeVesselVelocity(currentvessel, universalTime, vesselDeceleration * TimeWarp.fixedDeltaTime);
             //}
+        }
+
+        private void AnimateRays()
+        {
+            foreach (var ray in beamRays)
+            {
+                var effect = Math.Ceiling(5 * Math.Pow(ray.energyInGigaWatt, 0.4));
+                var effectCount = (int)effect;
+
+                for (int i = 0; i < effectCount; i++)
+                {
+                    if (beamCounter < animatedRays)
+                    {
+                        var effectRatio = (effect - i) / effect;
+                        var scale = ray.spotsize * 4 * ((effect - i) / effect) < diameter ? 1 : 2;
+                        var spotsize = (float)Math.Max((sailSurfaceModifier * ray.cosConeAngle * diameter * 0.25 * effectRatio), ray.spotsize * effectRatio);
+                        UpdateVisibleBeam(part, beamEffectArray[beamCounter++], ray.powerSourceToVesselVector, scale, spotsize);
+                    }
+                }
+            }
         }
 
         private void UpdateGeforceThreshold()
@@ -786,7 +830,7 @@ namespace FNPlugin.Beamedpower
         {
             for (var i = 0; i < beamEffectArray.Length; i++)
             {
-                UpdateVisibleBeam(beamEffectArray[i], Vector3d.zero, 0, 0);
+                UpdateVisibleBeam(part, beamEffectArray[i], Vector3d.zero, 0, 0);
             }
         }
 
@@ -868,7 +912,7 @@ namespace FNPlugin.Beamedpower
                 vessel.ChangeWorldVelocity(acceleration);
         }
 
-        private double GenerateForce(Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1, int index = 0)
+        private double GenerateForce(Vector3d positionPowerSource, Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1)
         {
             // calculate vector between vessel and star/transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
@@ -936,22 +980,27 @@ namespace FNPlugin.Beamedpower
             if (!IsEnabled)
                 return 0;
 
-            // draw beamed power rays
-            if (!isSun && index < 10 && index >= 0)
+            // create beamed power rays
+            if (!isSun && sailSurfaceModifier > 0 && beamedPowerThrottle > 0)
             {
-                if (!receivedBeamedPowerList.Any(m => Math.Abs(m.cosConeAngle - cosConeAngle) < 0.0001))
-                {
-                    var colors = Math.Ceiling(2 * Math.Sqrt(availableEnergyInWatt * 1e-9));
+                var availableEnergyInGigaWatt = availableEnergyInWatt * 1e-9;
+                var ray = beamRays.FirstOrDefault(m => Math.Abs(m.cosConeAngle - cosConeAngle) < 0.0001);
 
-                    for (int i = 0; i < (int)colors; i++)
-                    {
-                        if (beamCounter < beamRays)
-                        {
-                            var scale = beamedPowerThrottle > 0 ? (beamspotsize * 4 * ((colors - i) / colors) < diameter ? 1 : 2) : 0;
-                            var spotsize = beamedPowerThrottle > 0 ? (float)Math.Max((sailSurfaceModifier * cosConeAngle * diameter * 0.25 * ((colors - i) / colors)), beamspotsize * ((colors - i) / colors)) : 0;
-                            UpdateVisibleBeam(beamEffectArray[beamCounter++], powerSourceToVesselVector, scale, spotsize);
-                        }
-                    }
+                if (ray != null)
+                {
+                    var totalEnergy = ray.energyInGigaWatt + availableEnergyInGigaWatt;
+                    ray.spotsize = (ray.spotsize * (ray.energyInGigaWatt / totalEnergy)) + (beamspotsize * (availableEnergyInGigaWatt / totalEnergy));
+                    ray.energyInGigaWatt = totalEnergy;
+                }
+                else
+                {
+                    beamRays.Add(new BeamRay() 
+                    { 
+                        energyInGigaWatt = availableEnergyInGigaWatt, 
+                        cosConeAngle = cosConeAngle, 
+                        spotsize = beamspotsize, 
+                        powerSourceToVesselVector = powerSourceToVesselVector 
+                    });
                 }
             }
 
@@ -995,12 +1044,12 @@ namespace FNPlugin.Beamedpower
             return (cosConeAngleIsNegative ? -1 : 1);
         }
 
-        private void UpdateVisibleBeam(BeamEffect beameffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamlength = 200000)
+        private static void UpdateVisibleBeam(Part part, BeamEffect beameffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamlength = 200000)
         {
             var normalizedPowerSourceToVesselVector = powerSourceToVesselVector.normalized;
             var endBeamPos = part.transform.position + normalizedPowerSourceToVesselVector * beamlength;
             var midPos = part.transform.position - endBeamPos;
-            var timeCorrection = TimeWarp.CurrentRate > 1 ? -vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
+            var timeCorrection = TimeWarp.CurrentRate > 1 ? -part.vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
 
             var solarVectorX = normalizedPowerSourceToVesselVector.x * 90;
             var solarVectorY = normalizedPowerSourceToVesselVector.y * 90 - 90;
