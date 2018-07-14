@@ -1,18 +1,18 @@
 {
     "NAME":"Interstellar Fuel Switch",
-    "URL":"http://ksp-avc.cybutek.net/version.php?id=157",
+    "URL":"https://raw.githubusercontent.com/sswelm/KSP-Interstellar-Extended/master/GameData/InterstellarFuelSwitch/Plugins/InterstellarFuelSwitch.version",
     "DOWNLOAD":"http://forum.kerbalspaceprogram.com/index.php?/topic/106243-111-interstellar-fuel-switch-126-updated-30-4-2016-new-auto-mass-ratio-support/",
     "VERSION":
     {
         "MAJOR":3,
         "MINOR":6,
-        "PATCH":0,
+        "PATCH":1,
         "BUILD":0
     },
     "KSP_VERSION":
     {
         "MAJOR":1,
         "MINOR":4,
-        "PATCH":3
+        "PATCH":4
     }
 }
