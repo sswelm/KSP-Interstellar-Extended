@@ -76,7 +76,7 @@ namespace FNPlugin.Beamedpower
         public double maxKscLaserPowerInWatt;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Sail irradiance", guiUnits = " GW", guiFormat = "F3")]
         public double maxKscLaserPowerInGigaWatt;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Beam irradiance", guiUnits = " G/m\xB2", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Beam irradiance", guiUnits = " GW/m\xB2", guiFormat = "F3")]
         public double maxKscLaserIrradiance;
 
         [KSPField(guiActiveEditor = true, guiName = "Geeforce Tolerance", guiUnits = " G", guiFormat = "F0")]
@@ -85,7 +85,7 @@ namespace FNPlugin.Beamedpower
         [KSPField]
         public double kscPowerMult = 1e8;
         [KSPField]
-        public double kscApertureMult = 5e-2;
+        public double kscApertureMult = 1e-1;
         [KSPField]
         public double massTechMultiplier = 1;
         [KSPField]
@@ -197,13 +197,10 @@ namespace FNPlugin.Beamedpower
         public double kscCentralSpotsizeMult = 2;           // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
         [KSPField(guiActiveEditor = true, guiName = "KCS Laser Side Spotsize Mult")]
         public double kscSideSpotsizeMult = 22;
-
         [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spot Ratio")]
         public double kscCentralSpotEnergyRatio = 0.7;    // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
         [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spot Ratio")]
         public double kscSideSpotEnergyRatio = 0.25; 
-
-
         [KSPField(guiActiveEditor = true, guiName = "KCS Laser Min Elevation Angle")]
         public double kscLaserMinElevationAngle = 70;
 
@@ -214,9 +211,9 @@ namespace FNPlugin.Beamedpower
         [KSPField]
         public double kscLaserLongitude = -74.594841003417997;
         [KSPField]
-        public double kscLaserAltitude = 75;
+        public double kscLaserAltitude = 20;
         [KSPField(guiActiveEditor = true, guiName = "KCS Phased Array Aperture", guiUnits = " m")]
-        public double kscLaserAperture = 1000;        // 1 KM is used for starshot
+        public double kscLaserAperture = 2000;        // 1 KM is used for starshot
         [KSPField]
         public double kscLaserAbsorbtion = 0.000022379; // = Stefan Boltzmann constant * melting temp ^4 / 8e+9    
         [KSPField(guiActiveEditor = true, guiName = "KCS Laser Wavelength", guiUnits = " m")]
@@ -228,17 +225,17 @@ namespace FNPlugin.Beamedpower
         public double skinTemperature;
         [KSPField(guiActive = true, guiName = "#autoLOC_6001421", guiFormat = "F4", guiUnits = " EC/s")]
         public double photovoltalicFlowRate;
-        [KSPField(guiActive = true, guiName = "External Temperature", guiFormat = "F4", guiUnits = " K°")]
+        [KSPField(guiActive = false, guiName = "External Temperature", guiFormat = "F4", guiUnits = " K°")]
         public double externalTemperature;
         [KSPField(guiActive = true, guiName = "Skin Dissipation", guiFormat = "F4", guiUnits = " MJ")]
         public double dissipationInMegaJoule;
-        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F4", guiUnits = " W/m\xB2")]
+        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F3", guiUnits = " W/m\xB2")]
         public double totalSolarFluxInWatt;
-        [KSPField(guiActive = true, guiName = "Solar Force Max", guiFormat = "F4", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "Solar Force Max", guiFormat = "F5", guiUnits = " N")]
         public double totalForceInNewtonFromSolarEnergy = 0;
-        [KSPField(guiActive = true, guiName = "Solar Energy Received", guiFormat = "F4", guiUnits = " MJ/s")]
+        [KSPField(guiActive = true, guiName = "Solar Energy Received", guiFormat = "F5", guiUnits = " MJ/s")]
         public double totalSolarEnergyReceivedInMJ;
-        [KSPField(guiActive = true, guiName = "Solar Force Sail", guiFormat = "F4", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "Solar Force Sail", guiFormat = "F5", guiUnits = " N")]
         public double solar_force_d = 0;
         [KSPField(guiActive = true, guiName = "Solar Acceleration")]
         public string solarAcc;
@@ -895,9 +892,8 @@ namespace FNPlugin.Beamedpower
                     var effectiveDiameter = cosConeAngle * diameter;
 
                     var labdaSpotSize = powerSourceToVesselVector.magnitude * kscLaserWavelength / kscLaserAperture;
-
-                    var centralSpotSize = labdaSpotSize / kscCentralSpotsizeMult;
-                    var sideSpotSize = labdaSpotSize / kscSideSpotsizeMult;
+                    var centralSpotSize = labdaSpotSize * kscCentralSpotsizeMult;
+                    var sideSpotSize = labdaSpotSize * kscSideSpotsizeMult;
 
                     var centralSpotsizeRatio = Math.Min(1, effectiveDiameter / centralSpotSize);
                     var sideSpotsizeRatio = Math.Min(1, effectiveDiameter / sideSpotSize);
