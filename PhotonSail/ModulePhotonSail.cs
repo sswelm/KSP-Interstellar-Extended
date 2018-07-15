@@ -68,17 +68,24 @@ namespace FNPlugin.Beamedpower
 
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Mass", guiUnits = " t")]
         public float partMass;
-        [KSPField(guiActiveEditor = true, guiName = "Min wavelength", guiUnits = " m")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Min wavelength", guiUnits = " m")]
         public double minimumWavelength = 0.000000620;
-        [KSPField(guiActiveEditor = true, guiName = "Max wavelength", guiUnits = " m")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Max wavelength", guiUnits = " m")]
         public double maximumWavelength = 0.01;
-        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "Max Laser Consumption", guiUnits = " W", guiFormat = "F0")]
-        public double maxLaserPowerInWatt;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Laser Consumption", guiUnits = " GW", guiFormat = "F3")]
-        public double maxLaserPowerInGigaWatt;
+        [KSPField(guiActiveEditor = false, guiActive = false, guiName = "Max Sail irradiance", guiUnits = " W", guiFormat = "F0")]
+        public double maxKscLaserPowerInWatt;
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Sail irradiance", guiUnits = " GW", guiFormat = "F3")]
+        public double maxKscLaserPowerInGigaWatt;
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Beam irradiance", guiUnits = " G/m\xB2", guiFormat = "F3")]
+        public double maxKscLaserIrradiance;
+
         [KSPField(guiActiveEditor = true, guiName = "Geeforce Tolerance", guiUnits = " G", guiFormat = "F0")]
         public double gTolerance;
 
+        [KSPField]
+        public double kscPowerMult = 1e8;
+        [KSPField]
+        public double kscApertureMult = 5e-2;
         [KSPField]
         public double massTechMultiplier = 1;
         [KSPField]
@@ -97,17 +104,68 @@ namespace FNPlugin.Beamedpower
         public double startOfSailOpening = 0.54;
 
         [KSPField]
-        public string kscLaserTech1 = "specializedScienceTech";
+        public string kscLaserApertureTech1 = "specializedScienceTech";
         [KSPField]
-        public string kscLaserTech2 = "longTermScienceTech";
+        public string kscLaserApertureTech2 = "longTermScienceTech";
         [KSPField]
-        public string kscLaserTech3 = "scientificOutposts";
+        public string kscLaserApertureTech3 = "scientificOutposts";
         [KSPField]
-        public string kscLaserTech4 = "highEnergyScience";
+        public string kscLaserApertureTech4 = "highEnergyScience";
         [KSPField]
-        public string kscLaserTech5 = "appliedHighEnergyPhysics";
+        public string kscLaserApertureTech5 = "appliedHighEnergyPhysics";
         [KSPField]
-        public string kscLaserTech6 = "ultraHighEnergyPhysics";
+        public string kscLaserApertureTech6 = "ultraHighEnergyPhysics";
+        [KSPField]
+        public string kscLaserApertureTech7 = "";
+
+        [KSPField]
+        public int kscLaserApertureBonus0 = 50;
+        [KSPField]
+        public int kscLaserApertureBonus1 = 0;
+        [KSPField]
+        public int kscLaserApertureBonus2 = 0;
+        [KSPField]
+        public int kscLaserApertureBonus3 = 0;
+        [KSPField]
+        public int kscLaserApertureBonus4 = 0;
+        [KSPField]
+        public int kscLaserApertureBonus5 = 650;
+        [KSPField]
+        public int kscLaserApertureBonus6 = 0;
+        [KSPField]
+        public int kscLaserApertureBonus7 = 0;
+
+        [KSPField]
+        public string kscLaserPowerTech1 = "specializedElectrics";
+        [KSPField]
+        public string kscLaserPowerTech2 = "experimentalElectrics";
+        [KSPField]
+        public string kscLaserPowerTech3 = "highTechElectricalSystems";
+        [KSPField]
+        public string kscLaserPowerTech4 = "highPowerElectricalSystems";
+        [KSPField]
+        public string kscLaserPowerTech5 = "experimentalElectricalSystems";
+        [KSPField]
+        public string kscLaserPowerTech6 = "exoticElectricalSystems";
+        [KSPField]
+        public string kscLaserPowerTech7 = "extremeElectricalSystems";
+
+        [KSPField]
+        public int kscLaserPowerBonus0 = 50;
+        [KSPField]
+        public int kscLaserPowerBonus1 = 0;
+        [KSPField]
+        public int kscLaserPowerBonus2 = 0;
+        [KSPField]
+        public int kscLaserPowerBonus3 = 0;
+        [KSPField]
+        public int kscLaserPowerBonus4 = 0;
+        [KSPField]
+        public int kscLaserPowerBonus5 = 650;
+        [KSPField]
+        public int kscLaserPowerBonus6 = 0;
+        [KSPField]
+        public int kscLaserPowerBonus7 = 5000;
 
         [KSPField]
         public string massReductionTech1 = "metaMaterials";
@@ -131,25 +189,41 @@ namespace FNPlugin.Beamedpower
         [KSPField]
         public double massReductionMult5 = 2;
 
-        [KSPField(guiActiveEditor = true, guiName = "Max Available KCS Power", guiUnits = " GW", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Power", guiUnits = " GW", guiFormat = "F0")]
         public double kscLaserPowerInGigaWatt;
-        [KSPField(guiActiveEditor = false, guiName = "Max Available KCS Power", guiUnits = " W", guiFormat = "F0")]
-        public double kscLaserPowerInWatt = 2e12;
+        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Power", guiUnits = " W", guiFormat = "F0")]
+        public double kscLaserPowerInWatt = 5e12;
+        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spotsize Mult")]
+        public double kscCentralSpotsizeMult = 2;           // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
+        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Side Spotsize Mult")]
+        public double kscSideSpotsizeMult = 22;
 
+        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spot Ratio")]
+        public double kscCentralSpotEnergyRatio = 0.7;    // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
+        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spot Ratio")]
+        public double kscSideSpotEnergyRatio = 0.25; 
+
+
+        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Min Elevation Angle")]
+        public double kscLaserMinElevationAngle = 70;
+
+        [KSPField]
+        public double kscAtmosphereAbsorbtionRatio = 0.11;
         [KSPField]
         public double kscLaserLatitude = -0.13133150339126601;
         [KSPField]
         public double kscLaserLongitude = -74.594841003417997;
         [KSPField]
         public double kscLaserAltitude = 75;
+        [KSPField(guiActiveEditor = true, guiName = "KCS Phased Array Aperture", guiUnits = " m")]
+        public double kscLaserAperture = 1000;        // 1 KM is used for starshot
         [KSPField]
-        public double kscLaserAperture = 50;
-        [KSPField]
-        public double kscLaserAbsorbtion = 0.0000342; // @ 11 micrometer with unprotected coating   https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=744
-        [KSPField]
-        public double kscLaserWavelength = 0.000011; // 11 micrometer
+        public double kscLaserAbsorbtion = 0.000022379; // = Stefan Boltzmann constant * melting temp ^4 / 8e+9    
+        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Wavelength", guiUnits = " m")]
+        public double kscLaserWavelength = 1.06e-6; // 1.06 milimeter is used by project starshot
 
-        // GUI
+        //0.0000342; // @ 11 micrometer with unprotected coating   https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=744
+
         [KSPField(guiActive = true, guiName = "Skin Temperature", guiFormat = "F4", guiUnits = " K°")]
         public double skinTemperature;
         [KSPField(guiActive = true, guiName = "#autoLOC_6001421", guiFormat = "F4", guiUnits = " EC/s")]
@@ -175,9 +249,9 @@ namespace FNPlugin.Beamedpower
 
         [KSPField(guiActive = false, guiName = "Network power", guiFormat = "F4", guiUnits = " MW")]
         public double maxNetworkPower;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "KCS Power Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0, requireFullControl = false)]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "KCS Power Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0, requireFullControl = false)]
         public float kcsBeamedPowerThrottle = 0;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Power Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0, requireFullControl = false)]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Beamed Power Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0, requireFullControl = false)]
         public float beamedPowerThrottle = 0;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Push Direction"), UI_Toggle(disabledText = "Backward", enabledText = "Forward", requireFullControl = false)]
         public bool beamedPowerForwardDirection = true;
@@ -186,6 +260,8 @@ namespace FNPlugin.Beamedpower
         public double availableBeamedKscEnergy;
         [KSPField(guiActive = false, guiName = "Energy Received from KSC", guiFormat = "F2", guiUnits = " W")]
         public double receivedBeamedPowerFromKsc;
+        [KSPField(guiActive = true, guiName = "KSC Laser Elevation Angle", guiFormat = "F2", guiUnits = "°")]
+        public double kscLaserElevationAngle;
 
         [KSPField(guiActive = false, guiName = "Beamed Energy", guiFormat = "F4", guiUnits = " MJ/s")]
         public double totalReceivedBeamedPower;
@@ -324,8 +400,8 @@ namespace FNPlugin.Beamedpower
 
             diameter = Math.Sqrt(surfaceArea);
 
-            maxLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp - 300) / kscLaserAbsorbtion;
-            maxLaserPowerInGigaWatt = maxLaserPowerInWatt * 1e-9;
+            maxKscLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp) / kscLaserAbsorbtion;
+            maxKscLaserPowerInGigaWatt = maxKscLaserPowerInWatt * 1e-9;
 
             if (animName != null)
                 solarSailAnim = part.FindModelAnimators(animName).FirstOrDefault();
@@ -342,6 +418,8 @@ namespace FNPlugin.Beamedpower
             beamTexture = GameDatabase.Instance.GetTexture("PhotonSail/ParticleFX/infrared2", false);
 
             DetermineKscLaserPower();
+
+            DetermineKscLaserAperture();
 
             DermineMassTechMultiplier();
 
@@ -374,12 +452,29 @@ namespace FNPlugin.Beamedpower
             if (ResearchAndDevelopment.Instance == null)
                 return;
 
-            kscLaserPowerInWatt = GetTechCost(kscLaserTech1) * 1e8;
-            kscLaserPowerInWatt += GetTechCost(kscLaserTech2) * 1e8;
-            kscLaserPowerInWatt += GetTechCost(kscLaserTech3) * 1e8;
-            kscLaserPowerInWatt += GetTechCost(kscLaserTech4) * 1e8;
-            kscLaserPowerInWatt += (GetTechCost(kscLaserTech5) + 700) * 1e8;
-            kscLaserPowerInWatt += GetTechCost(kscLaserTech6) * 1e8;
+            kscLaserPowerInWatt = kscLaserPowerBonus0 * kscPowerMult;
+            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech1, kscLaserPowerBonus1) * kscPowerMult ;
+            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech2, kscLaserPowerBonus2) * kscPowerMult;
+            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech3, kscLaserPowerBonus3) * kscPowerMult;
+            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech4, kscLaserPowerBonus4) * kscPowerMult;
+            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech5, kscLaserPowerBonus5) * kscPowerMult;
+            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech6, kscLaserPowerBonus6) * kscPowerMult;
+            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech7, kscLaserPowerBonus7) * kscPowerMult;
+        }
+
+        private void DetermineKscLaserAperture()
+        {
+            if (ResearchAndDevelopment.Instance == null)
+                return;
+
+            kscLaserAperture = kscLaserApertureBonus0 * kscApertureMult;
+            kscLaserAperture += GetTechCost(kscLaserApertureTech1, kscLaserApertureBonus1) * kscApertureMult;
+            kscLaserAperture += GetTechCost(kscLaserApertureTech2, kscLaserApertureBonus2) * kscApertureMult;
+            kscLaserAperture += GetTechCost(kscLaserApertureTech3, kscLaserApertureBonus3) * kscApertureMult;
+            kscLaserAperture += GetTechCost(kscLaserApertureTech4, kscLaserApertureBonus4) * kscApertureMult;
+            kscLaserAperture += GetTechCost(kscLaserApertureTech5, kscLaserApertureBonus5) * kscApertureMult;
+            kscLaserAperture += GetTechCost(kscLaserApertureTech6, kscLaserApertureBonus6) * kscApertureMult;
+            kscLaserAperture += GetTechCost(kscLaserApertureTech7, kscLaserApertureBonus7) * kscApertureMult;
         }
 
         private void DermineMassTechMultiplier()
@@ -540,8 +635,9 @@ namespace FNPlugin.Beamedpower
                 return;
 
             diameter = Math.Sqrt(surfaceArea);
-            maxLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp - 300) / kscLaserAbsorbtion;
-            maxLaserPowerInGigaWatt = maxLaserPowerInWatt * 1e-9;
+            maxKscLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp) / kscLaserAbsorbtion;
+            maxKscLaserPowerInGigaWatt = maxKscLaserPowerInWatt * 1e-9;
+            maxKscLaserIrradiance = maxKscLaserPowerInGigaWatt / surfaceArea;
         }
 
         /// <summary>
@@ -552,8 +648,9 @@ namespace FNPlugin.Beamedpower
             updateCounter++;
             maxNetworkPower = 0;
 
-            maxLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp - FlightGlobals.getExternalTemperature(part.transform.position)) / kscLaserAbsorbtion;
-            maxLaserPowerInGigaWatt = maxLaserPowerInWatt * 1e-9;
+            maxKscLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp - FlightGlobals.getExternalTemperature(part.transform.position)) / kscLaserAbsorbtion;
+            maxKscLaserPowerInGigaWatt = maxKscLaserPowerInWatt * 1e-9;
+            maxKscLaserIrradiance = maxKscLaserPowerInGigaWatt / surfaceArea;
 
             var animationNormalizedTime = solarSailAnim[animName].normalizedTime;
 
@@ -650,6 +747,7 @@ namespace FNPlugin.Beamedpower
 
         public override void OnFixedUpdate()
         {
+            kscLaserElevationAngle = 0;
             skinTemperature = part.skinTemperature;
             availableBeamedKscEnergy = 0;
             receivedBeamedPowerFromKsc = 0;
@@ -696,7 +794,7 @@ namespace FNPlugin.Beamedpower
             }
 
             // apply photon pressure from Kerbal Space Station Beamed Power facility
-            ProcesKscBeamedPower(vesselMassInKg, universalTime, ref positionVessel, beamedPowerThrottleRatio, rentedBeamedPowerThrottleRatio, ref receivedBeamedPowerInWatt);
+            ProcesKscBeamedPower(vesselMassInKg, universalTime, ref positionVessel, beamedPowerThrottleRatio * rentedBeamedPowerThrottleRatio, ref receivedBeamedPowerInWatt);
 
             // apply photon pressure from every potential laser source
             for (var transmitter = 0; transmitter < connectedTransmitters.Count; transmitter++)
@@ -706,7 +804,7 @@ namespace FNPlugin.Beamedpower
 
                 var availablePower = CheatOptions.IgnoreMaxTemperature 
                     ? receivedPowerData.AvailablePower * 1e+6 
-                    : Math.Min(receivedPowerData.AvailablePower * 1e+6, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt));
+                    : Math.Min(receivedPowerData.AvailablePower * 1e+6, Math.Max(0, maxKscLaserPowerInWatt - receivedBeamedPowerInWatt));
 
                 receivedBeamedPowerInWatt += GenerateForce(ref beamedPowerSource, ref positionVessel, beamedPowerThrottleRatio * availablePower, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize * 0.25);
             }
@@ -715,9 +813,12 @@ namespace FNPlugin.Beamedpower
             if (receivedBeamedPowerList.Count > 0)
             {
                 totalReceivedBeamedPower = receivedBeamedPowerList.Sum(m => m.receivedPower);
-                weightedBeamPowerPitch = receivedBeamedPowerList.Sum(m => m.pitchAngle * m.receivedPower / totalReceivedBeamedPower);
-                weightedBeamedPowerSpotsize = receivedBeamedPowerList.Sum(m => m.spotsize * m.receivedPower / totalReceivedBeamedPower);
-                totalReceivedBeamedPowerInGigaWatt = totalReceivedBeamedPower * 1e-3;
+                if (totalReceivedBeamedPower > 0)
+                {
+                    weightedBeamPowerPitch = receivedBeamedPowerList.Sum(m => m.pitchAngle * m.receivedPower / totalReceivedBeamedPower);
+                    weightedBeamedPowerSpotsize = receivedBeamedPowerList.Sum(m => m.spotsize * m.receivedPower / totalReceivedBeamedPower);
+                    totalReceivedBeamedPowerInGigaWatt = totalReceivedBeamedPower * 1e-3;
+                }
             }
 
             UpdateGeforceThreshold();
@@ -752,53 +853,64 @@ namespace FNPlugin.Beamedpower
             //}
         }
 
-        private void ProcesKscBeamedPower(double vesselMassInKg, double universalTime, ref Vector3d positionVessel, float beamedPowerThrottleRatio, float rentedBeamedPowerThrottleRatio, ref double receivedBeamedPowerInWatt)
+        private void ProcesKscBeamedPower(double vesselMassInKg, double universalTime, ref Vector3d positionVessel, float beamedPowerThrottleRatio, ref double receivedBeamedPowerInWatt)
         {
-            // proces ktc laser
-            if (kscLaserPowerInWatt > 0)
+            if (kscLaserPowerInWatt <= 0 || kscLaserAperture <= 0)
+                return;
+
+            var homeWorldBody = Planetarium.fetch.Home;
+            Vector3d positionKscLaser = homeWorldBody.GetWorldSurfacePosition(kscLaserLatitude, kscLaserLongitude, kscLaserAltitude);
+            Vector3d centerOfHomeworld = homeWorldBody.position;
+
+            hasLineOfSightToKtc = LineOfSightToTransmitter(positionVessel, positionKscLaser);
+
+            if (hasLineOfSightToKtc)
             {
-                var homeWorldBody = Planetarium.fetch.Home;
-                Vector3d positionKscLaser = homeWorldBody.GetWorldSurfacePosition(kscLaserLatitude, kscLaserLongitude, kscLaserAltitude);
-                Vector3d centerOfHomeworld = homeWorldBody.position;
+                // calculate spotsize and received power From Ktc
+                Vector3d powerSourceToVesselVector = positionVessel - positionKscLaser;
+                Vector3d centerPlanetToVesselVector = positionVessel - centerOfHomeworld;
+                var beamAngleKscToCenterInDegree = Vector3d.Angle(powerSourceToVesselVector, centerPlanetToVesselVector);
 
-                hasLineOfSightToKtc = LineOfSightToTransmitter(positionVessel, positionKscLaser);
+                Vector3d powerSourceTocenterOfHomeworldVector = centerOfHomeworld - positionKscLaser;
+                Vector3d positionVesselTocenterOfHomeworldVector = centerOfHomeworld - positionVessel;
+                var beamAngleKscToVesselInDegree = Vector3d.Angle(powerSourceTocenterOfHomeworldVector, positionVesselTocenterOfHomeworldVector);
 
-                if (hasLineOfSightToKtc)
+                kscLaserElevationAngle = 90 - beamAngleKscToCenterInDegree - beamAngleKscToVesselInDegree;
+                var kscAtmosphereMultiplier = 1 / (Math.Sin(kscLaserElevationAngle * Mathf.Deg2Rad));
+                var kscAtmosphereAbsorbtionEfficiency = Math.Max(0, 1 - kscAtmosphereMultiplier * kscAtmosphereAbsorbtionRatio);
+
+                var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature
+                    ? kscLaserPowerInWatt
+                    : Math.Min(kscLaserPowerInWatt, Math.Max(0, maxKscLaserPowerInWatt - receivedBeamedPowerInWatt));
+
+                availableBeamedKscEnergy = kscAtmosphereAbsorbtionEfficiency * surfaceKscEnergy;
+
+                if (beamedPowerThrottleRatio > 0 && kscLaserElevationAngle >= kscLaserMinElevationAngle)
                 {
-                    // calculate spotsize and received power From Ktc
-                    Vector3d powerSourceToVesselVector = positionVessel - positionKscLaser;
-                    Vector3d centerPlanetToVesselVector = positionVessel - centerOfHomeworld;
-                    var beamAngleKscToCenterInDegree = Vector3d.Angle(powerSourceToVesselVector, centerPlanetToVesselVector);
+                    connectedTransmittersCount++;
 
-                    Vector3d powerSourceTocenterOfHomeworldVector = centerOfHomeworld - positionKscLaser;
-                    Vector3d positionVesselTocenterOfHomeworldVector = centerOfHomeworld - positionVessel;
-                    var beamAngleKscToVesselInDegree = Vector3d.Angle(powerSourceTocenterOfHomeworldVector, positionVesselTocenterOfHomeworldVector);
+                    var cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, this.part.transform.up);
+                    if (cosConeAngle < 0)
+                        cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, -this.part.transform.up);
+                    var effectiveDiameter = cosConeAngle * diameter;
 
-                    var angleKscAtmosphere = 90 - beamAngleKscToCenterInDegree - beamAngleKscToVesselInDegree;
-                    var kscAtmosphereMultiplier = 1 / (Math.Sin(angleKscAtmosphere * Mathf.Deg2Rad));
-                    var kscAtmosphereAbsorbtionEfficiency = Math.Max(0, 1 - kscAtmosphereMultiplier * 0.02);
+                    var labdaSpotSize = powerSourceToVesselVector.magnitude * kscLaserWavelength / kscLaserAperture;
 
-                    var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature
-                        ? kscLaserPowerInWatt
-                        : Math.Min(kscLaserPowerInWatt, Math.Max(0, maxLaserPowerInWatt - receivedBeamedPowerInWatt));
+                    var centralSpotSize = labdaSpotSize / kscCentralSpotsizeMult;
+                    var sideSpotSize = labdaSpotSize / kscSideSpotsizeMult;
 
-                    availableBeamedKscEnergy = kscAtmosphereAbsorbtionEfficiency * surfaceKscEnergy;
+                    var centralSpotsizeRatio = Math.Min(1, effectiveDiameter / centralSpotSize);
+                    var sideSpotsizeRatio = Math.Min(1, effectiveDiameter / sideSpotSize);
+                    var sideSpotsizeToFourthPowerRatio = sideSpotsizeRatio * sideSpotsizeRatio * sideSpotsizeRatio * sideSpotsizeRatio;
 
-                    if (rentedBeamedPowerThrottleRatio > 0)
-                    {
-                        connectedTransmittersCount++;
+                    var throtledPower = availableBeamedKscEnergy * beamedPowerThrottleRatio;
+                    var receivedPowerFromCentralSpot = throtledPower * kscCentralSpotEnergyRatio * centralSpotsizeRatio;
+                    var receivedPowerFromSideSpot = throtledPower * kscSideSpotEnergyRatio * sideSpotsizeToFourthPowerRatio;
+                    receivedBeamedPowerFromKsc = receivedPowerFromCentralSpot + receivedPowerFromSideSpot;
 
-                        var cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, this.part.transform.up);
-                        if (cosConeAngle < 0)
-                            cosConeAngle = Vector3d.Dot(powerSourceToVesselVector.normalized, -this.part.transform.up);
-                        var spotSize = powerSourceToVesselVector.magnitude * kscLaserWavelength / kscLaserAperture;
+                    //gausionRatio = Math.Pow(centralSpotsizeRatio, 0.3 + (0.6 * (1 - centralSpotsizeRatio)))
 
-                        var spotsizeRatio = Math.Min(1, cosConeAngle * diameter / spotSize);
-
-                        receivedBeamedPowerFromKsc = availableBeamedKscEnergy * rentedBeamedPowerThrottleRatio * beamedPowerThrottleRatio * Math.Pow(spotsizeRatio, 0.3 + (0.6 * (1 - spotsizeRatio)));
-
-                        receivedBeamedPowerInWatt += GenerateForce(ref positionKscLaser, ref positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, spotSize * 0.25);
-                    }
+                    receivedBeamedPowerInWatt += GenerateForce(ref positionKscLaser, ref positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, centralSpotSize * 0.25);
                 }
             }
         }
@@ -807,7 +919,7 @@ namespace FNPlugin.Beamedpower
         {
             foreach (var ray in beamRays)
             {
-                var effect = Math.Ceiling(6 * Math.Pow(ray.energyInGigaWatt, 0.4));
+                var effect = Math.Ceiling(10 * Math.Pow(ray.energyInGigaWatt, 0.35));
                 var effectCount = (int)effect;
 
                 for (int i = 0; i < effectCount; i++)
@@ -983,6 +1095,8 @@ namespace FNPlugin.Beamedpower
 
             // convert radian into angle in degree
             var pitchAngleInDegree = pitchAngleInRad * Mathf.Rad2Deg;
+            if (double.IsNaN(pitchAngleInDegree))
+                pitchAngleInDegree = 0;
 
             double maxPhotovotalicEnergy;
             double energyOnSailnWatt;
@@ -1188,7 +1302,7 @@ namespace FNPlugin.Beamedpower
             return true;
         }
 
-        public static int GetTechCost(string techid)
+        public static int GetTechCost(string techid, int techbonus)
         {
             if (String.IsNullOrEmpty(techid) || techid == "none")
                 return 0;
@@ -1199,7 +1313,7 @@ namespace FNPlugin.Beamedpower
                 var available = techstate.state == RDTech.State.Available;
 
                 if (available)
-                    return techstate.scienceCost;
+                    return techstate.scienceCost + techbonus;
             }
 
             return 0;
