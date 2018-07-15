@@ -716,7 +716,6 @@ namespace FNPlugin.Beamedpower
             Fields["weightedBeamedPowerSpotsize"].guiActive = showBeamedPowerFields;
             Fields["beamedSailForce"].guiActive = showBeamedPowerFields;
             Fields["beamedAcc"].guiActive = showBeamedPowerFields;
-            //Fields["availableBeamedKscEnergy"].guiActive = availableBeamedKscEnergy > 0;  
 
             Fields["weightedDragCoefficient"].guiActive = maximumDragPerSquareMeter > 0;
             Fields["maximumDragPerSquareMeter"].guiActive = maximumDragPerSquareMeter > 0;
@@ -915,6 +914,7 @@ namespace FNPlugin.Beamedpower
         {
             foreach (var ray in beamRays)
             {
+                var availableSailDiameter = sailSurfaceModifier * ray.cosConeAngle * diameter * 0.25;
                 var effect = Math.Ceiling(10 * Math.Pow(ray.energyInGigaWatt, 0.35));
                 var effectCount = (int)effect;
 
@@ -924,7 +924,7 @@ namespace FNPlugin.Beamedpower
                     {
                         var effectRatio = (effect - i) / effect;
                         var scale = ray.spotsize * 4 * effectRatio < diameter ? 1 : 2;
-                        var spotsize = (float)Math.Max((sailSurfaceModifier * ray.cosConeAngle * diameter * 0.25 * effectRatio), ray.spotsize * effectRatio);
+                        var spotsize = (float)Math.Max(availableSailDiameter * effectRatio, ray.spotsize * effectRatio);
                         UpdateVisibleBeam(part, beamEffectArray[beamCounter++], ray.powerSourceToVesselVector, scale, spotsize);
                     }
                 }
@@ -1102,8 +1102,7 @@ namespace FNPlugin.Beamedpower
                 solarSailAngle = pitchAngleInDegree;
                 maxPhotovotalicEnergy = photovoltaicArea * Math.Max(0, availableEnergyInWatt - 1);
                 energyOnSailnWatt = surfaceArea * sailSurfaceModifier * availableEnergyInWatt;
-                totalSolarEnergyReceivedInMJ = energyOnSailnWatt * cosConeAngle * 1e-6;
-                
+                totalSolarEnergyReceivedInMJ = energyOnSailnWatt * cosConeAngle * 1e-6;                
             }
             else
             {
