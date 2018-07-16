@@ -59,6 +59,8 @@ namespace FNPlugin.Beamedpower
         // Persistent False
         [KSPField]
         public double reflectedPhotonRatio = 0.975;
+        [KSPField]
+        public double backsideEmissivity = 1;
         [KSPField(guiActiveEditor = true, guiName = "Photovoltaic film Area", guiUnits = " m\xB2")]
         public double photovoltaicArea = 1;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Surface Area", guiUnits = " m\xB2", guiFormat = "F0")]
@@ -950,9 +952,9 @@ namespace FNPlugin.Beamedpower
             // calculate heating
             solarfluxWasteheatInMegaJoule = (1 - reflectedPhotonRatio) * totalSolarEnergyReceivedInMJ * Math.Max(0, 1 - vessel.atmDensity);
             beamPowerWasteheatInMegaJoule = kscLaserAbsorbtion * totalReceivedBeamedPower;
-            var totalHeating = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
+            var totalHeatingInMegajoules = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
             var fixedThermalMass = TimeWarp.fixedDeltaTime / thermalMass;
-            var temperatureIncrease = totalHeating * fixedThermalMass;
+            var temperatureIncrease = totalHeatingInMegajoules * fixedThermalMass;
             var iterationTemperatureIncrease = temperatureIncrease / iterations;
             var effectiveSurfaceArea = surfaceArea * sailSurfaceModifier * PhysicsGlobals.StefanBoltzmanConstant * 1e-6 / iterations;
 
@@ -1006,7 +1008,8 @@ namespace FNPlugin.Beamedpower
             var specularRatio = Math.Max(0, Math.Min(1, part.skinTemperature / part.skinMaxTemp));
             var diffuseRatio = 1 - specularRatio;
             var maximumDragCoefficient = 4 * specularRatio + 3.3 * diffuseRatio;
-            var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, part.vessel.obt_velocity.normalized);
+            var normalizedOrbitalVelocity = part.vessel.obt_velocity.normalized;
+            var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, normalizedOrbitalVelocity);
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
             var squaredCosOrbitalDrag = cosObitalDrag * cosObitalDrag;
             var siderealSpeed = 2 * vessel.mainBody.Radius * Math.PI / vessel.mainBody.rotationPeriod;
@@ -1039,7 +1042,7 @@ namespace FNPlugin.Beamedpower
             var diffuseDragPerSquareMeter = diffuseDragCoefficient * dragForcePerSquareMeter * diffuseRatio;
             var diffuseDragInNewton = diffuseDragPerSquareMeter * effectiveSurfaceArea;
             diffuseSailDragInNewton = (float)diffuseDragInNewton;
-            var diffuseDragForceFixed = diffuseDragInNewton * part.vessel.obt_velocity.normalized;
+            var diffuseDragForceFixed = diffuseDragInNewton * normalizedOrbitalVelocity;
             var diffuseDragDeceleration = -diffuseDragForceFixed / vesselMassInKg;
 
             weightedDragCoefficient = specularDragCoefficient * specularRatio + diffuseDragCoefficient * diffuseRatio;
@@ -1116,13 +1119,13 @@ namespace FNPlugin.Beamedpower
             photovoltalicFlowRate += Math.Min(photovoltaicArea * cosConeAngle,  maxPhotovotalicEnergy * 0.2 * cosConeAngle * 0.001);
 
             // convert energy into momentum
-            var radiationPresure = 2 * energyOnSailnWatt / GameConstants.speedOfLight;
+            var maxRelectedRadiationPresure = 2 * energyOnSailnWatt / GameConstants.speedOfLight;
 
             // calculate solar light force at current location
-            var maximumPhotonForceInNewton = reflectedPhotonRatio * radiationPresure;
+            var maximumPhotonForceInNewton = reflectedPhotonRatio * maxRelectedRadiationPresure;
 
             // calculate effective radiation presure on solarsail
-            var radiationPresureOnSail = isSun ? radiationPresure * cosConeAngle : radiationPresure;
+            var reflectedRadiationPresureOnSail = isSun ? maxRelectedRadiationPresure * cosConeAngle : maxRelectedRadiationPresure;
 
             // register force 
             if (isSun)
@@ -1158,7 +1161,7 @@ namespace FNPlugin.Beamedpower
             }
 
             // old : F = 2 PA cos α cos α n
-            var effectiveForce = radiationPresureOnSail * reflectedPhotonRatio * cosConeAngle * partNormal;
+            var reflectedPhotonForceVector = reflectedRadiationPresureOnSail * reflectedPhotonRatio * cosConeAngle * partNormal;
 
             // calculate the vector at 90 degree angle in the direction of the vector
             //var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
@@ -1166,28 +1169,63 @@ namespace FNPlugin.Beamedpower
             // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficien
             //var effectiveForce = radiationPresureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
 
-            // Calculate acceleration from sunlight
-            Vector3d photonAccel = effectiveForce / vesselMassInKg;
+            // Calculate acceleration from reflected photons
+            Vector3d photonReflectedAccelVector = reflectedPhotonForceVector / vesselMassInKg;
 
-            // Acceleration from sunlight per second
-            Vector3d fixedPhotonAccel = photonAccel * TimeWarp.fixedDeltaTime;
+            // Apply reflection acceleration
+            ChangeVesselVelocity(this.vessel, universalTime, photonReflectedAccelVector * TimeWarp.fixedDeltaTime);
 
-            // Apply acceleration when valid
-            ChangeVesselVelocity(this.vessel, universalTime, fixedPhotonAccel);
+            // calculate acceleration from absorbed photons
+            Vector3d photonAbsorbtionVector = -(positionPowerSource - positionVessel).normalized;
+
+            // calculate ratio of non reflected photons
+            var absorbedPhotonsRatio = 1 - reflectedPhotonRatio;
+
+            // calculate force from absorbed photons
+            var absorbedPhotonForce = reflectedRadiationPresureOnSail * 0.5 * absorbedPhotonsRatio;
+
+            // calculate force vector from absorbed photons
+            var absorbedPhotonForceVector = absorbedPhotonForce * photonAbsorbtionVector;
+
+            // Calculate acceleration from absorbed photons
+            var absorbedPhotonAccelVector = absorbedPhotonForceVector / vesselMassInKg;
+
+            // Apply absorbtion acceleration
+            ChangeVesselVelocity(this.vessel, universalTime, absorbedPhotonAccelVector * TimeWarp.fixedDeltaTime);
+
+            // calculate emmisivity of both sides of the sail
+            var totalEmissivity = absorbedPhotonsRatio + backsideEmissivity;
+
+            // calculate percentage of energy leaving through the receiving side, accelerating the vessel
+            var pushDissipationRatio = totalEmissivity / absorbedPhotonsRatio;
+
+            // calculate equlibrium drag force from dissipation at back side
+            var dissipationPushForceVector = partNormal * absorbedPhotonForce * pushDissipationRatio;
+
+            // calculate dissipation drag vector
+            var dissipationAccelerationVector = dissipationPushForceVector / vesselMassInKg;
+
+            // Apply dissipation drag factor
+            ChangeVesselVelocity(this.vessel, universalTime, dissipationAccelerationVector * TimeWarp.fixedDeltaTime);
+
+            // calculate percentage of energy leaving through the backside, decelerating the vessel
+            var dragDissipationRatio = totalEmissivity / backsideEmissivity;
+
+            // calculate equlibrium drag force from dissipation at back side
+            var dissipationDragForceVector = -partNormal * absorbedPhotonForce * dragDissipationRatio;
+
+            // calculate dissipation drag vector
+            var dissipationDecelerationVector = dissipationDragForceVector / vesselMassInKg;
+
+            // Apply dissipation drag factor
+            ChangeVesselVelocity(this.vessel, universalTime, dissipationDecelerationVector * TimeWarp.fixedDeltaTime);
 
             // Update displayed force & acceleration
-            if (isSun)
-            {
-                solar_force_d += effectiveForce.magnitude * sign(cosConeAngleIsNegative);
-                solar_acc_d += photonAccel.magnitude * sign(cosConeAngleIsNegative);
-            }
-            else
-            {
-                receivedBeamedPowerList.Add(new ReceivedBeamedPower { pitchAngle = pitchAngleInDegree, receivedPower = energyOnSailnWatt * 1e-6, spotsize = beamspotsize, cosConeAngle = cosConeAngle });
+            solar_force_d += (reflectedPhotonForceVector + absorbedPhotonForceVector + dissipationPushForceVector + dissipationDragForceVector).magnitude * sign(cosConeAngleIsNegative);
+            solar_acc_d += (photonReflectedAccelVector + absorbedPhotonAccelVector + dissipationAccelerationVector + dissipationDecelerationVector).magnitude * sign(cosConeAngleIsNegative);
 
-                beamedSailForce += effectiveForce.magnitude * sign(cosConeAngleIsNegative);
-                beamed_acc_d += photonAccel.magnitude * sign(cosConeAngleIsNegative);
-            }
+            if (!isSun)
+                receivedBeamedPowerList.Add(new ReceivedBeamedPower { pitchAngle = pitchAngleInDegree, receivedPower = energyOnSailnWatt * 1e-6, spotsize = beamspotsize, cosConeAngle = cosConeAngle });
 
             return energyOnSailnWatt;
         }
