@@ -788,7 +788,7 @@ namespace FNPlugin.Beamedpower
             // apply solarflux presure for every star
             foreach (var starLight in starLights)
             {
-                receivedBeamedPowerInWatt += GenerateForce(ref starLight.position, ref positionVessel, starLight.solarFlux, universalTime, vesselMassInKg);
+                receivedBeamedPowerInWatt += GenerateForce(reflectedPhotonRatio, ref starLight.position, ref positionVessel, starLight.solarFlux, universalTime, vesselMassInKg);
             }
 
             // apply photon pressure from Kerbal Space Station Beamed Power facility
@@ -804,7 +804,7 @@ namespace FNPlugin.Beamedpower
                     ? receivedPowerData.AvailablePower * 1e+6 
                     : Math.Min(receivedPowerData.AvailablePower * 1e+6, Math.Max(0, maxKscLaserPowerInWatt - receivedBeamedPowerInWatt));
 
-                receivedBeamedPowerInWatt += GenerateForce(ref beamedPowerSource, ref positionVessel, beamedPowerThrottleRatio * availablePower, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize * 0.25);
+                receivedBeamedPowerInWatt += GenerateForce(reflectedPhotonRatio, ref beamedPowerSource, ref positionVessel, beamedPowerThrottleRatio * availablePower, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize * 0.25);
             }
 
             // process statistical data
@@ -907,7 +907,7 @@ namespace FNPlugin.Beamedpower
 
                     //gausionRatio = Math.Pow(centralSpotsizeRatio, 0.3 + (0.6 * (1 - centralSpotsizeRatio)))
 
-                    receivedBeamedPowerInWatt += GenerateForce(ref positionKscLaser, ref positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, centralSpotSize * 0.25);
+                    receivedBeamedPowerInWatt += GenerateForce(1 - kscLaserAbsorbtion,  ref positionKscLaser, ref positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, centralSpotSize * 0.25);
                 }
             }
         }
@@ -1067,7 +1067,7 @@ namespace FNPlugin.Beamedpower
                 vessel.ChangeWorldVelocity(acceleration);
         }
 
-        private double GenerateForce(ref Vector3d positionPowerSource, ref Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1)
+        private double GenerateForce(double reflectedPhotonRatio,  ref Vector3d positionPowerSource, ref Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1)
         {
             // calculate vector between vessel and star/transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
@@ -1161,19 +1161,13 @@ namespace FNPlugin.Beamedpower
             }
 
             // old : F = 2 PA cos α cos α n
-            var reflectedPhotonForceVector = reflectedRadiationPresureOnSail * reflectedPhotonRatio * cosConeAngle * partNormal;
+            var reflectedPhotonForceVector = partNormal * reflectedRadiationPresureOnSail * reflectedPhotonRatio * cosConeAngle;
 
             // calculate the vector at 90 degree angle in the direction of the vector
             //var tangantVector = (powerSourceToVesselVector - (Vector3.Dot(powerSourceToVesselVector, partNormal)) * partNormal).normalized;
             // new F = P A cos α [(1 + ρ ) cos α n − (1 − ρ ) sin α t] 
             // where P: solar radiation pressure, A: sail area, α: sail pitch angle, t: sail tangential vector, ρ: reflection coefficien
             //var effectiveForce = radiationPresureOnSail * ((1 + reflectedPhotonRatio) * cosConeAngle * partNormal - (1 - reflectedPhotonRatio) * Math.Sin(pitchAngleInRad) * tangantVector);
-
-            // Calculate acceleration from reflected photons
-            Vector3d photonReflectedAccelVector = reflectedPhotonForceVector / vesselMassInKg;
-
-            // Apply reflection acceleration
-            ChangeVesselVelocity(this.vessel, universalTime, photonReflectedAccelVector * TimeWarp.fixedDeltaTime);
 
             // calculate acceleration from absorbed photons
             Vector3d photonAbsorbtionVector = -(positionPowerSource - positionVessel).normalized;
@@ -1187,45 +1181,45 @@ namespace FNPlugin.Beamedpower
             // calculate force vector from absorbed photons
             var absorbedPhotonForceVector = absorbedPhotonForce * photonAbsorbtionVector;
 
-            // Calculate acceleration from absorbed photons
-            var absorbedPhotonAccelVector = absorbedPhotonForceVector / vesselMassInKg;
-
-            // Apply absorbtion acceleration
-            ChangeVesselVelocity(this.vessel, universalTime, absorbedPhotonAccelVector * TimeWarp.fixedDeltaTime);
-
             // calculate emmisivity of both sides of the sail
             var totalEmissivity = absorbedPhotonsRatio + backsideEmissivity;
 
             // calculate percentage of energy leaving through the receiving side, accelerating the vessel
-            var pushDissipationRatio = totalEmissivity / absorbedPhotonsRatio;
+            var pushDissipationRatio = absorbedPhotonsRatio / totalEmissivity;
 
             // calculate equlibrium drag force from dissipation at back side
             var dissipationPushForceVector = partNormal * absorbedPhotonForce * pushDissipationRatio;
 
-            // calculate dissipation drag vector
-            var dissipationAccelerationVector = dissipationPushForceVector / vesselMassInKg;
-
-            // Apply dissipation drag factor
-            ChangeVesselVelocity(this.vessel, universalTime, dissipationAccelerationVector * TimeWarp.fixedDeltaTime);
-
             // calculate percentage of energy leaving through the backside, decelerating the vessel
-            var dragDissipationRatio = totalEmissivity / backsideEmissivity;
+            var dragDissipationRatio = backsideEmissivity / totalEmissivity;
 
             // calculate equlibrium drag force from dissipation at back side
             var dissipationDragForceVector = -partNormal * absorbedPhotonForce * dragDissipationRatio;
 
-            // calculate dissipation drag vector
-            var dissipationDecelerationVector = dissipationDragForceVector / vesselMassInKg;
+            // calculate sum of all force vectors
+            var totalForceVector = reflectedPhotonForceVector + absorbedPhotonForceVector + dissipationPushForceVector + dissipationDragForceVector;
 
-            // Apply dissipation drag factor
-            ChangeVesselVelocity(this.vessel, universalTime, dissipationDecelerationVector * TimeWarp.fixedDeltaTime);
+            // caclculate acceleration
+            var totalAccelerationVector = totalForceVector / vesselMassInKg;
+
+            // all force
+            ChangeVesselVelocity(this.vessel, universalTime, totalAccelerationVector * TimeWarp.fixedDeltaTime);
 
             // Update displayed force & acceleration
-            solar_force_d += (reflectedPhotonForceVector + absorbedPhotonForceVector + dissipationPushForceVector + dissipationDragForceVector).magnitude * sign(cosConeAngleIsNegative);
-            solar_acc_d += (photonReflectedAccelVector + absorbedPhotonAccelVector + dissipationAccelerationVector + dissipationDecelerationVector).magnitude * sign(cosConeAngleIsNegative);
+            var signedForce = totalForceVector.magnitude * sign(cosConeAngleIsNegative);
+            var signedAccel = totalAccelerationVector.magnitude * sign(cosConeAngleIsNegative);
 
-            if (!isSun)
+            if (isSun)
+            {
+                solar_force_d += signedForce;
+                solar_acc_d += signedAccel;
+            }
+            else
+            {
                 receivedBeamedPowerList.Add(new ReceivedBeamedPower { pitchAngle = pitchAngleInDegree, receivedPower = energyOnSailnWatt * 1e-6, spotsize = beamspotsize, cosConeAngle = cosConeAngle });
+                beamedSailForce += signedForce;
+                beamed_acc_d += signedAccel;
+            }
 
             return energyOnSailnWatt;
         }
