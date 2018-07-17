@@ -74,8 +74,15 @@ namespace FNPlugin.Beamedpower
         public double minimumWavelength = 0.000000620;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Max wavelength", guiUnits = " m")]
         public double maximumWavelength = 0.01;
-        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "Sail Max heat dissipation", guiUnits = " W", guiFormat = "F0")]
-        public double maxSailHeatDissipation;
+
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Max heat dissipation", guiUnits = " MJ/s", guiFormat = "F3")]
+        public double maxSailHeatDissipationInMegajoules;
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Cur heat dissipation", guiUnits = " MJ/s", guiFormat = "F3")]
+        public double currentSailHeatDissipationInMegajoules;
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail dissipation temperature", guiUnits = " K", guiFormat = "F3")]
+        public double sailHeatDissipationTemperature;
+
+
         [KSPField(guiActiveEditor = false, guiActive = false, guiName = "Max Sail irradiance", guiUnits = " W", guiFormat = "F0")]
         public double maxKscLaserPowerInWatt;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Sail irradiance", guiUnits = " GW", guiFormat = "F3")]
@@ -636,8 +643,8 @@ namespace FNPlugin.Beamedpower
                 return;
 
             diameter = Math.Sqrt(surfaceArea);
-            maxSailHeatDissipation = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp);
-            maxKscLaserPowerInWatt = maxSailHeatDissipation / kscLaserAbsorbtion;
+            maxSailHeatDissipationInMegajoules = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp) * 1e-6;
+            maxKscLaserPowerInWatt = maxSailHeatDissipationInMegajoules / kscLaserAbsorbtion * 1e+6;
             maxKscLaserPowerInGigaWatt = maxKscLaserPowerInWatt * 1e-9;
             maxKscLaserIrradiance = maxKscLaserPowerInGigaWatt / surfaceArea;
         }
@@ -651,8 +658,8 @@ namespace FNPlugin.Beamedpower
             maxNetworkPower = 0;
 
             externalTemperature = FlightGlobals.getExternalTemperature(part.transform.position, vessel.mainBody);
-            maxSailHeatDissipation = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp - externalTemperature);
-            maxKscLaserPowerInWatt = maxSailHeatDissipation / kscLaserAbsorbtion;
+            maxSailHeatDissipationInMegajoules = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp - externalTemperature);
+            maxKscLaserPowerInWatt = maxSailHeatDissipationInMegajoules / kscLaserAbsorbtion;
             maxKscLaserPowerInGigaWatt = maxKscLaserPowerInWatt * 1e-9;
             maxKscLaserIrradiance = maxKscLaserPowerInGigaWatt / surfaceArea;
 
@@ -949,15 +956,17 @@ namespace FNPlugin.Beamedpower
         private void ProcesThermalDynamics()
         {
             var iterations = (int)Math.Round(10000 * Math.Min(100, TimeWarp.fixedDeltaTime), 0);
-            var thermalMass = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;            
+            var thermalMassPerKilogram = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;            
 
             // calculate heating
             dissipationInMegaJoule = 0;
             solarfluxWasteheatInMegaJoule = (1 - reflectedPhotonRatio) * totalSolarEnergyReceivedInMJ * Math.Max(0, 1 - vessel.atmDensity);
             beamPowerWasteheatInMegaJoule = kscLaserAbsorbtion * totalReceivedBeamedPower;
-            var totalHeatingInMegajoules = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
-            var fixedThermalMass = TimeWarp.fixedDeltaTime / thermalMass;
-            var temperatureIncrease = totalHeatingInMegajoules * fixedThermalMass;
+            currentSailHeatDissipationInMegajoules = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
+            sailHeatDissipationTemperature = Math.Pow(currentSailHeatDissipationInMegajoules * 1e+6 / surfaceArea / PhysicsGlobals.StefanBoltzmanConstant, 0.25);
+
+            var fixedThermalMass = TimeWarp.fixedDeltaTime / thermalMassPerKilogram;
+            var temperatureIncrease = currentSailHeatDissipationInMegajoules * fixedThermalMass;
             var iterationTemperatureIncrease = temperatureIncrease / iterations;
             var effectiveSurfaceArea = surfaceArea * sailSurfaceModifier * PhysicsGlobals.StefanBoltzmanConstant * 1e-6 / iterations;
 
