@@ -74,6 +74,8 @@ namespace FNPlugin.Beamedpower
         public double minimumWavelength = 0.000000620;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Max wavelength", guiUnits = " m")]
         public double maximumWavelength = 0.01;
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "Sail Max heat dissipation", guiUnits = " W", guiFormat = "F0")]
+        public double maxSailHeatDissipation;
         [KSPField(guiActiveEditor = false, guiActive = false, guiName = "Max Sail irradiance", guiUnits = " W", guiFormat = "F0")]
         public double maxKscLaserPowerInWatt;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Sail irradiance", guiUnits = " GW", guiFormat = "F3")]
@@ -634,7 +636,8 @@ namespace FNPlugin.Beamedpower
                 return;
 
             diameter = Math.Sqrt(surfaceArea);
-            maxKscLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp) / kscLaserAbsorbtion;
+            maxSailHeatDissipation = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp);
+            maxKscLaserPowerInWatt = maxSailHeatDissipation / kscLaserAbsorbtion;
             maxKscLaserPowerInGigaWatt = maxKscLaserPowerInWatt * 1e-9;
             maxKscLaserIrradiance = maxKscLaserPowerInGigaWatt / surfaceArea;
         }
@@ -647,7 +650,9 @@ namespace FNPlugin.Beamedpower
             updateCounter++;
             maxNetworkPower = 0;
 
-            maxKscLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp - FlightGlobals.getExternalTemperature(part.transform.position)) / kscLaserAbsorbtion;
+            externalTemperature = FlightGlobals.getExternalTemperature(part.transform.position, vessel.mainBody);
+            maxSailHeatDissipation = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp - externalTemperature);
+            maxKscLaserPowerInWatt = maxSailHeatDissipation / kscLaserAbsorbtion;
             maxKscLaserPowerInGigaWatt = maxKscLaserPowerInWatt * 1e-9;
             maxKscLaserIrradiance = maxKscLaserPowerInGigaWatt / surfaceArea;
 
@@ -936,7 +941,7 @@ namespace FNPlugin.Beamedpower
         private void UpdateGeforceThreshold()
         {
             if (connectedTransmittersCount > 0)
-                TimeWarp.GThreshold = 10000;
+                TimeWarp.GThreshold = 100000;
             else
                 TimeWarp.GThreshold = 2;
         }
@@ -944,12 +949,10 @@ namespace FNPlugin.Beamedpower
         private void ProcesThermalDynamics()
         {
             var iterations = (int)Math.Round(10000 * Math.Min(100, TimeWarp.fixedDeltaTime), 0);
-
-            dissipationInMegaJoule = 0;
-            var thermalMass = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
-            externalTemperature = FlightGlobals.getExternalTemperature(part.transform.position, vessel.mainBody);
+            var thermalMass = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;            
 
             // calculate heating
+            dissipationInMegaJoule = 0;
             solarfluxWasteheatInMegaJoule = (1 - reflectedPhotonRatio) * totalSolarEnergyReceivedInMJ * Math.Max(0, 1 - vessel.atmDensity);
             beamPowerWasteheatInMegaJoule = kscLaserAbsorbtion * totalReceivedBeamedPower;
             var totalHeatingInMegajoules = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
@@ -1023,7 +1026,7 @@ namespace FNPlugin.Beamedpower
             var dragForcePerSquareMeter = atmosphericGasKgPerSquareMeter * 0.5 * effectiveSpeedForDrag * effectiveSpeedForDrag;
             maximumDragPerSquareMeter = (float)(dragForcePerSquareMeter * maximumDragCoefficient);
             
-            // apply specular Drag
+            // calculate specular Drag
             Vector3d partNormal = this.part.transform.up;
             if (cosOrbitRaw < 0)
                 partNormal = -partNormal;
@@ -1032,22 +1035,21 @@ namespace FNPlugin.Beamedpower
             var specularDragPerSquareMeter = specularDragCoefficient * dragForcePerSquareMeter * specularRatio;
             var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea;
             specularSailDragInNewton = (float)specularDragInNewton;
-            var specularDragForceFixed = specularDragInNewton * partNormal;
-            var specularDragDeceleration = -specularDragForceFixed / vesselMassInKg;
+            var specularDragForce = specularDragInNewton * partNormal;
 
-            ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * specularDragDeceleration * TimeWarp.fixedDeltaTime);
-
-            // apply Diffuse Drag
+            // calculate Diffuse Drag
             var diffuseDragCoefficient = 1 + highOrbitModifier + squaredCosOrbitalDrag * 1.3 * highOrbitModifier;
             var diffuseDragPerSquareMeter = diffuseDragCoefficient * dragForcePerSquareMeter * diffuseRatio;
             var diffuseDragInNewton = diffuseDragPerSquareMeter * effectiveSurfaceArea;
             diffuseSailDragInNewton = (float)diffuseDragInNewton;
-            var diffuseDragForceFixed = diffuseDragInNewton * normalizedOrbitalVelocity;
-            var diffuseDragDeceleration = -diffuseDragForceFixed / vesselMassInKg;
+            var diffuseDragForce = diffuseDragInNewton * normalizedOrbitalVelocity;
+
+            var combinedDragDeceleration = (specularDragForce + diffuseDragForce) / vesselMassInKg;
+
+            // apply drag to vessel
+            ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * combinedDragDeceleration * TimeWarp.fixedDeltaTime);
 
             weightedDragCoefficient = specularDragCoefficient * specularRatio + diffuseDragCoefficient * diffuseRatio;
-
-            ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * diffuseDragDeceleration * TimeWarp.fixedDeltaTime);
 
             // increase temperature skin
             dragHeatInMegajoule = highAtmosphereModifier * dragForcePerSquareMeter * effectiveSurfaceArea * heatMultiplier * (0.1 + cosObitalDrag) * 1e-3;
