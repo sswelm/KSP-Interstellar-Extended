@@ -78,8 +78,8 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Max heat dissipation", guiUnits = " MJ/s", guiFormat = "F3")]
         public double maxSailHeatDissipationInMegajoules;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Cur heat dissipation", guiUnits = " MJ/s", guiFormat = "F3")]
-        public double currentSailHeatDissipationInMegajoules;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail dissipation temperature", guiUnits = " K", guiFormat = "F3")]
+        public double currentSailHeatingInMegajoules;
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Dissipation temperature", guiUnits = " K", guiFormat = "F3")]
         public double sailHeatDissipationTemperature;
 
 
@@ -955,36 +955,24 @@ namespace FNPlugin.Beamedpower
 
         private void ProcesThermalDynamics()
         {
-            var iterations = (int)Math.Round(10000 * Math.Min(100, TimeWarp.fixedDeltaTime), 0);
             var thermalMassPerKilogram = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;            
 
             // calculate heating
             dissipationInMegaJoule = 0;
             solarfluxWasteheatInMegaJoule = (1 - reflectedPhotonRatio) * totalSolarEnergyReceivedInMJ * Math.Max(0, 1 - vessel.atmDensity);
             beamPowerWasteheatInMegaJoule = kscLaserAbsorbtion * totalReceivedBeamedPower;
-            currentSailHeatDissipationInMegajoules = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
-            sailHeatDissipationTemperature = Math.Pow(currentSailHeatDissipationInMegajoules * 1e+6 / surfaceArea / PhysicsGlobals.StefanBoltzmanConstant, 0.25);
+            currentSailHeatingInMegajoules = beamPowerWasteheatInMegaJoule + solarfluxWasteheatInMegaJoule + dragHeatInMegajoule;
+            sailHeatDissipationTemperature = Math.Pow(currentSailHeatingInMegajoules * 1e+6 / surfaceArea / PhysicsGlobals.StefanBoltzmanConstant, 0.25);
 
-            var fixedThermalMass = TimeWarp.fixedDeltaTime / thermalMassPerKilogram;
-            var temperatureIncrease = currentSailHeatDissipationInMegajoules * fixedThermalMass;
-            var iterationTemperatureIncrease = temperatureIncrease / iterations;
-            var effectiveSurfaceArea = surfaceArea * sailSurfaceModifier * PhysicsGlobals.StefanBoltzmanConstant * 1e-6 / iterations;
+            var temperatureDelta = Math.Max(0, part.skinTemperature - externalTemperature);
+            var dissipationInMegaJoules = GetBlackBodyDissipation(surfaceArea, temperatureDelta) * 1e-6;
+            var temperatureChange = (currentSailHeatingInMegajoules - dissipationInMegaJoules) / thermalMassPerKilogram;
+            var modifiedTemperature = part.skinTemperature + temperatureChange;
 
-            for (int i = 0; i < iterations; i++)
-            {
-                // process heating
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    part.skinTemperature += iterationTemperatureIncrease;
-
-                // process dissipation
-                var temperatureDelta = Math.Max(0, part.skinTemperature - externalTemperature);
-                var tempToPowerFour = temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
-                var iterationDissipation = effectiveSurfaceArea * tempToPowerFour;
-                dissipationInMegaJoule += iterationDissipation;
-
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    part.skinTemperature = Math.Max(externalTemperature, part.skinTemperature - iterationDissipation * fixedThermalMass);
-            }
+            if (part.skinTemperature < sailHeatDissipationTemperature)
+                part.skinTemperature = Math.Min(sailHeatDissipationTemperature, modifiedTemperature);
+            else
+                part.skinTemperature = Math.Max(sailHeatDissipationTemperature, modifiedTemperature);
         }
 
         private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)
