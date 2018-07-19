@@ -964,22 +964,25 @@ namespace FNPlugin
 
         private void ColorHeat()
         {
+            //Account for Draper Point
+            var simulatedTempRatio = (CurrentRadiatorTemperature - 798d) / (maxRadiatorTemperature - 798d);
+            var stockTempRatio = (part.temperature - drapperPoint) / (part.maxTemp - drapperPoint);
+            var colorRatio = Math.Min(Math.Max(simulatedTempRatio, stockTempRatio), 1);
+
             if (heatStates != null && heatStates.Any())
             {
-				var colorRatio = CurrentRadiatorTemperature / maxRadiatorTemperature;
-				var radiatorTempRatio = Mathf.Min((float)(colorRatio * colorRatio), 1);
-                SetHeatAnimationRatio(radiatorTempRatio);
+                SetHeatAnimationRatio(Mathf.Min((float)(colorRatio * colorRatio), 1));
             }
             else if (!string.IsNullOrEmpty(colorHeat))
             {
                 if (renderArray == null)
                     return;
 
-                var radiatorTempRatio = Mathf.Min((float)CurrentRadiatorTemperature / maxRadiatorTemperature, 1);
-                var partTempRatio = Mathf.Min(((float)part.temperature / maxRadiatorTemperature), 1);
-                var colorRatioRed = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower);
-                var colorRatioGreen = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower * 2) * 0.6f;
-                var colorRatioBlue = Mathf.Pow(Math.Max(partTempRatio, radiatorTempRatio) / temperatureColorDivider, emissiveColorPower * 4) * 0.3f;
+                var temperatureRatio = colorRatio / temperatureColorDivider;
+
+                var colorRatioRed = Mathf.Pow(temperatureRatio, emissiveColorPower);
+                var colorRatioGreen = Mathf.Pow(temperatureRatio, emissiveColorPower * 2) * 0.6f;
+                var colorRatioBlue = Mathf.Pow(temperatureRatio, emissiveColorPower * 4) * 0.3f;
 
                 emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, (float)wasteheatRatio);
 

@@ -7,6 +7,8 @@ using FNPlugin.Redist;
 using FNPlugin.Constants;
 using FNPlugin.Resources;
 using TweakScale;
+using KSP.UI.Screens;
+using System.Reflection;
 
 namespace FNPlugin.Beamedpower
 {
@@ -973,6 +975,10 @@ namespace FNPlugin.Beamedpower
                 part.skinTemperature = Math.Min(sailHeatDissipationTemperature, modifiedTemperature);
             else
                 part.skinTemperature = Math.Max(sailHeatDissipationTemperature, modifiedTemperature);
+
+			//part.AddThermalFlux
+			//part.AddSkinThermalFlux
+			
         }
 
         private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)
@@ -1347,9 +1353,19 @@ namespace FNPlugin.Beamedpower
 
         public static bool HasTech(string techid)
         {
+            if (ResearchAndDevelopment.Instance == null)
+                return true;
+
             return ResearchAndDevelopment.Instance.GetTechState(techid) != null;
         }
 
+        public static bool HasUpgrade(string name)
+        {
+            if (PartUpgradeManager.Handler == null)
+                return true;
+
+            return PartUpgradeManager.Handler.IsUnlocked(name);
+        }
 
     }
 }

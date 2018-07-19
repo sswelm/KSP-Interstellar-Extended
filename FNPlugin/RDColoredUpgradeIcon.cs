@@ -42,6 +42,8 @@ namespace FNPlugin
 
             foreach (RDPartListItem item in items.Where(p => !p.isPart && p.upgrade != null))
             {
+				item.
+
                 item.gameObject.GetComponent<UnityEngine.UI.Image>().color = greenColor;
             }
         }
