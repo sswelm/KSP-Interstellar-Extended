@@ -966,7 +966,7 @@ namespace FNPlugin
         {
             //Account for Draper Point
             var simulatedTempRatio = (CurrentRadiatorTemperature - 798d) / (maxRadiatorTemperature - 798d);
-            var stockTempRatio = (part.temperature - drapperPoint) / (part.maxTemp - drapperPoint);
+            var stockTempRatio = (part.temperature - 798d) / (part.maxTemp - 798d);
             var colorRatio = Math.Min(Math.Max(simulatedTempRatio, stockTempRatio), 1);
 
             if (heatStates != null && heatStates.Any())
@@ -980,11 +980,11 @@ namespace FNPlugin
 
                 var temperatureRatio = colorRatio / temperatureColorDivider;
 
-                var colorRatioRed = Mathf.Pow(temperatureRatio, emissiveColorPower);
-                var colorRatioGreen = Mathf.Pow(temperatureRatio, emissiveColorPower * 2) * 0.6f;
-                var colorRatioBlue = Mathf.Pow(temperatureRatio, emissiveColorPower * 4) * 0.3f;
+                var colorRatioRed = Math.Pow(temperatureRatio, emissiveColorPower);
+                var colorRatioGreen = Math.Pow(temperatureRatio, emissiveColorPower * 2) * 0.6;
+                var colorRatioBlue = Math.Pow(temperatureRatio, emissiveColorPower * 4) * 0.3;
 
-                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, (float)wasteheatRatio);
+                emissiveColor = new Color((float)colorRatioRed, (float)colorRatioGreen, (float)colorRatioBlue, (float)wasteheatRatio);
 
                 var renderArrayCount = renderArray.Count();
                 for (var i = 0; i < renderArrayCount; i++)
