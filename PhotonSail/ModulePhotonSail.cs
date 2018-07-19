@@ -92,9 +92,6 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Beam irradiance", guiUnits = " GW/m\xB2", guiFormat = "F3")]
         public double maxKscLaserIrradiance;
 
-        [KSPField(guiActiveEditor = true, guiName = "Geeforce Tolerance", guiUnits = " G", guiFormat = "F0")]
-        public double gTolerance;
-
         [KSPField]
         public double kscPowerMult = 1e8;
         [KSPField]
@@ -131,6 +128,23 @@ namespace FNPlugin.Beamedpower
         [KSPField]
         public string kscLaserApertureTech7 = "";
 
+
+        [KSPField]
+        public string kscPowerUpgdradeName1 = "KscPowerUpgradeA";
+        [KSPField]
+        public string kscPowerUpgdradeName2 = "KscPowerUpgradeB";
+        [KSPField]
+        public string kscPowerUpgdradeName3 = "KscPowerUpgradeC";
+        [KSPField]
+        public string kscPowerUpgdradeName4 = "KscPowerUpgradeD";
+        [KSPField]
+        public string kscPowerUpgdradeName5 = "KscPowerUpgradeE";
+        [KSPField]
+        public string kscPowerUpgdradeName6 = "KscPowerUpgradeF";
+        [KSPField]
+        public string kscPowerUpgdradeName7 = "KscPowerUpgradeG";
+
+
         [KSPField]
         public int kscLaserApertureBonus0 = 50;
         [KSPField]
@@ -148,37 +162,37 @@ namespace FNPlugin.Beamedpower
         [KSPField]
         public int kscLaserApertureBonus7 = 0;
 
-        [KSPField]
-        public string kscLaserPowerTech1 = "specializedElectrics";
-        [KSPField]
-        public string kscLaserPowerTech2 = "experimentalElectrics";
-        [KSPField]
-        public string kscLaserPowerTech3 = "highTechElectricalSystems";
-        [KSPField]
-        public string kscLaserPowerTech4 = "highPowerElectricalSystems";
-        [KSPField]
-        public string kscLaserPowerTech5 = "experimentalElectricalSystems";
-        [KSPField]
-        public string kscLaserPowerTech6 = "exoticElectricalSystems";
-        [KSPField]
-        public string kscLaserPowerTech7 = "extremeElectricalSystems";
+        //[KSPField]
+        //public string kscLaserPowerTech1 = "specializedElectrics";
+        //[KSPField]
+        //public string kscLaserPowerTech2 = "experimentalElectrics";
+        //[KSPField]
+        //public string kscLaserPowerTech3 = "highTechElectricalSystems";
+        //[KSPField]
+        //public string kscLaserPowerTech4 = "highPowerElectricalSystems";
+        //[KSPField]
+        //public string kscLaserPowerTech5 = "experimentalElectricalSystems";
+        //[KSPField]
+        //public string kscLaserPowerTech6 = "exoticElectricalSystems";
+        //[KSPField]
+        //public string kscLaserPowerTech7 = "extremeElectricalSystems";
 
         [KSPField]
         public int kscLaserPowerBonus0 = 50;
         [KSPField]
-        public int kscLaserPowerBonus1 = 0;
+        public int kscLaserPowerBonus1 = 350;
         [KSPField]
-        public int kscLaserPowerBonus2 = 0;
+        public int kscLaserPowerBonus2 = 600;
         [KSPField]
-        public int kscLaserPowerBonus3 = 0;
+        public int kscLaserPowerBonus3 = 1000;
         [KSPField]
-        public int kscLaserPowerBonus4 = 0;
+        public int kscLaserPowerBonus4 = 2000;
         [KSPField]
-        public int kscLaserPowerBonus5 = 650;
+        public int kscLaserPowerBonus5 = 4000;
         [KSPField]
-        public int kscLaserPowerBonus6 = 0;
+        public int kscLaserPowerBonus6 = 12000;
         [KSPField]
-        public int kscLaserPowerBonus7 = 5000;
+        public int kscLaserPowerBonus7 = 30000;
 
         [KSPField]
         public string massReductionTech1 = "metaMaterials";
@@ -406,12 +420,7 @@ namespace FNPlugin.Beamedpower
         // Initialization
         public override void OnStart(PartModule.StartState state)
         {
-            gTolerance = part.gTolerance;
-
             diameter = Math.Sqrt(surfaceArea);
-
-            maxKscLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp) / kscLaserAbsorbtion;
-            maxKscLaserPowerInGigaWatt = maxKscLaserPowerInWatt * 1e-9;
 
             if (animName != null)
                 solarSailAnim = part.FindModelAnimators(animName).FirstOrDefault();
@@ -426,6 +435,8 @@ namespace FNPlugin.Beamedpower
 
             transparentShader = Shader.Find("Unlit/Transparent");
             beamTexture = GameDatabase.Instance.GetTexture("PhotonSail/ParticleFX/infrared2", false);
+
+            maxKscLaserPowerInWatt = GetBlackBodyDissipation(surfaceArea, part.skinMaxTemp) / kscLaserAbsorbtion;
 
             DetermineKscLaserPower();
 
@@ -462,14 +473,16 @@ namespace FNPlugin.Beamedpower
             if (ResearchAndDevelopment.Instance == null)
                 return;
 
-            kscLaserPowerInWatt = kscLaserPowerBonus0 * kscPowerMult;
-            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech1, kscLaserPowerBonus1) * kscPowerMult ;
-            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech2, kscLaserPowerBonus2) * kscPowerMult;
-            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech3, kscLaserPowerBonus3) * kscPowerMult;
-            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech4, kscLaserPowerBonus4) * kscPowerMult;
-            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech5, kscLaserPowerBonus5) * kscPowerMult;
-            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech6, kscLaserPowerBonus6) * kscPowerMult;
-            kscLaserPowerInWatt += GetTechCost(kscLaserPowerTech7, kscLaserPowerBonus7) * kscPowerMult;
+            kscLaserPowerInWatt = kscLaserPowerBonus0;
+            kscLaserPowerInWatt += HasUpgrade(kscPowerUpgdradeName1) ? kscLaserPowerBonus1 : 0;
+            kscLaserPowerInWatt += HasUpgrade(kscPowerUpgdradeName2) ? kscLaserPowerBonus2 : 0;
+            kscLaserPowerInWatt += HasUpgrade(kscPowerUpgdradeName3) ? kscLaserPowerBonus3 : 0;
+            kscLaserPowerInWatt += HasUpgrade(kscPowerUpgdradeName4) ? kscLaserPowerBonus4 : 0;
+            kscLaserPowerInWatt += HasUpgrade(kscPowerUpgdradeName5) ? kscLaserPowerBonus5 : 0;
+            kscLaserPowerInWatt += HasUpgrade(kscPowerUpgdradeName6) ? kscLaserPowerBonus6 : 0;
+            kscLaserPowerInWatt += HasUpgrade(kscPowerUpgdradeName7) ? kscLaserPowerBonus7 : 0;
+
+            kscLaserPowerInWatt *= kscPowerMult;
         }
 
         private void DetermineKscLaserAperture()
@@ -477,14 +490,16 @@ namespace FNPlugin.Beamedpower
             if (ResearchAndDevelopment.Instance == null)
                 return;
 
-            kscLaserAperture = kscLaserApertureBonus0 * kscApertureMult;
-            kscLaserAperture += GetTechCost(kscLaserApertureTech1, kscLaserApertureBonus1) * kscApertureMult;
-            kscLaserAperture += GetTechCost(kscLaserApertureTech2, kscLaserApertureBonus2) * kscApertureMult;
-            kscLaserAperture += GetTechCost(kscLaserApertureTech3, kscLaserApertureBonus3) * kscApertureMult;
-            kscLaserAperture += GetTechCost(kscLaserApertureTech4, kscLaserApertureBonus4) * kscApertureMult;
-            kscLaserAperture += GetTechCost(kscLaserApertureTech5, kscLaserApertureBonus5) * kscApertureMult;
-            kscLaserAperture += GetTechCost(kscLaserApertureTech6, kscLaserApertureBonus6) * kscApertureMult;
-            kscLaserAperture += GetTechCost(kscLaserApertureTech7, kscLaserApertureBonus7) * kscApertureMult;
+            kscLaserAperture = kscLaserApertureBonus0;
+            kscLaserAperture += GetTechCost(kscLaserApertureTech1, kscLaserApertureBonus1);
+            kscLaserAperture += GetTechCost(kscLaserApertureTech2, kscLaserApertureBonus2);
+            kscLaserAperture += GetTechCost(kscLaserApertureTech3, kscLaserApertureBonus3);
+            kscLaserAperture += GetTechCost(kscLaserApertureTech4, kscLaserApertureBonus4);
+            kscLaserAperture += GetTechCost(kscLaserApertureTech5, kscLaserApertureBonus5);
+            kscLaserAperture += GetTechCost(kscLaserApertureTech6, kscLaserApertureBonus6);
+            kscLaserAperture += GetTechCost(kscLaserApertureTech7, kscLaserApertureBonus7);
+
+            kscLaserAperture *= kscApertureMult;
         }
 
         private void DermineMassTechMultiplier()
@@ -1353,17 +1368,11 @@ namespace FNPlugin.Beamedpower
 
         public static bool HasTech(string techid)
         {
-            if (ResearchAndDevelopment.Instance == null)
-                return true;
-
             return ResearchAndDevelopment.Instance.GetTechState(techid) != null;
         }
 
         public static bool HasUpgrade(string name)
         {
-            if (PartUpgradeManager.Handler == null)
-                return true;
-
             return PartUpgradeManager.Handler.IsUnlocked(name);
         }
 
