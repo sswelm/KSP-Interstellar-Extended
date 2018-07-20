@@ -150,6 +150,8 @@ namespace FNPlugin
         [KSPField]
         public double wasteHeatMultiplier = 1;
         [KSPField]
+        public double wasteHeatModifier = 1;
+        [KSPField]
         public double apertureMultiplier = 1;
         [KSPField]
         public double highSpeedAtmosphereFactor = 0;
@@ -214,7 +216,7 @@ namespace FNPlugin
         public double flowRate;
         [KSPField(guiActiveEditor = false, guiActive = false)]
         public double kerbalismPowerOutput;
-        [KSPField(guiActiveEditor = false, guiActive = true, guiFormat = "F2")]
+        [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F2")]
         public double thermal_power_ratio;
         [KSPField]
         public double powerCapacityEfficiency;
@@ -897,7 +899,7 @@ namespace FNPlugin
             }
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER));
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));

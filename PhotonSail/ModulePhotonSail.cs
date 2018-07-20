@@ -220,9 +220,9 @@ namespace FNPlugin.Beamedpower
         public double kscLaserPowerInGigaWatt;
         [KSPField(guiActiveEditor = false, guiName = "KCS Laser Power", guiUnits = " W", guiFormat = "F0")]
         public double kscLaserPowerInWatt = 5e12;
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spotsize Mult")]
+        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Central Spotsize Mult")]
         public double kscCentralSpotsizeMult = 2;           // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Side Spotsize Mult")]
+        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Side Spotsize Mult")]
         public double kscSideSpotsizeMult = 22;
         [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spot Ratio")]
         public double kscCentralSpotEnergyRatio = 0.7;    // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
