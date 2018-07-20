@@ -113,21 +113,35 @@ namespace FNPlugin.Beamedpower
         [KSPField]
         public double startOfSailOpening = 0.54;
 
-        [KSPField]
-        public string kscLaserApertureTech1 = "specializedScienceTech";
-        [KSPField]
-        public string kscLaserApertureTech2 = "longTermScienceTech";
-        [KSPField]
-        public string kscLaserApertureTech3 = "scientificOutposts";
-        [KSPField]
-        public string kscLaserApertureTech4 = "highEnergyScience";
-        [KSPField]
-        public string kscLaserApertureTech5 = "appliedHighEnergyPhysics";
-        [KSPField]
-        public string kscLaserApertureTech6 = "ultraHighEnergyPhysics";
-        [KSPField]
-        public string kscLaserApertureTech7 = "";
+        //[KSPField]
+        //public string kscLaserApertureTech1 = "specializedScienceTech";
+        //[KSPField]
+        //public string kscLaserApertureTech2 = "longTermScienceTech";
+        //[KSPField]
+        //public string kscLaserApertureTech3 = "scientificOutposts";
+        //[KSPField]
+        //public string kscLaserApertureTech4 = "highEnergyScience";
+        //[KSPField]
+        //public string kscLaserApertureTech5 = "appliedHighEnergyPhysics";
+        //[KSPField]
+        //public string kscLaserApertureTech6 = "ultraHighEnergyPhysics";
+        //[KSPField]
+        //public string kscLaserApertureTech7 = "";
 
+        [KSPField]
+        public string kscLaserApertureName1 = "KscApertureUpgradeA";
+        [KSPField]
+        public string kscLaserApertureName2 = "KscApertureUpgradeB";
+        [KSPField]
+        public string kscLaserApertureName3 = "KscApertureUpgradeC";
+        [KSPField]
+        public string kscLaserApertureName4 = "KscApertureUpgradeD";
+        [KSPField]
+        public string kscLaserApertureName5 = "KscApertureUpgradeE";
+        [KSPField]
+        public string kscLaserApertureName6 = "KscApertureUpgradeF";
+        [KSPField]
+        public string kscLaserApertureName7 = "";
 
         [KSPField]
         public string kscPowerUpgdradeName1 = "KscPowerUpgradeA";
@@ -180,19 +194,19 @@ namespace FNPlugin.Beamedpower
         [KSPField]
         public int kscLaserPowerBonus0 = 50;
         [KSPField]
-        public int kscLaserPowerBonus1 = 350;
+        public int kscLaserPowerBonus1 = 350;   // 100000
         [KSPField]
-        public int kscLaserPowerBonus2 = 600;
+        public int kscLaserPowerBonus2 = 600;   // 200000
         [KSPField]
-        public int kscLaserPowerBonus3 = 1000;
+        public int kscLaserPowerBonus3 = 1000;  // 300000
         [KSPField]
-        public int kscLaserPowerBonus4 = 2000;
+        public int kscLaserPowerBonus4 = 2000;  // 500000
         [KSPField]
-        public int kscLaserPowerBonus5 = 4000;
+        public int kscLaserPowerBonus5 = 4000;  // 1000000
         [KSPField]
-        public int kscLaserPowerBonus6 = 12000;
+        public int kscLaserPowerBonus6 = 12000; // 3000000
         [KSPField]
-        public int kscLaserPowerBonus7 = 30000;
+        public int kscLaserPowerBonus7 = 30000; // 6000000
 
         [KSPField]
         public string massReductionTech1 = "metaMaterials";
@@ -491,13 +505,13 @@ namespace FNPlugin.Beamedpower
                 return;
 
             kscLaserAperture = kscLaserApertureBonus0;
-            kscLaserAperture += GetTechCost(kscLaserApertureTech1, kscLaserApertureBonus1);
-            kscLaserAperture += GetTechCost(kscLaserApertureTech2, kscLaserApertureBonus2);
-            kscLaserAperture += GetTechCost(kscLaserApertureTech3, kscLaserApertureBonus3);
-            kscLaserAperture += GetTechCost(kscLaserApertureTech4, kscLaserApertureBonus4);
-            kscLaserAperture += GetTechCost(kscLaserApertureTech5, kscLaserApertureBonus5);
-            kscLaserAperture += GetTechCost(kscLaserApertureTech6, kscLaserApertureBonus6);
-            kscLaserAperture += GetTechCost(kscLaserApertureTech7, kscLaserApertureBonus7);
+            kscLaserAperture += HasUpgrade(kscLaserApertureName1) ? kscLaserApertureBonus1 : 0;
+            kscLaserAperture += HasUpgrade(kscLaserApertureName2) ? kscLaserApertureBonus2 : 0;
+            kscLaserAperture += HasUpgrade(kscLaserApertureName3) ? kscLaserApertureBonus3 : 0;
+            kscLaserAperture += HasUpgrade(kscLaserApertureName4) ? kscLaserApertureBonus4 : 0;
+            kscLaserAperture += HasUpgrade(kscLaserApertureName5) ? kscLaserApertureBonus5 : 0;
+            kscLaserAperture += HasUpgrade(kscLaserApertureName6) ? kscLaserApertureBonus6 : 0;
+            kscLaserAperture += HasUpgrade(kscLaserApertureName7) ? kscLaserApertureBonus7 : 0;
 
             kscLaserAperture *= kscApertureMult;
         }
