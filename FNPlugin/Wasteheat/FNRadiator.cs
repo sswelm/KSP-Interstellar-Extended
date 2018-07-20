@@ -89,7 +89,10 @@ namespace FNPlugin
         public void Update()
         {
             Counter = UpdatingRadiator.updateCounter;
+
             WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+            var sqrtWasteHeatRatio = Math.Sqrt(WasteHeatRatio);
+
             //var efficiency = 1 - Math.Pow(1 - WasteHeatRatio, 400);
 
             if (Double.IsNaN(WasteHeatRatio))
@@ -101,13 +104,13 @@ namespace FNPlugin
             var normalized_atmosphere = Math.Min(UpdatingRadiator.vessel.atmDensity, 1);
 
             // titanium radiator
-            var radiator_temperature_temp_val_titanium = external_temperature + Math.Min((MaxVacuumTemperatureTitanium - external_temperature) * Math.Sqrt(WasteHeatRatio), MaxVacuumTemperatureTitanium - external_temperature);
+            var radiator_temperature_temp_val_titanium = external_temperature + Math.Min((MaxVacuumTemperatureTitanium - external_temperature) * sqrtWasteHeatRatio, MaxVacuumTemperatureTitanium - external_temperature);
 
             // graphene radiator
             var atmosphereModifierVacuum = Math.Max(Math.Min(1 - UpdatingRadiator.vessel.atmDensity, 1), 0);
             var atmosphereModifierAtmosphere = Math.Max(normalized_atmosphere, 0);
             var maxCurrentTemperatureGraphene = 1200 * atmosphereModifierAtmosphere + MaxVacuumTemperatureGraphene * atmosphereModifierVacuum;
-            var radiator_temperature_temp_val_graphene = external_temperature + Math.Min((MaxVacuumTemperatureGraphene - external_temperature) * Math.Sqrt(WasteHeatRatio), maxCurrentTemperatureGraphene - external_temperature);
+            var radiator_temperature_temp_val_graphene = external_temperature + Math.Min((MaxVacuumTemperatureGraphene - external_temperature) * sqrtWasteHeatRatio, maxCurrentTemperatureGraphene - external_temperature);
         }
     }
 
@@ -223,7 +226,7 @@ namespace FNPlugin
         [KSPField]
         public float atmosphereToleranceModifier = 1;
 
-        const string kspShader = "KSP/Emissive/Bumped Specular";
+        const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
         const int FRAME_DELAY = 9;
         const int DEPLOYMENT_DELAY = 6;
@@ -250,7 +253,8 @@ namespace FNPlugin
         private BaseField radiatorIsEnabledField;
         private BaseField isAutomatedField;
         private BaseField pivotEnabledField;
-        
+
+        private Shader kspShader;
         private Renderer renderer;
         private Animation deployAnimation;
         private Color emissiveColor;
@@ -518,6 +522,7 @@ namespace FNPlugin
 
             DetermineGenerationType();
 
+            kspShader = Shader.Find(kspShaderLocation);
             maxRadiatorTemperature = (float)MaxRadiatorTemperature;
 
             if (hasSurfaceAreaUpgradeTechReq)
@@ -679,7 +684,7 @@ namespace FNPlugin
                 radiatorState = _moduleDeployableRadiator.deployState;
             }
 
-            external_temperature = FlightGlobals.getExternalTemperature(part.transform.position);
+            external_temperature = Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), PhysicsGlobals.SpaceTemperature);
             normalizedAtmosphere = Math.Min(vessel.atmDensity, 1);
             effectiveRadiatorArea = EffectiveRadiatorArea;
             maxCurrentTemperature = maxAtmosphereTemperature * Math.Max(normalizedAtmosphere, 0) + maxVacuumTemperature * Math.Max(Math.Min(1 - vessel.atmDensity, 1), 0);
@@ -756,9 +761,9 @@ namespace FNPlugin
                     return;
                 }
 
-                radiator_temperature_temp_val = external_temperature + Math.Min(temperatureDifferenceMaximumWithExternal * Math.Sqrt(wasteheatRatio), temperatureDifferenceCurrentWithExternal);
+                radiator_temperature_temp_val = external_temperature + Math.Min(temperatureDifferenceMaximumWithExternal * wasteheatManager.SqrtResourceBarRatioBegin, temperatureDifferenceCurrentWithExternal);
 
-                var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * normalizedAtmosphere, 2.7), 0);
+                var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * normalizedAtmosphere, PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
@@ -772,19 +777,17 @@ namespace FNPlugin
                     else
                         explode_counter = 0;
 
-                    var efficiency = CalculateEfficiency();
-
-                    thermalPowerDissipPerSecond = efficiency * deltaTempToPowerFour * GameConstants.stefan_const * effectiveRadiatorArea / 1e6;
+                    thermalPowerDissipPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
 
                     if (Double.IsNaN(thermalPowerDissipPerSecond))
-                        Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in fixed_thermal_power_dissip");
+                        Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in thermalPowerDissipPerSecond");
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond) : 0;
 
                     if (Double.IsNaN(radiatedThermalPower))
                         Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermalPowerDissipPerSecond + ")");
 
-                    instantaneous_rad_temp = CalculateInstantaniousRadTemp();
+                    instantaneous_rad_temp = CalculateInstantaniousRadTemp(external_temperature);
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
 
@@ -793,26 +796,24 @@ namespace FNPlugin
                 }
                 else
                 {
-                    var efficiency = CalculateEfficiency();
-                    thermalPowerDissipPerSecond = efficiency * deltaTempToPowerFour * GameConstants.stefan_const * effectiveRadiatorArea / 0.5e7;
+                    thermalPowerDissipPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 2e-6;
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond) : 0;
 
-                    instantaneous_rad_temp = CalculateInstantaniousRadTemp();
+                    instantaneous_rad_temp = CalculateInstantaniousRadTemp(external_temperature);
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
                 }
 
                 if (vessel.atmDensity > 0)
                 {
-                    dynamic_pressure = 0.60205 * vessel.atmDensity * vessel.srf_velocity.sqrMagnitude / 101325;
-                    vessel.atmDensity += dynamic_pressure;
+                    dynamic_pressure = vessel.dynamicPressurekPa * 1e-2; //0.60205 * vessel.atmDensity * vessel.srf_velocity.sqrMagnitude / 101325;
+                    //vessel.atmDensity += dynamic_pressure;
 
-                    var efficiency = CalculateEfficiency();
-                    var convPowerDissip = efficiency * vessel.atmDensity * Math.Max(0, CurrentRadiatorTemperature - external_temperature) * effectiveRadiatorArea * 0.001 * convectiveBonus * Math.Max(part.submergedPortion * 10, 1);
+                    var convPowerDissip = wasteheatManager.RadiatorEfficiency * dynamic_pressure * Math.Max(0, CurrentRadiatorTemperature - external_temperature) * effectiveRadiatorArea * 0.001 * convectiveBonus * Math.Max(part.submergedPortion * 10, 1);
 
                     if (!radiatorIsEnabled)
-                        convPowerDissip = convPowerDissip / 2;
+                        convPowerDissip = convPowerDissip * 0.25;
 
                     convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(convPowerDissip) : 0;
 
@@ -837,9 +838,9 @@ namespace FNPlugin
             }
         }
 
-        private double CalculateInstantaniousRadTemp()
+        private double CalculateInstantaniousRadTemp(double externalTemperature)
         {
-            var result = Math.Max(radiator_temperature_temp_val, Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), 2.7));
+            var result = Math.Max(radiator_temperature_temp_val, externalTemperature);
 
             if (Double.IsNaN(result))
                 Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
@@ -847,14 +848,9 @@ namespace FNPlugin
             return result;
         }
 
-        private double CalculateEfficiency()
-        {
-            return 1 - Math.Pow(1 - wasteheatRatio, 400);
-        }
-
         private void DeployMentControl(double dynamic_pressure)
         {
-            if (dynamic_pressure > 0 && (atmosphereToleranceModifier * dynamic_pressure / 1.4854428818159e-3 * 100) > 100)
+            if (dynamic_pressure > 0 && (atmosphereToleranceModifier * dynamic_pressure * 6.73659786) > 100)
             {
                 if (!isDeployable || !radiatorIsEnabled) return;
 
@@ -994,8 +990,8 @@ namespace FNPlugin
                     if (renderer == null || renderer.material == null)
                         continue;
 
-                    if (renderer.material.shader != null && renderer.material.shader.name != kspShader)
-                        renderer.material.shader = Shader.Find(kspShader);
+                    if (renderer.material.shader != null && renderer.material.shader.name != kspShaderLocation)
+                        renderer.material.shader = kspShader;
 
                     if (part.name.StartsWith("circradiator"))
                     {
