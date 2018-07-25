@@ -343,7 +343,8 @@ namespace FNPlugin.Beamedpower
         BeamEffect[] beamEffectArray;
         Texture2D beamTexture;
         Shader transparentShader;
-        Animation solarSailAnim = null;
+        Animation solarSailAnim1 = null;
+        Animation solarSailAnim2 = null;
 
         Queue<double> periapsisChangeQueue = new Queue<double>(30);
         Queue<double> apapsisChangeQueue = new Queue<double>(30);
@@ -380,7 +381,8 @@ namespace FNPlugin.Beamedpower
         [KSPEvent(guiActiveEditor = true,  guiActive = true, guiName = "Deploy Sail", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]
         public void DeploySail()
         {
-            runAnimation(animName, solarSailAnim, 0.5f, 0);
+            runAnimation(animName, solarSailAnim1, 0.5f, 0);
+            runAnimation(animName, solarSailAnim2, 0.5f, 0);
             IsEnabled = true;
             buttonPressedTime = updateCounter;
         }
@@ -389,7 +391,8 @@ namespace FNPlugin.Beamedpower
         [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "Retract Sail", active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]
         public void RetractSail()
         {
-            runAnimation(animName, solarSailAnim, -0.5f, 1);
+            runAnimation(animName, solarSailAnim1, -0.5f, 1);
+            runAnimation(animName, solarSailAnim2, -0.5f, 1);
             IsEnabled = false;
         }
 
@@ -414,7 +417,12 @@ namespace FNPlugin.Beamedpower
             photovotalicSurfaceArea = photovoltaicArea / surfaceArea;
 
             if (animName != null)
-                solarSailAnim = part.FindModelAnimators(animName).FirstOrDefault();
+            {
+                var animators = part.FindModelAnimators(animName);
+                solarSailAnim1 = animators.Count() > 0 ? animators[0] : null;
+                solarSailAnim2 = animators.Count() > 1 ? animators[1] : null;           
+
+            }
 
             photonReflectionDefinitions = part.FindModulesImplementing<PhotonReflectionDefinition>();
 
@@ -425,9 +433,18 @@ namespace FNPlugin.Beamedpower
             // start with deployed sail  when enabled
             if (IsEnabled)
             {
-                solarSailAnim[animName].speed = initialAnimationSpeed;
-                solarSailAnim[animName].normalizedTime = initialAnimationNormalizedTime;
-                solarSailAnim.Blend(animName, initialAnimationTargetWeight);
+                if (solarSailAnim1 != null)
+                {
+                    solarSailAnim1[animName].speed = initialAnimationSpeed;
+                    solarSailAnim1[animName].normalizedTime = initialAnimationNormalizedTime;
+                    solarSailAnim1.Blend(animName, initialAnimationTargetWeight);
+                }
+                if (solarSailAnim2 != null)
+                {
+                    solarSailAnim2[animName].speed = initialAnimationSpeed;
+                    solarSailAnim2[animName].normalizedTime = initialAnimationNormalizedTime;
+                    solarSailAnim2.Blend(animName, initialAnimationTargetWeight);
+                }
             }
 
             transparentShader = Shader.Find("Unlit/Transparent");
@@ -667,7 +684,7 @@ namespace FNPlugin.Beamedpower
             updateCounter++;
             maxNetworkPower = 0;
 
-            var animationNormalizedTime = solarSailAnim[animName].normalizedTime;
+            var animationNormalizedTime = solarSailAnim1[animName].normalizedTime;
 
             var deploymentRatio = animationNormalizedTime > 0
                 ? (animationNormalizedTime > startOfSailOpening ? (animationNormalizedTime - startOfSailOpening) * (1 / (1 - startOfSailOpening)) : 0)
@@ -1315,7 +1332,7 @@ namespace FNPlugin.Beamedpower
 
         private static void runAnimation(string animationName, Animation anim, float speed, float aTime)
         {
-            if (anim == null || string.IsNullOrEmpty(animationName))
+            if (animationName == null || anim == null || string.IsNullOrEmpty(animationName))
                 return;
 
             anim[animationName].speed = speed;
