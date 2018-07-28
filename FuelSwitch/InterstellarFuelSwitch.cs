@@ -488,7 +488,7 @@ namespace InterstellarFuelSwitch
 
                 SetupTankList();
 
-                if (HighLogic.LoadedSceneIsEditor || HighLogic.LoadedSceneIsFlight)
+                if (HighLogic.LoadedSceneIsGame)
                 {
                     foreach (var modularTank in _modularTankList)
                     {
@@ -529,6 +529,8 @@ namespace InterstellarFuelSwitch
         {
             try
             {
+                Debug.Assert(_numberOfAvailableTanks > 0, "No available IFS tank has the proper tech.");
+
                 selectedTankSetup++;
 
                 if (selectedTankSetup >= _modularTankList.Count)
@@ -551,7 +553,10 @@ namespace InterstellarFuelSwitch
         {
             try
             {
+                Debug.Assert(_numberOfAvailableTanks > 0, "No available IFS tank has the proper tech.");
+
                 selectedTankSetup--;
+
                 if (selectedTankSetup < 0)
                     selectedTankSetup = _modularTankList.Count - 1;
 
