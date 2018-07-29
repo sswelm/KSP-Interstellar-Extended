@@ -256,7 +256,7 @@ namespace InterstellarFuelSwitch
                  return;
             }
 
-            if (HighLogic.LoadedSceneIsEditor)
+            if (!HighLogic.LoadedSceneIsFlight)
                 return;
 
             for (var i = 0; i < primaryResources.Count; i++)
