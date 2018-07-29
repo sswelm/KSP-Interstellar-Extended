@@ -8,9 +8,33 @@ using FNPlugin.Constants;
 
 namespace FNPlugin.Refinery
 {
-    class AtmosphericExtractor : RefineryActivityBase, IRefineryActivity
+    class AtmosphericExtractor : PartModule, IRefineryActivity
     {
-        new private const int valueWidth = 100;
+        [KSPField]
+        public double surfaceArea = 1;
+        [KSPField(guiActive = true)]
+        public double buildInAirIntake;
+        [KSPField(guiActive = true)]
+        public double atmosphereConsumptionRatio;
+
+        public static int labelWidth = 180;
+        public static int valueWidth = 180;
+
+        protected Part _part;
+        protected Vessel _vessel;
+        protected GUIStyle _bold_label;
+        protected GUIStyle _value_label;
+        protected GUIStyle _value_label_green;
+        protected GUIStyle _value_label_red;
+        protected GUIStyle _value_label_number;
+
+        protected string _status = "";
+        protected bool _allowOverflow;
+        protected double _current_power;
+        protected double _current_rate;
+        protected double _effectiveMaxPower;
+
+        //new private const int valueWidth = 100;
 
         // persistant
         [KSPField(isPersistant = true)]
@@ -124,6 +148,8 @@ namespace FNPlugin.Refinery
         string _krypton_resource_name;
         string _sodium_resource_name;
 
+        public double CurrentPower { get { return _current_power; } }
+
         public RefineryType RefineryType { get { return RefineryType.cryogenics; } }
 
         public String ActivityName { get { return "Atmospheric Extraction"; } }
@@ -140,7 +166,7 @@ namespace FNPlugin.Refinery
 
         public String Status { get { return String.Copy(_status); } }
 
-        public AtmosphericExtractor(Part part)
+        public void Initialize(Part part)
         {
             _part = part;
             _vessel = part.vessel;
@@ -265,8 +291,8 @@ namespace FNPlugin.Refinery
 
             // determine the maximum amount of a resource the vessel can hold (ie. tank capacities combined)
             // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
-            _part.GetResourceMass(_atmosphere, out _spareRoomAmmoniaMass, out _maxCapacityAtmosphereMass);
-            _part.GetResourceMass(_ammonia, out _spareRoomAtmosphereMass, out _maxCapacityAmmoniaMass);
+            _part.GetResourceMass(_atmosphere, out _spareRoomAtmosphereMass, out _maxCapacityAtmosphereMass);
+            _part.GetResourceMass(_ammonia, out _spareRoomAmmoniaMass , out _maxCapacityAmmoniaMass);
             _part.GetResourceMass(_argon, out _spareRoomArgonMass, out _maxCapacityArgonMass);
             _part.GetResourceMass(_dioxide, out _spareRoomDioxideMass, out _maxCapacityDioxideMass);
             _part.GetResourceMass(_helium3, out _spareRoomHelium3Mass, out _maxCapacityHelium3Mass);
@@ -286,15 +312,14 @@ namespace FNPlugin.Refinery
             _part.GetResourceMass(_sodium, out _spareRoomSodiumMass, out _maxCapacitySodiumMass);
 
             // determine the amount of resources needed for processing (i.e. intake atmosphere) that the vessel actually holds
-            _availableAtmosphereMass = _maxCapacityAtmosphereMass - _spareRoomAmmoniaMass;
+            _availableAtmosphereMass = _maxCapacityAtmosphereMass - _spareRoomAtmosphereMass;
 
-            // this should determine how much resource this process can consume
-            var fixedMaxAtmosphereConsumptionRate = _current_rate * fixedDeltaTime * _atmosphere.density;
-            var buildInAirIntake = fixedMaxAtmosphereConsumptionRate * _vessel.atmDensity;
+            // calculate build in scoop capacity
+            buildInAirIntake = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(_vessel) * (1 + _vessel.obt_speed) * surfaceArea;
 
-            var atmosphereConsumptionRatio = offlineCollecting ? 1 
-                    : fixedMaxAtmosphereConsumptionRate > 0
-                        ? Math.Min(fixedMaxAtmosphereConsumptionRate, buildInAirIntake + _availableAtmosphereMass) / fixedMaxAtmosphereConsumptionRate
+            atmosphereConsumptionRatio = offlineCollecting ? 1
+                    : _current_rate > 0
+                        ? Math.Min(_current_rate, buildInAirIntake + _availableAtmosphereMass) / _current_rate
                         : 0;
 
             _fixedConsumptionRate = _current_rate * fixedDeltaTime * atmosphereConsumptionRatio;
@@ -343,13 +368,11 @@ namespace FNPlugin.Refinery
                 if (offlineCollecting) // if we're collecting offline, we don't need to actually consume the resource, just provide the lines below with a number
                 {
                     // calculate consumption
-                    var internal_consumption = _fixedConsumptionRate * _vessel.atmDensity;
-                    var external_consumption = GetTotalAirScoopedPerSecond() * fixedDeltaTime;
+                    var internal_consumption = buildInAirIntake;
+                    var external_consumption = GetTotalAirScoopedPerSecond();
 
-                    var totalProcessed = Math.Min(_fixedConsumptionRate, internal_consumption + external_consumption);
+                    _atmosphere_consumption_rate = Math.Min(_current_rate, internal_consumption + external_consumption);
                     ScreenMessages.PostScreenMessage("The atmospheric extractor processed " + _atmosphere_resource_name + " for " + fixedDeltaTime.ToString("F0") + " seconds", 60.0f, ScreenMessageStyle.UPPER_CENTER);
-
-                    _atmosphere_consumption_rate = totalProcessed / fixedDeltaTime;
                 }
                 else
                 {
@@ -420,14 +443,11 @@ namespace FNPlugin.Refinery
 
                     var max_atmospheric_consumption_rate = _consumptionStorageRatio * _fixedConsumptionRate;
 
-                    // first consume atmosphere with build in air intakes
-                    var internal_consumpion = _fixedConsumptionRate * _vessel.atmDensity;
-
                     // calculate amospereic consumption per second
-                    _atmosphere_consumption_rate = internal_consumpion / fixedDeltaTime;
+                    _atmosphere_consumption_rate = buildInAirIntake;
 
                     // calculate missing atmsophere which can be extracted from air intakes
-                    var remainingConsumptionNeeded = Math.Max(0, internal_consumpion - max_atmospheric_consumption_rate);
+                    var remainingConsumptionNeeded = Math.Max(0, buildInAirIntake - max_atmospheric_consumption_rate);
 
                     // add the consumed atmosphere total atmopheric consumption rate
                     _atmosphere_consumption_rate += _part.RequestResource(_atmosphere_resource_name, remainingConsumptionNeeded / _atmosphere.density) / fixedDeltaTime * _atmosphere.density;
@@ -478,9 +498,24 @@ namespace FNPlugin.Refinery
         }
 
 
-        public override void UpdateGUI()
+        public void UpdateGUI()
         {
-            base.UpdateGUI();
+            if (_bold_label == null)
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
+            if (_value_label == null)
+                _value_label = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+            if (_value_label_green == null)
+            {
+                _value_label_green = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+                _value_label_green.normal.textColor = Color.green;
+            }
+            if (_value_label_red == null)
+            {
+                _value_label_red = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont };
+                _value_label_red.normal.textColor = Color.red;
+            }
+            if (_value_label_number == null)
+                _value_label_number = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, alignment = TextAnchor.MiddleRight };
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));

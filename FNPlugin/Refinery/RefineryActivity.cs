@@ -71,5 +71,7 @@ namespace FNPlugin.Refinery
 
         void PrintMissingResources();
 
+        void Initialize(Part part);
+
     }
 }

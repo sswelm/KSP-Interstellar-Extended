@@ -60,7 +60,7 @@ namespace FNPlugin.Refinery
 
         public String Status { get { return String.Copy(_status); } }
 
-        public PeroxideProcess(Part part) 
+        public void Initialize(Part part)
         {
             _part = part;
             _vessel = part.vessel;

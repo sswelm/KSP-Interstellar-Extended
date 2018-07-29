@@ -29,7 +29,7 @@ namespace FNPlugin.Refinery
 
         public String Status { get { return String.Copy(_status); } }
 
-        public NuclearFuelReprocessor(Part part) 
+        public void Initialize(Part part)
         {
             this._part = part;
             _vessel = part.vessel;

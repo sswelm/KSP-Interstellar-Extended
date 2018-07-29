@@ -28,6 +28,16 @@ namespace FNPlugin.Refinery
             return consumeFNResourcePerSecond(powerRequest, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
+        public void SupplyMegajoulesPerSecondWithMax(double supply, double maxsupply)
+        {
+            supplyFNResourcePerSecondWithMax(supply, maxsupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+        }
+
+        public void SupplyMegajoulesFixedWithMax(double supply, double maxsupply)
+        {
+            supplyFNResourceFixedWithMax(supply, maxsupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+        }
+
         public override string getResourceManagerDisplayName()
         {
             return displayName;

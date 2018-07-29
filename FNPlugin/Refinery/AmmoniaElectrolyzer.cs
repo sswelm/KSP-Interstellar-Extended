@@ -27,7 +27,7 @@ namespace FNPlugin.Refinery
 
         public String Status { get { return String.Copy(_status); } }
 
-        public AmmoniaElectrolyzer(Part part) 
+        public void Initialize(Part part)
         {
             _part = part;
             _vessel = part.vessel;

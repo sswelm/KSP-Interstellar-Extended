@@ -121,36 +121,34 @@ namespace FNPlugin.Refinery
 
             _window_ID = new System.Random(part.GetInstanceID()).Next(int.MinValue, int.MaxValue);
 
-            var unsortedList = new List<IRefineryActivity>();
+            _refinery_activities = part.FindModulesImplementing<IRefineryActivity>();
+            if (_refinery_activities == null || _refinery_activities.Count == 0)
+            {
+                var unsortedList = new List<IRefineryActivity>();
 
-            try
-            {
-                unsortedList.Add(new AnthraquinoneProcessor(this.part));
-                unsortedList.Add(new NuclearFuelReprocessor(this.part));
-                unsortedList.Add(new AluminiumElectrolyser(this.part));
-                unsortedList.Add(new SabatierReactor(this.part));
-                unsortedList.Add(new WaterElectroliser(this.part));
-                unsortedList.Add(new HeavyWaterElectroliser(this.part));
-                unsortedList.Add(new PeroxideProcess(this.part));
-                unsortedList.Add(new UF4Ammonolysiser(this.part));
-                unsortedList.Add(new HaberProcess(this.part));
-                unsortedList.Add(new AmmoniaElectrolyzer(this.part));
-                unsortedList.Add(new CarbonDioxideElectroliser(this.part));
-                unsortedList.Add(new WaterGasShift(this.part));
-                unsortedList.Add(new ReverseWaterGasShift(this.part));
-                unsortedList.Add(new PartialOxidationMethane(this.part));
-                unsortedList.Add(new SolarWindProcessor(this.part));
-                unsortedList.Add(new RegolithProcessor(this.part));
-                unsortedList.Add(new AtmosphericExtractor(this.part));
-                unsortedList.Add(new SeawaterExtractor(this.part));
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e, new UnityEngine.Object() { name = "ISRU Refinery" });
-                Debug.LogWarning("[KSPI] - ISRU Refinery Exception " + e.Message);
+                    unsortedList.Add(new AnthraquinoneProcessor());
+                    unsortedList.Add(new NuclearFuelReprocessor());
+                    unsortedList.Add(new AluminiumElectrolyser());
+                    unsortedList.Add(new SabatierReactor());
+                    unsortedList.Add(new WaterElectroliser());
+                    unsortedList.Add(new HeavyWaterElectroliser());
+                    unsortedList.Add(new PeroxideProcess());
+                    unsortedList.Add(new UF4Ammonolysiser());
+                    unsortedList.Add(new HaberProcess());
+                    unsortedList.Add(new AmmoniaElectrolyzer());
+                    unsortedList.Add(new CarbonDioxideElectroliser());
+                    unsortedList.Add(new WaterGasShift());
+                    unsortedList.Add(new ReverseWaterGasShift());
+                    unsortedList.Add(new PartialOxidationMethane());
+                    unsortedList.Add(new SolarWindProcessor());
+                    unsortedList.Add(new RegolithProcessor());
+                    unsortedList.Add(new AtmosphericExtractor());
+                    unsortedList.Add(new SeawaterExtractor());
+
+                _refinery_activities = unsortedList.Where(m => ((int)m.RefineryType & this.refineryType) == (int)m.RefineryType).OrderBy(a => a.ActivityName).ToList();
             }
 
-            _refinery_activities = unsortedList.Where(m => ((int)m.RefineryType & this.refineryType) == (int)m.RefineryType).OrderBy(a => a.ActivityName).ToList();
+            _refinery_activities.ForEach(m => m.Initialize(this.part));
 
             // load same 
             if (refinery_is_enabled && !string.IsNullOrEmpty(lastActivityName))

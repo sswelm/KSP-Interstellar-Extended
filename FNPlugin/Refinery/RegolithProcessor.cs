@@ -70,7 +70,7 @@ namespace FNPlugin.Refinery
 
         protected PartResourceDefinition deuteriumDefinition;
 
-        public RegolithProcessor(Part part)
+        public void Initialize(Part part)
         {
             _part = part;
             _vessel = part.vessel;

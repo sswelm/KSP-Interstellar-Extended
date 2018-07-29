@@ -1007,8 +1007,9 @@ namespace FNPlugin.Beamedpower
             if (currentSurfaceArea > 0)
             {
                 sailHeatDissipationTemperature = Math.Pow(currentSailHeatingInMegajoules * 1e+6 / currentSurfaceArea / PhysicsGlobals.StefanBoltzmanConstant, 0.25);
-                
-                var temperatureChange = (currentSailHeatingInMegajoules - dissipationInMegaJoules) / thermalMassPerKilogram;
+
+                var relaxedSailHeatingInMegajoules = updateCounter > 10 ? currentSailHeatingInMegajoules : currentSailHeatingInMegajoules * (updateCounter / 10d);
+                var temperatureChange = (relaxedSailHeatingInMegajoules - dissipationInMegaJoules) / thermalMassPerKilogram;
                 var modifiedTemperature = part.skinTemperature + temperatureChange;
 
                 if (part.skinTemperature < sailHeatDissipationTemperature)

@@ -91,8 +91,7 @@ namespace FNPlugin
 
         private double heat_production_f = 0;
         private List<ElectricEnginePropellant> _propellants;
-        private ModuleRCS attachedRCS;
-        private FNModuleRCSFX attachedModuleRCSFX;
+        private ModuleRCSFX attachedRCS;
         private float oldThrustLimiter;
         private bool oldPowerEnabled;
         private int insufficientPowerTimout = 2;
@@ -181,14 +180,17 @@ namespace FNPlugin
 
                 var moduleConfig = new ConfigNode("MODULE");
 
-                if (attachedModuleRCSFX != null)
-                    moduleConfig.AddValue("name", "FNModuleRCSFX");
-                else
-                    moduleConfig.AddValue("name", "ModuleRCS");
-
                 moduleConfig.AddValue("thrusterPower", attachedRCS.thrusterPower.ToString("0.000"));
                 moduleConfig.AddValue("resourceName", new_propellant.name);
                 moduleConfig.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
+
+                //var newPropNode = new ConfigNode();
+                ConfigNode propellantConfigNode = moduleConfig.AddNode("PROPELLANT");
+                propellantConfigNode.AddValue("name", new_propellant.name);
+                propellantConfigNode.AddValue("ratio", "1");
+                propellantConfigNode.AddValue("DrawGauge", "True");
+                propellantConfigNode.AddValue("resourceFlowMode", "STAGE_PRIORITY_FLOW");
+                attachedRCS.Load(propellantConfigNode);
 
                 currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
 
@@ -220,72 +222,6 @@ namespace FNPlugin
             }
         }
 
-        [KSPAction("Toggle Yaw")]
-        public void ToggleYawAction(KSPActionParam param)
-        {
-            if (attachedModuleRCSFX != null)
-                attachedModuleRCSFX.enableYaw = !attachedModuleRCSFX.enableYaw;
-        }
-
-        [KSPAction("Toggle Pitch")]
-        public void TogglePitchAction(KSPActionParam param)
-        {
-            if (attachedModuleRCSFX != null)
-                attachedModuleRCSFX.enablePitch = !attachedModuleRCSFX.enablePitch;
-        }
-
-        [KSPAction("Toggle Roll")]
-        public void ToggleRollAction(KSPActionParam param)
-        {
-            if (attachedModuleRCSFX != null)
-                attachedModuleRCSFX.enableRoll = !attachedModuleRCSFX.enableRoll;
-        }
-
-        [KSPAction("Toggle Enable X")]
-        public void ToggleEnableXAction(KSPActionParam param)
-        {
-            if (attachedModuleRCSFX != null)
-                attachedModuleRCSFX.enableX = !attachedModuleRCSFX.enableX;
-        }
-
-        [KSPAction("Toggle Enable Y")]
-        public void ToggleEnableYAction(KSPActionParam param)
-        {
-            if (attachedModuleRCSFX != null)
-                attachedModuleRCSFX.enableY = !attachedModuleRCSFX.enableY;
-        }
-
-        [KSPAction("Toggle Enable Z")]
-        public void ToggleEnableZAction(KSPActionParam param)
-        {
-            if (attachedModuleRCSFX != null)
-                attachedModuleRCSFX.enableZ = !attachedModuleRCSFX.enableZ;
-        }
-
-        [KSPAction("Toggle Full Thrust")]
-        public void ToggleFullThrustAction(KSPActionParam param)
-        {
-            fullThrustEnabled = !fullThrustEnabled;
-            if (attachedModuleRCSFX != null)
-                attachedModuleRCSFX.fullThrust = fullThrustEnabled;
-        }
-
-        [KSPAction("Toggle Use Throtle")]
-        public void ToggleUseThrotleEnabledAction(KSPActionParam param)
-        {
-            useThrotleEnabled = !useThrotleEnabled;
-            if (attachedModuleRCSFX != null)
-                attachedModuleRCSFX.useThrottle = useThrotleEnabled;
-        }
-
-        [KSPAction("Toggle Use Lever")]
-        public void ToggleUseLeverAction(KSPActionParam param)
-        {
-            useLeverEnabled = !useLeverEnabled;
-            if (attachedModuleRCSFX != null)
-                attachedModuleRCSFX.useLever = useLeverEnabled;
-        }
-
         [KSPAction("Toggle Power")]
         public void TogglePowerAction(KSPActionParam param)
         {
@@ -303,8 +239,7 @@ namespace FNPlugin
 
             try
             {
-                attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
-                attachedModuleRCSFX = attachedRCS as FNModuleRCSFX;
+                attachedRCS = this.part.FindModuleImplementing<ModuleRCSFX>();
 
                 if (!isInitialised)
                 {
@@ -313,17 +248,6 @@ namespace FNPlugin
                     useThrotleEnabled = attachedRCS.useThrottle;
                     fullThrustEnabled = attachedRCS.fullThrust;
                      useLeverEnabled = attachedRCS.useLever;
-                }
-
-                if (attachedModuleRCSFX != null)
-                {
-                    attachedModuleRCSFX.Fields["RCS"].guiActive = true;
-                    attachedModuleRCSFX.Fields["enableYaw"].guiActive = true;
-                    attachedModuleRCSFX.Fields["enablePitch"].guiActive = true;
-                    attachedModuleRCSFX.Fields["enableRoll"].guiActive = true;
-                    attachedModuleRCSFX.Fields["enableX"].guiActive = true;
-                    attachedModuleRCSFX.Fields["enableY"].guiActive = true;
-                    attachedModuleRCSFX.Fields["enableZ"].guiActive = true;
                 }
 
                 attachedRCS.precisionFactor = precisionFactorLimiter / 100;
@@ -474,9 +398,7 @@ namespace FNPlugin
 
             if (!HighLogic.LoadedSceneIsFlight) return;
 
-            currentThrust = 0;
-
-            currentThrust = attachedModuleRCSFX != null ? attachedModuleRCSFX.curThrust : attachedRCS.thrustForces.Sum(frc => frc);
+            currentThrust = attachedRCS.thrustForces.Sum(frc => frc);
 
             thrustForcesStr = String.Empty;
 

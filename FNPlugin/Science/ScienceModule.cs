@@ -212,7 +212,8 @@ namespace FNPlugin
             // update gui names
             Events["BeginResearch"].guiName = beginResearchName;
 
-            reprocessor = new NuclearFuelReprocessor(part);
+            reprocessor = new NuclearFuelReprocessor();
+            reprocessor.Initialize(part);
             antimatterGenerator = new AntimatterGenerator(part, 1, PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter));
 
             part.force_activate();

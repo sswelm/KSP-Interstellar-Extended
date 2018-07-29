@@ -43,7 +43,7 @@ namespace FNPlugin.Refinery
         protected string _hydrogen_resource_name;
         protected string _oxygen_resource_name;
 
-        public PartialOxidationMethane(Part part) 
+        public void Initialize(Part part)
         {
             _part = part;
             _vessel = part.vessel;

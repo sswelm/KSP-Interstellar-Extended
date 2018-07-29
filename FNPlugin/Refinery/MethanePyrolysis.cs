@@ -45,7 +45,7 @@ namespace FNPlugin.Refinery
 
 
 
-        public MethanePyrolysis(Part part) 
+        public void Initialize(Part part)
         {
             _part = part;
             _vessel = part.vessel;

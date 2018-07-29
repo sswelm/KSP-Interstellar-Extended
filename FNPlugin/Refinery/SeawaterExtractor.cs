@@ -40,7 +40,7 @@ namespace FNPlugin.Refinery
 
         // end of those
 
-        public SeawaterExtractor(Part part)
+        public void Initialize(Part part)
         {
             _part = part;
             _vessel = part.vessel;
