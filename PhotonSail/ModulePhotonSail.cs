@@ -108,8 +108,6 @@ namespace FNPlugin.Beamedpower
         [KSPField]
         public float initialAnimationSpeed = 1;
         [KSPField]
-        public float initialAnimationNormalizedTime = 0.5f;
-        [KSPField]
         public float initialAnimationTargetWeight = 0.01f;
         [KSPField]
         public double startOfSailOpening = 0.54;
@@ -420,8 +418,7 @@ namespace FNPlugin.Beamedpower
             {
                 var animators = part.FindModelAnimators(animName);
                 solarSailAnim1 = animators.Count() > 0 ? animators[0] : null;
-                solarSailAnim2 = animators.Count() > 1 ? animators[1] : null;           
-
+                solarSailAnim2 = animators.Count() > 1 ? animators[1] : null;
             }
 
             photonReflectionDefinitions = part.FindModulesImplementing<PhotonReflectionDefinition>();
@@ -436,14 +433,14 @@ namespace FNPlugin.Beamedpower
                 if (solarSailAnim1 != null)
                 {
                     solarSailAnim1[animName].speed = initialAnimationSpeed;
-                    solarSailAnim1[animName].normalizedTime = initialAnimationNormalizedTime;
-                    solarSailAnim1.Blend(animName, initialAnimationTargetWeight);
+                    solarSailAnim1[animName].normalizedTime = 0;
+                    solarSailAnim1.Blend(animName);
                 }
                 if (solarSailAnim2 != null)
                 {
                     solarSailAnim2[animName].speed = initialAnimationSpeed;
-                    solarSailAnim2[animName].normalizedTime = initialAnimationNormalizedTime;
-                    solarSailAnim2.Blend(animName, initialAnimationTargetWeight);
+                    solarSailAnim2[animName].normalizedTime = 0;
+                    solarSailAnim2.Blend(animName);
                 }
             }
 
