@@ -10,5 +10,6 @@
 
         void SupplyMegajoulesPerSecondWithMax(double supply, double maxsupply);
         void SupplyMegajoulesFixedWithMax(double supply, double maxsupply);
+
     }
 }

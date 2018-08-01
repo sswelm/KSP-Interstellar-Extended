@@ -12,9 +12,9 @@ namespace FNPlugin.Refinery
     {
         [KSPField]
         public double surfaceArea = 1;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double buildInAirIntake;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double atmosphereConsumptionRatio;
 
         public static int labelWidth = 180;
@@ -29,7 +29,7 @@ namespace FNPlugin.Refinery
         protected GUIStyle _value_label_number;
 
         protected string _status = "";
-        protected bool _allowOverflow;
+        //protected bool _allowOverflow;
         protected double _current_power;
         protected double _current_rate;
         protected double _effectiveMaxPower;
@@ -158,7 +158,8 @@ namespace FNPlugin.Refinery
         {
             get
             {
-                return _vessel.atmDensity > 0 ||  _part.GetConnectedResources(_atmosphere_resource_name).Any(rs => rs.amount > 0);
+                //return _vessel.atmDensity > 0 ||  _part.GetConnectedResources(_atmosphere_resource_name).Any(rs => rs.amount > 0);
+                return true;
             }
         }
 
@@ -367,11 +368,7 @@ namespace FNPlugin.Refinery
 
                 if (offlineCollecting) // if we're collecting offline, we don't need to actually consume the resource, just provide the lines below with a number
                 {
-                    // calculate consumption
-                    var internal_consumption = buildInAirIntake;
-                    var external_consumption = GetTotalAirScoopedPerSecond();
-
-                    _atmosphere_consumption_rate = Math.Min(_current_rate, internal_consumption + external_consumption);
+                    _atmosphere_consumption_rate = Math.Min(_current_rate, buildInAirIntake + GetTotalAirScoopedPerSecond());
                     ScreenMessages.PostScreenMessage("The atmospheric extractor processed " + _atmosphere_resource_name + " for " + fixedDeltaTime.ToString("F0") + " seconds", 60.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
                 else
@@ -572,9 +569,13 @@ namespace FNPlugin.Refinery
             GUILayout.Label((percentage * 100).ToString("##.######") + "%", _value_label, GUILayout.Width(valueWidth));
             GUILayout.Label(productionRate.ToString("##.######") + " U/s", _value_label, GUILayout.Width(valueWidth));
             GUILayout.Label((productionRate * GameConstants.SECONDS_IN_HOUR).ToString("##.######") + " U/h", _value_label, GUILayout.Width(valueWidth));
-            if (spareRoom > 0)
+            if (maximumCapacity > 0)
             {
-                GUILayout.Label((spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+                if (spareRoom > 0)
+                    GUILayout.Label((spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
+                else
+                    GUILayout.Label("", _value_label, GUILayout.Width(valueWidth));
+
                 GUILayout.Label((maximumCapacity - spareRoom).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
                 GUILayout.Label((maximumCapacity).ToString("##.######") + " t", _value_label, GUILayout.Width(valueWidth));
             }

@@ -54,9 +54,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ModulePhotonSail.cs" />
     <Compile Include="PhotonSailFilter.cs" />
     <Compile Include="PhotonReflection.cs" />
-    <Compile Include="ModulePhotonSail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

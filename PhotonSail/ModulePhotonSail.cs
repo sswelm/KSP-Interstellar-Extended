@@ -235,6 +235,9 @@ namespace FNPlugin.Beamedpower
         public double skinTemperature;
         [KSPField(guiActive = true, guiName = "#autoLOC_6001421", guiFormat = "F4", guiUnits = " EC/s")]
         public double photovoltalicFlowRate;
+        [KSPField(guiActive = false, guiName = "photovoltalic Potential", guiFormat = "F4", guiUnits = " EC/s")]
+        public double photovoltalicPotential;
+
         [KSPField(guiActive = false, guiName = "External Temperature", guiFormat = "F4", guiUnits = " K°")]
         public double externalTemperature;
         [KSPField(guiActive = true, guiName = "Current Skin Dissipation", guiFormat = "F4", guiUnits = " MJ")]
@@ -338,6 +341,7 @@ namespace FNPlugin.Beamedpower
         List<PhotonReflectionDefinition> photonReflectionDefinitions = new List<PhotonReflectionDefinition>();
         List<BeamRay> beamRays = new List<BeamRay>();
 
+        IPowerSupply powerSupply;
         BeamEffect[] beamEffectArray;
         Texture2D beamTexture;
         Shader transparentShader;
@@ -411,6 +415,11 @@ namespace FNPlugin.Beamedpower
         // Initialization
         public override void OnStart(PartModule.StartState state)
         {
+            powerSupply = part.FindModuleImplementing<IPowerSupply>();
+
+            if (powerSupply != null)
+                powerSupply.DisplayName = "started";
+
             diameter = Math.Sqrt(surfaceArea);
             photovotalicSurfaceArea = photovoltaicArea / surfaceArea;
 
@@ -787,6 +796,7 @@ namespace FNPlugin.Beamedpower
             totalReceivedBeamedPower = 0;
             totalReceivedBeamedPowerInGigaWatt = 0;
             photovoltalicFlowRate = 0;
+            photovoltalicPotential = 0;
             totalSolarEnergyReceivedInMJ = 0;
             totalForceInNewtonFromSolarEnergy = 0;
             totalForceInNewtonFromBeamedPower = 0;
@@ -869,7 +879,8 @@ namespace FNPlugin.Beamedpower
             UpdateGeforceThreshold();
 
             // generate electric power
-            part.RequestResource("ElectricCharge", -photovoltalicFlowRate * TimeWarp.fixedDeltaTime);
+            //part.RequestResource("ElectricCharge", -photovoltalicFlowRate * TimeWarp.fixedDeltaTime);
+            powerSupply.SupplyMegajoulesPerSecondWithMax(photovoltalicFlowRate, photovoltalicPotential);
 
             // calculate drag
             ApplyDrag(universalTime, vesselMassInKg);
@@ -1163,6 +1174,7 @@ namespace FNPlugin.Beamedpower
                     return 0;
             }
 
+            photovoltalicPotential += Math.Min(photovoltaicArea, maxPhotovotalicEnergy * 2e-4);
             photovoltalicFlowRate += Math.Min(photovoltaicArea * cosConeAngle,  maxPhotovotalicEnergy * cosConeAngle * 2e-4);
 
             // convert energy into momentum

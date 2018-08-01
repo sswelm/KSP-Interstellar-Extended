@@ -19,7 +19,7 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true)]
         protected string lastActivityName = "";
 
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Refinery Type")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Refinery Type")]
         public int refineryType = 255;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Control"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
