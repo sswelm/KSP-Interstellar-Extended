@@ -65,8 +65,21 @@ namespace FNPlugin.Beamedpower
         public double backsideEmissivity = 1;
         [KSPField(guiActiveEditor = true, guiName = "Sail Surface Area", guiUnits = " m\xB2", guiFormat = "F0")]
         public double surfaceArea = 144400;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Photovoltaic Area", guiUnits = " m\xB2", guiFormat = "F5")]
-        public double photovoltaicArea = 1;
+        [KSPField(guiActiveEditor = true, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        public double frontPhotovoltaicArea = 1;
+        [KSPField(guiActiveEditor = false, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        public double frontPhotovoltaicEfficiency = 0.2;
+        [KSPField(guiActiveEditor = true, guiName = "Sail Back Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        public double backPhotovoltaicArea = 1;
+        [KSPField(guiActiveEditor = false, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        public double backPhotovoltaicEfficiency = 0.2;
+
+        [KSPField(guiActiveEditor = true, guiName = "Doors Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        public double doorsPhotovoltaicArea = 1;
+        [KSPField(guiActiveEditor = true, guiName = "Doors Solar Cell Efficiency", guiUnits = " m\xB2", guiFormat = "F5")]
+        public double doorsPhotovoltaicEfficiency = 0.4;
+
+
         [KSPField(guiActiveEditor = true, guiName = "Sail Diameter", guiUnits = " m", guiFormat = "F3")]
         public double diameter;
 
@@ -327,7 +340,9 @@ namespace FNPlugin.Beamedpower
         double kscPhotonReflection;
         double maxSailHeatDissipationInWatt;
         double currentSurfaceArea;
-        double photovotalicSurfaceArea;
+        double frontPhotovotalicRatio;
+        double backPhotovotalicRatio;
+        double doorPhotovotalicRatio;
 
         const int animatedRays = 400;
 
@@ -421,7 +436,9 @@ namespace FNPlugin.Beamedpower
                 powerSupply.DisplayName = "started";
 
             diameter = Math.Sqrt(surfaceArea);
-            photovotalicSurfaceArea = photovoltaicArea / surfaceArea;
+            frontPhotovotalicRatio = frontPhotovoltaicArea / surfaceArea;
+            backPhotovotalicRatio = backPhotovoltaicArea / surfaceArea;
+            doorPhotovotalicRatio = doorsPhotovoltaicArea / surfaceArea;
 
             if (animName != null)
             {
@@ -1155,27 +1172,35 @@ namespace FNPlugin.Beamedpower
             if (double.IsNaN(pitchAngleInDegree))
                 pitchAngleInDegree = 0;
 
-            double maxPhotovotalicEnergy;
             double energyOnSailnWatt;
+            double doorsPhotovoltalicPower;
 
             if (isSun)
             {
                 solarSailAngle = pitchAngleInDegree;
-                maxPhotovotalicEnergy = photovoltaicArea * Math.Max(0, availableEnergyInWatt - 1);
-                energyOnSailnWatt = currentSurfaceArea * availableEnergyInWatt;
-                totalSolarEnergyReceivedInMJ = energyOnSailnWatt * cosConeAngle * 1e-6;                
+                energyOnSailnWatt = availableEnergyInWatt * currentSurfaceArea;
+                totalSolarEnergyReceivedInMJ = energyOnSailnWatt * cosConeAngle * 1e-6;
+
+                doorsPhotovoltalicPower = sailSurfaceModifier == 0 
+                    ? doorPhotovotalicRatio * energyOnSailnWatt * 0.45
+                    : doorPhotovotalicRatio * energyOnSailnWatt * cosConeAngle;
             }
             else
             {
-                energyOnSailnWatt = availableEnergyInWatt * sailSurfaceModifier;
-                maxPhotovotalicEnergy = photovotalicSurfaceArea * availableEnergyInWatt;
                 // skip beamed power in undesireable direction
                 if ((beamedPowerForwardDirection && cosConeAngleIsNegative) || (!beamedPowerForwardDirection && !cosConeAngleIsNegative))
                     return 0;
+
+                energyOnSailnWatt = availableEnergyInWatt * sailSurfaceModifier;
+                doorsPhotovoltalicPower = sailSurfaceModifier > 0 ? doorPhotovotalicRatio * energyOnSailnWatt * cosConeAngle * 0.2 : 0; 
             }
 
-            photovoltalicPotential += Math.Min(photovoltaicArea, maxPhotovotalicEnergy * 2e-4);
-            photovoltalicFlowRate += Math.Min(photovoltaicArea * cosConeAngle,  maxPhotovotalicEnergy * cosConeAngle * 2e-4);
+            // generate photovoltalic power
+            var currentPhotovotalicRatio = cosConeAngleIsNegative ? backPhotovotalicRatio : frontPhotovotalicRatio;
+            var currentPhotovotalicEfficiency = cosConeAngleIsNegative ? backPhotovoltaicEfficiency : frontPhotovoltaicEfficiency;
+            var maxPhotovotalicEnergy = energyOnSailnWatt * currentPhotovotalicRatio * currentPhotovotalicEfficiency + doorsPhotovoltalicPower;
+            photovoltalicPotential += maxPhotovotalicEnergy + doorsPhotovoltalicPower;
+            photovoltalicFlowRate += maxPhotovotalicEnergy * cosConeAngle + doorsPhotovoltalicPower;
 
             // convert energy into momentum
             var maxRelectedRadiationPresure = 2 * energyOnSailnWatt / GameConstants.speedOfLight;
