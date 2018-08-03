@@ -65,26 +65,18 @@ namespace FNPlugin.Beamedpower
         public double backsideEmissivity = 1;
         [KSPField(guiActiveEditor = true, guiName = "Sail Surface Area", guiUnits = " m\xB2", guiFormat = "F0")]
         public double surfaceArea = 144400;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
-        public double frontPhotovoltaicArea = 1;
-        [KSPField(guiActiveEditor = false, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
-        public double frontPhotovoltaicEfficiency = 0.2;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Back Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
-        public double backPhotovoltaicArea = 1;
-        [KSPField(guiActiveEditor = false, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
-        public double backPhotovoltaicEfficiency = 0.2;
-
-        [KSPField(guiActiveEditor = true, guiName = "Doors Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
-        public double doorsPhotovoltaicArea = 1;
-        [KSPField(guiActiveEditor = true, guiName = "Doors Solar Cell Efficiency", guiUnits = " m\xB2", guiFormat = "F5")]
-        public double doorsPhotovoltaicEfficiency = 0.4;
-
-
         [KSPField(guiActiveEditor = true, guiName = "Sail Diameter", guiUnits = " m", guiFormat = "F3")]
         public double diameter;
-
         [KSPField(guiActiveEditor = true, guiName = "Sail Mass", guiUnits = " t")]
         public float partMass;
+
+        [KSPField(guiActiveEditor = true, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        public double frontPhotovoltaicArea = 1;
+        [KSPField(guiActiveEditor = true, guiName = "Sail Back Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        public double backPhotovoltaicArea = 1;
+        [KSPField(guiActiveEditor = true, guiName = "Doors Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        public double doorsPhotovoltaicArea = 1;
+
         [KSPField(guiActiveEditor = true, guiName = "Sail Min wavelength", guiUnits = " m")]
         public double minimumWavelength = 0.000000620;
         [KSPField(guiActiveEditor = true, guiName = "Sail Max wavelength", guiUnits = " m")]
@@ -98,6 +90,23 @@ namespace FNPlugin.Beamedpower
         public double sailHeatDissipationTemperature;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Avsorbed heat", guiUnits = " J/s", guiFormat = "F3")]
         public double absorbedPhotonHeatInWatt;
+
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 1")]
+        public string solarPhotovoltaicTech1;
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 2")]
+        public string solarPhotovoltaicTech2;
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 3")]
+        public string solarPhotovoltaicTech3;
+
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Factor 0")]
+        public double solarPhotovoltaicEfficiency0 = 0.2f;
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Factor 1")]
+        public double solarPhotovoltaicEfficiency1 = 0.2f;
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Factor 2")]
+        public double solarPhotovoltaicEfficiency2 = 0.2f;
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Factor 3")]
+        public double solarPhotovoltaicEfficiency3 = 0.2f;
+
 
         //[KSPField(guiActiveEditor = false, guiActive = false, guiName = "Max Sail irradiance", guiUnits = " W", guiFormat = "F0")]
         //public double maxKscLaserPowerInWatt;
@@ -338,11 +347,15 @@ namespace FNPlugin.Beamedpower
         double sailSurfaceModifier = 0;
         double initialMass;
         double kscPhotonReflection;
+        double kscPhotovoltaic;
         double maxSailHeatDissipationInWatt;
         double currentSurfaceArea;
         double frontPhotovotalicRatio;
         double backPhotovotalicRatio;
         double doorPhotovotalicRatio;
+
+        double solarPhotovoltaicTechLevel;
+        double solarPhotovoltaicEfficiencyFactor;
 
         const int animatedRays = 400;
 
@@ -449,7 +462,7 @@ namespace FNPlugin.Beamedpower
 
             photonReflectionDefinitions = part.FindModulesImplementing<PhotonReflectionDefinition>();
 
-            kscPhotonReflection = GetPhotonReflection(kscLaserWavelength);
+            GetPhotonStatisticsForWavelength(kscLaserWavelength, ref kscPhotonReflection, ref kscPhotovoltaic);
 
             kscPhotonReflectionPercentage = kscPhotonReflection * 100;
 
@@ -503,8 +516,25 @@ namespace FNPlugin.Beamedpower
             }
         }
 
+        private void DeterminePhotovoltaicEfficiency()
+        {
+            solarPhotovoltaicTechLevel = HasTech(solarPhotovoltaicTech1, 1) + HasTech(solarPhotovoltaicTech2, 1) + HasTech(solarPhotovoltaicTech3, 1);
+
+            if (solarPhotovoltaicTechLevel >= 3)
+                solarPhotovoltaicEfficiencyFactor = solarPhotovoltaicEfficiency3;
+            else if (solarPhotovoltaicTechLevel == 2)
+                solarPhotovoltaicEfficiencyFactor = solarPhotovoltaicEfficiency2;
+            else if (solarPhotovoltaicTechLevel == 1)
+                solarPhotovoltaicEfficiencyFactor = solarPhotovoltaicEfficiency1;
+            else
+                solarPhotovoltaicEfficiencyFactor = solarPhotovoltaicEfficiency0;
+        }
+
         private void DetermineKscLaserPower()
         {
+            
+
+
             if (ResearchAndDevelopment.Instance == null)
                 return;
 
@@ -851,7 +881,7 @@ namespace FNPlugin.Beamedpower
             // unconditionally apply solarflux energy from every star
             foreach (var starLight in starLights)
             {
-                absorbedPhotonHeatInWatt += GenerateForce(reflectedPhotonRatio, ref starLight.position, ref positionVessel, starLight.solarFlux, universalTime, vesselMassInKg);
+                absorbedPhotonHeatInWatt += GenerateForce(reflectedPhotonRatio, solarPhotovoltaicEfficiencyFactor, ref starLight.position, ref positionVessel, starLight.solarFlux, universalTime, vesselMassInKg);
             }
 
             // apply photon pressure from Kerbal Space Station Beamed Power facility
@@ -870,7 +900,9 @@ namespace FNPlugin.Beamedpower
             // apply photon pressure from every potential laser source
             foreach (var receivedPowerData in sortedConnectedTransmitters)
             {
-                var photonReflection = GetPhotonReflection(receivedPowerData.Route.WaveLength);
+                double photonReflection = 0;
+                double photovoltaicEfficiency = 0;
+                GetPhotonStatisticsForWavelength(receivedPowerData.Route.WaveLength, ref photonReflection, ref photovoltaicEfficiency);
 
                 var availableTransmitterPowerInWatt = CheatOptions.IgnoreMaxTemperature 
                     ? receivedPowerData.AvailablePower * 1e+6
@@ -878,7 +910,7 @@ namespace FNPlugin.Beamedpower
 
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
 
-                absorbedPhotonHeatInWatt += GenerateForce(photonReflection, ref beamedPowerSource, ref positionVessel, beamedPowerThrottleRatio * availableTransmitterPowerInWatt, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize * 0.25);
+                absorbedPhotonHeatInWatt += GenerateForce(photonReflection, photovoltaicEfficiency, ref beamedPowerSource, ref positionVessel, beamedPowerThrottleRatio * availableTransmitterPowerInWatt, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize * 0.25);
             }
 
             // process statistical data
@@ -926,10 +958,11 @@ namespace FNPlugin.Beamedpower
             //}
         }
 
-        private double GetPhotonReflection(double wavelength)
+        private void GetPhotonStatisticsForWavelength(double wavelength, ref double reflection, ref double photovolaticEfficiency)
         {
             var reflectionDefinition = photonReflectionDefinitions.FirstOrDefault(m => (wavelength >= m.minimumWavelength && wavelength <= m.maximumWavelength));
-            return reflectionDefinition != null ? reflectionDefinition.MaxEfficiencyPercentage / 100 : 0;
+            reflection = reflectionDefinition != null ? reflectionDefinition.PhotonReflectionPercentage / 100 : 0;
+            photovolaticEfficiency = reflectionDefinition != null ? reflectionDefinition.PhotonPhotovoltaicPercentage / 100 : 0;
         }
 
         private void ProcesKscBeamedPower(double vesselMassInKg, double universalTime, ref Vector3d positionVessel, float beamedPowerThrottleRatio, ref double receivedHeatInWatt)
@@ -988,7 +1021,7 @@ namespace FNPlugin.Beamedpower
 
                     //gausionRatio = Math.Pow(centralSpotsizeRatio, 0.3 + (0.6 * (1 - centralSpotsizeRatio)))
 
-                    receivedHeatInWatt += GenerateForce(kscPhotonReflection, ref positionKscLaser, ref positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, centralSpotSize * 0.25);
+                    receivedHeatInWatt += GenerateForce(kscPhotonReflection, kscPhotovoltaic, ref positionKscLaser, ref positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, centralSpotSize * 0.25);
                 }
             }
         }
@@ -1046,8 +1079,8 @@ namespace FNPlugin.Beamedpower
                     part.skinTemperature = Math.Max(sailHeatDissipationTemperature, modifiedTemperature);
             }
 
-			//part.AddThermalFlux
-			//part.AddSkinThermalFlux			
+            //part.AddThermalFlux
+            //part.AddSkinThermalFlux			
         }
 
         private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)
@@ -1141,7 +1174,7 @@ namespace FNPlugin.Beamedpower
                 vessel.ChangeWorldVelocity(acceleration);
         }
 
-        private double GenerateForce(double photonReflectionRatio,  ref Vector3d positionPowerSource, ref Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1)
+        private double GenerateForce(double photonReflectionRatio, double photovoltaicEffiency, ref Vector3d positionPowerSource, ref Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1)
         {
             // calculate vector between vessel and star/transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
@@ -1181,8 +1214,8 @@ namespace FNPlugin.Beamedpower
                 energyOnSailnWatt = availableEnergyInWatt * currentSurfaceArea;
                 totalSolarEnergyReceivedInMJ = energyOnSailnWatt * cosConeAngle * 1e-6;
 
-                doorsPhotovoltalicPower = sailSurfaceModifier == 0 
-                    ? doorPhotovotalicRatio * energyOnSailnWatt * 0.45
+                doorsPhotovoltalicPower = sailSurfaceModifier == 0
+                    ? doorPhotovotalicRatio * energyOnSailnWatt * 0.45 * (1 - cosConeAngle)
                     : doorPhotovotalicRatio * energyOnSailnWatt * cosConeAngle;
             }
             else
@@ -1192,13 +1225,12 @@ namespace FNPlugin.Beamedpower
                     return 0;
 
                 energyOnSailnWatt = availableEnergyInWatt * sailSurfaceModifier;
-                doorsPhotovoltalicPower = sailSurfaceModifier > 0 ? doorPhotovotalicRatio * energyOnSailnWatt * cosConeAngle * 0.2 : 0; 
+                doorsPhotovoltalicPower = sailSurfaceModifier > 0 ? doorPhotovotalicRatio * energyOnSailnWatt * cosConeAngle * Math.Sqrt(photovoltaicEffiency) : 0; 
             }
 
             // generate photovoltalic power
             var currentPhotovotalicRatio = cosConeAngleIsNegative ? backPhotovotalicRatio : frontPhotovotalicRatio;
-            var currentPhotovotalicEfficiency = cosConeAngleIsNegative ? backPhotovoltaicEfficiency : frontPhotovoltaicEfficiency;
-            var maxPhotovotalicEnergy = energyOnSailnWatt * currentPhotovotalicRatio * currentPhotovotalicEfficiency + doorsPhotovoltalicPower;
+            var maxPhotovotalicEnergy = energyOnSailnWatt * currentPhotovotalicRatio * photovoltaicEffiency + doorsPhotovoltalicPower;
             photovoltalicPotential += maxPhotovotalicEnergy + doorsPhotovoltalicPower;
             photovoltalicFlowRate += maxPhotovotalicEnergy * cosConeAngle + doorsPhotovoltalicPower;
 
@@ -1428,6 +1460,11 @@ namespace FNPlugin.Beamedpower
             }
 
             return 0;
+        }
+
+        public static int HasTech(string techid, int increase)
+        {
+            return ResearchAndDevelopment.Instance.GetTechState(techid) != null ? increase : 0;
         }
 
         public static bool HasTech(string techid)

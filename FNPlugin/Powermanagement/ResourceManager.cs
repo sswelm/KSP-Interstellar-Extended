@@ -96,7 +96,7 @@ namespace FNPlugin
         double resource_bar_ratio_begin = 0;
         double sqrt_resource_bar_ratio_begin = 0;
         double resource_bar_ratio_end = 0;
-		double radiator_efficiency;
+        double radiator_efficiency;
 
         const double passive_temp_p4 = 2947.295521;
         const int labelWidth = 240;
