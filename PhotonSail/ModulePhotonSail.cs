@@ -70,11 +70,11 @@ namespace FNPlugin.Beamedpower
         [KSPField(guiActiveEditor = true, guiName = "Sail Mass", guiUnits = " t")]
         public float partMass;
 
-        [KSPField(guiActiveEditor = true, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
         public double frontPhotovoltaicArea = 1;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Back Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Back Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
         public double backPhotovoltaicArea = 1;
-        [KSPField(guiActiveEditor = true, guiName = "Doors Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Doors Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
         public double doorsPhotovoltaicArea = 1;
 
         [KSPField(guiActiveEditor = true, guiName = "Sail Min wavelength", guiUnits = " m")]
@@ -88,7 +88,7 @@ namespace FNPlugin.Beamedpower
         public double currentSailHeatingInMegajoules;
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Dissipation temperature", guiUnits = " K", guiFormat = "F3")]
         public double sailHeatDissipationTemperature;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Avsorbed heat", guiUnits = " J/s", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Absorbed heat", guiUnits = " J/s", guiFormat = "F3")]
         public double absorbedPhotonHeatInWatt;
 
         [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 1")]
@@ -353,12 +353,13 @@ namespace FNPlugin.Beamedpower
         double frontPhotovotalicRatio;
         double backPhotovotalicRatio;
         double doorPhotovotalicRatio;
-
-        int solarPhotovoltaicTechLevel;
         double solarPhotovoltaicEfficiencyFactor;
+        double doorsPhotovoltalicKiloWatt;
+        double energyOnSailnWatt;
 
         const int animatedRays = 400;
 
+        int solarPhotovoltaicTechLevel;
         int beamCounter;
         int updateCounter;
         int buttonPressedTime = 10;
@@ -933,8 +934,7 @@ namespace FNPlugin.Beamedpower
             UpdateGeforceThreshold();
 
             // generate electric power
-            //part.RequestResource("ElectricCharge", -photovoltalicFlowRate * TimeWarp.fixedDeltaTime);
-            powerSupply.SupplyMegajoulesPerSecondWithMax(photovoltalicFlowRate, photovoltalicPotential);
+            powerSupply.SupplyMegajoulesPerSecondWithMax(photovoltalicFlowRate * 0.001, photovoltalicPotential * 0.001);
 
             // calculate drag
             ApplyDrag(universalTime, vesselMassInKg);
@@ -998,7 +998,7 @@ namespace FNPlugin.Beamedpower
 
                 var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature
                     ? kscLaserPowerInWatt
-                    : Math.Min(kscLaserPowerInWatt, Math.Max(0, (kscLaserPowerInWatt - receivedHeatInWatt) / (1 - kscPhotonReflection)));
+                    : Math.Min(kscLaserPowerInWatt, Math.Max(0, (maxSailHeatDissipationInWatt - receivedHeatInWatt) / (1 - kscPhotonReflection)));
 
                 availableBeamedKscEnergy = kscAtmosphereAbsorbtionEfficiency * surfaceKscEnergy;
 
@@ -1202,16 +1202,10 @@ namespace FNPlugin.Beamedpower
                 cosConeAngle = Vector3d.Dot(normalizedPowerSourceToVesselVector, partNormal);
             }
 
-            // convert cosine angle  into angle in radian
-            var pitchAngleInRad = Math.Acos(cosConeAngle);
-
             // convert radian into angle in degree
-            var pitchAngleInDegree = pitchAngleInRad * Mathf.Rad2Deg;
+            var pitchAngleInDegree = Math.Acos(cosConeAngle) * Mathf.Rad2Deg;
             if (double.IsNaN(pitchAngleInDegree))
                 pitchAngleInDegree = 0;
-
-            double energyOnSailnWatt;
-            double doorsPhotovoltalicPower;
 
             if (isSun)
             {
@@ -1219,9 +1213,8 @@ namespace FNPlugin.Beamedpower
                 energyOnSailnWatt = availableEnergyInWatt * currentSurfaceArea;
                 totalSolarEnergyReceivedInMJ = energyOnSailnWatt * cosConeAngle * 1e-6;
 
-                doorsPhotovoltalicPower = sailSurfaceModifier == 0
-                    ? doorPhotovotalicRatio * energyOnSailnWatt * 0.45 * (1 - cosConeAngle)
-                    : doorPhotovotalicRatio * energyOnSailnWatt * cosConeAngle;
+                doorsPhotovoltalicKiloWatt = sailSurfaceModifier == 0 ? 0.45 * (1 - cosConeAngle) : cosConeAngleIsNegative ? Math.Max(0.05, cosConeAngle) : 0;
+                doorsPhotovoltalicKiloWatt *= doorPhotovotalicRatio * energyOnSailnWatt * 0.001 * Math.Sqrt(photovoltaicEffiency);
             }
             else
             {
@@ -1230,14 +1223,15 @@ namespace FNPlugin.Beamedpower
                     return 0;
 
                 energyOnSailnWatt = availableEnergyInWatt * sailSurfaceModifier;
-                doorsPhotovoltalicPower = sailSurfaceModifier > 0 ? doorPhotovotalicRatio * energyOnSailnWatt * cosConeAngle * Math.Sqrt(photovoltaicEffiency) : 0; 
+                doorsPhotovoltalicKiloWatt = sailSurfaceModifier > 0 && cosConeAngleIsNegative 
+                    ? doorPhotovotalicRatio * energyOnSailnWatt * 0.001 * Math.Max(0.05, cosConeAngle) * Math.Sqrt(photovoltaicEffiency): 0; 
             }
 
             // generate photovoltalic power
-            var currentPhotovotalicRatio = cosConeAngleIsNegative ? backPhotovotalicRatio : frontPhotovotalicRatio;
-            var maxPhotovotalicEnergy = energyOnSailnWatt * currentPhotovotalicRatio * photovoltaicEffiency + doorsPhotovoltalicPower;
-            photovoltalicPotential += maxPhotovotalicEnergy + doorsPhotovoltalicPower;
-            photovoltalicFlowRate += maxPhotovotalicEnergy * cosConeAngle + doorsPhotovoltalicPower;
+            var currentPhotovotalicRatio = cosConeAngleIsNegative ? frontPhotovotalicRatio : backPhotovotalicRatio;
+            var maxPhotovotalicEnergyInKiloWatt = energyOnSailnWatt * 0.001 * currentPhotovotalicRatio * photovoltaicEffiency;
+            photovoltalicPotential += maxPhotovotalicEnergyInKiloWatt + doorsPhotovoltalicKiloWatt;
+            photovoltalicFlowRate += maxPhotovotalicEnergyInKiloWatt * cosConeAngle + doorsPhotovoltalicKiloWatt;
 
             // convert energy into momentum
             var maxRelectedRadiationPresure = 2 * energyOnSailnWatt / GameConstants.speedOfLight;
