@@ -92,20 +92,20 @@ namespace FNPlugin.Beamedpower
         public double absorbedPhotonHeatInWatt;
 
         [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 1")]
-        public string solarPhotovoltaicTech1;
+        public string solarPhotovoltaicTech1 = "advSolarTech";
         [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 2")]
-        public string solarPhotovoltaicTech2;
+        public string solarPhotovoltaicTech2 = "advPVMaterials";
         [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 3")]
-        public string solarPhotovoltaicTech3;
+        public string solarPhotovoltaicTech3 = "microwavePowerTransmission";
 
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Factor 0")]
-        public double solarPhotovoltaicEfficiency0 = 0.2f;
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Factor 1")]
-        public double solarPhotovoltaicEfficiency1 = 0.2f;
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Factor 2")]
-        public double solarPhotovoltaicEfficiency2 = 0.2f;
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Factor 3")]
-        public double solarPhotovoltaicEfficiency3 = 0.2f;
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 0", guiUnits = "%")]
+        public double solarPhotovoltaicEfficiency0 = 10;
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 1", guiUnits = "%")]
+        public double solarPhotovoltaicEfficiency1 = 15;
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 2", guiUnits = "%")]
+        public double solarPhotovoltaicEfficiency2 = 20;
+        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 3", guiUnits = "%")]
+        public double solarPhotovoltaicEfficiency3 = 25;
 
 
         //[KSPField(guiActiveEditor = false, guiActive = false, guiName = "Max Sail irradiance", guiUnits = " W", guiFormat = "F0")]
@@ -354,7 +354,7 @@ namespace FNPlugin.Beamedpower
         double backPhotovotalicRatio;
         double doorPhotovotalicRatio;
 
-        double solarPhotovoltaicTechLevel;
+        int solarPhotovoltaicTechLevel;
         double solarPhotovoltaicEfficiencyFactor;
 
         const int animatedRays = 400;
@@ -486,6 +486,8 @@ namespace FNPlugin.Beamedpower
             transparentShader = Shader.Find("Unlit/Transparent");
             beamTexture = GameDatabase.Instance.GetTexture("PhotonSail/ParticleFX/infrared2", false);
 
+            DeterminePhotovoltaicEfficiency();
+
             DetermineKscLaserPower();
 
             DetermineKscLaserAperture();
@@ -518,7 +520,8 @@ namespace FNPlugin.Beamedpower
 
         private void DeterminePhotovoltaicEfficiency()
         {
-            solarPhotovoltaicTechLevel = HasTech(solarPhotovoltaicTech1, 1) + HasTech(solarPhotovoltaicTech2, 1) + HasTech(solarPhotovoltaicTech3, 1);
+            solarPhotovoltaicTechLevel = ResearchAndDevelopment.Instance == null ? 3 
+                : HasTech(solarPhotovoltaicTech1, 1) + HasTech(solarPhotovoltaicTech2, 1) + HasTech(solarPhotovoltaicTech3, 1);
 
             if (solarPhotovoltaicTechLevel >= 3)
                 solarPhotovoltaicEfficiencyFactor = solarPhotovoltaicEfficiency3;
@@ -528,6 +531,8 @@ namespace FNPlugin.Beamedpower
                 solarPhotovoltaicEfficiencyFactor = solarPhotovoltaicEfficiency1;
             else
                 solarPhotovoltaicEfficiencyFactor = solarPhotovoltaicEfficiency0;
+
+            solarPhotovoltaicEfficiencyFactor /= 100;
         }
 
         private void DetermineKscLaserPower()
