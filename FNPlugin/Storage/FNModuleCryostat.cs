@@ -1,5 +1,5 @@
-﻿using System;
-using FNPlugin.Extensions;
+﻿using FNPlugin.Power;
+using System;
 
 namespace FNPlugin
 {

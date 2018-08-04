@@ -1,10 +1,15 @@
-﻿namespace FNPlugin.Refinery
+﻿namespace FNPlugin.Power
 {
     [KSPModule("Power Supply")]
     class GenericPowerSupply : PartModule, IPowerSupply
     {
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Proces")]
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Proces")]
         public string displayName = "";
+
+        protected ResourceBuffers resourceBuffers;
+        protected double currentPowerSupply;
+
+        public int PowerPriority { get; set;  }
 
         public string DisplayName
         {
@@ -15,6 +20,15 @@
         public override void OnStart(PartModule.StartState state)
         {
             displayName = part.partInfo.title;
+
+            if (state == StartState.Editor) return;
+
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig("Megajoules"));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig("ElectricCharge", 1000));
+            resourceBuffers.Init(this.part);
+
+            this.part.force_activate();
         }
 
         public double ConsumeMegajoulesFixed(double powerRequest, double fixedDeltaTime)
@@ -29,11 +43,8 @@
 
         public void SupplyMegajoulesPerSecondWithMax(double supply, double maxsupply)
         {
-            part.RequestResource("ElectricCharge", -supply * TimeWarp.fixedDeltaTime);
-        }
+            currentPowerSupply += supply;
 
-        public void SupplyMegajoulesFixedWithMax(double supply, double maxsupply)
-        {
             part.RequestResource("ElectricCharge", -supply * TimeWarp.fixedDeltaTime);
         }
 
@@ -50,6 +61,17 @@
         public int getPowerPriority()
         {
             return 4;
+        }
+
+        public override void OnFixedUpdate()
+        {
+            base.OnFixedUpdate();
+
+            resourceBuffers.UpdateVariable("Megajoules", currentPowerSupply);
+            resourceBuffers.UpdateVariable("ElectricCharge", currentPowerSupply);
+            resourceBuffers.UpdateBuffers();
+
+            currentPowerSupply = 0;
         }
     }
 }

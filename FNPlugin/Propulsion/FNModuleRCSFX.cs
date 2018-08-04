@@ -2,7 +2,6 @@
 using System.Linq;
 using UnityEngine;
 
-
 namespace FNPlugin
 {
     public class FNModuleRCSFX : ModuleRCS

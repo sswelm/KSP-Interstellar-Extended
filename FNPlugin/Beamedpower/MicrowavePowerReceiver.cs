@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using FNPlugin.Redist;
-using FNPlugin.Propulsion;
+﻿using FNPlugin.Beamedpower;
+using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Microwave;
-using FNPlugin.Beamedpower;
-using FNPlugin.Constants;
+using FNPlugin.Power;
+using FNPlugin.Propulsion;
+using FNPlugin.Redist;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin

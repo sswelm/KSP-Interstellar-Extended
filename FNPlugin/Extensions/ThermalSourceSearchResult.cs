@@ -1,6 +1,6 @@
-﻿using System;
+﻿using FNPlugin.Redist;
+using System;
 using System.Linq;
-using FNPlugin.Redist;
 
 namespace FNPlugin.Extensions
 {

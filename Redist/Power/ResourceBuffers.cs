@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
-namespace FNPlugin.Extensions
+namespace FNPlugin.Power
 {
-    class ResourceBuffers
+    public class ResourceBuffers
     {
         abstract public class Config
         {

@@ -1,8 +1,8 @@
-﻿using System;
+﻿using FNPlugin.Constants;
+using FNPlugin.Refinery;
+using System;
 using System.Linq;
 using UnityEngine;
-using FNPlugin.Refinery;
-using FNPlugin.Constants;
 
 namespace FNPlugin 
 {

@@ -18,8 +18,8 @@ namespace FNPlugin
         public bool loopRcsSound = true;
         [KSPField]
         public bool internalRcsSoundsOnly = false;
-        [KSPField]
-        public bool useLightingEffects = true;
+        //[KSPField]
+        //public bool useLightingEffects = true;
 
         public FXGroup RcsSound = null;
         public FXGroup RcsShutoffSound = null;

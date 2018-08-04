@@ -1,5 +1,5 @@
-﻿using System;
-using KSP.Localization;
+﻿using KSP.Localization;
+using System;
 
 namespace FNPlugin.Refinery
 {

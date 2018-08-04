@@ -1,6 +1,6 @@
-﻿using System;
+﻿using FNPlugin.Power;
+using System;
 using UnityEngine;
-using FNPlugin.Extensions;
 
 namespace FNPlugin  
 {

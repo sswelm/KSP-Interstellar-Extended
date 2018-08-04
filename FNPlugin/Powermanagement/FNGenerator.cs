@@ -1,4 +1,5 @@
 using FNPlugin.Extensions;
+using FNPlugin.Power;
 using FNPlugin.Redist;
 using KSP.Localization;
 using System;
@@ -1015,9 +1016,9 @@ namespace FNPlugin
                        ? attachedPowerSource.ChargedPowerRatio * maxStableMegaWattPower 
                        : (1 - attachedPowerSource.ChargedPowerRatio) * maxStableMegaWattPower;
 
-                var megawattBufferMultiplier = (attachedPowerSource.PowerBufferBonus + 1) * stablePowerForBuffer;
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferMultiplier);
-                resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferMultiplier);
+                var megawattBufferAmount = (attachedPowerSource.PowerBufferBonus + 1) * stablePowerForBuffer;
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
+                resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
             }
             resourceBuffers.UpdateBuffers();
         }
@@ -1074,10 +1075,10 @@ namespace FNPlugin
             if (powerDownFraction <= 0)
                 _powerState = PowerStates.PowerOffline;
 
-            var megawattBufferMultiplier = (attachedPowerSource.PowerBufferBonus + 1) * maxStableMegaWattPower;
+            var megawattBufferAmount = (attachedPowerSource.PowerBufferBonus + 1) * maxStableMegaWattPower;
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferMultiplier * powerDownFraction);
-            resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferMultiplier * powerDownFraction);
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount * powerDownFraction);
+            resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount * powerDownFraction);
             resourceBuffers.UpdateBuffers();
         }
 

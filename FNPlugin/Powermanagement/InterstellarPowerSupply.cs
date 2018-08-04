@@ -1,11 +1,26 @@
-﻿
-namespace FNPlugin.Refinery
+﻿using System;
+using FNPlugin.Extensions;
+
+namespace FNPlugin.Power
 {
     [KSPModule("Power Supply")]
     class InterstellarPowerSupply : ResourceSuppliableModule, IPowerSupply
     {
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Proces")]
+        [KSPField(guiActive = true, guiName = "Total Power Supply", guiFormat = "F3", guiUnits = " MW")]
+        public double totalPowerSupply;
+        [KSPField(guiActive = false, guiName = "Proces")]
         public string displayName = "";
+        [KSPField(guiActive = false, guiName = "Power Priority")]
+        public int powerPriority = 4;
+
+        protected ResourceBuffers resourceBuffers;
+        protected double currentPowerSupply;
+
+        public int PowerPriority 
+        {
+            get { return powerPriority; }
+            set { powerPriority = value; }
+        }
 
         public string DisplayName
         {
@@ -16,6 +31,17 @@ namespace FNPlugin.Refinery
         public override void OnStart(PartModule.StartState state)
         {
             displayName = part.partInfo.title;
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+            this.resources_to_supply = resources_to_supply;
+
+            if (state == StartState.Editor) return;
+
+            resourceBuffers = new ResourceBuffers();
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 1000));
+            resourceBuffers.Init(this.part);
+
+            this.part.force_activate();
         }
 
         public double ConsumeMegajoulesFixed(double powerRequest, double fixedDeltaTime)
@@ -30,12 +56,9 @@ namespace FNPlugin.Refinery
 
         public void SupplyMegajoulesPerSecondWithMax(double supply, double maxsupply)
         {
-            supplyFNResourcePerSecondWithMax(supply, maxsupply, ResourceManager.FNRESOURCE_MEGAJOULES);
-        }
+            currentPowerSupply += supply;
 
-        public void SupplyMegajoulesFixedWithMax(double supply, double maxsupply)
-        {
-            supplyFNResourceFixedWithMax(supply, maxsupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+            supplyFNResourcePerSecondWithMax(supply, maxsupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
         public override string getResourceManagerDisplayName()
@@ -50,7 +73,26 @@ namespace FNPlugin.Refinery
 
         public override int getPowerPriority()
         {
-            return 4;
+            return powerPriority;
+        }
+
+        public void Update()
+        {
+            if (HighLogic.LoadedSceneIsEditor)
+                return;
+
+            totalPowerSupply = getResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+        }
+
+        public override void OnFixedUpdate()
+        {
+            base.OnFixedUpdate();
+
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, currentPowerSupply);
+            resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, currentPowerSupply);
+            resourceBuffers.UpdateBuffers();
+
+            currentPowerSupply = 0;
         }
     }
 }

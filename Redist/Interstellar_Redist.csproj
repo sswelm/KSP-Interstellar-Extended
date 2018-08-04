@@ -52,6 +52,7 @@
     <Compile Include="AtmosphericFloatCurves.cs" />
     <Compile Include="Beamedpower\BeamedPowerHelper.cs" />
     <Compile Include="Extensions\OrbitExtensions.cs" />
+    <Compile Include="Power\ResourceBuffers.cs" />
     <Compile Include="GameConstants.cs" />
     <Compile Include="Beamedpower\IBeamedPowerReceiver.cs" />
     <Compile Include="Interfaces\IEngineNoozle.cs" />

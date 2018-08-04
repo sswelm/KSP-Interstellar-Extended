@@ -1,8 +1,8 @@
-﻿using System;
+﻿using FNPlugin.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using FNPlugin.Extensions;
 
 namespace FNPlugin 
 {

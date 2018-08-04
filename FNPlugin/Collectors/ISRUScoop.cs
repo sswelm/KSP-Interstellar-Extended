@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using FNPlugin.Extensions;
 using FNPlugin.Resources;
-using FNPlugin.Extensions;
+using System;
+using System.Linq;
 
 namespace FNPlugin 
 {

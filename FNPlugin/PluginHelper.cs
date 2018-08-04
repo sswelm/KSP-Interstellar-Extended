@@ -1,12 +1,10 @@
-﻿using UnityEngine;
+﻿using FNPlugin.Beamedpower;
+using FNPlugin.Constants;
+using KSP.UI.Screens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using KSP.UI.Screens;
-using FNPlugin.Constants;
-using FNPlugin.Redist;
-using FNPlugin.Beamedpower;
-using FNPlugin.Extensions;
+using UnityEngine;
 
 namespace FNPlugin
 {

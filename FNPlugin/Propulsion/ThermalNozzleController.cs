@@ -1,12 +1,13 @@
-﻿using UnityEngine;
+﻿using FNPlugin.Constants;
+using FNPlugin.Extensions;
+using FNPlugin.Power;
+using FNPlugin.Propulsion;
+using FNPlugin.Redist;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
-using FNPlugin.Propulsion;
-using FNPlugin.Extensions;
-using FNPlugin.Redist;
-using FNPlugin.Constants;
+using UnityEngine;
 
 namespace FNPlugin
 {
