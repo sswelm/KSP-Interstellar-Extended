@@ -1,0 +1,251 @@
+* DONE Modularize functions [7/7]
+** DONE steering during timewarp so it can be used elsewhere, e.g. ion engines
+** DONE manual navigation
+** DONE check if spacecraft in sun
+** DONE sail force calculation
+** DONE sail EOM
+** DONE sail EOM propagation
+** DONE SailFrame
+* DONE Make a low thrust navigation tool for any low thrust propulsion, sail, ion engine, etc [2/2]
+** DONE Propulsion part module
+*** Force model
+*** Realtime propagation
+*** Time warp propagation
+*** On/off & throttle controls
+** DONE Separate navigation module that is applied to low thrust parts
+*** Steering and preview tacked on to low thrust
+*** Use patched config files to apply?
+*** Calculate mass use for reaction thrusters
+*** Save trajectory and mass prediction to persistant variables
+*** Update vessel orbit and mass when returning to them
+* DONE Evaluate Persistent Rotation for use as attitude control
+** Locks current attitude with respect to a planet.
+** Need a way to specify angles and a schedule of future attitude changes
+** May want more reference frame options than to a planet.
+** Want to specify numbers relative to those reference frames.
+** Possibly, upgrade persistent rotation with these options?
+*** Then, the navigation tool needs to access PersistentRotation to update the attitude.
+* DONE Make preview work for persistent thrust engines [5/5]
+** DONE Preview trajectory
+** DONE Final orbit
+** DONE Line to target
+** DONE Orbit element difference with target
+** DONE Find & fix remaining bug of undefined variable
+*** target line object was null
+* DONE Move PersistentThrust plugin into SolarSailNavigator [2/2]
+** DONE Put source in sub-folder with KSPI license
+** DONE Update Makefiles
+* DONE Draw target line when target selected, not just when preview first calculated
+* DONE Test that propagation matches prediction for engines
+* DONE Update targeting line and error when target selected		:BUG:
+* DONE Toggle buttons to show [4/4]
+** DONE Final orbit elements
+** DONE Final orbit elements error with target
+** DONE Final orbit
+** DONE Preview
+* DONE Draw trajectory segment when throttle is 0			:BUG:
+* DONE Make "Navigation", "Preview", and "Controls" work for both sails and engines :FEATURE:
+* DONE Put navigator into a part that queries the vessel for persistent thrust parts :FEATURE:
+* DONE Only allow showing of controls when sails and engines are found. :BUG:
+* DONE Add flatspin control					:FEATURE:BUG:
+  Solar panels mounted in a particular way may not get any sunlight during maneuvers
+* DONE In preview, only calculate thrust of engines that aren't shutdown :BUG:
+* DONE Add "Sail On" control setting to deploy / retract all sails on the vessel for that segment [3/3] :FEATURE:
+** DONE Add controls to Control and Navigator objects
+** DONE Make work during realtime and warp sailing
+** DONE Make work in preview calculation
+* DONE Test preview for multiple sails/engines [3/3]		    :FEATURE:
+** DONE Engines
+** DONE Sails
+** DONE Sails and engines
+* DONE Test realtime and timewarp functionality for multiple sails & engines [3/3] :FEATURE:
+** DONE Sails
+** DONE Engines
+** DONE Sails and engines
+* DONE Patch pods with the navigator module [2/3]		    :FEATURE:
+Patched all command pods
+* DONE If engine enabled and operational but not staged, OnFixedUpdate() doesn't run :BUG:
+Add to PersistentEngine:
+[KSPField(isPersistant = true)]
+bool IsForceActivated;
+
+public override void OnUpdate()
+{
+      // exisiting code
+
+      if (!IsForceActivated && isEnabled && isOperational)
+      {
+             IsForceActivated = true;
+             part.force_activate();
+      }
+}
+* DONE Pass "Control" object instead of individual parameters to Preview.Propagate :FEATURE:
+* DONE ThrustPersistent should use engine's finalThrust to be correct	:BUG:
+* DONE Move PersistentThrust to its own module [3/3]		    :FEATURE:
+** DONE Move PersistentThrust
+** DONE Update SolarSailNavigator to use PersistentThrust in new location
+** DONE Move TODO items for PersistentThrust out of SolarSailNavigator
+* DONE Limit throttle to 1 (100%)					:BUG:
+* DONE Space needed between GUILines to distinguish lines 		:BUG:
+* DONE Color too high & small. Should be centered with other GUILine elements. :BUG:
+* DONE Create "Frame" class to store info on reference frame e.g. name and name of Euler angles [14/14] :FEATURE:
+** DONE Create Frame class
+*** Names of Euler angles
+*** Angles
+*** Function of orbit, UT, and angles to generate spacecraft quaternion
+** DONE Use Frame class parameters in Controls instead of hard coded values
+** DONE Persistent values in Navigator for generic "angles" instead of cone/clock/flatspin
+** DONE Persistent values in Navigator for "frames"
+** DONE Load & save to "angles" and "frames"
+** DONE "Control" constructor should use "angles"
+** DONE "Control" object should have "angles" instead of cone/clock/flatspin
+** DONE GUIAngle instead of GUICone/Clock/Clatspin
+** DONE Show which frame is in use
+** DONE Button to popup window to select frame
+** DONE Popup window
+** DONE Popup window with buttons of which frame to use
+** DONE Buttons change frame
+** DONE Buttons call Controls.Update
+* DONE Use methods in PersistentEngine to calculate mass & deltaV   :FEATURE:
+* DONE Put frame GUI window into its own class			    :FEATURE:
+* DONE Navigator default settings [4/4]				    :FEATURE:
+** DONE Add defaults to Navigator persistent variables
+** DONE Use defaults from Navigator persitent variables
+** DONE GUI window & class to fill out settings
+** DONE Reference frame and angles
+* TODO Require navigation instruments [0/3]			   :WISHLIST:
+** TODO Sun sensor (for sail)
+** TODO Star tracker
+** TODO Radio
+* TODO Allow staging events in command sequence to e.g. separate a sail and run an ion engine :WISHLIST:
+* TODO Manual sail navigation [17/24]
+** DONE Propagate trajectory XX days ahead at current attitude
+** DONE Draw start and end points
+** DONE Collect intermediate points
+** DONE Draw points along trajectory
+** DONE Classes for controls and previews
+** DONE Make non-array control persistant
+** DONE Add additional steering/duration segments [2/2]
+*** DONE Controls and segments as arrays
+*** DONE buttons to add/remove segments
+** DONE Show orbit at end of segments
+** DONE Make control history persistant
+*** DONE Cone angles
+*** DONE Clock angles
+*** DONE Durations
+*** DONE Warp factors
+** DONE Update preview when controls updated [2/2]
+*** DONE Add toggle button to show preview or not
+*** DONE Calculate when controls updated
+** DONE Add/remove controls anywhere in sequence [4/4]
+*** DONE Turn "controls" parameter of Controls class into a List<Control>
+*** DONE INS/DEL buttons on each GUILine
+*** DONE INS/DEL buttons deletes or inserts a new Control in the Controls.controls list at that point
+*** DONE "Add" button at end
+** TODO Other time unit choices [2/4]
+*** DONE Days [2/2]
+**** DONE +/-
+**** DONE +/- 10
+*** DONE Hours [1/1]
+**** DONE +/-
+*** TODO Minutes
+*** TODO Seconds
+** DONE Allow +/-180 deg cone angles
+** DONE Draw fewer segments in preview
+*** Condition to sample? Period of orbit0, divide by 360, sample when elapsed time exceeds?
+*** Or... calculate period with each new perturbed orbit
+**** Divide by 360
+**** Check if that much time has passed since last sampling?
+** DONE Pre-calculate line render points of sail trajectory
+** DONE Make preview line width scale to zoom (or fixed screen width ala VectorLine)
+** TODO Select target body [6/8]
+*** DONE Draw line to target from closest approach
+*** DONE Show duration from now to closest approach
+*** DONE Show distance at closest approach
+*** DONE Convert distance based on magnitude (m, km, Gm)
+*** DONE Show speed difference at closest approach
+*** DONE Convert speed based on magnitude (m/s, km/s)
+*** TODO Show if distance inside SOI
+*** TODO Show if speed indicates capture?
+**** Is this even possible?
+** TODO Improve propagation accuracy				   :WISHLIST:
+*** Currently multiplies acceleration by time step size and adds to velocity
+*** Could integrate for one time step using Runge Kutta
+** TODO Initial time calculation
+Currently need to manually click "Set to Now"
+** DONE Make control GUI fields fixed width
+** TODO Draw mini sails at points along map to show attitude	   :WISHLIST:
+** TODO Warp button to execute sequence?			    :FEATURE:
+*** Currently use MechJeb's WarpHelper
+** DONE Internal NextClosestApproach
+*** Simply calculating vector to target at end of command sequence
+** TODO Automatically calculate warp based on duration of segment instead of manual selection
+*** To avoid killing KSP by calculating too many time steps
+*** Currently just using maximum time warp step size
+* TODO Make final orbit render for parabolic/hyberbolic orbits [0/2]
+** Currently renders for the period of the orbit
+** TODO Check if orbit.E < 0, and render for orbit period
+** TODO Check if orbit.E >= 0, and calculate time to SOI departure for render time
+*** Is that orbit.UTsoi?
+* TODO Make sail deployment a staged event that can only happen once :WISHLIST:
+* TODO Automatic navigation				   :FEATURE:WISHLIST:
+** http://strathprints.strath.ac.uk/6621/
+** Using manual navigation as initial guess, perform local optimization (e.g. gradient) to calculate cones/clocks/durations
+** Orbital rendezvous
+*** Select target
+*** Specify number of control nodes
+*** Optimal control method runs behind scenes to generate angle/time profile
+*** Allow execution of steering strategy
+** Locally optimal steering strategies
+*** Maximize rate of change of one orbit element or combination of elements
+* TODO Planet centered sailing control laws [0/7] 		    :FEATURE:
+  Orbit element control laws. See:
+*** http://strathprints.strath.ac.uk/6255/
+*** http://strathprints.strath.ac.uk/6252/
+*** TODO SMA
+*** TODO rp
+*** TODO ecc
+*** TODO ra
+*** TODO Inclination
+*** TODO AoP
+*** TODO Blended?
+* TODO Sails on Rails [0/3] 				   :FEATURE:WISHLIST:
+** Problem
+When you leave one spacecraft and go elsewhere, KSP updates the
+position and velocity based on the Kepler orbit of the spacecraft. We
+need to update the orbit, position, and velocity of a persistent
+thrust spacecraft with active navigator control based on the predicted
+trajectory.
+** TODO Update orbit/pos/vel from Navigator preview?
+** TODO Propagate orbit outside of spacecraft focus?
+** TODO Show preview on map outside of spacecraft focus?
+* TODO Resize window when objects & text removed (e.g. when preview or target deselected) :FEATURE:
+* TODO Show mass consumption for flight profile			    :FEATURE:
+* TODO Show mass consumption remaining				    :FEATURE:
+* TODO Warn when mass consumption exceeds remaining		    :FEATURE:
+* TODO Warn when future power usage of navigation plan exceeds vessel's generation ability :FEATURE:
+* TODO Show time remaining of sequence (startTime - currentTime + duration) :FEATURE:
+* TODO In preview, use alignment of sails and engines - don't just assume they are aligned in the correct direction with the "up" vector. [0/2] :BUG:
+** TODO Examine part.transform.up vector and compare to calculated thrust vector
+** TODO Use as thrust direction vector
+* TODO Preview doesn't detect if another body's SOI will be entered on the current trajectory [0/2] :BUG:FEATURE:
+** TODO Detect SOI intersection
+** TODO Propagate trajectory around body's SOI?
+* TODO Recalculate target line & error when new target selected		:BUG:
+* TODO Chooser to select which sails and engines to use in this time segment :FEATURE:WISHLIST:
+* TODO Trajectory not redrawn with new segment when "Add" button clicked :BUG:
+Toggle "Show Preview" to redraw
+* TODO Toolbar to Show/Hide controls instead of right-clicking on control module :FEATURE:WISHLIST:
+* TODO Final orbit line can obscure trajectory line 			:BUG:
+* TODO Allow manually entering control numbers (angles/times) [3/4] :FEATURE:
+** DONE Angles
+** DONE Throttle
+** DONE Times
+** TODO Parse time string (e.g. 200d3h23s)
+* TODO Show Start Time in years/days/hours/seconds or Real Solar System time :FEATURE:
+* TODO "Add" or "INS" buttons should copy values from last (Add) or selected (INS) control [0/2] :FEATURE:
+** TODO When "Add" clicked, copy values from last control
+** TODO When "INS" clicked, copy valued from the corresponding control
+* TODO After adding or inserting a new control, clicking the frame button creates an empty window. Quiting to the space center and clicking the frame button works as usual. :BUG:
+* TODO Check if another controller is locked, prevent locking, and show an error message. :BUG:
+Prevent two controllers from fighting each other
