@@ -10,31 +10,36 @@ namespace FNPlugin.Refinery
 {
     class AtmosphericExtractor : PartModule, IRefineryActivity
     {
+        [KSPField(isPersistant = true)]
+        public bool isDeployed;
+        [KSPField(guiActive = false)]
+        public float normalizedTime = -1;
+
         [KSPField]
         public double surfaceArea = 1;
         [KSPField]
         public double buildInAirIntake;
         [KSPField]
         public double atmosphereConsumptionRatio;
+        [KSPField]
+        public string animName = "";
 
         public static int labelWidth = 180;
         public static int valueWidth = 180;
 
-        protected Part _part;
-        protected Vessel _vessel;
-        protected GUIStyle _bold_label;
-        protected GUIStyle _value_label;
-        protected GUIStyle _value_label_green;
-        protected GUIStyle _value_label_red;
-        protected GUIStyle _value_label_number;
+        Animation scoopAnimation = null;
+        Part _part;
+        Vessel _vessel;
+        GUIStyle _bold_label;
+        GUIStyle _value_label;
+        GUIStyle _value_label_green;
+        GUIStyle _value_label_red;
+        GUIStyle _value_label_number;        
 
-        protected string _status = "";
-        //protected bool _allowOverflow;
-        protected double _current_power;
-        protected double _current_rate;
-        protected double _effectiveMaxPower;
-
-        //new private const int valueWidth = 100;
+        string _status = "";
+        double _current_power;
+        double _current_rate;
+        double _effectiveMaxPower;
 
         // persistant
         [KSPField(isPersistant = true)]
@@ -84,6 +89,7 @@ namespace FNPlugin.Refinery
 
         double _fixedConsumptionRate;
         double _consumptionStorageRatio;
+        double intakeModifier;
 
         PartResourceDefinition _atmosphere;
 
@@ -148,6 +154,22 @@ namespace FNPlugin.Refinery
         string _krypton_resource_name;
         string _sodium_resource_name;
 
+
+        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "Deploy Scoop", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]
+        public void DeployScoop()
+        {
+            runAnimation(animName, scoopAnimation, 0.5f, 0);
+            isDeployed = true;
+        }
+
+        // GUI to retract sail
+        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "Retract Scoop", active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]
+        public void RetractScoop()
+        {
+            runAnimation(animName, scoopAnimation, -0.5f, 1);
+            isDeployed = false;
+        }
+
         public double CurrentPower { get { return _current_power; } }
 
         public RefineryType RefineryType { get { return RefineryType.cryogenics; } }
@@ -172,6 +194,18 @@ namespace FNPlugin.Refinery
             _part = part;
             _vessel = part.vessel;
             _intakesList = _vessel.FindPartModulesImplementing<AtmosphericIntake>();
+
+            if (!string.IsNullOrEmpty(animName))
+            {
+                scoopAnimation = part.FindModelAnimators(animName).First();
+
+                if (scoopAnimation != null)
+                {
+                    scoopAnimation[animName].speed = 0;
+                    scoopAnimation[animName].normalizedTime = isDeployed ? 1 : 0;
+                    scoopAnimation.Blend(animName);
+                }
+            }
 
             // get the name of all relevant resources
             _atmosphere_resource_name = InterstellarResourcesConfiguration._INTAKEATMOSPHERE;
@@ -314,9 +348,23 @@ namespace FNPlugin.Refinery
 
             // determine the amount of resources needed for processing (i.e. intake atmosphere) that the vessel actually holds
             _availableAtmosphereMass = _maxCapacityAtmosphereMass - _spareRoomAtmosphereMass;
+            if (scoopAnimation != null)
+            {
+                var animationState = scoopAnimation[animName];
+                normalizedTime = animationState.normalizedTime == 0
+                    ? isDeployed ? 1 : 0
+                    : animationState.normalizedTime;
+            }
+            else
+                normalizedTime = isDeployed ? 1 : 0;
+
+            // intake can only function when heading towards orbital path
+            intakeModifier = scoopAnimation == null ? 1 : Math.Max(0, Vector3d.Dot(part.transform.up, part.vessel.obt_velocity.normalized));
 
             // calculate build in scoop capacity
-            buildInAirIntake = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(_vessel) * (1 + _vessel.obt_speed) * surfaceArea;
+            buildInAirIntake = normalizedTime <= 0.2 ? 0 :
+                AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(_vessel) * (1 + _vessel.obt_speed) * surfaceArea * intakeModifier * Math.Sqrt((normalizedTime - 0.2) * 1.25);
+
 
             atmosphereConsumptionRatio = offlineCollecting ? 1
                     : _current_rate > 0
@@ -590,7 +638,11 @@ namespace FNPlugin.Refinery
 
         private void UpdateStatusMessage()
         {
-            if (_atmosphere_consumption_rate > 0)
+            if (normalizedTime == 0)
+                _status = "Scoop is not deployed";
+            else if (intakeModifier == 0)
+                _status = "Scoop is not heading into orbital direction";
+            else if (_atmosphere_consumption_rate > 0)
                 _status = "Extracting atmosphere";
             else if (CurrentPower <= 0.01 * PowerRequirements)
                 _status = "Insufficient Power";
@@ -601,6 +653,27 @@ namespace FNPlugin.Refinery
         public void PrintMissingResources() 
         {
             ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration._INTAKEATMOSPHERE, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+        }
+
+        public void Update()
+        {
+            // Sail deployment GUI
+            Events["DeployScoop"].active = !isDeployed;
+            Events["RetractScoop"].active = isDeployed;
+        }
+
+        private static void runAnimation(string animationName, Animation anim, float speed, float aTime)
+        {
+            if (animationName == null || anim == null || string.IsNullOrEmpty(animationName))
+                return;
+
+            anim[animationName].speed = speed;
+            if (anim.IsPlaying(animationName))
+                return;
+
+            anim[animationName].wrapMode = WrapMode.Default;
+            anim[animationName].normalizedTime = aTime;
+            anim.Blend(animationName, 1);
         }
     }
 }

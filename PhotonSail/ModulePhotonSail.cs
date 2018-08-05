@@ -742,7 +742,8 @@ namespace FNPlugin.Beamedpower
             updateCounter++;
             maxNetworkPower = 0;
 
-            var animationNormalizedTime = solarSailAnim1[animName].normalizedTime;
+            AnimationState animationState = solarSailAnim1[animName];
+            var animationNormalizedTime = animationState.normalizedTime;
 
             var deploymentRatio = animationNormalizedTime > 0
                 ? (animationNormalizedTime > startOfSailOpening ? (animationNormalizedTime - startOfSailOpening) * (1 / (1 - startOfSailOpening)) : 0)

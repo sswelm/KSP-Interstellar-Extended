@@ -105,6 +105,9 @@ namespace FNPlugin.Refinery
         public void ToggleWindow()
         {
             _render_window = !_render_window;
+
+            if (_render_window && _refinery_activities.Count == 1)
+                _current_activity = _refinery_activities.First();
         }
 
         public override void OnStart(PartModule.StartState state)
