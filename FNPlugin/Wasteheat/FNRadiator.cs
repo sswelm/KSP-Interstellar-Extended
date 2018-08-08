@@ -143,7 +143,7 @@ namespace FNPlugin
 
         // non persistant
         [KSPField(guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
-        public float maxVacuumTemperature = 3700;
+        public float maxVacuumTemperature = 4400;
         [KSPField(guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
         public float maxAtmosphereTemperature = 1200;
         [KSPField(guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
@@ -217,7 +217,7 @@ namespace FNPlugin
         [KSPField(guiName = "Max Energy Transfer", guiFormat = "F2")]
         private double _maxEnergyTransfer;
         [KSPField(guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
-        public float maxRadiatorTemperature = 3700;
+        public float maxRadiatorTemperature = 4400;
         [KSPField(guiName = "Upgrade Techs")]
         public int nrAvailableUpgradeTechs;
         [KSPField(guiName = "Has Surface Upgrade")]
@@ -258,7 +258,6 @@ namespace FNPlugin
         private Renderer renderer;
         private Animation deployAnimation;
         private Color emissiveColor;
-        private CelestialBody star;
         private AnimationState anim;
         private Renderer[] renderArray;
         private AnimationState[] heatStates;
@@ -383,7 +382,7 @@ namespace FNPlugin
             if (radiator_vessel.Any())
                 return radiator_vessel.Max(r => r.GetAverateRadiatorTemperature());
             else
-                return 3700;
+                return 4400;
         }
 
         public static float getAverageMaximumRadiatorTemperatureForVessel(Vessel vess) 
@@ -603,22 +602,12 @@ namespace FNPlugin
             if (_moduleActiveRadiator != null)
             {
                 var generationValue = 1 + ((int)CurrentGenerationType);
-                _maxEnergyTransfer = radiatorArea * 1000 * generationValue * generationValue;
+                _maxEnergyTransfer = radiatorArea * 2500 * Math.Pow(generationValue, 1.5);
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
                 _moduleActiveRadiator.overcoolFactor = 0.20 + ((int)CurrentGenerationType * 0.025);
             }
 
             if (state == StartState.Editor) return;
-
-            var depth = 0;
-            star = FlightGlobals.currentMainBody;
-            while (depth < 10 && star != null && star.GetTemperature(0) < 2000)
-            {
-                star = star.referenceBody;
-                depth++;
-            }
-            if (star == null)
-                star = FlightGlobals.Bodies[0];
 
             if (ResearchAndDevelopment.Instance != null)
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
@@ -632,8 +621,8 @@ namespace FNPlugin
 
             radiatorTempStr = maxRadiatorTemperature + "K";
 
-            maxVacuumTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) :  Math.Min(maxVacuumTemperature, maxRadiatorTemperature);
-            maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature);
+            maxVacuumTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk2, maxRadiatorTemperature) :  Math.Min(maxVacuumTemperature, maxRadiatorTemperature);
+            maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk2, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature);
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+6));

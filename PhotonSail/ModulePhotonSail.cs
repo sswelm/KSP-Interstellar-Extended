@@ -877,9 +877,7 @@ namespace FNPlugin.Beamedpower
 
             UpdateChangeGui();
 
-            ResetBeams();
-
-            
+            ResetBeams();            
 
             var vesselMassInKg = vessel.totalMass * 1000;
             var universalTime = Planetarium.GetUniversalTime();
@@ -896,7 +894,7 @@ namespace FNPlugin.Beamedpower
             // unconditionally apply solarflux energy for every star
             foreach (var starLight in starLights)
             {
-                absorbedPhotonHeatInWatt += GenerateForce(reflectedPhotonRatio, solarPhotovoltaicEfficiencyFactor, ref starLight.position, ref positionVessel, starLight.solarFlux, universalTime, vesselMassInKg);
+                GenerateForce(reflectedPhotonRatio, solarPhotovoltaicEfficiencyFactor, ref absorbedPhotonHeatInWatt, ref starLight.position, ref positionVessel, starLight.solarFlux, universalTime, vesselMassInKg);
             }
 
             // refresh connectedTransmittersCount
@@ -928,7 +926,7 @@ namespace FNPlugin.Beamedpower
 
                 Vector3d beamedPowerSource = receivedPowerData.Transmitter.Vessel.GetWorldPos3D();
 
-                absorbedPhotonHeatInWatt += GenerateForce(photonReflection, photovoltaicEfficiency, ref beamedPowerSource, ref positionVessel, beamedPowerThrottleRatio * availableTransmitterPowerInWatt, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize * 0.25);
+                GenerateForce(photonReflection, photovoltaicEfficiency, ref absorbedPhotonHeatInWatt,  ref beamedPowerSource, ref positionVessel, beamedPowerThrottleRatio * availableTransmitterPowerInWatt, universalTime, vesselMassInKg, false, receivedPowerData.Route.Spotsize * 0.25);
             }
 
             // process statistical data
@@ -982,6 +980,8 @@ namespace FNPlugin.Beamedpower
             if (kscLaserPowerInWatt <= 0 || kscLaserAperture <= 0)
                 return;
 
+
+
             var homeWorldBody = Planetarium.fetch.Home;
             Vector3d positionKscLaser = homeWorldBody.GetWorldSurfacePosition(kscLaserLatitude, kscLaserLongitude, kscLaserAltitude);
             Vector3d centerOfHomeworld = homeWorldBody.position;
@@ -1009,6 +1009,9 @@ namespace FNPlugin.Beamedpower
 
                 availableBeamedKscEnergy = kscAtmosphereAbsorbtionEfficiency * surfaceKscEnergy;
 
+                if (Funding.Instance != null && Funding.Instance.Funds < availableBeamedKscEnergy * 1e-9)
+                    return;
+
                 if (beamedPowerThrottleRatio > 0 && kscLaserElevationAngle >= kscLaserMinElevationAngle)
                 {
                     connectedTransmittersCount++;
@@ -1033,7 +1036,13 @@ namespace FNPlugin.Beamedpower
 
                     //gausionRatio = Math.Pow(centralSpotsizeRatio, 0.3 + (0.6 * (1 - centralSpotsizeRatio)))
 
-                    receivedHeatInWatt += GenerateForce(kscPhotonReflection, kscPhotovoltaic, ref positionKscLaser, ref positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, centralSpotSize * 0.25);
+                    var usedEnergyInGW = GenerateForce(kscPhotonReflection, kscPhotovoltaic, ref receivedHeatInWatt, ref positionKscLaser, ref positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, centralSpotSize * 0.25) * 1e-9;
+
+                    if (usedEnergyInGW > 0 && Funding.Instance != null)
+                    {
+                        // subtract funds from account
+                        Funding.Instance.AddFunds(-usedEnergyInGW * TimeWarp.fixedDeltaTime * 0.1, TransactionReasons.None);
+                    }
                 }
             }
         }
@@ -1179,7 +1188,7 @@ namespace FNPlugin.Beamedpower
                 vessel.ChangeWorldVelocity(acceleration);
         }
 
-        private double GenerateForce(double photonReflectionRatio, double photovoltaicEffiency, ref Vector3d positionPowerSource, ref Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1)
+        private double GenerateForce(double photonReflectionRatio, double photovoltaicEffiency, ref double receivedHeatInWatt, ref Vector3d positionPowerSource, ref Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1)
         {
             // calculate vector between vessel and star/transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
@@ -1290,6 +1299,9 @@ namespace FNPlugin.Beamedpower
             // calculate ratio of non reflected photons
             var absorbedPhotonsRatio = 1 - photonReflectionRatio;
 
+            // add received heat to total heat load
+            receivedHeatInWatt += energyOnSailnWatt * absorbedPhotonsRatio;
+
             // calculate force from absorbed photons
             var absorbedPhotonForce = reflectedRadiationPresureOnSail * 0.5 * absorbedPhotonsRatio;
 
@@ -1336,7 +1348,7 @@ namespace FNPlugin.Beamedpower
                 beamed_acc_d += signedAccel;
             }
 
-            return energyOnSailnWatt * absorbedPhotonsRatio;
+            return availableEnergyInWatt;
         }
 
         private static int sign(bool cosConeAngleIsNegative)

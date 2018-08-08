@@ -290,32 +290,32 @@ namespace FNPlugin
 
         // Radiator Upgrade Techs
 
-        private static string _radiatorUpgradeTech1 = String.Empty;
+        private static string _radiatorUpgradeTech1 = "heatManagementSystems";
         public static string RadiatorUpgradeTech1 { get { return _radiatorUpgradeTech1; } private set { _radiatorUpgradeTech1 = value; } }
 
-        private static string _radiatorUpgradeTech2 = String.Empty;
+        private static string _radiatorUpgradeTech2 = "advHeatManagement";
         public static string RadiatorUpgradeTech2 { get { return _radiatorUpgradeTech2; } private set { _radiatorUpgradeTech2 = value; } }
 
-        private static string _radiatorUpgradeTech3 = String.Empty;
+        private static string _radiatorUpgradeTech3 = "specializedRadiators";
         public static string RadiatorUpgradeTech3 { get { return _radiatorUpgradeTech3; } private set { _radiatorUpgradeTech3 = value; } }
 
-        private static string _radiatorUpgradeTech4 = String.Empty;
+        private static string _radiatorUpgradeTech4 = "exoticRadiators";
         public static string RadiatorUpgradeTech4 { get { return _radiatorUpgradeTech4; } private set { _radiatorUpgradeTech4 = value; } }
 
 
-        private static double _radiatorTemperatureMk1 = 1850;
+        private static double _radiatorTemperatureMk1 = 2200;
         public static double RadiatorTemperatureMk1 { get { return _radiatorTemperatureMk1; } private set { _radiatorTemperatureMk1 = value; } }
 
-        private static double _radiatorTemperatureMk2 = 2200;
+        private static double _radiatorTemperatureMk2 = 2616;
         public static double RadiatorTemperatureMk2 { get { return _radiatorTemperatureMk2; } private set { _radiatorTemperatureMk2 = value; } }
 
-        private static double _radiatorTemperatureMk3 = 2616;
+        private static double _radiatorTemperatureMk3 = 3111;
         public static double RadiatorTemperatureMk3 { get { return _radiatorTemperatureMk3; } private set { _radiatorTemperatureMk3 = value; } }
 
-        private static double _radiatorTemperatureMk4 = 3111;
+        private static double _radiatorTemperatureMk4 = 3700;
         public static double RadiatorTemperatureMk4 { get { return _radiatorTemperatureMk4; } private set { _radiatorTemperatureMk4 = value; } }
 
-        private static double _radiatorTemperatureMk5 = 3700;
+        private static double _radiatorTemperatureMk5 = 4400;
         public static double RadiatorTemperatureMk5 { get { return _radiatorTemperatureMk5; } private set { _radiatorTemperatureMk5 = value; } }
 
         #endregion
