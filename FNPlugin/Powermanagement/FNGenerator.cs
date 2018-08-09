@@ -94,6 +94,9 @@ namespace FNPlugin
         [KSPField]
         public double efficiencyMk6 = 0;
         [KSPField]
+        public double efficiencyMk7 = 0;
+
+        [KSPField]
         public string Mk2TechReq = "";
         [KSPField]
         public string Mk3TechReq = "";
@@ -103,6 +106,9 @@ namespace FNPlugin
         public string Mk5TechReq = "";
         [KSPField]
         public string Mk6TechReq = "";
+        [KSPField]
+        public string Mk7TechReq = "";
+
         [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxGeneratorEfficiency")]
         public double maxEfficiency = 0;
         [KSPField]
@@ -468,11 +474,15 @@ namespace FNPlugin
                 efficiencyMk5 = efficiencyMk4;
             if (efficiencyMk6 == 0)
                 efficiencyMk6 = efficiencyMk5;
+            if (efficiencyMk7 == 0)
+                efficiencyMk7 = efficiencyMk6;
 
             if (String.IsNullOrEmpty(Mk2TechReq))
                 Mk2TechReq = upgradeTechReq;
 
             int techLevel = 1;
+            if (PluginHelper.UpgradeAvailable(Mk7TechReq))
+                techLevel++;
             if (PluginHelper.UpgradeAvailable(Mk6TechReq))
                 techLevel++;
             if (PluginHelper.UpgradeAvailable(Mk5TechReq))
@@ -484,7 +494,9 @@ namespace FNPlugin
             if (PluginHelper.UpgradeAvailable(Mk2TechReq))
                 techLevel++;
 
-            if (techLevel == 6)
+            if (techLevel >= 7)
+                maxEfficiency = efficiencyMk7;
+            else if (techLevel == 6)
                 maxEfficiency = efficiencyMk6;
             else if (techLevel == 5)
                 maxEfficiency = efficiencyMk5;
