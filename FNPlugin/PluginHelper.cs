@@ -67,30 +67,8 @@ namespace FNPlugin
     {
         const string WARP_PLUGIN_SETTINGS_FILEPATH = "WarpPlugin/WarpPluginSettings/WarpPluginSettings";
 
-        //public const int REF_BODY_KERBOL = 0;
-        //public const int REF_BODY_KERBIN = 1;
-		//public const int REF_BODY_MUN = 2;
-		//public const int REF_BODY_MINMUS = 3;
-		//public const int REF_BODY_MOHO = 4;
-		//public const int REF_BODY_EVE = 5;
-		//public const int REF_BODY_DUNA = 6;
-		//public const int REF_BODY_IKE = 7;
-		//public const int REF_BODY_JOOL = 8;
-		//public const int REF_BODY_LAYTHE = 9;
-		//public const int REF_BODY_VALL = 10;
-		//public const int REF_BODY_BOP = 11;
-		//public const int REF_BODY_TYLO = 12;
-		//public const int REF_BODY_GILLY = 13;
-		//public const int REF_BODY_POL = 14;
-		//public const int REF_BODY_DRES = 15;
-		//public const int REF_BODY_EELOO = 16;
-
         public static bool using_toolbar = false;
-        //public const int interstellar_major_version = 13;
-        //public const int interstellar_minor_version = 5;
-
         protected static bool plugin_init = false;
-        //protected static GameDatabase gdb;
         protected static bool resources_configured = false;
         
         static protected bool buttonAdded;
@@ -302,21 +280,27 @@ namespace FNPlugin
         private static string _radiatorUpgradeTech4 = "exoticRadiators";
         public static string RadiatorUpgradeTech4 { get { return _radiatorUpgradeTech4; } private set { _radiatorUpgradeTech4 = value; } }
 
+        private static string _radiatorUpgradeTech5 = "extremeRadiators";
+        public static string RadiatorUpgradeTech5 { get { return _radiatorUpgradeTech5; } private set { _radiatorUpgradeTech5 = value; } }
 
-        private static double _radiatorTemperatureMk1 = 2200;
+
+		private static double _radiatorTemperatureMk1 = 1850;
         public static double RadiatorTemperatureMk1 { get { return _radiatorTemperatureMk1; } private set { _radiatorTemperatureMk1 = value; } }
 
-        private static double _radiatorTemperatureMk2 = 2616;
+		private static double _radiatorTemperatureMk2 = 2200;
         public static double RadiatorTemperatureMk2 { get { return _radiatorTemperatureMk2; } private set { _radiatorTemperatureMk2 = value; } }
 
-        private static double _radiatorTemperatureMk3 = 3111;
+		private static double _radiatorTemperatureMk3 = 2616;
         public static double RadiatorTemperatureMk3 { get { return _radiatorTemperatureMk3; } private set { _radiatorTemperatureMk3 = value; } }
 
-        private static double _radiatorTemperatureMk4 = 3700;
+		private static double _radiatorTemperatureMk4 = 3111;
         public static double RadiatorTemperatureMk4 { get { return _radiatorTemperatureMk4; } private set { _radiatorTemperatureMk4 = value; } }
 
-        private static double _radiatorTemperatureMk5 = 4400;
+		private static double _radiatorTemperatureMk5 = 3700;
         public static double RadiatorTemperatureMk5 { get { return _radiatorTemperatureMk5; } private set { _radiatorTemperatureMk5 = value; } }
+
+		private static double _radiatorTemperatureMk6 = 4400;
+        public static double RadiatorTemperatureMk6 { get { return _radiatorTemperatureMk6; } private set { _radiatorTemperatureMk6 = value; } }
 
         #endregion
 
@@ -991,6 +975,11 @@ namespace FNPlugin
                         PluginHelper.RadiatorUpgradeTech4 = plugin_settings.GetValue("RadiatorUpgradeTech4");
                         Debug.Log("[KSPI] RadiatorUpgradeTech4 " + PluginHelper.RadiatorUpgradeTech4);
                     }
+                    if (plugin_settings.HasValue("RadiatorUpgradeTech5"))
+                    {
+                        PluginHelper.RadiatorUpgradeTech5 = plugin_settings.GetValue("RadiatorUpgradeTech5");
+                        Debug.Log("[KSPI] RadiatorUpgradeTech5 " + PluginHelper.RadiatorUpgradeTech5);
+                    }
 
                     if (plugin_settings.HasValue("RadiatorTemperatureMk1"))
                     {
@@ -1016,6 +1005,11 @@ namespace FNPlugin
                     {
                         PluginHelper.RadiatorTemperatureMk5 = double.Parse(plugin_settings.GetValue("RadiatorTemperatureMk5"));
                         Debug.Log("[KSPI] RadiatorTemperatureMk5" + PluginHelper.RadiatorTemperatureMk5);
+                    }
+                    if (plugin_settings.HasValue("RadiatorTemperatureMk6"))
+                    {
+                        PluginHelper.RadiatorTemperatureMk6 = double.Parse(plugin_settings.GetValue("RadiatorTemperatureMk6"));
+                        Debug.Log("[KSPI] RadiatorTemperatureMk6" + PluginHelper.RadiatorTemperatureMk6);
                     }
 
                     resources_configured = true;

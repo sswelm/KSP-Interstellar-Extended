@@ -159,6 +159,8 @@ namespace FNPlugin
         [KSPField]
         public string radiatorTypeMk5 = "Graphene Radiator Mk2";
         [KSPField]
+        public string radiatorTypeMk6 = "Graphene Radiator Mk3";
+        [KSPField]
         public bool showColorHeat = true;
         [KSPField]
         public string surfaceAreaUpgradeTechReq = null;
@@ -297,6 +299,8 @@ namespace FNPlugin
 
         private double GetMaximumTemperatureForGen(GenerationType generation)
         {
+            if (generation == GenerationType.Mk6)
+                return PluginHelper.RadiatorTemperatureMk6;
             if (generation == GenerationType.Mk5)
                 return PluginHelper.RadiatorTemperatureMk5;
             if (generation == GenerationType.Mk4)
@@ -327,6 +331,8 @@ namespace FNPlugin
 
             // determine number of upgrade techs
             nrAvailableUpgradeTechs = 1;
+            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech5))
+                nrAvailableUpgradeTechs++;
             if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech4))
                 nrAvailableUpgradeTechs++;
             if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
@@ -337,7 +343,9 @@ namespace FNPlugin
                 nrAvailableUpgradeTechs++;
 
             // determine fusion tech levels
-            if (nrAvailableUpgradeTechs == 5)
+            if (nrAvailableUpgradeTechs == 6)
+                CurrentGenerationType = GenerationType.Mk6;
+            else if (nrAvailableUpgradeTechs == 5)
                 CurrentGenerationType = GenerationType.Mk5;
             else if (nrAvailableUpgradeTechs == 4)
                 CurrentGenerationType = GenerationType.Mk4;
@@ -353,6 +361,8 @@ namespace FNPlugin
         {
             get
             {
+                if (CurrentGenerationType == GenerationType.Mk6)
+                    return radiatorTypeMk6;
                 if (CurrentGenerationType == GenerationType.Mk5)
                     return radiatorTypeMk5;
                 if (CurrentGenerationType == GenerationType.Mk4)
@@ -621,8 +631,8 @@ namespace FNPlugin
 
             radiatorTempStr = maxRadiatorTemperature + "K";
 
-            maxVacuumTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk2, maxRadiatorTemperature) :  Math.Min(maxVacuumTemperature, maxRadiatorTemperature);
-            maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk2, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature);
+            maxVacuumTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) :  Math.Min(maxVacuumTemperature, maxRadiatorTemperature);
+            maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature);
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+6));
