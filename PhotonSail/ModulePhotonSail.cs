@@ -537,9 +537,6 @@ namespace FNPlugin.Beamedpower
 
         private void DetermineKscLaserPower()
         {
-            
-
-
             if (ResearchAndDevelopment.Instance == null)
                 return;
 
@@ -980,8 +977,6 @@ namespace FNPlugin.Beamedpower
             if (kscLaserPowerInWatt <= 0 || kscLaserAperture <= 0)
                 return;
 
-
-
             var homeWorldBody = Planetarium.fetch.Home;
             Vector3d positionKscLaser = homeWorldBody.GetWorldSurfacePosition(kscLaserLatitude, kscLaserLongitude, kscLaserAltitude);
             Vector3d centerOfHomeworld = homeWorldBody.position;
@@ -992,12 +987,8 @@ namespace FNPlugin.Beamedpower
             {
                 // calculate spotsize and received power From Ktc
                 Vector3d powerSourceToVesselVector = positionVessel - positionKscLaser;
-                Vector3d centerPlanetToVesselVector = positionVessel - centerOfHomeworld;
-                var beamAngleKscToCenterInDegree = Vector3d.Angle(powerSourceToVesselVector, centerPlanetToVesselVector);
-
-                Vector3d powerSourceTocenterOfHomeworldVector = centerOfHomeworld - positionKscLaser;
-                Vector3d positionVesselTocenterOfHomeworldVector = centerOfHomeworld - positionVessel;
-                var beamAngleKscToVesselInDegree = Vector3d.Angle(powerSourceTocenterOfHomeworldVector, positionVesselTocenterOfHomeworldVector);
+                var beamAngleKscToCenterInDegree = Vector3d.Angle(powerSourceToVesselVector, positionVessel - centerOfHomeworld);
+                var beamAngleKscToVesselInDegree = Vector3d.Angle(centerOfHomeworld - positionKscLaser, centerOfHomeworld - positionVessel);
 
                 kscLaserElevationAngle = 90 - beamAngleKscToCenterInDegree - beamAngleKscToVesselInDegree;
                 var kscAtmosphereMultiplier = 1 / (Math.Sin(kscLaserElevationAngle * Mathf.Deg2Rad));
@@ -1038,11 +1029,11 @@ namespace FNPlugin.Beamedpower
 
                     var usedEnergyInGW = GenerateForce(kscPhotonReflection, kscPhotovoltaic, ref receivedHeatInWatt, ref positionKscLaser, ref positionVessel, receivedBeamedPowerFromKsc, universalTime, vesselMassInKg, false, centralSpotSize * 0.25) * 1e-9;
 
-                    if (usedEnergyInGW > 0 && Funding.Instance != null)
-                    {
-                        // subtract funds from account
-                        Funding.Instance.AddFunds(-usedEnergyInGW * TimeWarp.fixedDeltaTime * 0.1, TransactionReasons.None);
-                    }
+                    //if (usedEnergyInGW > 0 && Funding.Instance != null)
+                    //{
+                    //    // subtract funds from account
+                    //    Funding.Instance.AddFunds(-usedEnergyInGW * TimeWarp.fixedDeltaTime * 0.1, TransactionReasons.None);
+                    //}
                 }
             }
         }
