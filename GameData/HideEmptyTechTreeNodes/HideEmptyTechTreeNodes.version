@@ -1,0 +1,31 @@
+{
+    "NAME":"HideEmptyTechTreeNodes",
+    "URL":"https://raw.githubusercontent.com/Orthethac/HideEmptyTechTreeNodes/master/GameData/HideEmptyTechTreeNodes/HideEmptyTechTreeNodes.version",
+	"DOWNLOAD":"https://github.com/Orthethac/HideEmptyTechTreeNodes/releases",
+	"GITHUB":{
+        "USERNAME":"Orthethac",
+        "REPOSITORY":"HideEmptyTechTreeNodes",
+        "ALLOW_PRE_RELEASE":false,
+    },
+    "VERSION":{
+        "MAJOR":1,
+        "MINOR":0,
+        "PATCH":4,
+        "BUILD":0
+    },
+    "KSP_VERSION":{
+        "MAJOR":1,
+        "MINOR":4,
+        "PATCH":3
+    },
+    "KSP_VERSION_MIN":{
+        "MAJOR":1,
+        "MINOR":4,
+        "PATCH":0
+    },
+    "KSP_VERSION_MAX":{
+        "MAJOR":1,
+        "MINOR":4,
+        "PATCH":9
+    }
+}
