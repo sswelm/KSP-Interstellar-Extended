@@ -356,7 +356,7 @@ namespace FNPlugin.Refinery
                     : animationState.normalizedTime;
             }
             else
-                normalizedTime = isDeployed ? 1 : 0;
+                normalizedTime = 1;
 
             // intake can only function when heading towards orbital path
             intakeModifier = scoopAnimation == null ? 1 : Math.Max(0, Vector3d.Dot(part.transform.up, part.vessel.obt_velocity.normalized));
