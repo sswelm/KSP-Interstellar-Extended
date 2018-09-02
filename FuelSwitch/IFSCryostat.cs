@@ -257,8 +257,10 @@ namespace InterstellarFuelSwitch
 
         public override string GetInfo()
         {
-            return "Power Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW\n Powered Boil Off Fraction: "
-                + boilOffRate * KEBRIN_DAY_SECONDS + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * KEBRIN_DAY_SECONDS + " /day";
+            return "<size=10>" + resourceName + " @ " + boilOffTemp + " K</size>";
+
+            //return "Power Requirements: " + (powerReqKW * 0.1).ToString("0.0") + " KW\n Powered Boil Off Fraction: "
+            //	+ boilOffRate * KEBRIN_DAY_SECONDS + " /day\n Unpowered Boil Off Fraction: " + (boilOffRate + boilOffAddition) * boilOffMultiplier * KEBRIN_DAY_SECONDS + " /day";
         }
     }
 }

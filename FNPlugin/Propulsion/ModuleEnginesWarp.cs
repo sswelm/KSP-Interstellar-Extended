@@ -22,7 +22,7 @@ namespace FNPlugin
         public double requestedFlow;
 
         [KSPField]
-        public double GThreshold = 2;
+        public double GThreshold = 9;
         [KSPField]
         public string propellant1 = "LqdHydrogen";
         [KSPField]
@@ -175,6 +175,9 @@ namespace FNPlugin
             if (CheatOptions.InfinitePropellant)
                 return 1;
 
+            if (demandMass == 0 || double.IsNaN(demandMass) || double.IsInfinity(demandMass))
+                return 0;
+
             double fuelRequestAmount1 = 0;
             double fuelRequestAmount2 = 0;
             double fuelRequestAmount3 = 0;
@@ -277,7 +280,7 @@ namespace FNPlugin
                 //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
                 demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime; // Change in mass over dT
 
-                fuelRatio =	CollectFuel(demandMass);
+                fuelRatio = CollectFuel(demandMass);
 
                 // Calculate thrust and deltaV if demand output > 0
                 if (fuelRatio > 0)
@@ -290,12 +293,12 @@ namespace FNPlugin
                     vessel.orbit.Perturb(deltaVV, universalTime); // Update vessel orbit
                 }
                 // Otherwise, if throttle is turned on, and demand out is 0, show warning
-                    
+
                 else if (ThrottlePersistent > 0)
                 {
-                    Debug.Log("Propellant depleted");
+                    Debug.Log("[KSPI] - Propellant depleted");
                 }
-            }            
+            }
 
             // Update display numbers
             thrust_d = ThrustPersistent;
@@ -303,6 +306,19 @@ namespace FNPlugin
             throttle_d = ThrottlePersistent;
             previousThrottle = vessel.ctrlState.mainThrottle;
         }
+
+        public static bool IsInfinityOrNaN(Vector3d vector)
+        {
+            if (double.IsInfinity(vector.x) || double.IsNaN(vector.x))
+                return true;
+            if (double.IsInfinity(vector.y) || double.IsNaN(vector.y))
+                return true;
+            if (double.IsInfinity(vector.z) || double.IsNaN(vector.z))
+                return true;
+
+            return false;
+        }
+
 
         // Format thrust into mN, N, kN
         public static string FormatThrust(double thrust)

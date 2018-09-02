@@ -6,12 +6,12 @@ namespace FNPlugin.Reactors
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
         // persistants
-        [KSPField(isPersistant = true, guiActive = true)]
-        public double storedPlasmaEnergy;
+        [KSPField(isPersistant = true)]
+        public double storedPlasmaEnergyRatio;
 
         // configs
         [KSPField]
-        public double plasmaBufferSize = 20;
+        public double plasmaBufferSize = 10;
         [KSPField]
         public double minimumHeatingRequirements = 0.1;
         [KSPField]
@@ -58,25 +58,24 @@ namespace FNPlugin.Reactors
             electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(heatingPowerRequirements);
         }
 
-        private float GetPlasmaRatio(double receivedPower, double fusionPowerRequirement)
+        private float GetPlasmaRatio(double receivedPowerPerSecond, double fusionPowerRequirement)
         {
-            if (receivedPower > fusionPowerRequirement)
+            if (receivedPowerPerSecond > fusionPowerRequirement)
             {
-                storedPlasmaEnergy += ((receivedPower - fusionPowerRequirement) / PowerRequirement);
-                receivedPower = fusionPowerRequirement;
+                storedPlasmaEnergyRatio += ((receivedPowerPerSecond - fusionPowerRequirement) / PowerRequirement);
+                receivedPowerPerSecond = fusionPowerRequirement;
             }
             else
             {
-                var shortage = fusionPowerRequirement - receivedPower;
-                if (shortage < storedPlasmaEnergy)
+                var shortageRatio = (fusionPowerRequirement - receivedPowerPerSecond) / PowerRequirement;
+                if (shortageRatio < storedPlasmaEnergyRatio)
                 {
-                    storedPlasmaEnergy -= (shortage / PowerRequirement);
-                    receivedPower = fusionPowerRequirement;
+                    storedPlasmaEnergyRatio -= (shortageRatio / PowerRequirement);
+                    receivedPowerPerSecond = fusionPowerRequirement;
                 }
             }
 
-
-            return (float)Math.Round(fusionPowerRequirement > 0 ? receivedPower / fusionPowerRequirement : 1, 4);
+            return (float)Math.Round(fusionPowerRequirement > 0 ? receivedPowerPerSecond / fusionPowerRequirement : 1, 4);
         }
 
         public override void StartReactor()
@@ -110,7 +109,7 @@ namespace FNPlugin.Reactors
             allowJumpStart = plasma_ratio > 0.99;
             if (allowJumpStart)
             {
-                storedPlasmaEnergy = 1;
+                storedPlasmaEnergyRatio = 1;
                 ScreenMessages.PostScreenMessage("Starting fusion reaction", 5f, ScreenMessageStyle.LOWER_CENTER);
                 jumpstartPowerTime = 10;
             }
@@ -125,7 +124,7 @@ namespace FNPlugin.Reactors
             {
                 var fusionPowerRequirement = HeatingPowerRequirements;
 
-                var requestedPower = fusionPowerRequirement + ((plasmaBufferSize - storedPlasmaEnergy) * PowerRequirement);
+                var requestedPower = fusionPowerRequirement + ((plasmaBufferSize - storedPlasmaEnergyRatio) * PowerRequirement);
 
                 // consume power from managed power source
                 power_consumed = CheatOptions.InfiniteElectricity
@@ -168,7 +167,7 @@ namespace FNPlugin.Reactors
                         allowJumpStart = false;
                     else
                     {
-                        storedPlasmaEnergy = plasmaBufferSize;
+                        storedPlasmaEnergyRatio = plasmaBufferSize;
                         jumpstartPowerTime = 10;
                     }
 
