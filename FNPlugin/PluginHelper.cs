@@ -24,8 +24,10 @@ namespace FNPlugin
             BeamedPowerSources.getVesselMicrowavePersistanceForVesselCallback = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel;
             BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel;
 
-            GameEvents.onGameStateSaved.Add(onGameStateSaved);
+            GameEvents.onGameStateSaved.Add(OnGameStateSaved);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
+            GameEvents.onDockingComplete.Add(OnDockingComplete);
+            GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
 
             Debug.Log("[KSPI] - GameEventSubscriber Initialised");
         }
@@ -37,16 +39,34 @@ namespace FNPlugin
             //GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
             //GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
 
-            GameEvents.onGameStateSaved.Remove(onGameStateSaved);
+            GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
             GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
+            GameEvents.onDockingComplete.Remove(OnDockingComplete);
+            GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
 
             Debug.Log("[KSPI] - GameEventSubscriber Deinitialised");
         }
 
-        void onGameStateSaved(Game game)
+        void OnGameStateSaved(Game game)
         {
-            Debug.Log("[KSP] - GameEventSubscriber - detected onGameStateSaved");
+            Debug.Log("[KSPI] - GameEventSubscriber - detected OnGameStateSaved");
             PluginHelper.LoadSaveFile();
+        }
+
+        void OnDockingComplete(GameEvents.FromToAction<Part, Part> fromToAction)
+        {
+            Debug.Log("[KSPI] - GameEventSubscriber - detected OnDockingComplete");
+
+            ResourceOvermanager.Reset();
+            SupplyPriorityManager.Reset();
+        }
+
+        void  OnPartDeCoupleComplete (Part part)
+        {
+            Debug.Log("[KSPI] - GameEventSubscriber - detected OnPartDeCoupleComplete");
+
+            ResourceOvermanager.Reset();
+            SupplyPriorityManager.Reset();
         }
 
         void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
@@ -284,22 +304,22 @@ namespace FNPlugin
         public static string RadiatorUpgradeTech5 { get { return _radiatorUpgradeTech5; } private set { _radiatorUpgradeTech5 = value; } }
 
 
-		private static double _radiatorTemperatureMk1 = 1850;
+        private static double _radiatorTemperatureMk1 = 1850;
         public static double RadiatorTemperatureMk1 { get { return _radiatorTemperatureMk1; } private set { _radiatorTemperatureMk1 = value; } }
 
-		private static double _radiatorTemperatureMk2 = 2200;
+        private static double _radiatorTemperatureMk2 = 2200;
         public static double RadiatorTemperatureMk2 { get { return _radiatorTemperatureMk2; } private set { _radiatorTemperatureMk2 = value; } }
 
-		private static double _radiatorTemperatureMk3 = 2616;
+        private static double _radiatorTemperatureMk3 = 2616;
         public static double RadiatorTemperatureMk3 { get { return _radiatorTemperatureMk3; } private set { _radiatorTemperatureMk3 = value; } }
 
-		private static double _radiatorTemperatureMk4 = 3111;
+        private static double _radiatorTemperatureMk4 = 3111;
         public static double RadiatorTemperatureMk4 { get { return _radiatorTemperatureMk4; } private set { _radiatorTemperatureMk4 = value; } }
 
-		private static double _radiatorTemperatureMk5 = 3700;
+        private static double _radiatorTemperatureMk5 = 3700;
         public static double RadiatorTemperatureMk5 { get { return _radiatorTemperatureMk5; } private set { _radiatorTemperatureMk5 = value; } }
 
-		private static double _radiatorTemperatureMk6 = 4400;
+        private static double _radiatorTemperatureMk6 = 4400;
         public static double RadiatorTemperatureMk6 { get { return _radiatorTemperatureMk6; } private set { _radiatorTemperatureMk6 = value; } }
 
         #endregion
@@ -640,7 +660,7 @@ namespace FNPlugin
                     null,
                     null,
                     null,
-                    ApplicationLauncher.AppScenes.NEVER,
+                    ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.VAB,
                     appIcon);
 
                 buttonAdded = true;
@@ -679,7 +699,7 @@ namespace FNPlugin
             {
                 appLauncherButton = InitializeApplicationButton();
                 if (appLauncherButton != null)
-                    appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.FLIGHT;
+                    appLauncherButton.VisibleInScenes = ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.FLIGHT;
 
                 buttonAdded = true;
             }

@@ -8,7 +8,18 @@ namespace FNPlugin
 {
     class SupplyPriorityManager
     {
-        protected static Dictionary<Vessel, SupplyPriorityManager> supply_priority_managers = new Dictionary<Vessel,SupplyPriorityManager>();
+        private static Dictionary<Vessel, SupplyPriorityManager> supply_priority_managers = new Dictionary<Vessel, SupplyPriorityManager>();
+
+        public Guid Id { get; private set; }
+        public Vessel Vessel { get; private set; }
+        public PartModule ProcessingPart { get; private set; }
+
+		private List<ResourceSuppliableModule> suppliable_modules = new List<ResourceSuppliableModule>();
+
+        public static void Reset()
+        {
+            supply_priority_managers.Clear();
+        }
 
         public static SupplyPriorityManager GetSupplyPriorityManagerForVessel(Vessel vessel) 
         {
@@ -19,17 +30,13 @@ namespace FNPlugin
 
             if (!supply_priority_managers.TryGetValue(vessel, out manager))
             {
+                Debug.Log("[KSPI] - Creating new supply priority manager for " + vessel.GetName());
                 manager = new SupplyPriorityManager(vessel);
+                
                 supply_priority_managers.Add(vessel, manager);
             }
-
             return manager;
         }
-
-        protected List<ResourceSuppliableModule> suppliable_modules = new List<ResourceSuppliableModule>();
-
-        public Vessel Vessel {get; private set;}
-        public PartModule ProcessingPart { get; private set; }
 
         public void UpdatePartModule(PartModule partmodule)
         {
@@ -39,6 +46,7 @@ namespace FNPlugin
 
         public SupplyPriorityManager(Vessel vessel)
         {
+            Id = Guid.NewGuid();
             this.Vessel = vessel;
         }
 

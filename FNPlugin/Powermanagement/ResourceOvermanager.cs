@@ -6,7 +6,14 @@ namespace FNPlugin
 {
     public class ResourceOvermanager 
     {
-        protected static Dictionary<String, ResourceOvermanager> resources_managers = new Dictionary<String, ResourceOvermanager>();
+        private static Dictionary<String, ResourceOvermanager> resources_managers = new Dictionary<String, ResourceOvermanager>();
+
+        public Guid Id { get; private set; }
+
+        public static void Reset()
+        {
+            resources_managers.Clear();
+        }
 
         public static ResourceOvermanager getResourceOvermanagerForResource(String resource_name) 
         {
@@ -15,6 +22,8 @@ namespace FNPlugin
             if (!resources_managers.TryGetValue(resource_name, out fnro))
             {
                 fnro = new ResourceOvermanager(resource_name);
+                if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES)
+                    Debug.Log("[KSPI] - Created new ResourceOvermanager for resource " + resource_name + " with Id" + fnro.Id);
                 resources_managers.Add(resource_name, fnro);
             }
 
@@ -26,6 +35,7 @@ namespace FNPlugin
 
         public ResourceOvermanager(String name) 
         {
+            Id = Guid.NewGuid();
             managers = new Dictionary<Vessel, ResourceManager>();
             this.resource_name = name;
         }
@@ -57,11 +67,11 @@ namespace FNPlugin
             managers.Remove(manager.Vessel);
         }
 
-        public virtual ResourceManager createManagerForVessel(PartModule pm) 
+        public ResourceManager CreateManagerForVessel(PartModule pm) 
         {
-            ResourceManager megamanager = new ResourceManager(pm, resource_name);
-            managers.Add(pm.vessel, megamanager);
-            return megamanager;
+            ResourceManager resourcemanager = new ResourceManager(Id, pm, resource_name);
+            managers.Add(pm.vessel, resourcemanager);
+            return resourcemanager;
         }
     }
 }

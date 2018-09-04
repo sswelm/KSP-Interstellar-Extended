@@ -10,11 +10,11 @@ namespace FNPlugin
         bool IsForceActivated;
 
         // GUI display values
-        [KSPField(guiActive = true, guiName = "Warp Thrust")]
+        [KSPField(guiActive = false, guiName = "Warp Thrust")]
         protected string Thrust = "";
-        [KSPField(guiActive = true, guiName = "Warp Isp")]
+        [KSPField(guiActive = false, guiName = "Warp Isp")]
         protected string Isp = "";
-        [KSPField(guiActive = true, guiName = "Warp Throttle")]
+        [KSPField(guiActive = false, guiName = "Warp Throttle")]
         protected string Throttle = "";
         [KSPField(guiActive = false, guiName = "Demand")]
         public double propellantUsed;
@@ -91,10 +91,10 @@ namespace FNPlugin
                 _warpToReal = false;
             }
 
-            // Persistent thrust GUI
-            Fields["Thrust"].guiActive = isEnabled;
-            Fields["Isp"].guiActive = isEnabled;
-            Fields["Throttle"].guiActive = isEnabled;
+            //// Persistent thrust GUI
+            //Fields["Thrust"].guiActive = isEnabled;
+            //Fields["Isp"].guiActive = isEnabled;
+            //Fields["Throttle"].guiActive = isEnabled;
 
             // Update display values
             Thrust = FormatThrust(thrust_d);

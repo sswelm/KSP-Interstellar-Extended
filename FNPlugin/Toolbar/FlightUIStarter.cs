@@ -27,9 +27,10 @@ namespace FNPlugin
 
             if (vessel == null) return;
 
-            if (ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_MEGAJOULES).hasManagerForVessel(vessel) && !hide_button)
+            var megajoules_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_MEGAJOULES);
+            if (megajoules_overmanager.hasManagerForVessel(vessel) && !hide_button)
             {
-                ResourceManager mega_manager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_MEGAJOULES).getManagerForVessel(vessel);
+                ResourceManager mega_manager = megajoules_overmanager.getManagerForVessel(vessel);
                 if (mega_manager != null && mega_manager.PartModule != null)
                 {
                     // activate rendering
@@ -41,9 +42,10 @@ namespace FNPlugin
                 }
             }
 
-            if (ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_THERMALPOWER).hasManagerForVessel(vessel) && !hide_button)
+            var thermalpower_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_THERMALPOWER);
+            if (thermalpower_overmanager.hasManagerForVessel(vessel) && !hide_button)
             {
-                ResourceManager thermal_manager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_THERMALPOWER).getManagerForVessel(vessel);
+                ResourceManager thermal_manager = thermalpower_overmanager.getManagerForVessel(vessel);
                 if (thermal_manager != null && thermal_manager.PartModule != null)
                 {
                     // activate rendering
@@ -55,9 +57,10 @@ namespace FNPlugin
                 }
             }
 
-            if (ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_CHARGED_PARTICLES).hasManagerForVessel(vessel) && !hide_button)
+            var charged_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+            if (charged_overmanager.hasManagerForVessel(vessel) && !hide_button)
             {
-                ResourceManager charged_manager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_CHARGED_PARTICLES).getManagerForVessel(vessel);
+                ResourceManager charged_manager = charged_overmanager.getManagerForVessel(vessel);
                 if (charged_manager != null && charged_manager.PartModule != null)
                 {
                     // activate rendering
@@ -69,9 +72,10 @@ namespace FNPlugin
                 }
             }
 
-            if (ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_WASTEHEAT).hasManagerForVessel(vessel) && !hide_button)
+            var wasteheat_overmanager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_WASTEHEAT);
+            if (wasteheat_overmanager.hasManagerForVessel(vessel) && !hide_button)
             {
-                ResourceManager waste_manager = ResourceOvermanager.getResourceOvermanagerForResource(ResourceManager.FNRESOURCE_WASTEHEAT).getManagerForVessel(vessel);
+                ResourceManager waste_manager = wasteheat_overmanager.getManagerForVessel(vessel);
                 if (waste_manager != null && waste_manager.PartModule != null)
                 {
                     // activate rendering

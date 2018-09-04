@@ -26,6 +26,11 @@ namespace FNPlugin.Reactors
         //    ANTIMATTER = 32
         //}
 
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 0)]
+        public float electricPowerPriority = 2;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_powerPercentage"), UI_FloatRange(stepIncrement = 1 / 3f, maxValue = 100, minValue = 10)]
+        public float powerPercentage = 100;
+
         // Persistent True
         [KSPField(isPersistant = true)]
         public int fuelmode_index = -1;
@@ -89,10 +94,7 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)]
         public double storedGeneratorChargedEnergyRequestRatio;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 0)]
-        public float electricPowerPriority = 2;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_powerPercentage"), UI_FloatRange(stepIncrement = 1/3f, maxValue = 100, minValue = 10)]
-        public float powerPercentage = 100;
+
         [KSPField(isPersistant = true)]
         public double ongoing_total_power_generated;
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_Reactor_thermalPower", guiFormat = "F6")]
@@ -386,11 +388,11 @@ namespace FNPlugin.Reactors
         public double helium_molar_mass_ratio = 4.0023 / 7.0183;
 
         // GUI strings
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_coreTemperature")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_coreTemperature")]
         public string coretempStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_reactorStatus")]
         public string statusStr = String.Empty;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorFuelMode")]       
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorFuelMode")]
         public string fuelModeStr = String.Empty;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_connectedRecievers")]
         public string connectedRecieversStr = String.Empty;
@@ -409,7 +411,7 @@ namespace FNPlugin.Reactors
         protected double max_charged_to_supply_per_second;
         [KSPField]
         protected double min_throttle;
-        [KSPField(guiActive = true)]
+        [KSPField]
         protected double safetyThrotleModifier;
 
         // Gui
@@ -431,6 +433,7 @@ namespace FNPlugin.Reactors
         // shared variabels
         protected bool decay_ongoing = false;
         protected bool initialized = false;
+
         protected double animationStarted = 0;
         protected double powerPcnt;
         protected double totalAmountLithium = 0;
@@ -529,18 +532,11 @@ namespace FNPlugin.Reactors
         {
             if (ratio <= 0) return;
 
-            //var hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen);
-
-            //double hydrogenMassSum = 0;
-
             foreach (var product in reactorProduction)
             {
                 if (product.mass <= 0) continue;
 
                 var effectiveMass = ratio * product.mass;
-
-                //// sum product mass
-                //hydrogenMassSum += effectiveMass;
 
                 // remove product from store
                 var fuelAmount = product.fuelmode.DensityInTon > 0 ? (effectiveMass / product.fuelmode.DensityInTon) : 0;
@@ -550,17 +546,6 @@ namespace FNPlugin.Reactors
             }
 
             requestedPropellantMassPerSecond = propellantMassPerSecond;
-
-            //var productionFixed = part.RequestResource(hydrogenDefinition.id, -TimeWarp.fixedDeltaTime * propellantMassPerSecond / hydrogenDefinition.density);
-            //hydrogenProduction = -1000 * productionFixed / TimeWarp.fixedDeltaTime;
-
-            //var hydrogenAmount = Math.Min(hydrogenMassSum / hydrogenDefinition.density, consumedAmount);
-
-            //// at real time we need twise
-            //if (!this.vessel.packed)
-            //    hydrogenAmount *= 2;
-
-            //return part.RequestResource(hydrogenDefinition.name, -hydrogenAmount);
         }
 
         public void ConnectWithEngine(IEngineNoozle engine)
@@ -610,7 +595,6 @@ namespace FNPlugin.Reactors
                 }
             }
         }
-
 
         public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
 
@@ -818,7 +802,7 @@ namespace FNPlugin.Reactors
                         break;
                 }
 
-                return baseCoreTemperature * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
+				return baseCoreTemperature * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
             }
         }
 

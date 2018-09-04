@@ -265,7 +265,7 @@ namespace FNPlugin
         private AnimationState[] heatStates;
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
-        private ResourceManager wasteheatManager;
+        //private ResourceManager wasteheatManager;
         private ModuleDeployablePart.DeployState radiatorState;
         private ResourceBuffers resourceBuffers;
 
@@ -753,7 +753,7 @@ namespace FNPlugin
                 resourceBuffers.UpdateBuffers();
 
                 // get resource bar ratio at start of frame
-                wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
+                ResourceManager wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
                 wasteheatRatio = wasteheatManager.ResourceBarRatioBegin;
 
                 if (Double.IsNaN(wasteheatRatio))
@@ -783,7 +783,7 @@ namespace FNPlugin
                     if (Double.IsNaN(thermalPowerDissipPerSecond))
                         Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in thermalPowerDissipPerSecond");
 
-                    radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond) : 0;
+                    radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond, wasteheatManager) : 0;
 
                     if (Double.IsNaN(radiatedThermalPower))
                         Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermalPowerDissipPerSecond + ")");
@@ -799,7 +799,7 @@ namespace FNPlugin
                 {
                     thermalPowerDissipPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea / 2;
 
-                    radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond) : 0;
+                    radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond, wasteheatManager) : 0;
 
                     instantaneous_rad_temp = CalculateInstantaniousRadTemp(external_temperature);
 
@@ -816,7 +816,7 @@ namespace FNPlugin
                     if (!radiatorIsEnabled)
                         convPowerDissip = convPowerDissip * 0.25;
 
-                    convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(convPowerDissip) : 0;
+                    convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(convPowerDissip, wasteheatManager) : 0;
 
                     if (update_count == DEPLOYMENT_DELAY)
                         DeployMentControl(dynamic_pressure);
@@ -878,7 +878,7 @@ namespace FNPlugin
             }
         }
 
-        private double consumeWasteHeatPerSecond(double wasteheatToConsume)
+        private double consumeWasteHeatPerSecond(double wasteheatToConsume, ResourceManager wasteheatManager)
         {
             if (!radiatorIsEnabled) return 0;
 

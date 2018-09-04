@@ -41,6 +41,9 @@ namespace FNPlugin
 
     public class ResourceManager 
     {
+        public Guid OverManagerId { get; private set; }
+        public Guid Id { get; private set; }
+
         public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";
         public const string FNRESOURCE_MEGAJOULES = "Megajoules";
         public const string FNRESOURCE_CHARGED_PARTICLES = "ChargedParticles";
@@ -123,8 +126,11 @@ namespace FNPlugin
             set { windowID = value; }
         }
 
-        public ResourceManager(PartModule pm, String resource_name) 
+        public ResourceManager(Guid overmanagerId, PartModule pm, String resource_name) 
         {
+            OverManagerId = overmanagerId;
+            Id = Guid.NewGuid();
+
             int xPos = 0;
             int yPos = 0;
 
@@ -888,6 +894,16 @@ namespace FNPlugin
 
             GUILayout.Space(2);
             GUILayout.BeginVertical();
+
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Resource Manager Id", left_bold_label, GUILayout.ExpandWidth(true));
+			//GUILayout.Label(Id.ToString(), right_aligned_label, GUILayout.ExpandWidth(true), GUILayout.MinWidth(labelWidth));
+			//GUILayout.EndHorizontal();
+
+			//GUILayout.BeginHorizontal();
+			//GUILayout.Label("Over Manager Id", left_bold_label, GUILayout.ExpandWidth(true));
+			//GUILayout.Label(OverManagerId.ToString(), right_aligned_label, GUILayout.ExpandWidth(true), GUILayout.MinWidth(labelWidth));
+			//GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Theoretical Supply",left_bold_label, GUILayout.ExpandWidth(true));

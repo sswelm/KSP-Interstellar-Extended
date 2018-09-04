@@ -181,9 +181,9 @@ namespace FNPlugin
         public double attachedPowerSourceRatio;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_currentElectricPower", guiUnits = " MW_e", guiFormat = "F3")]
         public string OutputPower;
-        [KSPField]
+        [KSPField(guiActive = true, guiName = "Maximum Electric Power")]
         public string MaxPowerStr;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_CurrentElectricEfficiency")]
+        [KSPField(guiActive = true, guiName = "Electric Efficiency")]
         public string OverallEfficiency;
         [KSPField]
         public string upgradeCostStr = "";
@@ -203,7 +203,7 @@ namespace FNPlugin
         public double possibleSpareResourceCapacityFilling;
         [KSPField]
         public double currentUnfilledResourceDemand;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = " MW", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = " MW", guiFormat = "F3")]
         public double electrical_power_currently_needed;
         [KSPField]
         public double maxStableMegaWattPower;

@@ -160,13 +160,13 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public float baseHeatProduction = 100;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Control Heat Production")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Control Heat Production")]
         public bool controlHeatProduction = true;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Multiplier")]
         public float heatProductionMult = 0.3f;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Exponent")]
         public float heatProductionExponent = 7.1f;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Production", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F5")]
         public double pressureThreshold;
@@ -196,13 +196,13 @@ namespace FNPlugin
         protected double max_thrust_in_current_atmosphere;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Final Engine Thrust")]
         protected double final_max_engine_thrust;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "MaxISP", guiFormat = "F3", guiUnits = "s")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Maximum ISP", guiFormat = "F1", guiUnits = "s")]
         protected double _maxISP;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MinISP", guiFormat = "F3", guiUnits = "s")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Minimum ISP", guiFormat = "F1", guiUnits = "s")]
         protected double _minISP;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F5", guiUnits = " kN")]
         protected double calculatedMaxThrust;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
         protected double max_fuel_flow_rate = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;

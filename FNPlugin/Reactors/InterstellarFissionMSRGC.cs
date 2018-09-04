@@ -18,7 +18,7 @@ namespace FNPlugin.Reactors
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Actinides Modifier")]
+        [KSPField]
         public double actinidesModifer;
 
         PartResourceDefinition fluorineGasDefinition;
@@ -166,13 +166,15 @@ namespace FNPlugin.Reactors
                 {
                     double temp_scale;
 
+                    var baseCoreTemperature = base.CoreTemperature;
+
                     if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
                         temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
                     else
-                        temp_scale = base.CoreTemperature / 2.0;
+                        temp_scale = baseCoreTemperature / 2;
 
-                    double temp_diff = (base.CoreTemperature - temp_scale) * Math.Sqrt(powerPcnt / 100.0);
-                    return temp_scale + temp_diff;
+                    double temp_diff = (baseCoreTemperature - temp_scale) * Math.Sqrt(powerPcnt / 100.0);
+                    return Math.Min(temp_scale + temp_diff, baseCoreTemperature);
                 }
                 else
                     return base.CoreTemperature;
