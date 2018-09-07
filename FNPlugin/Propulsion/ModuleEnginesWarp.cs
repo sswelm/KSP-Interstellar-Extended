@@ -10,14 +10,14 @@ namespace FNPlugin
         bool IsForceActivated;
 
         // GUI display values
-        [KSPField(guiActive = false, guiName = "Warp Thrust")]
+        [KSPField(guiActive = true, guiName = "Warp Thrust")]
         protected string Thrust = "";
-        [KSPField(guiActive = false, guiName = "Warp Isp")]
+        [KSPField(guiActive = true, guiName = "Warp Isp")]
         protected string Isp = "";
-        [KSPField(guiActive = false, guiName = "Warp Throttle")]
+        [KSPField(guiActive = true, guiName = "Warp Throttle")]
         protected string Throttle = "";
-        [KSPField(guiActive = false, guiName = "Demand")]
-        public double propellantUsed;
+        //[KSPField(guiActive = false, guiName = "Demand")]
+        //public double propellantUsed;
         [KSPField(guiActive = false, guiName = "Mass Flow")]
         public double requestedFlow;
 
@@ -43,7 +43,7 @@ namespace FNPlugin
 
         [KSPField]
         public double demandMass;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double fuelRatio;
         [KSPField]
         private double averageDensityForPopellantWithMass;
@@ -58,10 +58,9 @@ namespace FNPlugin
         protected double throttle_d;
 
         // Persistent values to use during timewarp
-        float IspPersistent;
-        float ThrustPersistent;
-        float ThrottlePersistent;
-        float previousThrottle;
+        float _ispPersistent;
+        float _thrustPersistent;
+        float _throttlePersistent;
 
         private double fuelWithMassPercentage1;
         private double fuelWithMassPercentage2;
@@ -87,14 +86,14 @@ namespace FNPlugin
             // When transitioning from timewarp to real update throttle
             if (_warpToReal)
             {
-                vessel.ctrlState.mainThrottle = ThrottlePersistent;
+                vessel.ctrlState.mainThrottle = _throttlePersistent;
                 _warpToReal = false;
             }
 
             //// Persistent thrust GUI
-            //Fields["Thrust"].guiActive = isEnabled;
-            //Fields["Isp"].guiActive = isEnabled;
-            //Fields["Throttle"].guiActive = isEnabled;
+            Fields["Thrust"].guiActive = isEnabled;
+            Fields["Isp"].guiActive = isEnabled;
+            Fields["Throttle"].guiActive = isEnabled;
 
             // Update display values
             Thrust = FormatThrust(thrust_d);
@@ -217,26 +216,26 @@ namespace FNPlugin
             double recievedRatio = 1;
             if (fuelRequestAmount1 > 0)
             {
-                propellantUsed = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var propellantUsed = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount1 > 0 ? propellantUsed / fuelRequestAmount1 : 0);
             }
             if (fuelRequestAmount2 > 0)
             {
-                propellantUsed = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var propellantUsed = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount2 > 0 ? propellantUsed / fuelRequestAmount2 : 0);
             }
             if (fuelRequestAmount3 > 0)
             {
-                propellantUsed = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var propellantUsed = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount3 > 0 ? propellantUsed / fuelRequestAmount3 : 0);
             }
             if (fuelRequestAmount4 > 0)
             {
-                propellantUsed = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var propellantUsed = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount4 > 0 ? propellantUsed / fuelRequestAmount4 : 0);
             }
 
-            return recievedRatio;
+            return Math.Min (recievedRatio, 1);
         }
 
         // Physics update
@@ -249,81 +248,66 @@ namespace FNPlugin
             // Realtime or Dynamic mode
             if (!vessel.packed)
             {
-                // allow throtle to be used up to 2G
+                // allow throtle to be used up to Geeforce treshold
                 TimeWarp.GThreshold = GThreshold;
 
                 requestedFlow = (double)(decimal)this.requestedMassFlow;
-                //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
                 demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
-                propellantUsed = demandMass / propellantResourceDefinition1.density; // Resource demand
 
                 // if not transitioning from warp to real
                 // Update values to use during timewarp
-                if (!_warpToReal) //&& vessel.ctrlState.mainThrottle == previousThrottle)
+                if (!_warpToReal)
                 {
-                    IspPersistent = realIsp;
-                    ThrottlePersistent = vessel.ctrlState.mainThrottle;
+                    _ispPersistent = realIsp;
+                    _throttlePersistent = vessel.ctrlState.mainThrottle;
 
                     this.CalculateThrust();
                     // verify we have thrust
                     if ((vessel.ctrlState.mainThrottle > 0 && finalThrust > 0) || (vessel.ctrlState.mainThrottle == 0 && finalThrust == 0))
-                        ThrustPersistent = finalThrust;
+                        _thrustPersistent = finalThrust;
                 }
             }
             else
             {
                 // Timewarp mode: perturb orbit using thrust
                 _warpToReal = true; // Set to true for transition to realtime
-                var universalTime = Planetarium.GetUniversalTime(); // Universal time
 
-                requestedFlow = (double)(decimal)this.requestedMassFlow;
-                //calcualtedFlow = ThrustPersistent / (IspPersistent * 9.81); // Mass burn rate of engine
-                demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime; // Change in mass over dT
-
-                fuelRatio = CollectFuel(demandMass);
-
-                // Calculate thrust and deltaV if demand output > 0
-                if (fuelRatio > 0)
+                // only persist thrust if was set durring real time
+                if (_throttlePersistent > 0)
                 {
-                    var remainingMass = this.vessel.totalMass - demandMass; // Mass at end of burn
-                    var deltaV = IspPersistent * PluginHelper.GravityConstant * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
+                    requestedFlow = (double)(decimal)this.requestedMassFlow;
+                    demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime; // Change in mass over dT
+                    fuelRatio = CollectFuel(demandMass);
 
-                    Vector3d thrustV = this.part.transform.up; // Thrust direction
-                    var deltaVV = deltaV * thrustV; // DeltaV vector
-                    vessel.orbit.Perturb(deltaVV, universalTime); // Update vessel orbit
+                    // Calculate thrust and deltaV if demand output > 0
+                    if (fuelRatio > 0)
+                    {
+                        var remainingMass = this.vessel.totalMass - (demandMass * fuelRatio); // Mass at end of burn
+                        var deltaV = _ispPersistent * PluginHelper.GravityConstant * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
+                        vessel.orbit.Perturb(deltaV * (Vector3d)this.part.transform.up, Planetarium.GetUniversalTime()); // Update vessel orbit
+                    }
                 }
-                // Otherwise, if throttle is turned on, and demand out is 0, show warning
-
-                else if (ThrottlePersistent > 0)
+                else
                 {
-                    Debug.Log("[KSPI] - Propellant depleted");
+                    requestedFlow = 0;
+                    demandMass = 0;
+                    fuelRatio = 0;
                 }
             }
 
             // Update display numbers
-            thrust_d = ThrustPersistent;
-            isp_d = IspPersistent;
-            throttle_d = ThrottlePersistent;
-            previousThrottle = vessel.ctrlState.mainThrottle;
-        }
-
-        public static bool IsInfinityOrNaN(Vector3d vector)
-        {
-            if (double.IsInfinity(vector.x) || double.IsNaN(vector.x))
-                return true;
-            if (double.IsInfinity(vector.y) || double.IsNaN(vector.y))
-                return true;
-            if (double.IsInfinity(vector.z) || double.IsNaN(vector.z))
-                return true;
-
-            return false;
+            thrust_d = _thrustPersistent;
+            isp_d = _ispPersistent;
+            throttle_d = _throttlePersistent;
         }
 
 
         // Format thrust into mN, N, kN
         public static string FormatThrust(double thrust)
         {
-            if (thrust < 0.001)
+            if (thrust < 1e-6)
+                return Math.Round(thrust * 1e+9, 3) * " µN"
+            if (thrust < 1e-3)
                 return Math.Round(thrust * 1e+6, 3) + " mN";
             else if (thrust < 1)
                 return Math.Round(thrust * 1e+3, 3) + " N";
