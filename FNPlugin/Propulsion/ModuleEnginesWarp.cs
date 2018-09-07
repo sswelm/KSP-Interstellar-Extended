@@ -10,11 +10,11 @@ namespace FNPlugin
         bool IsForceActivated;
 
         // GUI display values
-        [KSPField(guiActive = true, guiName = "Warp Thrust")]
+        [KSPField(guiActive = false, guiName = "Warp Thrust")]
         protected string Thrust = "";
-        [KSPField(guiActive = true, guiName = "Warp Isp")]
+        [KSPField(guiActive = false, guiName = "Warp Isp")]
         protected string Isp = "";
-        [KSPField(guiActive = true, guiName = "Warp Throttle")]
+        [KSPField(guiActive = false, guiName = "Warp Throttle")]
         protected string Throttle = "";
         [KSPField(guiActive = false, guiName = "Mass Flow")]
         public double requestedFlow;
@@ -89,9 +89,9 @@ namespace FNPlugin
             }
 
             //// Persistent thrust GUI
-            Fields["Thrust"].guiActive = isEnabled;
-            Fields["Isp"].guiActive = isEnabled;
-            Fields["Throttle"].guiActive = isEnabled;
+            //Fields["Thrust"].guiActive = isEnabled;
+            //Fields["Isp"].guiActive = isEnabled;
+            //Fields["Throttle"].guiActive = isEnabled;
 
             // Update display values
             Thrust = FormatThrust(thrust_d);
@@ -260,8 +260,10 @@ namespace FNPlugin
                     _throttlePersistent = vessel.ctrlState.mainThrottle;
 
                     this.CalculateThrust();
-                    // verify we have thrust
-                    if ((vessel.ctrlState.mainThrottle > 0 && finalThrust > 0) || (vessel.ctrlState.mainThrottle == 0 && finalThrust == 0))
+
+                    if (_throttlePersistent == 0 && finalThrust < 0.05)
+                        _thrustPersistent = 0;
+                    else
                         _thrustPersistent = finalThrust;
                 }
             }
@@ -270,10 +272,13 @@ namespace FNPlugin
                 // Timewarp mode: perturb orbit using thrust
                 _warpToReal = true; // Set to true for transition to realtime
 
-                // only persist thrust if was set durring real time
-                if (_throttlePersistent > 0)
+                requestedFlow = (double)(decimal)this.requestedMassFlow;
+
+                _thrustPersistent = (float)(this.requestedMassFlow * PluginHelper.GravityConstant * _ispPersistent);
+
+                // only persist thrust if non zero throttle or significant thrust
+                if (_throttlePersistent > 0 || _thrustPersistent >= 0.05)
                 {
-                    requestedFlow = (double)(decimal)this.requestedMassFlow;
                     demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime; // Change in mass over dT
                     fuelRatio = CollectFuel(demandMass);
 
@@ -287,6 +292,7 @@ namespace FNPlugin
                 }
                 else
                 {
+                    _thrustPersistent = 0;
                     requestedFlow = 0;
                     demandMass = 0;
                     fuelRatio = 0;
@@ -303,7 +309,7 @@ namespace FNPlugin
         public static string FormatThrust(double thrust)
         {
 			if (thrust < 1e-6)
-				return Math.Round(thrust * 1e+9, 3) * " µN";
+				return Math.Round(thrust * 1e+9, 3) + " µN";
             if (thrust < 1e-3)
                 return Math.Round(thrust * 1e+6, 3) + " mN";
             else if (thrust < 1)
