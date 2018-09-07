@@ -16,8 +16,6 @@ namespace FNPlugin
         protected string Isp = "";
         [KSPField(guiActive = true, guiName = "Warp Throttle")]
         protected string Throttle = "";
-        //[KSPField(guiActive = false, guiName = "Demand")]
-        //public double propellantUsed;
         [KSPField(guiActive = false, guiName = "Mass Flow")]
         public double requestedFlow;
 
@@ -301,12 +299,11 @@ namespace FNPlugin
             throttle_d = _throttlePersistent;
         }
 
-
         // Format thrust into mN, N, kN
         public static string FormatThrust(double thrust)
         {
-            if (thrust < 1e-6)
-                return Math.Round(thrust * 1e+9, 3) * " µN"
+			if (thrust < 1e-6)
+				return Math.Round(thrust * 1e+9, 3) * " µN";
             if (thrust < 1e-3)
                 return Math.Round(thrust * 1e+6, 3) + " mN";
             else if (thrust < 1)
