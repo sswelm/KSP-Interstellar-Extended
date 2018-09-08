@@ -1538,7 +1538,7 @@ namespace FNPlugin.Reactors
                     neutronEmbrittlementDamage += ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
 
                 ongoing_consumption_rate = ongoing_total_power_generated / maximumPower;
-                PluginHelper.SetAnimationRatio((float)(ongoing_consumption_rate * ongoing_consumption_rate * ongoing_consumption_rate * ongoing_consumption_rate), pulseAnimation);
+                PluginHelper.SetAnimationRatio((float)ongoing_consumption_rate, pulseAnimation);
                 powerPcnt = 100 * ongoing_consumption_rate;
 
                 // produce wasteheat
