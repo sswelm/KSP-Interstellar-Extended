@@ -66,7 +66,16 @@ namespace FNPlugin.Reactors
 
         public double EfficencyConnectedChargedEnergyGenerator { get { return 0; } }
 
-        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio) { currentIsThermalEnergyGeneratorActive = efficency; }
+
+        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD) 
+        { 
+            NotifyActiveThermalEnergyGenerator(efficency, power_ratio);
+        }
+
+        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio)
+        { 
+            currentIsThermalEnergyGeneratorActive = efficency; 
+        }
 
         public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio) { }
 

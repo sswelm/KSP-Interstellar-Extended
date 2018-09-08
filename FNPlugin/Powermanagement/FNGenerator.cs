@@ -229,7 +229,7 @@ namespace FNPlugin
         protected PowerStates _powerState;
         protected Animation anim;
         protected Queue<double> averageRadiatorTemperatureQueue = new Queue<double>();
-        protected IPowerSource attachedPowerSource;
+        protected IFNPowerSource attachedPowerSource;
         protected ResourceBuffers resourceBuffers;
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
@@ -527,7 +527,7 @@ namespace FNPlugin
             }
 
             // first look if part contains an thermal source
-            attachedPowerSource = part.FindModulesImplementing<IPowerSource>().FirstOrDefault();
+            attachedPowerSource = part.FindModulesImplementing<IFNPowerSource>().FirstOrDefault();
             if (attachedPowerSource != null)
             {
                 ConnectToPowerSource();
@@ -914,7 +914,7 @@ namespace FNPlugin
                             var maximumThermalPower = attachedPowerSource.MaximumThermalPower * powerUsageEfficiency * CapacityRatio;
                             var thermalPowerRequestRatio = Math.Min(1, maximumThermalPower > 0 ? thermalPowerRequested / maximumThermalPower : 0);
                             thermalPowerReceived = consumeFNResourcePerSecond(thermalPowerRequested, ResourceManager.FNRESOURCE_THERMALPOWER);
-                            attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio);
+                            attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD);
                         }
 
                         if (attachedPowerSource.ChargedPowerRatio == 1)

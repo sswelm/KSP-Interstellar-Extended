@@ -14,7 +14,7 @@ using UnityEngine;
 namespace FNPlugin.Reactors
 {
     [KSPModule("#LOC_KSPIE_Reactor_moduleName")]
-    class InterstellarReactor : ResourceSuppliableModule, IPowerSource, IRescalable<InterstellarReactor>
+    class InterstellarReactor : ResourceSuppliableModule, IFNPowerSource, IRescalable<InterstellarReactor>
     {
         //public enum ReactorTypes
         //{
@@ -469,10 +469,13 @@ namespace FNPlugin.Reactors
         double tritiumBreedingMassAdjustment;
         double heliumBreedingMassAdjustment;
         double staticBreedRate;
+
+        bool currentThermalEnergyGeneratorIsMHD;
         double currentIsThermalEnergyGeneratorEfficiency;
         double currentIsChargedEnergyGenratorEfficiency;
         double currentGeneratorThermalEnergyRequestRatio;
         double currentGeneratorChargedEnergyRequestRatio;
+
         double lithium_consumed_per_second;
         double tritium_produced_per_second;
         double helium_produced_per_second;
@@ -606,6 +609,12 @@ namespace FNPlugin.Reactors
 
         public double EfficencyConnectedChargedEnergyGenerator { get { return storedIsChargedEnergyGeneratorEfficiency; } }
 
+
+        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD)
+        {
+            currentThermalEnergyGeneratorIsMHD = isMHD;
+            NotifyActiveThermalEnergyGenerator(efficency, power_ratio);
+        }
 
         public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio)
         {
@@ -1476,7 +1485,9 @@ namespace FNPlugin.Reactors
 
                 var thermal_propulsion_ratio =  Math.Max(thermalPropulsionEfficiency, plasmaPropulsionEfficiency) * thermalThrottleRatio;
                 var charged_propulsion_ratio = chargedParticlePropulsionEfficiency * chargedThrottleRatio;
-                var thermal_generator_ratio = Math.Max(thermalEnergyEfficiency, chargedParticleEnergyEfficiency) * storedGeneratorThermalEnergyRequestRatio;
+
+                var maxThermalPowerEfficiency = Math.Max(currentThermalEnergyGeneratorIsMHD ? plasmaEnergyEfficiency : thermalEnergyEfficiency, chargedParticleEnergyEfficiency);
+                var thermal_generator_ratio = maxThermalPowerEfficiency * storedGeneratorThermalEnergyRequestRatio;
                 var charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
 
                 maximum_thermal_request_ratio = Math.Min(thermal_propulsion_ratio + thermal_generator_ratio, 1);
@@ -1664,10 +1675,13 @@ namespace FNPlugin.Reactors
         {
             storedIsThermalEnergyGeneratorEfficiency = currentIsThermalEnergyGeneratorEfficiency;
             storedIsChargedEnergyGeneratorEfficiency = currentIsChargedEnergyGenratorEfficiency;
+
             currentIsThermalEnergyGeneratorEfficiency = 0;
             currentIsChargedEnergyGenratorEfficiency = 0;
+
             storedGeneratorThermalEnergyRequestRatio = Math.Min(1, currentGeneratorThermalEnergyRequestRatio);
             storedGeneratorChargedEnergyRequestRatio = Math.Min(1, currentGeneratorChargedEnergyRequestRatio);
+
             currentGeneratorThermalEnergyRequestRatio = 0;
             currentGeneratorChargedEnergyRequestRatio = 0;
         }
