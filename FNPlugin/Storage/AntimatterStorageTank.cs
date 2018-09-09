@@ -269,8 +269,8 @@ namespace FNPlugin
             partMass = part.mass;
             initialMass = part.prefabMass * storedMassMultiplier;
 
-            Fields["partMass"].guiActive = calculatedMass;
-            Fields["partMass"].guiActiveEditor = calculatedMass;
+            //Fields["partMass"].guiActive = calculatedMass;
+            //Fields["partMass"].guiActiveEditor = calculatedMass;
 
             capacityStrField = Fields["capacityStr"];
             maxAmountStrField = Fields["maxAmountStr"];
