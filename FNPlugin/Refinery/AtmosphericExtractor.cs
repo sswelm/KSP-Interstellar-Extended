@@ -15,7 +15,7 @@ namespace FNPlugin.Refinery
         [KSPField(guiActive = false)]
         public float normalizedTime = -1;
 
-        [KSPField]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F3")]
         public double surfaceArea = 1;
         [KSPField]
         public double buildInAirIntake;
@@ -658,8 +658,8 @@ namespace FNPlugin.Refinery
         public void Update()
         {
             // Sail deployment GUI
-            Events["DeployScoop"].active = !isDeployed;
-            Events["RetractScoop"].active = isDeployed;
+            Events["DeployScoop"].active = scoopAnimation != null && !isDeployed ;
+            Events["RetractScoop"].active = scoopAnimation != null && isDeployed;
         }
 
         private static void runAnimation(string animationName, Animation anim, float speed, float aTime)

@@ -130,12 +130,15 @@ namespace FNPlugin
                 externalTemperatureField.guiActive = showTemp && coolingIsRelevant;
 
                 if (!coolingIsRelevant)
+                {
+                    currentPowerReq = 0;
                     return;
+                }
 
                 var atmosphereModifier = convectionMod == -1 ? 0 : convectionMod + part.atmDensity / (convectionMod + 1);
 
                 externalTemperature = part.temperature;
-                if (Double.IsNaN(externalTemperature))
+                if (Double.IsNaN(externalTemperature) || Double.IsInfinity(externalTemperature))
                 {
                     part.temperature = part.skinTemperature;
                     externalTemperature = part.skinTemperature;
@@ -148,7 +151,6 @@ namespace FNPlugin
                 if (powerReqKW > 0)
                 {
                     currentPowerReq = powerReqKW * 0.2 * environmentFactor * powerReqMult;
-
                     UpdatePowerStatusSting();
                 }
                 else
@@ -194,15 +196,15 @@ namespace FNPlugin
                 initializationCountdown--;
             }
             else
-            {
                 storedTemp = part.temperature;
-            }
+
+            var fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 
             if (!isDisabled &&  currentPowerReq > 0)
             {
                 UpdateElectricChargeBuffer(Math.Max(currentPowerReq, 0.1 * powerReqKW));
 
-                var fixedPowerReqKW = currentPowerReq * TimeWarp.fixedDeltaTime;
+                var fixedPowerReqKW = currentPowerReq * fixedDeltaTime;
 
                 var fixedRecievedChargeKW = CheatOptions.InfiniteElectricity 
                     ? fixedPowerReqKW
@@ -214,7 +216,7 @@ namespace FNPlugin
                 if (currentPowerReq < 1000 && fixedRecievedChargeKW <= fixedPowerReqKW)
                     fixedRecievedChargeKW += part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, fixedPowerReqKW - fixedRecievedChargeKW);
 
-                recievedPowerKW = fixedRecievedChargeKW / TimeWarp.fixedDeltaTime;
+                recievedPowerKW = fixedRecievedChargeKW / fixedDeltaTime;
             }
             else
                 recievedPowerKW = 0;
@@ -227,7 +229,7 @@ namespace FNPlugin
 
             if (boiloff > 0.0000000001)
             {
-                cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * TimeWarp.fixedDeltaTime);
+                cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * fixedDeltaTime);
                 boiloffStr = boiloff.ToString("0.0000000") + " L/s " + cryostat_resource.resourceName;
 
                 if (hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)

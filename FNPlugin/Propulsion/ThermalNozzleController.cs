@@ -200,7 +200,7 @@ namespace FNPlugin
         protected double _maxISP;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Minimum ISP", guiFormat = "F1", guiUnits = "s")]
         protected double _minISP;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F5", guiUnits = " kN")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3", guiUnits = " kN")]
         protected double calculatedMaxThrust;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
         protected double max_fuel_flow_rate = 0;

@@ -10,12 +10,13 @@ namespace FNPlugin
         bool IsForceActivated;
 
         // GUI display values
-        [KSPField(guiActive = false, guiName = "Warp Thrust")]
-        protected string Thrust = "";
-        [KSPField(guiActive = false, guiName = "Warp Isp")]
-        protected string Isp = "";
-        [KSPField(guiActive = false, guiName = "Warp Throttle")]
-        protected string Throttle = "";
+        //[KSPField(guiActive = false, guiName = "Warp Thrust")]
+        //protected string Thrust = "";
+        //[KSPField(guiActive = false, guiName = "Warp Isp")]
+        //protected string Isp = "";
+        //[KSPField(guiActive = false, guiName = "Warp Throttle")]
+        //protected string Throttle = "";
+
         [KSPField(guiActive = false, guiName = "Mass Flow")]
         public double requestedFlow;
 
@@ -41,7 +42,7 @@ namespace FNPlugin
 
         [KSPField]
         public double demandMass;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double fuelRatio;
         [KSPField]
         private double averageDensityForPopellantWithMass;
@@ -51,14 +52,16 @@ namespace FNPlugin
         private double ratioSumWithoutMass;
 
         // Numeric display values
-        protected double thrust_d;
+        [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F3")]
+        public double thrust_d;
+
         protected double isp_d;
         protected double throttle_d;
 
         // Persistent values to use during timewarp
-        float _ispPersistent;
-        float _thrustPersistent;
-        float _throttlePersistent;
+        double _ispPersistent;
+        double _thrustPersistent;
+        double _throttlePersistent;
 
         private double fuelWithMassPercentage1;
         private double fuelWithMassPercentage2;
@@ -84,9 +87,12 @@ namespace FNPlugin
             // When transitioning from timewarp to real update throttle
             if (_warpToReal)
             {
-                vessel.ctrlState.mainThrottle = _throttlePersistent;
+                vessel.ctrlState.mainThrottle = (float)_throttlePersistent;
                 _warpToReal = false;
             }
+
+            // hide stock thrust
+            Fields["finalThrust"].guiActive = false;
 
             //// Persistent thrust GUI
             //Fields["Thrust"].guiActive = isEnabled;
@@ -94,9 +100,9 @@ namespace FNPlugin
             //Fields["Throttle"].guiActive = isEnabled;
 
             // Update display values
-            Thrust = FormatThrust(thrust_d);
-            Isp = Math.Round(isp_d, 2) + " s";
-            Throttle = Math.Round(throttle_d * 100) + "%";
+            //Thrust = FormatThrust(thrust_d);
+            //Isp = Math.Round(isp_d, 2) + " s";
+            //Throttle = Math.Round(throttle_d * 100) + "%";
 
             if (IsForceActivated || !isEnabled || !isOperational) return;
 
@@ -256,15 +262,15 @@ namespace FNPlugin
                 // Update values to use during timewarp
                 if (!_warpToReal)
                 {
-                    _ispPersistent = realIsp;
-                    _throttlePersistent = vessel.ctrlState.mainThrottle;
+                    _ispPersistent = (double)(decimal)realIsp;
+                    _throttlePersistent = (double)(decimal)vessel.ctrlState.mainThrottle;
 
                     this.CalculateThrust();
 
-                    if (_throttlePersistent == 0 && finalThrust < 0.05)
+                    if (_throttlePersistent == 0 && finalThrust < 0.0005)
                         _thrustPersistent = 0;
                     else
-                        _thrustPersistent = finalThrust;
+                        _thrustPersistent = (double)(decimal)finalThrust;
                 }
             }
             else
@@ -274,10 +280,10 @@ namespace FNPlugin
 
                 requestedFlow = (double)(decimal)this.requestedMassFlow;
 
-                _thrustPersistent = (float)(this.requestedMassFlow * PluginHelper.GravityConstant * _ispPersistent);
+                _thrustPersistent = requestedFlow * PluginHelper.GravityConstant * _ispPersistent;
 
                 // only persist thrust if non zero throttle or significant thrust
-                if (_throttlePersistent > 0 || _thrustPersistent >= 0.05)
+                if (_throttlePersistent > 0 || _thrustPersistent >= 0.0005)
                 {
                     demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime; // Change in mass over dT
                     fuelRatio = CollectFuel(demandMass);
@@ -288,6 +294,13 @@ namespace FNPlugin
                         var remainingMass = this.vessel.totalMass - (demandMass * fuelRatio); // Mass at end of burn
                         var deltaV = _ispPersistent * PluginHelper.GravityConstant * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
                         vessel.orbit.Perturb(deltaV * (Vector3d)this.part.transform.up, Planetarium.GetUniversalTime()); // Update vessel orbit
+                    }
+                    else
+                    {
+                        Debug.Log("[KSPI] - Thrust warp stopped - propellant depleted");
+                        ScreenMessages.PostScreenMessage("Thrust warp stopped - propellant depleted", 5, ScreenMessageStyle.UPPER_CENTER);
+                        // Return to realtime
+                        TimeWarp.SetRate(0, true);
                     }
                 }
                 else
