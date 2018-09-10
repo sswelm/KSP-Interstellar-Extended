@@ -311,8 +311,6 @@ namespace FNPlugin
         protected float jetTechBonusPercentage;
         protected float jetTechBonusCurveChange;
 
-
-
         private IPowerSource _myAttachedReactor;
         public IPowerSource AttachedReactor
         {
@@ -896,7 +894,7 @@ namespace FNPlugin
             _thrustPropellantMultiplier = _propellantIsLFO ? thrustPropellantMultiplier : thrustPropellantMultiplier + 1 / 2;
         }
 
-        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1) // , double max_thrust_in_space = 0) 
+        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1)
         {
             // recaculate ISP based on power and core temp available
             FloatCurve atmCurve = new FloatCurve();
