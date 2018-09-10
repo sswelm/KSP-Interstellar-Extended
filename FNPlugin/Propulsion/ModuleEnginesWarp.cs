@@ -18,8 +18,6 @@ namespace FNPlugin
         //[KSPField(guiActive = false, guiName = "Warp Throttle")]
         //protected string Throttle = "";
 
-        [KSPField(guiActive = true, guiName = "Is Packed")]
-        public bool isPacked;
         [KSPField(guiActive = false, guiName = "Mass Flow")]
         public double requestedFlow;
 
@@ -252,13 +250,9 @@ namespace FNPlugin
 
             UpdateFuelFactors();
 
-            isPacked = vessel.packed;
-
             // Check if we are in time warp mode
-            if (!isPacked)
+            if (!vessel.packed)
             {
-
-
                 // allow throtle to be used up to Geeforce treshold
                 TimeWarp.GThreshold = GThreshold;
 
@@ -271,8 +265,6 @@ namespace FNPlugin
                 {
                     _ispPersistent = (double)(decimal)realIsp;
                     _throttlePersistent = (double)(decimal)vessel.ctrlState.mainThrottle;
-
-                    this.CalculateThrust();
 
                     if (_throttlePersistent == 0 && finalThrust < 0.0005)
                         _thrustPersistent = 0;
