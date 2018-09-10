@@ -202,7 +202,7 @@ namespace FNPlugin
 
              // set Isp
             var joules_per_amu = _attached_reactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
-            var calculatedIsp = Math.Sqrt(joules_per_amu * 2 / GameConstants.ATOMIC_MASS_UNIT) / PluginHelper.GravityConstant;
+			var calculatedIsp = Math.Sqrt(joules_per_amu * 2 / GameConstants.ATOMIC_MASS_UNIT) / GameConstants.STANDARD_GRAVITY;
 
             // calculte max and min isp
             minimum_isp = calculatedIsp * _attached_reactor.MinimumChargdIspMult;
@@ -222,8 +222,8 @@ namespace FNPlugin
                 maximumChargedPower = _attached_reactor.MaximumChargedPower;
                 powerBufferMax = maximumChargedPower / 10000;
 
-                _engineMaxThrust = powerThrustModifier * maximumChargedPower / currentIsp / PluginHelper.GravityConstant;
-                var max_fuel_flow_rate = _engineMaxThrust / currentIsp / PluginHelper.GravityConstant;
+				_engineMaxThrust = powerThrustModifier * maximumChargedPower / currentIsp / GameConstants.STANDARD_GRAVITY;
+				var max_fuel_flow_rate = _engineMaxThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
                 _attached_engine.maxFuelFlow = (float)max_fuel_flow_rate;
                 _attached_engine.maxThrust = (float)_engineMaxThrust;
 
@@ -272,8 +272,8 @@ namespace FNPlugin
                 var currentIsp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
 
                 var powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * powerThrustMultiplier;
-                var max_engine_thrust_at_max_isp = powerThrustModifier * _charged_particles_received / maximum_isp / PluginHelper.GravityConstant;
-                var calculatedConsumptionInTon = max_engine_thrust_at_max_isp / maximum_isp / PluginHelper.GravityConstant;
+				var max_engine_thrust_at_max_isp = powerThrustModifier * _charged_particles_received / maximum_isp / GameConstants.STANDARD_GRAVITY;
+				var calculatedConsumptionInTon = max_engine_thrust_at_max_isp / maximum_isp / GameConstants.STANDARD_GRAVITY;
 
                 // generate addition propellant from reactor fuel consumption
                 _attached_reactor.UseProductForPropulsion(chargedParticleRatio, calculatedConsumptionInTon);
@@ -330,11 +330,11 @@ namespace FNPlugin
                 _engineMaxThrust = 0;
                 if (_max_charged_particles_power > 0)
                 {
-                    var enginethrust_from_recieved_particles = powerThrustModifier * _charged_particles_received * scaledPowerFactor / currentIsp / PluginHelper.GravityConstant;
+					var enginethrust_from_recieved_particles = powerThrustModifier * _charged_particles_received * scaledPowerFactor / currentIsp / GameConstants.STANDARD_GRAVITY;
 
                     var effective_thrust = Math.Max(enginethrust_from_recieved_particles - (radius * radius * vessel.atmDensity * 100), 0);
 
-                    var max_theoretical_thrust = powerThrustModifier * _max_charged_particles_power / currentIsp / PluginHelper.GravityConstant;
+					var max_theoretical_thrust = powerThrustModifier * _max_charged_particles_power / currentIsp / GameConstants.STANDARD_GRAVITY;
 
                     atmoIspFactor = max_theoretical_thrust > 0 ? effective_thrust / max_theoretical_thrust : 0;
 
@@ -349,7 +349,7 @@ namespace FNPlugin
                 _attached_engine.atmosphereCurve = newAtmosphereCurve;
 
                 var max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && currentIsp > 0
-                    ? _engineMaxThrust / currentIsp / PluginHelper.GravityConstant / (_attached_engine.currentThrottle > 0 ? _attached_engine.currentThrottle : 1)
+					? _engineMaxThrust / currentIsp / GameConstants.STANDARD_GRAVITY / (_attached_engine.currentThrottle > 0 ? _attached_engine.currentThrottle : 1)
                     : 0;
 
                 // set maximum flow

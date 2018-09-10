@@ -1,3 +1,4 @@
+using FNPlugin.Constants;
 using FNPlugin.Power;
 using System;
 using System.Collections.Generic;
@@ -535,7 +536,7 @@ namespace FNPlugin
                 UpdateISP();
 
                 // Update FuelFlow
-                var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / PluginHelper.GravityConstant;
+                var maxFuelFlow = fusionRatio * MaximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
                 maximumThrust = (float)MaximumThrust;
 
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
@@ -557,7 +558,7 @@ namespace FNPlugin
                 curEngineT.maxThrust = (float)MaximumThrust;
                 var rateMultplier = MinIsp / SelectedIsp;
 
-                var maxFuelFlow = MaximumThrust / currentIsp / PluginHelper.GravityConstant;
+                var maxFuelFlow = MaximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdDeuterium).ratio = (float)(standard_deuterium_rate) / rateMultplier;
                 curEngineT.propellants.FirstOrDefault(pr => pr.name == InterstellarResourcesConfiguration.Instance.LqdTritium).ratio = (float)(standard_tritium_rate) / rateMultplier;

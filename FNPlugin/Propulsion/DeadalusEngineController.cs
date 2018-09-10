@@ -646,7 +646,7 @@ namespace FNPlugin
                     // configure engine for Kerbal Engeneer support
                     UpdateAtmosphericCurve(EngineIsp);
                     effectiveMaxThrustInKiloNewton = MaximumThrust;
-                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / EngineIsp / PluginHelper.GravityConstant;
+					calculatedFuelflow = effectiveMaxThrustInKiloNewton / EngineIsp / GameConstants.STANDARD_GRAVITY;
                     curEngineT.maxFuelFlow = (float)calculatedFuelflow;
                     curEngineT.maxThrust = (float)effectiveMaxThrustInKiloNewton;
 
@@ -903,7 +903,7 @@ namespace FNPlugin
 
                     // Update FuelFlow
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
-                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / PluginHelper.GravityConstant;
+					calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
                     massFlowRateKgPerSecond = thrustRatio * curEngineT.currentThrottle * calculatedFuelflow * 1000;
 
                     if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
@@ -922,7 +922,7 @@ namespace FNPlugin
                             : ProcessPowerAndWasteHeat(storedThrotle);
 
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
-                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / PluginHelper.GravityConstant;
+					calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
                     massFlowRateKgPerSecond = calculatedFuelflow * 1000;
 
                     if (TimeWarp.fixedDeltaTime > 20)

@@ -66,9 +66,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
 
-        //Config settings settings
-        protected double g0 = PluginHelper.GravityConstant;
-
         // GUI
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
         public bool hasSufficientPower = true;

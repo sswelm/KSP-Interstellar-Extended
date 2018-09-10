@@ -97,7 +97,6 @@ namespace FNPlugin
 
         double _currentPropellantEfficiency;
         double _speedOfLight;
-        double _g0 = PluginHelper.GravityConstant;
         double _modifiedEngineBaseIsp;
         double _electrical_share_f;
         double _electrical_consumption_f;
@@ -243,7 +242,6 @@ namespace FNPlugin
 
                 _ispFloatCurve = new FloatCurve();
                 _ispFloatCurve.Add(0, baseISP);
-                _g0 = PluginHelper.GravityConstant;
                 _speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
                 _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.UpgradeAvailable(gearsTechReq);
                 _modifiedEngineBaseIsp = baseISP * PluginHelper.ElectricEngineIspMult;
@@ -482,7 +480,7 @@ namespace FNPlugin
 
                 var effectiveResourceThrotling = megaJoulesBarRatio > OneThird ? 1 : megaJoulesBarRatio * 3;
 
-                var powerPerEngine = effectiveResourceThrotling * ModifiedThrotte * EvaluateMaxThrust(availablePower * _electrical_share_f) * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * PluginHelper.GravityConstant;
+                var powerPerEngine = effectiveResourceThrotling * ModifiedThrotte * EvaluateMaxThrust(availablePower * _electrical_share_f) * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
                 power_request = currentPropellantEfficiency <= 0 ? 0 : Math.Min(powerPerEngine / currentPropellantEfficiency, maxThrottlePower);
             }
 
@@ -503,10 +501,10 @@ namespace FNPlugin
 
             var effectiveIsp = _modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseIsp * ThrottleModifiedIsp();
 
-            var maxThrustInSpace = timeDilation * timeDilation * currentPropellantEfficiency * CurrentPropellantThrustMultiplier * ModifiedThrotte * GetPowerThrustModifier() * powerReceived / (effectiveIsp * PluginHelper.GravityConstant);
+            var maxThrustInSpace = timeDilation * timeDilation * currentPropellantEfficiency * CurrentPropellantThrustMultiplier * ModifiedThrotte * GetPowerThrustModifier() * powerReceived / (effectiveIsp * GameConstants.STANDARD_GRAVITY);
 
             _maxIsp = _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
-            _maxFuelFlowRate = _maxIsp <= 0 ? 0 : maxThrustInSpace / _maxIsp / PluginHelper.GravityConstant;
+            _maxFuelFlowRate = _maxIsp <= 0 ? 0 : maxThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
 
             var maxThrustWithCurrentThrottle = maxThrustInSpace * ModifiedThrotte;
             throtle_max_thrust = Current_propellant.SupportedEngines == 8
@@ -561,7 +559,7 @@ namespace FNPlugin
             var vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
             {
-                var calculatedConsumptionInTon = this.vessel.packed ? 0 : maxThrustInSpace / engineIsp / PluginHelper.GravityConstant;
+                var calculatedConsumptionInTon = this.vessel.packed ? 0 : maxThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
                 vacuumPlasmaResource.maxAmount = Math.Max(0.0000001, calculatedConsumptionInTon * 200 * TimeWarp.fixedDeltaTime);
                 part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, - vacuumPlasmaResource.maxAmount);
             }
@@ -643,7 +641,7 @@ namespace FNPlugin
         {
             var props = ElectricEnginePropellant.GetPropellantsEngineForType(type);
             var returnStr = Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + " : " + MaxPower.ToString("F3") + " MW\n";
-            var thrustPerMw = (2e6 * powerThrustMultiplier) / _g0 / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
+            var thrustPerMw = (2e6 * powerThrustMultiplier) / GameConstants.STANDARD_GRAVITY / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
             props.ForEach(prop =>
             {
                 var ispPropellantModifier = (PluginHelper.IspElectroPropellantModifierBase + (this.type == (int)ElectricEngineType.VASIMR ? prop.DecomposedIspMult : prop.IspMultiplier)) / (1 + PluginHelper.IspNtrPropellantModifierBase);
@@ -711,7 +709,7 @@ namespace FNPlugin
 
             if (_modifiedCurrentPropellantIspMultiplier <= 0) return 0;
 
-            return CurrentPropellantEfficiency * GetPowerThrustModifier() * powerSupply / (_modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * _g0);
+            return CurrentPropellantEfficiency * GetPowerThrustModifier() * powerSupply / (_modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * GameConstants.STANDARD_GRAVITY);
         }
 
         private void UpdateIsp(double ispEfficiency)

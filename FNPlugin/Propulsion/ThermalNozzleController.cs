@@ -1001,11 +1001,11 @@ namespace FNPlugin
                 if (_maxISP <= 0)
                     return;
 
-                var base_max_thrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / PluginHelper.GravityConstant * GetHeatExchangerThrustDivisor();
+				var base_max_thrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * GetHeatExchangerThrustDivisor();
                 var max_thrust_in_space = base_max_thrust;
                 base_max_thrust *= _thrustPropellantMultiplier;
 
-                myAttachedEngine.maxFuelFlow = (float)Math.Max(base_max_thrust / (PluginHelper.GravityConstant * _maxISP), 0.0000000001);
+				myAttachedEngine.maxFuelFlow = (float)Math.Max(base_max_thrust / (GameConstants.STANDARD_GRAVITY * _maxISP), 0.0000000001);
                 myAttachedEngine.maxThrust = (float)Math.Max(base_max_thrust, 0.000001);
 
                 var max_thrust_in_current_atmosphere = max_thrust_in_space;
@@ -1118,14 +1118,14 @@ namespace FNPlugin
                 {
                     UpdateMaxIsp();
 
-                    expectedMaxThrust = AttachedReactor.MaximumPower * maximumPowerUsageForPropulsionRatio * GetPowerThrustModifier() * GetHeatThrustModifier() / PluginHelper.GravityConstant / _maxISP * GetHeatExchangerThrustDivisor();
+					expectedMaxThrust = AttachedReactor.MaximumPower * maximumPowerUsageForPropulsionRatio * GetPowerThrustModifier() * GetHeatThrustModifier() / GameConstants.STANDARD_GRAVITY / _maxISP * GetHeatExchangerThrustDivisor();
                     calculatedMaxThrust = expectedMaxThrust;
 
                     var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / 200;
 
                     expectedMaxThrust *= _thrustPropellantMultiplier * sootMult;
 
-                    max_fuel_flow_rate = expectedMaxThrust / _maxISP / PluginHelper.GravityConstant;
+					max_fuel_flow_rate = expectedMaxThrust / _maxISP / GameConstants.STANDARD_GRAVITY;
 
                     UpdateAtmosphericPresureTreshold();
 
@@ -1294,8 +1294,8 @@ namespace FNPlugin
 
                     var powerHeatModifier = GetPowerThrustModifier() * GetHeatThrustModifier();
 
-                    engineMaxThrust = Math.Max(powerHeatModifier * thrustLimit * power_received / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.0001);
-                    calculatedMaxThrust = powerHeatModifier * AttachedReactor.MaximumPower / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor * ispRatio;
+					engineMaxThrust = Math.Max(powerHeatModifier * thrustLimit * power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.0001);
+					calculatedMaxThrust = powerHeatModifier * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
                 }
                 else
                 {
@@ -1338,7 +1338,7 @@ namespace FNPlugin
                 if (_maxISP <= 0) return;
 
                 // calculate maximum fuel flow rate
-                max_fuel_flow_rate = final_max_engine_thrust / current_isp / PluginHelper.GravityConstant * myAttachedEngine.currentThrottle;
+                max_fuel_flow_rate = final_max_engine_thrust / current_isp / GameConstants.STANDARD_GRAVITY * myAttachedEngine.currentThrottle;
 
                 if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
                 {
@@ -1576,7 +1576,7 @@ namespace FNPlugin
 
                 UpdateMaxIsp();
 
-                var max_thrust_in_space = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumThermalPower / _maxISP / PluginHelper.GravityConstant * heatExchangerThrustDivisor;
+				var max_thrust_in_space = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumThermalPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
 
                 var final_max_thrust_in_space = max_thrust_in_space * _thrustPropellantMultiplier;
 

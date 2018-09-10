@@ -1,3 +1,4 @@
+using FNPlugin.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,9 +47,6 @@ namespace FNPlugin
         public float currentThrust;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
-
-        //Config settings settings
-        protected double g0 = PluginHelper.GravityConstant;
 
         // GUI
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
@@ -203,7 +201,7 @@ namespace FNPlugin
             attachedRCS = this.part.FindModuleImplementing<ModuleRCS>();
             oldThrustLimiter = thrustLimiter;
             oldPowerEnabled = powerEnabled;
-            efficencyModifier = g0 * 0.5 / 1000 / efficency;
+            efficencyModifier = GameConstants.STANDARD_GRAVITY * 0.5 / 1000 / efficency;
             efficencyStr = (efficency * 100).ToString() + "%";
 
             if (!String.IsNullOrEmpty(AnimationName))

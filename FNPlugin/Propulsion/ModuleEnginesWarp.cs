@@ -1,4 +1,5 @@
 ﻿using FNPlugin.Extensions;
+using FNPlugin.Constants;
 using System;
 using UnityEngine;
 
@@ -280,7 +281,7 @@ namespace FNPlugin
 
                 requestedFlow = (double)(decimal)this.requestedMassFlow;
 
-                _thrustPersistent = requestedFlow * PluginHelper.GravityConstant * _ispPersistent;
+				_thrustPersistent = requestedFlow * GameConstants.STANDARD_GRAVITY * _ispPersistent;
 
                 // only persist thrust if non zero throttle or significant thrust
                 if (_throttlePersistent > 0 || _thrustPersistent >= 0.0005)
@@ -292,7 +293,7 @@ namespace FNPlugin
                     if (fuelRatio > 0)
                     {
                         var remainingMass = this.vessel.totalMass - (demandMass * fuelRatio); // Mass at end of burn
-                        var deltaV = _ispPersistent * PluginHelper.GravityConstant * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
+						var deltaV = _ispPersistent * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
                         vessel.orbit.Perturb(deltaV * (Vector3d)this.part.transform.up, Planetarium.GetUniversalTime()); // Update vessel orbit
                     }
                     else
