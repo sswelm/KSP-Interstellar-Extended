@@ -1001,11 +1001,11 @@ namespace FNPlugin
                 if (_maxISP <= 0)
                     return;
 
-				var base_max_thrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * GetHeatExchangerThrustDivisor();
+                var base_max_thrust = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * GetHeatExchangerThrustDivisor();
                 var max_thrust_in_space = base_max_thrust;
                 base_max_thrust *= _thrustPropellantMultiplier;
 
-				myAttachedEngine.maxFuelFlow = (float)Math.Max(base_max_thrust / (GameConstants.STANDARD_GRAVITY * _maxISP), 0.0000000001);
+                myAttachedEngine.maxFuelFlow = (float)Math.Max(base_max_thrust / (GameConstants.STANDARD_GRAVITY * _maxISP), 0.0000000001);
                 myAttachedEngine.maxThrust = (float)Math.Max(base_max_thrust, 0.000001);
 
                 var max_thrust_in_current_atmosphere = max_thrust_in_space;
@@ -1118,14 +1118,14 @@ namespace FNPlugin
                 {
                     UpdateMaxIsp();
 
-					expectedMaxThrust = AttachedReactor.MaximumPower * maximumPowerUsageForPropulsionRatio * GetPowerThrustModifier() * GetHeatThrustModifier() / GameConstants.STANDARD_GRAVITY / _maxISP * GetHeatExchangerThrustDivisor();
+                    expectedMaxThrust = AttachedReactor.MaximumPower * maximumPowerUsageForPropulsionRatio * GetPowerThrustModifier() * GetHeatThrustModifier() / GameConstants.STANDARD_GRAVITY / _maxISP * GetHeatExchangerThrustDivisor();
                     calculatedMaxThrust = expectedMaxThrust;
 
                     var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / 200;
 
                     expectedMaxThrust *= _thrustPropellantMultiplier * sootMult;
 
-					max_fuel_flow_rate = expectedMaxThrust / _maxISP / GameConstants.STANDARD_GRAVITY;
+                    max_fuel_flow_rate = expectedMaxThrust / _maxISP / GameConstants.STANDARD_GRAVITY;
 
                     UpdateAtmosphericPresureTreshold();
 
@@ -1168,7 +1168,7 @@ namespace FNPlugin
                     myAttachedEngine.maxThrust = (float)calculatedMaxThrust;
 
                     // set engines maximum fuel flow
-                    myAttachedEngine.maxFuelFlow = (float)Math.Max(Math.Min(1000f, max_fuel_flow_rate), 0.0000000001);
+                    myAttachedEngine.maxFuelFlow = (float)Math.Max(Math.Min(1000, max_fuel_flow_rate), 0.0000000001);
 
                     if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                     {
@@ -1286,16 +1286,16 @@ namespace FNPlugin
                 heatExchangerThrustDivisor = GetHeatExchangerThrustDivisor();
 
                 var thrustPercentage = (double)(decimal) myAttachedEngine.thrustPercentage;
+                var thrustRatio = thrustPercentage / 100;
 
                 if (availableThermalPower > 0 && _maxISP > 0)
                 {
                     var ispRatio = _currentpropellant_is_jet ? current_isp / _maxISP : 1;
-                    var thrustLimit = thrustPercentage / 100;
 
                     var powerHeatModifier = GetPowerThrustModifier() * GetHeatThrustModifier();
 
-					engineMaxThrust = Math.Max(powerHeatModifier * thrustLimit * power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.0001);
-					calculatedMaxThrust = powerHeatModifier * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
+                    engineMaxThrust = Math.Max(powerHeatModifier * thrustRatio * power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio / myAttachedEngine.currentThrottle, 0.0001);
+                    calculatedMaxThrust = powerHeatModifier * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
                 }
                 else
                 {
@@ -1303,7 +1303,7 @@ namespace FNPlugin
                     calculatedMaxThrust = 0;
                 }
 
-                max_thrust_in_space = thrustPercentage > 0 ? engineMaxThrust / thrustPercentage * 100 : 0;
+                max_thrust_in_space = thrustPercentage > 0 ? engineMaxThrust * thrustRatio : 0;
 
                 max_thrust_in_current_atmosphere = max_thrust_in_space;
 
@@ -1337,6 +1337,8 @@ namespace FNPlugin
                 // amount of fuel being used at max throttle with no atmospheric limits
                 if (_maxISP <= 0) return;
 
+
+                // ToDo: check if currentThrottle must be removed
                 // calculate maximum fuel flow rate
                 max_fuel_flow_rate = final_max_engine_thrust / current_isp / GameConstants.STANDARD_GRAVITY * myAttachedEngine.currentThrottle;
 
@@ -1576,7 +1578,7 @@ namespace FNPlugin
 
                 UpdateMaxIsp();
 
-				var max_thrust_in_space = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumThermalPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
+                var max_thrust_in_space = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumThermalPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
 
                 var final_max_thrust_in_space = max_thrust_in_space * _thrustPropellantMultiplier;
 
