@@ -188,8 +188,8 @@ namespace FNPlugin
         public double wasteHeatMultiplier = 1;
         [KSPField]
         public string colorHeat = "_EmissiveColor";
-        [KSPField]
-        public double dynamic_pressure;
+        [KSPField(guiActive = false, guiName = "Atmosphere Modifier")]
+        public double atmosphere_modifier;
         [KSPField(guiName = "Type")]
         public string radiatorType;
         [KSPField(guiActive = true, guiName = "Rad Temp")]
@@ -708,11 +708,11 @@ namespace FNPlugin
             radiatorIsEnabledField.guiActive = showControls;
             radiatorIsEnabledField.guiActiveEditor = showControls;
 
-            isAutomatedField.guiActive = showControls;
-            isAutomatedField.guiActiveEditor = showControls;
+            isAutomatedField.guiActive = showControls && isDeployable;
+            isAutomatedField.guiActiveEditor = showControls && isDeployable;
 
-            pivotEnabledField.guiActive = showControls;
-            pivotEnabledField.guiActiveEditor = showControls;
+            pivotEnabledField.guiActive = showControls && isDeployable;
+            pivotEnabledField.guiActiveEditor = showControls && isDeployable;
 
             if (radiatorIsEnabled && canRadiateHeat)
             {
@@ -808,10 +808,9 @@ namespace FNPlugin
 
                 if (vessel.atmDensity > 0)
                 {
-                    dynamic_pressure = vessel.dynamicPressurekPa * 1.01325e-2; //0.60205 * vessel.atmDensity * vessel.srf_velocity.sqrMagnitude / 101325;
-                    //vessel.atmDensity += dynamic_pressure;
+                    atmosphere_modifier = vessel.atmDensity + vessel.dynamicPressurekPa * 1.01325e-2;
 
-                    var convPowerDissip = wasteheatManager.RadiatorEfficiency * dynamic_pressure * Math.Max(0, CurrentRadiatorTemperature - external_temperature) * effectiveRadiatorArea * 0.001 * convectiveBonus * Math.Max(part.submergedPortion * 10, 1);
+                    var convPowerDissip = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * Math.Max(0, CurrentRadiatorTemperature - external_temperature) * effectiveRadiatorArea * 0.001 * convectiveBonus * Math.Max(part.submergedPortion * 10, 1);
 
                     if (!radiatorIsEnabled)
                         convPowerDissip = convPowerDissip * 0.25;
@@ -819,7 +818,7 @@ namespace FNPlugin
                     convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(convPowerDissip, wasteheatManager) : 0;
 
                     if (update_count == DEPLOYMENT_DELAY)
-                        DeployMentControl(dynamic_pressure);
+                        DeployMentControl(atmosphere_modifier);
                 }
                 else
                 {
