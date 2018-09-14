@@ -380,6 +380,8 @@ namespace FNPlugin
 
             Fields["engineIsp"].guiActive = !isInfinite;
             Fields["propNameStr"].guiActive = !isInfinite;
+            Fields["efficiencyStr"].guiActive = !isInfinite;
+            Fields["thermalEfficiency"].guiActive = !ignoreWasteheat;
 
             if (this.IsOperational)
             {
