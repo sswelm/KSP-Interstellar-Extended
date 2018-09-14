@@ -53,6 +53,10 @@ namespace FNPlugin
         public double variableEfficency = 0.3;
         [KSPField]
         public float storedThrotle;
+        [KSPField]
+        public float particleEffectModifier = 1;
+        [KSPField]
+        public bool ignoreWasteheat = false;
 
         // GUI
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpThrust", guiFormat = "F6", guiUnits = "kN")]
@@ -146,9 +150,10 @@ namespace FNPlugin
 
         public double ThermalEfficiency
         {
-            get { 
-                return HighLogic.LoadedSceneIsFlight 
-                ? CheatOptions.IgnoreMaxTemperature 
+            get 
+            { 
+            return HighLogic.LoadedSceneIsFlight 
+                ? CheatOptions.IgnoreMaxTemperature || ignoreWasteheat 
                     ? 1 
                     : (1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT)) 
                 : 1; 
@@ -173,7 +178,7 @@ namespace FNPlugin
                 else
                     _currentPropellantEfficiency = Current_propellant.Efficiency;
 
-                if (Current_propellant.PropellantName == "QVP")
+                if (Current_propellant.IsInfinite)
                     _currentPropellantEfficiency += lightSpeedRatio;
 
                 return _currentPropellantEfficiency;
@@ -371,10 +376,10 @@ namespace FNPlugin
                 Fields["upgradeCostStr"].guiActive = false;
             }
 
-            var isQVP = _current_propellant.PropellantName == "QVP";
+            var isInfinite = _current_propellant.IsInfinite;
 
-            Fields["engineIsp"].guiActive = !isQVP;
-            Fields["propNameStr"].guiActive = !isQVP;
+            Fields["engineIsp"].guiActive = !isInfinite;
+            Fields["propNameStr"].guiActive = !isInfinite;
 
             if (this.IsOperational)
             {
@@ -470,9 +475,7 @@ namespace FNPlugin
             var currentPropellantEfficiency = CurrentPropellantEfficiency;
 
             if (CheatOptions.InfiniteElectricity)
-            {
                 power_request = maxThrottlePower;
-            }
             else
             {
                 var availablePower = Math.Max(getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES), 0);
@@ -513,7 +516,6 @@ namespace FNPlugin
 
             var throttle = _attachedEngine.currentThrottle > 0 ? Mathf.Max(_attachedEngine.currentThrottle, 0.01f) : 0;
 
-            //if (ModifiedThrotte > 0)
             if (throttle > 0 && !this.vessel.packed)
             {
                 if (IsValidPositiveNumber(throtle_max_thrust) && IsValidPositiveNumber(maxThrustWithCurrentThrottle))
@@ -527,8 +529,11 @@ namespace FNPlugin
                     _attachedEngine.maxFuelFlow = 0.0000000001f;
                 }
 
-                if (_attachedEngine is ModuleEnginesFX)
-                    this.part.Effect(Current_propellant.ParticleFXName, Mathf.Min((float)Math.Pow(_electrical_consumption_f / maxEffectivePower, 0.5), _attachedEngine.finalThrust / _attachedEngine.maxThrust), -1);
+                if (_attachedEngine is ModuleEnginesFX && particleEffectModifier > 0)
+                {
+                    var effectPower = particleEffectModifier * Mathf.Min((float)Math.Pow(_electrical_consumption_f / maxEffectivePower, 0.5), _attachedEngine.finalThrust / _attachedEngine.maxThrust);
+                    this.part.Effect(Current_propellant.ParticleFXName, effectPower, -1);
+                }
             }
             else if (this.vessel.packed && _attachedEngine.enabled && FlightGlobals.ActiveVessel == vessel && throttle > 0 && _initializationCountdown == 0)
             {
@@ -552,7 +557,7 @@ namespace FNPlugin
                     _attachedEngine.maxFuelFlow = 0.0000000001f;
                 }
 
-                if (_attachedEngine is ModuleEnginesFX)
+                if (_attachedEngine is ModuleEnginesFX && particleEffectModifier > 0)
                     this.part.Effect(Current_propellant.ParticleFXName, 0, -1);
             }
 
@@ -594,29 +599,31 @@ namespace FNPlugin
 
         private void PersistantThrust(float fixedDeltaTime, double universalTime, Vector3d thrustDirection, double vesselMass)
         {
-            var propellantAverageDensity = Current_propellant.ResourceDefinition.density;
-
             double fuelRatio = 0;
             double demandMass;
 
-            // determine fuel availability
-            if (Current_propellant.PropellantName != "QVP" && !CheatOptions.InfinitePropellant && propellantAverageDensity > 0)
-            {
-                thrustDirection.CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, out demandMass);
+            var deltaVv = thrustDirection.CalculateDeltaVV(vesselMass, fixedDeltaTime, throtle_max_thrust, engineIsp, out demandMass);
 
-                var requestedAmount = demandMass / propellantAverageDensity;
+            // determine fuel availability
+            if (!Current_propellant.IsInfinite && !CheatOptions.InfinitePropellant && Current_propellant.ResourceDefinition.density > 0)
+            {
+                var requestedAmount = demandMass / Current_propellant.ResourceDefinition.density;
                 if (IsValidPositiveNumber(requestedAmount))
                     fuelRatio = part.RequestResource(Current_propellant.Propellant.name, requestedAmount) / requestedAmount;
             }
             else 
                 fuelRatio = 1;
 
-            var effectiveThrust = throtle_max_thrust * fuelRatio;
-
-            var deltaVv = thrustDirection.CalculateDeltaVV(vesselMass, fixedDeltaTime, effectiveThrust, engineIsp, out demandMass);
-
-            if (fuelRatio > 0.01)
-                vessel.orbit.Perturb(deltaVv, universalTime);
+            if (fuelRatio > 0)
+                vessel.orbit.Perturb(deltaVv * fuelRatio, universalTime);
+            else
+            {
+                var message = "Thrust warp stopped - propellant depleted";
+                Debug.Log("[KSPI] - " + message);
+                ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                // Return to realtime
+                TimeWarp.SetRate(0, true);
+            }
         }
 
         public void upgradePartModule()

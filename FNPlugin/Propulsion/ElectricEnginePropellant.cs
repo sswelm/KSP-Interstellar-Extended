@@ -15,6 +15,7 @@ namespace FNPlugin
 
     public class ElectricEnginePropellant 
     {
+        protected bool isInfinite;
         protected int prop_type;
         protected double efficiency;
         protected double ispMultiplier;
@@ -55,11 +56,14 @@ namespace FNPlugin
 
         public string TechRequirement { get { return techRquirement; } }
 
+        public bool IsInfinite { get { return isInfinite; } }
+
         public ElectricEnginePropellant(ConfigNode node) 
         {
             propellantname = node.GetValue("name");
 
             propellantguiname = node.HasValue("guiName") ? node.GetValue("guiName") : propellantname;
+            isInfinite = node.HasValue("isInfinite") ? Convert.ToBoolean(node.GetValue("isInfinite")) : false;
             ispMultiplier = node.HasValue("ispMultiplier") ? Convert.ToSingle(node.GetValue("ispMultiplier")) : 1;
             decomposedIspMult = node.HasValue("decomposedIspMult") ? Convert.ToDouble(node.GetValue("decomposedIspMult")) : ispMultiplier;
             thrustMultiplier = node.HasValue("thrustMultiplier") ? Convert.ToDouble(node.GetValue("thrustMultiplier")) : 1;

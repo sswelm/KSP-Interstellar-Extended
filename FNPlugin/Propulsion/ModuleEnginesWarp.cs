@@ -296,8 +296,9 @@ namespace FNPlugin
                     }
                     else
                     {
-                        Debug.Log("[KSPI] - Thrust warp stopped - propellant depleted");
-                        ScreenMessages.PostScreenMessage("Thrust warp stopped - propellant depleted", 5, ScreenMessageStyle.UPPER_CENTER);
+                        var message = "Thrust warp stopped - propellant depleted";
+                        Debug.Log("[KSPI] - " + message);
+                        ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime
                         TimeWarp.SetRate(0, true);
                     }
