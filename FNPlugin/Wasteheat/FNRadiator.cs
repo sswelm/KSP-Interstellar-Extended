@@ -430,16 +430,13 @@ namespace FNPlugin
 
         private void Deploy()
         {
-            if (radiator_deploy_delay == 0)
-                Debug.Log("[KSPI] - Deploy Called ");
-
             if (preventShieldedDeploy && (part.ShieldedFromAirstream || radiator_deploy_delay < RADIATOR_DELAY)) 
             {
-                radiator_deploy_delay++;
+                Debug.Log("[KSPI] - Deploy Aborted, Part is shielded or nor ready");
                 return;
             }
 
-            radiator_deploy_delay = 0;
+            Debug.Log("[KSPI] - Deploy Called ");
 
             if (_moduleDeployableRadiator != null)
                 _moduleDeployableRadiator.Extend();
@@ -669,6 +666,7 @@ namespace FNPlugin
         public override void OnUpdate() // is called while in flight
         {
             update_count++;
+            radiator_deploy_delay++;
 
             if (update_count < FRAME_DELAY)
                 return;
