@@ -237,13 +237,17 @@ namespace FNPlugin
         private double thermalPowerDissipPerSecond;
         private double radiatedThermalPower;
         private double convectedThermalPower;
-        private double normalizedAtmosphere;
+
+        [KSPField(guiActive = true, guiName = "Oxidation Modifier", guiFormat = "F2")]
+        public double oxidationModifier;
+
         private double external_temperature;
         private double temperatureDifferenceCurrentWithExternal;
         private double temperatureDifferenceMaximumWithExternal;
 
         private bool active;
         private long update_count;
+        private bool isGraphene;
 
         private int radiator_deploy_delay;
         private int explode_counter;
@@ -628,8 +632,10 @@ namespace FNPlugin
 
             radiatorTempStr = maxRadiatorTemperature + "K";
 
-            maxVacuumTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) :  Math.Min(maxVacuumTemperature, maxRadiatorTemperature);
-            maxAtmosphereTemperature = String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature) : Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature);
+            isGraphene = !String.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
+
+            maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
+            maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+6));
@@ -686,9 +692,22 @@ namespace FNPlugin
             stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
 
             external_temperature = Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), PhysicsGlobals.SpaceTemperature);
-            normalizedAtmosphere = Math.Min(vessel.atmDensity, 1);
-            maxCurrentTemperature = maxAtmosphereTemperature * Math.Max(normalizedAtmosphere, 0) + maxVacuumTemperature * Math.Max(Math.Min(1 - vessel.atmDensity, 1), 0);
-            
+
+            oxidationModifier = 0;
+
+            if (vessel.mainBody.atmosphereContainsOxygen)
+            {
+                oxidationModifier = Math.Sqrt(vessel.staticPressurekPa + vessel.dynamicPressurekPa) / 10;
+
+                var spaceRatiatorBonus = (maxVacuumTemperature - maxAtmosphereTemperature) * (1 - oxidationModifier);
+                if (spaceRatiatorBonus < 0)
+                    spaceRatiatorBonus = -Math.Sqrt(Math.Abs(spaceRatiatorBonus));
+
+                maxCurrentTemperature = Math.Max(0, maxAtmosphereTemperature + spaceRatiatorBonus);
+            }
+            else
+                maxCurrentTemperature = maxVacuumTemperature;
+
             temperatureDifferenceCurrentWithExternal = maxCurrentTemperature - external_temperature;
             temperatureDifferenceMaximumWithExternal = maxRadiatorTemperature - external_temperature;
 
@@ -762,7 +781,7 @@ namespace FNPlugin
 
                 radiator_temperature_temp_val = external_temperature + Math.Min(temperatureDifferenceMaximumWithExternal * wasteheatManager.SqrtResourceBarRatioBegin, temperatureDifferenceCurrentWithExternal);
 
-                var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * normalizedAtmosphere, PhysicsGlobals.SpaceTemperature), 0);
+                var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * Math.Min(1, vessel.atmDensity), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
