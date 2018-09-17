@@ -235,23 +235,18 @@ namespace FNPlugin
         [KSPField]
         protected double currentGeneratorThermalEnergyRequestRatio;
 
-        protected double previousInputMegajoules = 0;
-
-
-        protected BaseField beamedpowerField;
-        protected BaseField powerInputMegajoulesField;
-        protected BaseField linkedForRelayField;
-        protected BaseField diameterField;
-        protected BaseField slavesAmountField;
-        protected BaseField ThermalPowerField;
-        protected BaseField receiptPowerField;
-        protected BaseField selectedBandwidthConfigurationField;
-        protected BaseField maximumWavelengthField;
-        protected BaseField minimumWavelengthField;
-        protected BaseField solarFacingFactorField;
-        protected BaseField solarFluxField;
-        protected ModuleResource mockInputResource;
-
+        protected BaseField _beamedpowerField;
+        protected BaseField _powerInputMegajoulesField;
+        protected BaseField _linkedForRelayField;
+        protected BaseField _diameterField;
+        protected BaseField _slavesAmountField;
+        protected BaseField _ThermalPowerField;
+        protected BaseField _receiptPowerField;
+        protected BaseField _selectedBandwidthConfigurationField;
+        protected BaseField _maximumWavelengthField;
+        protected BaseField _minimumWavelengthField;
+        protected BaseField _solarFacingFactorField;
+        protected BaseField _solarFluxField;
         protected BaseField _radiusField;
         protected BaseField _coreTempereratureField;
         protected BaseField _field_kerbalism_output;
@@ -279,7 +274,9 @@ namespace FNPlugin
         protected int initializationCountdown;
         protected double powerDownFraction;
         protected PowerStates _powerState;
-        protected ResourceBuffers resourceBuffers;
+
+        protected ResourceBuffers _resourceBuffers;
+        protected ModuleResource _solarFlowRateResource;
 
         protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
         protected Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
@@ -835,17 +832,11 @@ namespace FNPlugin
             deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (deployableSolarPanel != null)
             {
-                mockInputResource = new ModuleResource();
-                mockInputResource.name = deployableSolarPanel.resourceName;
-                resHandler.inputResources.Add(mockInputResource);
-                try
-                {
-                    deployableSolarPanel.Events["Extend"].guiActive = false;
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError("[KSPI] - Error while disabling solar deploy button " + e.Message + " at " + e.StackTrace);
-                }
+                _solarFlowRateResource = new ModuleResource();
+                _solarFlowRateResource.name = deployableSolarPanel.resourceName;
+                resHandler.inputResources.Add(_solarFlowRateResource);
+
+                deployableSolarPanel.Events["Extend"].guiActive = false;
             }
 
             var isInSolarModeField = Fields["solarPowerMode"];
@@ -903,16 +894,16 @@ namespace FNPlugin
                     ((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
             }
 
-            resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
-            resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
-            resourceBuffers.Init(this.part);
+            _resourceBuffers = new ResourceBuffers();
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+            _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+            _resourceBuffers.Init(this.part);
 
             // look for any transmitter partmodule
             part_transmitter = part.FindModuleImplementing<MicrowavePowerTransmitter>();
@@ -962,11 +953,11 @@ namespace FNPlugin
             {
                 powerDownFraction = 1;
                 _powerState = PowerStates.PowerOnline;
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
-                resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-                resourceBuffers.UpdateBuffers();
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateBuffers();
             }
             catch (Exception e)
             {
@@ -984,11 +975,11 @@ namespace FNPlugin
                 if (powerDownFraction <= 0)
                     _powerState = PowerStates.PowerOffline;
 
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower * powerDownFraction);
-                resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower * powerDownFraction);
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-                resourceBuffers.UpdateBuffers();
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower * powerDownFraction);
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower * powerDownFraction);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateBuffers();
             }
         }
 
@@ -1061,17 +1052,17 @@ namespace FNPlugin
             {
                 Debug.Log("[KSPI] - Setup Receiver BrandWidth Configurations for " + part.partInfo.title);
 
-                powerInputMegajoulesField = Fields["powerInputMegajoules"];
-                maximumWavelengthField = Fields["maximumWavelength"];
-                minimumWavelengthField = Fields["minimumWavelength"];
-                solarFacingFactorField = Fields["solarFacingFactor"];
-                linkedForRelayField = Fields["linkedForRelay"];
-                slavesAmountField = Fields["slavesAmount"];
-                ThermalPowerField = Fields["ThermalPower"];
-                receiptPowerField = Fields["receiptPower"];
-                beamedpowerField = Fields["beamedpower"];
-                solarFluxField = Fields["solarFlux"];
-                diameterField = Fields["diameter"];
+                _powerInputMegajoulesField = Fields["powerInputMegajoules"];
+                _maximumWavelengthField = Fields["maximumWavelength"];
+                _minimumWavelengthField = Fields["minimumWavelength"];
+                _solarFacingFactorField = Fields["solarFacingFactor"];
+                _linkedForRelayField = Fields["linkedForRelay"];
+                _slavesAmountField = Fields["slavesAmount"];
+                _ThermalPowerField = Fields["ThermalPower"];
+                _receiptPowerField = Fields["receiptPower"];
+                _beamedpowerField = Fields["beamedpower"];
+                _solarFluxField = Fields["solarFlux"];
+                _diameterField = Fields["diameter"];
                 //toteffField = Fields["toteff"];
                 
 
@@ -1079,19 +1070,19 @@ namespace FNPlugin
                 bandWidthNameField.guiActiveEditor = !canSwitchBandwidthInEditor;
                 bandWidthNameField.guiActive = !canSwitchBandwidthInFlight && canSwitchBandwidthInEditor;
 
-                selectedBandwidthConfigurationField = Fields["selectedBandwidthConfiguration"];
-                selectedBandwidthConfigurationField.guiActiveEditor = canSwitchBandwidthInEditor;
-                selectedBandwidthConfigurationField.guiActive = canSwitchBandwidthInFlight;
+                _selectedBandwidthConfigurationField = Fields["selectedBandwidthConfiguration"];
+                _selectedBandwidthConfigurationField.guiActiveEditor = canSwitchBandwidthInEditor;
+                _selectedBandwidthConfigurationField.guiActive = canSwitchBandwidthInFlight;
 
                 var names = BandwidthConverters.Select(m => m.bandwidthName).ToArray();
 
-                var chooseOptionEditor = selectedBandwidthConfigurationField.uiControlEditor as UI_ChooseOption;
+                var chooseOptionEditor = _selectedBandwidthConfigurationField.uiControlEditor as UI_ChooseOption;
                 chooseOptionEditor.options = names;
 
-                var chooseOptionFlight = selectedBandwidthConfigurationField.uiControlFlight as UI_ChooseOption;
+                var chooseOptionFlight = _selectedBandwidthConfigurationField.uiControlFlight as UI_ChooseOption;
                 chooseOptionFlight.options = names;
 
-                UpdateFromGUI(selectedBandwidthConfigurationField, selectedBandwidthConfiguration);
+                UpdateFromGUI(_selectedBandwidthConfigurationField, selectedBandwidthConfiguration);
 
                 // connect on change event
                 chooseOptionEditor.onFieldChanged = UpdateFromGUI;
@@ -1253,23 +1244,23 @@ namespace FNPlugin
 
             var isNotRelayingOrTransmitting = !linkedForRelay && !transmitterOn;
 
-            beamedpowerField.guiActive = isNotRelayingOrTransmitting;
-            powerInputMegajoulesField.guiActive = isNotRelayingOrTransmitting;
-            linkedForRelayField.guiActive = isNotRelayingOrTransmitting;
-            diameterField.guiActive = isNotRelayingOrTransmitting;
+            _beamedpowerField.guiActive = isNotRelayingOrTransmitting;
+            _powerInputMegajoulesField.guiActive = isNotRelayingOrTransmitting;
+            _linkedForRelayField.guiActive = isNotRelayingOrTransmitting;
+            _diameterField.guiActive = isNotRelayingOrTransmitting;
 
-            slavesAmountField.guiActive = thermalMode;
-            ThermalPowerField.guiActive = isThermalReceiverSlave || thermalMode;
+            _slavesAmountField.guiActive = thermalMode;
+            _ThermalPowerField.guiActive = isThermalReceiverSlave || thermalMode;
 
-            receiptPowerField.guiActive = receiverIsEnabled;
-            minimumWavelengthField.guiActive = receiverIsEnabled;
-            maximumWavelengthField.guiActive = receiverIsEnabled;
+            _receiptPowerField.guiActive = receiverIsEnabled;
+            _minimumWavelengthField.guiActive = receiverIsEnabled;
+            _maximumWavelengthField.guiActive = receiverIsEnabled;
 
-            solarFacingFactorField.guiActive = solarReceptionSurfaceArea > 0;
-            solarFluxField.guiActive = solarReceptionSurfaceArea > 0;
+            _solarFacingFactorField.guiActive = solarReceptionSurfaceArea > 0;
+            _solarFluxField.guiActive = solarReceptionSurfaceArea > 0;
             //toteffField.guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
 
-            selectedBandwidthConfigurationField.guiActive = (CheatOptions.NonStrictAttachmentOrientation || canSwitchBandwidthInFlight) && receiverIsEnabled; ;
+            _selectedBandwidthConfigurationField.guiActive = (CheatOptions.NonStrictAttachmentOrientation || canSwitchBandwidthInFlight) && receiverIsEnabled; ;
 
             if (IsThermalSource)
                 coreTempererature = CoreTemperature.ToString("0.0") + " K";
@@ -1847,7 +1838,7 @@ namespace FNPlugin
                 solarFluxQueue.Dequeue();
 
             solarFlux = solarFluxQueue.Count > 10
-                ? solarFluxQueue.OrderBy(m => m).Skip(10).Average()
+                ? solarFluxQueue.OrderBy(m => m).Skip(10).Take(30).Average()
                 : solarFluxQueue.Average();
 
             solarInputMegajoulesMax = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarReceptionEfficiency;
@@ -1860,7 +1851,7 @@ namespace FNPlugin
             if (alternatorRatio == 0)
                 return;
 
-            supplyFNResourcePerSecond(alternatorRatio * powerInputMegajoules / 1000, ResourceManager.FNRESOURCE_MEGAJOULES);
+            supplyFNResourcePerSecond(alternatorRatio * powerInputMegajoules * 0.001, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
         private void ProcesSolarCellEnergy()
@@ -1888,8 +1879,9 @@ namespace FNPlugin
             if (flowRateQueue.Count > 50)
                 flowRateQueue.Dequeue();
 
+            // ToDo: replace stabalizedFlowRate by calculated flow rate
             var stabalizedFlowRate = flowRateQueue.Count > 10
-                ? flowRateQueue.OrderBy(m => m).Skip(10).Average()
+                ? flowRateQueue.OrderBy(m => m).Skip(10).Take(30).Average()
                 : flowRateQueue.Average();
 
             double maxSupply = deployableSolarPanel._distMult > 0
@@ -1899,7 +1891,7 @@ namespace FNPlugin
             // extract power otherwise we end up with double power
             if (deployableSolarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
             {
-                mockInputResource.rate = flowRate;
+                _solarFlowRateResource.rate = flowRate;
 
                 if (stabalizedFlowRate > 0)
                     stabalizedFlowRate *= 0.001;
@@ -1908,7 +1900,7 @@ namespace FNPlugin
             }
             else if (deployableSolarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
             {
-                mockInputResource.rate = flowRate;
+                _solarFlowRateResource.rate = flowRate;
             }
             else
             {

@@ -505,7 +505,7 @@ namespace FNPlugin.Beamedpower
 
             CreateBeamArray();
 
-            CompileStarData();
+            ExtractKopernicusStarData("PhotonSailor");
         }
 
         private void InitializeMassVariables()
@@ -592,96 +592,6 @@ namespace FNPlugin.Beamedpower
         public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
         {
             return (float)(initialMass * massTechMultiplier - initialMass);
-        }
-
-        // Scan the Kopernicus config nodes and extract luminosity values
-        protected void CompileStarData()
-        {
-            // Only need to do this once 
-            if (starLights.Count > 0)
-                return;
-
-            var celestrialBodies = FlightGlobals.Bodies.ToDictionary(m => m.name);
-
-            ConfigNode[] nodeLevel1 = GameDatabase.Instance.GetConfigNodes("Kopernicus");
-
-            if (nodeLevel1.Length > 0)
-                Debug.Log("[PhotonSailor] - Loading Kopernicus Configuration Data");
-            else
-                Debug.LogWarning("[PhotonSailor] - Failed to find Kopernicus Configuration Data");
-
-            for (int i = 0; i < nodeLevel1.Length; i++)
-            {
-                ConfigNode[] celestrialBodyNode = nodeLevel1[i].GetNodes("Body");
-
-                Debug.Log("[PhotonSailor] - Found " + celestrialBodyNode.Length + " celestrial bodies");
-
-                for (int j = 0; j < celestrialBodyNode.Length; j++)
-                {
-                    string bodyName = celestrialBodyNode[j].GetValue("name");
-
-                    bool usesSunTemplate = false;
-
-                    ConfigNode sunNode = celestrialBodyNode[j].GetNode("Template");
-
-                    if (sunNode != null)
-                    {
-                        string templateName = sunNode.GetValue("name");
-                        usesSunTemplate = templateName == "Sun";
-                        if (usesSunTemplate)
-                            Debug.Log("[PhotonSailor] -  Will use default Sun template for " + bodyName);
-                    }
-
-                    ConfigNode propertiesNode = celestrialBodyNode[j].GetNode("Properties");
-
-                    float luminocity = 0;
-
-                    if (propertiesNode != null)
-                    {
-                        string starLuminosityText = propertiesNode.GetValue("starLuminosity");
-
-                        if (string.IsNullOrEmpty(starLuminosityText))
-                        {
-                            if (usesSunTemplate)
-                                Debug.LogWarning("[PhotonSailor] - starLuminosity in Properties ConfigNode is missing, defaulting to template");
-                        }
-                        else
-                        {
-                            float.TryParse(starLuminosityText, out luminocity);
-                            CelestialBody celestialBody;
-
-                            if (luminocity > 0 && celestrialBodies.TryGetValue(bodyName, out celestialBody))
-                            {
-                                Debug.Log("[PhotonSailor] - Added Star " + celestialBody.name + " with luminocity " + luminocity);
-                                starLights.Add(new StarLight() { star = celestialBody, luminocity = luminocity });
-                            }
-                            else
-                                Debug.LogWarning("[KSPI] - Failed to initialize star " + bodyName);
-                        }
-                    }
-
-                    if (usesSunTemplate && luminocity == 0)
-                    {
-                        CelestialBody celestialBody;
-
-                        if (celestrialBodies.TryGetValue(bodyName, out celestialBody))
-                        {
-                            Debug.Log("[PhotonSailor] - Added Star " + celestialBody.name + " with default luminocity of 1");
-                            starLights.Add(new StarLight() { star = celestialBody, luminocity = 1 });
-                        }
-                        else
-                            Debug.LogWarning("[KSPI] - Failed to initialize star " + bodyName + " as with a default luminocity of 1");
-                    }
-                }
-            }
-
-            // add local sun if kopernicus configuration was not found or did not contain any star
-            var homePlanetSun = Planetarium.fetch.Sun;
-            if (!starLights.Any(m => m.star.name == homePlanetSun.name))
-            {
-                Debug.LogWarning("[PhotonSailor] - homeplanet star was not found, adding homeplanet star as default sun");
-                starLights.Add(new StarLight() { star = Planetarium.fetch.Sun, luminocity = 1 });
-            }
         }
 
         private void CreateBeamArray()
@@ -1342,27 +1252,6 @@ namespace FNPlugin.Beamedpower
             return availableEnergyInWatt;
         }
 
-        private static int sign(bool cosConeAngleIsNegative)
-        {
-            return cosConeAngleIsNegative ? -1 : 1;
-        }
-
-        private static void UpdateVisibleBeam(Part part, BeamEffect beameffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamlength = 200000)
-        {
-            var normalizedPowerSourceToVesselVector = powerSourceToVesselVector.normalized;
-            var endBeamPos = part.transform.position + normalizedPowerSourceToVesselVector * beamlength;
-            var midPos = part.transform.position - endBeamPos;
-            var timeCorrection = TimeWarp.CurrentRate > 1 ? -part.vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
-
-            var solarVectorX = normalizedPowerSourceToVesselVector.x * 90;
-            var solarVectorY = normalizedPowerSourceToVesselVector.y * 90 - 90;
-            var solarVectorZ = normalizedPowerSourceToVesselVector.z * 90;
-
-            beameffect.solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
-            beameffect.solar_effect.transform.localScale = new Vector3(beamSize, (float)(beamlength * scaleModifer), beamSize);
-            beameffect.solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
-        }
-
         private void UpdateChangeGui()
         {
             var averageFixedDeltaTime = (previousFixedDeltaTime + TimeWarp.fixedDeltaTime) / 2;
@@ -1386,6 +1275,27 @@ namespace FNPlugin.Beamedpower
             previousPeA = vessel.orbit.PeA;
             previousAeA = vessel.orbit.ApA;
             previousFixedDeltaTime = TimeWarp.fixedDeltaTime;
+        }
+
+        private static int sign(bool cosConeAngleIsNegative)
+        {
+            return cosConeAngleIsNegative ? -1 : 1;
+        }
+
+        private static void UpdateVisibleBeam(Part part, BeamEffect beameffect, Vector3d powerSourceToVesselVector, double scaleModifer = 1, float beamSize = 1, double beamlength = 200000)
+        {
+            var normalizedPowerSourceToVesselVector = powerSourceToVesselVector.normalized;
+            var endBeamPos = part.transform.position + normalizedPowerSourceToVesselVector * beamlength;
+            var midPos = part.transform.position - endBeamPos;
+            var timeCorrection = TimeWarp.CurrentRate > 1 ? -part.vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
+
+            var solarVectorX = normalizedPowerSourceToVesselVector.x * 90;
+            var solarVectorY = normalizedPowerSourceToVesselVector.y * 90 - 90;
+            var solarVectorZ = normalizedPowerSourceToVesselVector.z * 90;
+
+            beameffect.solar_effect.transform.localRotation = new Quaternion((float)solarVectorX, (float)solarVectorY, (float)solarVectorZ, 0);
+            beameffect.solar_effect.transform.localScale = new Vector3(beamSize, (float)(beamlength * scaleModifer), beamSize);
+            beameffect.solar_effect.transform.position = new Vector3((float)(part.transform.position.x + midPos.x + timeCorrection.x), (float)(part.transform.position.y + midPos.y + timeCorrection.y), (float)(part.transform.position.z + midPos.z + timeCorrection.z));
         }
 
         private static double solarFluxAtDistance(Vessel vessel, CelestialBody star, double luminosity)
@@ -1477,6 +1387,99 @@ namespace FNPlugin.Beamedpower
         public static bool HasUpgrade(string name)
         {
             return PartUpgradeManager.Handler.IsUnlocked(name);
+        }
+
+        // ToDo: Move to global library
+        // Scan the Kopernicus config nodes and extract Kopernicus star data
+        protected static void ExtractKopernicusStarData(string modulename)
+        {
+            // Only need to execute this once 
+            if (starLights.Count > 0)
+                return;
+
+            var debugPrefix = "[" + modulename + "] - ";
+
+            var celestrialBodies = FlightGlobals.Bodies.ToDictionary(m => m.name);
+
+            ConfigNode[] nodeLevel1 = GameDatabase.Instance.GetConfigNodes("Kopernicus");
+
+            if (nodeLevel1.Length > 0)
+                Debug.Log(debugPrefix + "Loading Kopernicus Configuration Data");
+            else
+                Debug.LogWarning(debugPrefix + "Failed to find Kopernicus Configuration Data");
+
+            for (int i = 0; i < nodeLevel1.Length; i++)
+            {
+                ConfigNode[] celestrialBodyNode = nodeLevel1[i].GetNodes("Body");
+
+                Debug.Log(debugPrefix + "Found " + celestrialBodyNode.Length + " celestrial bodies");
+
+                for (int j = 0; j < celestrialBodyNode.Length; j++)
+                {
+                    string bodyName = celestrialBodyNode[j].GetValue("name");
+
+                    bool usesSunTemplate = false;
+
+                    ConfigNode sunNode = celestrialBodyNode[j].GetNode("Template");
+
+                    if (sunNode != null)
+                    {
+                        string templateName = sunNode.GetValue("name");
+                        usesSunTemplate = templateName == "Sun";
+                        if (usesSunTemplate)
+                            Debug.Log(debugPrefix + "Will use default Sun template for " + bodyName);
+                    }
+
+                    ConfigNode propertiesNode = celestrialBodyNode[j].GetNode("Properties");
+
+                    float luminocity = 0;
+
+                    if (propertiesNode != null)
+                    {
+                        string starLuminosityText = propertiesNode.GetValue("starLuminosity");
+
+                        if (string.IsNullOrEmpty(starLuminosityText))
+                        {
+                            if (usesSunTemplate)
+                                Debug.LogWarning(debugPrefix + "starLuminosity in Properties ConfigNode is missing, defaulting to template");
+                        }
+                        else
+                        {
+                            float.TryParse(starLuminosityText, out luminocity);
+                            CelestialBody celestialBody;
+
+                            if (luminocity > 0 && celestrialBodies.TryGetValue(bodyName, out celestialBody))
+                            {
+                                Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with luminocity " + luminocity);
+                                starLights.Add(new StarLight() { star = celestialBody, luminocity = luminocity });
+                            }
+                            else
+                                Debug.LogWarning(debugPrefix + "Failed to initialize star " + bodyName);
+                        }
+                    }
+
+                    if (usesSunTemplate && luminocity == 0)
+                    {
+                        CelestialBody celestialBody;
+
+                        if (celestrialBodies.TryGetValue(bodyName, out celestialBody))
+                        {
+                            Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with default luminocity of 1");
+                            starLights.Add(new StarLight() { star = celestialBody, luminocity = 1 });
+                        }
+                        else
+                            Debug.LogWarning(debugPrefix + "Failed to initialize star " + bodyName + " as with a default luminocity of 1");
+                    }
+                }
+            }
+
+            // add local sun if kopernicus configuration was not found or did not contain any star
+            var homePlanetSun = Planetarium.fetch.Sun;
+            if (!starLights.Any(m => m.star.name == homePlanetSun.name))
+            {
+                Debug.LogWarning("[PhotonSailor] - homeplanet star was not found, adding homeplanet star as default sun");
+                starLights.Add(new StarLight() { star = Planetarium.fetch.Sun, luminocity = 1 });
+            }
         }
 
     }

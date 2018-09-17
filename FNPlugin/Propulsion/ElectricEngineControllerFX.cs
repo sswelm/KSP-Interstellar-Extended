@@ -583,13 +583,12 @@ namespace FNPlugin
             // produce waste heat
             var heatToProduce = powerReceived * (1 - currentPropellantEfficiency) * Current_propellant.WasteHeatMultiplier;
 
-            var heatProduction = CheatOptions.IgnoreMaxTemperature 
+            _heat_production_f = CheatOptions.IgnoreMaxTemperature 
                 ? heatToProduce
                 : supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
 
             // update GUI Values
             _electrical_consumption_f = powerReceived;
-            _heat_production_f = heatProduction;
 
             var effectiveIsp = _modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseIsp * ThrottleModifiedIsp();
 

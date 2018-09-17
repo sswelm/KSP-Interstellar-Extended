@@ -85,8 +85,8 @@
     <Compile Include="Propulsion\ExtendedPropellant.cs" />
     <Compile Include="Propulsion\FusionECU2.cs" />
     <Compile Include="Propulsion\ModuleEnginesWarp.cs" />
-    <Compile Include="Propulsion\FNModuleRCSFX.cs" />
-    <Compile Include="Propulsion\FNRCSSounds.cs" />
+    <Compile Include="Depricated\FNModuleRCSFX.cs" />
+    <Compile Include="Depricated\FNRCSSounds.cs" />
     <Compile Include="Propulsion\ThermalEnginePropellant.cs" />
     <Compile Include="Propulsion\ThermalPowerTransport.cs" />
     <Compile Include="Propulsion\VistaECU2.cs" />

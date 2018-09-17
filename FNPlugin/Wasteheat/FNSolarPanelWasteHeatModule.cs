@@ -12,114 +12,92 @@ namespace FNPlugin
     [KSPModule("Solar Panel Adapter")]
     class FNSolarPanelWasteHeatModule : ResourceSuppliableModule 
     {
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true,  guiName = "Solar current power", guiUnits = " MW", guiFormat="F5")]
+        [KSPField( guiActive = true,  guiName = "Solar current power", guiUnits = " MW", guiFormat="F5")]
         public double megaJouleSolarPowerSupply;
-        
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        [KSPField(guiActive = false)]
         public double kerbalismPowerOutput;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        [KSPField(guiActive = false)]
         public double solar_supply = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        [KSPField(guiActive = true, guiName = "Solar maximum power", guiUnits = " MW", guiFormat = "F5")]
         public double solar_maxSupply = 0;
 
-        private MicrowavePowerReceiver microwavePowerReceiver;
-        private ModuleDeployableSolarPanel solarPanel;
-        private resourceType outputType = 0;
-        private BaseField _field_kerbalism_output;
-        private PartModule warpfixer;
-        private ResourceBuffers resourceBuffers;
+        MicrowavePowerReceiver _microwavePowerReceiver;
+        ModuleDeployableSolarPanel _solarPanel;
+        BaseField _field_kerbalism_output;
+        PartModule _warpfixer;
+        ResourceBuffers _resourceBuffers;
+        ModuleResource _solarFlowRateResource;
 
-        private bool active = false;
+        resourceType outputType = 0;
+
+        bool active = false;
 
         public override void OnStart(PartModule.StartState state)
         {
-            try
+            if (state == StartState.Editor) return;
+
+            _microwavePowerReceiver = part.FindModuleImplementing<MicrowavePowerReceiver>();
+            if (_microwavePowerReceiver != null)
             {
-                if (state == StartState.Editor) return;
-
-                microwavePowerReceiver = part.FindModuleImplementing<MicrowavePowerReceiver>();
-                if (microwavePowerReceiver != null)
-                {
-                    Fields["megaJouleSolarPowerSupply"].guiActive = false;
-                    return;
-                }
-
-                if (part.Modules.Contains("WarpFixer"))
-                {
-                    warpfixer = part.Modules["WarpFixer"];
-                    _field_kerbalism_output = warpfixer.Fields["field_output"];
-                }
-
-                part.force_activate();
-
-                String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
-                this.resources_to_supply = resources_to_supply;
-                base.OnStart(state);
-
-                solarPanel = (ModuleDeployableSolarPanel)this.part.FindModuleImplementing<ModuleDeployableSolarPanel>();
-
-                if (solarPanel == null) return;
-
-                resourceBuffers = new ResourceBuffers();
-                if (solarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
-                {
-                    resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
-                    outputType = resourceType.megajoule;
-                }
-                else if (solarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
-                {
-                    resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
-                    outputType = resourceType.electricCharge;
-                }
-                else
-                {
-                    outputType = resourceType.other;
-                }
-
-                resourceBuffers.Init(this.part);
+                Fields["megaJouleSolarPowerSupply"].guiActive = false;
+                return;
             }
-            catch (Exception e)
+
+            if (part.Modules.Contains("WarpFixer"))
             {
-                Debug.LogError("[KSPI] - Exception in FNSolarPanelWasteHeatModule.OnStart " + e.Message);
-                throw;
+                _warpfixer = part.Modules["WarpFixer"];
+                _field_kerbalism_output = _warpfixer.Fields["field_output"];
             }
+
+            _solarPanel = (ModuleDeployableSolarPanel)this.part.FindModuleImplementing<ModuleDeployableSolarPanel>();
+            if (_solarPanel == null) return;
+
+            _solarFlowRateResource = new ModuleResource();
+            _solarFlowRateResource.name = _solarPanel.resourceName;
+            resHandler.inputResources.Add(_solarFlowRateResource);
+
+            part.force_activate();
+
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+            this.resources_to_supply = resources_to_supply;
+            base.OnStart(state);
+
+            _resourceBuffers = new ResourceBuffers();
+            if (_solarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
+            {
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
+                outputType = resourceType.megajoule;
+            }
+            else if (_solarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+            {
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
+                outputType = resourceType.electricCharge;
+            }
+            else
+                outputType = resourceType.other;
+
+            _resourceBuffers.Init(this.part);
         }
 
-        public override void OnFixedUpdate() 
+        public override void OnFixedUpdate()
         {
-            try
-            {
-                if (!HighLogic.LoadedSceneIsFlight) return;
+            if (_microwavePowerReceiver != null) return;
 
-                if (microwavePowerReceiver != null) return;
+            if (!HighLogic.LoadedSceneIsFlight) return;
 
-                active = true;
-                base.OnFixedUpdate();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI] - Exception in FNSolarPanelWasteHeatModule.OnFixedUpdate " + e.Message);
-                throw;
-            }
+            active = true;
+            base.OnFixedUpdate();
         }
 
 
         public void FixedUpdate()
         {
-            try
-            {
-                if (!HighLogic.LoadedSceneIsFlight) return;
+            if (_microwavePowerReceiver != null) return;
 
-                if (microwavePowerReceiver != null) return;
+            if (!HighLogic.LoadedSceneIsFlight) return;
 
-                if (!active)
-                    base.OnFixedUpdate();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI] - Exception in FNSolarPanelWasteHeatModule.OnFixedUpdate " + e.Message);
-                throw;
-            }
+            if (!active)
+                base.OnFixedUpdate();
         }
 
         public override string getResourceManagerDisplayName()
@@ -135,50 +113,43 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            try
+            if (_microwavePowerReceiver != null) return;
+
+            if (_solarPanel == null) return;
+
+            if (outputType == resourceType.other) return;
+
+            // readout kerbalism solar power output so we use it
+            if (_field_kerbalism_output != null)
             {
-                if (microwavePowerReceiver != null) return;
-
-                if (solarPanel == null) return;
-
-                if (outputType == resourceType.other) return;
-
-                // readout kerbalism solar power output so we use it
-                if (_field_kerbalism_output != null)
-                {
-                    // if GUI is inactive, then Panel doesn't produce power since Kerbalism doesn't reset the value on occlusion
-                    // to be fixed in Kerbalism!
-                    kerbalismPowerOutput = _field_kerbalism_output.guiActive == true ? _field_kerbalism_output.GetValue<double>(warpfixer) : 0;
-                }
-
-                // solarPanel.resHandler.outputResource[0].rate is zeroed by Kerbalism, flowRate is bogus.
-                // So we need to assume that Kerbalism Power Output is ok (if present),
-                // since calculating output from flowRate (or _flowRate) will not be possible.
-                double solar_rate = kerbalismPowerOutput > 0 ? kerbalismPowerOutput : 
-                    solarPanel.flowRate > 0 ? solarPanel.flowRate :
-                    solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT ? solarPanel._flowRate :
-                    solarPanel._flowRate * solarPanel.chargeRate;
-
-                double maxSupply = solarPanel._distMult > 0
-                    ? solarPanel.chargeRate * solarPanel._distMult * solarPanel._efficMult 
-                    : solar_rate;
-
-                resourceBuffers.UpdateBuffers();
-
-                // extract power otherwise we end up with double power
-                // TODO MISSING IMPLEMENTATION
-
-                solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate / 1000;
-                solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply / 1000;
-
-                megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solar_maxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+                // if GUI is inactive, then Panel doesn't produce power since Kerbalism doesn't reset the value on occlusion
+                // to be fixed in Kerbalism!
+                kerbalismPowerOutput = _field_kerbalism_output.guiActive == true ? _field_kerbalism_output.GetValue<double>(_warpfixer) : 0;
             }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI] - Exception in FNSolarPanelWasteHeatModule.OnFixedUpdateResourceSuppliable " + e.Message);
-                throw;
-            }
-        }
+
+            // solarPanel.resHandler.outputResource[0].rate is zeroed by Kerbalism, flowRate is bogus.
+            // So we need to assume that Kerbalism Power Output is ok (if present),
+            // since calculating output from flowRate (or _flowRate) will not be possible.
+            double solar_rate = kerbalismPowerOutput > 0 ? kerbalismPowerOutput :
+                _solarPanel.flowRate > 0 ? _solarPanel.flowRate :
+                _solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT 
+                    ? _solarPanel._flowRate 
+                    : _solarPanel._flowRate * _solarPanel.chargeRate;
+
+            double maxSupply = _solarPanel._distMult > 0
+                ? _solarPanel.chargeRate * _solarPanel._distMult * _solarPanel._efficMult
+                : solar_rate;
+
+            _resourceBuffers.UpdateBuffers();
+
+            // extract power otherwise we end up with double power
+            _solarFlowRateResource.rate = solar_rate;
+
+            // provide power to supply manager
+            solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate * 0.001;
+            solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply * 0.001;
+
+            megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solar_maxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+        }       
     }
 }
-
