@@ -149,8 +149,8 @@ namespace FNPlugin
         protected double _fuelFlowModifier;
         [KSPField(guiActive = true, guiName = "Current Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
         protected double curThrustInSpace;
-        [KSPField(guiActive = true, guiName = "Max Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
-        protected double maxThrustInSpace;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Max Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
+        protected double maxThrustInSpace = 0.001;
 
         int _rep;
         int _initializationCountdown;
@@ -563,16 +563,22 @@ namespace FNPlugin
             maxThrottlePower = maxEffectivePower * ModifiedThrotte;
             var currentPropellantEfficiency = CurrentPropellantEfficiency;
 
+            var availablePower = Math.Max(getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES), 0);
+
+            var rawMaxThrust = EvaluateMaxThrust(availablePower * _electrical_share_f);
+            if (rawMaxThrust > maxThrustInSpace)
+            {
+                maxThrustInSpace = rawMaxThrust;
+                _attachedEngine.maxThrust = (float)Math.Max(maxThrustInSpace, 0.001);
+            }
+
             if (CheatOptions.InfiniteElectricity)
                 power_request = maxThrottlePower;
             else
             {
-                var availablePower = Math.Max(getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES), 0);
                 var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-
                 var effectiveResourceThrotling = megaJoulesBarRatio > OneThird ? 1 : megaJoulesBarRatio * 3;
-
-                var powerPerEngine = effectiveResourceThrotling * ModifiedThrotte * EvaluateMaxThrust(availablePower * _electrical_share_f) * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
+                var powerPerEngine = effectiveResourceThrotling * ModifiedThrotte * rawMaxThrust * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
                 power_request = currentPropellantEfficiency <= 0 ? 0 : Math.Min(powerPerEngine / currentPropellantEfficiency, maxThrottlePower);
             }
 
@@ -611,10 +617,6 @@ namespace FNPlugin
 
             if (throttle > 0)
             {
-                maxThrustInSpace = curThrustInSpace / throttle;
-
-                _attachedEngine.maxThrust = (float)Math.Max(maxThrustInSpace, 0.000001);
-
                 if (IsValidPositiveNumber(calculated_thrust) && IsValidPositiveNumber(maxThrustWithCurrentThrottle))
                 {
                     _atmosphereThrustEfficiency = Math.Min(1, calculated_thrust / maxThrustWithCurrentThrottle);
