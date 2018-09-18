@@ -511,10 +511,10 @@ namespace FNPlugin
             if (PluginHelper.UpgradeAvailable(Mk2TechReq))
                 techLevel++;
 
-			if (techLevel >= 9)
-				maxEfficiency = efficiencyMk9;
-			else if (techLevel == 8)
-				maxEfficiency = efficiencyMk8;
+            if (techLevel >= 9)
+                maxEfficiency = efficiencyMk9;
+            else if (techLevel == 8)
+                maxEfficiency = efficiencyMk8;
             else if (techLevel >= 7)
                 maxEfficiency = efficiencyMk7;
             else if (techLevel == 6)
