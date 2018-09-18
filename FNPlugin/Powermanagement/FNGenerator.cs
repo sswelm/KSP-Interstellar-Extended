@@ -81,6 +81,7 @@ namespace FNPlugin
         public double directConversionEff = 0.6;
         [KSPField]
         public double upgradedDirectConversionEff = 0.865;
+
         [KSPField]
         public double efficiencyMk1 = 0;
         [KSPField]
@@ -95,6 +96,10 @@ namespace FNPlugin
         public double efficiencyMk6 = 0;
         [KSPField]
         public double efficiencyMk7 = 0;
+        [KSPField]
+        public double efficiencyMk8 = 0;
+        [KSPField]
+        public double efficiencyMk9 = 0;
 
         [KSPField]
         public string Mk2TechReq = "";
@@ -108,6 +113,10 @@ namespace FNPlugin
         public string Mk6TechReq = "";
         [KSPField]
         public string Mk7TechReq = "";
+        [KSPField]
+        public string Mk8TechReq = "";
+        [KSPField]
+        public string Mk9TechReq = "";
 
         [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxGeneratorEfficiency")]
         public double maxEfficiency = 0;
@@ -476,11 +485,19 @@ namespace FNPlugin
                 efficiencyMk6 = efficiencyMk5;
             if (efficiencyMk7 == 0)
                 efficiencyMk7 = efficiencyMk6;
+            if (efficiencyMk8 == 0)
+                efficiencyMk8 = efficiencyMk7;
+            if (efficiencyMk9 == 0)
+                efficiencyMk9 = efficiencyMk8;
 
             if (String.IsNullOrEmpty(Mk2TechReq))
                 Mk2TechReq = upgradeTechReq;
 
             int techLevel = 1;
+            if (PluginHelper.UpgradeAvailable(Mk9TechReq))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk8TechReq))
+                techLevel++;
             if (PluginHelper.UpgradeAvailable(Mk7TechReq))
                 techLevel++;
             if (PluginHelper.UpgradeAvailable(Mk6TechReq))
@@ -494,7 +511,11 @@ namespace FNPlugin
             if (PluginHelper.UpgradeAvailable(Mk2TechReq))
                 techLevel++;
 
-            if (techLevel >= 7)
+			if (techLevel >= 9)
+				maxEfficiency = efficiencyMk9;
+			else if (techLevel == 8)
+				maxEfficiency = efficiencyMk8;
+            else if (techLevel >= 7)
                 maxEfficiency = efficiencyMk7;
             else if (techLevel == 6)
                 maxEfficiency = efficiencyMk6;
