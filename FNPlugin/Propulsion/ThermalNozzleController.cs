@@ -249,12 +249,14 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         public double maximumPowerUsageForPropulsionRatio;
 
-        [KSPField(guiActive = true)]
+        [KSPField(guiActive = false)]
         public double powerHeatModifier;
-        [KSPField(guiActive = true)]
+        [KSPField(guiActive = false)]
         public double currentThrottle;
-        [KSPField(guiActive = true)]
+        [KSPField(guiActive = false)]
         public double requestedThrottle;
+        [KSPField(guiActive = false)]
+        public float effectRatio;
 
         [KSPField]
         int pre_coolers_active;
@@ -1428,7 +1430,8 @@ namespace FNPlugin
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                 {
-                    part.Effect(_particleFXName, (float)Math.Max(0.1f * myAttachedEngine.currentThrottle, Math.Min(Math.Pow(power_received / requested_thermal_power, 0.5), myAttachedEngine.currentThrottle)), -1);
+                    effectRatio = (float)Math.Max(0.1f * myAttachedEngine.currentThrottle, Math.Min(Math.Pow(power_received / requested_thermal_power, 0.5), myAttachedEngine.currentThrottle));
+                    part.Effect(_particleFXName, effectRatio, -1);
                 }
             }
             catch (Exception e)
