@@ -212,8 +212,11 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
         public double solarFlux;
 
-        [KSPField(guiActive = true, guiName = "FlowRate", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiName = "FlowRate", guiFormat = "F4")]
         public double flowRate;
+        [KSPField(guiActive = false, guiName = "Solar maximum power", guiFormat = "F4")]
+        public double solarMaxSupply;
+
         [KSPField(guiActiveEditor = false, guiActive = false)]
         public double kerbalismPowerOutput;
         [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F2")]
@@ -1884,7 +1887,7 @@ namespace FNPlugin
                 ? flowRateQueue.OrderBy(m => m).Skip(10).Take(30).Average()
                 : flowRateQueue.Average();
 
-            double maxSupply = deployableSolarPanel._distMult > 0
+            solarMaxSupply = deployableSolarPanel._distMult > 0
                 ? Math.Max(stabalizedFlowRate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
                 : stabalizedFlowRate;
 
@@ -1895,8 +1898,8 @@ namespace FNPlugin
 
                 if (stabalizedFlowRate > 0)
                     stabalizedFlowRate *= 0.001;
-                if (maxSupply > 0)
-                    maxSupply *= 0.001;
+                if (solarMaxSupply > 0)
+                    solarMaxSupply *= 0.001;
             }
             else if (deployableSolarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
             {
@@ -1905,11 +1908,11 @@ namespace FNPlugin
             else
             {
                 stabalizedFlowRate = 0;
-                maxSupply = 0;
+                solarMaxSupply = 0;
             }
 
             if (stabalizedFlowRate > 0)
-                supplyFNResourcePerSecondWithMax(stabalizedFlowRate, maxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+                supplyFNResourcePerSecondWithMax(stabalizedFlowRate, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
         public double MaxStableMegaWattPower

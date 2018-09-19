@@ -18,8 +18,8 @@ namespace FNPlugin
         public double kerbalismPowerOutput;
         [KSPField(guiActive = false)]
         public double solar_supply = 0;
-        [KSPField(guiActive = true, guiName = "Solar maximum power", guiUnits = " MW", guiFormat = "F5")]
-        public double solar_maxSupply = 0;
+        [KSPField(guiActive = false, guiName = "Solar maximum power", guiUnits = " MW", guiFormat = "F5")]
+        public double solarMaxSupply = 0;
 
         MicrowavePowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
@@ -40,6 +40,7 @@ namespace FNPlugin
             if (_microwavePowerReceiver != null)
             {
                 Fields["megaJouleSolarPowerSupply"].guiActive = false;
+                Fields["solarMaxSupply"].guiActive = false;
                 return;
             }
 
@@ -147,9 +148,9 @@ namespace FNPlugin
 
             // provide power to supply manager
             solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate * 0.001;
-            solar_maxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply * 0.001;
+            solarMaxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply * 0.001;
 
-            megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solar_maxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+            megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }       
     }
 }
