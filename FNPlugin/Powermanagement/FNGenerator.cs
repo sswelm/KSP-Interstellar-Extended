@@ -188,9 +188,9 @@ namespace FNPlugin
         public double adjusted_thermal_power_needed;
         [KSPField]
         public double attachedPowerSourceRatio;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_currentElectricPower", guiUnits = " MW_e", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_currentElectricPower", guiUnits = " MW_e", guiFormat = "F3")]
         public string OutputPower;
-        [KSPField(guiActive = true, guiName = "Maximum Electric Power")]
+        [KSPField(guiActive = false, guiName = "Maximum Electric Power")]
         public string MaxPowerStr;
         [KSPField(guiActive = true, guiName = "Electric Efficiency")]
         public string OverallEfficiency;
@@ -945,7 +945,7 @@ namespace FNPlugin
                             thermalPowerReceived += consumeFNResourcePerSecond(reactorPowerRequested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                             attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio);
                         }
-                        else  if (attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0 && thermalPowerReceived < reactorPowerRequested && attachedPowerSource.ChargedPowerRatio > 0.001)
+                        else if ((!applies_balance || attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0) && thermalPowerReceived < reactorPowerRequested && attachedPowerSource.ChargedPowerRatio > 0.001)
                         {
                             var requestedChargedPower = Math.Min(Math.Min(reactorPowerRequested - thermalPowerReceived, maxChargedPower), Math.Max(0, maxReactorPower - thermalPowerReceived)) * availableChargedPowerRatio;
 
