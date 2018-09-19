@@ -894,7 +894,7 @@ namespace FNPlugin
                 _heatDecompositionFraction = 1;
                 _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
                 var rawthrustPropellantMultiplier = chosenpropellant.HasValue("thrustMultiplier") ? float.Parse(chosenpropellant.GetValue("thrustMultiplier")) : 1;
-                _thrustPropellantMultiplier = _propellantIsLFO ? rawthrustPropellantMultiplier : ((rawthrustPropellantMultiplier + 1) / 2.0);
+                _thrustPropellantMultiplier = _propellantIsLFO ? rawthrustPropellantMultiplier : ((rawthrustPropellantMultiplier + 1) / 2);
             }
         }
 
@@ -902,9 +902,9 @@ namespace FNPlugin
         {
             var linearFraction = Math.Max(0, Math.Min(1, (AttachedReactor.CoreTemperature - _minDecompositionTemp) / (_maxDecompositionTemp - _minDecompositionTemp)));
             _heatDecompositionFraction = Math.Pow(0.36, Math.Pow(3 - linearFraction * 3, 2) / 2);
-            var thrustPropellantMultiplier = Math.Sqrt(_heatDecompositionFraction * _decompositionEnergy / _hydroloxDecompositionEnergy) * 1.04 + 1;
-            _ispPropellantMultiplier = _baseIspMultiplier * thrustPropellantMultiplier;
-            _thrustPropellantMultiplier = _propellantIsLFO ? thrustPropellantMultiplier : thrustPropellantMultiplier + 1 / 2;
+            var rawthrustPropellantMultiplier = Math.Sqrt(_heatDecompositionFraction * _decompositionEnergy / _hydroloxDecompositionEnergy) * 1.04 + 1;
+            _ispPropellantMultiplier = _baseIspMultiplier * rawthrustPropellantMultiplier;
+            _thrustPropellantMultiplier = _propellantIsLFO ? rawthrustPropellantMultiplier : (rawthrustPropellantMultiplier + 1) / 2;
         }
 
         public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1)
