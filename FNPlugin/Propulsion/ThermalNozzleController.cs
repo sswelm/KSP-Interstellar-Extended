@@ -196,15 +196,15 @@ namespace FNPlugin
         protected double final_max_thrust_in_space;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thrust In Current")]
         protected double max_thrust_in_current_atmosphere;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Current Max Engine Thrust", guiFormat = "F3", guiUnits = " kN")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Max Engine Thrust", guiFormat = "F3", guiUnits = " kN")]
         protected double final_max_engine_thrust;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Maximum ISP", guiFormat = "F1", guiUnits = "s")]
         protected double _maxISP;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Minimum ISP", guiFormat = "F1", guiUnits = "s")]
         protected double _minISP;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3", guiUnits = " kN")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3", guiUnits = " kN")]
         protected double calculatedMaxThrust;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
         protected double max_fuel_flow_rate = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Fuel Flow", guiFormat = "F5")]
         protected double engineFuelFlow;
@@ -257,7 +257,7 @@ namespace FNPlugin
         public double currentThrottle;
         [KSPField(guiActive = false)]
         public double requestedThrottle;
-        [KSPField(guiActive = true)]
+        [KSPField(guiActive = false)]
         public float effectRatio;
 
         [KSPField]
@@ -277,52 +277,49 @@ namespace FNPlugin
         [KSPField]
         public int supportedPropellantTypes = 511;
 
-        //Internal
-        protected string _particleFXName;
-        protected bool _fuelRequiresUpgrade;
-        protected string _fuelTechRequirement;
-        protected float _fuelToxicity;
-        protected double _heatDecompositionFraction;
-
-        protected float currentAnimatioRatio;
-        protected bool engineWasInactivePreviousFrame = false;
-
-        protected float _minDecompositionTemp;
-        protected float _maxDecompositionTemp;
+        // Constants
         protected const double _hydroloxDecompositionEnergy = 16.2137;
 
-        protected bool hasrequiredupgrade = false;
-        protected bool hasSetupPropellant = false;
+        //Internal
+        protected string _particleFXName;
+        protected string _fuelTechRequirement;
+        
+        protected double _heatDecompositionFraction;
+
+        protected float _fuelToxicity;
+        protected float _currentAnimatioRatio;
+        protected float _minDecompositionTemp;
+        protected float _maxDecompositionTemp;
+        protected float _originalEngineAccelerationSpeed;
+        protected float _originalEngineDecelerationSpeed;
+        protected float _jetTechBonus;
+        protected float _jetTechBonusPercentage;
+        protected float _jetTechBonusCurveChange;
+
+        protected int partDistance = 0;
+
+        protected bool _fuelRequiresUpgrade = false;
+        protected bool _engineWasInactivePreviousFrame = false;
+        protected bool _hasrequiredupgrade = false;
+        protected bool _hasSetupPropellant = false;
         protected bool _currentpropellant_is_jet = false;
 
+        protected FloatCurve originalAtmCurve;
+        protected FloatCurve originalAtmosphereCurve;
+        protected FloatCurve originalVelocityCurve;
+        protected Animation deployAnim;
+        protected AnimationState[] pulseAnimationState;
+        protected AnimationState[] emiAnimationState;
+        protected ResourceBuffers resourceBuffers;
         protected ModuleEnginesWarp timewarpEngine;
         protected ModuleEngines myAttachedEngine;
         protected Guid id = Guid.NewGuid();
         protected ConfigNode[] propellantsConfignodes;
 
-        protected FloatCurve originalAtmCurve;
-        protected FloatCurve originalAtmosphereCurve;
-        protected FloatCurve originalVelocityCurve;
-
-        protected float originalEngineAccelerationSpeed;
-        protected float originalEngineDecelerationSpeed;
-
-        protected Animation deployAnim;
-        protected AnimationState[] pulseAnimationState;
-        protected AnimationState[] emiAnimationState;
-        protected int thrustLimitRatio = 0;
-        protected double old_intake = 0;
-        protected int partDistance = 0;
-        protected ResourceBuffers resourceBuffers;
-
         protected List<Propellant> list_of_propellants = new List<Propellant>();
         protected List<FNModulePreecooler> _vesselPrecoolers;
         protected List<ModuleResourceIntake> _vesselResourceIntakes;
         protected List<IEngineNoozle> _vesselThermalNozzles;
-
-        protected float jetTechBonus;
-        protected float jetTechBonusPercentage;
-        protected float jetTechBonusCurveChange;
 
         private IPowerSource _myAttachedReactor;
         public IPowerSource AttachedReactor
@@ -415,9 +412,7 @@ namespace FNPlugin
             isupgraded = true;
 
             if (isJet)
-            {
                 propellantsConfignodes = getPropellantsHybrid();
-            }
             else
                 propellantsConfignodes = getPropellants(isJet);
         }
@@ -488,8 +483,8 @@ namespace FNPlugin
                     originalAtmosphereCurve = myAttachedEngine.atmosphereCurve;
                     originalVelocityCurve = myAttachedEngine.velCurve;
 
-                    originalEngineAccelerationSpeed = myAttachedEngine.engineAccelerationSpeed;
-                    originalEngineDecelerationSpeed = myAttachedEngine.engineDecelerationSpeed;
+                    _originalEngineAccelerationSpeed = myAttachedEngine.engineAccelerationSpeed;
+                    _originalEngineDecelerationSpeed = myAttachedEngine.engineDecelerationSpeed;
                 }
 
                 // find attached thermal source
@@ -531,7 +526,7 @@ namespace FNPlugin
                 else
                 {
                     if (this.HasTechsRequiredToUpgrade())
-                        hasrequiredupgrade = true;
+                        _hasrequiredupgrade = true;
 
                     // if not, use basic propellants
                     propellantsConfignodes = getPropellants(isJet);
@@ -543,12 +538,12 @@ namespace FNPlugin
                 bool hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
                 bool hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
 
-                jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
-                jetTechBonusCurveChange = jetTechBonus / 9.92992f;
-                jetTechBonusPercentage = jetTechBonus / 49.6496f;
+                _jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
+                _jetTechBonusCurveChange = _jetTechBonus / 9.92992f;
+                _jetTechBonusPercentage = _jetTechBonus / 49.6496f;
 
-                effectiveJetengineAccelerationSpeed = overrideAccelerationSpeed ? jetengineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonusCurveChange * 5 : originalEngineAccelerationSpeed;
-                effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ? jetengineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * jetTechBonusCurveChange * 5 : originalEngineDecelerationSpeed;
+                effectiveJetengineAccelerationSpeed = overrideAccelerationSpeed ? jetengineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * _jetTechBonusCurveChange * 5 : _originalEngineAccelerationSpeed;
+                effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ? jetengineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * _jetTechBonusCurveChange * 5 : _originalEngineDecelerationSpeed;
 
                 Fields["temperatureStr"].guiActive = showPartTemperature;
             }
@@ -616,9 +611,9 @@ namespace FNPlugin
             try
             {
                 // setup propellant after startup to allow InterstellarFuelSwitch to configure the propellant
-                if (!hasSetupPropellant)
+                if (!_hasSetupPropellant)
                 {
-                    hasSetupPropellant = true;
+                    _hasSetupPropellant = true;
                     SetupPropellants(true, true);
                 }
 
@@ -631,13 +626,13 @@ namespace FNPlugin
 
                 if (ResearchAndDevelopment.Instance != null && isJet)
                 {
-                    Events["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+                    Events["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && _hasrequiredupgrade;
                     upgradeCostStr = ResearchAndDevelopment.Instance.Science.ToString("0") + " / " + upgradeCost;
                 }
                 else
                     Events["RetrofitEngine"].active = false;
 
-                Fields["upgradeCostStr"].guiActive = !isupgraded && hasrequiredupgrade && isJet;
+                Fields["upgradeCostStr"].guiActive = !isupgraded && _hasrequiredupgrade && isJet;
 
                 if (myAttachedEngine == null)
                     return;
@@ -936,19 +931,19 @@ namespace FNPlugin
                 {
                     if (jetPerformanceProfile == 0)
                     {
-                        velCurve.Add(0, 0.05f + jetTechBonusPercentage / 2);
-                        velCurve.Add(2.5f - jetTechBonusCurveChange, 1);
-                        velCurve.Add(5f + jetTechBonusCurveChange, 1);
-                        velCurve.Add(50, 0 + jetTechBonusPercentage);
+                        velCurve.Add(0, 0.05f + _jetTechBonusPercentage / 2);
+                        velCurve.Add(2.5f - _jetTechBonusCurveChange, 1);
+                        velCurve.Add(5f + _jetTechBonusCurveChange, 1);
+                        velCurve.Add(50, 0 + _jetTechBonusPercentage);
                     }
                     else if (jetPerformanceProfile == 1)
                     {
-                        velCurve.Add(0f, 0.50f + jetTechBonusPercentage);
+                        velCurve.Add(0f, 0.50f + _jetTechBonusPercentage);
                         velCurve.Add(1f, 1.00f);
-                        velCurve.Add(2f, 0.75f + jetTechBonusPercentage);
-                        velCurve.Add(3f, 0.50f + jetTechBonusPercentage);
-                        velCurve.Add(4f, 0.25f + jetTechBonusPercentage);
-                        velCurve.Add(5f, 0.00f + jetTechBonusPercentage);
+                        velCurve.Add(2f, 0.75f + _jetTechBonusPercentage);
+                        velCurve.Add(3f, 0.50f + _jetTechBonusPercentage);
+                        velCurve.Add(4f, 0.25f + _jetTechBonusPercentage);
+                        velCurve.Add(5f, 0.00f + _jetTechBonusPercentage);
                         velCurve.Add(6f, 0.00f);
                     }
                 }
@@ -1119,7 +1114,7 @@ namespace FNPlugin
                     GenerateThrustFromReactorHeat();
                 else
                 {
-                    engineWasInactivePreviousFrame = true;
+                    _engineWasInactivePreviousFrame = true;
 
                     UpdateMaxIsp();
 
@@ -1217,32 +1212,32 @@ namespace FNPlugin
 
                 if (myAttachedEngine.currentThrottle > 0 && calculatedMaxThrust > 0)
                     increase = TimeWarp.fixedDeltaTime;
-                else if (currentAnimatioRatio > 1 / recoveryAnimationDivider)
+                else if (_currentAnimatioRatio > 1 / recoveryAnimationDivider)
                     increase = TimeWarp.fixedDeltaTime;
-                else if (currentAnimatioRatio > 0)
+                else if (_currentAnimatioRatio > 0)
                     increase = TimeWarp.fixedDeltaTime / -recoveryAnimationDivider;
                 else
                     increase = 0;
 
-                currentAnimatioRatio += increase;
+                _currentAnimatioRatio += increase;
 
                 if (pulseDuration > 0 && !String.IsNullOrEmpty(_particleFXName) && myAttachedEngine is ModuleEnginesFX)
                 {
-                    if (increase > 0 && calculatedMaxThrust > 0 && myAttachedEngine.currentThrottle > 0 && currentAnimatioRatio < pulseDuration)
-                        part.Effect(_particleFXName, 1 - currentAnimatioRatio / pulseDuration, -1);
+                    if (increase > 0 && calculatedMaxThrust > 0 && myAttachedEngine.currentThrottle > 0 && _currentAnimatioRatio < pulseDuration)
+                        part.Effect(_particleFXName, 1 - _currentAnimatioRatio / pulseDuration, -1);
                     else
                         part.Effect(_particleFXName, 0, -1);
                 }
 
-                if (pulseDuration > 0 && calculatedMaxThrust > 0 && increase > 0 && myAttachedEngine.currentThrottle > 0 && currentAnimatioRatio < pulseDuration)
+                if (pulseDuration > 0 && calculatedMaxThrust > 0 && increase > 0 && myAttachedEngine.currentThrottle > 0 && _currentAnimatioRatio < pulseDuration)
                     PluginHelper.SetAnimationRatio(1, emiAnimationState);
                 else
                     PluginHelper.SetAnimationRatio(0, emiAnimationState);
 
-                if (currentAnimatioRatio > 1 + (2 - (myAttachedEngine.currentThrottle * 2)))
-                    currentAnimatioRatio = 0;
+                if (_currentAnimatioRatio > 1 + (2 - (myAttachedEngine.currentThrottle * 2)))
+                    _currentAnimatioRatio = 0;
 
-                PluginHelper.SetAnimationRatio(Math.Max(Math.Min(currentAnimatioRatio, 1), 0), pulseAnimationState);
+                PluginHelper.SetAnimationRatio(Math.Max(Math.Min(_currentAnimatioRatio, 1), 0), pulseAnimationState);
             }
             catch (Exception e)
             {
@@ -1296,10 +1291,10 @@ namespace FNPlugin
 
                 if (availableThermalPower > 0 && _maxISP > 0)
                 {
-                    if (engineWasInactivePreviousFrame)
+                    if (_engineWasInactivePreviousFrame)
                     {
                         current_isp = _maxISP * 0.01;
-                        engineWasInactivePreviousFrame = false;
+                        _engineWasInactivePreviousFrame = false;
                     }
 
                     var ispRatio = _currentpropellant_is_jet ? current_isp / _maxISP : 1;

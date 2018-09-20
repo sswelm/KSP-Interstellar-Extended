@@ -673,8 +673,8 @@ namespace FNPlugin
             update_count++;
             radiator_deploy_delay++;
 
-            if (update_count < FRAME_DELAY)
-                return;
+            //if (update_count < FRAME_DELAY)
+            //    return;
 
             update_count = 0;
 
@@ -840,10 +840,9 @@ namespace FNPlugin
                 {
                     convectedThermalPower = 0;
 
-                    if (radiatorIsEnabled || !isAutomated || !canRadiateHeat || !showControls ||
-                        update_count != DEPLOYMENT_DELAY) return;
+                    if (radiatorIsEnabled || !isAutomated || !canRadiateHeat || !showControls || update_count != DEPLOYMENT_DELAY) return;
 
-                    Debug.Log("[KSPI] - FixedUpdate Automated Deplotment ");
+                    Debug.Log("[KSPI] - FixedUpdate Automated Deployment ");
                     Deploy();
                 }
 
