@@ -44,7 +44,7 @@ namespace FNPlugin
         public float dryCost = 0;
         [KSPField(isPersistant = true)]
         public double partCost;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Tech Level")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Tech Level")]
         public int techLevel = 0;
 
         [KSPField]

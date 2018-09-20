@@ -360,6 +360,10 @@ namespace FNPlugin.Reactors
         public bool canUseNeutronicFuels = true;
         [KSPField]
         public bool canUseGammaRayFuels = true;
+        [KSPField]
+        public double maxNeutronsRatio = 1;
+        [KSPField]
+        public double minNeutronsRatio = 0;
 
         [KSPField]
         public int fuelModeTechLevel;
@@ -2026,6 +2030,8 @@ namespace FNPlugin.Reactors
                     && ReactorFuelModeTechLevel >= fm.TechLevel
                     && (fm.Aneutronic || canUseNeutronicFuels)
                     && maxGammaRayPower >= fm.GammaRayEnergy
+                    && fm.NeutronsRatio <= maxNeutronsRatio 
+                    && fm.NeutronsRatio >= minNeutronsRatio
                     ).ToList();
 
             for (int i = 0; i < filteredFuelModes.Count; i++)
