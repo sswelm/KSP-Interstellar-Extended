@@ -19,7 +19,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActiveEditor = true, guiUnits = "g", guiName = "Maximum Acceleration"), UI_FloatRange(stepIncrement = 0.05f, maxValue = 10f, minValue = 0.05f)]
         public float maxGeeforce = 1;
         [KSPField(isPersistant = true, guiName = "Module Cost")]
-        public float moduleCost = 1;
+        public double moduleCost = 1;
         [KSPField(isPersistant = true, guiName = "Stored Mass")]
         public double storedMassMultiplier = 1;
         [KSPField(isPersistant = true, guiName = "Stored Target Mass")]
@@ -44,6 +44,39 @@ namespace FNPlugin
         public float dryCost = 0;
         [KSPField(isPersistant = true)]
         public double partCost;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Tech Level")]
+        public int techLevel = 0;
+
+        [KSPField]
+        public double maxStorage = 0;
+
+        [KSPField]
+        public double Mk1AmountRatio = 1;
+        [KSPField]
+        public double Mk2AmountRatio = 1;
+        [KSPField]
+        public double Mk3AmountRatio = 1;
+        [KSPField]
+        public double Mk4AmountRatio = 1;
+        [KSPField]
+        public double Mk5AmountRatio = 1;
+        [KSPField]
+        public double Mk6AmountRatio = 1;
+        [KSPField]
+        public double Mk7AmountRatio = 1;
+
+        [KSPField]
+        public string Mk2Tech = "";
+        [KSPField]
+        public string Mk3Tech = "";
+        [KSPField]
+        public string Mk4Tech = "";
+        [KSPField]
+        public string Mk5Tech = "";
+        [KSPField]
+        public string Mk6Tech = "";
+        [KSPField]
+        public string Mk7Tech = "";
 
         //settings
         [KSPField]
@@ -88,9 +121,6 @@ namespace FNPlugin
         public bool canExplodeFromGeeForce = false;
         [KSPField]
         public double currentGeeForce;
-
-        //[KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiUnits = "%", guiName = "Anti Hydrogen"), UI_FloatRange(stepIncrement = 0.1f, maxValue = 100f, minValue = 0f)]
-        //public float resourceFloatRange = 0;
 
         bool isJustAboutToDie = false;
         bool showAntimatterFields;
@@ -154,14 +184,59 @@ namespace FNPlugin
             }
         }
 
+        public double StorageCapacityModifier
+        {
+            get
+            {
+                switch (techLevel)
+                {
+                    case 1:
+                        return Mk1AmountRatio;
+                    case 2:
+                        return Mk2AmountRatio;
+                    case 3:
+                        return Mk3AmountRatio;
+                    case 4:
+                        return Mk4AmountRatio;
+                    case 5:
+                        return Mk5AmountRatio;
+                    case 6:
+                        return Mk6AmountRatio;
+                    case 7:
+                        return Mk7AmountRatio;
+                    default:
+                        return 1;
+                }
+            }
+        }
+
+        private void DetermineTechLevel()
+        {
+            techLevel = 1;
+            if (PluginHelper.UpgradeAvailable(Mk2Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk3Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk4Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk5Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk6Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk7Tech))
+                techLevel++;
+        }
+
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            if (storedMassMultiplier == 1 && emptyCost != 0)
-                moduleCost = emptyCost; 
-            else
-                moduleCost = dryCost * Mathf.Pow((float)storedScalingfactor, 3);
+            var techModifier = techLevel > 0 ? StorageCapacityModifier : 1;
 
-            return moduleCost;
+            if (storedMassMultiplier == 1 && emptyCost != 0)
+                moduleCost = techModifier * emptyCost; 
+            else
+                moduleCost = techModifier * (double)(decimal)dryCost * Math.Pow(storedScalingfactor, 3);
+
+            return (float)moduleCost;
         }
         
         public ModifierChangeWhen GetModuleCostChangeWhen()
@@ -263,14 +338,20 @@ namespace FNPlugin
                     return;
             }
 
+            // determine techlevel maximum storage amount only in editor
+            if (state == StartState.Editor && maxStorage != 0)
+            {
+                DetermineTechLevel();
+                var currentStorageRatio = antimatterResource.amount / antimatterResource.maxAmount;
+                antimatterResource.maxAmount = maxStorage * StorageCapacityModifier;
+                antimatterResource.amount = antimatterResource.maxAmount * currentStorageRatio;
+            }
+
             // charge if there is any significant antimatter
             should_charge = antimatterResource.amount > minimimAnimatterAmount;
 
             partMass = part.mass;
             initialMass = part.prefabMass * storedMassMultiplier;
-
-            //Fields["partMass"].guiActive = calculatedMass;
-            //Fields["partMass"].guiActiveEditor = calculatedMass;
 
             capacityStrField = Fields["capacityStr"];
             maxAmountStrField = Fields["maxAmountStr"];
