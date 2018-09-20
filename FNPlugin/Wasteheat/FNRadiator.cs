@@ -697,7 +697,7 @@ namespace FNPlugin
 
             if (vessel.mainBody.atmosphereContainsOxygen)
             {
-                oxidationModifier = Math.Sqrt(vessel.staticPressurekPa + vessel.dynamicPressurekPa) / 10;
+                oxidationModifier = Math.Sqrt(vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.1) * 0.1;
 
                 var spaceRatiatorBonus = (maxVacuumTemperature - maxAtmosphereTemperature) * (1 - oxidationModifier);
                 if (spaceRatiatorBonus < 0)
