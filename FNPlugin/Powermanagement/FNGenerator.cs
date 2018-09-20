@@ -1002,24 +1002,14 @@ namespace FNPlugin
                 {
                     generatorInit = true;
 
-                    //if (attachedPowerSource != null)
-                    //    attachedPowerSource.RequestedThermalHeat = 0;
-
                     if (IsEnabled && !vessel.packed)
                     {
-                        if (!FNRadiator.hasRadiatorsForVessel(vessel))
+                        if (attachedPowerSource == null || !FNRadiator.hasRadiatorsForVessel(vessel))
                         {
                             IsEnabled = false;
-                            Debug.Log("[KSPI] - Generator Shutdown: No radiators available!");
-                            ScreenMessages.PostScreenMessage("Generator Shutdown: No radiators available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                            PowerDown();
-                        }
-
-                        if (attachedPowerSource == null)
-                        {
-                            IsEnabled = false;
-                            Debug.Log("[KSPI] - Generator Shutdown: No reactor available!");
-                            ScreenMessages.PostScreenMessage("Generator Shutdown: No reactor available!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+							var message = "Generator Shutdown: No radiators available!";
+                            Debug.Log("[KSPI] - " + message);
+                            ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                             PowerDown();
                         }
                     }
@@ -1126,6 +1116,9 @@ namespace FNPlugin
             if (!string.IsNullOrEmpty(Mk4TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk4TechReq)));
             if (!string.IsNullOrEmpty(Mk5TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk5TechReq)));
             if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk6TechReq)));
+            if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk7TechReq)));
+            if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk8TechReq)));
+            if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk9TechReq)));
             sb.AppendLine();
             sb.Append("</size>");
 
@@ -1137,6 +1130,9 @@ namespace FNPlugin
             if (!string.IsNullOrEmpty(Mk4TechReq)) sb.AppendLine("Mk4: " + (efficiencyMk4 * 100).ToString("F0") + "%");
             if (!string.IsNullOrEmpty(Mk5TechReq)) sb.AppendLine("Mk5: " + (efficiencyMk5 * 100).ToString("F0") + "%");
             if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("Mk6: " + (efficiencyMk6 * 100).ToString("F0") + "%");
+            if (!string.IsNullOrEmpty(Mk7TechReq)) sb.AppendLine("Mk7: " + (efficiencyMk7 * 100).ToString("F0") + "%");
+            if (!string.IsNullOrEmpty(Mk8TechReq)) sb.AppendLine("Mk8: " + (efficiencyMk8 * 100).ToString("F0") + "%");
+            if (!string.IsNullOrEmpty(Mk9TechReq)) sb.AppendLine("Mk9: " + (efficiencyMk9 * 100).ToString("F0") + "%");
             sb.Append("</size>");
 
             return sb.ToString();

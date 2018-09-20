@@ -96,7 +96,7 @@ namespace FNPlugin
 
             if (Double.IsNaN(WasteHeatRatio))
             {
-                Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in WasteHeatRatio");
+                Debug.LogError("KSPI - FNRadiator: FixedUpdate Single.IsNaN detected in WasteHeatRatio");
                 return;
             }
             external_temperature = FlightGlobals.getExternalTemperature(UpdatingRadiator.vessel.transform.position);
@@ -269,7 +269,6 @@ namespace FNPlugin
         private AnimationState[] heatStates;
         private ModuleDeployableRadiator _moduleDeployableRadiator;
         private ModuleActiveRadiator _moduleActiveRadiator;
-        //private ResourceManager wasteheatManager;
         private ModuleDeployablePart.DeployState radiatorState;
         private ResourceBuffers resourceBuffers;
 
@@ -436,7 +435,7 @@ namespace FNPlugin
         {
             if (preventShieldedDeploy && (part.ShieldedFromAirstream || radiator_deploy_delay < RADIATOR_DELAY)) 
             {
-                Debug.Log("[KSPI] - Deploy Aborted, Part is shielded or nor ready");
+                //Debug.Log("[KSPI] - Deploy Aborted, Part is shielded or nor ready");
                 return;
             }
 
@@ -747,7 +746,7 @@ namespace FNPlugin
             partTempStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
 
             if (showColorHeat)
-                ColorHeat();
+                ApplyColorHeat();
         }
 
         public override void OnFixedUpdate()
@@ -814,7 +813,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    thermalPowerDissipPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea / 2;
+                    thermalPowerDissipPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea * 0.5;
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond, wasteheatManager) : 0;
 
@@ -860,7 +859,7 @@ namespace FNPlugin
             var result = Math.Max(radiator_temperature_temp_val, externalTemperature);
 
             if (Double.IsNaN(result))
-                Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
+                Debug.LogError("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
 
             return result;
         }
@@ -975,7 +974,7 @@ namespace FNPlugin
             }
         }
 
-        private void ColorHeat()
+        private void ApplyColorHeat()
         {
             //Account for Draper Point
             var simulatedTempRatio = radiatorIsEnabled ? (CurrentRadiatorTemperature - 798d) / (maxRadiatorTemperature - 798d) : 0;
