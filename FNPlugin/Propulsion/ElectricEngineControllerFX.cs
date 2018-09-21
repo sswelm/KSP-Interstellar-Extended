@@ -54,7 +54,7 @@ namespace FNPlugin
         [KSPField]
         public float storedThrotle;
         [KSPField]
-        public float particleEffectModifier = 1;
+        public float particleEffectMult = 1;
         [KSPField]
         public bool ignoreWasteheat = false;
 
@@ -152,6 +152,13 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiName = "Max Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
         protected double maxThrustInSpace = 0.001;
 
+        [KSPField]
+        protected double effectPower = 0;
+        [KSPField]
+        public string EffectName = String.Empty;
+        [KSPField]
+        protected string _particleFXName;
+
         int _rep;
         int _initializationCountdown;
         int _numberOfAvailableUpgradeTechs;
@@ -159,6 +166,7 @@ namespace FNPlugin
         bool _hasrequiredupgrade;
         bool _hasGearTechnology;
         bool _warpToReal;
+
 
         ResourceBuffers resourceBuffers;
         FloatCurve _ispFloatCurve;
@@ -356,6 +364,8 @@ namespace FNPlugin
                 // initialize propellant
                 _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
                 SetupPropellants(true);
+
+                _attachedEngine.maxThrust = (float)maxThrustInSpace;
             }
             catch (Exception e)
             {
@@ -575,12 +585,8 @@ namespace FNPlugin
 
             var availablePower = Math.Max(getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES), 0);
 
-            var rawMaxThrust = EvaluateMaxThrust(availablePower * _electrical_share_f);
-            if (rawMaxThrust > maxThrustInSpace)
-            {
-                maxThrustInSpace = rawMaxThrust;
-                _attachedEngine.maxThrust = (float)Math.Max(maxThrustInSpace, 0.001);
-            }
+            maxThrustInSpace = EvaluateMaxThrust(availablePower * _electrical_share_f);
+            _attachedEngine.maxThrust = (float)Math.Max(maxThrustInSpace, 0.001);
 
             if (CheatOptions.InfiniteElectricity)
                 power_request = maxThrottlePower;
@@ -588,7 +594,7 @@ namespace FNPlugin
             {
                 var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
                 var effectiveResourceThrotling = megaJoulesBarRatio > OneThird ? 1 : megaJoulesBarRatio * 3;
-                var powerPerEngine = effectiveResourceThrotling * ModifiedThrotte * rawMaxThrust * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
+                var powerPerEngine = effectiveResourceThrotling * ModifiedThrotte * maxThrustInSpace * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
                 power_request = currentPropellantEfficiency <= 0 ? 0 : Math.Min(powerPerEngine / currentPropellantEfficiency, maxThrottlePower);
             }
 
@@ -651,12 +657,6 @@ namespace FNPlugin
 
                 if (!this.vessel.packed)
                 {
-                    if (_attachedEngine is ModuleEnginesFX && particleEffectModifier > 0)
-                    {
-                        var effectPower = particleEffectModifier * Mathf.Min((float)Math.Pow(_electrical_consumption_f / maxEffectivePower, 0.5), _attachedEngine.finalThrust / _attachedEngine.maxThrust);
-                        this.part.Effect(Current_propellant.ParticleFXName, effectPower, -1);
-                    }
-
                     _ispPersistent = (double)(decimal)_attachedEngine.realIsp;
 
                     thrust_d = (double)(decimal)_attachedEngine.requestedMassFlow * GameConstants.STANDARD_GRAVITY * (double)(decimal)_attachedEngine.realIsp;
@@ -675,6 +675,20 @@ namespace FNPlugin
             else
                 IdleEngine();
 
+            if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
+            {
+                var engineFuelFlow = _attachedEngine.maxFuelFlow * _attachedEngine.currentThrottle;  //_attachedEngine.fuelFlowGui * _attachedEngine.mixtureDensity;
+                var max_fuel_flow_rate = _attachedEngine.maxThrust / _attachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
+
+                effectPower = Math.Min(1, particleEffectMult * (engineFuelFlow / max_fuel_flow_rate));
+
+                if (String.IsNullOrEmpty(EffectName))
+                    _particleFXName = Current_propellant.ParticleFXName;
+                else
+                    _particleFXName = EffectName;
+
+                this.part.Effect(_particleFXName, (float)effectPower, -1);
+            }
 
             var vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
@@ -703,7 +717,7 @@ namespace FNPlugin
                 _attachedEngine.maxFuelFlow = 0.0000000001f;
             }
 
-            if (_attachedEngine is ModuleEnginesFX && particleEffectModifier > 0)
+            if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
                 this.part.Effect(Current_propellant.ParticleFXName, 0, -1);
         }
 

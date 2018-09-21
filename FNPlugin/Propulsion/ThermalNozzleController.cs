@@ -207,7 +207,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
         protected double max_fuel_flow_rate = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Fuel Flow", guiFormat = "F5")]
-        protected double engineFuelFlow;
+        protected double currentEngineFuelFlow;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
@@ -257,7 +257,7 @@ namespace FNPlugin
         public double currentThrottle;
         [KSPField(guiActive = false)]
         public double requestedThrottle;
-        [KSPField(guiActive = false)]
+        [KSPField(guiActive = true)]
         public float effectRatio;
 
         [KSPField]
@@ -1419,12 +1419,12 @@ namespace FNPlugin
                 if (double.IsNaN(airflowHeatModifier) || double.IsInfinity(airflowHeatModifier))
                     airflowHeatModifier = 0;
 
+                currentEngineFuelFlow = myAttachedEngine.fuelFlowGui * myAttachedEngine.mixtureDensity;
+
                 if (controlHeatProduction)
                 {
-                    engineFuelFlow = myAttachedEngine.fuelFlowGui * myAttachedEngine.mixtureDensity;
-
-                    engineHeatProduction = (engineFuelFlow >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.0001 && myAttachedEngine.currentThrottle > 0)
-                        ? 0.5 * myAttachedEngine.currentThrottle * Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / engineFuelFlow / _maxISP / part.mass
+                    engineHeatProduction = (currentEngineFuelFlow >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.0001 && myAttachedEngine.currentThrottle > 0)
+                        ? 0.5 * myAttachedEngine.currentThrottle * Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / currentEngineFuelFlow / _maxISP / part.mass
                         : 1;
                     engineHeatProduction = Math.Min(engineHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 9999);
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;
@@ -1432,7 +1432,8 @@ namespace FNPlugin
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                 {
-                    effectRatio = (float)Math.Min(1, myAttachedEngine.finalThrust / myAttachedEngine.maxThrust);
+                    var maxEngineFuelFlow = myAttachedEngine.maxThrust / myAttachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
+                    effectRatio = (float)Math.Min(1, currentEngineFuelFlow / maxEngineFuelFlow);
                     part.Effect(_particleFXName, effectRatio, -1);
                 }
             }

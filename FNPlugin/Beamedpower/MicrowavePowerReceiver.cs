@@ -1877,15 +1877,19 @@ namespace FNPlugin
                 deployableSolarPanel.flowRate > 0 ? deployableSolarPanel.flowRate :
                 deployableSolarPanel.chargeRate * deployableSolarPanel._flowRate;
 
-            flowRateQueue.Enqueue(flowRate);
+            // when in darkness, clear buffer
+            if (flowRate == 0)
+                flowRateQueue.Clear();
+            else
+                flowRateQueue.Enqueue(flowRate);
 
             if (flowRateQueue.Count > 50)
                 flowRateQueue.Dequeue();
 
             // ToDo: replace stabalizedFlowRate by calculated flow rate
-            var stabalizedFlowRate = flowRateQueue.Count > 10
+            var stabalizedFlowRate = flowRate == 0 ? 0 : flowRateQueue.Count > 10
                 ? flowRateQueue.OrderBy(m => m).Skip(10).Take(30).Average()
-                : flowRateQueue.Average();
+                : flowRateQueue.Average() ;
 
             solarMaxSupply = deployableSolarPanel._distMult > 0
                 ? Math.Max(stabalizedFlowRate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
