@@ -7,6 +7,7 @@ using System.Text;
 using UnityEngine;
 using FNPlugin.Constants;
 
+
 namespace FNPlugin
 {
     [KSPModule("Confinement Fusion Engine")]
@@ -884,7 +885,7 @@ namespace FNPlugin
                     // Update FuelFlow
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
                     calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
-                    massFlowRateKgPerSecond = thrustRatio * curEngineT.currentThrottle * calculatedFuelflow * 1000;
+                    massFlowRateKgPerSecond = thrustRatio * curEngineT.currentThrottle * calculatedFuelflow * 0.001;
 
                     if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
                     {
@@ -901,13 +902,23 @@ namespace FNPlugin
                             ? ProcessPowerAndWasteHeat(1) 
                             : ProcessPowerAndWasteHeat(storedThrotle);
 
+                    if (fusionRatio <= 0.01)
+                    {
+                        var message = "Thrust warp stopped - insuficient power";
+                        UnityEngine.Debug.Log("[KSPI] - " + message);
+                        ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                        // Return to realtime
+                        TimeWarp.SetRate(0, true);
+                        return;
+                    }
+
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
                     calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
-                    massFlowRateKgPerSecond = calculatedFuelflow * 1000;
+                    massFlowRateKgPerSecond = calculatedFuelflow * 0.001;
 
                     if (TimeWarp.fixedDeltaTime > 20)
                     {
-                        var deltaCalculations = (float)Math.Ceiling(TimeWarp.fixedDeltaTime / 20);
+                        var deltaCalculations = (float)Math.Ceiling(TimeWarp.fixedDeltaTime * 0.05);
                         var deltaTimeStep = TimeWarp.fixedDeltaTime / deltaCalculations;
 
                         for (var step = 0; step < deltaCalculations; step++)
@@ -918,10 +929,20 @@ namespace FNPlugin
                     }
                     else
                         PersistantThrust(TimeWarp.fixedDeltaTime, universalTime, this.part.transform.up, this.vessel.totalMass);
+
+                    if (fuelRatio <= 0)
+                    {
+                        var message = "Thrust warp stopped - propellant depleted";
+                        UnityEngine.Debug.Log("[KSPI] - " + message);
+                        ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                        // Return to realtime
+                        TimeWarp.SetRate(0, true);
+                        return;
+                    }
                 }
                 else
                 {
-                    powerUsage = "0.000 GW / " + (EffectivePowerRequirement / 1000d).ToString("0.000") + " GW";
+                    powerUsage = "0.000 GW / " + (EffectivePowerRequirement * 0.001).ToString("0.000") + " GW";
 
                     if (!(percentageFuelRemaining > (100 - fuelLimit) || lightSpeedRatio > speedLimit))
                     {
@@ -967,14 +988,7 @@ namespace FNPlugin
             effectiveMaxThrustInKiloNewton = timeDilationMaximumThrust * fuelRatio;
 
             if (fuelRatio <= 0)
-            {
-                var message = "Thrust warp stopped - propellant depleted";
-                Debug.Log("[KSPI] - " + message);
-                ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                // Return to realtime
-                TimeWarp.SetRate(0, true);
                 return;
-            }
 
             vessel.orbit.Perturb(deltaVv * fuelRatio, modifiedUniversalTime);
         }
