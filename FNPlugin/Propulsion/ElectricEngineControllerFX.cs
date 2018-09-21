@@ -448,6 +448,16 @@ namespace FNPlugin
             // Base class update
             base.OnUpdate();
 
+            // stop engines and drop out of timewarp when X pressed
+            if (vessel.packed && storedThrotle > 0 && Input.GetKeyDown(KeyCode.X))
+            {
+                // Return to realtime
+                TimeWarp.SetRate(0, true);
+
+                storedThrotle = 0;
+                vessel.ctrlState.mainThrottle = storedThrotle;
+            }
+
             // When transitioning from timewarp to real update throttle
             if (_warpToReal)
             {

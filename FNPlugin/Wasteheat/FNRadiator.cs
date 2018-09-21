@@ -976,8 +976,12 @@ namespace FNPlugin
         private void ApplyColorHeat()
         {
             //Account for Draper Point
-            var simulatedTempRatio = radiatorIsEnabled ? (CurrentRadiatorTemperature - 798d) / (maxRadiatorTemperature - 798d) : 0;
-            var stockTempRatio = (part.temperature - 798d) / (part.maxTemp - 798d);
+            const double maxTemperature = 4400;
+            const double drapperPoint = 798;
+            const double temperatureRange = maxTemperature - drapperPoint;
+
+            var simulatedTempRatio = radiatorIsEnabled ? (CurrentRadiatorTemperature - drapperPoint) / temperatureRange : 0;
+            var stockTempRatio = (part.temperature - drapperPoint) / temperatureRange;
             var colorRatio = Math.Min(Math.Max(simulatedTempRatio, stockTempRatio), 1);
 
             if (heatStates != null && heatStates.Any())

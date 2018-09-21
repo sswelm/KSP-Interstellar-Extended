@@ -85,6 +85,16 @@ namespace FNPlugin
         // Update
         public override void OnUpdate()
         {
+            // stop engines and drop out of timewarp when X pressed
+            if (vessel.packed && _throttlePersistent > 0 && Input.GetKeyDown(KeyCode.X))
+            {
+                // Return to realtime
+                TimeWarp.SetRate(0, true);
+
+                _throttlePersistent = 0;
+                vessel.ctrlState.mainThrottle = (float)_throttlePersistent;
+            }
+
             // When transitioning from timewarp to real update throttle
             if (_warpToReal)
             {
@@ -174,7 +184,7 @@ namespace FNPlugin
             masslessFuelPercentage4 = propellantResourceDefinition4 != null && propellantResourceDefinition4.density <= 0 ? ratio4 / ratioSumWithoutMass : 0;
         }
 
-        private double CollectFuel(double demandMass)
+        private double CollectFuel(double demandMass, ResourceFlowMode fuelMode = ResourceFlowMode.STACK_PRIORITY_SEARCH)
         {
             if (CheatOptions.InfinitePropellant)
                 return 1;
@@ -196,22 +206,22 @@ namespace FNPlugin
             if (propellantResourceDefinition1 != null && ratio1 > 0)
             {
                 fuelRequestAmount1 = fuelWithMassPercentage1 > 0 ? fuelWithMassPercentage1 * propellantWithMassNeeded : masslessFuelPercentage1 * masslessResourceNeeded;
-                availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, propellantResourceDefinition1) / fuelRequestAmount1);
+				availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(propellantResourceDefinition1, fuelMode) / fuelRequestAmount1);
             }
             if (propellantResourceDefinition2 != null && ratio2 > 0)
             {
                 fuelRequestAmount2 = fuelWithMassPercentage2 > 0 ? fuelWithMassPercentage2 * propellantWithMassNeeded : masslessFuelPercentage2 * masslessResourceNeeded;
-                availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, propellantResourceDefinition2) / fuelRequestAmount2);
+                availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(propellantResourceDefinition2, fuelMode) / fuelRequestAmount2);
             }
             if (propellantResourceDefinition3 != null && ratio3 > 0)
             {
                 fuelRequestAmount3 = fuelWithMassPercentage3 > 0 ? fuelWithMassPercentage3 * propellantWithMassNeeded : masslessFuelPercentage3 * masslessResourceNeeded;
-                availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, propellantResourceDefinition3) / fuelRequestAmount3);
+                availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(propellantResourceDefinition3, fuelMode) / fuelRequestAmount3);
             }
             if (propellantResourceDefinition4 != null && ratio4 > 0)
             {
                 fuelRequestAmount4 = fuelWithMassPercentage4 > 0 ? fuelWithMassPercentage4 * propellantWithMassNeeded : masslessFuelPercentage4 * masslessResourceNeeded;
-                availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, propellantResourceDefinition4) / fuelRequestAmount4);
+                availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(propellantResourceDefinition4, fuelMode) / fuelRequestAmount4);
             }
 
             // ignore insignificant amount
@@ -221,22 +231,22 @@ namespace FNPlugin
             double recievedRatio = 1;
             if (fuelRequestAmount1 > 0)
             {
-                var propellantUsed = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var propellantUsed = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount1 > 0 ? propellantUsed / fuelRequestAmount1 : 0);
             }
             if (fuelRequestAmount2 > 0)
             {
-                var propellantUsed = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var propellantUsed = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount2 > 0 ? propellantUsed / fuelRequestAmount2 : 0);
             }
             if (fuelRequestAmount3 > 0)
             {
-                var propellantUsed = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var propellantUsed = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount3 > 0 ? propellantUsed / fuelRequestAmount3 : 0);
             }
             if (fuelRequestAmount4 > 0)
             {
-                var propellantUsed = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, ResourceFlowMode.STACK_PRIORITY_SEARCH);
+                var propellantUsed = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount4 > 0 ? propellantUsed / fuelRequestAmount4 : 0);
             }
 

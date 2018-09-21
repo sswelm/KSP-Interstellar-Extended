@@ -183,23 +183,23 @@ namespace FNPlugin
         public float wasteheatMk9 = 2500;
 
         [KSPField]
-        public double powerRequirementMk1 = 4304;
+        public double powerRequirementMk1 = 0;
         [KSPField]
-        public double powerRequirementMk2 = 4783;
+        public double powerRequirementMk2 = 0;
         [KSPField]
-        public double powerRequirementMk3 = 5314;
+        public double powerRequirementMk3 = 0;
         [KSPField]
-        public double powerRequirementMk4 = 5905;
+        public double powerRequirementMk4 = 0;
         [KSPField]
-        public double powerRequirementMk5 = 6561;
+        public double powerRequirementMk5 = 0;
         [KSPField]
-        public double powerRequirementMk6 = 7290;
+        public double powerRequirementMk6 = 0;
         [KSPField]
-        public double powerRequirementMk7 = 8100;
+        public double powerRequirementMk7 = 0;
         [KSPField]
-        public double powerRequirementMk8 = 9000;
+        public double powerRequirementMk8 = 0;
         [KSPField]
-        public double powerRequirementMk9 = 10000;
+        public double powerRequirementMk9 = 0;
 
         [KSPField]
         public double thrustIspMk1 = 83886;
@@ -277,8 +277,8 @@ namespace FNPlugin
         double percentageFuelRemaining;
 
         double fusionFuelFactor1;
-	    double fusionFuelFactor2;
-	    double fusionFuelFactor3;
+        double fusionFuelFactor2;
+        double fusionFuelFactor3;
 
         Stopwatch stopWatch;
         ModuleEngines curEngineT;
@@ -646,7 +646,7 @@ namespace FNPlugin
                     // configure engine for Kerbal Engeneer support
                     UpdateAtmosphericCurve(EngineIsp);
                     effectiveMaxThrustInKiloNewton = MaximumThrust;
-					calculatedFuelflow = effectiveMaxThrustInKiloNewton / EngineIsp / GameConstants.STANDARD_GRAVITY;
+                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / EngineIsp / GameConstants.STANDARD_GRAVITY;
                     curEngineT.maxFuelFlow = (float)calculatedFuelflow;
                     curEngineT.maxThrust = (float)effectiveMaxThrustInKiloNewton;
 
@@ -709,82 +709,62 @@ namespace FNPlugin
             return "<color=" + color + ">" + result + "</color>";
         }
 
-        //
         public override void OnUpdate()
         {
+            // stop engines and drop out of timewarp when X pressed
+            if (vessel.packed && storedThrotle > 0 && Input.GetKeyDown(KeyCode.X))
+            {
+                // Return to realtime
+                TimeWarp.SetRate(0, true);
+
+                storedThrotle = 0;
+                vessel.ctrlState.mainThrottle = storedThrotle;
+            }
 
             if (curEngineT == null) return;
 
-            try
+            // When transitioning from timewarp to real update throttle
+            if (warpToReal)
             {
-                // When transitioning from timewarp to real update throttle
-                if (warpToReal)
-                {
-                    vessel.ctrlState.mainThrottle = storedThrotle;
-                    warpToReal = false;
-                }
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError("[KSPI] - Error OnUpdate warpToReal: " + e.Message);
+                vessel.ctrlState.mainThrottle = storedThrotle;
+                warpToReal = false;
             }
 
-            try
-            {
-                deactivateRadSafetyEvent.active = rad_safety_features;
-                activateRadSafetyEvent.active = !rad_safety_features;
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError("[KSPI] - Error OnUpdate Events: " + e.Message);
-            }
+            deactivateRadSafetyEvent.active = rad_safety_features;
+            activateRadSafetyEvent.active = !rad_safety_features;
 
-            try
+            if (curEngineT.isOperational && !IsEnabled)
             {
-
-                if (curEngineT.isOperational && !IsEnabled)
-                {
-                    IsEnabled = true;
-                    part.force_activate();
-                }
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError("[KSPI] - Error OnUpdate force_activate: " + e.Message);
+                IsEnabled = true;
+                part.force_activate();
             }
 
-
-            try
+            var kerbalHazardCount = 0;
+            foreach (var vess in FlightGlobals.Vessels)
             {
-                var kerbalHazardCount = 0;
-                foreach (var vess in FlightGlobals.Vessels)
-                {
-                    var distance = Vector3d.Distance(vessel.transform.position, vess.transform.position);
-                    if (distance < leathalDistance && vess != this.vessel)
-                        kerbalHazardCount += vess.GetCrewCount();
-                }
+                var distance = Vector3d.Distance(vessel.transform.position, vess.transform.position);
+                if (distance < leathalDistance && vess != this.vessel)
+                    kerbalHazardCount += vess.GetCrewCount();
+            }
 
-                if (kerbalHazardCount > 0)
-                {
-                    radhazard = true;
-                    if (kerbalHazardCount > 1)
-                        radhazardstr = kerbalHazardCount + " Kerbals.";
-                    else
-                        radhazardstr = kerbalHazardCount + " Kerbal.";
-
-                    radhazardstrField.guiActive = true;
-                }
+            if (kerbalHazardCount > 0)
+            {
+                radhazard = true;
+                if (kerbalHazardCount > 1)
+                    radhazardstr = kerbalHazardCount + " Kerbals.";
                 else
-                {
-                    radhazardstrField.guiActive = false;
-                    radhazard = false;
-                    radhazardstr = "None.";
-                }
+                    radhazardstr = kerbalHazardCount + " Kerbal.";
+
+                radhazardstrField.guiActive = true;
             }
-            catch (Exception e)
+            else
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error OnUpdate kerbalHazardCount " + e.Message);
+                radhazardstrField.guiActive = false;
+                radhazard = false;
+                radhazardstr = "None.";
             }
+
+            Fields["powerUsage"].guiActive = EffectivePowerRequirement > 0;
         }
 
         private void ShutDown(string reason)
@@ -903,7 +883,7 @@ namespace FNPlugin
 
                     // Update FuelFlow
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
-					calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
+                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
                     massFlowRateKgPerSecond = thrustRatio * curEngineT.currentThrottle * calculatedFuelflow * 1000;
 
                     if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
@@ -922,7 +902,7 @@ namespace FNPlugin
                             : ProcessPowerAndWasteHeat(storedThrotle);
 
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
-					calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
+                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
                     massFlowRateKgPerSecond = calculatedFuelflow * 1000;
 
                     if (TimeWarp.fixedDeltaTime > 20)
@@ -950,7 +930,7 @@ namespace FNPlugin
                     }
 
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust;
-                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / 9.81;
+                    calculatedFuelflow = effectiveMaxThrustInKiloNewton / effectiveIsp / GameConstants.STANDARD_GRAVITY;
                     massFlowRateKgPerSecond = 0;
                 }
 
@@ -958,7 +938,7 @@ namespace FNPlugin
                 curEngineT.maxThrust = (float)effectiveMaxThrustInKiloNewton;
                 
                 massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
-                thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * 9.81 * 1e-12;
+                thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * GameConstants.STANDARD_GRAVITY * 1e-12;
 
                 stopWatch.Stop();
             }
@@ -979,23 +959,29 @@ namespace FNPlugin
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
             var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
-            var timeDialationEngineIsp = timeDilation * engineIsp;
 
-            thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDialationEngineIsp, out demandMass);
+            var deltaVv = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDilation * engineIsp, out demandMass);
 
             fuelRatio = CollectFuel(demandMass);
 
             effectiveMaxThrustInKiloNewton = timeDilationMaximumThrust * fuelRatio;
 
-            if (!(fuelRatio > 0.01)) return;
+            if (fuelRatio <= 0)
+            {
+                var message = "Thrust warp stopped - propellant depleted";
+                Debug.Log("[KSPI] - " + message);
+                ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                // Return to realtime
+                TimeWarp.SetRate(0, true);
+                return;
+            }
 
-            var deltaVv = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, effectiveMaxThrustInKiloNewton, timeDialationEngineIsp, out demandMass);
-            vessel.orbit.Perturb(deltaVv, modifiedUniversalTime);
+            vessel.orbit.Perturb(deltaVv * fuelRatio, modifiedUniversalTime);
         }
 
         private double CollectFuel(double demandMass)
         {
-            if (CheatOptions.InfinitePropellant)
+            if (CheatOptions.InfinitePropellant || demandMass <= 0)
                 return 1;
 
             var fusionFuelRequestAmount1 = 0.0;
@@ -1008,17 +994,17 @@ namespace FNPlugin
             if (fusionFuelFactor1 > 0)
             {
                 fusionFuelRequestAmount1 = fusionFuelFactor1 * totalAmount;
-                availableRatio = Math.Min(part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition1) / fusionFuelRequestAmount1, availableRatio);
+                availableRatio = Math.Min(part.GetResourceAvailable(fusionFuelResourceDefinition1, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fusionFuelRequestAmount1, availableRatio);
             }
             if (fusionFuelFactor2 > 0)
             {
                 fusionFuelRequestAmount2 = fusionFuelFactor2 * totalAmount;
-                availableRatio = Math.Min(part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition2) / fusionFuelRequestAmount2, availableRatio);
+                availableRatio = Math.Min(part.GetResourceAvailable(fusionFuelResourceDefinition2, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fusionFuelRequestAmount2, availableRatio);
             }
             if (fusionFuelFactor3 > 0)
             {
                 fusionFuelRequestAmount3 = fusionFuelFactor3 * totalAmount;
-                availableRatio = Math.Min(part.GetResourceAvailable(ResourceFlowMode.STACK_PRIORITY_SEARCH, fusionFuelResourceDefinition3) / fusionFuelRequestAmount3, availableRatio);
+                availableRatio = Math.Min(part.GetResourceAvailable(fusionFuelResourceDefinition3, ResourceFlowMode.STACK_PRIORITY_SEARCH) / fusionFuelRequestAmount3, availableRatio);
             }
 
             if (availableRatio <= float.Epsilon)
@@ -1054,11 +1040,11 @@ namespace FNPlugin
 
             var requestedPower = scaledThrottle * effectivePowerRequirement;
 
-            var recievedPower = CheatOptions.InfiniteElectricity 
+            var recievedPower = CheatOptions.InfiniteElectricity || requestedPower <= 0
                 ? requestedPower
                 : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            var plasmaRatio = effectivePowerRequirement > 0 ? recievedPower / requestedPower : 0;
+            var plasmaRatio = effectivePowerRequirement > 0 ? recievedPower / requestedPower : 1;
 
             powerUsage = (recievedPower * 0.001).ToString("0.000") + " GW / " + (requestedPower * 0.001).ToString("0.000") + " GW";
 
@@ -1083,11 +1069,11 @@ namespace FNPlugin
                 if (distance >= leathalDistance || vess == this.vessel || vess.GetCrewCount() <= 0) continue;
 
                 var invSqDist = distance / killDivider;
-                var invSqMult = 1d / invSqDist / invSqDist;
+                var invSqMult = 1 / invSqDist / invSqDist;
 
                 foreach (var crewMember in vess.GetVesselCrew())
                 {
-                    if (UnityEngine.Random.value < (1d - TimeWarp.fixedDeltaTime * invSqMult)) continue;
+                    if (UnityEngine.Random.value < (1 - TimeWarp.fixedDeltaTime * invSqMult)) continue;
 
                     if (!vess.isEVA)
                     {

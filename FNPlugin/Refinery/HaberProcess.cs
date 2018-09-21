@@ -27,7 +27,7 @@ namespace FNPlugin.Refinery
 
         public bool HasActivityRequirements 
         {
-            get { return HasAccessToHydrogen() && HasAccessToNitrogen() && HasSpareCapacityAmmonia; } 
+            get { return HasAccessToHydrogen() && HasAccessToNitrogen() && HasSpareCapacityAmmonia(); } 
         }
 
         private bool HasAccessToHydrogen()
