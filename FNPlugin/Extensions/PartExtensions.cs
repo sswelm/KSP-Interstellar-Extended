@@ -45,6 +45,14 @@ namespace FNPlugin.Extensions
             return maxAmount - currentAmount;
         }
 
+		public static double GetResourceSpareCapacity(this Part part, PartResourceDefinition definition, ResourceFlowMode flowmode)
+		{
+			double currentAmount;
+			double maxAmount;
+			part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
+			return maxAmount - currentAmount;
+		}
+
         public static double GetResourceAvailable(this Part part, PartResourceDefinition definition)
         {
             if (definition == null)
@@ -59,6 +67,20 @@ namespace FNPlugin.Extensions
             return currentAmount;
         }
 
+		public static double GetResourceAvailable(this Part part, PartResourceDefinition definition, ResourceFlowMode flowmode)
+		{
+			if (definition == null)
+			{
+				Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+				return 0;
+			}
+
+			double currentAmount;
+			double maxAmount;
+			part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
+			return currentAmount;
+		}
+
         public static double GetResourceAvailable(this Part part, ResourceFlowMode flowmode,  PartResourceDefinition definition)
         {
             if (definition == null)
@@ -70,6 +92,22 @@ namespace FNPlugin.Extensions
             double currentAmount;
             double maxAmount;
             part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
+            return currentAmount;
+        }
+
+        public static double GetResourceAvailable(this Part part, string name, ResourceFlowMode flowMode)
+        {
+            var definition = PartResourceLibrary.Instance.GetDefinition(name);
+
+            if (definition == null)
+            {
+                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                return 0;
+            }
+
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, flowMode, out currentAmount, out maxAmount);
             return currentAmount;
         }
 
@@ -212,14 +250,14 @@ namespace FNPlugin.Extensions
             if (currentPart.parent != null && currentPart.parent != previousPart)
                 amount += FindAmountOfAvailableFuel(currentPart.parent, resourcename, maxChildDepth, currentPart);
 
-	        if (maxChildDepth <= 0) return amount;
+            if (maxChildDepth <= 0) return amount;
 
-	        foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
-	        {
-		        amount += FindAmountOfAvailableFuel(child, resourcename, (maxChildDepth - 1), currentPart);
-	        }
+            foreach (var child in currentPart.children.Where(c => c != null && c != previousPart))
+            {
+                amount += FindAmountOfAvailableFuel(child, resourcename, (maxChildDepth - 1), currentPart);
+            }
 
-	        return amount;
+            return amount;
         }
 
         public static double FindMaxAmountOfAvailableFuel(this Part currentPart, String resourcename, int maxChildDepth, Part previousPart = null)

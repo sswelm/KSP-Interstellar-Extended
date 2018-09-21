@@ -1160,17 +1160,15 @@ namespace FNPlugin
                         }
                     }
 
-                    // prevent to low number of maxthrust 
+                    // prevent too low number of maxthrust 
                     if (calculatedMaxThrust <= 0.000001)
                     {
                         calculatedMaxThrust = 0.000001;
                         max_fuel_flow_rate = 0;
                     }
 
-                    //myAttachedEngine.maxThrust = (float)calculatedMaxThrust;
-
                     // set engines maximum fuel flow
-                    myAttachedEngine.maxFuelFlow = (float)Math.Max(Math.Min(1000, max_fuel_flow_rate), 0.0000000001);
+                    myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate, 0.0000000001);
                     myAttachedEngine.heatProduction = 1;
 
                     if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
@@ -1392,7 +1390,7 @@ namespace FNPlugin
                 //    myAttachedEngine.maxThrust = (float)Math.Max(engineMaxThrust, 0.000001);
 
                 // set engines maximum fuel flow
-                myAttachedEngine.maxFuelFlow = (float)Math.Max(Math.Min(1000, max_fuel_flow_rate), 1e-10);
+                myAttachedEngine.maxFuelFlow = (float)Math.Max( max_fuel_flow_rate, 1e-10);
 
                 if (!CheatOptions.IgnoreMaxTemperature)
                 {
@@ -1434,8 +1432,7 @@ namespace FNPlugin
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                 {
-                    //effectRatio = (float)Math.Max(0.1f * myAttachedEngine.currentThrottle, Math.Min(Math.Pow(power_received / requested_thermal_power, 0.5), myAttachedEngine.currentThrottle));
-                    effectRatio = (float)Math.Min(1, myAttachedEngine.finalThrust / final_max_thrust_in_space);
+                    effectRatio = (float)Math.Min(1, myAttachedEngine.finalThrust / myAttachedEngine.maxThrust);
                     part.Effect(_particleFXName, effectRatio, -1);
                 }
             }

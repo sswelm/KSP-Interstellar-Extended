@@ -680,17 +680,17 @@ namespace FNPlugin
 
             if  (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
                                                        _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDED)) {
-                if (radiatorState != _moduleDeployableRadiator.deployState) {
+                if (radiatorState != _moduleDeployableRadiator.deployState) 
+                {
                     part.SendMessage("GeometryPartModuleRebuildMeshData");
                     Debug.Log("[KSPI] - Updating geometry mesh due to radiator deployment.");
                 }
                 radiatorState = _moduleDeployableRadiator.deployState;
             }
 
-            effectiveRadiatorArea = EffectiveRadiatorArea;
             stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
 
-            external_temperature = Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), PhysicsGlobals.SpaceTemperature);
+            external_temperature = Math.Max(vessel.externalTemperature, PhysicsGlobals.SpaceTemperature);
 
             oxidationModifier = 0;
 
@@ -774,7 +774,7 @@ namespace FNPlugin
 
                 if (Double.IsNaN(wasteheatRatio))
                 {
-                    Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in wasteheatRatio");
+                    Debug.LogError("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in wasteheatRatio");
                     return;
                 }
 
@@ -797,12 +797,12 @@ namespace FNPlugin
                     thermalPowerDissipPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea;
 
                     if (Double.IsNaN(thermalPowerDissipPerSecond))
-                        Debug.LogWarning("FNRadiator: FixedUpdate Single.IsNaN detected in thermalPowerDissipPerSecond");
+                        Debug.LogWarning("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in thermalPowerDissipPerSecond");
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond, wasteheatManager) : 0;
 
                     if (Double.IsNaN(radiatedThermalPower))
-                        Debug.LogError("FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermalPowerDissipPerSecond + ")");
+                        Debug.LogError("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermalPowerDissipPerSecond + ")");
 
                     instantaneous_rad_temp = CalculateInstantaniousRadTemp(external_temperature);
 
