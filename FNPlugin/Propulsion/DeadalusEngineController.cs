@@ -479,20 +479,6 @@ namespace FNPlugin
 
                 if (curEngineT == null) return;
 
-                //engineIsp = curEngineT.atmosphereCurve.Evaluate(0);
-
-                //// if we can upgrade, let's do so
-                //if (isupgraded)
-                //    upgradePartModule();
-                //else if (this.HasTechsRequiredToUpgrade())
-                //    hasrequiredupgrade = true;
-
-                //if (state == StartState.Editor && this.HasTechsRequiredToUpgrade())
-                //{
-                //    isupgraded = true;
-                //    upgradePartModule();
-                //}
-
                 DetermineTechLevel();
 
                 engineIsp = EngineIsp;
@@ -909,7 +895,6 @@ namespace FNPlugin
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime
                         TimeWarp.SetRate(0, true);
-                        return;
                     }
 
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
@@ -930,14 +915,13 @@ namespace FNPlugin
                     else
                         PersistantThrust(TimeWarp.fixedDeltaTime, universalTime, this.part.transform.up, this.vessel.totalMass);
 
-                    if (fuelRatio <= 0)
+                    if (fuelRatio <= 0.01)
                     {
                         var message = "Thrust warp stopped - propellant depleted";
                         UnityEngine.Debug.Log("[KSPI] - " + message);
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime
                         TimeWarp.SetRate(0, true);
-                        return;
                     }
                 }
                 else
@@ -1091,12 +1075,12 @@ namespace FNPlugin
 
                     if (!vess.isEVA)
                     {
-                        ScreenMessages.PostScreenMessage(crewMember.name + " was killed by Neutron Radiation!", 5f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(crewMember.name + " was killed by Radiation!", 5f, ScreenMessageStyle.UPPER_CENTER);
                         crewToRemove.Add(crewMember);
                     }
                     else
                     {
-                        ScreenMessages.PostScreenMessage(crewMember.name + " was killed by Neutron Radiation!", 5f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(crewMember.name + " was killed by Radiation!", 5f, ScreenMessageStyle.UPPER_CENTER);
                         vesselsToRemove.Add(vess);
                     }
                 }
