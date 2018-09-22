@@ -126,7 +126,7 @@ namespace FNPlugin
         // persitant
         [KSPField(isPersistant = true, guiActive = true, guiName = "Radiator Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts= UI_Scene.All)]
         public bool radiatorIsEnabled = false;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = false, guiActive = true)]
         public bool canRadiateHeat = true;
         [KSPField(isPersistant = true)]
         public bool radiatorInit;
@@ -246,7 +246,7 @@ namespace FNPlugin
         private double temperatureDifferenceMaximumWithExternal;
 
         private bool active;
-        private long update_count;
+        //private long update_count;
         private bool isGraphene;
 
         private int radiator_deploy_delay;
@@ -525,7 +525,7 @@ namespace FNPlugin
             radiatedThermalPower = 0;
             convectedThermalPower = 0;
             CurrentRadiatorTemperature = 0;
-            update_count = 0;
+            //update_count = 0;
             radiator_deploy_delay = 0;
             explode_counter = 0;
 
@@ -670,13 +670,13 @@ namespace FNPlugin
 
         public override void OnUpdate() // is called while in flight
         {
-            update_count++;
+            //update_count++;
             radiator_deploy_delay++;
 
             //if (update_count < FRAME_DELAY)
             //    return;
 
-            update_count = 0;
+            //update_count = 0;
 
             if  (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
                                                        _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDED)) {
@@ -694,7 +694,7 @@ namespace FNPlugin
 
             oxidationModifier = 0;
 
-            if (vessel.mainBody.atmosphereContainsOxygen)
+            if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
                 oxidationModifier = Math.Sqrt(vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.1) * 0.1;
 
@@ -833,14 +833,14 @@ namespace FNPlugin
 
                     convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(convPowerDissip, wasteheatManager) : 0;
 
-                    if (update_count == DEPLOYMENT_DELAY)
+                    if (radiator_deploy_delay >= DEPLOYMENT_DELAY)
                         DeployMentControl(atmosphere_modifier);
                 }
                 else
                 {
                     convectedThermalPower = 0;
 
-                    if (radiatorIsEnabled || !isAutomated || !canRadiateHeat || !showControls || update_count != DEPLOYMENT_DELAY) return;
+                    if (radiatorIsEnabled || !isAutomated || !canRadiateHeat || !showControls || radiator_deploy_delay < DEPLOYMENT_DELAY) return;
 
                     Debug.Log("[KSPI] - FixedUpdate Automated Deployment ");
                     Deploy();
@@ -886,8 +886,8 @@ namespace FNPlugin
             else if (!radiatorIsEnabled && isAutomated && canRadiateHeat && showControls && (!preventShieldedDeploy || !part.ShieldedFromAirstream))
             {
                 // Suppress message spam on repeated deploy attempts due to radiator delay
-                if (radiator_deploy_delay == 0)
-                    Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
+                //if (radiator_deploy_delay > DEPLOYMENT_DELAY)
+                Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
                 Deploy();
             }
         }

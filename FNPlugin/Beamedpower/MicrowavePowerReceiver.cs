@@ -181,7 +181,7 @@ namespace FNPlugin
         public double thermalPropulsionWasteheatModifier = 1;
 
         //GUI
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
         public float receiptPower = 100;
         [KSPField(guiActive = false, guiName = "Core Temperature")]
         public string coreTempererature;
