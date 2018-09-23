@@ -164,6 +164,13 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Exponent")]
         public float heatProductionExponent = 7.1f;
 
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Heat Exponent")]
+        public double radiusHeatProductionExponent = 0.3;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Heat Multiplier")]
+        public double radiusHeatProductionMult = 10;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Base")]
+        public double heatProductionBase = 2e-4;
+
 
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Heat Multiplier1"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
         //public float heatMultiplier1 = 100;
@@ -176,7 +183,7 @@ namespace FNPlugin
 
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
         public double baseHeatProduction = 100;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max FuelFlow On Engine")]
         public double maxFuelFlowOnEngine;
@@ -1445,7 +1452,9 @@ namespace FNPlugin
                     //    ? 0.5 * myAttachedEngine.currentThrottle * Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / currentEngineFuelFlow / _maxISP / part.mass
                     //    : 1;
                     //heatMultiplier = heatMultiplier1 * heatMultiplier2;
-                    baseHeatProduction = 2e-4 * myAttachedEngine.realIsp * myAttachedEngine.realIsp * Math.Pow(radius * 10, 1d / 3d) * Math.Sqrt(myAttachedEngine.maxThrust / part.mass);
+
+                    var ispHeatModifier = isPlasmaNozzle ? myAttachedEngine.realIsp : myAttachedEngine.realIsp * myAttachedEngine.realIsp;
+                    baseHeatProduction = heatProductionBase * ispHeatModifier * Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent) * Math.Sqrt(myAttachedEngine.maxThrust / part.mass);
                     engineHeatProduction = Math.Min(baseHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
 
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;
