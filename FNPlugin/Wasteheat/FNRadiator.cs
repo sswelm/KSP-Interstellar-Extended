@@ -148,6 +148,8 @@ namespace FNPlugin
         public float maxAtmosphereTemperature = 1200;
         [KSPField(guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
         public double maxCurrentTemperature = 1200;
+        [KSPField(guiName = "Space Radiator Bonus", guiFormat = "F0", guiUnits = "K")]
+        public double spaceRadiatorBonus;
         [KSPField]
         public string radiatorTypeMk1 = "NaK Loop Radiator";
         [KSPField]
@@ -227,6 +229,9 @@ namespace FNPlugin
         [KSPField]
         public float atmosphereToleranceModifier = 1;
 
+        [KSPField(guiActive = true, guiName = "Color Ratio")]
+        public double colorRatio;
+
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
         const int FRAME_DELAY = 9;
@@ -237,16 +242,19 @@ namespace FNPlugin
         private double thermalPowerDissipPerSecond;
         private double radiatedThermalPower;
         private double convectedThermalPower;
+        private double _currentRadTemp;
 
-        [KSPField(guiActive = true, guiName = "Oxidation Modifier", guiFormat = "F2")]
+        [KSPField(guiName = "Oxidation Modifier", guiFormat = "F2")]
         public double oxidationModifier;
 
-        private double external_temperature;
-        private double temperatureDifferenceCurrentWithExternal;
-        private double temperatureDifferenceMaximumWithExternal;
+        public double external_temperature;
+        public double temperatureDifferenceCurrentWithExternal;
+        public double temperatureDifferenceMaximumWithExternal;
 
         private bool active;
         //private long update_count;
+
+        [KSPField(guiActive = true, guiName = "is Graphene")]
         private bool isGraphene;
 
         private int radiator_deploy_delay;
@@ -690,22 +698,26 @@ namespace FNPlugin
 
             stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
 
-            external_temperature = Math.Max(vessel.externalTemperature, PhysicsGlobals.SpaceTemperature);
+            // Math.Max(vessel.externalTemperature, PhysicsGlobals.SpaceTemperature);
+            external_temperature = Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), PhysicsGlobals.SpaceTemperature);  
 
             oxidationModifier = 0;
 
             if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
-                oxidationModifier = Math.Sqrt(vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.1) * 0.1;
+                oxidationModifier = Math.Sqrt(vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2) * 0.1;
 
-                var spaceRatiatorBonus = (maxVacuumTemperature - maxAtmosphereTemperature) * (1 - oxidationModifier);
-                if (spaceRatiatorBonus < 0)
-                    spaceRatiatorBonus = -Math.Sqrt(Math.Abs(spaceRatiatorBonus));
+                spaceRadiatorBonus = (maxVacuumTemperature - maxAtmosphereTemperature) * (1 - oxidationModifier);
+                if (spaceRadiatorBonus < 0)
+                    spaceRadiatorBonus = -Math.Sqrt(Math.Abs(spaceRadiatorBonus));
 
-                maxCurrentTemperature = Math.Max(0, maxAtmosphereTemperature + spaceRatiatorBonus);
+                maxCurrentTemperature = Math.Max(0, maxAtmosphereTemperature + spaceRadiatorBonus);
             }
             else
+            {
+                spaceRadiatorBonus = maxVacuumTemperature - maxAtmosphereTemperature;
                 maxCurrentTemperature = maxVacuumTemperature;
+            }
 
             temperatureDifferenceCurrentWithExternal = maxCurrentTemperature - external_temperature;
             temperatureDifferenceMaximumWithExternal = maxRadiatorTemperature - external_temperature;
@@ -903,17 +915,17 @@ namespace FNPlugin
             return Double.IsNaN(consumedWasteheat) ? 0 : consumedWasteheat;
         }
 
-        protected double CurrentRadTemp;
+
         public double CurrentRadiatorTemperature 
         {
             get 
             {
-                return CurrentRadTemp;
+                return _currentRadTemp;
             }
             set
             {
-                CurrentRadTemp = value;
-                temperatureQueue.Enqueue(CurrentRadTemp);
+                _currentRadTemp = value;
+                temperatureQueue.Enqueue(_currentRadTemp);
                 if (temperatureQueue.Count > 10)
                     temperatureQueue.Dequeue();
             }
@@ -921,7 +933,7 @@ namespace FNPlugin
 
         public double GetAverateRadiatorTemperature()
         {
-            return temperatureQueue.Count > 0 ? temperatureQueue.Average() : CurrentRadTemp;
+            return temperatureQueue.Count > 0 ? temperatureQueue.Average() : _currentRadTemp;
         }
 
         public override string GetInfo()
@@ -982,7 +994,7 @@ namespace FNPlugin
 
             var simulatedTempRatio = radiatorIsEnabled ? (CurrentRadiatorTemperature - drapperPoint) / temperatureRange : 0;
             var stockTempRatio = (part.temperature - drapperPoint) / temperatureRange;
-            var colorRatio = Math.Min(Math.Max(simulatedTempRatio, stockTempRatio), 1);
+            colorRatio = Math.Max(0, Math.Min(1, Math.Max(simulatedTempRatio, stockTempRatio) * 1.05));
 
             if (heatStates != null && heatStates.Any())
             {
@@ -995,11 +1007,11 @@ namespace FNPlugin
 
                 var temperatureRatio = colorRatio / temperatureColorDivider;
 
-                var colorRatioRed = Math.Pow(temperatureRatio, emissiveColorPower);
-                var colorRatioGreen = Math.Pow(temperatureRatio, emissiveColorPower * 2) * 0.6;
-                var colorRatioBlue = Math.Pow(temperatureRatio, emissiveColorPower * 4) * 0.3;
+                var colorRatioRed = Math.Pow(temperatureRatio, emissiveColorPower / 3);
+                var colorRatioGreen = Math.Max(0, (Math.Pow(temperatureRatio, emissiveColorPower) - 0.2)  * 1.25);
+                var colorRatioBlue = Math.Max(0, (Math.Pow(temperatureRatio, emissiveColorPower * 3) - 0.6) * 2.5);
 
-                emissiveColor = new Color((float)colorRatioRed, (float)colorRatioGreen, (float)colorRatioBlue, (float)wasteheatRatio);
+                emissiveColor = new Color((float)colorRatioRed, (float)colorRatioGreen, (float)colorRatioBlue, (float)colorRatio);
 
                 var renderArrayCount = renderArray.Count();
                 for (var i = 0; i < renderArrayCount; i++)
