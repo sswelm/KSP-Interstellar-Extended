@@ -353,6 +353,7 @@ namespace FNPlugin
             partMass = part.mass;
             initialMass = part.prefabMass * storedMassMultiplier;
 
+            Fields["techLevel"].guiActiveEditor = maxStorage != 0;
             capacityStrField = Fields["capacityStr"];
             maxAmountStrField = Fields["maxAmountStr"];
             TemperatureStrField = Fields["TemperatureStr"];
