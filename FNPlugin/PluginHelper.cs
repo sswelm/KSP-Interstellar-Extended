@@ -321,7 +321,7 @@ namespace FNPlugin
 
         #endregion
 
-        public static string formatMassStr(double mass, string format = "0.0000000")
+        public static string formatMassStr(double mass, string format = "0.000000")
         {
             if (mass >= 1)
                 return FormatString(mass / 1e+0, format) + " t";
