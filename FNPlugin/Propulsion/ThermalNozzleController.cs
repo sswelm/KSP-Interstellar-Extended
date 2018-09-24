@@ -181,7 +181,14 @@ namespace FNPlugin
         //[KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Multiplier")]
         //public float heatMultiplier;
 
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Base Heat Production")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Isp modifier")]
+        public double ispHeatModifier;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Radius modifier")]
+        public double radiusHeatModifier;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Thust To Mass")]
+        public double thrustToMass;
+
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Base Heat Production")]
         public double baseHeatProduction = 100;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
@@ -1453,8 +1460,11 @@ namespace FNPlugin
                     //    : 1;
                     //heatMultiplier = heatMultiplier1 * heatMultiplier2;
 
-                    var ispHeatModifier = isPlasmaNozzle ? myAttachedEngine.realIsp : myAttachedEngine.realIsp * myAttachedEngine.realIsp;
-                    baseHeatProduction = heatProductionBase * ispHeatModifier * Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent) * Math.Sqrt(myAttachedEngine.maxThrust / part.mass);
+
+                    ispHeatModifier = isPlasmaNozzle ? myAttachedEngine.realIsp : myAttachedEngine.realIsp * myAttachedEngine.realIsp;
+                    thrustToMass = Math.Sqrt(myAttachedEngine.maxThrust / part.mass);
+                    radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
+                    baseHeatProduction = heatProductionBase * ispHeatModifier * radiusHeatModifier * thrustToMass;
                     engineHeatProduction = Math.Min(baseHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
 
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;

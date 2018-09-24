@@ -12,7 +12,7 @@ namespace PhotonSail
     {
         void Start()
         {
-            EditorPartList.Instance.ExcludeFilters.AddFilter(new EditorPartListFilter<AvailablePart>("PhotonTransmitter Filter", p => p.name != "PhotonTransmitter"));
+            EditorPartList.Instance.ExcludeFilters.AddFilter(new EditorPartListFilter<AvailablePart>("Photon Sailor Hidden Filter", p => p.TechRequired != "hidden"));
             EditorPartList.Instance.Refresh();
         }
     }

@@ -714,8 +714,6 @@ namespace FNPlugin
             {
                 var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.1;
 
-                oxidationModifier = Approximate.FourthRoot((float)(Math.Max(1, combinedPresure / 101.325)));
-
                 if (combinedPresure > 101.325)
                 {
                     var extraPresure = combinedPresure - 101.325;
@@ -723,9 +721,11 @@ namespace FNPlugin
                     if (ratio <= 1)
                         ratio *= ratio;
                     else
-                        ratio = Approximate.Sqrt(ratio);
-                    oxidationModifier += ratio * 0.1; 
+                        ratio = Approximate.Sqrt((float)ratio);
+                    oxidationModifier = 1 + ratio * 0.1; 
                 }
+                else
+                    oxidationModifier = Approximate.FourthRoot((float)(Math.Max(1, combinedPresure / 101.325)));
 
                 spaceRadiatorBonus = maxSpaceBonus * (1 - (oxidationModifier));
 

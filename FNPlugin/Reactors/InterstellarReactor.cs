@@ -361,7 +361,7 @@ namespace FNPlugin.Reactors
         [KSPField]
         public bool canUseGammaRayFuels = true;
         [KSPField]
-        public double maxNeutronsRatio = 1;
+        public double maxNeutronsRatio = 1.04;
         [KSPField]
         public double minNeutronsRatio = 0;
 
