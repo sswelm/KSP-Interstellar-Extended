@@ -712,11 +712,22 @@ namespace FNPlugin
 
             if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
-                oxidationModifier = Approximate.FourthRoot((vessel.staticPressurekPa * 100 + vessel.dynamicPressurekPa * 10), 1d / 3d) * 0.1;
+                var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.1;
 
-                spaceRadiatorBonus = maxSpaceBonus * (1 - oxidationModifier);
-                if (spaceRadiatorBonus < 0)
-                    spaceRadiatorBonus = -Approximate.Sqrt((float)Math.Abs(spaceRadiatorBonus));
+                oxidationModifier = Approximate.FourthRoot((float)(Math.Max(1, combinedPresure / 101.325)));
+
+                if (combinedPresure > 101.325)
+                {
+                    var extraPresure = combinedPresure - 101.325;
+                    var ratio = extraPresure / 101.325;
+                    if (ratio <= 1)
+                        ratio *= ratio;
+                    else
+                        ratio = Approximate.Sqrt(ratio);
+                    oxidationModifier += ratio * 0.1; 
+                }
+
+                spaceRadiatorBonus = maxSpaceBonus * (1 - (oxidationModifier));
 
                 maxCurrentTemperature = Math.Max(PhysicsGlobals.SpaceTemperature, maxAtmosphereTemperature + spaceRadiatorBonus);
             }
