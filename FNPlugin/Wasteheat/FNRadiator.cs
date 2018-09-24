@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using FNPlugin.Extensions;
 
 namespace FNPlugin 
 {
@@ -90,7 +91,7 @@ namespace FNPlugin
             Counter = UpdatingRadiator.updateCounter;
 
             WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-            var sqrtWasteHeatRatio = Math.Sqrt(WasteHeatRatio);
+            var sqrtWasteHeatRatio = Approximate.Sqrt(WasteHeatRatio);
 
             //var efficiency = 1 - Math.Pow(1 - WasteHeatRatio, 400);
 
@@ -705,11 +706,11 @@ namespace FNPlugin
 
             if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
-                oxidationModifier = Math.Sqrt(vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2) * 0.1;
+                oxidationModifier = Approximate.Sqrt((float)(vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2)) * 0.1;
 
                 spaceRadiatorBonus = (maxVacuumTemperature - maxAtmosphereTemperature) * (1 - oxidationModifier);
                 if (spaceRadiatorBonus < 0)
-                    spaceRadiatorBonus = -Math.Sqrt(Math.Abs(spaceRadiatorBonus));
+                    spaceRadiatorBonus = -Approximate.Sqrt((float)Math.Abs(spaceRadiatorBonus));
 
                 maxCurrentTemperature = Math.Max(0, maxAtmosphereTemperature + spaceRadiatorBonus);
             }
@@ -1011,7 +1012,7 @@ namespace FNPlugin
                 var colorRatioGreen = Math.Max(0, (Math.Pow(temperatureRatio, emissiveColorPower) - 0.2)  * 1.25);
                 var colorRatioBlue = Math.Max(0, (Math.Pow(temperatureRatio, emissiveColorPower * 3) - 0.6) * 2.5);
 
-                emissiveColor = new Color((float)colorRatioRed, (float)colorRatioGreen, (float)colorRatioBlue, (float)colorRatio);
+                emissiveColor = new Color((float)colorRatioRed, (float)colorRatioGreen, (float)colorRatioBlue, Approximate.Sqrt((float)colorRatio));
 
                 var renderArrayCount = renderArray.Count();
                 for (var i = 0; i < renderArrayCount; i++)
@@ -1062,5 +1063,8 @@ namespace FNPlugin
             // use identical names so it will be grouped together
             return part.partInfo.title;
         }
+
     }
+
+
 }

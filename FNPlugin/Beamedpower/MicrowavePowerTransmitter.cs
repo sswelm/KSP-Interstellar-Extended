@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using FNPlugin.Microwave;
 using FNPlugin.Redist;
+using FNPlugin.Extensions;
 
 namespace FNPlugin.Beamedpower
 {
@@ -796,8 +797,8 @@ namespace FNPlugin.Beamedpower
                     transmitData.powerCapacity += relay.power_capacity;
                 }
             }
-            
-            relayPersistance.Aperture = relays.Average(m => m.aperture) * Math.Sqrt(relays.Count);
+
+            relayPersistance.Aperture = relays.Average(m => m.aperture) * Approximate.Sqrt(relays.Count);
             relayPersistance.PowerCapacity = relays.Sum(m => m.getPowerCapacity());
             relayPersistance.MinimumRelayWavelenght = relays.Min(m => m.minimumRelayWavelenght);
             relayPersistance.MaximumRelayWavelenght = relays.Max(m => m.maximumRelayWavelenght);
@@ -849,7 +850,7 @@ namespace FNPlugin.Beamedpower
                 }
             }
 
-            vesselTransmitters.Aperture = transmitters.Average(m => m.aperture) * Math.Sqrt(transmitters.Count);
+            vesselTransmitters.Aperture = transmitters.Average(m => m.aperture) * Approximate.Sqrt(transmitters.Count);
             vesselTransmitters.NuclearPower = transmitters.Sum(m => m.getNuclearPower());
             vesselTransmitters.SolarPower = transmitters.Sum(m => m.getSolarPower());
             vesselTransmitters.PowerCapacity = transmitters.Sum(m => m.getPowerCapacity());
