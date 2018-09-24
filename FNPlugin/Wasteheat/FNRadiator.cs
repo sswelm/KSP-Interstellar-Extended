@@ -712,7 +712,7 @@ namespace FNPlugin
 
             if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
-                oxidationModifier = Approximate.Sqrt((float)(vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2)) * 0.1;
+                oxidationModifier = Math.Pow((vessel.staticPressurekPa * 10 + vessel.dynamicPressurekPa), 1d/3d) * 0.1;
 
                 spaceRadiatorBonus = maxSpaceBonus * (1 - oxidationModifier);
                 if (spaceRadiatorBonus < 0)
@@ -1067,6 +1067,12 @@ namespace FNPlugin
         {
             // use identical names so it will be grouped together
             return part.partInfo.title;
+        }
+
+        private double poorCubeRoot(double value, double max )
+        {
+            double fraction = value / max;
+            return (fraction * fraction * fraction) * max;
         }
 
     }
