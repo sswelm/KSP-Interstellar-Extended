@@ -8,7 +8,7 @@ namespace FNPlugin.Extensions
 {
 	public class Approximate
 	{
-		public static float ForthSqrt(float z)
+		public static float FourthRoot(float z)
 		{
 			return Sqrt(Sqrt(z));
 		}
