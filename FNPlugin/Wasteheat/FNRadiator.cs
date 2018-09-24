@@ -91,7 +91,7 @@ namespace FNPlugin
             Counter = UpdatingRadiator.updateCounter;
 
             WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-            var sqrtWasteHeatRatio = Approximate.Sqrt(WasteHeatRatio);
+            var sqrtWasteHeatRatio = Approximate.Sqrt((float)WasteHeatRatio);
 
             //var efficiency = 1 - Math.Pow(1 - WasteHeatRatio, 400);
 
@@ -253,10 +253,10 @@ namespace FNPlugin
         public double temperatureDifferenceMaximumWithExternal;
 
         private bool active;
-        //private long update_count;
-
-        [KSPField(guiActive = true, guiName = "is Graphene")]
         private bool isGraphene;
+        private bool startWithCircradiator;
+        private bool startWithRadialRadiator;
+        private bool startWithLargeFlatRadiator;
 
         private int radiator_deploy_delay;
         private int explode_counter;
@@ -550,6 +550,10 @@ namespace FNPlugin
 
             effectiveRadiatorArea = EffectiveRadiatorArea;
             stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
+
+            startWithCircradiator = part.name.StartsWith("circradiator");
+            startWithRadialRadiator = part.name.StartsWith("RadialRadiator");
+            startWithLargeFlatRadiator = part.name.StartsWith("LargeFlatRadiator");
 
             deployRadiatorEvent = Events["DeployRadiator"];
             retractRadiatorEvent = Events["RetractRadiator"];
@@ -1014,8 +1018,7 @@ namespace FNPlugin
 
                 emissiveColor = new Color((float)colorRatioRed, (float)colorRatioGreen, (float)colorRatioBlue, Approximate.Sqrt((float)colorRatio));
 
-                var renderArrayCount = renderArray.Count();
-                for (var i = 0; i < renderArrayCount; i++)
+                for (var i = 0; i < renderArray.Count(); i++)
                 {
                     renderer = renderArray[i];
 
@@ -1025,7 +1028,7 @@ namespace FNPlugin
                     if (renderer.material.shader != null && renderer.material.shader.name != kspShaderLocation)
                         renderer.material.shader = kspShader;
 
-                    if (part.name.StartsWith("circradiator"))
+                    if (startWithCircradiator)
                     {
                         if (renderer.material.GetTexture("_Emissive") == null)
                             renderer.material.SetTexture("_Emissive",
@@ -1035,13 +1038,13 @@ namespace FNPlugin
                             renderer.material.SetTexture("_BumpMap",
                                 GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_n", false));
                     }
-                    else if (part.name.StartsWith("RadialRadiator"))
+                    else if (startWithRadialRadiator)
                     {
                         if (renderer.material.GetTexture("_Emissive") == null)
                             renderer.material.SetTexture("_Emissive",
                                 GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/RadialHeatRadiator/d_glow", false));
                     }
-                    else if (part.name.StartsWith("LargeFlatRadiator"))
+                    else if (startWithLargeFlatRadiator)
                     {
                         if (renderer.material.GetTexture("_Emissive") == null)
                             renderer.material.SetTexture("_Emissive",
