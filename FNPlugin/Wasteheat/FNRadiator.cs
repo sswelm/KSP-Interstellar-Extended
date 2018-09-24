@@ -712,7 +712,7 @@ namespace FNPlugin
 
             if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
-                oxidationModifier = Math.Pow((vessel.staticPressurekPa * 10 + vessel.dynamicPressurekPa), 1d/3d) * 0.1;
+                oxidationModifier = Approximate.ForthSqrt((vessel.staticPressurekPa * 100 + vessel.dynamicPressurekPa * 10), 1d / 3d) * 0.1;
 
                 spaceRadiatorBonus = maxSpaceBonus * (1 - oxidationModifier);
                 if (spaceRadiatorBonus < 0)

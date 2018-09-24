@@ -8,6 +8,11 @@ namespace FNPlugin.Extensions
 {
 	public class Approximate
 	{
+		public static float ForthSqrt(float z)
+		{
+			return Sqrt(Sqrt(z));
+		}
+
 		public static float Sqrt(float z)
 		{
 			if (z == 0) return 0;
