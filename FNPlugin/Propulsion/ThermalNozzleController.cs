@@ -168,9 +168,11 @@ namespace FNPlugin
         public double radiusHeatProductionExponent = 0.3;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Heat Multiplier")]
         public double radiusHeatProductionMult = 10;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Base")]
-        public double heatProductionBase = 2e-4;
 
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Base")]
+        public double heatProductionBase = 1e-4;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Multiplier")]
+        public double heatProductionMultiplier = 1;
 
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Heat Multiplier1"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
         //public float heatMultiplier1 = 100;
@@ -188,8 +190,8 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Thust To Mass")]
         public double thrustToMass;
 
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Base Heat Production")]
-        public double baseHeatProduction = 100;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Space Heat Production")]
+        public double spaceHeatProduction = 100;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max FuelFlow On Engine")]
@@ -1460,12 +1462,12 @@ namespace FNPlugin
                     //    : 1;
                     //heatMultiplier = heatMultiplier1 * heatMultiplier2;
 
-
                     ispHeatModifier = isPlasmaNozzle ? myAttachedEngine.realIsp : myAttachedEngine.realIsp * myAttachedEngine.realIsp;
-                    thrustToMass = Math.Sqrt(myAttachedEngine.maxThrust / part.mass);
+                    thrustToMass = Approximate.Sqrt(myAttachedEngine.maxThrust / part.mass);
                     radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
-                    baseHeatProduction = heatProductionBase * ispHeatModifier * radiusHeatModifier * thrustToMass;
-                    engineHeatProduction = Math.Min(baseHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
+
+                    spaceHeatProduction = heatProductionMultiplier * heatProductionBase * ispHeatModifier * radiusHeatModifier * thrustToMass;
+                    engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
 
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;
                 }
