@@ -127,7 +127,7 @@ namespace FNPlugin
         // persitant
         [KSPField(isPersistant = true, guiActive = true, guiName = "Radiator Cooling"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts= UI_Scene.All)]
         public bool radiatorIsEnabled = false;
-        [KSPField(isPersistant = false, guiActive = true)]
+        [KSPField(isPersistant = false)]
         public bool canRadiateHeat = true;
         [KSPField(isPersistant = true)]
         public bool radiatorInit;
@@ -144,7 +144,7 @@ namespace FNPlugin
 
         // non persistant
         [KSPField(guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
-        public float maxVacuumTemperature = 4400;
+        public float maxVacuumTemperature = maximumRadiatorTempInSpace;
         [KSPField(guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
         public float maxAtmosphereTemperature = 1200;
         [KSPField(guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
@@ -191,8 +191,10 @@ namespace FNPlugin
         public double wasteHeatMultiplier = 1;
         [KSPField]
         public bool keepMaxPartTempEqualToMaxRadiatorTemp = true;
-        [KSPField]
 
+        [KSPField(guiActive = true, guiName = "Heat Convective Constant")]
+        public double heatConvectiveConstant;
+        [KSPField]
         public string colorHeat = "_EmissiveColor";
         [KSPField(guiActive = false, guiName = "Atmosphere Modifier")]
         public double atmosphere_modifier;
@@ -241,6 +243,10 @@ namespace FNPlugin
         const int FRAME_DELAY = 9;
         const int DEPLOYMENT_DELAY = 6;
 
+        const float maximumRadiatorTempInSpace = 4400;
+        const float maximumRadiatorTempAtOneAtmosphere = 1200;
+        const float maxSpaceTempBonus = maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
+
         // minimize garbage by recycling variablees
         private double stefanArea;
         private double thermalPowerDissipPerSecond;
@@ -250,8 +256,6 @@ namespace FNPlugin
 
         [KSPField(guiName = "Oxidation Modifier", guiFormat = "F2")]
         public double oxidationModifier;
-
-        public double maxSpaceTempBonus;
 
         public double external_temperature;
         public double temperatureDifferenceCurrentWithExternal;
@@ -539,7 +543,6 @@ namespace FNPlugin
             radiatedThermalPower = 0;
             convectedThermalPower = 0;
             CurrentRadiatorTemperature = 0;
-            //update_count = 0;
             radiator_deploy_delay = 0;
             explode_counter = 0;
 
@@ -651,7 +654,6 @@ namespace FNPlugin
 
             maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
             maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
-            maxSpaceTempBonus = maxVacuumTemperature - maxAtmosphereTemperature;
 
             UpdateMaxCurrentTemperature();
 
@@ -698,7 +700,8 @@ namespace FNPlugin
 
         public override void OnUpdate() // is called while in flight
         {
-            //update_count++;
+            heatConvectiveConstant = part.heatConvectiveConstant;
+
             radiator_deploy_delay++;
 
             if  (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
@@ -788,7 +791,7 @@ namespace FNPlugin
 
                 spaceRadiatorBonus = maxSpaceTempBonus * (1 - (oxidationModifier));
 
-                maxCurrentRadiatorTemperature = Math.Max(PhysicsGlobals.SpaceTemperature, maxAtmosphereTemperature + spaceRadiatorBonus);
+                maxCurrentRadiatorTemperature = Math.Min (maxVacuumTemperature, Math.Max(PhysicsGlobals.SpaceTemperature, maxAtmosphereTemperature + spaceRadiatorBonus));
             }
             else
             {
