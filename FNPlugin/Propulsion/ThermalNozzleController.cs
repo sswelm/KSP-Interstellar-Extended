@@ -530,12 +530,10 @@ namespace FNPlugin
 
                     return;
                 }
-                else
-                {
-                    UpdateRadiusModifier();
 
-                    UpdateIspEngineParams();
-                }
+                UpdateRadiusModifier();
+
+                UpdateIspEngineParams();
 
                 // presearch all avaialble precoolers, intakes and nozzles on the vessel
                 _vesselPrecoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
@@ -915,7 +913,7 @@ namespace FNPlugin
                 _heatDecompositionFraction = 1;
                 _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
                 var rawthrustPropellantMultiplier = chosenpropellant.HasValue("thrustMultiplier") ? float.Parse(chosenpropellant.GetValue("thrustMultiplier")) : 1;
-                _thrustPropellantMultiplier = _propellantIsLFO ? rawthrustPropellantMultiplier : ((rawthrustPropellantMultiplier + 1) / 2);
+                _thrustPropellantMultiplier = _propellantIsLFO || rawthrustPropellantMultiplier < 1 ? rawthrustPropellantMultiplier : ((rawthrustPropellantMultiplier + 1) / 2);
             }
         }
 
@@ -1065,7 +1063,6 @@ namespace FNPlugin
             else
             {
                 atmospherecurve.Add(0, 0.000001f, 0, 0);
-                //myAttachedEngine.maxThrust = 0;
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             }
         }
@@ -1082,9 +1079,12 @@ namespace FNPlugin
         {
             try
             {
-                if (!HighLogic.LoadedSceneIsFlight) return;
+                if (!HighLogic.LoadedSceneIsFlight || myAttachedEngine == null)
+                {
+                    return;
+                }
 
-                if (myAttachedEngine == null) return;
+                ConfigEffects();
 
                 currentThrottle = myAttachedEngine.currentThrottle;
                 requestedThrottle = myAttachedEngine.requestedThrottle;
@@ -1111,8 +1111,6 @@ namespace FNPlugin
                     AttachedReactor.AttachThermalReciever(id, radius);
                 else
                     AttachedReactor.DetachThermalReciever(id);
-
-                ConfigEffects();
 
                 effectiveThermalPower = getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER);
                 effectiveChargedPower = getResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
