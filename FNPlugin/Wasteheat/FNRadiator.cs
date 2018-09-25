@@ -148,7 +148,7 @@ namespace FNPlugin
         [KSPField(guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
         public float maxAtmosphereTemperature = 1200;
         [KSPField(guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
-        public double maxCurrentTemperature = 1200;
+        public double maxCurrentRadiatorTemperature = 1200;
         [KSPField(guiName = "Space Radiator Bonus", guiFormat = "F0", guiUnits = "K")]
         public double spaceRadiatorBonus;
         [KSPField]
@@ -190,7 +190,7 @@ namespace FNPlugin
         [KSPField]
         public double wasteHeatMultiplier = 1;
         [KSPField]
-        public double keepMaxPartTempEqualToMaxRadiatorTemp = true;
+        public bool keepMaxPartTempEqualToMaxRadiatorTemp = true;
         [KSPField]
 
         public string colorHeat = "_EmissiveColor";
@@ -250,6 +250,8 @@ namespace FNPlugin
 
         [KSPField(guiName = "Oxidation Modifier", guiFormat = "F2")]
         public double oxidationModifier;
+
+        public double maxSpaceTempBonus;
 
         public double external_temperature;
         public double temperatureDifferenceCurrentWithExternal;
@@ -649,9 +651,18 @@ namespace FNPlugin
 
             maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
             maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
+            maxSpaceTempBonus = maxVacuumTemperature - maxAtmosphereTemperature;
+
+            UpdateMaxCurrentTemperature();
 
             if (keepMaxPartTempEqualToMaxRadiatorTemp)
-                part.maxTemp = maxRadiatorTemperature;
+            {
+                part.skinTemperature = Math.Min(part.skinTemperature, maxCurrentRadiatorTemperature * 0.99);
+                part.temperature = Math.Min(part.temperature, maxCurrentRadiatorTemperature * 0.99);
+
+                part.skinMaxTemp = maxCurrentRadiatorTemperature;
+                part.maxTemp = maxCurrentRadiatorTemperature;
+            }
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+6));
@@ -690,11 +701,6 @@ namespace FNPlugin
             //update_count++;
             radiator_deploy_delay++;
 
-            //if (update_count < FRAME_DELAY)
-            //    return;
-
-            //update_count = 0;
-
             if  (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
                                                        _moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDED)) {
                 if (radiatorState != _moduleDeployableRadiator.deployState) 
@@ -707,44 +713,19 @@ namespace FNPlugin
 
             stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
 
-            // Math.Max(vessel.externalTemperature, PhysicsGlobals.SpaceTemperature);
             external_temperature = Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), PhysicsGlobals.SpaceTemperature);  
 
             oxidationModifier = 0;
 
-            var maxSpaceBonus = maxVacuumTemperature - maxAtmosphereTemperature;
-
-            if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
-            {
-                var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.1;
-
-                if (combinedPresure > 101.325)
-                {
-                    var extraPresure = combinedPresure - 101.325;
-                    var ratio = extraPresure / 101.325;
-                    if (ratio <= 1)
-                        ratio *= ratio;
-                    else
-                        ratio = Approximate.Sqrt((float)ratio);
-                    oxidationModifier = 1 + ratio * 0.1; 
-                }
-                else
-                    oxidationModifier = Approximate.FourthRoot((float)(Math.Max(1, combinedPresure / 101.325)));
-
-                spaceRadiatorBonus = maxSpaceBonus * (1 - (oxidationModifier));
-
-                maxCurrentTemperature = Math.Max(PhysicsGlobals.SpaceTemperature, maxAtmosphereTemperature + spaceRadiatorBonus);
-            }
-            else
-            {
-                spaceRadiatorBonus = maxSpaceBonus;
-                maxCurrentTemperature = maxVacuumTemperature;
-            }
+            UpdateMaxCurrentTemperature();
 
             if (keepMaxPartTempEqualToMaxRadiatorTemp)
-                part.maxTemp = maxCurrentTemperature;
+            {
+                part.skinMaxTemp = maxCurrentRadiatorTemperature;
+                part.maxTemp = maxCurrentRadiatorTemperature;
+            }
 
-            temperatureDifferenceCurrentWithExternal = maxCurrentTemperature - external_temperature;
+            temperatureDifferenceCurrentWithExternal = maxCurrentRadiatorTemperature - external_temperature;
             temperatureDifferenceMaximumWithExternal = maxRadiatorTemperature - external_temperature;
 
             thermalPowerConvStrField.guiActive = convectedThermalPower > 0;
@@ -778,12 +759,42 @@ namespace FNPlugin
                 thermalPowerConvStr = "disabled";
             }
 
-            radiatorTempStr = CurrentRadiatorTemperature.ToString("0.0") + "K / " + maxCurrentTemperature.ToString("0.0") + "K";
+            radiatorTempStr = CurrentRadiatorTemperature.ToString("0.0") + "K / " + maxCurrentRadiatorTemperature.ToString("0.0") + "K";
 
             partTempStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
 
             if (showColorHeat)
                 ApplyColorHeat();
+        }
+
+        private void UpdateMaxCurrentTemperature()
+        {
+            if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
+            {
+                var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.1;
+
+                if (combinedPresure > 101.325)
+                {
+                    var extraPresure = combinedPresure - 101.325;
+                    var ratio = extraPresure / 101.325;
+                    if (ratio <= 1)
+                        ratio *= ratio;
+                    else
+                        ratio = Approximate.Sqrt((float)ratio);
+                    oxidationModifier = 1 + ratio * 0.1;
+                }
+                else
+                    oxidationModifier = Approximate.FourthRoot((float)(combinedPresure / 101.325));
+
+                spaceRadiatorBonus = maxSpaceTempBonus * (1 - (oxidationModifier));
+
+                maxCurrentRadiatorTemperature = Math.Max(PhysicsGlobals.SpaceTemperature, maxAtmosphereTemperature + spaceRadiatorBonus);
+            }
+            else
+            {
+                spaceRadiatorBonus = maxSpaceTempBonus;
+                maxCurrentRadiatorTemperature = maxVacuumTemperature;
+            }
         }
 
         public override void OnFixedUpdate()
