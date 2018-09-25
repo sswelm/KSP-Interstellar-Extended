@@ -190,6 +190,9 @@ namespace FNPlugin
         [KSPField]
         public double wasteHeatMultiplier = 1;
         [KSPField]
+        public double keepMaxPartTempEqualToMaxRadiatorTemp = true;
+        [KSPField]
+
         public string colorHeat = "_EmissiveColor";
         [KSPField(guiActive = false, guiName = "Atmosphere Modifier")]
         public double atmosphere_modifier;
@@ -640,14 +643,15 @@ namespace FNPlugin
             if (radiatorInit == false)
                 radiatorInit = true;
 
-            part.maxTemp = maxRadiatorTemperature;
-
             radiatorTempStr = maxRadiatorTemperature + "K";
 
             isGraphene = !String.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
 
             maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
             maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
+
+            if (keepMaxPartTempEqualToMaxRadiatorTemp)
+                part.maxTemp = maxRadiatorTemperature;
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+6));
@@ -736,6 +740,9 @@ namespace FNPlugin
                 spaceRadiatorBonus = maxSpaceBonus;
                 maxCurrentTemperature = maxVacuumTemperature;
             }
+
+            if (keepMaxPartTempEqualToMaxRadiatorTemp)
+                part.maxTemp = maxCurrentTemperature;
 
             temperatureDifferenceCurrentWithExternal = maxCurrentTemperature - external_temperature;
             temperatureDifferenceMaximumWithExternal = maxRadiatorTemperature - external_temperature;

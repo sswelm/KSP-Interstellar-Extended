@@ -174,25 +174,16 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Multiplier")]
         public double heatProductionMultiplier = 1;
 
-        //[KSPField(isPersistant = true, guiActive = true, guiName = "Heat Multiplier1"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
-        //public float heatMultiplier1 = 100;
-        //[KSPField(isPersistant = true, guiActive = true, guiName = "Heat Multiplier2"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
-        //public float heatMultiplier2 = 100;
-        //[KSPField(isPersistant = true, guiActive = true, guiName = "Heat Multiplier3"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0.5f)]
-        //public float heatMultiplier3 = 100;
-        //[KSPField(guiActive = true, guiActiveEditor = false, guiName = "Heat Multiplier")]
-        //public float heatMultiplier;
-
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Isp modifier")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Isp modifier")]
         public double ispHeatModifier;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Radius modifier")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius modifier")]
         public double radiusHeatModifier;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Thust To Mass")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thust To Mass")]
         public double thrustToMass;
 
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Space Heat Production")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Space Heat Production")]
         public double spaceHeatProduction = 100;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max FuelFlow On Engine")]
         public double maxFuelFlowOnEngine;
@@ -1460,7 +1451,6 @@ namespace FNPlugin
                     //engineHeatProduction = (currentEngineFuelFlow >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.0001 && myAttachedEngine.currentThrottle > 0)
                     //    ? 0.5 * myAttachedEngine.currentThrottle * Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / currentEngineFuelFlow / _maxISP / part.mass
                     //    : 1;
-                    //heatMultiplier = heatMultiplier1 * heatMultiplier2;
 
                     ispHeatModifier = isPlasmaNozzle ? myAttachedEngine.realIsp : myAttachedEngine.realIsp * myAttachedEngine.realIsp;
                     thrustToMass = Approximate.Sqrt(myAttachedEngine.maxThrust / part.mass);
