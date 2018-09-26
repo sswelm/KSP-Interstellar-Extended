@@ -93,8 +93,6 @@ namespace FNPlugin
             WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
             var sqrtWasteHeatRatio = Approximate.Sqrt((float)WasteHeatRatio);
 
-            //var efficiency = 1 - Math.Pow(1 - WasteHeatRatio, 400);
-
             if (Double.IsNaN(WasteHeatRatio))
             {
                 Debug.LogError("KSPI - FNRadiator: FixedUpdate Single.IsNaN detected in WasteHeatRatio");
@@ -190,8 +188,6 @@ namespace FNPlugin
         [KSPField]
         public bool keepMaxPartTempEqualToMaxRadiatorTemp = true;
 
-        //[KSPField(guiActive = true, guiName = "Heat Convective Constant")]
-        //public double heatConvectiveConstant;
         [KSPField]
         public string colorHeat = "_EmissiveColor";
         [KSPField(guiActive = false, guiName = "Atmosphere Modifier")]
@@ -615,7 +611,7 @@ namespace FNPlugin
             kspShader = Shader.Find(kspShaderLocation);
             maxRadiatorTemperature = (float)MaxRadiatorTemperature;
 
-            part.heatConvectiveConstant = convectiveBonus
+            part.heatConvectiveConstant = convectiveBonus;
             if (hasSurfaceAreaUpgradeTechReq)
                 part.emissiveConstant = 1.6;
 
