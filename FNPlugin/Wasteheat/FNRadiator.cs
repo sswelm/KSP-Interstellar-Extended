@@ -244,8 +244,8 @@ namespace FNPlugin
         const float maximumRadiatorTempInSpace = 4400;
         const float maximumRadiatorTempAtOneAtmosphere = 1200;
         const float maxSpaceTempBonus = maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
-		const float drapperPoint = 798;
-		const float temperatureRange = maximumRadiatorTempInSpace - drapperPoint;
+        const float drapperPoint = 798;
+        const float temperatureRange = maximumRadiatorTempInSpace - drapperPoint;
 
         // minimize garbage by recycling variablees
         private double stefanArea;
@@ -302,7 +302,8 @@ namespace FNPlugin
                 return;
 
             redTempColorChannel = new AnimationCurve();
-            redTempColorChannel.AddKey(500, 100);
+            redTempColorChannel.AddKey(500, 0);
+            redTempColorChannel.AddKey(800, 100)
             redTempColorChannel.AddKey(1000, 200);
             redTempColorChannel.AddKey(1500, 240);
             redTempColorChannel.AddKey(2000, 246);
@@ -317,6 +318,7 @@ namespace FNPlugin
 
             greenTempColorChannel = new AnimationCurve();
             greenTempColorChannel.AddKey(500, 0);
+            greenTempColorChannel.AddKey(800, 0);
             greenTempColorChannel.AddKey(1000, 0);
             greenTempColorChannel.AddKey(1500, 57);
             greenTempColorChannel.AddKey(2000, 140);
@@ -331,6 +333,7 @@ namespace FNPlugin
 
             blueTempColorChannel = new AnimationCurve();
             blueTempColorChannel.AddKey(500, 0);
+            blueTempColorChannel.AddKey(800, 0);
             blueTempColorChannel.AddKey(1000, 0);
             blueTempColorChannel.AddKey(1500, 0);
             blueTempColorChannel.AddKey(2000, 0);
