@@ -184,8 +184,6 @@ namespace FNPlugin
         [KSPField]
         public float upgradeCost = 100;
         [KSPField]
-        public float temperatureColorDivider = 1;
-        [KSPField]
         public float emissiveColorPower = 3;
         [KSPField]
         public double wasteHeatMultiplier = 1;
@@ -227,7 +225,7 @@ namespace FNPlugin
         [KSPField(guiName = "Max Energy Transfer", guiFormat = "F2")]
         private double _maxEnergyTransfer;
         [KSPField(guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
-        public float maxRadiatorTemperature = 4400;
+        public float maxRadiatorTemperature = maximumRadiatorTempInSpace;
         [KSPField(guiName = "Upgrade Techs")]
         public int nrAvailableUpgradeTechs;
         [KSPField(guiName = "Has Surface Upgrade")]
@@ -236,7 +234,7 @@ namespace FNPlugin
         public float atmosphereToleranceModifier = 1;
 
         [KSPField(guiActive = true, guiName = "Color Ratio")]
-        public double colorRatio;
+        public float colorRatio;
 
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
@@ -246,6 +244,8 @@ namespace FNPlugin
         const float maximumRadiatorTempInSpace = 4400;
         const float maximumRadiatorTempAtOneAtmosphere = 1200;
         const float maxSpaceTempBonus = maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
+		const float drapperPoint = 798;
+		const float temperatureRange = maximumRadiatorTempInSpace - drapperPoint;
 
         // minimize garbage by recycling variablees
         private double stefanArea;
@@ -291,6 +291,71 @@ namespace FNPlugin
         private ResourceBuffers resourceBuffers;
 
         private Queue<double> temperatureQueue = new Queue<double>(10);
+
+        private static AnimationCurve redTempColorChannel;
+        private static AnimationCurve greenTempColorChannel;
+        private static AnimationCurve blueTempColorChannel;
+
+        public static void InitializeTemperatureColorChannels()
+        {
+            if (redTempColorChannel != null)
+                return;
+
+            redTempColorChannel = new AnimationCurve();
+            redTempColorChannel.AddKey(500, 100);
+            redTempColorChannel.AddKey(1000, 200);
+            redTempColorChannel.AddKey(1500, 240);
+            redTempColorChannel.AddKey(2000, 246);
+            redTempColorChannel.AddKey(2680, 253);
+            redTempColorChannel.AddKey(3000, 255);
+            redTempColorChannel.AddKey(3200, 255);
+            redTempColorChannel.AddKey(3500, 255);
+            redTempColorChannel.AddKey(4000, 255);
+            redTempColorChannel.AddKey(4200, 255);
+            redTempColorChannel.AddKey(4500, 255);
+            redTempColorChannel.AddKey(5000, 255);
+
+            greenTempColorChannel = new AnimationCurve();
+            greenTempColorChannel.AddKey(500, 0);
+            greenTempColorChannel.AddKey(1000, 0);
+            greenTempColorChannel.AddKey(1500, 57);
+            greenTempColorChannel.AddKey(2000, 140);
+            greenTempColorChannel.AddKey(2680, 185);
+            greenTempColorChannel.AddKey(3000, 230);
+            greenTempColorChannel.AddKey(3200, 242);
+            greenTempColorChannel.AddKey(3500, 243);
+            greenTempColorChannel.AddKey(4000, 247);
+            greenTempColorChannel.AddKey(4200, 248);
+            greenTempColorChannel.AddKey(4500, 251);
+            greenTempColorChannel.AddKey(5000, 255);
+
+            blueTempColorChannel = new AnimationCurve();
+            blueTempColorChannel.AddKey(500, 0);
+            blueTempColorChannel.AddKey(1000, 0);
+            blueTempColorChannel.AddKey(1500, 0);
+            blueTempColorChannel.AddKey(2000, 0);
+            blueTempColorChannel.AddKey(2680, 0);
+            blueTempColorChannel.AddKey(3000, 0);
+            blueTempColorChannel.AddKey(3200, 0);
+            blueTempColorChannel.AddKey(3500, 76);
+            blueTempColorChannel.AddKey(4000, 140);
+            blueTempColorChannel.AddKey(4200, 169);
+            blueTempColorChannel.AddKey(4500, 198);
+            blueTempColorChannel.AddKey(5000, 253);
+
+            for (int i = 0; i < redTempColorChannel.keys.Length; i++)
+            {
+                redTempColorChannel.SmoothTangents(i, 0);
+            }
+            for (int i = 0; i < greenTempColorChannel.keys.Length; i++)
+            {
+                greenTempColorChannel.SmoothTangents(i, 0);
+            }
+            for (int i = 0; i < blueTempColorChannel.keys.Length; i++)
+            {
+                blueTempColorChannel.SmoothTangents(i, 0);
+            }
+        }
 
         private static Dictionary<Vessel, List<FNRadiator>> radiators_by_vessel = new Dictionary<Vessel, List<FNRadiator>>();
 
@@ -413,7 +478,7 @@ namespace FNPlugin
             if (radiator_vessel.Any())
                 return radiator_vessel.Max(r => r.GetAverateRadiatorTemperature());
             else
-                return 4400;
+                return maximumRadiatorTempInSpace;
         }
 
         public static float getAverageMaximumRadiatorTemperatureForVessel(Vessel vess) 
@@ -639,6 +704,8 @@ namespace FNPlugin
             }
 
             if (state == StartState.Editor) return;
+
+            InitializeTemperatureColorChannels();
 
             if (ResearchAndDevelopment.Instance != null)
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
@@ -1026,31 +1093,24 @@ namespace FNPlugin
 
         private void ApplyColorHeat()
         {
-            //Account for Draper Point
-            const double maxTemperature = 4400;
-            const double drapperPoint = 798;
-            const double temperatureRange = maxTemperature - drapperPoint;
+            var displayTemperature = (float)Math.Max(CurrentRadiatorTemperature, part.temperature);
 
-            var simulatedTempRatio = radiatorIsEnabled ? (CurrentRadiatorTemperature - drapperPoint) / temperatureRange : 0;
-            var stockTempRatio = (part.temperature - drapperPoint) / temperatureRange;
-            colorRatio = Math.Max(0, Math.Min(1, Math.Max(simulatedTempRatio, stockTempRatio) * 1.05));
+            colorRatio = Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / temperatureRange) * 1.05f);
 
             if (heatStates != null && heatStates.Any())
             {
-                SetHeatAnimationRatio(Mathf.Min((float)(colorRatio * colorRatio), 1));
+                SetHeatAnimationRatio(Mathf.Min(colorRatio * colorRatio, 1));
             }
             else if (!string.IsNullOrEmpty(colorHeat))
             {
                 if (renderArray == null)
                     return;
 
-                var temperatureRatio = colorRatio / temperatureColorDivider;
+                var colorRatioRed = redTempColorChannel.Evaluate(displayTemperature);
+                var colorRatioGreen = greenTempColorChannel.Evaluate(displayTemperature);
+                var colorRatioBlue = blueTempColorChannel.Evaluate(displayTemperature);
 
-                var colorRatioRed = Math.Pow(temperatureRatio, emissiveColorPower / 3);
-                var colorRatioGreen = Math.Max(0, (Math.Pow(temperatureRatio, emissiveColorPower) - 0.2)  * 1.25);
-                var colorRatioBlue = Math.Max(0, (Math.Pow(temperatureRatio, emissiveColorPower * 3) - 0.6) * 2.5);
-
-                emissiveColor = new Color((float)colorRatioRed, (float)colorRatioGreen, (float)colorRatioBlue, Approximate.Sqrt((float)colorRatio));
+                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, Approximate.Sqrt((float)colorRatio));
 
                 for (var i = 0; i < renderArray.Count(); i++)
                 {
