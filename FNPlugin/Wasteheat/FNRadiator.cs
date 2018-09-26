@@ -1,10 +1,10 @@
+using FNPlugin.Extensions;
 using FNPlugin.Power;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using FNPlugin.Extensions;
 
 namespace FNPlugin 
 {
@@ -190,8 +190,8 @@ namespace FNPlugin
         [KSPField]
         public bool keepMaxPartTempEqualToMaxRadiatorTemp = true;
 
-        [KSPField(guiActive = true, guiName = "Heat Convective Constant")]
-        public double heatConvectiveConstant;
+        //[KSPField(guiActive = true, guiName = "Heat Convective Constant")]
+        //public double heatConvectiveConstant;
         [KSPField]
         public string colorHeat = "_EmissiveColor";
         [KSPField(guiActive = false, guiName = "Atmosphere Modifier")]
@@ -232,13 +232,11 @@ namespace FNPlugin
         public bool hasSurfaceAreaUpgradeTechReq;
         [KSPField]
         public float atmosphereToleranceModifier = 1;
-
-        [KSPField(guiActive = true, guiName = "Color Ratio")]
+        [KSPField(guiActive = false, guiName = "Color Ratio")]
         public float colorRatio;
 
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
-        const int FRAME_DELAY = 9;
         const int DEPLOYMENT_DELAY = 6;
 
         const float maximumRadiatorTempInSpace = 4400;
@@ -253,9 +251,7 @@ namespace FNPlugin
         private double radiatedThermalPower;
         private double convectedThermalPower;
         private double _currentRadTemp;
-
-        [KSPField(guiName = "Oxidation Modifier", guiFormat = "F2")]
-        public double oxidationModifier;
+        private double oxidationModifier;
 
         public double external_temperature;
         public double temperatureDifferenceCurrentWithExternal;
@@ -303,7 +299,7 @@ namespace FNPlugin
 
             redTempColorChannel = new AnimationCurve();
             redTempColorChannel.AddKey(500, 0);
-            redTempColorChannel.AddKey(800, 100)
+            redTempColorChannel.AddKey(800, 100);
             redTempColorChannel.AddKey(1000, 200);
             redTempColorChannel.AddKey(1500, 240);
             redTempColorChannel.AddKey(2000, 246);
@@ -619,6 +615,7 @@ namespace FNPlugin
             kspShader = Shader.Find(kspShaderLocation);
             maxRadiatorTemperature = (float)MaxRadiatorTemperature;
 
+            part.heatConvectiveConstant = convectiveBonus
             if (hasSurfaceAreaUpgradeTechReq)
                 part.emissiveConstant = 1.6;
 
@@ -770,8 +767,6 @@ namespace FNPlugin
 
         public override void OnUpdate() // is called while in flight
         {
-            heatConvectiveConstant = part.heatConvectiveConstant;
-
             radiator_deploy_delay++;
 
             if  (_moduleDeployableRadiator != null && (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED ||
@@ -1128,24 +1123,20 @@ namespace FNPlugin
                     if (startWithCircradiator)
                     {
                         if (renderer.material.GetTexture("_Emissive") == null)
-                            renderer.material.SetTexture("_Emissive",
-                                GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_e", false));
+                            renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_e", false));
 
                         if (renderer.material.GetTexture("_BumpMap") == null)
-                            renderer.material.SetTexture("_BumpMap",
-                                GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_n", false));
+                            renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_n", false));
                     }
                     else if (startWithRadialRadiator)
                     {
                         if (renderer.material.GetTexture("_Emissive") == null)
-                            renderer.material.SetTexture("_Emissive",
-                                GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/RadialHeatRadiator/d_glow", false));
+                            renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/RadialHeatRadiator/d_glow", false));
                     }
                     else if (startWithLargeFlatRadiator)
                     {
                         if (renderer.material.GetTexture("_Emissive") == null)
-                            renderer.material.SetTexture("_Emissive",
-                                GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/glow", false));
+                            renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/glow", false));
 
                         if (renderer.material.GetTexture("_BumpMap") == null)
                             renderer.material.SetTexture("_BumpMap",
@@ -1162,12 +1153,6 @@ namespace FNPlugin
         {
             // use identical names so it will be grouped together
             return part.partInfo.title;
-        }
-
-        private double poorCubeRoot(double value, double max )
-        {
-            double fraction = value / max;
-            return (fraction * fraction * fraction) * max;
         }
 
     }
