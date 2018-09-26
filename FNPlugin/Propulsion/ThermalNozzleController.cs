@@ -657,6 +657,9 @@ namespace FNPlugin
                 if (myAttachedEngine == null)
                     return;
 
+                // only allow shutdown when engine throttle is down
+                myAttachedEngine.Events["Shutdown"].active = myAttachedEngine.currentThrottle == 0;
+
                 if (myAttachedEngine.isOperational && !IsEnabled)
                 {
                     IsEnabled = true;
