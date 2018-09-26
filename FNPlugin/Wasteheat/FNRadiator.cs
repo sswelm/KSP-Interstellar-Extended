@@ -228,6 +228,9 @@ namespace FNPlugin
         public bool hasSurfaceAreaUpgradeTechReq;
         [KSPField]
         public float atmosphereToleranceModifier = 1;
+
+        [KSPField(guiActive = false, guiName = "Effective Tempererature")]
+        public float displayTemperature;
         [KSPField(guiActive = false, guiName = "Color Ratio")]
         public float colorRatio;
 
@@ -294,49 +297,51 @@ namespace FNPlugin
                 return;
 
             redTempColorChannel = new AnimationCurve();
-            redTempColorChannel.AddKey(500, 0);
-            redTempColorChannel.AddKey(800, 100);
-            redTempColorChannel.AddKey(1000, 200);
-            redTempColorChannel.AddKey(1500, 240);
-            redTempColorChannel.AddKey(2000, 246);
-            redTempColorChannel.AddKey(2680, 253);
-            redTempColorChannel.AddKey(3000, 255);
-            redTempColorChannel.AddKey(3200, 255);
-            redTempColorChannel.AddKey(3500, 255);
-            redTempColorChannel.AddKey(4000, 255);
-            redTempColorChannel.AddKey(4200, 255);
-            redTempColorChannel.AddKey(4500, 255);
-            redTempColorChannel.AddKey(5000, 255);
+            redTempColorChannel.AddKey(500, 0 / 255f);
+            redTempColorChannel.AddKey(800, 100 / 255f);
+            redTempColorChannel.AddKey(1000, 200 / 255f);
+            redTempColorChannel.AddKey(1250, 255 / 255f);
+            redTempColorChannel.AddKey(1500, 255 / 255f);
+            redTempColorChannel.AddKey(2000, 255 / 255f);
+            redTempColorChannel.AddKey(2680, 255 / 255f);
+            redTempColorChannel.AddKey(3000, 255 / 255f);
+            redTempColorChannel.AddKey(3200, 255 / 255f);
+            redTempColorChannel.AddKey(3500, 255 / 255f);
+            redTempColorChannel.AddKey(4000, 255 / 255f);
+            redTempColorChannel.AddKey(4200, 255 / 255f);
+            redTempColorChannel.AddKey(4500, 255 / 255f);
+            redTempColorChannel.AddKey(5000, 255 / 255f);
 
             greenTempColorChannel = new AnimationCurve();
-            greenTempColorChannel.AddKey(500, 0);
-            greenTempColorChannel.AddKey(800, 0);
-            greenTempColorChannel.AddKey(1000, 0);
-            greenTempColorChannel.AddKey(1500, 57);
-            greenTempColorChannel.AddKey(2000, 140);
-            greenTempColorChannel.AddKey(2680, 185);
-            greenTempColorChannel.AddKey(3000, 230);
-            greenTempColorChannel.AddKey(3200, 242);
-            greenTempColorChannel.AddKey(3500, 243);
-            greenTempColorChannel.AddKey(4000, 247);
-            greenTempColorChannel.AddKey(4200, 248);
-            greenTempColorChannel.AddKey(4500, 251);
-            greenTempColorChannel.AddKey(5000, 255);
+            greenTempColorChannel.AddKey(500, 0 / 255f);
+            greenTempColorChannel.AddKey(800, 0 / 255f);
+            greenTempColorChannel.AddKey(1000, 0 / 255f);
+            greenTempColorChannel.AddKey(1250, 0 / 255f);
+            greenTempColorChannel.AddKey(1500, 40 / 255f);
+            greenTempColorChannel.AddKey(2000, 120 / 255f);
+            greenTempColorChannel.AddKey(2680, 185 / 255f);
+            greenTempColorChannel.AddKey(3000, 230 / 255f);
+            greenTempColorChannel.AddKey(3200, 242 / 255f);
+            greenTempColorChannel.AddKey(3500, 243 / 255f);
+            greenTempColorChannel.AddKey(4000, 247 / 255f);
+            greenTempColorChannel.AddKey(4200, 248 / 255f);
+            greenTempColorChannel.AddKey(4500, 251 / 255f);
+            greenTempColorChannel.AddKey(5000, 255 / 255f);
 
             blueTempColorChannel = new AnimationCurve();
-            blueTempColorChannel.AddKey(500, 0);
-            blueTempColorChannel.AddKey(800, 0);
-            blueTempColorChannel.AddKey(1000, 0);
-            blueTempColorChannel.AddKey(1500, 0);
-            blueTempColorChannel.AddKey(2000, 0);
-            blueTempColorChannel.AddKey(2680, 0);
-            blueTempColorChannel.AddKey(3000, 0);
-            blueTempColorChannel.AddKey(3200, 0);
-            blueTempColorChannel.AddKey(3500, 76);
-            blueTempColorChannel.AddKey(4000, 140);
-            blueTempColorChannel.AddKey(4200, 169);
-            blueTempColorChannel.AddKey(4500, 198);
-            blueTempColorChannel.AddKey(5000, 253);
+            blueTempColorChannel.AddKey(500, 0 / 255f);
+            blueTempColorChannel.AddKey(800, 0 / 255f);
+            blueTempColorChannel.AddKey(1000, 0 / 255f);
+            blueTempColorChannel.AddKey(1500, 0 / 255f);
+            blueTempColorChannel.AddKey(2000, 0 / 255f);
+            blueTempColorChannel.AddKey(2680, 0 / 255f);
+            blueTempColorChannel.AddKey(3000, 0 / 255f);
+            blueTempColorChannel.AddKey(3200, 0 / 255f);
+            blueTempColorChannel.AddKey(3500, 76 / 255f);
+            blueTempColorChannel.AddKey(4000, 140 / 255f);
+            blueTempColorChannel.AddKey(4200, 169 / 255f);
+            blueTempColorChannel.AddKey(4500, 198 / 255f);
+            blueTempColorChannel.AddKey(5000, 253 / 255f);
 
             for (int i = 0; i < redTempColorChannel.keys.Length; i++)
             {
@@ -1087,9 +1092,11 @@ namespace FNPlugin
 
         private void ApplyColorHeat()
         {
-            var displayTemperature = (float)Math.Max(CurrentRadiatorTemperature, part.temperature);
+            displayTemperature = (float)Math.Max(CurrentRadiatorTemperature, part.temperature);
 
             colorRatio = Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / temperatureRange) * 1.05f);
+
+            //brightness = Approximate.Sqrt((float)colorRatio);
 
             if (heatStates != null && heatStates.Any())
             {
@@ -1104,7 +1111,7 @@ namespace FNPlugin
                 var colorRatioGreen = greenTempColorChannel.Evaluate(displayTemperature);
                 var colorRatioBlue = blueTempColorChannel.Evaluate(displayTemperature);
 
-                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, Approximate.Sqrt((float)colorRatio));
+                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, (float)colorRatio);
 
                 for (var i = 0; i < renderArray.Count(); i++)
                 {

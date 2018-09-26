@@ -170,7 +170,7 @@ namespace FNPlugin
         public double radiusHeatProductionMult = 10;
 
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Base")]
-        public double heatProductionBase = 1e-4;
+        public double heatProductionBase = 2e-4;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Multiplier")]
         public double heatProductionMultiplier = 1;
 
@@ -308,6 +308,7 @@ namespace FNPlugin
         
         protected double _heatDecompositionFraction;
 
+        protected float _fuelCoolingDivider = 1;
         protected float _fuelToxicity;
         protected float _currentAnimatioRatio;
         protected float _minDecompositionTemp;
@@ -901,6 +902,7 @@ namespace FNPlugin
             _baseIspMultiplier = chosenpropellant.HasValue("BaseIspMultiplier") ? float.Parse(chosenpropellant.GetValue("BaseIspMultiplier")) : 0;
             _fuelTechRequirement = chosenpropellant.HasValue("TechRequirement") ? chosenpropellant.GetValue("TechRequirement") : String.Empty;
             _fuelToxicity = chosenpropellant.HasValue("Toxicity") ? float.Parse(chosenpropellant.GetValue("Toxicity")) : 0;
+            _fuelCoolingDivider = chosenpropellant.HasValue("coolingFactor") ? float.Parse(chosenpropellant.GetValue("coolingFactor")) : 1;
             _fuelRequiresUpgrade = chosenpropellant.HasValue("RequiresUpgrade") ? Boolean.Parse(chosenpropellant.GetValue("RequiresUpgrade")) : false;
 
             _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
@@ -1298,11 +1300,9 @@ namespace FNPlugin
                             ? 1 - (sootAccumulationPercentage / sootHeatDivider)
                             : 1;
 
-                    wasteheatEfficiencyModifier = _maxISP > GameConstants.MaxThermalNozzleIsp
-                        ? wasteheatEfficiencyHighTemperature
-                        : wasteheatEfficiencyLowTemperature;
+                    var baseWasteheatEfficiency = _maxISP > GameConstants.MaxThermalNozzleIsp ? wasteheatEfficiencyHighTemperature : wasteheatEfficiencyLowTemperature;
 
-                    wasteheatEfficiencyModifier = 1 - (1 - wasteheatEfficiencyModifier) * _myAttachedReactor.ThermalPropulsionWasteheatModifier;
+                    wasteheatEfficiencyModifier = 1 - (1 - baseWasteheatEfficiency / _fuelCoolingDivider) * _myAttachedReactor.ThermalPropulsionWasteheatModifier;
 
                     consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
@@ -1457,7 +1457,7 @@ namespace FNPlugin
                     thrustToMass = Approximate.Sqrt(myAttachedEngine.maxThrust / part.mass);
                     radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
 
-                    spaceHeatProduction = heatProductionMultiplier * heatProductionBase * ispHeatModifier * radiusHeatModifier * thrustToMass;
+                    spaceHeatProduction = heatProductionBase * heatProductionMultiplier * ispHeatModifier * radiusHeatModifier * thrustToMass / _fuelCoolingDivider;
                     engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
 
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;
