@@ -1094,9 +1094,7 @@ namespace FNPlugin
         {
             displayTemperature = (float)Math.Max(CurrentRadiatorTemperature, part.temperature);
 
-            colorRatio = Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / temperatureRange) * 1.05f);
-
-            //brightness = Approximate.Sqrt((float)colorRatio);
+            colorRatio =  displayTemperature < drapperPoint ? 0 : Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / temperatureRange) + 0.01);
 
             if (heatStates != null && heatStates.Any())
             {
@@ -1107,9 +1105,16 @@ namespace FNPlugin
                 if (renderArray == null)
                     return;
 
-                var colorRatioRed = redTempColorChannel.Evaluate(displayTemperature);
-                var colorRatioGreen = greenTempColorChannel.Evaluate(displayTemperature);
-                var colorRatioBlue = blueTempColorChannel.Evaluate(displayTemperature);
+                double colorRatioRed = 0;
+                double colorRatioGreen = 0;
+                double colorRatioBlue = 0;
+
+                if (displayTemperature >= drapperPoint)
+                {
+                    colorRatioRed = redTempColorChannel.Evaluate(displayTemperature);
+                    colorRatioGreen = greenTempColorChannel.Evaluate(displayTemperature);
+                    colorRatioBlue = blueTempColorChannel.Evaluate(displayTemperature);
+                }
 
                 emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, (float)colorRatio);
 
@@ -1142,12 +1147,10 @@ namespace FNPlugin
                             renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/glow", false));
 
                         if (renderer.material.GetTexture("_BumpMap") == null)
-                            renderer.material.SetTexture("_BumpMap",
-                                GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/radtex_n", false));
+                            renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/radtex_n", false));
                     }
 
                     renderer.material.SetColor(colorHeat, emissiveColor);
-
                 }
             }
         }
