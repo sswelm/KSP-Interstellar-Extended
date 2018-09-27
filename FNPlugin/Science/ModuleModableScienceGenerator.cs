@@ -41,7 +41,8 @@ namespace FNPlugin
 
         protected ScienceData science_data;
 
-        protected ModableExperimentResultDialogPage merdp;
+        //protected ModableExperimentResultDialogPage merdp;
+        protected ExperimentResultDialogPage merdp;
 
 
         [KSPEvent(guiName = "Deploy", active = true, guiActive = true)]
@@ -81,20 +82,34 @@ namespace FNPlugin
             {
                 if (merdp == null || !data_gend)
                 {
-                    merdp = new ModableExperimentResultDialogPage(
-                            base.part,
-                            this.science_data,
-                            this.science_data.baseTransmitValue,
-                            0,
-                            false,
-                            "",
-                            true,
-                            false,
-                            new Callback<ScienceData>(this.endExperiment),
-                            new Callback<ScienceData>(this.keepData),
-                            new Callback<ScienceData>(this.sendDataToComms),
-                            new Callback<ScienceData>(this.sendDataToLab));
-                    merdp.setUpScienceData(result_title, result_string, (float)transmit_value, (float)recovery_value, (float)data_size, xmit_scalar, ref_value);
+                    merdp = new ExperimentResultDialogPage(
+                        base.part, 
+                        this.science_data, 
+                        1f, 
+                        0f, 
+                        false, 
+                        "", 
+                        true, 
+                        new ScienceLabSearch(this.vessel, this.science_data), 
+                        new Callback<ScienceData>(this.endExperiment), 
+                        new Callback<ScienceData>(this.keepData), 
+                        new Callback<ScienceData>(this.sendDataToComms), 
+                        new Callback<ScienceData>(this.sendDataToLab));
+
+                    //merdp = new ModableExperimentResultDialogPage(
+                    //		base.part,
+                    //		this.science_data,
+                    //		this.science_data.baseTransmitValue,
+                    //		0,
+                    //		false,
+                    //		"",
+                    //		true,
+                    //		false,
+                    //		new Callback<ScienceData>(this.endExperiment),
+                    //		new Callback<ScienceData>(this.keepData),
+                    //		new Callback<ScienceData>(this.sendDataToComms),
+                    //		new Callback<ScienceData>(this.sendDataToLab));
+                    //merdp.setUpScienceData(result_title, result_string, (float)transmit_value, (float)recovery_value, (float)data_size, xmit_scalar, ref_value);
                 }
                 ExperimentsResultDialog.DisplayResult(merdp);
             }
