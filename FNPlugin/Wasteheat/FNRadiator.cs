@@ -317,15 +317,15 @@ namespace FNPlugin
             greenTempColorChannel.AddKey(800, 0 / 255f);
             greenTempColorChannel.AddKey(1000, 0 / 255f);
             greenTempColorChannel.AddKey(1250, 0 / 255f);
-            greenTempColorChannel.AddKey(1500, 40 / 255f);
-            greenTempColorChannel.AddKey(2000, 120 / 255f);
-            greenTempColorChannel.AddKey(2680, 185 / 255f);
+            greenTempColorChannel.AddKey(1500, 30 / 255f);
+            greenTempColorChannel.AddKey(2000, 100 / 255f);
+            greenTempColorChannel.AddKey(2680, 180 / 255f);
             greenTempColorChannel.AddKey(3000, 230 / 255f);
-            greenTempColorChannel.AddKey(3200, 242 / 255f);
-            greenTempColorChannel.AddKey(3500, 243 / 255f);
-            greenTempColorChannel.AddKey(4000, 247 / 255f);
-            greenTempColorChannel.AddKey(4200, 248 / 255f);
-            greenTempColorChannel.AddKey(4500, 251 / 255f);
+            greenTempColorChannel.AddKey(3200, 255 / 255f);
+            greenTempColorChannel.AddKey(3500, 255 / 255f);
+            greenTempColorChannel.AddKey(4000, 255 / 255f);
+            greenTempColorChannel.AddKey(4200, 255 / 255f);
+            greenTempColorChannel.AddKey(4500, 255 / 255f);
             greenTempColorChannel.AddKey(5000, 255 / 255f);
 
             blueTempColorChannel = new AnimationCurve();
@@ -340,8 +340,8 @@ namespace FNPlugin
             blueTempColorChannel.AddKey(3500, 76 / 255f);
             blueTempColorChannel.AddKey(4000, 140 / 255f);
             blueTempColorChannel.AddKey(4200, 169 / 255f);
-            blueTempColorChannel.AddKey(4500, 198 / 255f);
-            blueTempColorChannel.AddKey(5000, 253 / 255f);
+            blueTempColorChannel.AddKey(4500, 200 / 255f);
+            blueTempColorChannel.AddKey(5000, 255 / 255f);
 
             for (int i = 0; i < redTempColorChannel.keys.Length; i++)
             {
