@@ -364,7 +364,7 @@ namespace FNPlugin
         private static List<FNRadiator> GetRadiatorsForVessel(Vessel vessel)
         {
             List<FNRadiator> vessel_radiator;
-            if (radiators_by_vessel.TryGetValue(vessel, out vessel_radiator)) 
+            if (radiators_by_vessel.TryGetValue(vessel, out vessel_radiator))
                 return vessel_radiator;
 
             vessel_radiator = vessel.FindPartModulesImplementing<FNRadiator>().ToList();
@@ -477,8 +477,14 @@ namespace FNPlugin
         {
             var radiator_vessel = GetRadiatorsForVessel(vess);
 
+            if (!radiator_vessel.Any)
+                return maximumRadiatorTempInSpace;
+
             if (radiator_vessel.Any())
-                return radiator_vessel.Max(r => r.GetAverateRadiatorTemperature());
+            {
+                var totalRadiatorsMass = radiator_vessel.Sum(r => r.part.mass);
+                return radiator_vessel.Sum(r => r.GetAverateRadiatorTemperature() * (r.part.mass / totalRadiatorsMass));
+            }
             else
                 return maximumRadiatorTempInSpace;
         }
@@ -1044,7 +1050,7 @@ namespace FNPlugin
 
         public double GetAverateRadiatorTemperature()
         {
-            return temperatureQueue.Count > 0 ? temperatureQueue.Average() : currentRadTemp;
+            return Math.Max( part.temperature, temperatureQueue.Count > 0 ? temperatureQueue.Average() : currentRadTemp);
         }
 
         public override string GetInfo()
