@@ -287,7 +287,8 @@ namespace FNPlugin
         private ModuleDeployablePart.DeployState radiatorState;
         private ResourceBuffers resourceBuffers;
 
-        private Queue<double> temperatureQueue = new Queue<double>(10);
+        private Queue<double> radTempQueue = new Queue<double>(10);
+        private Queue<double> partTempQueue = new Queue<double>(10);
 
         private static AnimationCurve redTempColorChannel;
         private static AnimationCurve greenTempColorChannel;
@@ -477,7 +478,7 @@ namespace FNPlugin
         {
             var radiator_vessel = GetRadiatorsForVessel(vess);
 
-            if (!radiator_vessel.Any)
+            if (!radiator_vessel.Any())
                 return maximumRadiatorTempInSpace;
 
             if (radiator_vessel.Any())
@@ -1042,15 +1043,18 @@ namespace FNPlugin
                 if (!double.IsNaN(value) || !double.IsInfinity(value))
 
                 currentRadTemp = value;
-                temperatureQueue.Enqueue(currentRadTemp);
-                if (temperatureQueue.Count > 10)
-                    temperatureQueue.Dequeue();
+                partTempQueue.Enqueue(part.temperature);
+                if (partTempQueue.Count > 10)
+                    partTempQueue.Dequeue();                
+                radTempQueue.Enqueue(currentRadTemp);
+                if (radTempQueue.Count > 10)
+                    radTempQueue.Dequeue();
             }
         }
 
         public double GetAverateRadiatorTemperature()
         {
-            return Math.Max( part.temperature, temperatureQueue.Count > 0 ? temperatureQueue.Average() : currentRadTemp);
+            return Math.Max(partTempQueue.Count > 0 ? partTempQueue.Average() : part.temperature, radTempQueue.Count > 0 ? radTempQueue.Average() : currentRadTemp);
         }
 
         public override string GetInfo()
@@ -1104,7 +1108,7 @@ namespace FNPlugin
 
         private void ApplyColorHeat()
         {
-            displayTemperature = (float)Math.Max(CurrentRadiatorTemperature, part.temperature);
+            displayTemperature = (float)GetAverateRadiatorTemperature();
 
             colorRatio =  displayTemperature < drapperPoint ? 0 : Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / temperatureRange) * 1.05f);
 
