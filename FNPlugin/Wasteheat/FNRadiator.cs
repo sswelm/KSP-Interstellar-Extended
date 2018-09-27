@@ -844,7 +844,7 @@ namespace FNPlugin
         {
             if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
-                var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.1;
+                var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2;
 
                 if (combinedPresure > 101.325)
                 {
