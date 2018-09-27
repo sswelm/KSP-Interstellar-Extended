@@ -139,6 +139,8 @@ namespace FNPlugin
         public bool showRetractButton = false;
         [KSPField(isPersistant = true)]
         public bool showControls = true;
+        [KSPField(isPersistant = true)]
+        public double currentRadTemp;
 
         // non persistant
         [KSPField(guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
@@ -241,7 +243,7 @@ namespace FNPlugin
         const float maximumRadiatorTempInSpace = 4400;
         const float maximumRadiatorTempAtOneAtmosphere = 1200;
         const float maxSpaceTempBonus = maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
-        const float drapperPoint = 798;
+        const float drapperPoint = 700; // 798
         const float temperatureRange = maximumRadiatorTempInSpace - drapperPoint;
 
         // minimize garbage by recycling variablees
@@ -249,7 +251,7 @@ namespace FNPlugin
         private double thermalPowerDissipPerSecond;
         private double radiatedThermalPower;
         private double convectedThermalPower;
-        private double _currentRadTemp;
+        
         private double oxidationModifier;
 
         public double external_temperature;
@@ -708,6 +710,8 @@ namespace FNPlugin
 
             InitializeTemperatureColorChannels();
 
+            ApplyColorHeat();
+
             if (ResearchAndDevelopment.Instance != null)
                 upgradeCostStr = ResearchAndDevelopment.Instance.Science + "/" + upgradeCost.ToString("0") + " Science";
 
@@ -1025,12 +1029,14 @@ namespace FNPlugin
         {
             get 
             {
-                return _currentRadTemp;
+                return currentRadTemp;
             }
             set
             {
-                _currentRadTemp = value;
-                temperatureQueue.Enqueue(_currentRadTemp);
+                if (!double.IsNaN(value) || !double.IsInfinity(value))
+
+                currentRadTemp = value;
+                temperatureQueue.Enqueue(currentRadTemp);
                 if (temperatureQueue.Count > 10)
                     temperatureQueue.Dequeue();
             }
@@ -1038,7 +1044,7 @@ namespace FNPlugin
 
         public double GetAverateRadiatorTemperature()
         {
-            return temperatureQueue.Count > 0 ? temperatureQueue.Average() : _currentRadTemp;
+            return temperatureQueue.Count > 0 ? temperatureQueue.Average() : currentRadTemp;
         }
 
         public override string GetInfo()
@@ -1094,7 +1100,7 @@ namespace FNPlugin
         {
             displayTemperature = (float)Math.Max(CurrentRadiatorTemperature, part.temperature);
 
-            colorRatio =  displayTemperature < drapperPoint ? 0 : Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / temperatureRange) + 0.01);
+            colorRatio =  displayTemperature < drapperPoint ? 0 : Mathf.Min(1, (Mathf.Max(0, displayTemperature - drapperPoint) / temperatureRange) * 1.05f);
 
             if (heatStates != null && heatStates.Any())
             {
@@ -1105,9 +1111,9 @@ namespace FNPlugin
                 if (renderArray == null)
                     return;
 
-                double colorRatioRed = 0;
-                double colorRatioGreen = 0;
-                double colorRatioBlue = 0;
+                float colorRatioRed = 0;
+                float colorRatioGreen = 0;
+                float colorRatioBlue = 0;
 
                 if (displayTemperature >= drapperPoint)
                 {
@@ -1151,6 +1157,7 @@ namespace FNPlugin
                     }
 
                     renderer.material.SetColor(colorHeat, emissiveColor);
+
                 }
             }
         }
