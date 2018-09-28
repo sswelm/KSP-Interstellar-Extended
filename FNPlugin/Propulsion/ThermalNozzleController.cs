@@ -344,7 +344,7 @@ namespace FNPlugin
         protected List<ModuleResourceIntake> _vesselResourceIntakes;
         protected List<IEngineNoozle> _vesselThermalNozzles;
 
-		private IFNPowerSource _myAttachedReactor;
+        private IFNPowerSource _myAttachedReactor;
         public IFNPowerSource AttachedReactor
         {
             get { return _myAttachedReactor; }
@@ -918,7 +918,7 @@ namespace FNPlugin
                 _heatDecompositionFraction = 1;
                 _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
                 var rawthrustPropellantMultiplier = chosenpropellant.HasValue("thrustMultiplier") ? float.Parse(chosenpropellant.GetValue("thrustMultiplier")) : 1;
-                _thrustPropellantMultiplier = _propellantIsLFO || rawthrustPropellantMultiplier < 1 ? rawthrustPropellantMultiplier : ((rawthrustPropellantMultiplier + 1) / 2);
+                _thrustPropellantMultiplier = _propellantIsLFO || _currentpropellant_is_jet || rawthrustPropellantMultiplier <= 1 ? rawthrustPropellantMultiplier : ((rawthrustPropellantMultiplier + 1) / 2);
             }
         }
 
