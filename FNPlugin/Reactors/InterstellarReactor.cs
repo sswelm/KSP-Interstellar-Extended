@@ -221,8 +221,10 @@ namespace FNPlugin.Reactors
         public double powerOutputMk7;
 
         // Settings
-		[KSPField]
-		double engineHeatProductionMult = 1;
+        [KSPField]
+        public int minCoolingFactor = 1;
+        [KSPField]
+        double engineHeatProductionMult = 1;
         [KSPField]
         public bool supportMHD = false;
         [KSPField]
@@ -521,7 +523,9 @@ namespace FNPlugin.Reactors
             } 
         }
 
-		public double EngineHeatProductionMult { get { return engineHeatProductionMult; } }
+        public double MinCoolingFactor { get { return minCoolingFactor; } }
+
+        public double EngineHeatProductionMult { get { return engineHeatProductionMult; } }
 
         private double _consumedFuelTotalFixed;
 

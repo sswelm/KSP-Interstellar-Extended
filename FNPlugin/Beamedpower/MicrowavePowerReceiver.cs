@@ -137,6 +137,8 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "max Wavelength")]
         public double maximumWavelength = 1;
 
+		[KSPField]
+		public double minCoolingFactor = 1;
         [KSPField]
         public double engineHeatProductionMult = 1;
         [KSPField]
@@ -303,6 +305,8 @@ namespace FNPlugin
         // GUI elements declaration
         private Rect windowPosition;
         private int windowID;
+
+        public double MinCoolingFactor { get { return minCoolingFactor; } }
 
         public double EngineHeatProductionMult { get { return engineHeatProductionMult; } }
 

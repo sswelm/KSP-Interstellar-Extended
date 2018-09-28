@@ -11,5 +11,7 @@ namespace FNPlugin.Redist
         void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD);
 
         double EngineHeatProductionMult { get; }
+
+        double MinCoolingFactor { get; }
     }
 }

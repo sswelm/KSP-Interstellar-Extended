@@ -298,8 +298,7 @@ namespace FNPlugin
         public int supportedPropellantAtoms = 511;
         [KSPField]
         public int supportedPropellantTypes = 511;
-        [KSPField]
-        public int minCoolingFactor = 1;
+
 
         // Constants
         protected const double _hydroloxDecompositionEnergy = 16.2137;
@@ -817,12 +816,13 @@ namespace FNPlugin
                         else if (
                                (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                             || (_fuelRequiresUpgrade && !isupgraded)
+                            || (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
                             || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                             || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
                             || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                             || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
                             || ((_propType & this.supportedPropellantTypes) != _propType)
-                            || (_fuelCoolingFactor < minCoolingFactor)
+
                             )
                         {
                             next_propellant = true;
@@ -853,12 +853,13 @@ namespace FNPlugin
                         ((!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
                         || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                         || (_fuelRequiresUpgrade && !isupgraded)
+						|| (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                         || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
                         || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                         || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
                         || ((_propType & this.supportedPropellantTypes) != _propType)
-                        || (_fuelCoolingFactor < minCoolingFactor)
+                        
                         ) && (switches <= propellantsConfignodes.Length || fuel_mode != 0))
                     {
                         if (((_atomType & this.supportedPropellantAtoms) != _atomType))
