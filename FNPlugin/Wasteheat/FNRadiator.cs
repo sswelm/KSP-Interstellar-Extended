@@ -63,7 +63,7 @@ namespace FNPlugin
             else
                 CurrentGenerationType = GenerationType.Mk1;
 
-            MaxVacuumTemperatureTitanium = PluginHelper.RadiatorTemperatureMk3;
+            MaxVacuumTemperatureTitanium = PluginHelper.RadiatorTemperatureMk4;
             if (CurrentGenerationType == GenerationType.Mk5)
                 MaxVacuumTemperatureGraphene = PluginHelper.RadiatorTemperatureMk5;
             else if (CurrentGenerationType == GenerationType.Mk4)
@@ -731,8 +731,8 @@ namespace FNPlugin
 
             isGraphene = !String.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
 
-            maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
-            maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk3, maxRadiatorTemperature);
+            maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk4, maxRadiatorTemperature);
+            maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk4, maxRadiatorTemperature);
 
             UpdateMaxCurrentTemperature();
 
@@ -1075,11 +1075,12 @@ namespace FNPlugin
 
             sb.Append(String.Format("Mk2: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk2, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk2, 4)));
             sb.Append(String.Format("Mk3: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk3, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk3, 4)));
+            sb.Append(String.Format("Mk4: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk4, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk4, 4)));
 
             if (String.IsNullOrEmpty(surfaceAreaUpgradeTechReq)) return sb.ToString();
 
-            sb.Append(String.Format("Mk4: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk4, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk4, 4)));
             sb.Append(String.Format("Mk5: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk5, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk5, 4)));
+            sb.Append(String.Format("Mk6: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk6, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk6, 4)));
 
             var convection = 0.9 * effectiveRadiatorArea * convectiveBonus;
             var disapation = stefanArea * Math.Pow(900, 4);

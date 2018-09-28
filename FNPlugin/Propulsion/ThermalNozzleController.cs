@@ -1460,7 +1460,7 @@ namespace FNPlugin
                     powerToMass = Approximate.Sqrt(myAttachedEngine.maxThrust / part.mass);
                     radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
 
-                    spaceHeatProduction = heatProductionMultiplier * AttachedReactor.EngineHeatProductionMult * Approximate.Sqrt((float)_ispPropellantMultiplier) * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
+                    spaceHeatProduction = heatProductionMultiplier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
                     engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
 
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;
