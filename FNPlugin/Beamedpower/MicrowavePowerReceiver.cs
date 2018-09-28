@@ -138,6 +138,8 @@ namespace FNPlugin
         public double maximumWavelength = 1;
 
         [KSPField]
+        public double engineHeatProductionMult = 1;
+        [KSPField]
         public double heatTransportationEfficiency = 0.7;
         [KSPField]
         public double powerHeatExponent = 0.7;
@@ -301,6 +303,8 @@ namespace FNPlugin
         // GUI elements declaration
         private Rect windowPosition;
         private int windowID;
+
+        public double EngineHeatProductionMult { get { return engineHeatProductionMult; } }
 
         public int ReceiverType { get { return receiverType; } }
 

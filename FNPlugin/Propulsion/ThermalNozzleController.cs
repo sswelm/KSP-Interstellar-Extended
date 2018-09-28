@@ -344,8 +344,8 @@ namespace FNPlugin
         protected List<ModuleResourceIntake> _vesselResourceIntakes;
         protected List<IEngineNoozle> _vesselThermalNozzles;
 
-        private IPowerSource _myAttachedReactor;
-        public IPowerSource AttachedReactor
+		private IFNPowerSource _myAttachedReactor;
+        public IFNPowerSource AttachedReactor
         {
             get { return _myAttachedReactor; }
             private set
@@ -1223,8 +1223,6 @@ namespace FNPlugin
             }
             else
                 pressureThreshold = 0;
-
-            //Fields["pressureThreshold"].guiActive = pressureThreshold > 0;
         }
 
         private void UpdateAnimation()
@@ -1347,7 +1345,7 @@ namespace FNPlugin
                     var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(atmosphereThrustEfficiency, 0.01) : 0.01;
                     UpdateIspEngineParams(thrustAtmosphereRatio);
                     current_isp = _maxISP * thrustAtmosphereRatio;
-                    calculatedMaxThrust = calculatedMaxThrust * atmosphereThrustEfficiency;  //Math.Max((calculatedMaxThrust - pressureThreshold), 0.0000000001);
+                    calculatedMaxThrust = calculatedMaxThrust * atmosphereThrustEfficiency;
                 }
                 else
                     current_isp = _maxISP;
@@ -1454,10 +1452,10 @@ namespace FNPlugin
                     //    : 1;
 
                     ispHeatModifier = isPlasmaNozzle ? 0.5 * Approximate.Sqrt(myAttachedEngine.realIsp) : 5 * Approximate.Sqrt(myAttachedEngine.realIsp);
-                    powerToMass = Approximate.Sqrt((float)myAttachedEngine.maxThrust / part.mass);
+                    powerToMass = Approximate.Sqrt(myAttachedEngine.maxThrust / part.mass);
                     radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
 
-                    spaceHeatProduction = heatProductionMultiplier * Approximate.Sqrt((float)_ispPropellantMultiplier) * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingDivider;
+                    spaceHeatProduction = heatProductionMultiplier * AttachedReactor.EngineHeatProductionMult * Approximate.Sqrt((float)_ispPropellantMultiplier) * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingDivider;
                     engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
 
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;

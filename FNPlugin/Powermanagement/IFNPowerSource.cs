@@ -9,5 +9,7 @@ namespace FNPlugin.Redist
     public interface IFNPowerSource : IPowerSource
     {
         void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD);
+
+        double EngineHeatProductionMult { get; }
     }
 }

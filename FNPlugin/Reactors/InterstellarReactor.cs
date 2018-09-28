@@ -221,6 +221,8 @@ namespace FNPlugin.Reactors
         public double powerOutputMk7;
 
         // Settings
+		[KSPField]
+		double engineHeatProductionMult = 1;
         [KSPField]
         public bool supportMHD = false;
         [KSPField]
@@ -519,6 +521,8 @@ namespace FNPlugin.Reactors
             } 
         }
 
+		public double EngineHeatProductionMult { get { return engineHeatProductionMult; } }
+
         private double _consumedFuelTotalFixed;
 
         public double ThermalPropulsionWasteheatModifier { get { return thermalPropulsionWasteheatModifier; } }
@@ -815,7 +819,7 @@ namespace FNPlugin.Reactors
                         break;
                 }
 
-				return baseCoreTemperature * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
+                return baseCoreTemperature * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
             }
         }
 
