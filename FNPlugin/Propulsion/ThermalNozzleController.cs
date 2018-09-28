@@ -298,6 +298,8 @@ namespace FNPlugin
         public int supportedPropellantAtoms = 511;
         [KSPField]
         public int supportedPropellantTypes = 511;
+        [KSPField]
+        public int minCoolingFactor = 1;
 
         // Constants
         protected const double _hydroloxDecompositionEnergy = 16.2137;
@@ -308,7 +310,7 @@ namespace FNPlugin
         
         protected double _heatDecompositionFraction;
 
-        protected float _fuelCoolingDivider = 1;
+        protected float _fuelCoolingFactor = 1;
         protected float _fuelToxicity;
         protected float _currentAnimatioRatio;
         protected float _minDecompositionTemp;
@@ -820,6 +822,7 @@ namespace FNPlugin
                             || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                             || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
                             || ((_propType & this.supportedPropellantTypes) != _propType)
+                            || (_fuelCoolingFactor < minCoolingFactor)
                             )
                         {
                             next_propellant = true;
@@ -855,6 +858,7 @@ namespace FNPlugin
                         || ((_atomType & this.supportedPropellantAtoms) != _atomType)
                         || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
                         || ((_propType & this.supportedPropellantTypes) != _propType)
+                        || (_fuelCoolingFactor < minCoolingFactor)
                         ) && (switches <= propellantsConfignodes.Length || fuel_mode != 0))
                     {
                         if (((_atomType & this.supportedPropellantAtoms) != _atomType))
@@ -902,7 +906,7 @@ namespace FNPlugin
             _baseIspMultiplier = chosenpropellant.HasValue("BaseIspMultiplier") ? float.Parse(chosenpropellant.GetValue("BaseIspMultiplier")) : 0;
             _fuelTechRequirement = chosenpropellant.HasValue("TechRequirement") ? chosenpropellant.GetValue("TechRequirement") : String.Empty;
             _fuelToxicity = chosenpropellant.HasValue("Toxicity") ? float.Parse(chosenpropellant.GetValue("Toxicity")) : 0;
-            _fuelCoolingDivider = chosenpropellant.HasValue("coolingFactor") ? float.Parse(chosenpropellant.GetValue("coolingFactor")) : 1;
+            _fuelCoolingFactor = chosenpropellant.HasValue("coolingFactor") ? float.Parse(chosenpropellant.GetValue("coolingFactor")) : 1;
             _fuelRequiresUpgrade = chosenpropellant.HasValue("RequiresUpgrade") ? Boolean.Parse(chosenpropellant.GetValue("RequiresUpgrade")) : false;
 
             _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
@@ -1300,7 +1304,7 @@ namespace FNPlugin
 
                     var baseWasteheatEfficiency = _maxISP > GameConstants.MaxThermalNozzleIsp ? wasteheatEfficiencyHighTemperature : wasteheatEfficiencyLowTemperature;
 
-                    wasteheatEfficiencyModifier = 1 - (1 - baseWasteheatEfficiency / _fuelCoolingDivider) * _myAttachedReactor.ThermalPropulsionWasteheatModifier;
+                    wasteheatEfficiencyModifier = 1 - (1 - baseWasteheatEfficiency / _fuelCoolingFactor) * _myAttachedReactor.ThermalPropulsionWasteheatModifier;
 
                     consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
@@ -1455,7 +1459,7 @@ namespace FNPlugin
                     powerToMass = Approximate.Sqrt(myAttachedEngine.maxThrust / part.mass);
                     radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
 
-                    spaceHeatProduction = heatProductionMultiplier * AttachedReactor.EngineHeatProductionMult * Approximate.Sqrt((float)_ispPropellantMultiplier) * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingDivider;
+                    spaceHeatProduction = heatProductionMultiplier * AttachedReactor.EngineHeatProductionMult * Approximate.Sqrt((float)_ispPropellantMultiplier) * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
                     engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
 
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;
