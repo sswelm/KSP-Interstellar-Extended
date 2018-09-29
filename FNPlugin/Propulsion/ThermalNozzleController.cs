@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class ThermalNozzleController : ResourceSuppliableModule, IEngineNoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
+    class ThermalNozzleController : ResourceSuppliableModule, IFNEngineNoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -340,7 +340,7 @@ namespace FNPlugin
         protected List<Propellant> list_of_propellants = new List<Propellant>();
         protected List<FNModulePreecooler> _vesselPrecoolers;
         protected List<ModuleResourceIntake> _vesselResourceIntakes;
-        protected List<IEngineNoozle> _vesselThermalNozzles;
+        protected List<IFNEngineNoozle> _vesselThermalNozzles;
 
         private IFNPowerSource _myAttachedReactor;
         public IFNPowerSource AttachedReactor
@@ -425,6 +425,10 @@ namespace FNPlugin
                     return 0;
             }
         }
+
+        public bool RequiresPlasmaHeat { get { return isPlasmaNozzle; } }
+
+        public bool RequiresThermalHeat { get { return !isPlasmaNozzle; } }
 
         public bool RequiresChargedPower { get { return false; } }
 
@@ -537,7 +541,7 @@ namespace FNPlugin
                 // presearch all avaialble precoolers, intakes and nozzles on the vessel
                 _vesselPrecoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
                 _vesselResourceIntakes = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir).ToList();
-                _vesselThermalNozzles = vessel.FindPartModulesImplementing<IEngineNoozle>();
+                _vesselThermalNozzles = vessel.FindPartModulesImplementing<IFNEngineNoozle>();
 
                 // if we can upgrade, let's do so
                 if (isupgraded)
@@ -1302,7 +1306,9 @@ namespace FNPlugin
 
                     var baseWasteheatEfficiency = _maxISP > GameConstants.MaxThermalNozzleIsp ? wasteheatEfficiencyHighTemperature : wasteheatEfficiencyLowTemperature;
 
-                    wasteheatEfficiencyModifier = 1 - ((1 - baseWasteheatEfficiency) * AttachedReactor.EngineWasteheatProductionMult * AttachedReactor.ThermalPropulsionWasteheatModifier / _fuelCoolingFactor);
+                    var reactorWasteheatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaWasteheatProductionMult : AttachedReactor.EngineWasteheatProductionMult;
+
+                    wasteheatEfficiencyModifier = 1 - ((1 - baseWasteheatEfficiency) * reactorWasteheatModifier * AttachedReactor.ThermalPropulsionWasteheatModifier / _fuelCoolingFactor);
 
                     consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
@@ -1456,7 +1462,7 @@ namespace FNPlugin
                     ispHeatModifier = isPlasmaNozzle ? 0.5 * Approximate.Sqrt(myAttachedEngine.realIsp) : 5 * Approximate.Sqrt(myAttachedEngine.realIsp);
                     powerToMass = Approximate.Sqrt(myAttachedEngine.maxThrust / part.mass);
                     radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
-
+                    var reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
                     spaceHeatProduction = heatProductionMultiplier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
                     engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
 

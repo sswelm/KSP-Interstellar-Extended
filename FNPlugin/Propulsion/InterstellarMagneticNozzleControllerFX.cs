@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class InterstellarMagneticNozzleControllerFX : ResourceSuppliableModule, IEngineNoozle
+    class InterstellarMagneticNozzleControllerFX : ResourceSuppliableModule, IFNEngineNoozle
     {
         //Persistent
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Simulated Throttle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
@@ -72,6 +72,10 @@ namespace FNPlugin
         {
             return _attached_engine.maxFuelFlow;
         }
+
+        public bool RequiresPlasmaHeat { get { return false; } }
+
+        public bool RequiresThermalHeat { get { return false; } }
 
         public float CurrentThrottle {  get { return _attached_engine.currentThrottle > 0 ? 1 : 0; } }
 

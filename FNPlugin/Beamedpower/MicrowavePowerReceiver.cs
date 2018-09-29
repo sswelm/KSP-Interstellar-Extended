@@ -142,7 +142,11 @@ namespace FNPlugin
         [KSPField]
         public double engineHeatProductionMult = 1;
         [KSPField]
+        public double plasmaHeatProductionMult = 1;
+        [KSPField]
         public double engineWasteheatProductionMult = 1;
+        [KSPField]
+        public double plasmaWasteheatProductionMult = 1;
         [KSPField]
         public double heatTransportationEfficiency = 0.7;
         [KSPField]
@@ -287,7 +291,7 @@ namespace FNPlugin
         protected ResourceBuffers _resourceBuffers;
         protected ModuleResource _solarFlowRateResource;
 
-        protected List<IEngineNoozle> connectedEngines = new List<IEngineNoozle>();
+        protected List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
         protected Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
         protected List<MicrowavePowerReceiver> thermalReceiverSlaves = new List<MicrowavePowerReceiver>();
 
@@ -311,7 +315,12 @@ namespace FNPlugin
         public double MinCoolingFactor { get { return minCoolingFactor; } }
 
         public double EngineHeatProductionMult { get { return engineHeatProductionMult; } }
+
+        public double PlasmaHeatProductionMult { get { return plasmaHeatProductionMult; } }
+
         public double EngineWasteheatProductionMult { get { return engineWasteheatProductionMult; } }
+
+        public double PlasmaWasteheatProductionMult { get { return plasmaWasteheatProductionMult; } }
 
         public int ReceiverType { get { return receiverType; } }
 
@@ -405,14 +414,22 @@ namespace FNPlugin
 
         public void ConnectWithEngine(IEngineNoozle engine)
         {
-            if (!connectedEngines.Contains(engine))
-                connectedEngines.Add(engine);
+            var fnEngine = engine as IFNEngineNoozle;
+            if (fnEngine == null)
+                return;
+
+            if (!connectedEngines.Contains(fnEngine))
+                connectedEngines.Add(fnEngine);
         }
 
         public void DisconnectWithEngine(IEngineNoozle engine)
         {
-            if (connectedEngines.Contains(engine))
-                connectedEngines.Remove(engine);
+            var fnEngine = engine as IFNEngineNoozle;
+            if (fnEngine == null)
+                return;
+
+            if (connectedEngines.Contains(fnEngine))
+                connectedEngines.Remove(fnEngine);
         }
 
         public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
