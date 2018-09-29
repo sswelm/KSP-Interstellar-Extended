@@ -49,7 +49,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool warningShown;
         [KSPField]
-        public int initializationCountdown = 1000;
+        public int initializationCountdown = 10;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = false, guiName = "Power")]
@@ -93,6 +93,9 @@ namespace InterstellarFuelSwitch
             if (state == StartState.Editor)
                 return;
 
+            part.temperature = storedTemp;
+            part.skinTemperature = storedTemp;
+
             // if electricCharge buffer is missing, add it.
             if (!part.Resources.Contains(STOCK_RESOURCE_ELECTRICCHARGE))
             {
@@ -122,6 +125,10 @@ namespace InterstellarFuelSwitch
 
         public void Update()
         {
+            storedTemp = part.temperature;
+            if (initializationCountdown > 0)
+                initializationCountdown--;
+
             var cryostat_resource = part.Resources[resourceName];
 
             if (cryostat_resource != null)
@@ -199,15 +206,6 @@ namespace InterstellarFuelSwitch
                 boiloff = 0;
                 return;
             }
-
-            if (initializationCountdown > 0)
-            {
-                part.temperature = storedTemp;
-                part.skinTemperature = storedTemp;
-                initializationCountdown--;
-            }
-            else
-                storedTemp = part.temperature;
 
             var fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 

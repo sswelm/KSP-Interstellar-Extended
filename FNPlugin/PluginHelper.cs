@@ -26,8 +26,8 @@ namespace FNPlugin
 
             GameEvents.onGameStateSaved.Add(OnGameStateSaved);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
-            GameEvents.onDockingComplete.Add(OnDockingComplete);
-            GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
+            //GameEvents.onDockingComplete.Add(OnDockingComplete);
+            //GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
 
             Debug.Log("[KSPI] - GameEventSubscriber Initialised");
         }
@@ -41,8 +41,8 @@ namespace FNPlugin
 
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
             GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
-            GameEvents.onDockingComplete.Remove(OnDockingComplete);
-            GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
+            //GameEvents.onDockingComplete.Remove(OnDockingComplete);
+            //GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
 
             Debug.Log("[KSPI] - GameEventSubscriber Deinitialised");
         }

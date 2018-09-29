@@ -197,15 +197,6 @@ namespace FNPlugin
                 return;
             }
 
-            //if (initializationCountdown > 0)
-            //{
-            //    part.temperature = storedTemp;
-            //    part.skinTemperature = storedTemp;
-            //    initializationCountdown--;
-            //}
-            //else
-            //    storedTemp = part.temperature;
-
             var fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 
             if (!isDisabled &&  currentPowerReq > 0)
@@ -238,9 +229,6 @@ namespace FNPlugin
             if (boiloff > 0.0000000001)
             {
                 var boilOffAmount = boiloff * fixedDeltaTime;
-
-                //Debug.LogWarning("[KSPI] - FNModuleCryostat - recievedPowerKW: " + recievedPowerKW + " * currentPowerReq: " + currentPowerReq);
-                //Debug.LogWarning("[KSPI] - FNModuleCryostat - fixedDeltaTime: " + fixedDeltaTime + " * boiloff: " + boiloff + " = " + boilOffAmount);
 
                 cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boilOffAmount);
 
