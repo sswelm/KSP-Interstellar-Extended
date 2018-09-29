@@ -138,6 +138,8 @@ namespace FNPlugin
         public bool fullPowerBuffer = false;
         [KSPField]
         public bool showSpecialisedUI = true;
+        [KSPField]
+        public bool showDetailedInfo = true;
 
         /// <summary>
         /// MW Power to part mass divider, need to be lower for SETI/NFE mode 
@@ -202,8 +204,10 @@ namespace FNPlugin
         public double requested_power_per_second;
         [KSPField]
         public double received_power_per_second;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_coldBathTemp", guiUnits = " K", guiFormat = "F1")]
+        [KSPField]
         public double coldBathTemp = 500;
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_coldBathTemp", guiUnits = " K", guiFormat = "F1")]
+        public double coldBathTempDisplay = 500;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_hotBathTemp", guiUnits = " K", guiFormat = "F1")]
         public double hotBathTemp = 300;
         [KSPField]
@@ -694,11 +698,10 @@ namespace FNPlugin
         {
             Events["ActivateGenerator"].active = !IsEnabled && showSpecialisedUI;
             Events["DeactivateGenerator"].active = IsEnabled && showSpecialisedUI;
-
-            Fields["OverallEfficiency"].guiActive = IsEnabled;
-            Fields["MaxPowerStr"].guiActive = IsEnabled;
-            Fields["coldBathTemp"].guiActive = !chargedParticleMode;
-            Fields["hotBathTemp"].guiActive = !chargedParticleMode;
+            Fields["OverallEfficiency"].guiActive = showDetailedInfo && IsEnabled;
+            Fields["MaxPowerStr"].guiActive = showDetailedInfo && IsEnabled;
+            Fields["coldBathTempDisplay"].guiActive = showDetailedInfo && !chargedParticleMode;
+            Fields["hotBathTemp"].guiActive = showDetailedInfo && !chargedParticleMode;
 
             if (ResearchAndDevelopment.Instance != null)
             {
@@ -822,12 +825,13 @@ namespace FNPlugin
                         ? plasmaTemperature
                         : plasmaTemperature * chargedPowerModifier + (1 - chargedPowerModifier) * attachedPowerSource.HotBathTemperature;	// for fusion reactors connected to MHD
 
-                averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel) * 0.75);
+                averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel) );
 
                 while (averageRadiatorTemperatureQueue.Count > 10)
                     averageRadiatorTemperatureQueue.Dequeue();
 
-                coldBathTemp = averageRadiatorTemperatureQueue.Average();
+                coldBathTempDisplay = averageRadiatorTemperatureQueue.Average();
+                coldBathTemp = coldBathTempDisplay * 0.75;
             }
 
             if (HighLogic.LoadedSceneIsEditor)

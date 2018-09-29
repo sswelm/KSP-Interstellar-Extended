@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Power;
 using System;
+using UnityEngine;
 
 namespace FNPlugin
 {
@@ -45,7 +46,7 @@ namespace FNPlugin
         [KSPField]
         public bool warningShown;
         [KSPField]
-        public int initializationCountdown = 1000;
+        public int initializationCountdown = 10;
 
         //GUI
         [KSPField(isPersistant = false, guiActive = false, guiName = "Power")]
@@ -111,6 +112,9 @@ namespace FNPlugin
 
         public void Update()
         {
+            if (initializationCountdown > 0)
+                initializationCountdown--;
+
             var cryostat_resource = part.Resources[resourceName];
 
             if (cryostat_resource != null)
@@ -189,14 +193,14 @@ namespace FNPlugin
                 return;
             }
 
-            if (initializationCountdown > 0)
-            {
-                part.temperature = storedTemp;
-                part.skinTemperature = storedTemp;
-                initializationCountdown--;
-            }
-            else
-                storedTemp = part.temperature;
+            //if (initializationCountdown > 0)
+            //{
+            //    part.temperature = storedTemp;
+            //    part.skinTemperature = storedTemp;
+            //    initializationCountdown--;
+            //}
+            //else
+            //    storedTemp = part.temperature;
 
             var fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
 
@@ -229,13 +233,21 @@ namespace FNPlugin
 
             if (boiloff > 0.0000000001)
             {
-                cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boiloff * fixedDeltaTime);
+                var boilOffAmount = boiloff * fixedDeltaTime;
+
+                //Debug.LogWarning("[KSPI] - FNModuleCryostat - recievedPowerKW: " + recievedPowerKW + " * currentPowerReq: " + currentPowerReq);
+                //Debug.LogWarning("[KSPI] - FNModuleCryostat - fixedDeltaTime: " + fixedDeltaTime + " * boiloff: " + boiloff + " = " + boilOffAmount);
+
+                cryostat_resource.amount = Math.Max(0, cryostat_resource.amount - boilOffAmount);
+
                 boiloffStr = boiloff.ToString("0.0000000") + " L/s " + cryostat_resource.resourceName;
 
                 if (hasExtraBoiloff && part.vessel.isActiveVessel && !warningShown)
                 {
                     warningShown = true;
-                    ScreenMessages.PostScreenMessage("Warning: " + boiloffStr + " Boiloff", 5, ScreenMessageStyle.UPPER_CENTER);
+                    var message = "Warning: " + boiloffStr + " Boiloff";
+                    Debug.LogWarning("[KSPI] - FNModuleCryostat: " + message);
+                    ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
             else

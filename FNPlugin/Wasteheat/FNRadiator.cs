@@ -144,7 +144,7 @@ namespace FNPlugin
 
         // non persistant
         [KSPField(guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
-        public float maxVacuumTemperature = maximumRadiatorTempInSpace;
+        public float maxVacuumTemperature = 4500;
         [KSPField(guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
         public float maxAtmosphereTemperature = 1200;
         [KSPField(guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
@@ -223,7 +223,7 @@ namespace FNPlugin
         [KSPField(guiName = "Max Energy Transfer", guiFormat = "F2")]
         private double _maxEnergyTransfer;
         [KSPField(guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
-        public float maxRadiatorTemperature = maximumRadiatorTempInSpace;
+        public float maxRadiatorTemperature = 4500;
         [KSPField(guiName = "Upgrade Techs")]
         public int nrAvailableUpgradeTechs;
         [KSPField(guiName = "Has Surface Upgrade")]
@@ -240,11 +240,11 @@ namespace FNPlugin
         const int RADIATOR_DELAY = 20;
         const int DEPLOYMENT_DELAY = 6;
 
-        const float maximumRadiatorTempInSpace = 4400;
-        const float maximumRadiatorTempAtOneAtmosphere = 1200;
-        const float maxSpaceTempBonus = maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
-        const float drapperPoint = 700; // 798
-        const float temperatureRange = maximumRadiatorTempInSpace - drapperPoint;
+        static float drapperPoint = 500; // 798
+        static float maximumRadiatorTempInSpace = 4500;
+        static float maximumRadiatorTempAtOneAtmosphere = 1200;
+        static float maxSpaceTempBonus;
+        static float temperatureRange;
 
         // minimize garbage by recycling variablees
         private double stefanArea;
@@ -287,8 +287,8 @@ namespace FNPlugin
         private ModuleDeployablePart.DeployState radiatorState;
         private ResourceBuffers resourceBuffers;
 
-        private Queue<double> radTempQueue = new Queue<double>(10);
-        private Queue<double> partTempQueue = new Queue<double>(10);
+        private Queue<double> radTempQueue = new Queue<double>(20);
+        private Queue<double> partTempQueue = new Queue<double>(20);
 
         private static AnimationCurve redTempColorChannel;
         private static AnimationCurve greenTempColorChannel;
@@ -483,8 +483,10 @@ namespace FNPlugin
 
             if (radiator_vessel.Any())
             {
+                var maxRadiatorTemperature = radiator_vessel.Max(r => r.MaxRadiatorTemperature);
                 var totalRadiatorsMass = radiator_vessel.Sum(r => r.part.mass);
-                return radiator_vessel.Sum(r => r.GetAverateRadiatorTemperature() * (r.part.mass / totalRadiatorsMass));
+
+                return radiator_vessel.Sum(r => Math.Min(1, r.GetAverateRadiatorTemperature() / r.MaxRadiatorTemperature) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
             }
             else
                 return maximumRadiatorTempInSpace;
@@ -621,6 +623,10 @@ namespace FNPlugin
             explode_counter = 0;
 
             DetermineGenerationType();
+
+            maximumRadiatorTempInSpace = (float)PluginHelper.RadiatorTemperatureMk6;
+            maxSpaceTempBonus = maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
+            temperatureRange = maximumRadiatorTempInSpace - drapperPoint;
 
             kspShader = Shader.Find(kspShaderLocation);
             maxRadiatorTemperature = (float)MaxRadiatorTemperature;
@@ -1044,10 +1050,10 @@ namespace FNPlugin
 
                 currentRadTemp = value;
                 partTempQueue.Enqueue(part.temperature);
-                if (partTempQueue.Count > 10)
+                if (partTempQueue.Count > 20)
                     partTempQueue.Dequeue();                
                 radTempQueue.Enqueue(currentRadTemp);
-                if (radTempQueue.Count > 10)
+                if (radTempQueue.Count > 20)
                     radTempQueue.Dequeue();
             }
         }

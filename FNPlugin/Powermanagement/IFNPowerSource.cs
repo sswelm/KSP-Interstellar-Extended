@@ -12,6 +12,8 @@ namespace FNPlugin.Redist
 
         double EngineHeatProductionMult { get; }
 
+        double EngineWasteheatProductionMult { get; }
+
         double MinCoolingFactor { get; }
     }
 }

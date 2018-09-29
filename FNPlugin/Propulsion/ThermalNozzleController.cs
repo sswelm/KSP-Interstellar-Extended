@@ -168,19 +168,16 @@ namespace FNPlugin
         public double radiusHeatProductionExponent = 0.3;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Heat Multiplier")]
         public double radiusHeatProductionMult = 10;
-
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Base")]
-        public double heatProductionBase = 2e-4;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Multiplier")]
         public double heatProductionMultiplier = 1;
 
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Isp modifier")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Isp modifier")]
         public double ispHeatModifier;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Radius modifier")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius modifier")]
         public double radiusHeatModifier;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Power To Mass")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Power To Mass")]
         public double powerToMass;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Space Heat Production")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Space Heat Production")]
         public double spaceHeatProduction = 100;
 
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
@@ -1305,7 +1302,7 @@ namespace FNPlugin
 
                     var baseWasteheatEfficiency = _maxISP > GameConstants.MaxThermalNozzleIsp ? wasteheatEfficiencyHighTemperature : wasteheatEfficiencyLowTemperature;
 
-                    wasteheatEfficiencyModifier = 1 - (1 - baseWasteheatEfficiency / _fuelCoolingFactor) * _myAttachedReactor.ThermalPropulsionWasteheatModifier;
+                    wasteheatEfficiencyModifier = 1 - ((1 - baseWasteheatEfficiency) * AttachedReactor.EngineWasteheatProductionMult * AttachedReactor.ThermalPropulsionWasteheatModifier / _fuelCoolingFactor);
 
                     consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }

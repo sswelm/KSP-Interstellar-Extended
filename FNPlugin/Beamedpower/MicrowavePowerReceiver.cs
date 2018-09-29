@@ -142,6 +142,8 @@ namespace FNPlugin
         [KSPField]
         public double engineHeatProductionMult = 1;
         [KSPField]
+        public double engineWasteheatProductionMult = 1;
+        [KSPField]
         public double heatTransportationEfficiency = 0.7;
         [KSPField]
         public double powerHeatExponent = 0.7;
@@ -309,6 +311,7 @@ namespace FNPlugin
         public double MinCoolingFactor { get { return minCoolingFactor; } }
 
         public double EngineHeatProductionMult { get { return engineHeatProductionMult; } }
+        public double EngineWasteheatProductionMult { get { return engineWasteheatProductionMult; } }
 
         public int ReceiverType { get { return receiverType; } }
 
