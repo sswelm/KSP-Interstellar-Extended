@@ -20,7 +20,7 @@ namespace FNPlugin
         //[KSPField(isPersistant = true)]
         //public double science_to_add;
 
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Activity")]
         public string statusTitle;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
         public string powerStr;
@@ -117,7 +117,7 @@ namespace FNPlugin
             play_down = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Antimatter Factory", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Activate Antimatter Production", active = true)]
         public void ActivateFactory() 
         {
             if (crew_capacity_ratio == 0) return;

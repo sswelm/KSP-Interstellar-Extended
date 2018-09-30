@@ -42,13 +42,13 @@ namespace FNPlugin
 
             // determine number of upgrade techs
             NrAvailableUpgradeTechs = 1;
-            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech4))
+            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech4))
                 NrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
+            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech3))
                 NrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech2))
+            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech2))
                 NrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech1))
+            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech1))
                 NrAvailableUpgradeTechs++;
 
             // determine fusion tech levels
@@ -63,17 +63,18 @@ namespace FNPlugin
             else
                 CurrentGenerationType = GenerationType.Mk1;
 
-            MaxVacuumTemperatureTitanium = PluginHelper.RadiatorTemperatureMk4;
+            MaxVacuumTemperatureTitanium = RadiatorProperties.RadiatorTemperatureMk4;
+
             if (CurrentGenerationType == GenerationType.Mk5)
-                MaxVacuumTemperatureGraphene = PluginHelper.RadiatorTemperatureMk5;
+                MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk5;
             else if (CurrentGenerationType == GenerationType.Mk4)
-                MaxVacuumTemperatureGraphene = PluginHelper.RadiatorTemperatureMk4;
+                MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk4;
             else if (CurrentGenerationType == GenerationType.Mk3)
-                MaxVacuumTemperatureTitanium = MaxVacuumTemperatureGraphene = PluginHelper.RadiatorTemperatureMk3;
+                MaxVacuumTemperatureTitanium = MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk3;
             else if (CurrentGenerationType == GenerationType.Mk2)
-                MaxVacuumTemperatureTitanium = MaxVacuumTemperatureGraphene = PluginHelper.RadiatorTemperatureMk2;
+                MaxVacuumTemperatureTitanium = MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk2;
             else
-                MaxVacuumTemperatureTitanium = MaxVacuumTemperatureGraphene = PluginHelper.RadiatorTemperatureMk1;
+                MaxVacuumTemperatureTitanium = MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk1;
         }
 
         public FNRadiator UpdatingRadiator { get; private set;}
@@ -389,16 +390,16 @@ namespace FNPlugin
         private double GetMaximumTemperatureForGen(GenerationType generation)
         {
             if (generation == GenerationType.Mk6)
-                return PluginHelper.RadiatorTemperatureMk6;
+                return RadiatorProperties.RadiatorTemperatureMk6;
             if (generation == GenerationType.Mk5)
-                return PluginHelper.RadiatorTemperatureMk5;
+                return RadiatorProperties.RadiatorTemperatureMk5;
             if (generation == GenerationType.Mk4)
-                return PluginHelper.RadiatorTemperatureMk4;
+                return RadiatorProperties.RadiatorTemperatureMk4;
             if (generation == GenerationType.Mk3)
-                return PluginHelper.RadiatorTemperatureMk3;
+                return RadiatorProperties.RadiatorTemperatureMk3;
             if (generation == GenerationType.Mk2)
-                return PluginHelper.RadiatorTemperatureMk2;
-            return PluginHelper.RadiatorTemperatureMk1;
+                return RadiatorProperties.RadiatorTemperatureMk2;
+            return RadiatorProperties.RadiatorTemperatureMk1;
         }
 
         public double EffectiveRadiatorArea
@@ -420,15 +421,15 @@ namespace FNPlugin
 
             // determine number of upgrade techs
             nrAvailableUpgradeTechs = 1;
-            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech5))
+            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech5))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech4))
+            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech4))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech3))
+            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech3))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech2))
+            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech2))
                 nrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(PluginHelper.RadiatorUpgradeTech1))
+            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech1))
                 nrAvailableUpgradeTechs++;
 
             // determine fusion tech levels
@@ -624,7 +625,7 @@ namespace FNPlugin
 
             DetermineGenerationType();
 
-            maximumRadiatorTempInSpace = (float)PluginHelper.RadiatorTemperatureMk6;
+            maximumRadiatorTempInSpace = (float)RadiatorProperties.RadiatorTemperatureMk6;
             maxSpaceTempBonus = maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
             temperatureRange = maximumRadiatorTempInSpace - drapperPoint;
 
@@ -737,8 +738,8 @@ namespace FNPlugin
 
             isGraphene = !String.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
 
-            maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk4, maxRadiatorTemperature);
-            maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)PluginHelper.RadiatorTemperatureMk4, maxRadiatorTemperature);
+            maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)RadiatorProperties.RadiatorTemperatureMk4, maxRadiatorTemperature);
+            maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)RadiatorProperties.RadiatorTemperatureMk4, maxRadiatorTemperature);
 
             UpdateMaxCurrentTemperature();
 
@@ -1066,10 +1067,14 @@ namespace FNPlugin
         public override string GetInfo()
         {
             DetermineGenerationType();
+
+            RadiatorProperties.Initialize();
+
             effectiveRadiatorArea = EffectiveRadiatorArea;
             stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
 
             var sb = new StringBuilder();
+            sb.Append("<size=11>");
 
             sb.Append(String.Format("Base surface area: {0:F2} m\xB2 \n", radiatorArea));
             sb.Append(String.Format("Surface area / Mass : {0:F2}\n", radiatorArea / part.mass));
@@ -1077,21 +1082,23 @@ namespace FNPlugin
             sb.Append(String.Format("Surface Area Bonus: {0:P0}\n", String.IsNullOrEmpty(surfaceAreaUpgradeTechReq) ? 0 : surfaceAreaUpgradeMult - 1 ));
             sb.Append(String.Format("Atm Convection Bonus: {0:P0}\n", convectiveBonus - 1));
 
-            sb.Append(String.Format("\nMaximum Waste Heat Radiated\nMk1: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk1, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk1, 4)));
+            sb.Append(String.Format("\nMaximum Waste Heat Radiated\nMk1: {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk1, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk1, 4)));
 
-            sb.Append(String.Format("Mk2: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk2, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk2, 4)));
-            sb.Append(String.Format("Mk3: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk3, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk3, 4)));
-            sb.Append(String.Format("Mk4: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk4, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk4, 4)));
+            sb.Append(String.Format("Mk2: {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk2, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk2, 4)));
+            sb.Append(String.Format("Mk3: {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk3, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk3, 4)));
+            sb.Append(String.Format("Mk4: {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk4, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk4, 4)));
 
             if (String.IsNullOrEmpty(surfaceAreaUpgradeTechReq)) return sb.ToString();
 
-            sb.Append(String.Format("Mk5: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk5, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk5, 4)));
-            sb.Append(String.Format("Mk6: {0:F0} K {1:F3} MW\n", PluginHelper.RadiatorTemperatureMk6, stefanArea * Math.Pow(PluginHelper.RadiatorTemperatureMk6, 4)));
+            sb.Append(String.Format("Mk5: {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk5, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk5, 4)));
+            sb.Append(String.Format("Mk6: {0:F0} K {1:F3} MW\n", RadiatorProperties.RadiatorTemperatureMk6, stefanArea * Math.Pow(RadiatorProperties.RadiatorTemperatureMk6, 4)));
 
             var convection = 0.9 * effectiveRadiatorArea * convectiveBonus;
             var disapation = stefanArea * Math.Pow(900, 4);
 
             sb.Append(String.Format("\nMaximum @ 1 atmosphere : 1200 K, dissipation: {0:F3} MW\n, convection: {1:F3} MW\n", disapation, convection));
+
+            sb.Append("</size>");
 
             return sb.ToString();
         }
