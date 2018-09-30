@@ -26,8 +26,8 @@ namespace FNPlugin
 
             GameEvents.onGameStateSaved.Add(OnGameStateSaved);
             GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
-            //GameEvents.onDockingComplete.Add(OnDockingComplete);
-            //GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
+            GameEvents.onDockingComplete.Add(OnDockingComplete);
+            GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
 
             Debug.Log("[KSPI] - GameEventSubscriber Initialised");
         }
