@@ -57,6 +57,10 @@ namespace InterstellarFuelSwitch
         public float primaryConversionEnergyMult = 1;
         [KSPField]
         public float secondaryConversionEnergMult = 1;
+        [KSPField(guiActive = true, guiUnits = " U/s")]
+        public float primaryChange;
+        [KSPField(guiActive = true, guiUnits = " U/s")]
+        public float secondaryChange;
 
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double primaryconversionRatio;
@@ -101,6 +105,8 @@ namespace InterstellarFuelSwitch
         PartResourceDefinition definitionPrimaryPowerResource;
         PartResourceDefinition definitionSecondaryPowerResource;
 
+        BaseField primaryChangeField;
+        BaseField secondaryChangeField;
         BaseField convertPercentageField;
         List<ResourceStats> primaryResources;
         List<ResourceStats> secondaryResources;
@@ -119,6 +125,9 @@ namespace InterstellarFuelSwitch
             definitionPrimaryPowerResource = PartResourceLibrary.Instance.GetDefinition(primaryConversionEnergyResource);
             definitionSecondaryPowerResource = PartResourceLibrary.Instance.GetDefinition(secondaryConversionEnergResource);
 
+            primaryChangeField = Fields["primaryChange"];
+            secondaryChangeField = Fields["secondaryChange"];
+
             Fields["powerUsagePercentage"].guiActiveEditor = showPowerUsageFloatRange;
             Fields["powerUsagePercentage"].guiActive = showPowerUsageFloatRange;
 
@@ -126,6 +135,9 @@ namespace InterstellarFuelSwitch
 
             primaryResources = primaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) } ).ToList();
             secondaryResources = secondaryResourceNames.Split(';').Select(m => new ResourceStats() { definition = PartResourceLibrary.Instance.GetDefinition(m.Trim()) }).ToList();
+
+            primaryChangeField.guiName = primaryResources.First().definition.name;
+            secondaryChangeField.guiName = secondaryResources.First().definition.name;
 
             hasNullDefinitions = primaryResources.Any(m => m.definition == null) || secondaryResources.Any(m => m.definition == null);
             if (hasNullDefinitions)
@@ -234,6 +246,8 @@ namespace InterstellarFuelSwitch
             if (hasNullDefinitions)
             {
                 convertPercentageField.guiActive = false;
+                primaryChangeField.guiActive = false;
+                secondaryChangeField.guiActive = false;
                 return;
             }
 
@@ -252,6 +266,8 @@ namespace InterstellarFuelSwitch
             {
                  // hide interface and exit
                  convertPercentageField.guiActive = false;
+                 primaryChangeField.guiActive = false;
+                 secondaryChangeField.guiActive = false;
                  return;
             }
 
@@ -263,12 +279,13 @@ namespace InterstellarFuelSwitch
                 var resource = primaryResources[i];
                 double currentAmount;
                 double maxAmount;
-
                 part.GetConnectedResourceTotals(resource.definition.id, out currentAmount, out maxAmount);
 
                 if (maxAmount == 0)
                 {
                     convertPercentageField.guiActive = false;
+                    primaryChangeField.guiActive = false;
+                    secondaryChangeField.guiActive = false;
                     return;
                 }
 
@@ -286,6 +303,8 @@ namespace InterstellarFuelSwitch
                 if (maxAmount == 0)
                 {
                     convertPercentageField.guiActive = false;
+                    primaryChangeField.guiActive = false;
+                    secondaryChangeField.guiActive = false;
                     return;
                 }
 
@@ -294,16 +313,52 @@ namespace InterstellarFuelSwitch
             }
 
             convertPercentageField.guiActive = true;
+        }
 
-            if (convertPercentage == 0)
+        public void FixedUpdate()
+        {
+            if (HighLogic.LoadedSceneIsEditor)
                 return;
+
+            // only process if we have some meaningfull resource
+            if (!convertPercentageField.guiActive)
+                return;
+
+            for (var i = 0; i < primaryResources.Count; i++)
+            {
+                var resource = primaryResources[i];
+                double currentAmount;
+                double maxAmount;
+
+                part.GetConnectedResourceTotals(resource.definition.id, out currentAmount, out maxAmount);
+
+                if (maxAmount == 0)
+                    return;
+
+                resource.currentAmount = currentAmount;
+                resource.maxAmount = maxAmount;
+            }
+
+            for (var i = 0; i < secondaryResources.Count; i++)
+            {
+                var resource = secondaryResources[i];
+                double currentAmount;
+                double maxAmount;
+                part.GetConnectedResourceTotals(resource.definition.id, out currentAmount, out maxAmount);
+
+                if (maxAmount == 0)
+                    return;
+
+                resource.currentAmount = currentAmount;
+                resource.maxAmount = maxAmount;
+            }
 
             primaryResources.ForEach(m => m.amountRatio = m.currentAmount / m.maxAmount);
             secondaryResources.ForEach(m => m.amountRatio = m.currentAmount / m.maxAmount);
 
             var percentageRatio = Math.Abs(convertPercentage) / 100d;
 
-            if (convertPercentage > 0 )
+            if (convertPercentage > 0)
             {
                 if (secondaryResources.Any(m => percentageRatio > m.amountRatio))
                 {
@@ -333,12 +388,6 @@ namespace InterstellarFuelSwitch
                     primaryResources.ForEach(m => m.retrieveAmount = Math.Min((Math.Max(m.amountRatio - percentageRatio, 0)) * m.maxAmount, availableSpaceInTarget));
                 }
             }
-        }
-
-        public void FixedUpdate()
-        {
-            if (HighLogic.LoadedSceneIsEditor)
-                return;
 
             transferRate = 0;
             conversionRatio = 0;
@@ -373,7 +422,13 @@ namespace InterstellarFuelSwitch
                     }
 
                     var fixedRequest = Math.Min(fixedTransferRate, primaryResource.retrieveAmount);
-                    var receivedSourceAmountFixed = part.RequestResource(primaryResource.definition.id, fixedRequest * powerReceivedRatio);
+
+                    var fixedPrimaryRequest = fixedRequest * powerReceivedRatio;
+
+                    var receivedSourceAmountFixed = part.RequestResource(primaryResource.definition.id, fixedPrimaryRequest);
+
+                    primaryChange = -(float)(receivedSourceAmountFixed / TimeWarp.fixedDeltaTime);
+                    primaryChangeField.guiActive = primaryChange != 0;
 
                     double createdAmount = 0;
 
@@ -382,7 +437,14 @@ namespace InterstellarFuelSwitch
                         var secondary = secondaryResources[j];
                         conversionRatio = secondary.conversionRatio;
                         var requestedTargetAmount = -receivedSourceAmountFixed * conversionRatio;
-                        var receivedTargetAmount = part.RequestResource(secondary.definition.id, requestedTargetAmount) / conversionRatio;
+
+                        var secondaryRequestResult = part.RequestResource(secondary.definition.id, requestedTargetAmount);
+
+                        secondaryChange = -(float)(secondaryRequestResult / TimeWarp.fixedDeltaTime);
+                        secondaryChangeField.guiActive = secondaryChange != 0;
+
+                        var receivedTargetAmount = secondaryRequestResult / conversionRatio;
+
                         createdAmount += receivedTargetAmount;
                     }
 
@@ -423,6 +485,9 @@ namespace InterstellarFuelSwitch
                     var fixedRequest = Math.Min(fixedTransferRate, secondaryResource.retrieveAmount);
                     var receivedSourceAmountFixed = part.RequestResource(secondaryResource.definition.id, fixedRequest * powerReceiverRatio);
 
+                    secondaryChange = -(float)(receivedSourceAmountFixed / TimeWarp.fixedDeltaTime);
+                    secondaryChangeField.guiActive = secondaryChange != 0;
+
                     double createdAmount = 0;
 
                     for (var j = 0; j < primaryResources.Count; j++)
@@ -430,7 +495,14 @@ namespace InterstellarFuelSwitch
                         var primary = primaryResources[j];
                         conversionRatio = primary.conversionRatio;
                         var requestedTargetAmount = -receivedSourceAmountFixed * conversionRatio;
-                        var receivedTargetAmount = part.RequestResource(primary.definition.id, requestedTargetAmount) / conversionRatio;
+
+                        var primaryRequestResult = part.RequestResource(primary.definition.id, requestedTargetAmount);
+
+                        primaryChange = -(float)(primaryRequestResult / TimeWarp.fixedDeltaTime);
+                        primaryChangeField.guiActive = primaryChange != 0;
+                        
+                        var receivedTargetAmount = primaryRequestResult / conversionRatio;
+
                         createdAmount += receivedTargetAmount;
                     }
 
