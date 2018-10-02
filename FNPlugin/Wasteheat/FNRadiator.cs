@@ -193,6 +193,11 @@ namespace FNPlugin
 
         [KSPField]
         public string colorHeat = "_EmissiveColor";
+        [KSPField]
+        public string emissiveTextureLocation;
+        [KSPField]
+        public string bumpMapTextureLocation;
+
         [KSPField(guiActive = false, guiName = "Atmosphere Modifier")]
         public double atmosphere_modifier;
         [KSPField(guiName = "Type")]
@@ -224,7 +229,7 @@ namespace FNPlugin
         [KSPField(guiName = "Max Energy Transfer", guiFormat = "F2")]
         private double _maxEnergyTransfer;
         [KSPField(guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
-        public float maxRadiatorTemperature = 4500;
+        public float maxRadiatorTemperature = maximumRadiatorTempInSpace;
         [KSPField(guiName = "Upgrade Techs")]
         public int nrAvailableUpgradeTechs;
         [KSPField(guiName = "Has Surface Upgrade")]
@@ -714,8 +719,8 @@ namespace FNPlugin
 
             if (_moduleActiveRadiator != null)
             {
-                var generationValue = 1 + ((int)CurrentGenerationType);
-                _maxEnergyTransfer = radiatorArea * 2500 * Math.Pow(generationValue, 1.5);
+                var generationValue = 2 + ((int)CurrentGenerationType);
+                _maxEnergyTransfer = radiatorArea * 2000 * Math.Pow(generationValue, 1.5);
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
                 _moduleActiveRadiator.overcoolFactor = 0.20 + ((int)CurrentGenerationType * 0.025);
             }
@@ -1052,7 +1057,7 @@ namespace FNPlugin
                 currentRadTemp = value;
                 partTempQueue.Enqueue(part.temperature);
                 if (partTempQueue.Count > 20)
-                    partTempQueue.Dequeue();                
+                    partTempQueue.Dequeue();
                 radTempQueue.Enqueue(currentRadTemp);
                 if (radTempQueue.Count > 20)
                     radTempQueue.Dequeue();
@@ -1158,6 +1163,19 @@ namespace FNPlugin
                     if (renderer.material.shader != null && renderer.material.shader.name != kspShaderLocation)
                         renderer.material.shader = kspShader;
 
+                    if (!string.IsNullOrEmpty(emissiveTextureLocation))
+                    {
+                        if (renderer.material.GetTexture("_Emissive") == null)
+                            renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture(emissiveTextureLocation, false));
+                    }
+
+                    if (!string.IsNullOrEmpty(bumpMapTextureLocation))
+                    {
+                        if (renderer.material.GetTexture("_BumpMap") == null)
+                            renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture(bumpMapTextureLocation, false));
+                    }
+
+                    // ToDo: remove and add it to part configuration files
                     if (startWithCircradiator)
                     {
                         if (renderer.material.GetTexture("_Emissive") == null)
@@ -1181,7 +1199,6 @@ namespace FNPlugin
                     }
 
                     renderer.material.SetColor(colorHeat, emissiveColor);
-
                 }
             }
         }
