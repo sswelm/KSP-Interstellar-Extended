@@ -183,10 +183,11 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max FuelFlow On Engine")]
-        public double maxFuelFlowOnEngine;
+        public float maxFuelFlowOnEngine;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Thrust On Engine")]
-        public double maxThrustOnEngine;
-
+        public float maxThrustOnEngine;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "real Isp Engine")]
+        public float realIspEngine;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F5")]
         public double pressureThreshold;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested ThermalHeat", guiUnits = " MJ", guiFormat = "F3")]
@@ -1329,12 +1330,18 @@ namespace FNPlugin
                     powerHeatModifier = GetPowerThrustModifier() * GetHeatThrustModifier();
 
                     engineMaxThrust = Math.Max(powerHeatModifier * power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor, 0.000001);
-                    calculatedMaxThrust = maximumPowerUsageForPropulsionRatio * powerHeatModifier * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
+
+                    expectedMaxThrust = powerHeatModifier * maximumPowerUsageForPropulsionRatio * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
+
+                    myAttachedEngine.maxThrust = (float)Math.Max(expectedMaxThrust, 0.000001);
+
+                    calculatedMaxThrust = expectedMaxThrust;
                 }
                 else
                 {
-                    engineMaxThrust = 0.000001;
+                    engineMaxThrust = 0;
                     calculatedMaxThrust = 0;
+                    expectedMaxThrust = 0;
                 }
 
                 max_thrust_in_space = engineMaxThrust;
@@ -1454,13 +1461,14 @@ namespace FNPlugin
                 {
                     maxFuelFlowOnEngine = myAttachedEngine.maxFuelFlow;
                     maxThrustOnEngine = myAttachedEngine.maxThrust;
+                    realIspEngine = myAttachedEngine.realIsp;
 
                     //engineHeatProduction = (currentEngineFuelFlow >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.0001 && myAttachedEngine.currentThrottle > 0)
                     //    ? 0.5 * myAttachedEngine.currentThrottle * Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / currentEngineFuelFlow / _maxISP / part.mass
                     //    : 1;
 
-                    ispHeatModifier = isPlasmaNozzle ? 0.5 * Approximate.Sqrt(myAttachedEngine.realIsp) : 5 * Approximate.Sqrt(myAttachedEngine.realIsp);
-                    powerToMass = Approximate.Sqrt(myAttachedEngine.maxThrust / part.mass);
+                    ispHeatModifier = isPlasmaNozzle ? 0.5 * Approximate.Sqrt(realIspEngine) : 5 * Approximate.Sqrt(realIspEngine);
+                    powerToMass = Approximate.Sqrt(maxThrustOnEngine / part.mass);
                     radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     var reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
                     spaceHeatProduction = heatProductionMultiplier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
