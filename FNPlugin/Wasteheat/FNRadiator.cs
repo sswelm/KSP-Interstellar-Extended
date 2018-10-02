@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace FNPlugin 
+namespace FNPlugin.Wasteheat 
 {
     class RadiatorManager
     {

@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using FNPlugin.Constants;
+﻿using FNPlugin.Constants;
 using FNPlugin.Redist;
+using FNPlugin.Wasteheat;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FNPlugin 

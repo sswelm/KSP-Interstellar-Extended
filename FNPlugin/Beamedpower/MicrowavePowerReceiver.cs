@@ -5,6 +5,7 @@ using FNPlugin.Microwave;
 using FNPlugin.Power;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
+using FNPlugin.Wasteheat;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,5 +1,6 @@
 using FNPlugin.Constants;
 using FNPlugin.Power;
+using FNPlugin.Wasteheat;
 using System;
 using System.Collections.Generic;
 using System.Linq;

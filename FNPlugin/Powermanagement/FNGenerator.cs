@@ -1,6 +1,7 @@
 using FNPlugin.Extensions;
 using FNPlugin.Power;
 using FNPlugin.Redist;
+using FNPlugin.Wasteheat;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
