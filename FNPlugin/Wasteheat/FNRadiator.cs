@@ -719,8 +719,11 @@ namespace FNPlugin.Wasteheat
 
             if (_moduleActiveRadiator != null)
             {
-                var generationValue = 2 + ((int)CurrentGenerationType);
-                _maxEnergyTransfer = radiatorArea * 2000 * Math.Pow(generationValue, 1.5);
+                //var generationValue = 2 + ((int)CurrentGenerationType);
+                //_maxEnergyTransfer = radiatorArea * 2000 * Math.Pow(generationValue, 1.5);
+                //_maxEnergyTransfer = radiatorArea * 1000 * Math.Pow(2, (int)CurrentGenerationType);
+                _maxEnergyTransfer = radiatorArea * PhysicsGlobals.StefanBoltzmanConstant * Math.Pow(MaxRadiatorTemperature, 4) * 0.001;
+
                 _moduleActiveRadiator.maxEnergyTransfer = _maxEnergyTransfer;
                 _moduleActiveRadiator.overcoolFactor = 0.20 + ((int)CurrentGenerationType * 0.025);
             }
