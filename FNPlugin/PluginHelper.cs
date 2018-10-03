@@ -42,8 +42,8 @@ namespace FNPlugin
 
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
             GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
-            //GameEvents.onDockingComplete.Remove(OnDockingComplete);
-            //GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
+            GameEvents.onDockingComplete.Remove(OnDockingComplete);
+            GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
 
             Debug.Log("[KSPI] - GameEventSubscriber Deinitialised");
         }
