@@ -1089,23 +1089,14 @@ namespace FNPlugin
 
         public void FixedUpdate() // FixedUpdate is also called while not staged
         {
+            if (!HighLogic.LoadedSceneIsFlight || myAttachedEngine == null) return;
+
             try
             {
-                if (!HighLogic.LoadedSceneIsFlight || myAttachedEngine == null)
-                {
-                    return;
-                }
-
                 ConfigEffects();
 
                 currentThrottle = myAttachedEngine.currentThrottle;
                 requestedThrottle = myAttachedEngine.requestedThrottle;
-
-                if (_myAttachedReactor.Part != this.part)
-                {
-                    resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-                    resourceBuffers.UpdateBuffers();
-                }
 
                 if (AttachedReactor == null)
                 {
@@ -1116,6 +1107,12 @@ namespace FNPlugin
                     }
                     myAttachedEngine.maxFuelFlow = 0.0000000001f;
                     return;
+                }
+
+                if (_myAttachedReactor.Part != this.part)
+                {
+                    resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                    resourceBuffers.UpdateBuffers();
                 }
 
                 // attach/detach with radius
