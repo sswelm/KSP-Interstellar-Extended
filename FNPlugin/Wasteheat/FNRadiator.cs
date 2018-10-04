@@ -641,7 +641,7 @@ namespace FNPlugin.Wasteheat
             isGraphene = !String.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
 
             maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)RadiatorProperties.RadiatorTemperatureMk4, maxRadiatorTemperature);
-            maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)RadiatorProperties.RadiatorTemperatureMk4, maxRadiatorTemperature);
+            maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)RadiatorProperties.RadiatorTemperatureMk3, maxRadiatorTemperature);
 
             UpdateMaxCurrentTemperature();
 
