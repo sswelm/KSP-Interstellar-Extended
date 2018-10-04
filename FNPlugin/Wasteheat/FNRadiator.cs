@@ -8,112 +8,6 @@ using UnityEngine;
 
 namespace FNPlugin.Wasteheat 
 {
-    class RadiatorManager
-    {
-        private static Dictionary<Vessel, RadiatorManager> managers = new Dictionary<Vessel,RadiatorManager>();
-
-        public static RadiatorManager Update(FNRadiator radiator)
-        {
-            RadiatorManager manager;
-
-            managers.TryGetValue(radiator.vessel, out manager);
-
-            if (manager == null || manager.UpdatingRadiator == null || (manager.UpdatingRadiator != radiator && manager.Counter < radiator.updateCounter))
-                manager = CreateManager(radiator);
-
-            if (manager != null && manager.UpdatingRadiator == radiator)
-                manager.Update();
-
-            return manager;
-        }
-
-        private static RadiatorManager CreateManager(FNRadiator radiator)
-        {
-            RadiatorManager manager = new RadiatorManager(radiator);
-
-            managers[radiator.vessel] = manager;
-
-            return manager;
-        }
-
-        private RadiatorManager(FNRadiator radiator)
-        {
-            UpdatingRadiator = radiator;
-
-            // determine number of upgrade techs
-            NrAvailableUpgradeTechs = 1;
-            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech4))
-                NrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech3))
-                NrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech2))
-                NrAvailableUpgradeTechs++;
-            if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech1))
-                NrAvailableUpgradeTechs++;
-
-            // determine fusion tech levels
-            if (NrAvailableUpgradeTechs == 5)
-                CurrentGenerationType = GenerationType.Mk5;
-            else if (NrAvailableUpgradeTechs == 4)
-                CurrentGenerationType = GenerationType.Mk4;
-            else if (NrAvailableUpgradeTechs == 3)
-                CurrentGenerationType = GenerationType.Mk3;
-            else if (NrAvailableUpgradeTechs == 2)
-                CurrentGenerationType = GenerationType.Mk2;
-            else
-                CurrentGenerationType = GenerationType.Mk1;
-
-            MaxVacuumTemperatureTitanium = RadiatorProperties.RadiatorTemperatureMk4;
-
-            if (CurrentGenerationType == GenerationType.Mk5)
-                MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk5;
-            else if (CurrentGenerationType == GenerationType.Mk4)
-                MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk4;
-            else if (CurrentGenerationType == GenerationType.Mk3)
-                MaxVacuumTemperatureTitanium = MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk3;
-            else if (CurrentGenerationType == GenerationType.Mk2)
-                MaxVacuumTemperatureTitanium = MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk2;
-            else
-                MaxVacuumTemperatureTitanium = MaxVacuumTemperatureGraphene = RadiatorProperties.RadiatorTemperatureMk1;
-        }
-
-        public FNRadiator UpdatingRadiator { get; private set;}
-        public GenerationType CurrentGenerationType { get; private set; }
-        public int NrAvailableUpgradeTechs { get; private set; }
-        public long Counter { get; private set; }
-        public double WasteHeatRatio { get; private set; }
-        public double MaxVacuumTemperatureGraphene { get; private set; }
-        public double MaxVacuumTemperatureTitanium { get; private set; }
-
-        private double external_temperature;
-
-        public void Update()
-        {
-            Counter = UpdatingRadiator.updateCounter;
-
-            WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-            var sqrtWasteHeatRatio = Approximate.Sqrt((float)WasteHeatRatio);
-
-            if (Double.IsNaN(WasteHeatRatio))
-            {
-                Debug.LogError("KSPI - FNRadiator: FixedUpdate Single.IsNaN detected in WasteHeatRatio");
-                return;
-            }
-            external_temperature = FlightGlobals.getExternalTemperature(UpdatingRadiator.vessel.transform.position);
-            var normalized_atmosphere = Math.Min(UpdatingRadiator.vessel.atmDensity, 1);
-
-            // titanium radiator
-            var radiator_temperature_temp_val_titanium = external_temperature + Math.Min((MaxVacuumTemperatureTitanium - external_temperature) * sqrtWasteHeatRatio, MaxVacuumTemperatureTitanium - external_temperature);
-
-            // graphene radiator
-            var atmosphereModifierVacuum = Math.Max(Math.Min(1 - UpdatingRadiator.vessel.atmDensity, 1), 0);
-            var atmosphereModifierAtmosphere = Math.Max(normalized_atmosphere, 0);
-            var maxCurrentTemperatureGraphene = 1200 * atmosphereModifierAtmosphere + MaxVacuumTemperatureGraphene * atmosphereModifierVacuum;
-            var radiator_temperature_temp_val_graphene = external_temperature + Math.Min((MaxVacuumTemperatureGraphene - external_temperature) * sqrtWasteHeatRatio, maxCurrentTemperatureGraphene - external_temperature);
-        }
-    }
-
-
     [KSPModule("Radiator")]
     class StackFNRadiator : FNRadiator { }
 
@@ -145,11 +39,11 @@ namespace FNPlugin.Wasteheat
 
         // non persistant
         [KSPField(guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
-        public float maxVacuumTemperature = 4500;
+        public float maxVacuumTemperature = maximumRadiatorTempInSpace;
         [KSPField(guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
-        public float maxAtmosphereTemperature = 1200;
+        public float maxAtmosphereTemperature = maximumRadiatorTempAtOneAtmosphere;
         [KSPField(guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
-        public double maxCurrentRadiatorTemperature = 1200;
+        public double maxCurrentRadiatorTemperature = maximumRadiatorTempAtOneAtmosphere;
         [KSPField(guiName = "Space Radiator Bonus", guiFormat = "F0", guiUnits = "K")]
         public double spaceRadiatorBonus;
         [KSPField]
@@ -261,8 +155,8 @@ namespace FNPlugin.Wasteheat
         private double oxidationModifier;
 
         public double external_temperature;
-        public double temperatureDifferenceCurrentWithExternal;
-        public double temperatureDifferenceMaximumWithExternal;
+        public double currentTemperatureDifferenceWithExternal;
+        public double maximumTemperatureDifferenceWithExternal;
 
         private bool active;
         private bool isGraphene;
@@ -820,8 +714,8 @@ namespace FNPlugin.Wasteheat
                 part.maxTemp = maxCurrentRadiatorTemperature;
             }
 
-            temperatureDifferenceCurrentWithExternal = maxCurrentRadiatorTemperature - external_temperature;
-            temperatureDifferenceMaximumWithExternal = maxRadiatorTemperature - external_temperature;
+            currentTemperatureDifferenceWithExternal = maxCurrentRadiatorTemperature - external_temperature;
+            maximumTemperatureDifferenceWithExternal = maxRadiatorTemperature - external_temperature;
 
             thermalPowerConvStrField.guiActive = convectedThermalPower > 0;
 
@@ -915,20 +809,21 @@ namespace FNPlugin.Wasteheat
                 ResourceManager wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
                 wasteheatRatio = wasteheatManager.ResourceBarRatioBegin;
 
-                if (Double.IsNaN(wasteheatRatio))
+                if (Double.IsNaN(wasteheatManager.ResourceBarRatioBegin))
                 {
                     Debug.LogError("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in wasteheatRatio");
                     return;
                 }
 
-                radiator_temperature_temp_val = external_temperature + Math.Min(temperatureDifferenceMaximumWithExternal * wasteheatManager.SqrtResourceBarRatioBegin, temperatureDifferenceCurrentWithExternal);
+                // ToDo replace wasteheatManager.SqrtResourceBarRatioBegin by ResourceBarRatioBegin after generators hotbath takes into account expected temperature
+                radiator_temperature_temp_val = external_temperature + Math.Min(maximumTemperatureDifferenceWithExternal * wasteheatManager.SqrtResourceBarRatioBegin, currentTemperatureDifferenceWithExternal);
 
                 var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * Math.Min(1, vessel.atmDensity), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
                 {
-                    if (!CheatOptions.IgnoreMaxTemperature && wasteheatRatio >= 1 && CurrentRadiatorTemperature >= maxRadiatorTemperature)
+                    if (!CheatOptions.IgnoreMaxTemperature && wasteheatManager.ResourceBarRatioBegin >= 1 && CurrentRadiatorTemperature >= maxRadiatorTemperature)
                     {
                         explode_counter++;
                         if (explode_counter > 25)
@@ -1179,27 +1074,27 @@ namespace FNPlugin.Wasteheat
                     }
 
                     // ToDo: remove and add it to part configuration files
-                    if (startWithCircradiator)
-                    {
-                        if (renderer.material.GetTexture("_Emissive") == null)
-                            renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_e", false));
+                    //if (startWithCircradiator)
+                    //{
+                    //	if (renderer.material.GetTexture("_Emissive") == null)
+                    //		renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_e", false));
 
-                        if (renderer.material.GetTexture("_BumpMap") == null)
-                            renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_n", false));
-                    }
-                    else if (startWithRadialRadiator)
-                    {
-                        if (renderer.material.GetTexture("_Emissive") == null)
-                            renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/RadialHeatRadiator/d_glow", false));
-                    }
-                    else if (startWithLargeFlatRadiator)
-                    {
-                        if (renderer.material.GetTexture("_Emissive") == null)
-                            renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/glow", false));
+                    //	if (renderer.material.GetTexture("_BumpMap") == null)
+                    //		renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_n", false));
+                    //}
+                    //else if (startWithRadialRadiator)
+                    //{
+                    //	if (renderer.material.GetTexture("_Emissive") == null)
+                    //		renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/RadialHeatRadiator/d_glow", false));
+                    //}
+                    //else if (startWithLargeFlatRadiator)
+                    //{
+                    //	if (renderer.material.GetTexture("_Emissive") == null)
+                    //		renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/glow", false));
 
-                        if (renderer.material.GetTexture("_BumpMap") == null)
-                            renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/radtex_n", false));
-                    }
+                    //	if (renderer.material.GetTexture("_BumpMap") == null)
+                    //		renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/radtex_n", false));
+                    //}
 
                     renderer.material.SetColor(colorHeat, emissiveColor);
                 }
