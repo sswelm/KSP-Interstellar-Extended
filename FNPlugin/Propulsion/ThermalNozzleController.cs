@@ -175,6 +175,9 @@ namespace FNPlugin
         public double ispHeatModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius modifier")]
         public double radiusHeatModifier;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production Mult")]
+        public double engineHeatProductionMult;
+
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Power To Mass")]
         public double powerToMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Space Heat Production")]
@@ -1467,7 +1470,9 @@ namespace FNPlugin
                     ispHeatModifier = isPlasmaNozzle ? 0.5 * Approximate.Sqrt(realIspEngine) : 5 * Approximate.Sqrt(realIspEngine);
                     powerToMass = Approximate.Sqrt(maxThrustOnEngine / part.mass);
                     radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
+                    engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
                     var reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
+                    
                     spaceHeatProduction = heatProductionMultiplier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
                     engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
 

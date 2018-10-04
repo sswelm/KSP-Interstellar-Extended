@@ -245,9 +245,9 @@ namespace FNPlugin.Reactors
         [KSPField]
         public int minCoolingFactor = 1;
         [KSPField]
-        double engineHeatProductionMult = 1;
+        public double engineHeatProductionMult = 1;
         [KSPField]
-        double plasmaHeatProductionMult = 1;
+        public double plasmaHeatProductionMult = 1;
         [KSPField]
         public double engineWasteheatProductionMult = 1;
         [KSPField]
