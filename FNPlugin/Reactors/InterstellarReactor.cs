@@ -14,7 +14,7 @@ using UnityEngine;
 namespace FNPlugin.Reactors
 {
     [KSPModule("#LOC_KSPIE_Reactor_moduleName")]
-    class InterstellarReactor : ResourceSuppliableModule, IFNPowerSource, IRescalable<InterstellarReactor>
+    class InterstellarReactor : ResourceSuppliableModule, IFNPowerSource, IRescalable<InterstellarReactor>, IPartCostModifier
     {
         //public enum ReactorTypes
         //{
@@ -243,6 +243,8 @@ namespace FNPlugin.Reactors
 
         // Settings
         [KSPField]
+        public bool calculateCost = false;
+        [KSPField]
         public int minCoolingFactor = 1;
         [KSPField]
         public double engineHeatProductionMult = 1;
@@ -270,6 +272,8 @@ namespace FNPlugin.Reactors
         public bool showShutDownInFlight = false;
         [KSPField]
         public double powerScaleExponent = 3;
+        [KSPField]
+        public double costScaleExponent = 2;
         [KSPField]
         public double safetyPowerReductionFraction = 0.95;
         [KSPField]
@@ -447,6 +451,14 @@ namespace FNPlugin.Reactors
         [KSPField]
         protected double safetyThrotleModifier;
 
+        [KSPField(guiActiveEditor = true, guiName = "Initial Cost")]
+        public float initialCost;
+        [KSPField(guiActiveEditor = true, guiName = "Calculated Cost")]
+        public float calculatedCost;
+
+        [KSPField(guiActiveEditor = true, guiName = "Module Cost")]
+        public float moduleCost;
+
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public float massDifference = 0;
@@ -550,6 +562,18 @@ namespace FNPlugin.Reactors
 
                 return powerRatio; 
             } 
+        }
+
+        public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
+        {
+            moduleCost = calculateCost ? (float)calculatedCost - initialCost : 0;
+
+            return moduleCost;
+        }
+
+        public ModifierChangeWhen GetModuleCostChangeWhen()
+        {
+            return ModifierChangeWhen.STAGED;
         }
 
         public double MinCoolingFactor { get { return minCoolingFactor; } }
@@ -738,8 +762,11 @@ namespace FNPlugin.Reactors
             try
             {
                 // calculate multipliers
-                Debug.Log("InterstellarReactor.OnRescale called with " + factor.absolute.linear);
+                Debug.Log("[KSPI] - InterstellarReactor.OnRescale called with " + factor.absolute.linear);
                 storedPowerMultiplier = Math.Pow(factor.absolute.linear, powerScaleExponent);
+
+                initialCost = part.partInfo.cost * Math.Pow(factor.absolute.linear, 3);
+                calculatedCost = part.partInfo.cost * Math.Pow(factor.absolute.linear, costScaleExponent);
 
                 // update power
                 DeterminePowerOutput();

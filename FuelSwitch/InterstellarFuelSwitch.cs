@@ -149,6 +149,8 @@ namespace InterstellarFuelSwitch
         public bool canSwitchWithFullTanks = false;
         [KSPField]
         public bool allowedToSwitch;
+        [KSPField]
+        public bool calculateCost = true;
 
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_tankGuiName")] // Tank name
@@ -159,6 +161,8 @@ namespace InterstellarFuelSwitch
         public string massRatioStr = "";
 
         // Debug
+        [KSPField]
+        public float moduleCost;
         [KSPField]
         public double dryMass;
         [KSPField]
@@ -1315,7 +1319,11 @@ namespace InterstellarFuelSwitch
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            return (float)UpdateCost();
+            var calculatedCost = (float)UpdateCost();
+
+			moduleCost = calculateCost ? calculatedCost : 0;
+
+            return moduleCost;
         }
 
         public ModifierChangeWhen GetModuleCostChangeWhen()
