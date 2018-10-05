@@ -604,7 +604,7 @@ namespace FNPlugin.Beamedpower
 
                 nuclear_power += 1000 * transmissionEfficiencyRatio * receivedPower;
 
-                solar_power += 1000 * solarCells.Sum(m => m.SolarPower);
+                solar_power += 1000 * transmissionEfficiencyRatio * solarCells.Sum(m => m.SolarPower);
 
                 // generate wasteheat for converting electric power to beamed power
                 if (!CheatOptions.IgnoreMaxTemperature)
