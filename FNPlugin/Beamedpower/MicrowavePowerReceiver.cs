@@ -115,7 +115,7 @@ namespace FNPlugin
         [KSPField]
         public string animGenericName = "";
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Receiver Diameter", guiUnits = " m")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Receiver Diameter", guiUnits = " m")]
         public float diameter = 1;
         [KSPField(isPersistant = false)]
         public bool isThermalReceiver = false;
@@ -123,9 +123,9 @@ namespace FNPlugin
         public bool isEnergyReceiver = true;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Is Slave")]
         public bool isThermalReceiverSlave = false;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Input Power", guiFormat = "F3", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Input Power", guiFormat = "F3", guiUnits = " MJ")]
         public double powerInputMegajoules = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Max Input Power", guiFormat = "F3", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Max Input Power", guiFormat = "F3", guiUnits = " MJ")]
         public double powerInputMegajoulesMax = 0;
 
         [KSPField(guiActiveEditor = false, guiActive = true, guiName = "Thermal Power", guiFormat = "F3", guiUnits = " MJ")]
@@ -194,7 +194,7 @@ namespace FNPlugin
         public double thermalPropulsionWasteheatModifier = 1;
 
         //GUI
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
         public float receiptPower = 100;
         [KSPField(guiActive = false, guiName = "Core Temperature")]
         public string coreTempererature;
@@ -1281,9 +1281,8 @@ namespace FNPlugin
             var isNotRelayingOrTransmitting = !linkedForRelay && !transmitterOn;
 
             _beamedpowerField.guiActive = isNotRelayingOrTransmitting;
-            _powerInputMegajoulesField.guiActive = isNotRelayingOrTransmitting;
+            //_powerInputMegajoulesField.guiActive = isNotRelayingOrTransmitting;
             _linkedForRelayField.guiActive = isNotRelayingOrTransmitting;
-            _diameterField.guiActive = isNotRelayingOrTransmitting;
 
             _slavesAmountField.guiActive = thermalMode;
             _ThermalPowerField.guiActive = isThermalReceiverSlave || thermalMode;
@@ -1304,9 +1303,9 @@ namespace FNPlugin
             if (receiverIsEnabled)
             {
                 if (ProducedThermalHeat > 1)
-                    beamedpower = (ProducedThermalHeat).ToString("0.00") + "MW";
+                    beamedpower = (ProducedThermalHeat).ToString("0.00") + " MW";
                 else
-                    beamedpower = (ProducedThermalHeat / 1000).ToString("0.00") + "KW";
+                    beamedpower = (ProducedThermalHeat * 1000).ToString("0.00") + " KW";
             }
             else
                 beamedpower = "Offline.";
@@ -1407,8 +1406,8 @@ namespace FNPlugin
 
             PrintToGUILayout("Type", part.partInfo.title, bold_black_style, text_black_style, 200, 400);
             PrintToGUILayout("Power Capacity Efficiency", (powerCapacityEfficiency * 100).ToString("0.0") + "%", bold_black_style, text_black_style, 200, 400);
-            PrintToGUILayout("Total Current Received Power", total_beamed_power.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
-            PrintToGUILayout("Total Maximum Received Power", total_beamed_power_max.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
+            PrintToGUILayout("Total Current Beamed Power", total_beamed_power.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
+            PrintToGUILayout("Total Maximum Beamed Power", total_beamed_power_max.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
             PrintToGUILayout("Total Wasteheat Production", total_beamed_wasteheat.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
 
             GUILayout.BeginHorizontal();
@@ -1766,10 +1765,10 @@ namespace FNPlugin
                     beamedPowerData.PowerUsageOthers = getEnumeratedPowerFromSatelliteForAllLoadedVessels(beamedPowerData.Transmitter);
 
                     // add to available network power
-                    beamedPowerData.NetworkPower = Math.Max(0, beamedPowerData.NetworkCapacity - beamedPowerData.PowerUsageOthers);
+                    beamedPowerData.NetworkPower = beamedPowerData.NetworkCapacity;
 
                     // initialize remaining power
-                    beamedPowerData.RemainingPower = beamedPowerData.NetworkPower;
+                    beamedPowerData.RemainingPower = Math.Max(0, beamedPowerData.NetworkCapacity - beamedPowerData.PowerUsageOthers);
 
                     foreach (var powerBeam in beamedPowerData.Transmitter.SupportedTransmitWavelengths)
                     {
