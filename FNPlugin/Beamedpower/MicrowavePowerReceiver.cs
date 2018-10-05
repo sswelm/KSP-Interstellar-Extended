@@ -20,7 +20,7 @@ namespace FNPlugin
     class MicrowavePowerReceiverDish: MicrowavePowerReceiver  {} // tweakscales with exponent 2.25
 
     [KSPModule("Beamed Power Receiver")]
-    class MicrowavePowerReceiver : ResourceSuppliableModule, IFNPowerSource, IElectricPowerGeneratorSource, IBeamedPowerReceiver // tweakscales with exponent 2.5
+    class MicrowavePowerReceiver : ResourceSuppliableModule, IFNPowerSource, IElectricPowerGeneratorSource, IBeamedPowerReceiver, ISolarPower // tweakscales with exponent 2.5
     {
         //Persistent True
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Bandwidth")]
@@ -85,6 +85,8 @@ namespace FNPlugin
         public double effectiveSolarThermalElectricEfficiency;
 
         [KSPField]
+        public double solar_supply;
+        [KSPField]
         public int instanceId;
         [KSPField]
         public double facingThreshold = 0;
@@ -138,8 +140,8 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "max Wavelength")]
         public double maximumWavelength = 1;
 
-		[KSPField]
-		public double minCoolingFactor = 1;
+        [KSPField]
+        public double minCoolingFactor = 1;
         [KSPField]
         public double engineHeatProductionMult = 1;
         [KSPField]
@@ -356,6 +358,8 @@ namespace FNPlugin
         public double ProducedChargedPower { get { return 0; } }
 
         public double PowerRatio { get { return receiptPower / 100.0; } }
+
+        public double SolarPower { get { return solar_supply; } }
 
         public double PowerCapacityEfficiency
         {
@@ -1916,21 +1920,21 @@ namespace FNPlugin
                 flowRateQueue.Dequeue();
 
             // ToDo: replace stabalizedFlowRate by calculated flow rate
-            var stabalizedFlowRate = flowRate == 0 ? 0 : flowRateQueue.Count > 10
+            solar_supply = flowRate == 0 ? 0 : flowRateQueue.Count > 10
                 ? flowRateQueue.OrderBy(m => m).Skip(10).Take(30).Average()
                 : flowRateQueue.Average() ;
 
             solarMaxSupply = deployableSolarPanel._distMult > 0
-                ? Math.Max(stabalizedFlowRate, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
-                : stabalizedFlowRate;
+                ? Math.Max(solar_supply, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
+                : solar_supply;
 
             // extract power otherwise we end up with double power
             if (deployableSolarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
             {
                 _solarFlowRateResource.rate = flowRate;
 
-                if (stabalizedFlowRate > 0)
-                    stabalizedFlowRate *= 0.001;
+                if (solar_supply > 0)
+                    solar_supply *= 0.001;
                 if (solarMaxSupply > 0)
                     solarMaxSupply *= 0.001;
             }
@@ -1940,12 +1944,12 @@ namespace FNPlugin
             }
             else
             {
-                stabalizedFlowRate = 0;
+                solar_supply = 0;
                 solarMaxSupply = 0;
             }
 
-            if (stabalizedFlowRate > 0)
-                supplyFNResourcePerSecondWithMax(stabalizedFlowRate, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+            if (solar_supply > 0)
+                supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
         public double MaxStableMegaWattPower

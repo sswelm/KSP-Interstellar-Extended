@@ -9,8 +9,13 @@ namespace FNPlugin
         electricCharge, megajoule, other
     }
 
+    public interface ISolarPower
+    {
+        double SolarPower { get; }
+    }
+
     [KSPModule("Solar Panel Adapter")]
-    class FNSolarPanelWasteHeatModule : ResourceSuppliableModule 
+    class FNSolarPanelWasteHeatModule : ResourceSuppliableModule, ISolarPower
     {
         [KSPField( guiActive = true,  guiName = "Solar current power", guiUnits = " MW", guiFormat="F5")]
         public double megaJouleSolarPowerSupply;
@@ -29,6 +34,11 @@ namespace FNPlugin
         ModuleResource _solarFlowRateResource;
 
         resourceType outputType = 0;
+
+        public double SolarPower
+        {
+            get { return solar_supply; }
+        }
 
         bool active = false;
 

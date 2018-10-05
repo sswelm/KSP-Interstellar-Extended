@@ -94,13 +94,11 @@ namespace FNPlugin.Beamedpower
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Transmission Efficiency", guiUnits = "%")]
         public double transmissionEfficiencyPercentage;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission Strength"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission Strength"), UI_FloatRange(stepIncrement = 0f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
         public string beamedpower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Direct Solar Power", guiFormat = "F2")]
-        protected double displayed_solar_power = 0;
 
         [KSPField]
         public bool canBeActive;
@@ -119,7 +117,7 @@ namespace FNPlugin.Beamedpower
 
         //Internal
         protected Animation anim;
-        protected List<ModuleDeployableSolarPanel> panels;
+        protected List<ISolarPower> solarCells;
         protected MicrowavePowerReceiver part_receiver;
         protected List<MicrowavePowerReceiver> vessel_recievers;
         protected BeamGenerator activeBeamGenerator;
@@ -128,12 +126,7 @@ namespace FNPlugin.Beamedpower
 
         public bool CanMove { get { return true; } }
 
-        public float GetScalar 
-        { 
-            get { 
-                return 1; 
-            } 
-        }
+        public float GetScalar { get { return 1; } }
 
         public EventData<float, float> OnMoving { get { return onMoving; } }
 
@@ -343,7 +336,7 @@ namespace FNPlugin.Beamedpower
 
             genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
 
-            panels = vessel.FindPartModulesImplementing<ModuleDeployableSolarPanel>();
+            solarCells = vessel.FindPartModulesImplementing<ISolarPower>();
 
             vessel_recievers = this.vessel.FindPartModulesImplementing<MicrowavePowerReceiver>().Where(m => m.part != this.part).ToList();
             part_receiver = part.FindModulesImplementing<MicrowavePowerReceiver>().FirstOrDefault();
@@ -495,7 +488,6 @@ namespace FNPlugin.Beamedpower
             Fields["apertureDiameter"].guiActive = isTransmitting; 
             Fields["beamedpower"].guiActive = isTransmitting && canBeActive;
             Fields["transmitPower"].guiActive = part_receiver == null || !part_receiver.isActive();
-            Fields["displayed_solar_power"].guiActive = isTransmitting && displayed_solar_power > 0;
 
             bool isLinkedForRelay = part_receiver != null && part_receiver.linkedForRelay;
 
@@ -550,7 +542,7 @@ namespace FNPlugin.Beamedpower
             atmosphericAbsorptionPercentage = activeBeamGenerator.atmosphericAbsorptionPercentage;
             waterAbsorptionPercentage = activeBeamGenerator.waterAbsorptionPercentage * moistureModifier;
 
-            double inputPower = nuclear_power + displayed_solar_power;
+            double inputPower = nuclear_power + solar_power;
             if (inputPower > 1000)
             {
                 if (inputPower > 1e6)
@@ -560,6 +552,8 @@ namespace FNPlugin.Beamedpower
             }
             else
                 beamedpower = inputPower.ToString("0.000") + " KW";
+
+            solarCells = vessel.FindPartModulesImplementing<ISolarPower>();
         }
 
         public override void OnFixedUpdate()
@@ -577,7 +571,6 @@ namespace FNPlugin.Beamedpower
 
             nuclear_power = 0;
             solar_power = 0;
-            displayed_solar_power = 0;
 
             CollectBiomeData();
 
@@ -605,52 +598,17 @@ namespace FNPlugin.Beamedpower
                     requestedPower = Math.Min(power_capacity, effectiveResourceThrotling * availablePower * reactorPowerTransmissionRatio);
                 }
 
-                var receivedPowerFixedDelta = CheatOptions.InfiniteElectricity
+                var receivedPower = CheatOptions.InfiniteElectricity
                     ? requestedPower
                     : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                nuclear_power += 1000 * reactorPowerTransmissionRatio * transmissionEfficiencyRatio * receivedPowerFixedDelta;
+                nuclear_power += 1000 * transmissionEfficiencyRatio * receivedPower;
+
+                solar_power += 1000 * solarCells.Sum(m => m.SolarPower);
 
                 // generate wasteheat for converting electric power to beamed power
                 if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourcePerSecond(receivedPowerFixedDelta * transmissionWasteRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
-
-                foreach (ModuleDeployableSolarPanel panel in panels)
-                {
-                    var multiplier = panel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES ? 1000 
-                        : panel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE ? 1 : 0;
-
-                    var currentPower = panel._flowRate * multiplier;
-
-                    displayed_solar_power += currentPower;
-
-                    var maximumPower = panel._distMult > 0 
-                        ? panel.chargeRate * panel._distMult * panel._efficMult * multiplier
-                        : currentPower;
-
-                    solar_power += maximumPower;
-
-                    //panel.alignType = ModuleDeployablePart.PanelAlignType.X;
-                    //panel.panelType = ModuleDeployableSolarPanel.PanelType.CYLINDRICAL;
-
-                    //double output = panel.flowRate;
-
-                    //double spower = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, transmissionEfficiencyRatio * output * TimeWarp.fixedDeltaTime * solarPowertransmissionRatio);
-
-                    //displayed_solar_power += spower / TimeWarp.fixedDeltaTime;
-
-                    ////scale solar power to what it would be in Kerbin orbit for file storage
-                    //var distanceBetweenVesselAndSun  = Vector3d.Distance(vessel.transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
-                    //var distanceBetweenSunAndKerbin = Vector3d.Distance(FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBIN].transform.position, FlightGlobals.Bodies[PluginHelper.REF_BODY_KERBOL].transform.position);
-                    //double inv_square_mult = Math.Pow(distanceBetweenSunAndKerbin, 2) / Math.Pow(distanceBetweenVesselAndSun, 2);
-
-                    //var effectiveSolarPower = spower / TimeWarp.fixedDeltaTime / inv_square_mult;
-
-                    //solar_power += effectiveSolarPower;
-
-                    //// solar power converted to beamed power also generates wasteheat
-                    ////supplyFNResource(effectiveSolarPower * TimeWarp.fixedDeltaTime * transmissionWasteRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
-                }
+                    supplyFNResourcePerSecond(receivedPower * transmissionWasteRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
             }
 
             // extract solar power from stable power
@@ -995,7 +953,7 @@ namespace FNPlugin.Beamedpower
                                 powerCapacity = powerCapacity,
                                 wavelength = wavelength,
                                 minWavelength = relayWavelenghtMin,
-                                maxWavelength = relayWavelenghtMax,
+                                maxWavelength = relayWavelenghtMax, 
                                 isMirror = isMirror,
                                 atmosphericAbsorption = double.Parse(protomodule.moduleValues.GetValue("atmosphericAbsorption"))
                             });

@@ -452,9 +452,9 @@ namespace FNPlugin.Reactors
         protected double safetyThrotleModifier;
 
         [KSPField(guiActiveEditor = true, guiName = "Initial Cost")]
-        public float initialCost;
+        public double initialCost;
         [KSPField(guiActiveEditor = true, guiName = "Calculated Cost")]
-        public float calculatedCost;
+        public double calculatedCost;
 
         [KSPField(guiActiveEditor = true, guiName = "Module Cost")]
         public float moduleCost;
@@ -566,7 +566,7 @@ namespace FNPlugin.Reactors
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            moduleCost = calculateCost ? (float)calculatedCost - initialCost : 0;
+            moduleCost = calculateCost ? (float)(calculatedCost - initialCost) : 0;
 
             return moduleCost;
         }
