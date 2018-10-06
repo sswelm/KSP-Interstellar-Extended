@@ -85,7 +85,7 @@ namespace FNPlugin
         public double effectiveSolarThermalElectricEfficiency;
 
         [KSPField]
-        public double solar_supply;
+        public double photovoltaicSolarSupply;
         [KSPField]
         public int instanceId;
         [KSPField]
@@ -228,7 +228,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "FlowRate", guiFormat = "F4")]
         public double flowRate;
         [KSPField(guiActive = false, guiName = "Solar maximum power", guiFormat = "F4")]
-        public double solarMaxSupply;
+        public double photovoltaicSolarMaxSupply;
 
         [KSPField(guiActiveEditor = false, guiActive = false)]
         public double kerbalismPowerOutput;
@@ -353,13 +353,15 @@ namespace FNPlugin
 
         public double ConsumedFuelFixed { get { return 0; } }
 
-        public double ProducedThermalHeat { get { return powerInputMegajoules + solarInputMegajoules; } }
+        public double ProducedThermalHeat { get { return powerInputMegajoules + thermalSolarInputMegajoules; } }
 
         public double ProducedChargedPower { get { return 0; } }
 
         public double PowerRatio { get { return receiptPower / 100.0; } }
 
-        public double SolarPower { get { return solar_supply; } }
+        public double SolarPower { get { return photovoltaicSolarSupply; } }
+
+        public double ProducedPower { get { return ProducedThermalHeat + SolarPower; } }
 
         public double PowerCapacityEfficiency
         {
@@ -531,8 +533,8 @@ namespace FNPlugin
         protected int connectedrelaysi = 0;
         protected int networkDepth = 0;
         protected long deactivate_timer = 0;
-        protected double solarInputMegajoules = 0;
-        protected double solarInputMegajoulesMax = 0;
+        protected double thermalSolarInputMegajoules = 0;
+        protected double thermalSolarInputMegajoulesMax = 0;
 
         protected bool has_transmitter = false;
 
@@ -1302,10 +1304,13 @@ namespace FNPlugin
 
             if (receiverIsEnabled)
             {
-                if (ProducedThermalHeat > 1)
-                    beamedpower = (ProducedThermalHeat).ToString("0.00") + " MW";
+                var producedPower = ProducedPower;
+                if (producedPower > 1000)
+                    beamedpower = (producedPower / 1000).ToString("0.000") + " GW";
+                else if (producedPower > 1)
+                    beamedpower = (producedPower).ToString("0.000") + " MW";
                 else
-                    beamedpower = (ProducedThermalHeat * 1000).ToString("0.00") + " KW";
+                    beamedpower = (producedPower * 1000).ToString("0.00") + " KW";
             }
             else
                 beamedpower = "Offline.";
@@ -1575,7 +1580,7 @@ namespace FNPlugin
                         slavesAmount = thermalReceiverSlaves.Count;
                         slavesPower = thermalReceiverSlaves.Sum(m => m.total_thermal_power_provided);
 
-                        total_thermal_power_available = solarInputMegajoules + total_beamed_power + slavesPower;
+                        total_thermal_power_available = thermalSolarInputMegajoules + total_beamed_power + slavesPower;
                         total_thermal_power_provided = Math.Min(MaximumRecievePower, total_thermal_power_available);
 
                         if (!isThermalReceiverSlave && total_thermal_power_provided > 0)
@@ -1625,7 +1630,7 @@ namespace FNPlugin
                         effectiveSolarThermalElectricEfficiency = wasteheatElectricConversionEfficiency * solarElectricEfficiency;
                         effectiveBeamedPowerElectricEfficiency = wasteheatElectricConversionEfficiency * electricMaxEfficiency;
 
-                        var total_beamed_electric_power_available = solarInputMegajoules * effectiveSolarThermalElectricEfficiency + total_beamed_power * effectiveBeamedPowerElectricEfficiency;
+                        var total_beamed_electric_power_available = thermalSolarInputMegajoules * effectiveSolarThermalElectricEfficiency + total_beamed_power * effectiveBeamedPowerElectricEfficiency;
                         var total_beamed_electric_power_provided = Math.Min(MaximumRecievePower, total_beamed_electric_power_available);
 
                         if (!(total_beamed_electric_power_provided > 0)) return;
@@ -1636,7 +1641,7 @@ namespace FNPlugin
                         // only generate wasteheat from beamed power when actualy using the energy
                         if (!CheatOptions.IgnoreMaxTemperature)
                         {
-                            var solarWasteheat = solarInputMegajoules * (1 - effectiveSolarThermalElectricEfficiency);
+                            var solarWasteheat = thermalSolarInputMegajoules * (1 - effectiveSolarThermalElectricEfficiency);
                             supplyFNResourcePerSecond(supply_ratio * total_conversion_waste_heat_production + supply_ratio * solarWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
                         }
 
@@ -1656,8 +1661,8 @@ namespace FNPlugin
                     powerInputMegajoules = 0;
                     powerInputMegajoulesMax = 0;
 
-                    solarInputMegajoules = 0;
-                    solarInputMegajoulesMax = 0;
+                    thermalSolarInputMegajoules = 0;
+                    thermalSolarInputMegajoulesMax = 0;
 
                     solarFacingFactor = 0;
                     //connectedsatsi = 0;
@@ -1704,8 +1709,8 @@ namespace FNPlugin
                 networkDepth = 0;
 
                 //add solar power tot toal power
-                powerInputMegajoules = solarInputMegajoules;
-                powerInputMegajoulesMax = solarInputMegajoulesMax;
+                powerInputMegajoules = thermalSolarInputMegajoules;
+                powerInputMegajoulesMax = thermalSolarInputMegajoulesMax;
             }
             else if (!solarPowerMode) // && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
             {
@@ -1730,7 +1735,7 @@ namespace FNPlugin
                 var activeSatsIncr = 0;
 
                 //loop all connected beamed power transmitters
-                foreach (var connectedTransmitterEntry in BeamedPowerHelper.GetConnectedTransmitters(this))
+                foreach (var connectedTransmitterEntry in InterstellarBeamedPowerHelper.GetConnectedTransmitters(this))
                 {
                     ReceivedPowerData beamedPowerData;
 
@@ -1850,8 +1855,8 @@ namespace FNPlugin
                 connectedsatsi = activeSatsIncr;
                 connectedrelaysi = usedRelays.Count;
 
-                powerInputMegajoules = total_beamed_power + solarInputMegajoules;
-                powerInputMegajoulesMax = total_beamed_power_max + solarInputMegajoulesMax;
+                powerInputMegajoules = total_beamed_power + thermalSolarInputMegajoules;
+                powerInputMegajoulesMax = total_beamed_power_max + thermalSolarInputMegajoulesMax;
             }
 
             //remove dead entries
@@ -1876,9 +1881,9 @@ namespace FNPlugin
                 ? solarFluxQueue.OrderBy(m => m).Skip(10).Take(30).Average()
                 : solarFluxQueue.Average();
 
-            solarInputMegajoulesMax = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarReceptionEfficiency;
+            thermalSolarInputMegajoulesMax = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarReceptionEfficiency;
             solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
-            solarInputMegajoules = solarInputMegajoulesMax * solarFacingFactor;
+            thermalSolarInputMegajoules = thermalSolarInputMegajoulesMax * solarFacingFactor;
         }
 
         private void AddAlternatorPower()
@@ -1919,23 +1924,23 @@ namespace FNPlugin
                 flowRateQueue.Dequeue();
 
             // ToDo: replace stabalizedFlowRate by calculated flow rate
-            solar_supply = flowRate == 0 ? 0 : flowRateQueue.Count > 10
+            photovoltaicSolarSupply = flowRate == 0 ? 0 : flowRateQueue.Count > 10
                 ? flowRateQueue.OrderBy(m => m).Skip(10).Take(30).Average()
                 : flowRateQueue.Average() ;
 
-            solarMaxSupply = deployableSolarPanel._distMult > 0
-                ? Math.Max(solar_supply, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
-                : solar_supply;
+            photovoltaicSolarMaxSupply = deployableSolarPanel._distMult > 0
+                ? Math.Max(photovoltaicSolarSupply, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
+                : photovoltaicSolarSupply;
 
             // extract power otherwise we end up with double power
             if (deployableSolarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
             {
                 _solarFlowRateResource.rate = flowRate;
 
-                if (solar_supply > 0)
-                    solar_supply *= 0.001;
-                if (solarMaxSupply > 0)
-                    solarMaxSupply *= 0.001;
+                if (photovoltaicSolarSupply > 0)
+                    photovoltaicSolarSupply *= 0.001;
+                if (photovoltaicSolarMaxSupply > 0)
+                    photovoltaicSolarMaxSupply *= 0.001;
             }
             else if (deployableSolarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
             {
@@ -1943,12 +1948,12 @@ namespace FNPlugin
             }
             else
             {
-                solar_supply = 0;
-                solarMaxSupply = 0;
+                photovoltaicSolarSupply = 0;
+                photovoltaicSolarMaxSupply = 0;
             }
 
-            if (solar_supply > 0)
-                supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+            if (photovoltaicSolarSupply > 0)
+                supplyFNResourcePerSecondWithMax(photovoltaicSolarSupply, photovoltaicSolarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
         public double MaxStableMegaWattPower
