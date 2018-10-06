@@ -20,12 +20,6 @@ namespace InterstellarFuelSwitch
 
     class InterstellarResourceConverter : PartModule
     {
-        // persistant control
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_ResourceConverter_ConvertPercentage", guiUnits = "%"), UI_FloatRange()]
-        public float convertPercentage = 0;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_ResourceConverter_PowerPercentage", guiUnits = "%"), UI_FloatRange(minValue = 0, maxValue = 100, stepIncrement = 1)]
-        public float powerUsagePercentage = 0;
-
         // configs
         [KSPField]
         public bool showPowerUsageFloatRange = false;
@@ -57,9 +51,9 @@ namespace InterstellarFuelSwitch
         public float primaryConversionEnergyMult = 1;
         [KSPField]
         public float secondaryConversionEnergMult = 1;
-        [KSPField(guiActive = true, guiUnits = " U/s")]
+        [KSPField(guiActive = false, guiUnits = " U/s")]
         public float primaryChange;
-        [KSPField(guiActive = true, guiUnits = " U/s")]
+        [KSPField(guiActive = false, guiUnits = " U/s")]
         public float secondaryChange;
 
         [KSPField(guiActive = false, guiActiveEditor = false)]
@@ -88,12 +82,10 @@ namespace InterstellarFuelSwitch
         public bool requiresPrimaryLocalInEditor = true;
         [KSPField]
         public bool requiresPrimaryLocalInFlight = true;
-
         [KSPField]
         public bool primaryConversionCostPower = true;
         [KSPField]
         public bool secondaryConversionCostPower = true;
-
 
         [KSPField]
         public double primaryNormalizedDensity = 0.001;
@@ -101,6 +93,12 @@ namespace InterstellarFuelSwitch
         public double secondaryNormalizedDensity = 0.001;
         [KSPField]
         public double requestedPower;
+
+        // persistant control
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_ResourceConverter_ConvertPercentage", guiUnits = "%"), UI_FloatRange()]
+        public float convertPercentage = 0;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_ResourceConverter_PowerPercentage", guiUnits = "%"), UI_FloatRange(minValue = 0, maxValue = 100, stepIncrement = 1)]
+        public float powerUsagePercentage = 0;
 
         PartResourceDefinition definitionPrimaryPowerResource;
         PartResourceDefinition definitionSecondaryPowerResource;
@@ -150,33 +148,13 @@ namespace InterstellarFuelSwitch
             foreach (var resource in primaryResources)
             {
                 if (resource.definition.density > 0)
-                {
                     resource.normalizedDensity = resource.definition.density;
-                }
-                //else if (resource.definition.density == 0)
-                //{
-                //    Debug.LogWarning("[IFS] - " + resource + " have ZERO density");
-                //}
-                //else
-                //{
-                //    Debug.LogError("[IFS] - " + resource + " have " + resource.definition.density + " density");
-                //}
             }
 
             foreach (var resource in secondaryResources)
             {
                 if (resource.definition.density > 0)
-                {
                     resource.normalizedDensity = resource.definition.density;
-                }
-                //else if (resource.definition.density == 0)
-                //{
-                //    Debug.LogWarning("[IFS] - " + resource + " have ZERO density");
-                //}
-                //else
-                //{
-                //    Debug.LogError("[IFS] - " + resource + " have " + resource.definition.density + " density");
-                //}
             }
 
             if (primaryResources.Count == 1 && secondaryResources.Count == 1)
@@ -257,9 +235,6 @@ namespace InterstellarFuelSwitch
                 convertPercentageField.guiActiveEditor = primaryResources.All(m => part.Resources.Contains( m.definition.id));
                 return;
             }
-
-            retreivePrimary = false;
-            retrieveSecondary = false;
 
             // in flight mode, hide control if primary resources are not present 
             if (requiresPrimaryLocalInFlight && HighLogic.LoadedSceneIsFlight && !primaryResources.All(m => part.Resources.Contains(m.definition.id)))
@@ -357,6 +332,9 @@ namespace InterstellarFuelSwitch
             secondaryResources.ForEach(m => m.amountRatio = m.currentAmount / m.maxAmount);
 
             var percentageRatio = Math.Abs(convertPercentage) / 100d;
+
+            retreivePrimary = false;
+            retrieveSecondary = false;
 
             if (convertPercentage > 0)
             {
@@ -509,6 +487,11 @@ namespace InterstellarFuelSwitch
                     var returned = part.RequestResource(secondaryResource.definition.id, createdAmount + receivedSourceAmountFixed);
                     secondaryResource.retrieveAmount = secondaryResource.retrieveAmount - receivedSourceAmountFixed - returned;
                 }
+            }
+            else
+            {
+                secondaryChangeField.guiActive = false;
+                primaryChangeField.guiActive = false;
             }
         }
 
