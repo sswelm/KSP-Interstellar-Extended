@@ -150,7 +150,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public bool allowedToSwitch;
         [KSPField]
-        public bool calculateCost = true;
+        public bool updateModuleCost = true;
 
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_tankGuiName")] // Tank name
@@ -1321,7 +1321,7 @@ namespace InterstellarFuelSwitch
         {
             var calculatedCost = (float)UpdateCost();
 
-			moduleCost = calculateCost ? calculatedCost : 0;
+            moduleCost = updateModuleCost ? calculatedCost : 0;
 
             return moduleCost;
         }
