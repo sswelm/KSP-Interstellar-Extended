@@ -116,6 +116,7 @@ namespace InterstellarFuelSwitch
 
         private void SwitchToObject(int objectNumber, bool calledByPlayer)
         {
+            //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " calls SetObject with " + objectNumber);
             SetObject(objectNumber, calledByPlayer);
 
             if (!updateSymmetry)
@@ -128,7 +129,9 @@ namespace InterstellarFuelSwitch
                 {
                     if (symSwitch[j].moduleID != moduleID) continue;
 
+                    //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " sets selectedObject to " + selectedObject + " on symerty item " + j);
                     symSwitch[j].selectedObject = selectedObject;
+                    //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " calls SetObject with " + objectNumber + " on symerty item " + j);
                     symSwitch[j].SetObject(objectNumber, calledByPlayer);
                 }
             }
@@ -182,6 +185,8 @@ namespace InterstellarFuelSwitch
 
             if (useFuelSwitchModule && fuelSwitch != null && objectNumber >= 0 && objectNumber < meshConfigurationList.Count)
             {
+                var newTankMame = meshConfigurationList[objectNumber].fuelTankSetup;
+                //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " calls fuelSwitch.SelectTankSetup with " + newTankMame + " derived from  objectNumber " + objectNumber);
                 fuelSwitch.SelectTankSetup(meshConfigurationList[objectNumber].fuelTankSetup, calledByPlayer);
             }
 
@@ -243,6 +248,9 @@ namespace InterstellarFuelSwitch
                 var indexNamesList = ParseTools.ParseNames(indexNames);
                 var tankSwitchNamesList = ParseTools.ParseNames(tankSwitchNames);
 
+                // we need to clear the list because InitializeData might be called multiple times
+                meshConfigurationList.Clear();
+
                 for (var i = 0; i < objectDisplayList.Count; i++)
                 {
                     meshConfigurationList.Add(new meshConfiguration()
@@ -256,7 +264,10 @@ namespace InterstellarFuelSwitch
                 }
 
                 if (orderByIndexNames)
+                {
+                    //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " order meshConfigurationList on indexName");
                     meshConfigurationList = meshConfigurationList.OrderBy(m => m.indexName).ToList();
+                }
 
                 if (useFuelSwitchModule)
                 {
@@ -275,7 +286,10 @@ namespace InterstellarFuelSwitch
                         var matchingObject = fuelSwitch.FindMatchingConfig();
 
                         if (HighLogic.LoadedSceneIsFlight || matchingObject >= 0)
+                        {
+                            //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " sets selectedObject to matching object " + matchingObject);
                             selectedObject = matchingObject;
+                        }
                     }
                 }
                 initialized = true;
