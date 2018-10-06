@@ -767,7 +767,7 @@ namespace FNPlugin
 
             if (fuelRatio > 0)
                 vessel.orbit.Perturb(deltaVv * fuelRatio, universalTime);
-            else
+            else if (demandMass > 0)
             {
                 var message = "Thrust warp stopped - propellant depleted";
                 Debug.Log("[KSPI] - " + message);
