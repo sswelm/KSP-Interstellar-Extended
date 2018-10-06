@@ -243,7 +243,7 @@ namespace FNPlugin.Reactors
 
         // Settings
         [KSPField]
-        public bool calculateCost = false;
+        public bool updateModuleCost = true;
         [KSPField]
         public int minCoolingFactor = 1;
         [KSPField]
@@ -273,7 +273,7 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double powerScaleExponent = 3;
         [KSPField]
-        public double costScaleExponent = 2;
+        public double costScaleExponent = 1.86325;
         [KSPField]
         public double safetyPowerReductionFraction = 0.95;
         [KSPField]
@@ -450,13 +450,16 @@ namespace FNPlugin.Reactors
         protected double min_throttle;
         [KSPField]
         protected double safetyThrotleModifier;
+        [KSPField]
+        public double massCostExponent = 2.5;
 
-        [KSPField(guiActiveEditor = true, guiName = "Initial Cost")]
+        [KSPField(guiActiveEditor = false, guiName = "Initial Cost")]
         public double initialCost;
-        [KSPField(guiActiveEditor = true, guiName = "Calculated Cost")]
+        [KSPField(guiActiveEditor = false, guiName = "Calculated Cost")]
         public double calculatedCost;
-
-        [KSPField(guiActiveEditor = true, guiName = "Module Cost")]
+        [KSPField(guiActiveEditor = false, guiName = "Max Resource Cost")]
+        public double maxResourceCost;
+        [KSPField(guiActiveEditor = false, guiName = "Module Cost")]
         public float moduleCost;
 
         // Gui
@@ -566,7 +569,11 @@ namespace FNPlugin.Reactors
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            moduleCost = calculateCost ? (float)(calculatedCost - initialCost) : 0;
+            maxResourceCost = part.Resources.Sum(m => m.maxAmount * m.info.unitCost);
+
+            var dryCost = calculatedCost - initialCost;
+
+            moduleCost = updateModuleCost ? (float)(maxResourceCost + dryCost) : 0;
 
             return moduleCost;
         }
@@ -765,7 +772,7 @@ namespace FNPlugin.Reactors
                 Debug.Log("[KSPI] - InterstellarReactor.OnRescale called with " + factor.absolute.linear);
                 storedPowerMultiplier = Math.Pow(factor.absolute.linear, powerScaleExponent);
 
-                initialCost = part.partInfo.cost * Math.Pow(factor.absolute.linear, 3);
+                initialCost = part.partInfo.cost * Math.Pow(factor.absolute.linear, massCostExponent);
                 calculatedCost = part.partInfo.cost * Math.Pow(factor.absolute.linear, costScaleExponent);
 
                 // update power
