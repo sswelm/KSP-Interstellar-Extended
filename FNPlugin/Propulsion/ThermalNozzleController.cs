@@ -131,9 +131,9 @@ namespace FNPlugin
 
         [KSPField]
         public bool isPlasmaNozzle = false;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m", guiFormat = "F3")]
         public double radius;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2", guiFormat = "F3")]
         public float exitArea = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Afterburner upgrade tech")]
         public string afterburnerTechReq = String.Empty;
