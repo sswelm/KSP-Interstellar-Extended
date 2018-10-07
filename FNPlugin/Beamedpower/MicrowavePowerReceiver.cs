@@ -66,7 +66,7 @@ namespace FNPlugin
         [KSPField]
         public bool autoDeploy = true; 
         [KSPField]
-        public int supportedPropellantAtoms = 121;
+        public int supportedPropellantAtoms = 511;
         [KSPField]
         public int supportedPropellantTypes = 127;
 
@@ -315,6 +315,8 @@ namespace FNPlugin
         private Rect windowPosition;
         private int windowID;
 
+        public bool CanProducePower { get { return ProducedThermalHeat > 0; } }
+
         public double MinCoolingFactor { get { return minCoolingFactor; } }
 
         public double EngineHeatProductionMult { get { return engineHeatProductionMult; } }
@@ -353,7 +355,7 @@ namespace FNPlugin
 
         public double ConsumedFuelFixed { get { return 0; } }
 
-        public double ProducedThermalHeat { get { return powerInputMegajoules + thermalSolarInputMegajoules; } }
+        public double ProducedThermalHeat { get { return powerInputMegajoules; } }
 
         public double ProducedChargedPower { get { return 0; } }
 
@@ -813,7 +815,7 @@ namespace FNPlugin
             _activateReceiverBaseEvent = Events["ActivateReceiver"];
             _disableReceiverBaseEvent = Events["DisableReceiver"];
 
-            _radiusField = Fields["radius"];
+            //_radiusField = Fields["radius"];
 
             coreTempererature = CoreTemperature.ToString("0.0") + " K";
             _coreTempereratureField = Fields["coreTempererature"];
@@ -826,15 +828,15 @@ namespace FNPlugin
 
             if (IsThermalSource && !isThermalReceiverSlave)
             {
-                _radiusField.guiActive = true;
-                _radiusField.guiActiveEditor = true;
+                //_radiusField.guiActive = true;
+                //_radiusField.guiActiveEditor = true;
                 _coreTempereratureField.guiActive = true;
                 _coreTempereratureField.guiActiveEditor = true;
             }
             else
             {
-                _radiusField.guiActive = false;
-                _radiusField.guiActiveEditor = false;
+                //_radiusField.guiActive = false;
+                //_radiusField.guiActiveEditor = false;
                 _coreTempereratureField.guiActive = false;
                 _coreTempereratureField.guiActiveEditor = false;
             }
@@ -1283,7 +1285,6 @@ namespace FNPlugin
             var isNotRelayingOrTransmitting = !linkedForRelay && !transmitterOn;
 
             _beamedpowerField.guiActive = isNotRelayingOrTransmitting;
-            //_powerInputMegajoulesField.guiActive = isNotRelayingOrTransmitting;
             _linkedForRelayField.guiActive = isNotRelayingOrTransmitting;
 
             _slavesAmountField.guiActive = thermalMode;

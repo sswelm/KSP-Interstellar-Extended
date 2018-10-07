@@ -189,7 +189,7 @@ namespace FNPlugin
         public float maxFuelFlowOnEngine;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Thrust On Engine")]
         public float maxThrustOnEngine;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "real Isp Engine")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Effective Isp On Engine")]
         public float realIspEngine;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Threshold", guiUnits = " kN", guiFormat = "F5")]
         public double pressureThreshold;
@@ -1105,7 +1105,8 @@ namespace FNPlugin
                 {
                     if (myAttachedEngine.isOperational && currentThrottle > 0)
                     {
-                        myAttachedEngine.Events["Shutdown"].Invoke();
+                        //myAttachedEngine.Events["Shutdown"].Invoke();
+                        myAttachedEngine.Shutdown();
                         ScreenMessages.PostScreenMessage("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     }
                     myAttachedEngine.maxFuelFlow = 0.0000000001f;
@@ -1294,6 +1295,12 @@ namespace FNPlugin
                     power_received += consumeFNResourcePerSecond(requested_charge_particles, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 }
 
+                // shotdown engine when connected heatsource cannot produce power
+                if (!AttachedReactor.CanProducePower)
+                {
+                    ScreenMessages.PostScreenMessage("no power produced by thermal source!", 0.02f, ScreenMessageStyle.UPPER_CENTER);
+                }
+
                 UpdateSootAccumulation();
 
                 // consume wasteheat
@@ -1329,17 +1336,18 @@ namespace FNPlugin
 
                     powerHeatModifier = GetPowerThrustModifier() * GetHeatThrustModifier();
 
-                    engineMaxThrust = Math.Max(powerHeatModifier * power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor, 0.000001);
+                    engineMaxThrust = powerHeatModifier * power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
 
-                    expectedMaxThrust = powerHeatModifier * maximumPowerUsageForPropulsionRatio * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
+                    var thrustPerMegaJoule = powerHeatModifier * maximumPowerUsageForPropulsionRatio / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
 
-                    myAttachedEngine.maxThrust = (float)Math.Max(expectedMaxThrust, 0.000001);
+                    expectedMaxThrust = thrustPerMegaJoule * AttachedReactor.MaximumPower;
+
+                    myAttachedEngine.maxThrust = (float)Math.Max(thrustPerMegaJoule * AttachedReactor.RawMaximumPower, 0.000001);
 
                     calculatedMaxThrust = expectedMaxThrust;
                 }
                 else
                 {
-                    engineMaxThrust = 0;
                     calculatedMaxThrust = 0;
                     expectedMaxThrust = 0;
                 }
@@ -1355,7 +1363,7 @@ namespace FNPlugin
                 {
                     max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold,  0.0000000001);
 
-                    var atmosphereThrustEfficiency = max_thrust_in_current_atmosphere / max_thrust_in_space;
+                    var atmosphereThrustEfficiency = max_thrust_in_space > 0 ? Math.Min(1, max_thrust_in_current_atmosphere / max_thrust_in_space) : 0;
 
                     var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(atmosphereThrustEfficiency, 0.01) : 0.01;
                     UpdateIspEngineParams(thrustAtmosphereRatio);
@@ -1420,11 +1428,6 @@ namespace FNPlugin
                     max_fuel_flow_rate = 1e-10;
                 }
 
-                //if (!_currentpropellant_is_jet)
-                //    myAttachedEngine.maxThrust = (float)Math.Max(max_thrust_in_current_atmosphere, 0.000001);
-                //else
-                //    myAttachedEngine.maxThrust = (float)Math.Max(engineMaxThrust, 0.000001);
-
                 // set engines maximum fuel flow
                 myAttachedEngine.maxFuelFlow = (float)Math.Max( max_fuel_flow_rate, 1e-10);
 
@@ -1457,12 +1460,12 @@ namespace FNPlugin
 
                 currentEngineFuelFlow = myAttachedEngine.fuelFlowGui * myAttachedEngine.mixtureDensity;
 
+                maxFuelFlowOnEngine = myAttachedEngine.maxFuelFlow;
+                maxThrustOnEngine = myAttachedEngine.maxThrust;
+                realIspEngine = myAttachedEngine.realIsp;
+
                 if (controlHeatProduction)
                 {
-                    maxFuelFlowOnEngine = myAttachedEngine.maxFuelFlow;
-                    maxThrustOnEngine = myAttachedEngine.maxThrust;
-                    realIspEngine = myAttachedEngine.realIsp;
-
                     //engineHeatProduction = (currentEngineFuelFlow >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.0001 && myAttachedEngine.currentThrottle > 0)
                     //    ? 0.5 * myAttachedEngine.currentThrottle * Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / currentEngineFuelFlow / _maxISP / part.mass
                     //    : 1;

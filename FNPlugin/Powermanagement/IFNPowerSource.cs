@@ -19,5 +19,7 @@ namespace FNPlugin.Redist
         double PlasmaWasteheatProductionMult { get; }
 
         double MinCoolingFactor { get; }
+
+        bool CanProducePower { get; }
     }
 }

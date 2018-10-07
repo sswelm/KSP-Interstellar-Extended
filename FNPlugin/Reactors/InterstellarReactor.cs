@@ -960,6 +960,8 @@ namespace FNPlugin.Reactors
 
         public double ReactorSpeedMult { get { return reactorSpeedMult; } }
 
+        public virtual bool CanProducePower { get { return stored_fuel_ratio > 0; } }
+
         public virtual bool IsNuclear { get { return false; } }
 
         public virtual bool IsActive { get { return IsEnabled; } }
