@@ -1,0 +1,20 @@
+The Toolbar Controller is a new mod which provides an easy way for the user to select which toolbar to use for mods which have toolbar button.
+
+KSP has a stock toolbar, located either along the bottom or side of the screen, depending on which scene you are in.
+
+There is another toolbar available as a mod, commonly referred to as the Blizzy Toolbar; called this because the original author was known as blizzy78.
+
+The button for the Toolbar Controller will only be available in the SpaceCenter scene.  The button looks like this, and can appear in either toolbar:
+
+<IMAGE=001_ToolbarControl/PluginData/Textures/toolbar_38.png>
+
+Clicking the button for this mod will bring up a simple window which will look similar to the following image:
+
+<IMAGE=001_ToolbarControl/PluginData/Textures/window.png>
+
+For each mod that has registered itself with the Toolbar Controller, there will be a line with two radio buttons and the name of the mod.  The buttons are exclusive, meaning that if you click one, the other will be unset.  In most cases, the change is instantaneous.  The Toolbar Controller itself uses this, so you can immediately see the results.
+
+If the Blizzy toolbar is NOT installed, then all buttons will be shown on the stock toolbar
+
+This intro window will be displayed every time you start the game until you click the button labeled "Hide this window" at the bottom, after which it will not be shown again 
+

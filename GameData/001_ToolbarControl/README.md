@@ -2,6 +2,14 @@
 
 An interface to control both the Blizzy Toolbar and the stock Toolbar without having to code for each one.
 
+Most important
+All mods using this should add the following line to the AssemblyInfo.cs file:
+
+	[assembly: KSPAssemblyDependency("ToolbarController", 1, 0)]
+
+This will guarantee the load order.  One benefit is that KSP will output a warning and won't load an assembly if it's dependencies aren't met (which may be better than puking out a bunch of exceptions).  The only other real problem with the forced to the top of the sort list method is that technically there's a couple characters before zero ('~', '!', '@', etc.) and dlls directly in GameData come first too.  Of course someone pretty much has to be trying to break things if you have to worry about this particular case.
+
+
 // If true, activates Blizzy toolbar, if available.  Otherwise, use the stock toolbar
 public void UseBlizzy(bool useBlizzy)
 
@@ -107,3 +115,90 @@ call will be done, if there is a defined function for it
 
 public void SetTrue(bool makeCall = false)
 public void SetFalse(bool makeCall = false)
+
+
+==========================================================================================
+New Features
+
+Buttons can now be displayed on both toolbars simultaneously.
+Button settings can now be stored by the ToolbarController itself, eliminating the need to save it in the mod settings.  This is done by registering the button before or when the MainMenu is reached, see the example code below.
+
+If using registration, then no need to have any call in the OnGUI method
+If you do change the blizzy/stock options, then a single call to the following method will suffice:
+	toolbarControl.UseButtons(string NameSpace);
+
+Following used to register and set which button(s) are active
+
+	NameSpace	Same namespace as for the AddToAllToolbars()
+	DisplayName	Name of mod in display format, used on the ToolbarControl page
+
+Method available to register the button:
+	public static bool RegisterMod(string NameSpace, string DisplayName = "", bool useBlizzy = false, bool useStock = true, bool NoneAllowed = true)
+
+Methods to either get or set the BlizzyActive and StockActive settings:
+	public static bool BlizzyActive(string NameSpace, bool? useBlizzy = null)
+	public static bool StockActive(string NameSpace, bool? useStock = null)
+
+Method to set status of both buttons:
+	public static void ButtonsActive(string NameSpace, bool? useStock, bool? useBlizzy)
+
+
+New method to compliment the UseBlizzy method:
+	public void UseStock(bool useStock)
+
+
+The following example is from the Slingshotter mod:
+
+
+Sample Code
+
+Use code like the following to register the mod before or at the MainMenu:
+
+	using UnityEngine;
+	using ToolbarControl_NS;
+
+	namespace KerbalSlingshotter
+	{
+		[KSPAddon(KSPAddon.Startup.MainMenu, true)]
+		public class RegisterToolbar : MonoBehaviour
+		{
+			void Start()
+			{
+				ToolbarControl.RegisterMod(SlingshotCore.MODID, SlingshotCore.MODNAME);
+			}
+		}
+	}
+
+And in the file where the button is added to the ToolbarController:
+
+	using System;
+	using System.Linq;
+	using UnityEngine;
+	using KSP.UI.Screens;
+
+	using ClickThroughFix;
+	using ToolbarControl_NS;
+
+	namespace KerbalSlingshotter
+	{
+		[KSPAddon(KSPAddon.Startup.Flight,false)]
+		public class  SlingshotCore 
+		{
+			internal const string MODID = "Slingshotter_NS";
+			internal const string MODNAME = "SlingShotter";
+		}
+
+		private void CreateButtonIcon()
+			{
+				toolbarControl = gameObject.AddComponent<ToolbarControl>();
+				toolbarControl.AddToAllToolbars(ToggleOn, ToggleOff,
+					ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION,
+					MODID,
+					"slingShotterButton",
+					"SlingShotter/PluginData/Textures/icon_38",
+					"SlingShotter/PluginData/Textures/icon_24",
+					MODNAME
+				);
+			}
+		}
+	}
