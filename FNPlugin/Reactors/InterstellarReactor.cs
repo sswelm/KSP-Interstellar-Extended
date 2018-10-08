@@ -405,8 +405,6 @@ namespace FNPlugin.Reactors
         [KSPField]
         public string powerUpgradeTechReq = String.Empty;
         [KSPField]
-        public double powerUpgradeTechMult = 1;
-        [KSPField]
         public double powerUpgradeCoreTempMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_rawPowerOutput", guiUnits = "#LOC_KSPIE_Reactor_megajouleUnit", guiFormat = "F4")]
         public double currentRawPowerOutput;

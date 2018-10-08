@@ -466,6 +466,21 @@ namespace FNPlugin
             return manager.ResourceBarRatioBegin;
         }
 
+        public double getSqrtResourceBarRatio(String resourcename)
+        {
+            if (String.IsNullOrEmpty(resourcename))
+            {
+                Debug.Log("[KSPI] - getResourceBarRatio illegal values.");
+                return 0;
+            }
+
+            ResourceManager manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            return manager.SqrtResourceBarRatioBegin;
+        }
+
         public double getResourceBarRatioEnd(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename)) 

@@ -118,8 +118,8 @@ namespace FNPlugin.Wasteheat
         public double radiator_temperature_temp_val;
         [KSPField]
         public double instantaneous_rad_temp;
-        [KSPField(guiName = "WasteHeat Ratio")]
-        public double wasteheatRatio;
+        //[KSPField(guiName = "WasteHeat Ratio")]
+        //public double wasteheatRatio;
         [KSPField(guiName = "Max Energy Transfer", guiFormat = "F2")]
         private double _maxEnergyTransfer;
         [KSPField(guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
@@ -807,16 +807,15 @@ namespace FNPlugin.Wasteheat
 
                 // get resource bar ratio at start of frame
                 ResourceManager wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
-                wasteheatRatio = wasteheatManager.ResourceBarRatioBegin;
 
-                if (Double.IsNaN(wasteheatManager.ResourceBarRatioBegin))
+                if (Double.IsNaN(wasteheatManager.TemperatureRatio))
                 {
-                    Debug.LogError("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in wasteheatRatio");
+                    Debug.LogError("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in TemperatureRatio");
                     return;
                 }
 
                 // ToDo replace wasteheatManager.SqrtResourceBarRatioBegin by ResourceBarRatioBegin after generators hotbath takes into account expected temperature
-                radiator_temperature_temp_val = external_temperature + Math.Min(maximumTemperatureDifferenceWithExternal * wasteheatManager.SqrtResourceBarRatioBegin, currentTemperatureDifferenceWithExternal);
+                radiator_temperature_temp_val = external_temperature + Math.Min(maximumTemperatureDifferenceWithExternal * wasteheatManager.TemperatureRatio, currentTemperatureDifferenceWithExternal);
 
                 var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * Math.Min(1, vessel.atmDensity), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;

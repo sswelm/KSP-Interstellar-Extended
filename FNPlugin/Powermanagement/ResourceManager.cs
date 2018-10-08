@@ -97,6 +97,8 @@ namespace FNPlugin
         Rect windowPosition = new Rect(50, 50, 300, 100);
         int windowID = 36549835;
         double resource_bar_ratio_begin = 0;
+
+        double temperature_ratio = 0;
         double sqrt_resource_bar_ratio_begin = 0;
         double resource_bar_ratio_end = 0;
         double radiator_efficiency;
@@ -397,6 +399,7 @@ namespace FNPlugin
         public double PowerSupply { get { return currentPowerSupply; } }
 
         public double ResourceBarRatioBegin { get {  return resource_bar_ratio_begin; } }
+        public double TemperatureRatio { get { return temperature_ratio; } }
         public double SqrtResourceBarRatioBegin { get { return sqrt_resource_bar_ratio_begin; } }
         public double RadiatorEfficiency { get { return radiator_efficiency; } }
 
@@ -736,6 +739,8 @@ namespace FNPlugin
             {
 
                 sqrt_resource_bar_ratio_begin = Math.Sqrt(resource_bar_ratio_begin);
+
+                temperature_ratio = Math.Pow(resource_bar_ratio_begin, 0.75);
 
                 radiator_efficiency = 1 - Math.Pow(1 - resource_bar_ratio_begin, 400);
             }
