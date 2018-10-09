@@ -128,6 +128,8 @@ namespace FNPlugin
         public bool overrideAccelerationSpeed = true;
         [KSPField]
         public bool overrideDecelerationSpeed = true;
+        [KSPField]
+        public bool usePropellantBaseIsp = false;
 
         [KSPField]
         public bool isPlasmaNozzle = false;
@@ -858,7 +860,7 @@ namespace FNPlugin
                         ((!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
                         || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                         || (_fuelRequiresUpgrade && !isupgraded)
-						|| (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
+                        || (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                         || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
                         || ((_atomType & this.supportedPropellantAtoms) != _atomType)
@@ -921,12 +923,17 @@ namespace FNPlugin
             _propType = chosenpropellant.HasValue("propType") ? int.Parse(chosenpropellant.GetValue("propType")) : 1;
             _isNeutronAbsorber = chosenpropellant.HasValue("isNeutronAbsorber") ? bool.Parse(chosenpropellant.GetValue("isNeutronAbsorber")) : false;
 
-            if (!_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
+            if (!usePropellantBaseIsp && !_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
                 UpdateThrustPropellantMultiplier();
             else
             {
                 _heatDecompositionFraction = 1;
-                _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
+
+                if (usePropellantBaseIsp && _baseIspMultiplier > 0)
+                    _ispPropellantMultiplier = _baseIspMultiplier;
+                else
+                    _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
+
                 var rawthrustPropellantMultiplier = chosenpropellant.HasValue("thrustMultiplier") ? float.Parse(chosenpropellant.GetValue("thrustMultiplier")) : 1;
                 _thrustPropellantMultiplier = _propellantIsLFO || _currentpropellant_is_jet || rawthrustPropellantMultiplier <= 1 ? rawthrustPropellantMultiplier : ((rawthrustPropellantMultiplier + 1) / 2);
             }

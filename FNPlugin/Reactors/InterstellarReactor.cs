@@ -388,8 +388,6 @@ namespace FNPlugin.Reactors
         [KSPField]
         public bool showSpecialisedUI = true;
         [KSPField]
-        public bool fastNeutrons = true;
-        [KSPField]
         public bool canUseNeutronicFuels = true;
         [KSPField]
         public bool canUseGammaRayFuels = true;
