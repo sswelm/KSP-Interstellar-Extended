@@ -73,6 +73,8 @@ namespace FNPlugin
             return _attached_engine.maxFuelFlow;
         }
 
+		public bool PropellantAbsorbsNeutrons { get { return false; } }
+
         public bool RequiresPlasmaHeat { get { return false; } }
 
         public bool RequiresThermalHeat { get { return false; } }

@@ -243,6 +243,8 @@ namespace FNPlugin.Reactors
 
         // Settings
         [KSPField]
+        public bool canUseAllPowerForPlasma = true;
+        [KSPField]
         public bool updateModuleCost = true;
         [KSPField]
         public int minCoolingFactor = 1;
@@ -387,8 +389,6 @@ namespace FNPlugin.Reactors
         public bool fullPowerForNonNeutronAbsorbants = true;
         [KSPField]
         public bool showSpecialisedUI = true;
-        [KSPField]
-        public bool fastNeutrons = true;
         [KSPField]
         public bool canUseNeutronicFuels = true;
         [KSPField]
@@ -580,6 +580,8 @@ namespace FNPlugin.Reactors
         {
             return ModifierChangeWhen.STAGED;
         }
+
+        public bool CanUseAllPowerForPlasma { get { return canUseAllPowerForPlasma;} }
 
         public double MinCoolingFactor { get { return minCoolingFactor; } }
 
@@ -1639,7 +1641,7 @@ namespace FNPlugin.Reactors
 
                 var totalPowerReceivedFixed = ongoing_total_power_generated * timeWarpFixedDeltaTime;
 
-                if (!CheatOptions.UnbreakableJoints && CurrentFuelMode.NeutronsRatio > 0 && CurrentFuelMode.NeutronsRatio > 0)
+                if (!CheatOptions.UnbreakableJoints && CurrentFuelMode.NeutronsRatio > 0 && CurrentFuelMode.NeutronsRatio > 0 && connectedEngines.Any(m => !m.PropellantAbsorbsNeutrons))
                     neutronEmbrittlementDamage += ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
 
                 ongoing_consumption_rate = ongoing_total_power_generated / maximumPower;

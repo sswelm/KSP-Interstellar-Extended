@@ -128,6 +128,8 @@ namespace FNPlugin
         public bool overrideAccelerationSpeed = true;
         [KSPField]
         public bool overrideDecelerationSpeed = true;
+        [KSPField]
+        public bool usePropellantBaseIsp = false;
 
         [KSPField]
         public bool isPlasmaNozzle = false;
@@ -429,6 +431,8 @@ namespace FNPlugin
                     return 0;
             }
         }
+
+        public bool PropellantAbsorbsNeutrons { get { return _isNeutronAbsorber; } }
 
         public bool RequiresPlasmaHeat { get { return isPlasmaNozzle; } }
 
@@ -858,7 +862,7 @@ namespace FNPlugin
                         ((!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
                         || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                         || (_fuelRequiresUpgrade && !isupgraded)
-						|| (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
+                        || (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
                         || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                         || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
                         || ((_atomType & this.supportedPropellantAtoms) != _atomType)
@@ -921,12 +925,17 @@ namespace FNPlugin
             _propType = chosenpropellant.HasValue("propType") ? int.Parse(chosenpropellant.GetValue("propType")) : 1;
             _isNeutronAbsorber = chosenpropellant.HasValue("isNeutronAbsorber") ? bool.Parse(chosenpropellant.GetValue("isNeutronAbsorber")) : false;
 
-            if (!_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
+            if (!usePropellantBaseIsp && !_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
                 UpdateThrustPropellantMultiplier();
             else
             {
                 _heatDecompositionFraction = 1;
-                _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
+
+                if (usePropellantBaseIsp && _baseIspMultiplier > 0)
+                    _ispPropellantMultiplier = _baseIspMultiplier;
+                else
+                    _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
+
                 var rawthrustPropellantMultiplier = chosenpropellant.HasValue("thrustMultiplier") ? float.Parse(chosenpropellant.GetValue("thrustMultiplier")) : 1;
                 _thrustPropellantMultiplier = _propellantIsLFO || _currentpropellant_is_jet || rawthrustPropellantMultiplier <= 1 ? rawthrustPropellantMultiplier : ((rawthrustPropellantMultiplier + 1) / 2);
             }
@@ -1080,14 +1089,6 @@ namespace FNPlugin
                 atmospherecurve.Add(0, 0.000001f, 0, 0);
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             }
-        }
-
-        private double GetIspPropellantModifier()
-        {
-            double ispModifier = (PluginHelper.IspNtrPropellantModifierBase == 0
-                ? _ispPropellantMultiplier
-                : (PluginHelper.IspNtrPropellantModifierBase + _ispPropellantMultiplier) / (1.0 + PluginHelper.IspNtrPropellantModifierBase));
-            return ispModifier;
         }
 
         public void FixedUpdate() // FixedUpdate is also called while not staged
@@ -1287,6 +1288,7 @@ namespace FNPlugin
 
                 thrust_modifiers = AttachedReactor.GetFractionThermalReciever(id);
                 requested_thermal_power = availableThermalPower * thrust_modifiers;
+
                 power_received = consumeFNResourcePerSecond(requested_thermal_power, ResourceManager.FNRESOURCE_THERMALPOWER);
 
                 if (currentMaxChargedPower > 0)
@@ -1558,7 +1560,10 @@ namespace FNPlugin
             if (baseMaxIsp > GameConstants.MaxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = GameConstants.MaxThermalNozzleIsp;
 
-            _maxISP = baseMaxIsp * GetIspPropellantModifier();
+            if (!isPlasmaNozzle || AttachedReactor.ChargedPowerRatio == 0)
+                _maxISP = baseMaxIsp * _ispPropellantMultiplier;
+            else
+                _maxISP = (AttachedReactor.ChargedPowerRatio * baseMaxIsp + (1 - AttachedReactor.ChargedPowerRatio) * 1000) * _ispPropellantMultiplier;
         }
 
         public override string GetInfo()
