@@ -1588,6 +1588,7 @@ namespace FNPlugin.Reactors
                 plasma_propulsion_ratio = plasmaPropulsionEfficiency * plasmaThrottleRatio;
                 charged_propulsion_ratio = chargedParticlePropulsionEfficiency * chargedThrottleRatio;
 
+                var thermal_plasma_ratio = Math.Max(thermalThrottleRatio, plasmaThrottleRatio);
                 var thermal_generator_ratio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
                 var plasma_generator_ratio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
                 var charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
@@ -1641,7 +1642,9 @@ namespace FNPlugin.Reactors
 
                 var totalPowerReceivedFixed = ongoing_total_power_generated * timeWarpFixedDeltaTime;
 
-                if (!CheatOptions.UnbreakableJoints && CurrentFuelMode.NeutronsRatio > 0 && CurrentFuelMode.NeutronsRatio > 0 && connectedEngines.Any(m => !m.PropellantAbsorbsNeutrons))
+                var hasActiveNeutronAborbtion = connectedEngines.All(m => m.PropellantAbsorbsNeutrons) && thermal_plasma_ratio > 0;
+
+                if (!CheatOptions.UnbreakableJoints && CurrentFuelMode.NeutronsRatio > 0 && CurrentFuelMode.NeutronsRatio > 0 && !hasActiveNeutronAborbtion)
                     neutronEmbrittlementDamage += ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
 
                 ongoing_consumption_rate = ongoing_total_power_generated / maximumPower;

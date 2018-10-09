@@ -264,6 +264,8 @@ namespace FNPlugin.Reactors
 
             if (!string.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
                 CurrentFuelMode = fuel_modes.First(m => m.ModeGUIName == fuel_mode_name);
+            else if (!string.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName.Contains(fuel_mode_name)))
+                CurrentFuelMode = fuel_modes.First(m => m.ModeGUIName.Contains(fuel_mode_name));
             else if (fuelmode_index >= 0 && fuel_modes.Any(m => m.Index == fuelmode_index))
                 CurrentFuelMode = fuel_modes.First(m => m.Index == fuelmode_index);
             else if (fuel_modes.Any(m => m.Index == fuel_mode))

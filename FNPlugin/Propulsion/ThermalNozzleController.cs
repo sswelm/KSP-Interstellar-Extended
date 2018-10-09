@@ -1326,7 +1326,7 @@ namespace FNPlugin
                 // calculate max thrust
                 heatExchangerThrustDivisor = GetHeatExchangerThrustDivisor();
 
-                if (availableThermalPower > 0 && _maxISP > 0)
+                if (power_received > 0 && _maxISP > 0)
                 {
                     if (_engineWasInactivePreviousFrame)
                     {
@@ -1433,11 +1433,10 @@ namespace FNPlugin
                 // set engines maximum fuel flow
                 myAttachedEngine.maxFuelFlow = (float)Math.Max( max_fuel_flow_rate, 1e-10);
 
-                if (!CheatOptions.IgnoreMaxTemperature)
+                // act as open cycle cooler
+                if (!isPlasmaNozzle && !CheatOptions.IgnoreMaxTemperature)
                 {
-                    var resourceRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-
-                    consumeFNResourcePerSecond(20 * resourceRatio * max_fuel_flow_rate, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(20 * getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) * currentEngineFuelFlow, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // Calculate
@@ -1563,7 +1562,11 @@ namespace FNPlugin
             if (!isPlasmaNozzle || AttachedReactor.ChargedPowerRatio == 0)
                 _maxISP = baseMaxIsp * _ispPropellantMultiplier;
             else
-                _maxISP = (AttachedReactor.ChargedPowerRatio * baseMaxIsp + (1 - AttachedReactor.ChargedPowerRatio) * 1000) * _ispPropellantMultiplier;
+            {
+                var scaledChargedRatio = 0.2 + Math.Pow((Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25), 2);
+
+                _maxISP = (scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * 3000) * _ispPropellantMultiplier;
+            }
         }
 
         public override string GetInfo()
@@ -1716,6 +1719,22 @@ namespace FNPlugin
                 PluginHelper.showInstallationErrorMessage();
 
             return propellantlist;
+        }
+
+        public override string getResourceManagerDisplayName()
+        {
+            string displayName = part.partInfo.title + " (nozzle)";
+
+            if (similarParts == null)
+            {
+                similarParts = vessel.parts.Where(m => m.partInfo.title == this.part.partInfo.title).ToList();
+                partNrInList = 1 + similarParts.IndexOf(this.part);
+            }
+
+            if (similarParts.Count > 1)
+                displayName += " " + partNrInList;
+
+            return displayName;
         }
     }
 }
