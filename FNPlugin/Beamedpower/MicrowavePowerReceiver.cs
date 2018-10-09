@@ -315,6 +315,8 @@ namespace FNPlugin
         private Rect windowPosition;
         private int windowID;
 
+        public bool CanUseAllPowerForPlasma { get { return false; } }
+
         public bool CanProducePower { get { return ProducedThermalHeat > 0; } }
 
         public double MinCoolingFactor { get { return minCoolingFactor; } }

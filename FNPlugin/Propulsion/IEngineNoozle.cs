@@ -9,5 +9,6 @@ namespace FNPlugin.Propulsion
     {
         bool RequiresPlasmaHeat { get; }
         bool RequiresThermalHeat { get; }
+		bool PropellantAbsorbsNeutrons { get; }
     }
 }

@@ -21,5 +21,7 @@ namespace FNPlugin.Redist
         double MinCoolingFactor { get; }
 
         bool CanProducePower { get; }
+
+        bool CanUseAllPowerForPlasma { get; }
     }
 }

@@ -228,8 +228,8 @@ namespace FNPlugin
         public static double PowerConsumptionMultiplier { get { return _powerConsumptionMultiplier; } }
 
         //----------------------------------------------------------------------------------------------
-        private static double _ispNtrPropellantModifierBase = 0;
-        public static double IspNtrPropellantModifierBase { get { return _ispNtrPropellantModifierBase; } }
+        //private static double _ispNtrPropellantModifierBase = 0;
+        //public static double IspNtrPropellantModifierBase { get { return _ispNtrPropellantModifierBase; } }
 
         private static double _ispElectroPropellantModifierBase = 0;
         public static double IspElectroPropellantModifierBase { get { return _ispElectroPropellantModifierBase; } }
@@ -890,11 +890,6 @@ namespace FNPlugin
                     {
                         PluginHelper._powerConsumptionMultiplier = double.Parse(plugin_settings.GetValue("PowerConsumptionMultiplier"));
                         Debug.Log("[KSPI] Base Power Consumption set to: " + PluginHelper.PowerConsumptionMultiplier.ToString("0.0"));
-                    }
-                    if (plugin_settings.HasValue("IspNtrPropellantModifierBase"))
-                    {
-                        PluginHelper._ispNtrPropellantModifierBase = double.Parse(plugin_settings.GetValue("IspNtrPropellantModifierBase"));
-                        Debug.Log("[KSPI] Isp Ntr Propellant Modifier Base set to: " + PluginHelper.IspNtrPropellantModifierBase.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("IspElectroPropellantModifierBase"))
                     {

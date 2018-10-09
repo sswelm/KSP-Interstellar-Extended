@@ -229,7 +229,7 @@ namespace FNPlugin
             set
             {
                 _current_propellant = value;
-                _modifiedCurrentPropellantIspMultiplier = (PluginHelper.IspElectroPropellantModifierBase + CurrentIspMultiplier) / (1 + PluginHelper.IspNtrPropellantModifierBase);
+                _modifiedCurrentPropellantIspMultiplier = CurrentIspMultiplier;
             }
         }
 
@@ -802,7 +802,7 @@ namespace FNPlugin
             var thrustPerMw = (2e6 * powerThrustMultiplier) / GameConstants.STANDARD_GRAVITY / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
             props.ForEach(prop =>
             {
-                var ispPropellantModifier = (PluginHelper.IspElectroPropellantModifierBase + (this.type == (int)ElectricEngineType.VASIMR ? prop.DecomposedIspMult : prop.IspMultiplier)) / (1 + PluginHelper.IspNtrPropellantModifierBase);
+                var ispPropellantModifier = (this.type == (int)ElectricEngineType.VASIMR ? prop.DecomposedIspMult : prop.IspMultiplier);
                 var ispProp = _modifiedEngineBaseIsp * ispPropellantModifier;
 
                 double efficiency;

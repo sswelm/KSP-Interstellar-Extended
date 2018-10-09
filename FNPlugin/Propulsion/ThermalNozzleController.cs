@@ -432,6 +432,8 @@ namespace FNPlugin
             }
         }
 
+        public bool PropellantAbsorbsNeutrons { get { return _isNeutronAbsorber; } }
+
         public bool RequiresPlasmaHeat { get { return isPlasmaNozzle; } }
 
         public bool RequiresThermalHeat { get { return !isPlasmaNozzle; } }
@@ -1089,14 +1091,6 @@ namespace FNPlugin
             }
         }
 
-        private double GetIspPropellantModifier()
-        {
-            double ispModifier = (PluginHelper.IspNtrPropellantModifierBase == 0
-                ? _ispPropellantMultiplier
-                : (PluginHelper.IspNtrPropellantModifierBase + _ispPropellantMultiplier) / (1.0 + PluginHelper.IspNtrPropellantModifierBase));
-            return ispModifier;
-        }
-
         public void FixedUpdate() // FixedUpdate is also called while not staged
         {
             if (!HighLogic.LoadedSceneIsFlight || myAttachedEngine == null) return;
@@ -1294,6 +1288,7 @@ namespace FNPlugin
 
                 thrust_modifiers = AttachedReactor.GetFractionThermalReciever(id);
                 requested_thermal_power = availableThermalPower * thrust_modifiers;
+
                 power_received = consumeFNResourcePerSecond(requested_thermal_power, ResourceManager.FNRESOURCE_THERMALPOWER);
 
                 if (currentMaxChargedPower > 0)
@@ -1565,7 +1560,10 @@ namespace FNPlugin
             if (baseMaxIsp > GameConstants.MaxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = GameConstants.MaxThermalNozzleIsp;
 
-            _maxISP = baseMaxIsp * GetIspPropellantModifier();
+            if (!isPlasmaNozzle || AttachedReactor.ChargedPowerRatio == 0)
+                _maxISP = baseMaxIsp * _ispPropellantMultiplier;
+            else
+                _maxISP = (AttachedReactor.ChargedPowerRatio * baseMaxIsp + (1 - AttachedReactor.ChargedPowerRatio) * 1000) * _ispPropellantMultiplier;
         }
 
         public override string GetInfo()
