@@ -239,6 +239,8 @@ namespace FNPlugin
         public double electricdtps;
         [KSPField(guiActive = false)]
         public double maxElectricdtps;
+        [KSPField(guiActive = true)]
+        public bool shouldUseChargedPower;
 
         // Internal
         protected double outputPower;
@@ -937,11 +939,17 @@ namespace FNPlugin
                         thermalPowerRequested = Math.Max(Math.Min(maxThermalPower, effectiveThermalPowerNeededForElectricity), attachedPowerSource.MinimumPower * (1 - attachedPowerSource.ChargedPowerRatio));
                         reactorPowerRequested = Math.Max(Math.Min(maxReactorPower, effectiveThermalPowerNeededForElectricity), attachedPowerSource.MinimumPower);
 
+                        shouldUseChargedPower = (!applies_balance || attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0) && attachedPowerSource.ChargedPowerRatio > 0;
+
+                        // attempt to balance power
+                        thermalPowerRequested *= shouldUseChargedPower && attachedPowerSource.ChargedPowerRatio != 1 ? (1 - attachedPowerSource.ChargedPowerRatio) : 1;
+
                         requested_power_per_second = thermalPowerRequested;
 
                         if (attachedPowerSource.ChargedPowerRatio != 1)
                         {
                             var maximumThermalPower = attachedPowerSource.MaximumThermalPower * powerUsageEfficiency * CapacityRatio;
+
                             var thermalPowerRequestRatio = Math.Min(1, maximumThermalPower > 0 ? thermalPowerRequested / maximumThermalPower : 0);
                             thermalPowerReceived = consumeFNResourcePerSecond(thermalPowerRequested, ResourceManager.FNRESOURCE_THERMALPOWER);
                             attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD);
@@ -951,12 +959,13 @@ namespace FNPlugin
 
                         if (attachedPowerSource.ChargedPowerRatio == 1)
                         {
+                            thermalPowerReceived += consumeFNResourcePerSecond(reactorPowerRequested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+
                             var maximumChargedPower = attachedPowerSource.MaximumChargedPower * powerUsageEfficiency * CapacityRatio;
                             var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? thermalPowerRequested / maximumChargedPower : 0);
-                            thermalPowerReceived += consumeFNResourcePerSecond(reactorPowerRequested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                             attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio);
                         }
-                        else if ((!applies_balance || attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0) && thermalPowerReceived < reactorPowerRequested && attachedPowerSource.ChargedPowerRatio > 0.001)
+                        else if (shouldUseChargedPower && thermalPowerReceived < reactorPowerRequested)
                         {
                             requestedChargedPower = Math.Min(Math.Min(reactorPowerRequested - thermalPowerReceived, maxChargedPower), Math.Max(0, maxReactorPower - thermalPowerReceived));
 
@@ -964,6 +973,16 @@ namespace FNPlugin
                                 thermalPowerReceived += requestedChargedPower;
                             else
                                 thermalPowerReceived += consumeFNResourcePerSecond(requestedChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+
+                            //var maximumChargedPower = attachedPowerSource.MaximumChargedPower * powerUsageEfficiency * CapacityRatio;
+                            //var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? requestedChargedPower / maximumChargedPower : 0);
+                        }
+
+                        // any shortage should be consumed again from remaining thermalpower
+                        if (attachedPowerSource.ChargedPowerRatio != 1 && thermalPowerReceived < reactorPowerRequested)
+                        {
+                            var finalRequest = Math.Max(0, reactorPowerRequested - thermalPowerReceived);
+                            thermalPowerReceived += consumeFNResourcePerSecond(finalRequest, ResourceManager.FNRESOURCE_THERMALPOWER);
                         }
 
                         received_power_per_second = thermalPowerReceived;

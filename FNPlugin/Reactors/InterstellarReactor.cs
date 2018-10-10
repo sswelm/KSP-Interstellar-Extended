@@ -122,6 +122,9 @@ namespace FNPlugin.Reactors
         protected double ongoing_thermal_power_generated;
         [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_Reactor_chargedPower ", guiFormat = "F6")]
         protected double ongoing_charged_power_generated;
+
+        [KSPField(guiActive = false, guiName = "Lithium Modifier", guiFormat = "F6")]
+        public double lithium_modifier = 1;
        
         [KSPField]
         public float minimumPowerPercentage = 10;
@@ -1642,10 +1645,7 @@ namespace FNPlugin.Reactors
 
                 var totalPowerReceivedFixed = ongoing_total_power_generated * timeWarpFixedDeltaTime;
 
-                var hasActiveNeutronAborbtion = connectedEngines.All(m => m.PropellantAbsorbsNeutrons) && thermal_plasma_ratio > 0;
-
-                if (!CheatOptions.UnbreakableJoints && CurrentFuelMode.NeutronsRatio > 0 && CurrentFuelMode.NeutronsRatio > 0 && !hasActiveNeutronAborbtion)
-                    neutronEmbrittlementDamage += ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
+                UpdateEmbrittlement(thermal_plasma_ratio);
 
                 ongoing_consumption_rate = ongoing_total_power_generated / maximumPower;
                 PluginHelper.SetAnimationRatio((float)ongoing_consumption_rate, pulseAnimation);
@@ -1727,6 +1727,15 @@ namespace FNPlugin.Reactors
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, 0);
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, 0);
             resourceBuffers.UpdateBuffers();
+        }
+
+        private void UpdateEmbrittlement(double thermal_plasma_ratio)
+        {
+            var hasActiveNeutronAborbtion = connectedEngines.All(m => m.PropellantAbsorbsNeutrons) && thermal_plasma_ratio > 0;
+            var lithium_embrittlement_modifer = 1 - Math.Max(lithium_modifier * 0.9, hasActiveNeutronAborbtion ? 0.9 : 0);
+
+            if (!CheatOptions.UnbreakableJoints && CurrentFuelMode.NeutronsRatio > 0 && CurrentFuelMode.NeutronsRatio > 0)
+                neutronEmbrittlementDamage += 5 * lithium_embrittlement_modifer * ongoing_total_power_generated * timeWarpFixedDeltaTime * CurrentFuelMode.NeutronsRatio / neutronEmbrittlementDivider;
         }
 
         private void LookForAlternativeFuelTypes()

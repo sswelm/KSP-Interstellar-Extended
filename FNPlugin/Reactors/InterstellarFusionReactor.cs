@@ -33,8 +33,6 @@ namespace FNPlugin.Reactors
         public double plasma_ratio = 1;
         [KSPField(guiActive = false, guiName = "Plasma Modifier", guiFormat = "F6")]
         public double plasma_modifier = 1;
-        [KSPField(guiActive = false, guiName = "Lithium Modifier", guiFormat = "F6")]
-        public double lithium_modifier = 1;
         [KSPField(guiActive = false, guiName = "Is Swapping Fuel Mode")]
         public bool isSwappingFuelMode;
 
