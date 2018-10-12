@@ -10,7 +10,7 @@ namespace FNPlugin.Extensions
         /// <summary>Tests whether two vessels have line of sight to each other</summary>
         /// <returns><c>true</c> if a straight line from a to b is not blocked by any celestial body; 
         /// otherwise, <c>false</c>.</returns>
-        public static bool HasLineOfSightWith(this Vessel vessA, Vessel vessB, double freeDistance = 2500, double min_height = 5)
+        public static bool HasLineOfSightWith(this Vessel vessA, Vessel vessB, double freeDistance = 2500, double min_height = double.NaN)
         {
             Vector3d vesselA = vessA.transform.position;
             Vector3d vesselB = vessB.transform.position;
@@ -34,7 +34,9 @@ namespace FNPlugin.Extensions
                 // lies between the origin and bFromA
                 Vector3d lateralOffset = bodyFromA - Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm;
 
-                if (lateralOffset.magnitude < referenceBody.Radius - min_height) return false;
+                var effective_minimum_height = double.IsNaN(min_height) ? (referenceBody.atmosphere ? 5 : -500) : min_height;
+
+                if (lateralOffset.magnitude < referenceBody.Radius - effective_minimum_height) return false;
             }
             return true;
         }
