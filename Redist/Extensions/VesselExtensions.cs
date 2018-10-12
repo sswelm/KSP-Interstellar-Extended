@@ -7,39 +7,37 @@ namespace FNPlugin.Extensions
 {
     public static class VesselExtensions
     {
-        /// <summary>Tests whether two vessels have line of sight to each other</summary>
-        /// <returns><c>true</c> if a straight line from a to b is not blocked by any celestial body; 
-        /// otherwise, <c>false</c>.</returns>
-        public static bool HasLineOfSightWith(this Vessel vessA, Vessel vessB, double freeDistance = 2500, double min_height = double.NaN)
-        {
-            Vector3d vesselA = vessA.transform.position;
-            Vector3d vesselB = vessB.transform.position;
+		/// <summary>Tests whether two vessels have line of sight to each other</summary>
+		/// <returns><c>true</c> if a straight line from a to b is not blocked by any celestial body; 
+		/// otherwise, <c>false</c>.</returns>
+		public static bool HasLineOfSightWith(this Vessel vessA, Vessel vessB, double freeDistance = 2500, double min_height = 5)
+		{
+			Vector3d vesselA = vessA.transform.position;
+			Vector3d vesselB = vessB.transform.position;
 
-            if (freeDistance > 0 && Vector3d.Distance(vesselA, vesselB) < freeDistance)           // if both vessels are within active view
-                return true;
+			if (freeDistance > 0 && Vector3d.Distance(vesselA, vesselB) < freeDistance)           // if both vessels are within active view
+				return true;
 
-            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
-            {
-                Vector3d bodyFromA = referenceBody.position - vesselA;
-                Vector3d bFromA = vesselB - vesselA;
+			foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
+			{
+				Vector3d bodyFromA = referenceBody.position - vesselA;
+				Vector3d bFromA = vesselB - vesselA;
 
-                // Is body at least roughly between satA and satB?
-                if (Vector3d.Dot(bodyFromA, bFromA) <= 0) continue;
+				// Is body at least roughly between satA and satB?
+				if (Vector3d.Dot(bodyFromA, bFromA) <= 0) continue;
 
-                Vector3d bFromANorm = bFromA.normalized;
+				Vector3d bFromANorm = bFromA.normalized;
 
-                if (Vector3d.Dot(bodyFromA, bFromANorm) >= bFromA.magnitude) continue;
+				if (Vector3d.Dot(bodyFromA, bFromANorm) >= bFromA.magnitude) continue;
 
-                // Above conditions guarantee that Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm 
-                // lies between the origin and bFromA
-                Vector3d lateralOffset = bodyFromA - Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm;
+				// Above conditions guarantee that Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm 
+				// lies between the origin and bFromA
+				Vector3d lateralOffset = bodyFromA - Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm;
 
-                var effective_minimum_height = double.IsNaN(min_height) ? (referenceBody.atmosphere ? 5 : -500) : min_height;
-
-                if (lateralOffset.magnitude < referenceBody.Radius - effective_minimum_height) return false;
-            }
-            return true;
-        }
+				if (lateralOffset.magnitude < referenceBody.Radius - min_height) return false;
+			}
+			return true;
+		}
 
         public static bool LineOfSightToSun(this Vessel vessel, CelestialBody star)
         {
