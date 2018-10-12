@@ -191,6 +191,15 @@ namespace FNPlugin
         public double attachedPowerSourceRatio;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_currentElectricPower", guiUnits = " MW_e", guiFormat = "F3")]
         public string OutputPower;
+        [KSPField(guiActive = false)]
+        public double badStablePower;
+        [KSPField(guiActive = false)]
+        public double stableMaximumReactorPower;
+        [KSPField(guiActive = false)]
+        public double megawattBufferAmount;
+
+        [KSPField(guiActive = false)]
+        public double maximumElectricPower;
         [KSPField(guiActive = false, guiName = "Maximum Electric Power")]
         public string MaxPowerStr;
         [KSPField(guiActive = true, guiName = "Electric Efficiency")]
@@ -222,6 +231,10 @@ namespace FNPlugin
         [KSPField(guiActive = false)]
         public double effectiveInputPowerPerSecond;
         [KSPField(guiActive = false)]
+        public double powerBufferBonus;
+        [KSPField(guiActive = false)]
+        public double stablePowerForBuffer;
+        [KSPField(guiActive = false)]
         public double maxStableMegaWattPower;
         [KSPField(guiActive = false)]
         public bool applies_balance;
@@ -239,7 +252,7 @@ namespace FNPlugin
         public double electricdtps;
         [KSPField(guiActive = false)]
         public double maxElectricdtps;
-        [KSPField(guiActive = true)]
+        [KSPField(guiActive = false)]
         public bool shouldUseChargedPower;
 
         // Internal
@@ -250,9 +263,6 @@ namespace FNPlugin
         protected bool play_down = true;
         protected bool play_up = true;
         protected bool hasrequiredupgrade = false;
-
-        protected long last_draw_update = 0;
-        protected long update_count = 0;
 
         protected int partDistance;
         protected int shutdown_counter = 0;
@@ -757,24 +767,20 @@ namespace FNPlugin
             {
                 var percentOutputPower = _totalEff * 100.0;
                 var outputPowerReport = -outputPower;
-                if (update_count - last_draw_update > 10)
-                {
-                    OutputPower = PluginHelper.getFormattedPowerString(outputPowerReport, "0.0", "0.000");
-                    OverallEfficiency = percentOutputPower.ToString("0.00") + "%";
 
-                    MaxPowerStr = (_totalEff >= 0)
-                        ? !chargedParticleMode
-                            ? PluginHelper.getFormattedPowerString(maxThermalPower * _totalEff * PowerRatio * CapacityRatio, "0.0", "0.000")
-                            : PluginHelper.getFormattedPowerString(maxChargedPower * _totalEff * PowerRatio * CapacityRatio, "0.0", "0.000")
-                        : 0 + "MW";
+                OutputPower = PluginHelper.getFormattedPowerString(outputPowerReport, "0.0", "0.000");
+                OverallEfficiency = percentOutputPower.ToString("0.00") + "%";
 
-                    last_draw_update = update_count;
-                }
+                maximumElectricPower = (_totalEff >= 0)
+                    ? !chargedParticleMode
+                        ? maxThermalPower * _totalEff * PowerRatio * CapacityRatio
+                        : maxChargedPower * _totalEff * PowerRatio * CapacityRatio
+                    : 0;
+
+                MaxPowerStr = PluginHelper.getFormattedPowerString(maximumElectricPower, "0.0", "0.000");
             }
             else
                 OutputPower = "Generator Offline";
-
-            update_count++;
         }
 
         #region obsolete exposed public getters
@@ -807,7 +813,19 @@ namespace FNPlugin
                             ? attachedPowerSource.PlasmaEnergyEfficiency
                             : attachedPowerSource.ThermalEnergyEfficiency;
 
-                return attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * maxPowerUsageRatio * maxEfficiency * CapacityRatio;
+                //attachedPowerSource.StableMaximumReactorPower
+
+                stableMaximumReactorPower = attachedPowerSource.StableMaximumReactorPower;
+
+                badStablePower = stableMaximumReactorPower * attachedPowerSource.PowerRatio * maxPowerUsageRatio * maxEfficiency * CapacityRatio;
+
+                //var stablePower = (_totalEff >= 0)
+                //        ? !chargedParticleMode
+                //            ? maxThermalPower * _totalEff * PowerRatio * CapacityRatio
+                //            : maxChargedPower * _totalEff * PowerRatio * CapacityRatio
+                //        : 0;
+
+                return badStablePower;
             }
         }        
 
@@ -1065,11 +1083,13 @@ namespace FNPlugin
             { 
                 _powerState = PowerStates.PowerOnline;
 
-                var stablePowerForBuffer = chargedParticleMode 
-                       ? attachedPowerSource.ChargedPowerRatio * maxStableMegaWattPower 
-                       : (1 - attachedPowerSource.ChargedPowerRatio) * maxStableMegaWattPower;
+                stablePowerForBuffer = chargedParticleMode 
+                       ? attachedPowerSource.ChargedPowerRatio * maxStableMegaWattPower
+                       : applies_balance ? (1 - attachedPowerSource.ChargedPowerRatio) * maxStableMegaWattPower : maxStableMegaWattPower;
 
-                var megawattBufferAmount = (attachedPowerSource.PowerBufferBonus + 1) * stablePowerForBuffer;
+                powerBufferBonus = attachedPowerSource.PowerBufferBonus;
+
+                megawattBufferAmount = (powerBufferBonus + 1) * stablePowerForBuffer;
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
                 resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
             }
@@ -1128,7 +1148,7 @@ namespace FNPlugin
             if (powerDownFraction <= 0)
                 _powerState = PowerStates.PowerOffline;
 
-            var megawattBufferAmount = (attachedPowerSource.PowerBufferBonus + 1) * maxStableMegaWattPower;
+            megawattBufferAmount = (attachedPowerSource.PowerBufferBonus + 1) * maxStableMegaWattPower;
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount * powerDownFraction);
             resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount * powerDownFraction);
