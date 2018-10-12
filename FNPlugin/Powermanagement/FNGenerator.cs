@@ -208,24 +208,24 @@ namespace FNPlugin
         public double electrical_power_currently_needed;
 
         // Debug
-		[KSPField]
-		public double maximumElectricPower;
-		[KSPField]
-		public double stableMaximumReactorPower;
-		[KSPField]
-		public double megawattBufferAmount;
-		[KSPField]
-		public double heat_exchanger_thrust_divisor;
-		[KSPField]
-		public double requested_power_per_second;
-		[KSPField]
-		public double received_power_per_second;
-		[KSPField]
-		public double spareResourceCapacity;
-		[KSPField]
-		public double possibleSpareResourceCapacityFilling;
-		[KSPField]
-		public double currentUnfilledResourceDemand;
+        [KSPField]
+        public double maximumElectricPower;
+        [KSPField]
+        public double stableMaximumReactorPower;
+        [KSPField]
+        public double megawattBufferAmount;
+        [KSPField]
+        public double heat_exchanger_thrust_divisor;
+        [KSPField]
+        public double requested_power_per_second;
+        [KSPField]
+        public double received_power_per_second;
+        [KSPField]
+        public double spareResourceCapacity;
+        [KSPField]
+        public double possibleSpareResourceCapacityFilling;
+        [KSPField]
+        public double currentUnfilledResourceDemand;
         [KSPField]
         public double effectiveInputPowerPerSecond;
         [KSPField]
@@ -1043,7 +1043,7 @@ namespace FNPlugin
                         if (attachedPowerSource == null || !FNRadiator.hasRadiatorsForVessel(vessel))
                         {
                             IsEnabled = false;
-							var message = "Generator Shutdown: No radiators available!";
+                            var message = "Generator Shutdown: No radiators available!";
                             Debug.Log("[KSPI] - " + message);
                             ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                             PowerDown();
