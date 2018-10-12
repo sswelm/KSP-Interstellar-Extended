@@ -479,6 +479,11 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
         public double hydrogenProductionReceived;
 
+        [KSPField]
+        public bool isConnectedToThermalGenerator;
+        [KSPField]
+        public bool isConnectedToChargedGenerator;
+
         // shared variabels
         protected bool decay_ongoing = false;
         protected bool initialized = false;
@@ -541,7 +546,7 @@ namespace FNPlugin.Reactors
 
         bool hasSpecificFuelModeTechs;
         bool? hasBimodelUpgradeTechReq;
-        bool isConnectedToThermalGenerator;
+        
         bool isFixedUpdatedCalled;
         bool render_window = false;
 
@@ -713,7 +718,7 @@ namespace FNPlugin.Reactors
                 currentIsThermalEnergyGeneratorEfficiency = efficency;
                 currentGeneratorThermalEnergyRequestRatio = power_ratio;
             }
-
+            isConnectedToThermalGenerator = true;
         }
 
         public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio)
@@ -727,11 +732,14 @@ namespace FNPlugin.Reactors
         {
             currentIsChargedEnergyGenratorEfficiency = efficency;
             currentGeneratorChargedEnergyRequestRatio = power_ratio;
+            isConnectedToChargedGenerator = true;
         }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType)
         {
-            shouldApplyBalance = isConnectedToThermalGenerator && generatorType == ElectricGeneratorType.thermal && storedIsThermalEnergyGeneratorEfficiency > 0 && storedIsChargedEnergyGeneratorEfficiency > 0;
+            //shouldApplyBalance = isConnectedToThermalGenerator && generatorType == ElectricGeneratorType.thermal && storedIsThermalEnergyGeneratorEfficiency > 0 && storedIsChargedEnergyGeneratorEfficiency > 0;
+
+            shouldApplyBalance = isConnectedToThermalGenerator && isConnectedToChargedGenerator;
 
             return shouldApplyBalance;
         }
@@ -1829,13 +1837,6 @@ namespace FNPlugin.Reactors
 
         private void BreedTritium(double neutronPowerReceivedEachSecond, double fixedDeltaTime)
         {
-            if (!breedtritium || neutronPowerReceivedEachSecond <= 0 || fixedDeltaTime <= 0)
-            {
-                tritium_produced_per_second = 0;
-                helium_produced_per_second = 0;
-                return;
-            }
-
             var partResourceLithium6 = part.Resources[InterstellarResourcesConfiguration.Instance.Lithium6];
             if (partResourceLithium6 != null)
             {
@@ -1849,6 +1850,13 @@ namespace FNPlugin.Reactors
             }
 
             var ratioLithium6 = totalAmountLithium > 0 ? totalAmountLithium / totalMaxAmountLithium : 0;
+
+            if (!breedtritium || neutronPowerReceivedEachSecond <= 0 || fixedDeltaTime <= 0)
+            {
+                tritium_produced_per_second = 0;
+                helium_produced_per_second = 0;
+                return;
+            }
 
             // calculate current maximum litlium consumption
             var breedRate = CurrentFuelMode.TritiumBreedModifier * staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * Math.Sqrt(ratioLithium6);

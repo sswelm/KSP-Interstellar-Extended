@@ -237,6 +237,8 @@ namespace FNPlugin
         [KSPField]
         public bool applies_balance;
         [KSPField]
+        public double thermalPowerCurrentlyNeededForElectricity;
+        [KSPField]
         public double effectiveThermalPowerNeededForElectricity;
         [KSPField]
         public double thermalPowerRequested;
@@ -906,6 +908,8 @@ namespace FNPlugin
             {
                 if (IsEnabled && attachedPowerSource != null && FNRadiator.hasRadiatorsForVessel(vessel))
                 {
+                    applies_balance = attachedPowerSource.ShouldApplyBalance(chargedParticleMode ? ElectricGeneratorType.charged_particle : ElectricGeneratorType.thermal);
+
                     UpdateGeneratorPower();
 
                     // check if MaxStableMegaWattPower is changed
@@ -930,13 +934,15 @@ namespace FNPlugin
 
                         _totalEff = Math.Min(maxEfficiency, hotColdBathRatio * maxEfficiency);
 
+                        
+
                         if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
                         {
                             requested_power_per_second = 0;
                             return;
                         }
 
-                        var thermalPowerCurrentlyNeededForElectricity = CalculateElectricalPowerCurrentlyNeeded();
+                        thermalPowerCurrentlyNeededForElectricity = CalculateElectricalPowerCurrentlyNeeded();
 
                         effectiveThermalPowerNeededForElectricity = thermalPowerCurrentlyNeededForElectricity / _totalEff;
 
@@ -958,6 +964,7 @@ namespace FNPlugin
 
                             var thermalPowerRequestRatio = Math.Min(1, maximumThermalPower > 0 ? thermalPowerRequested / maximumThermalPower : 0);
                             thermalPowerReceived = consumeFNResourcePerSecond(thermalPowerRequested, ResourceManager.FNRESOURCE_THERMALPOWER);
+
                             attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD);
                         }
                         else
@@ -969,7 +976,8 @@ namespace FNPlugin
 
                             var maximumChargedPower = attachedPowerSource.MaximumChargedPower * powerUsageEfficiency * CapacityRatio;
                             var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? thermalPowerRequested / maximumChargedPower : 0);
-                            attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio);
+
+                            attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, chargedPowerRequestRatio, isMHD);
                         }
                         else if (shouldUseChargedPower && thermalPowerReceived < reactorPowerRequested)
                         {
@@ -979,13 +987,10 @@ namespace FNPlugin
                                 thermalPowerReceived += requestedChargedPower;
                             else
                                 thermalPowerReceived += consumeFNResourcePerSecond(requestedChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-
-                            //var maximumChargedPower = attachedPowerSource.MaximumChargedPower * powerUsageEfficiency * CapacityRatio;
-                            //var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? requestedChargedPower / maximumChargedPower : 0);
                         }
 
                         // any shortage should be consumed again from remaining thermalpower
-                        if (attachedPowerSource.ChargedPowerRatio != 1 && thermalPowerReceived < reactorPowerRequested)
+                        if (shouldUseChargedPower && attachedPowerSource.ChargedPowerRatio != 1 && thermalPowerReceived < reactorPowerRequested)
                         {
                             var finalRequest = Math.Max(0, reactorPowerRequested - thermalPowerReceived);
                             thermalPowerReceived += consumeFNResourcePerSecond(finalRequest, ResourceManager.FNRESOURCE_THERMALPOWER);
@@ -1000,9 +1005,7 @@ namespace FNPlugin
 
                         electricdtps = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
 
-                        var effectiveMaxThermalPowerRatio = applies_balance
-                            ? (1 - attachedPowerSource.ChargedPowerRatio)
-                            : (1 - attachedPowerSource.ChargedPowerRatio) + (attachedPowerSource.ChargedPowerRatio * availableChargedPowerRatio);
+                        var effectiveMaxThermalPowerRatio = applies_balance? (1 - attachedPowerSource.ChargedPowerRatio) : 1; 
 
                         maxElectricdtps = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEff * CapacityRatio;
                         maxElectricdtps =  Math.Max(attachedPowerSource.ProducedThermalHeat * _totalEff , maxElectricdtps);
@@ -1013,7 +1016,9 @@ namespace FNPlugin
 
                         if (_totalEff <= 0) return;
 
-                        requested_power_per_second = Math.Max(Math.Min(maxChargedPower, CalculateElectricalPowerCurrentlyNeeded() / _totalEff), attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio);
+                        var chargedPowerCurrentlyNeededForElectricity = CalculateElectricalPowerCurrentlyNeeded();
+
+                        requested_power_per_second = Math.Max(Math.Min(maxChargedPower, chargedPowerCurrentlyNeededForElectricity / _totalEff), attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio);
 
                         var maximumChargedPower = attachedPowerSource.MaximumChargedPower * attachedPowerSource.ChargedParticleEnergyEfficiency;
                         var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? requested_power_per_second / maximumChargedPower : 0);
@@ -1102,26 +1107,26 @@ namespace FNPlugin
 
             possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity / deltaTimeDivider, maxStableMegaWattPower);
 
-            applies_balance = attachedPowerSource.ShouldApplyBalance(chargedParticleMode ? ElectricGeneratorType.charged_particle : ElectricGeneratorType.thermal);
+            //if (applies_balance)
+            //{
+            //    var chargedPowerPerformance = attachedPowerSource.EfficencyConnectedChargedEnergyGenerator * attachedPowerSource.ChargedPowerRatio;
+            //    var thermalPowerPerformance = attachedPowerSource.EfficencyConnectedThermalEnergyGenerator * (1 - attachedPowerSource.ChargedPowerRatio);
 
-            if (applies_balance)
-            {
-                var chargedPowerPerformance = attachedPowerSource.EfficencyConnectedChargedEnergyGenerator * attachedPowerSource.ChargedPowerRatio;
-                var thermalPowerPerformance = attachedPowerSource.EfficencyConnectedThermalEnergyGenerator * (1 - attachedPowerSource.ChargedPowerRatio);
+            //    var totalPerformance = chargedPowerPerformance + thermalPowerPerformance;
 
-                var totalPerformance = chargedPowerPerformance + thermalPowerPerformance;
+            //    var balancePerformanceRatio = totalPerformance == 0 ? 0
+            //        : chargedParticleMode
+            //            ? chargedPowerPerformance / totalPerformance
+            //            : thermalPowerPerformance / totalPerformance;
 
-                var balancePerformanceRatio = totalPerformance == 0 ? 0
-                    : chargedParticleMode
-                        ? chargedPowerPerformance / totalPerformance
-                        : thermalPowerPerformance / totalPerformance;
+            //    electrical_power_currently_needed = (currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling) * balancePerformanceRatio;
+            //}
+            //else
+            //{
+            //    electrical_power_currently_needed = currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling;
+            //}
 
-                electrical_power_currently_needed = (currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling) * balancePerformanceRatio;
-            }
-            else
-            {
-                electrical_power_currently_needed = currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling;
-            }
+            electrical_power_currently_needed = currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling;
 
             return electrical_power_currently_needed;
         }

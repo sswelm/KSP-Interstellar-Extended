@@ -29,7 +29,7 @@ namespace FNPlugin.Reactors
 
         [KSPField(guiActive = false, guiName = "Maintance")]
         public string electricPowerMaintenance;
-        [KSPField(guiActive = true, guiName = "Plasma Ratio")]
+        [KSPField(guiActive = false, guiName = "Plasma Ratio")]
         public double plasma_ratio = 1;
         [KSPField(guiActive = false, guiName = "Plasma Modifier", guiFormat = "F6")]
         public double plasma_modifier = 1;
@@ -54,7 +54,7 @@ namespace FNPlugin.Reactors
 
         public double MinimumChargdIspMult { get { return minimumChargdIspMult; } }
 
-        public override double StableMaximumReactorPower { get { return base.StableMaximumReactorPower * LithiumModifier; } }
+        public override double StableMaximumReactorPower { get { return base.StableMaximumReactorPower * lithium_modifier; } }
 
         public virtual double PlasmaModifier
         {
@@ -69,17 +69,17 @@ namespace FNPlugin.Reactors
         {
             get
             {
-                lithium_modifier = CheatOptions.InfinitePropellant || !powerIsAffectedByLithium ? 1
+                var modifier = CheatOptions.InfinitePropellant || !powerIsAffectedByLithium ? 1
                     : totalAmountLithium > 0
                         ? Math.Sqrt(totalAmountLithium / totalMaxAmountLithium)
                         : 0.001;
 
 
-                return lithium_modifier;
+                return modifier;
             }
         }
 
-        public override double MaximumThermalPower {  get { return Math.Max(base.MaximumThermalPower * PlasmaModifier * LithiumModifier, 0); }  }
+        public override double MaximumThermalPower { get { return Math.Max(base.MaximumThermalPower * PlasmaModifier * lithium_modifier, 0); } }
 
         public override double MaximumChargedPower { get { return base.MaximumChargedPower * PlasmaModifier; }  }
 
@@ -249,6 +249,8 @@ namespace FNPlugin.Reactors
 
         public override void OnFixedUpdate()
         {
+            lithium_modifier = LithiumModifier;
+
             base.OnFixedUpdate();
 
             // determine amount of power needed
