@@ -191,68 +191,66 @@ namespace FNPlugin
         public double attachedPowerSourceRatio;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_currentElectricPower", guiUnits = " MW_e", guiFormat = "F3")]
         public string OutputPower;
-        [KSPField(guiActive = false)]
-        public double badStablePower;
-        [KSPField(guiActive = false)]
-        public double stableMaximumReactorPower;
-        [KSPField(guiActive = false)]
-        public double megawattBufferAmount;
 
-        [KSPField(guiActive = false)]
-        public double maximumElectricPower;
         [KSPField(guiActive = false, guiName = "Maximum Electric Power")]
         public string MaxPowerStr;
         [KSPField(guiActive = true, guiName = "Electric Efficiency")]
         public string OverallEfficiency;
         [KSPField]
         public string upgradeCostStr = "";
-        [KSPField]
-        public double heat_exchanger_thrust_divisor;
-        [KSPField]
-        public double requested_power_per_second;
         [KSPField(guiActive = false)]
-        public double received_power_per_second;
-        [KSPField]
         public double coldBathTemp = 500;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_coldBathTemp", guiUnits = " K", guiFormat = "F1")]
         public double coldBathTempDisplay = 500;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_hotBathTemp", guiUnits = " K", guiFormat = "F1")]
         public double hotBathTemp = 300;
-        [KSPField]
-        public double spareResourceCapacity;
-        [KSPField]
-        public double possibleSpareResourceCapacityFilling;
-        [KSPField]
-        public double currentUnfilledResourceDemand;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = " MW", guiFormat = "F3")]
         public double electrical_power_currently_needed;
 
         // Debug
-        [KSPField(guiActive = false)]
+		[KSPField]
+		public double maximumElectricPower;
+		[KSPField]
+		public double stableMaximumReactorPower;
+		[KSPField]
+		public double megawattBufferAmount;
+		[KSPField]
+		public double heat_exchanger_thrust_divisor;
+		[KSPField]
+		public double requested_power_per_second;
+		[KSPField]
+		public double received_power_per_second;
+		[KSPField]
+		public double spareResourceCapacity;
+		[KSPField]
+		public double possibleSpareResourceCapacityFilling;
+		[KSPField]
+		public double currentUnfilledResourceDemand;
+        [KSPField]
         public double effectiveInputPowerPerSecond;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double powerBufferBonus;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double stablePowerForBuffer;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double maxStableMegaWattPower;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public bool applies_balance;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double effectiveThermalPowerNeededForElectricity;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double thermalPowerRequested;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double reactorPowerRequested;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double thermalPowerReceived;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double requestedChargedPower;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double electricdtps;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double maxElectricdtps;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public bool shouldUseChargedPower;
 
         // Internal
@@ -813,19 +811,9 @@ namespace FNPlugin
                             ? attachedPowerSource.PlasmaEnergyEfficiency
                             : attachedPowerSource.ThermalEnergyEfficiency;
 
-                //attachedPowerSource.StableMaximumReactorPower
-
                 stableMaximumReactorPower = attachedPowerSource.StableMaximumReactorPower;
 
-                badStablePower = stableMaximumReactorPower * attachedPowerSource.PowerRatio * maxPowerUsageRatio * maxEfficiency * CapacityRatio;
-
-                //var stablePower = (_totalEff >= 0)
-                //        ? !chargedParticleMode
-                //            ? maxThermalPower * _totalEff * PowerRatio * CapacityRatio
-                //            : maxChargedPower * _totalEff * PowerRatio * CapacityRatio
-                //        : 0;
-
-                return badStablePower;
+                return stableMaximumReactorPower * attachedPowerSource.PowerRatio * maxPowerUsageRatio * maxEfficiency * CapacityRatio;
             }
         }        
 

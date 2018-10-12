@@ -925,13 +925,13 @@ namespace FNPlugin
             _propType = chosenpropellant.HasValue("propType") ? int.Parse(chosenpropellant.GetValue("propType")) : 1;
             _isNeutronAbsorber = chosenpropellant.HasValue("isNeutronAbsorber") ? bool.Parse(chosenpropellant.GetValue("isNeutronAbsorber")) : false;
 
-            if (!usePropellantBaseIsp && !_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
+            if (!isPlasmaNozzle && !usePropellantBaseIsp && !_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
                 UpdateThrustPropellantMultiplier();
             else
             {
                 _heatDecompositionFraction = 1;
 
-                if (usePropellantBaseIsp && _baseIspMultiplier > 0)
+                if ((usePropellantBaseIsp || isPlasmaNozzle) && _baseIspMultiplier > 0)
                     _ispPropellantMultiplier = _baseIspMultiplier;
                 else
                     _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
