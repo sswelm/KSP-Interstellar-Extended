@@ -9,6 +9,10 @@ using UnityEngine;
 
 namespace FNPlugin
 {
+	[KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
+	class ElectrostaticEngineControllerFX : ElectricEngineControllerFX { }
+
+
     [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
     class ElectricEngineControllerFX : ResourceSuppliableModule, IUpgradeableModule
     {
