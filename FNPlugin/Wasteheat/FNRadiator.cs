@@ -1033,7 +1033,7 @@ namespace FNPlugin.Wasteheat
 
             if (heatStates != null && heatStates.Any())
             {
-                SetHeatAnimationRatio(Mathf.Min(colorRatio * colorRatio, 1));
+                SetHeatAnimationRatio(Approximate.Sqrt(colorRatio));
             }
             else if (!string.IsNullOrEmpty(colorHeat))
             {
