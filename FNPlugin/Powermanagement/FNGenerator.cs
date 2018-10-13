@@ -252,7 +252,7 @@ namespace FNPlugin
         public double electricdtps;
         [KSPField]
         public double maxElectricdtps;
-        [KSPField]
+        [KSPField(guiActive = false, guiName = "Consumes Charged Power")]
         public bool shouldUseChargedPower;
 
         // Internal
@@ -886,7 +886,7 @@ namespace FNPlugin
             potentialThermalPower = ((applies_balance ? maxThermalPower : rawReactorPower) / attachedPowerSourceRatio) * maximumPowerUsageRatio;
 
             maxThermalPower = Math.Min(maxReactorPower, potentialThermalPower);
-            maxChargedPower = Math.Min(maxChargedPower, (maxChargedPower / attachedPowerSourceRatio) * attachedPowerSource.ChargedParticleEnergyEfficiency);
+            maxChargedPower = Math.Min(maxChargedPower, (maxChargedPower / attachedPowerSourceRatio) * (chargedParticleMode ? attachedPowerSource.ChargedParticleEnergyEfficiency : 1));
             maxReactorPower = (chargedParticleMode ? maxChargedPower : maxThermalPower) * maximumPowerUsageRatio;
         }
 
@@ -934,8 +934,6 @@ namespace FNPlugin
 
                         _totalEff = Math.Min(maxEfficiency, hotColdBathRatio * maxEfficiency);
 
-                        
-
                         if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
                         {
                             requested_power_per_second = 0;
@@ -951,7 +949,7 @@ namespace FNPlugin
                         thermalPowerRequested = Math.Max(Math.Min(maxThermalPower, effectiveThermalPowerNeededForElectricity), attachedPowerSource.MinimumPower * (1 - attachedPowerSource.ChargedPowerRatio));
                         reactorPowerRequested = Math.Max(Math.Min(maxReactorPower, effectiveThermalPowerNeededForElectricity), attachedPowerSource.MinimumPower);
 
-                        shouldUseChargedPower = (!applies_balance || attachedPowerSource.EfficencyConnectedChargedEnergyGenerator == 0) && attachedPowerSource.ChargedPowerRatio > 0;
+                        shouldUseChargedPower = !applies_balance && attachedPowerSource.ChargedPowerRatio > 0;
 
                         // attempt to balance power
                         thermalPowerRequested *= shouldUseChargedPower && attachedPowerSource.ChargedPowerRatio != 1 ? (1 - attachedPowerSource.ChargedPowerRatio) : 1;

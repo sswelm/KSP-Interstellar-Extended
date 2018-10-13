@@ -960,13 +960,15 @@ namespace FNPlugin.Reactors
             {
                 var power = PowerRatio * NormalisedMaximumPower;
 
-                return (ChargedParticleEnergyEfficiency == 0 && ChargedParticlePropulsionEfficiency == 0) ? power  : power * (1 - ChargedPowerRatio); 
+                //return (ChargedParticleEnergyEfficiency == 0 && ChargedParticlePropulsionEfficiency == 0) ? power  : power * (1 - ChargedPowerRatio); 
+                return power * (1 - ChargedPowerRatio);
             } 
         }
 
         public virtual double MaximumChargedPower 
         { 
-            get { return (ChargedParticleEnergyEfficiency == 0 && ChargedParticlePropulsionEfficiency == 0) ? 0 : PowerRatio * NormalisedMaximumPower * ChargedPowerRatio; } 
+            //get { return (ChargedParticleEnergyEfficiency == 0 && ChargedParticlePropulsionEfficiency == 0) ? 0 : PowerRatio * NormalisedMaximumPower * ChargedPowerRatio; } 
+            get { return PowerRatio * NormalisedMaximumPower * ChargedPowerRatio; }
         }
 
         public double ReactorSpeedMult { get { return reactorSpeedMult; } }
