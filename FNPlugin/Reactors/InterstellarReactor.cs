@@ -1664,7 +1664,7 @@ namespace FNPlugin.Reactors
                     // skip first frame of wasteheat production
                     var delayed_wasteheat_rate = ongoing_consumption_rate > ongoing_wasteheat_rate ? Math.Min(ongoing_wasteheat_rate, ongoing_consumption_rate) : ongoing_consumption_rate;
 
-                    supplyFNResourcePerSecondWithMax(delayed_wasteheat_rate * maximumPower, NormalisedMaximumPower, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    supplyFNResourcePerSecondWithMax(delayed_wasteheat_rate * maximumPower, StableMaximumReactorPower, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                     ongoing_wasteheat_rate = ongoing_consumption_rate;
                 }

@@ -47,9 +47,11 @@ namespace FNPlugin.Reactors
 
         public override bool IsFuelNeutronRich { get { return CurrentFuelMode != null && !CurrentFuelMode.Aneutronic; } }
 
-        public override double MaximumThermalPower { get { return base.MaximumThermalPower * (float)ThermalRatioEfficiency; } }
+        public override double MaximumThermalPower { get { return base.MaximumThermalPower * ThermalRatioEfficiency; } }
 
-        public override double MaximumChargedPower { get { return base.MaximumChargedPower * (float)ThermalRatioEfficiency; } }
+        public override double MaximumChargedPower { get { return base.MaximumChargedPower * ThermalRatioEfficiency; } }
+
+        public override double StableMaximumReactorPower { get { return IsEnabled ? NormalisedMaximumPower * ThermalRatioEfficiency : 0; } }
 
         private double ThermalRatioEfficiency
         {

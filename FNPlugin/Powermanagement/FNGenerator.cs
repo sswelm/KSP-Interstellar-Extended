@@ -210,7 +210,7 @@ namespace FNPlugin
         // Debug
         [KSPField]
         public double maximumElectricPower;
-        [KSPField]
+        [KSPField(guiActive = false)]
         public double stableMaximumReactorPower;
         [KSPField]
         public double megawattBufferAmount;
@@ -248,16 +248,29 @@ namespace FNPlugin
         public double thermalPowerReceived;
         [KSPField]
         public double requestedChargedPower;
-        [KSPField]
+        [KSPField(guiActive = false)]
+        public double effectiveMaxThermalPowerRatio;
+        [KSPField(guiActive = false)]
         public double electricdtps;
-        [KSPField]
+        [KSPField(guiActive = false)]
         public double maxElectricdtps;
+        [KSPField(guiActive = false)]
+        public double projectedMaximumPower;
+        [KSPField(guiActive = false)]
+        public double maxPowerFromProducedHeat;
+
         [KSPField(guiActive = false, guiName = "Consumes Charged Power")]
         public bool shouldUseChargedPower;
+        [KSPField(guiActive = false)]
+        public double _totalEff;
+        [KSPField(guiActive = false)]
+        public double capacityRatio;
 
         // Internal
         protected double outputPower;
-        protected double _totalEff;
+
+
+
         protected double powerDownFraction;
 
         protected bool play_down = true;
@@ -712,7 +725,10 @@ namespace FNPlugin
 
         public double CapacityRatio
         {
-            get { return (double)(decimal)(powerCapacity / 100); }
+            get { 
+                capacityRatio =  (double)(decimal)(powerCapacity / 100);
+                return capacityRatio;
+            }
         }
 
         public double PowerRatio
@@ -1003,10 +1019,11 @@ namespace FNPlugin
 
                         electricdtps = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
 
-                        var effectiveMaxThermalPowerRatio = applies_balance? (1 - attachedPowerSource.ChargedPowerRatio) : 1; 
+                        effectiveMaxThermalPowerRatio = applies_balance? (1 - attachedPowerSource.ChargedPowerRatio) : 1;
 
-                        maxElectricdtps = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEff * CapacityRatio;
-                        maxElectricdtps =  Math.Max(attachedPowerSource.ProducedThermalHeat * _totalEff , maxElectricdtps);
+                        projectedMaximumPower = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEff * CapacityRatio;
+                        maxPowerFromProducedHeat = attachedPowerSource.ProducedThermalHeat * _totalEff;
+                        maxElectricdtps = Math.Max(maxPowerFromProducedHeat, projectedMaximumPower);
                     }
                     else // charged particle mode
                     {
