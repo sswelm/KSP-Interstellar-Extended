@@ -215,6 +215,8 @@ namespace FNPlugin
         protected double heatExchangerThrustDivisor;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Max Thrust", guiFormat = "F3", guiUnits = " kN")]
         protected double engineMaxThrust;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thrust Per MJ", guiFormat = "F3", guiUnits = " kN")]
+        protected double thrustPerMegaJoule;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Thrust In Space")]
         protected double max_thrust_in_space;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Final Max Thrust In Space", guiFormat = "F3", guiUnits = " kN")]
@@ -1340,7 +1342,7 @@ namespace FNPlugin
 
                     engineMaxThrust = powerHeatModifier * power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
 
-                    var thrustPerMegaJoule = powerHeatModifier * maximumPowerUsageForPropulsionRatio / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
+                    thrustPerMegaJoule = powerHeatModifier * maximumPowerUsageForPropulsionRatio / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
 
                     expectedMaxThrust = thrustPerMegaJoule * AttachedReactor.MaximumPower;
 
@@ -1559,7 +1561,7 @@ namespace FNPlugin
             if (baseMaxIsp > GameConstants.MaxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = GameConstants.MaxThermalNozzleIsp;
 
-            if (!isPlasmaNozzle || AttachedReactor.ChargedPowerRatio == 0)
+            if (!isPlasmaNozzle || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0) 
                 _maxISP = baseMaxIsp * _ispPropellantMultiplier;
             else
             {
