@@ -278,6 +278,9 @@ namespace FNPlugin
 
         protected FNRadiator fnRadiator;
         protected PartModule warpfixer;
+
+        public Queue<double> beamedPowerQueue = new Queue<double>(10);
+        public Queue<double> beamedPowerMaxQueue = new Queue<double>(10);
         
         public Queue<double> solarFluxQueue = new Queue<double>(50);
         public Queue<double> flowRateQueue = new Queue<double>(50);
@@ -295,7 +298,9 @@ namespace FNPlugin
         protected ModuleResource _solarFlowRateResource;
 
         protected List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
+
         protected Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
+
         protected List<MicrowavePowerReceiver> thermalReceiverSlaves = new List<MicrowavePowerReceiver>();
 
         // reference types
@@ -314,6 +319,36 @@ namespace FNPlugin
         // GUI elements declaration
         private Rect windowPosition;
         private int windowID;
+
+        private int restartCounter;
+
+        public void Restart(int counter)
+        {
+            restartCounter = counter;
+        }
+
+        public void RemoveOtherVesselData()
+        {
+            var deleteList = new List<Vessel>();
+
+            foreach(var r in  received_power)
+            {
+                if (r.Key != vessel)
+                {
+                    deleteList.Add(r.Key);
+                }
+            }
+
+            foreach(var othervessel in  deleteList)
+            {
+                received_power.Remove(othervessel);
+            }
+        }
+
+        public void Reset()
+        {
+            received_power.Clear();
+        }
 
         public bool CanUseAllPowerForPlasma { get { return false; } }
 
@@ -1557,6 +1592,15 @@ namespace FNPlugin
 
             try
             {
+                if (restartCounter > 0)
+                {
+                    restartCounter--;
+                    RemoveOtherVesselData();
+                    OnUpdate();
+                }
+
+                UpdatePowerInput();
+
                 if (receiverIsEnabled && !radiatorMode)
                 {
                     if (wasteheatRatio >= 0.95 && !isThermalReceiver && !solarPowerMode )
@@ -1674,7 +1718,7 @@ namespace FNPlugin
 
                     PowerDown();
 
-                    received_power.Clear();
+                    Reset();
 
                     if (animT == null) return;
 
@@ -1711,9 +1755,9 @@ namespace FNPlugin
                 connectedrelaysi = 0;
                 networkDepth = 0;
 
-                //add solar power tot toal power
-                powerInputMegajoules = thermalSolarInputMegajoules;
-                powerInputMegajoulesMax = thermalSolarInputMegajoulesMax;
+                ////add solar power tot toal power
+                //powerInputMegajoules = thermalSolarInputMegajoules;
+                //powerInputMegajoulesMax = thermalSolarInputMegajoulesMax;
             }
             else if (!solarPowerMode) // && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
             {
@@ -1857,9 +1901,6 @@ namespace FNPlugin
 
                 connectedsatsi = activeSatsIncr;
                 connectedrelaysi = usedRelays.Count;
-
-                powerInputMegajoules = total_beamed_power + thermalSolarInputMegajoules;
-                powerInputMegajoulesMax = total_beamed_power_max + thermalSolarInputMegajoulesMax;
             }
 
             //remove dead entries
@@ -1868,6 +1909,33 @@ namespace FNPlugin
             {
                 received_power.Remove(entry.Key);
             }
+        }
+
+        private void UpdatePowerInput()
+        {
+            beamedPowerQueue.Enqueue(total_beamed_power);
+            if (total_beamed_power > 0)
+            {
+                beamedPowerQueue.Enqueue(total_beamed_power);
+                beamedPowerQueue.Dequeue();
+            }
+            if (beamedPowerQueue.Count > 20)
+                beamedPowerQueue.Dequeue();
+
+            beamedPowerMaxQueue.Enqueue(total_beamed_power_max);
+            if (total_beamed_power_max > 0)
+            {
+                beamedPowerMaxQueue.Enqueue(total_beamed_power_max);
+                beamedPowerMaxQueue.Dequeue();
+            }
+            if (beamedPowerMaxQueue.Count > 20)
+                beamedPowerMaxQueue.Dequeue();
+
+            total_beamed_power = beamedPowerQueue.Average();
+            total_beamed_power_max = beamedPowerMaxQueue.Average();
+
+            powerInputMegajoules = total_beamed_power + thermalSolarInputMegajoules;
+            powerInputMegajoulesMax = total_beamed_power_max + thermalSolarInputMegajoulesMax;
         }
 
         private void CalculateThermalSolarPower()

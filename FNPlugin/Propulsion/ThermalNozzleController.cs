@@ -143,7 +143,7 @@ namespace FNPlugin
         //GUI
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Propellant")]
         public string _fuelmode;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Propellant Isp Multiplier")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Propellant Isp Multiplier", guiFormat = "F3")]
         public double _ispPropellantMultiplier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Soot")]
         public float _propellantSootFactorFullThrotle;
