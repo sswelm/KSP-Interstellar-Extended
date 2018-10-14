@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -26,7 +27,7 @@ namespace FNPlugin
             BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel;
 
             GameEvents.onGameStateSaved.Add(OnGameStateSaved);
-            GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
+            //GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
             GameEvents.onDockingComplete.Add(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
 
@@ -41,7 +42,7 @@ namespace FNPlugin
             //GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
 
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
-            GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
+            //GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
             GameEvents.onDockingComplete.Remove(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
 
@@ -60,7 +61,11 @@ namespace FNPlugin
 
             ResourceOvermanager.Reset();
             SupplyPriorityManager.Reset();
+
+            ResetReceivers();
         }
+
+
 
         void  OnPartDeCoupleComplete (Part part)
         {
@@ -68,20 +73,43 @@ namespace FNPlugin
 
             ResourceOvermanager.Reset();
             SupplyPriorityManager.Reset();
+            FNRadiator.Reset();
+
+            ResetReceivers();
         }
 
-        void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
+        //void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
+        //{
+        //    //Debug.Log("[KSPI] - GameEventSubscriber - OnVesselSituationChange from: " + Localizer.Format(change.from.Description()) + " to: " + Localizer.Format(change.to.Description()));
+        //    bool shouldReinitialise = (change.from == Vessel.Situations.DOCKED || change.to == Vessel.Situations.DOCKED);
+
+        //    if (shouldReinitialise)
+        //    {
+        //        //Debug.Log("[KSPI] - GameEventSubscriber - OnVesselSituationChange reinitialising");
+
+        //        FNRadiator.Reset();
+        //    }
+        //}
+
+        private static void ResetReceivers()
         {
-            bool shouldReinitialise = (change.from == Vessel.Situations.DOCKED || change.to == Vessel.Situations.DOCKED);
-
-            if (shouldReinitialise)
+            foreach (var currentvessel in FlightGlobals.Vessels)
             {
-                Debug.Log("[KSPI] - GameEventSubscriber - OnVesselSituationChange reinitialising");
+                if (currentvessel.loaded)
+                {
+                    var receivers = currentvessel.FindPartModulesImplementing<MicrowavePowerReceiver>();
 
-                FNRadiator.Reset();
+                    foreach (var receiver in receivers)
+                    {
+                        Debug.Log("[KSPI] - OnDockingComplete - Restart receivers " + receiver.Part.name);
+                        receiver.Restart(50);
+                    }
+                }
             }
         }
     }
+
+
 
     [KSPAddon(KSPAddon.Startup.SpaceCentre, false)]
     public class PluginHelper : MonoBehaviour
