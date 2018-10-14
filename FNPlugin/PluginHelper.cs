@@ -27,7 +27,6 @@ namespace FNPlugin
             BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel;
 
             GameEvents.onGameStateSaved.Add(OnGameStateSaved);
-            //GameEvents.onVesselSituationChange.Add(OnVesselSituationChange);
             GameEvents.onDockingComplete.Add(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
 
@@ -42,7 +41,6 @@ namespace FNPlugin
             //GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
 
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
-            //GameEvents.onVesselSituationChange.Remove(OnVesselSituationChange);
             GameEvents.onDockingComplete.Remove(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
 
@@ -65,8 +63,6 @@ namespace FNPlugin
             ResetReceivers();
         }
 
-
-
         void  OnPartDeCoupleComplete (Part part)
         {
             Debug.Log("[KSPI] - GameEventSubscriber - detected OnPartDeCoupleComplete");
@@ -77,19 +73,6 @@ namespace FNPlugin
 
             ResetReceivers();
         }
-
-        //void OnVesselSituationChange(GameEvents.HostedFromToAction<Vessel, Vessel.Situations> change)
-        //{
-        //    //Debug.Log("[KSPI] - GameEventSubscriber - OnVesselSituationChange from: " + Localizer.Format(change.from.Description()) + " to: " + Localizer.Format(change.to.Description()));
-        //    bool shouldReinitialise = (change.from == Vessel.Situations.DOCKED || change.to == Vessel.Situations.DOCKED);
-
-        //    if (shouldReinitialise)
-        //    {
-        //        //Debug.Log("[KSPI] - GameEventSubscriber - OnVesselSituationChange reinitialising");
-
-        //        FNRadiator.Reset();
-        //    }
-        //}
 
         private static void ResetReceivers()
         {
