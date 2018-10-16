@@ -200,9 +200,9 @@ namespace FNPlugin
         public string upgradeCostStr = "";
         [KSPField(guiActive = false)]
         public double coldBathTemp = 500;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_coldBathTemp", guiUnits = " K", guiFormat = "F1")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_coldBathTemp", guiUnits = " K", guiFormat = "F1")]
         public double coldBathTempDisplay = 500;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_hotBathTemp", guiUnits = " K", guiFormat = "F1")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_hotBathTemp", guiUnits = " K", guiFormat = "F1")]
         public double hotBathTemp = 300;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = " MW", guiFormat = "F3")]
         public double electrical_power_currently_needed;
@@ -1027,6 +1027,8 @@ namespace FNPlugin
                     }
                     else // charged particle mode
                     {
+                        hotColdBathRatio = 1;
+
                         _totalEff = maxEfficiency;
 
                         if (_totalEff <= 0) return;
@@ -1051,8 +1053,8 @@ namespace FNPlugin
                     }
 
                     outputPower = isLimitedByMinThrotle 
-                        ? -supplyManagedFNResourcePerSecond(electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES) 
-                        : -supplyFNResourcePerSecondWithMax(electricdtps, maxElectricdtps, ResourceManager.FNRESOURCE_MEGAJOULES);
+                        ? -supplyManagedFNResourcePerSecond(electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES)
+                        : -supplyFNResourcePerSecondWithMaxAndEfficiency(electricdtps, maxElectricdtps, hotColdBathRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
                 }
                 else
                 {

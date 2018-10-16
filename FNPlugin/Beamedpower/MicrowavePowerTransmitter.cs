@@ -94,7 +94,7 @@ namespace FNPlugin.Beamedpower
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "Transmission Efficiency", guiUnits = "%")]
         public double transmissionEfficiencyPercentage;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission Strength"), UI_FloatRange(stepIncrement = 0f, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Transmission Strength"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
         public float transmitPower = 100;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]

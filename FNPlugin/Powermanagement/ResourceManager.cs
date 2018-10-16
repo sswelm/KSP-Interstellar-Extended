@@ -14,11 +14,17 @@ namespace FNPlugin
 
     public class PowerGenerated
     {
+        public PowerGenerated()
+        {
+            efficiencyRatio = 1;
+        }
+
         public double currentSupply { get; set; }
         public double averageSupply { get; set; }
         public double currentProvided { get; set; }
         public double maximumSupply { get; set; }
         public double minimumSupply { get; set; }
+        public double efficiencyRatio { get; set; }
     }
 
     public class PowerProduction
@@ -274,6 +280,24 @@ namespace FNPlugin
             return power;
         }
 
+        public double powerSupplyPerSecondWithMaxAndEfficiency(IResourceSupplier pm, double power, double maxpower, double efficiencyRatio)
+        {
+            currentPowerSupply += power;
+            stable_supply += maxpower;
+
+            PowerGenerated powerGenerated;
+            if (!power_produced.TryGetValue(pm, out powerGenerated))
+            {
+                powerGenerated = new PowerGenerated();
+                power_produced.Add(pm, powerGenerated);
+            }
+            powerGenerated.currentSupply += power;
+            powerGenerated.maximumSupply += maxpower;
+            powerGenerated.efficiencyRatio = efficiencyRatio;
+
+            return power;
+        }
+
         public double powerSupplyPerSecondWithMax(IResourceSupplier pm, double power, double maxpower)
         {
             currentPowerSupply += power;
@@ -510,6 +534,8 @@ namespace FNPlugin
                 }
             }
 
+            var supplyEfficiencyRatio = power_produced.Count > 0 ? power_produced.Average(m => m.Value.efficiencyRatio) : 1;
+
             power_supply_list_archive = power_produced.OrderByDescending(m => m.Value.maximumSupply).ToList();
 
             // store current supply and update average
@@ -593,12 +619,17 @@ namespace FNPlugin
                 if (resourceSuppliable.getPowerPriority() == 1) 
                 {
                     double power = power_kvp.Value.Power_draw;
+
+                    // efficiency throtling
+                    if (supplyEfficiencyRatio < 0.04)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.02;
+
                     current_resource_demand += power;
                     high_priority_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
                         power = power * high_priority_demand_supply_ratio;
-                    
+
                     double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
 
                     currentPowerSupply -= power_supplied;
@@ -617,6 +648,11 @@ namespace FNPlugin
                 if (resourceSuppliable.getPowerPriority() == 2) 
                 {
                     double power = power_kvp.Value.Power_draw;
+
+                    // efficiency throtling
+                    if (supplyEfficiencyRatio < 0.06)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.04;
+
                     current_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
@@ -640,6 +676,11 @@ namespace FNPlugin
                 if (resourceSuppliable.getPowerPriority() == 3) 
                 {
                     double power = power_kvp.Value.Power_draw;
+
+                    // efficiency throtling
+                    if (supplyEfficiencyRatio < 0.08)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.06;
+
                     current_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
@@ -663,6 +704,11 @@ namespace FNPlugin
                 if (resourceSuppliable.getPowerPriority() == 4)
                 {
                     double power = power_kvp.Value.Power_draw;
+
+                    // efficiency throtling
+                    if (supplyEfficiencyRatio < 0.10)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.08;
+
                     current_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN)
@@ -686,6 +732,11 @@ namespace FNPlugin
                 if (resourceSuppliable.getPowerPriority() >= 5)
                 {
                     double power = power_kvp.Value.Power_draw;
+
+                    // efficiency throtling
+                    if (supplyEfficiencyRatio < 0.12)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.1;
+
                     current_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN)
