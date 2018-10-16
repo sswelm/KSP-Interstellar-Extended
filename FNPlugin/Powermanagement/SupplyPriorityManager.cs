@@ -74,9 +74,9 @@ namespace FNPlugin
             {
                 Counter = updateCounter;
 
-                var suppliable_modules_priotised = suppliable_modules.Where(m => m != null).OrderBy(m => m.getPowerPriority()).ToList();
+                var suppliable_modules_prioritized = suppliable_modules.Where(m => m != null).OrderBy(m => m.getSupplyPriority()).ToList();
 
-                suppliable_modules_priotised.ForEach(s => s.OnFixedUpdateResourceSuppliable(fixedDeltaTime));
+                suppliable_modules_prioritized.ForEach(s => s.OnFixedUpdateResourceSuppliable(fixedDeltaTime));
             }
             catch (Exception e)
             {

@@ -66,7 +66,7 @@ namespace FNPlugin
         public bool isLimitedByMinThrotle = false;
         [KSPField]
         public double powerOutputMultiplier = 1;
-        [KSPField]
+        [KSPField(guiActive = false)]
         public double hotColdBathRatio;
         [KSPField]
         public bool calculatedMass = false;
@@ -950,7 +950,7 @@ namespace FNPlugin
 
                         _totalEff = Math.Min(maxEfficiency, hotColdBathRatio * maxEfficiency);
 
-                        if (_totalEff <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
+                        if (hotColdBathRatio <= 0.01 || coldBathTemp <= 0 || hotBathTemp <= 0 || maxThermalPower <= 0)
                         {
                             requested_power_per_second = 0;
                             return;
@@ -1210,6 +1210,11 @@ namespace FNPlugin
         }
 
         public override int getPowerPriority()
+        {
+            return 0;
+        }
+
+        public override int getSupplyPriority()
         {
             if (isLimitedByMinThrotle)
                 return 1;

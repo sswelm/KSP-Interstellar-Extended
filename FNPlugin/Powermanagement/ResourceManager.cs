@@ -8,8 +8,8 @@ namespace FNPlugin
 {
     public class PowerDistribution
     {
-        public double Power_draw { get; set; }
-        public double Power_consume { get; set; }
+        public double Power_requested { get; set; }
+        public double Power_consumed { get; set; }
     }
 
     public class PowerGenerated
@@ -96,6 +96,8 @@ namespace FNPlugin
         int flow_type = 0;
         List<KeyValuePair<IResourceSuppliable, PowerDistribution>> power_draw_list_archive;
         List<KeyValuePair<IResourceSupplier, PowerGenerated>> power_supply_list_archive;
+
+        protected Queue<double> efficiencyQueue = new Queue<double>();
 
         bool render_window = false;
         bool producesWasteHeat;
@@ -203,11 +205,11 @@ namespace FNPlugin
                 powerDistribution = new PowerDistribution();
                 power_consumption.Add(pm, powerDistribution);
             }
-            powerDistribution.Power_draw += power_draw_per_second;
-            powerDistribution.Power_consume += power_cosumtion_per_second;         
+            powerDistribution.Power_requested += power_draw_per_second;
+            powerDistribution.Power_consumed += power_cosumtion_per_second;         
         }
 
-        public void powerDrawPerSecond(IResourceSuppliable pm, double power_draw, double draw_power_consumption)
+        public void powerDrawPerSecond(IResourceSuppliable pm, double power_requested, double power_consumed)
         {
             PowerDistribution powerDistribution;
             if (!power_consumption.TryGetValue(pm, out powerDistribution))
@@ -215,8 +217,8 @@ namespace FNPlugin
                 powerDistribution = new PowerDistribution();
                 power_consumption.Add(pm, powerDistribution);
             }
-            powerDistribution.Power_draw += power_draw;
-            powerDistribution.Power_consume += draw_power_consumption;
+            powerDistribution.Power_requested += power_requested;
+            powerDistribution.Power_consumed += power_consumed;
         }
 
         public double powerSupplyFixed(IResourceSupplier pm, double power) 
@@ -534,7 +536,14 @@ namespace FNPlugin
                 }
             }
 
-            var supplyEfficiencyRatio = power_produced.Count > 0 ? power_produced.Average(m => m.Value.efficiencyRatio) : 1;
+            var sumPowerProduced = power_produced.Sum(m => m.Value.currentSupply);
+
+            var supplyEfficiencyRatio = power_produced.Count > 0 && sumPowerProduced > 0 ? power_produced.Sum(m => m.Value.efficiencyRatio * (m.Value.currentSupply / sumPowerProduced)) : 0;
+
+            //efficiencyQueue.Enqueue(currentEfficiencyRatio);
+            //if (efficiencyQueue.Count > 20)
+            //    efficiencyQueue.Dequeue();
+            //var supplyEfficiencyRatio = efficiencyQueue.Min();
 
             power_supply_list_archive = power_produced.OrderByDescending(m => m.Value.maximumSupply).ToList();
 
@@ -556,7 +565,7 @@ namespace FNPlugin
                     m.Value.averageSupply = queue.Average();
                 });
 
-            List<KeyValuePair<IResourceSuppliable, PowerDistribution>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_draw).ToList();
+            List<KeyValuePair<IResourceSuppliable, PowerDistribution>> power_draw_items = power_consumption.OrderBy(m => m.Value.Power_requested).ToList();
 
             power_draw_list_archive = power_draw_items.ToList();
             power_draw_list_archive.Reverse();
@@ -568,7 +577,7 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() == 0)
                 {
-                    double power = power_kvp.Value.Power_draw;
+                    double power = power_kvp.Value.Power_requested;
                     current_resource_demand += power;
                     high_priority_resource_demand += power;
 
@@ -618,11 +627,11 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() == 1) 
                 {
-                    double power = power_kvp.Value.Power_draw;
+                    double power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.04)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.02;
+                    if (supplyEfficiencyRatio < 0.14 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.12;
 
                     current_resource_demand += power;
                     high_priority_resource_demand += power;
@@ -647,11 +656,13 @@ namespace FNPlugin
                 
                 if (resourceSuppliable.getPowerPriority() == 2) 
                 {
-                    double power = power_kvp.Value.Power_draw;
+                    double power = power_kvp.Value.Power_requested;
+
+                    //Debug.Log("Requested: " + power + " Efficiency " + supplyEfficiencyRatio);
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.06)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.04;
+                    if (supplyEfficiencyRatio < 0.16 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.14;
 
                     current_resource_demand += power;
 
@@ -675,11 +686,11 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() == 3) 
                 {
-                    double power = power_kvp.Value.Power_draw;
+                    double power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.08)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.06;
+                    if (supplyEfficiencyRatio < 0.18 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.16;
 
                     current_resource_demand += power;
 
@@ -703,11 +714,11 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() == 4)
                 {
-                    double power = power_kvp.Value.Power_draw;
+                    double power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.10)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.08;
+                    if (supplyEfficiencyRatio < 0.2 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.18;
 
                     current_resource_demand += power;
 
@@ -731,11 +742,11 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() >= 5)
                 {
-                    double power = power_kvp.Value.Power_draw;
+                    double power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.12)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.1;
+                    if (supplyEfficiencyRatio < 0.22 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.2;
 
                     current_resource_demand += power;
 
@@ -1062,8 +1073,8 @@ namespace FNPlugin
 
                 foreach (var group in groupedPowerDraws)
                 {
-                    var sumOfPowerDraw = group.Sum(m => m.Value.Power_draw);
-                    var sumOfPowerConsume = group.Sum(m => m.Value.Power_consume);
+                    var sumOfPowerDraw = group.Sum(m => m.Value.Power_requested);
+                    var sumOfPowerConsume = group.Sum(m => m.Value.Power_consumed);
                     var sumOfConsumePercentage = sumOfPowerDraw > 0 ? sumOfPowerConsume / sumOfPowerDraw * 100 : 0;
 
                     var name = group.Key;

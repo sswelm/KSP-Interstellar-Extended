@@ -65,15 +65,15 @@ namespace FNPlugin
             return power_taken_fixed;
         }
 
-        public double consumeFNResourcePerSecond(double power_per_second, String resourcename, ResourceManager manager = null)
+        public double consumeFNResourcePerSecond(double power_requested_per_second, String resourcename, ResourceManager manager = null)
         {
-            if (double.IsNaN(power_per_second) || double.IsInfinity(power_per_second) || String.IsNullOrEmpty(resourcename)) 
+            if (double.IsNaN(power_requested_per_second) || double.IsInfinity(power_requested_per_second) || String.IsNullOrEmpty(resourcename)) 
             {
                 Debug.Log("[KSPI] - consumeFNResourcePerSecond was called with illegal value");
                 return 0;
             }
 
-            power_per_second = Math.Max(power_per_second, 0);
+            power_requested_per_second = Math.Max(power_requested_per_second, 0);
 
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
@@ -83,10 +83,10 @@ namespace FNPlugin
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
 
-            double power_taken_per_second = Math.Max(Math.Min(power_per_second, fnresource_supplied[resourcename]), 0);
+            double power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, fnresource_supplied[resourcename]), 0);
             fnresource_supplied[resourcename] -= power_taken_per_second;
 
-            manager.powerDrawPerSecond(this, power_per_second, power_taken_per_second);
+            manager.powerDrawPerSecond(this, power_requested_per_second, power_taken_per_second);
 
             return power_taken_per_second;
         }
@@ -688,6 +688,11 @@ namespace FNPlugin
         public virtual int getPowerPriority()
         {
             return 2;
+        }
+
+        public virtual int getSupplyPriority()
+        {
+            return getPowerPriority();
         }
 
         private ResourceManager CreateResourceManagerForResource(string resourcename)
