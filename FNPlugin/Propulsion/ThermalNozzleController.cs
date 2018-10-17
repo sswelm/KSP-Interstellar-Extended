@@ -11,6 +11,8 @@ using UnityEngine;
 
 namespace FNPlugin
 {
+    class ThermalAerospikeController : ThermalNozzleController { }
+
     class ThermalNozzleController : ResourceSuppliableModule, IFNEngineNoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
         // Persistent True
@@ -161,8 +163,6 @@ namespace FNPlugin
         public string upgradeCostStr;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Control Heat Production")]
         public bool controlHeatProduction = true;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Multiplier")]
-        public float heatProductionMult = 0.3f;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Exponent")]
         public float heatProductionExponent = 7.1f;
 
