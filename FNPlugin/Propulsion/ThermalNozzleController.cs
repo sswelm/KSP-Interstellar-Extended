@@ -38,8 +38,6 @@ namespace FNPlugin
         [KSPField]
         public float engineDecelerationBaseSpeed = 10f;
         [KSPField]
-        public float partMass = 1;
-        [KSPField]
         public bool initialized = false;
         [KSPField]
         public float wasteHeatMultiplier = 1;
@@ -135,10 +133,18 @@ namespace FNPlugin
 
         [KSPField]
         public bool isPlasmaNozzle = false;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m", guiFormat = "F3")]
-        public double radius;
+
+        [KSPField]
+        public double radius = 2.5;
+        [KSPField]
+        public double exitArea = 1;
+        [KSPField]
+        public double exitAreaScaleExponent = 2;
+
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Radius", guiUnits = " m", guiFormat = "F3")]
+        public double scaledRadius;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2", guiFormat = "F3")]
-        public float exitArea = 1;
+        public double scaledExitArea = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Afterburner upgrade tech")]
         public string afterburnerTechReq = String.Empty;
 
@@ -359,7 +365,7 @@ namespace FNPlugin
                 _myAttachedReactor = value;
                 if (_myAttachedReactor == null)
                     return;
-                _myAttachedReactor.AttachThermalReciever(id, radius);
+                _myAttachedReactor.AttachThermalReciever(id, scaledRadius);
             }
         }
 
@@ -392,14 +398,20 @@ namespace FNPlugin
             SetupPropellants(false);
         }
 
+        // Note: we assume OnRescale is called at load and after any time tweakscale changes the size of an part
         public void OnRescale(TweakScale.ScalingFactor factor)
         {
-            // update variables
-            radius *= factor.relative.linear;
-            exitArea *= factor.relative.quadratic;
+            ScaleParameters(factor.relative.linear);
 
             // update simulation
             UpdateRadiusModifier();
+        }
+
+        private void ScaleParameters(double relativeScaleFactor)
+        {
+            // update variables
+            scaledRadius = radius * relativeScaleFactor;
+            scaledExitArea = exitArea * Math.Pow(relativeScaleFactor, exitAreaScaleExponent);
         }
 
         [KSPAction("Next Propellant")]
@@ -525,7 +537,7 @@ namespace FNPlugin
                 // find attached thermal source
                 ConnectToThermalSource();
 
-                maxPressureThresholdAtKerbinSurface = exitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
+                maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
 
                 if (state == StartState.Editor)
                 {
@@ -909,6 +921,9 @@ namespace FNPlugin
         private void UpdatePropellantModeBehavior(ConfigNode chosenpropellant)
         {
             _fuelmode = chosenpropellant.GetValue("guiName");
+            _propellantIsLFO = chosenpropellant.HasValue("isLFO") ? bool.Parse(chosenpropellant.GetValue("isLFO")) : false;
+            _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
+
             _propellantSootFactorFullThrotle = chosenpropellant.HasValue("maxSootFactor") ? float.Parse(chosenpropellant.GetValue("maxSootFactor")) : 0;
             _propellantSootFactorMinThrotle = chosenpropellant.HasValue("minSootFactor") ? float.Parse(chosenpropellant.GetValue("minSootFactor")) : 0;
             _propellantSootFactorEquilibrium = chosenpropellant.HasValue("levelSootFraction") ? float.Parse(chosenpropellant.GetValue("levelSootFraction")) : 0;
@@ -917,12 +932,10 @@ namespace FNPlugin
             _decompositionEnergy = chosenpropellant.HasValue("DecompositionEnergy") ? float.Parse(chosenpropellant.GetValue("DecompositionEnergy")) : 0;
             _baseIspMultiplier = chosenpropellant.HasValue("BaseIspMultiplier") ? float.Parse(chosenpropellant.GetValue("BaseIspMultiplier")) : 0;
             _fuelTechRequirement = chosenpropellant.HasValue("TechRequirement") ? chosenpropellant.GetValue("TechRequirement") : String.Empty;
-            _fuelToxicity = chosenpropellant.HasValue("Toxicity") ? float.Parse(chosenpropellant.GetValue("Toxicity")) : 0;
             _fuelCoolingFactor = chosenpropellant.HasValue("coolingFactor") ? float.Parse(chosenpropellant.GetValue("coolingFactor")) : 1;
+            _fuelToxicity = chosenpropellant.HasValue("Toxicity") ? float.Parse(chosenpropellant.GetValue("Toxicity")) : 0;
+            
             _fuelRequiresUpgrade = chosenpropellant.HasValue("RequiresUpgrade") ? Boolean.Parse(chosenpropellant.GetValue("RequiresUpgrade")) : false;
-
-            _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
-            _propellantIsLFO = chosenpropellant.HasValue("isLFO") ? bool.Parse(chosenpropellant.GetValue("isLFO")) : false;
             _atomType = chosenpropellant.HasValue("atomType") ? int.Parse(chosenpropellant.GetValue("atomType")) : 1;
             _propType = chosenpropellant.HasValue("propType") ? int.Parse(chosenpropellant.GetValue("propType")) : 1;
             _isNeutronAbsorber = chosenpropellant.HasValue("isNeutronAbsorber") ? bool.Parse(chosenpropellant.GetValue("isNeutronAbsorber")) : false;
@@ -1124,7 +1137,7 @@ namespace FNPlugin
 
                 // attach/detach with radius
                 if (myAttachedEngine.isOperational)
-                    AttachedReactor.AttachThermalReciever(id, radius);
+                    AttachedReactor.AttachThermalReciever(id, scaledRadius);
                 else
                     AttachedReactor.DetachThermalReciever(id);
 
@@ -1228,7 +1241,7 @@ namespace FNPlugin
                     ? FlightGlobals.getStaticPressure(vessel.transform.position)
                     : GameConstants.EarthAtmospherePressureAtSeaLevel;
 
-                pressureThreshold = exitArea * staticPresure;
+                pressureThreshold = scaledExitArea * staticPresure;
                 if (_maxISP > GameConstants.MaxThermalNozzleIsp && isPlasmaNozzle)
                     pressureThreshold *= 2;
             }
@@ -1475,7 +1488,7 @@ namespace FNPlugin
 
                     ispHeatModifier = isPlasmaNozzle ? 0.5 * Approximate.Sqrt(realIspEngine) : 5 * Approximate.Sqrt(realIspEngine);
                     powerToMass = Approximate.Sqrt(maxThrustOnEngine / part.mass);
-                    radiusHeatModifier = Math.Pow(radius * radiusHeatProductionMult, radiusHeatProductionExponent);
+                    radiusHeatModifier = Math.Pow(scaledRadius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
                     var reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
                     
@@ -1639,7 +1652,7 @@ namespace FNPlugin
             {
                 // re-attach with updated radius
                 _myAttachedReactor.DetachThermalReciever(id);
-                _myAttachedReactor.AttachThermalReciever(id, radius);
+                _myAttachedReactor.AttachThermalReciever(id, scaledRadius);
 
                 Fields["vacuumPerformance"].guiActiveEditor = true;
                 Fields["radiusModifier"].guiActiveEditor = true;
@@ -1661,7 +1674,7 @@ namespace FNPlugin
 
                 vacuumPerformance = final_max_thrust_in_space.ToString("0.0") + "kN @ " + isp_in_space.ToString("0.0") + "s";
 
-                maxPressureThresholdAtKerbinSurface = exitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
+                maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
 
                 var maxSurfaceThrust = Math.Max(max_thrust_in_space - (maxPressureThresholdAtKerbinSurface), 0.000001);
 
@@ -1683,7 +1696,7 @@ namespace FNPlugin
         private double storedFractionThermalReciever;
         private double GetHeatExchangerThrustDivisor()
         {
-            if (AttachedReactor == null || AttachedReactor.Radius == 0 || radius == 0) return 0;
+            if (AttachedReactor == null || AttachedReactor.Radius == 0 || scaledRadius == 0) return 0;
 
             if (_myAttachedReactor.GetFractionThermalReciever(id) == 0) return storedFractionThermalReciever;
 
@@ -1692,9 +1705,9 @@ namespace FNPlugin
             var fractionalReactorRadius = Math.Sqrt(AttachedReactor.Radius * AttachedReactor.Radius * storedFractionThermalReciever);
 
             // scale down thrust if it's attached to the wrong sized reactor
-            double heat_exchanger_thrust_divisor = radius > fractionalReactorRadius
-                ? fractionalReactorRadius * fractionalReactorRadius / radius / radius
-                : normalizeFraction(radius / fractionalReactorRadius, 1);
+            double heat_exchanger_thrust_divisor = scaledRadius > fractionalReactorRadius
+                ? fractionalReactorRadius * fractionalReactorRadius / scaledRadius / scaledRadius
+                : normalizeFraction(scaledRadius / fractionalReactorRadius, 1);
 
             if (!_currentpropellant_is_jet)
             {
