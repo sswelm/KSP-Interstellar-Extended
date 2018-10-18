@@ -44,6 +44,7 @@ namespace FNPlugin
         public const String _LIQUID_WATER = "Water";
         public const String _LIQUID_HEAVYWATER = "HeavyWater";
         public const String _LIQUID_XENON = "LqdXenon";
+        public const String _SODIUM = "Sodium";
         public const String _XENON_GAS = "LqdXenon";
         public const String _LIQUID_KRYPTON = "LqdKrypton";
         public const String _KRYPTON_GAS = "KryptonGas";
