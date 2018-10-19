@@ -30,6 +30,7 @@ namespace FNPlugin
         public const String _LIQUID_ARGON = "LqdArgon";
         public const String _LIQUID_CO2 = "LqdCO2";
         public const String _LIQUID_CO = "LqdCO";
+        public const String _CHLORINE = "Chlorine";
         public const String _LIQUID_HELIUM_4 = "LqdHelium";
         public const String _HELIUM_4_GAS = "Helium";
         public const String _LIQUID_HELIUM_3 = "LqdHe3";

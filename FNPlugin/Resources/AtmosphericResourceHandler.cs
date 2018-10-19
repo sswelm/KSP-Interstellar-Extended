@@ -102,9 +102,11 @@ namespace FNPlugin.Resources
                 Debug.Log("[KSPI] - adding stock resource definitions for " + body.name);
                 GenerateCompositionFromResourceAbundances(body, bodyAtmosphericComposition);
 
-                Debug.Log("[KSPI] - sum of all resource abundance = " + bodyAtmosphericComposition.Values.Sum(m => m.ResourceAbundance));
-                // if no sufficient atmosphere is created, create one base on celestrialbody characteristics
-                if (bodyAtmosphericComposition.Values.Sum(m => m.ResourceAbundance) < 0.1)
+                var sumOfResourceAbundances = bodyAtmosphericComposition.Values.Sum(m => m.ResourceAbundance);
+                Debug.Log("[KSPI] - sum of all resource abundance = " + sumOfResourceAbundances);
+
+                // if abundance does not approximate 1, create one base on celestrialbody characteristics
+                if (sumOfResourceAbundances < 0.8 || sumOfResourceAbundances > 1.2)
                     bodyAtmosphericComposition = GenerateCompositionFromCelestialBody(body);
 
                 // Add rare and isotopes resources
@@ -115,7 +117,7 @@ namespace FNPlugin.Resources
                 Debug.Log("[KSPI] - adding missing stock defined resources");
                 AddMissingStockResources(body, bodyAtmosphericComposition);
 
-                // add to database for future reference
+                // add to dictionaries for future reference
                 atmospheric_resource_by_body_id.Add(body.flightGlobalsIndex, bodyAtmosphericComposition);
                 atmospheric_resource_by_body_name.Add(body.name, bodyAtmosphericComposition);
 
@@ -147,51 +149,121 @@ namespace FNPlugin.Resources
 
                 // Lookup homeworld
                 var homeworld = FlightGlobals.Bodies.First(b => b.isHomeWorld);
-                var currentPresureAtSurface = body.GetPressure(0);
-                var homeworldPresureAtSurface = homeworld.GetPressure(0);
+                var presureAtSurface = body.GetPressure(0);
 
                 Debug.Log("[KSPI] - determined " + homeworld.name + " to be the home world");
-                Debug.Log("[KSPI] - surface presure " + body.name + " is " + currentPresureAtSurface);
-                Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworldPresureAtSurface);
+
+                Debug.Log("[KSPI] - surface presure " + body.name + " is " + presureAtSurface);
+                Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworld.GetPressure(0));
+                Debug.Log("[KSPI] - atmospheric Density " + body.name + " is " + body.atmDensityASL);
+                Debug.Log("[KSPI] - atmospheric Density " + homeworld.name + " is " + homeworld.atmDensityASL);
                 Debug.Log("[KSPI] - mass " + body.name + " is " + body.Mass);
-                Debug.Log("[KSPI] - mass " + homeworld.name + " is " + body.Mass);
+                Debug.Log("[KSPI] - mass " + homeworld.name + " is " + homeworld.Mass);
+                Debug.Log("[KSPI] - atmosphere MolarMass " + body.name + " is " + body.atmosphereMolarMass);
+                Debug.Log("[KSPI] - atmosphere MolarMass " + homeworld.name + " is " + homeworld.atmosphereMolarMass);
+                Debug.Log("[KSPI] - density " + body.name + " is " + body.Density);
+                Debug.Log("[KSPI] - density " + homeworld.name + " is " + homeworld.Density);
+                Debug.Log("[KSPI] - temperature " + body.name + " is " + body.atmosphereTemperatureSeaLevel);
+                Debug.Log("[KSPI] - temperature " + homeworld.name + " is " + homeworld.atmosphereTemperatureSeaLevel);
 
-                if (body.Mass > homeworld.Mass * 10 && currentPresureAtSurface > 1000)
+                // determine if the planet is a gas planet
+                if (body.Mass > homeworld.Mass * 10 && presureAtSurface >= 1000)
                 {
-                    float minimumTemperature;
-                    float maximumTemperature;
-
-                    body.atmosphereTemperatureCurve.FindMinMaxValue(out minimumTemperature, out maximumTemperature);
-
-                    if (maximumTemperature > 700)
+                    // Check if the planet  hot gas planet
+                    if (body.atmosphereTemperatureSeaLevel > 500) // Higher than 700 K
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gliese 436 b");
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gliese 436b");
                         return GetAtmosphericCompositionForBody("Gliese436b");
                     }
-                    if (body.Density < 1)
+
+                    // Check if its a super giant
+                    if (body.Mass > homeworld.Mass * 80)
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Saturn" );
-                        return GetAtmosphericCompositionForBody("Saturn");
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
+                        return GetAtmosphericCompositionForBody("Jupiter");
                     }
-                    if (minimumTemperature < 80)
+
+                    // Check if its a giant gas planet
+                    if (body.Mass > homeworld.Mass * 60)
+                    {
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
+                        return GetAtmosphericCompositionForBody("Nero");
+                    }
+
+                    // Check if its a warm gas planet
+                    if (body.atmosphereTemperatureSeaLevel > 200)
+                    {
+                        if (body.GeeASL > 1)
+                        {
+                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Otho");
+                            return GetAtmosphericCompositionForBody("Otho");
+                        }
+
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gauss");
+                        return GetAtmosphericCompositionForBody("Gauss");                        
+                    }
+
+                    // Check if its a ice giant
+                    if (body.atmosphereTemperatureSeaLevel < 80)
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Uranus");
                         return GetAtmosphericCompositionForBody("Uranus");
                     }
 
-                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
-                    return GetAtmosphericCompositionForBody("Jupiter");
+                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Saturn");
+                    return GetAtmosphericCompositionForBody("Saturn");
+
                 }
-                if (body.atmosphereContainsOxygen)
-                {
-                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Earth");
-                    return GetAtmosphericCompositionForBody("Earth");
-                }
-                if (currentPresureAtSurface > 200)
+
+                if (presureAtSurface >= 1000 && body.atmosphereTemperatureSeaLevel > 500)	// Higher than 1000 kPa and 500 K
                 {
                     Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Venus");
                     return GetAtmosphericCompositionForBody("Venus");
                 }
+
+                if (body.atmosphereTemperatureSeaLevel < 200) // // Colder than 200K
+                {
+                    if (body.atmosphereTemperatureSeaLevel > 150)
+                    {
+                        if (presureAtSurface < 100)
+                        {
+                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gratian");
+                            return GetAtmosphericCompositionForBody("Gratian");
+                        }
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Titan");
+                        return GetAtmosphericCompositionForBody("Titan");
+                    }
+
+                    if (body.atmosphereTemperatureSeaLevel < 50) // Surface temperature colder than 50K
+                    {
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Pluto");
+                        return GetAtmosphericCompositionForBody("Pluto");
+                    }
+
+                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Triton");
+                    return GetAtmosphericCompositionForBody("Triton");
+                }
+
+                if (body.atmosphereContainsOxygen)
+                {
+                    if (body.Mass > homeworld.Mass * 5)
+                    {
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Tellumo");
+                        return GetAtmosphericCompositionForBody("Tellumo");
+                    }
+
+                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Earth");
+                    return GetAtmosphericCompositionForBody("Earth");
+                }
+
+                if (body.atmosphereTemperatureSeaLevel > 270)
+                {
+                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Niven");
+                    return GetAtmosphericCompositionForBody("Niven");
+                }
+
+
+                // Otherwise is a boring Mars like planet
                 Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Mars");
                 return GetAtmosphericCompositionForBody("Mars");
             }
@@ -207,25 +279,28 @@ namespace FNPlugin.Resources
         {
             try
             {
-                AddResource(InterstellarResourcesConfiguration._LIQUID_AMMONIA, "Ammonia", body, bodyComposition, new[] { "LqdAmmonia", "Ammonia", "NH3"}, 1);
+                // mundane resources
+                AddResource(InterstellarResourcesConfiguration._LIQUID_AMMONIA, "Ammonia", body, bodyComposition, new[] { "LqdAmmonia", "AmmoniaGas", "Ammonia", "NH3"}, 1);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_ARGON, "Argon", body, bodyComposition, new[] { "LqdArgon", "ArgonGas", "Argon", "Ar" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_CO2, "CarbonDioxide", body, bodyComposition, new[] { "LqdCO2", "CarbonDioxide", "CO2" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_CO, "CarbonMonoxide", body, bodyComposition, new[] { "LqdCO", "CarbonMonoxide", "CO", }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_CO2, "CarbonDioxide", body, bodyComposition, new[] { "LqdCO2", "CarbonDioxideGas", "CarbonDioxide", "CO2" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_CO, "CarbonMonoxide", body, bodyComposition, new[] { "LqdCO", "CarbonMonoxideGas", "CarbonMonoxide", "CO", }, 1);
+                AddResource(InterstellarResourcesConfiguration._CHLORINE, "Chlorine", body, bodyComposition, new[] { "Chlorine", "ChlorineGas", "LqdChlorine", "Cl", }, 1);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_HEAVYWATER, "HeavyWater", body, bodyComposition, new[] { "DeuteriumWater", "HeavyWater", "D2O" }, 1);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_KRYPTON, "Krypton", body, bodyComposition, new[] { "LqdKrypton", "KryptonGas", "Krypton" , "Kr"}, 1);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_METHANE, "Methane", body, bodyComposition, new[] { "LqdMethane", "MethaneGas", "Methane", "CH4" }, 1);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_NITROGEN, "Nitrogen", body, bodyComposition, new[] { "LqdNitrogen", "NitrogenGas", "Nitrogen", "N", "N2" }, 1);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_NEON, "Neon", body, bodyComposition, new[] { "LqdNeon", "NeonGas", "Neon", "Ne" }, 1);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_OXYGEN, "Oxygen", body, bodyComposition, new[] { "LqdOxygen", "OxygenGas", "Oxygen", "O", "O2" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_WATER, "LqdWater", body, bodyComposition, new[] { "LqdWater", "Water", "DihydrogenMonoxide", "H2O", "DHMO" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_WATER, "LqdWater", body, bodyComposition, new[] { "LqdWater", "Water", "WaterGas", "DihydrogenMonoxide", "H2O", "DHMO" }, 1);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_XENON, "Xenon", body, bodyComposition, new[] { "LqdXenon", "XenonGas", "Xenon", "Xe" }, 1);
                 AddResource(InterstellarResourcesConfiguration._SODIUM, "Sodium", body, bodyComposition, new[] { "LqdSodium", "SodiumGas", "Sodium", "Natrium", "Na" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LITHIUM7, "Lithium", body, bodyComposition, new[] { "Lithium", "Lithium7", "Li", "Li7" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LITHIUM6, "Lithium", body, bodyComposition, new[] { "Lithium6", "Lithium-6", "Li6" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LITHIUM7, "Lithium7", body, bodyComposition, new[] { "Lithium", "LithiumGas", "Lithium7", "Li", "Li7" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LITHIUM6, "Lithium6", body, bodyComposition, new[] { "Lithium6", "Lithium-6", "Li6" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_HYDROGEN, "Hydrogen", body, bodyComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "LiquidHydrogen", "H2", "Protium", "LqdProtium", "H" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, "Helium-4", body, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas", "He" }, 1);
 
-                AddResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, "Helium-4", body, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas", "He" }, 4);
+                // exotic isotopes
                 AddResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_3, "Helium-3", body, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3", "LqdHelium3" }, 5);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_HYDROGEN, "Hydrogen", body, bodyComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "LiquidHydrogen", "H2", "Protium", "LqdProtium", "H" }, 4);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM, "Deuterium", body, bodyComposition, new[] { "LqdDeuterium", "DeuteriumGas", "Deuterium", "D" }, 5);
                 AddResource(InterstellarResourcesConfiguration._LIQUID_TRITIUM, "Tritium", body, bodyComposition, new[] { "LqdTritium", "TritiumGas", "Tritium", "T" }, 5);
             }
@@ -398,7 +473,7 @@ namespace FNPlugin.Resources
                 ResourceType = HarvestTypes.Atmospheric,
                 ResourceName = resourceName,
                 BodyId = body.flightGlobalsIndex,
-                CheckForLock = false
+                CheckForLock = false, 
             };
         }
     }
