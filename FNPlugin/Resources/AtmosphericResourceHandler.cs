@@ -95,6 +95,7 @@ namespace FNPlugin.Resources
 
             try
             {
+                // look for Kspi defined atmospheric compositions
                 bodyAtmosphericComposition = CreateFromKspiDefinitionFile(body.name);
 
                 // add from stock resource definitions if missing
@@ -162,6 +163,11 @@ namespace FNPlugin.Resources
 
                     body.atmosphereTemperatureCurve.FindMinMaxValue(out minimumTemperature, out maximumTemperature);
 
+                    if (maximumTemperature > 700)
+                    {
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gliese 436 b");
+                        return GetAtmosphericCompositionForBody("Gliese436b");
+                    }
                     if (body.Density < 1)
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Saturn" );
