@@ -16,6 +16,9 @@ namespace FNPlugin
     class ThermalNozzleController : ResourceSuppliableModule, IFNEngineNoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
         // Persistent True
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+        public float storedRelativeFactor = 1;
+
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true)]
@@ -401,7 +404,11 @@ namespace FNPlugin
         // Note: we assume OnRescale is called at load and after any time tweakscale changes the size of an part
         public void OnRescale(TweakScale.ScalingFactor factor)
         {
-            ScaleParameters(factor.relative.linear);
+            Debug.Log("[KSPI] - ThermalNozzleController OnRescale was called with factor " + factor.absolute.linear);
+
+            storedRelativeFactor = factor.absolute.linear;
+
+            ScaleParameters(storedRelativeFactor);
 
             // update simulation
             UpdateRadiusModifier();
@@ -491,6 +498,8 @@ namespace FNPlugin
         {
             try
             {
+                ScaleParameters(storedRelativeFactor);
+
                 // make sure thermal values are fixed and not screwed up by Deadly Reentry
                 part.maxTemp = maxTemp;
                 part.emissiveConstant = emissiveConstant;
