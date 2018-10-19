@@ -10,28 +10,28 @@ namespace FNPlugin.Resources
         private static Dictionary<int, Dictionary<string, AtmosphericResource>> atmospheric_resource_by_body_id = new Dictionary<int, Dictionary<string, AtmosphericResource>>();
         private static Dictionary<string, Dictionary<string, AtmosphericResource>> atmospheric_resource_by_body_name = new Dictionary<string, Dictionary<string, AtmosphericResource>>();
 
-        public static double getAtmosphericResourceContent(int refBody, string resourcename) 
+        public static double getAtmosphericResourceContent(CelestialBody body, string resourcename) 
         {
-            var bodyAtmosphericComposition = GetAtmosphericCompositionForBody(refBody);
+            var bodyAtmosphericComposition = GetAtmosphericCompositionForBody(body);
             AtmosphericResource resource;
             return bodyAtmosphericComposition.TryGetValue(resourcename, out resource) ? resource.ResourceAbundance : 0;
         }
 
-        public static double getAtmosphericResourceContent(int refBody, int resource)
+        public static double getAtmosphericResourceContent(CelestialBody body, int resource)
         {
-            var bodyAtmosphericComposition = GetAtmosphericCompositionForBody(refBody);
+            var bodyAtmosphericComposition = GetAtmosphericCompositionForBody(body);
             return bodyAtmosphericComposition.Count > resource ? bodyAtmosphericComposition.Values.ToList()[resource].ResourceAbundance : 0;
         }
 
-        public static string getAtmosphericResourceName(int refBody, int resource)
+        public static string getAtmosphericResourceName(CelestialBody body, int resource)
         {
-            var bodyAtmosphericComposition = GetAtmosphericCompositionForBody(refBody);
+            var bodyAtmosphericComposition = GetAtmosphericCompositionForBody(body);
             return bodyAtmosphericComposition.Count > resource ? bodyAtmosphericComposition.Values.ToList()[resource].ResourceName : null;
         }
 
-        public static string getAtmosphericResourceDisplayName(int refBody, int resource)
+        public static string getAtmosphericResourceDisplayName(CelestialBody body, int resource)
         {
-            var bodyAtmosphericComposition = GetAtmosphericCompositionForBody(refBody);
+            var bodyAtmosphericComposition = GetAtmosphericCompositionForBody(body);
             return bodyAtmosphericComposition.Count > resource ? bodyAtmosphericComposition.Values.ToList()[resource].DisplayName : null;
         }
 
@@ -45,13 +45,13 @@ namespace FNPlugin.Resources
 
             // lookup celestrial body
             var celestialBody = FlightGlobals.Bodies.FirstOrDefault(b => b.name == celestrialBodyName);
-
-            bodyAtmosphericComposition = CreateFromKspiDefinitionFile(celestrialBodyName);
-
             if (celestialBody != null)
+            {
+                bodyAtmosphericComposition = GetAtmosphericCompositionForBody(celestialBody);
                 atmospheric_resource_by_body_id.Add(celestialBody.flightGlobalsIndex, bodyAtmosphericComposition);
+            }
             else
-                Debug.LogWarning("[KSPI] - Failed to find FlightGlobalId for " + celestrialBodyName);
+                Debug.LogWarning("[KSPI] - Failed to find CelestialBody with name " + celestrialBodyName);
 
             // add to database for future reference
             atmospheric_resource_by_body_name.Add(celestrialBodyName, bodyAtmosphericComposition);
@@ -61,195 +61,167 @@ namespace FNPlugin.Resources
 
         private static Dictionary<string, AtmosphericResource> CreateFromKspiDefinitionFile(string celestrialBodyName)
         {
-            var atmospheric_resource_pack = GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
+            Debug.Log("[KSPI] - searching for atmosphere definition for " + celestrialBodyName);
 
-            Debug.Log("[KSPI] - Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
-            
-            Debug.Log("[KSPI] - Searching for atmosphere definition data for " + celestrialBodyName);
-            var atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
-            if (atmospheric_resource_list.Any())
+            foreach (var atmospheric_resource_pack in GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI"))
             {
+                Debug.Log("[KSPI] - Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
+
+                var atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
+                if (atmospheric_resource_list.Any())
+                {
                     Debug.Log("[KSPI] - found atmospheric resource list for " + celestrialBodyName);
 
-                    // create atmospheric definition from file
+                    // create atmospheric definition from pack
                     return atmospheric_resource_list.Select(orsc => new AtmosphericResource(
                         orsc.HasValue("resourceName")
                             ? orsc.GetValue("resourceName")
                             : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName")))
                         .ToDictionary(m => m.ResourceName);
-             }
-             Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestrialBodyName);
-            
-
-            return new Dictionary<string, AtmosphericResource>();
-        }
-
-        private static Dictionary<string, AtmosphericResource> CreateFromKspiDefinitionFile(CelestialBody celestialBody)
-        {
-            Debug.Log("[KSPI] - searching for atmosphere definition for " + celestialBody.name);
-
-            foreach (var definitionPack in GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI"))
-            {
-                Debug.Log("[KSPI] Loading atmospheric data from pack: " + (definitionPack.HasValue("name") ? definitionPack.GetValue("name") : "unknown pack"));
-                
-                var atmospheric_resource_list = definitionPack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestialBody.name).ToList();
-                if (atmospheric_resource_list.Any())
-                {
-                    // create atmospheric definition from file
-                    return atmospheric_resource_list.Select(
-                        orsc => new AtmosphericResource(orsc.HasValue("resourceName")
-                            ? orsc.GetValue("resourceName")
-                            : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName")))
-                        .ToDictionary(m => m.ResourceName);
                 }
-                
             }
 
-            // otherwise return empty
-            Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestialBody.name);
+            Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestrialBodyName);
             return new Dictionary<string, AtmosphericResource>();
         }
 
-        public static Dictionary<string, AtmosphericResource> GetAtmosphericCompositionForBody(CelestialBody celestialBody)
-        {
-            return GetAtmosphericCompositionForBody(celestialBody.flightGlobalsIndex);
-        }
-
-        public static Dictionary<string, AtmosphericResource> GetAtmosphericCompositionForBody(int refBody)
+        public static Dictionary<string, AtmosphericResource> GetAtmosphericCompositionForBody(CelestialBody body)
         {
             Dictionary<string, AtmosphericResource> bodyAtmosphericComposition;
 
             // first attempt to lookup if its already stored
-            if (atmospheric_resource_by_body_id.TryGetValue(refBody, out bodyAtmosphericComposition))
+            if (atmospheric_resource_by_body_id.TryGetValue(body.flightGlobalsIndex, out bodyAtmosphericComposition))
                 return bodyAtmosphericComposition;
 
-            bodyAtmosphericComposition = new Dictionary<string, AtmosphericResource>();
             try
             {
-                var celestialBody = FlightGlobals.Bodies[refBody];
-
-                bodyAtmosphericComposition = CreateFromKspiDefinitionFile(celestialBody);
+                bodyAtmosphericComposition = CreateFromKspiDefinitionFile(body.name);
 
                 // add from stock resource definitions if missing
-                Debug.Log("[KSPI] - adding stock resource definitions for " + celestialBody.name + " with ref " + refBody);
-                GenerateCompositionFromResourceAbundances(refBody, bodyAtmosphericComposition);
+                Debug.Log("[KSPI] - adding stock resource definitions for " + body.name);
+                GenerateCompositionFromResourceAbundances(body, bodyAtmosphericComposition);
 
                 Debug.Log("[KSPI] - sum of all resource abundance = " + bodyAtmosphericComposition.Values.Sum(m => m.ResourceAbundance));
                 // if no sufficient atmosphere is created, create one base on celestrialbody characteristics
-                if (bodyAtmosphericComposition.Values.Sum(m => m.ResourceAbundance) < 0.5)
-                    bodyAtmosphericComposition = GenerateCompositionFromCelestialBody(celestialBody);
+                if (bodyAtmosphericComposition.Values.Sum(m => m.ResourceAbundance) < 0.1)
+                    bodyAtmosphericComposition = GenerateCompositionFromCelestialBody(body);
 
                 // Add rare and isotopes resources
                 Debug.Log("[KSPI] - adding trace resources and isotopess");
-                AddRaresAndIsotopesToAdmosphereComposition(bodyAtmosphericComposition, celestialBody);
+                AddRaresAndIsotopesToAdmosphereComposition(bodyAtmosphericComposition, body);
 
                 // add missing stock resources
                 Debug.Log("[KSPI] - adding missing stock defined resources");
-                AddMissingStockResources(refBody, bodyAtmosphericComposition);
+                AddMissingStockResources(body, bodyAtmosphericComposition);
 
                 // add to database for future reference
-                atmospheric_resource_by_body_id.Add(refBody, bodyAtmosphericComposition);
-                atmospheric_resource_by_body_name.Add(celestialBody.name, bodyAtmosphericComposition);
+                atmospheric_resource_by_body_id.Add(body.flightGlobalsIndex, bodyAtmosphericComposition);
+                atmospheric_resource_by_body_name.Add(body.name, bodyAtmosphericComposition);
 
                 Debug.Log("[KSPI] - Succesfully Finished loading atmospheric composition");
+                return bodyAtmosphericComposition;
             }
             catch (Exception ex)
             {
                 Debug.Log("[KSPI] - Exception while loading atmospheric resources from id: " + ex);
             }
 
+            Debug.LogWarning("[KSPI] - Failed loading atmospheric composition for " + body.name);
+            bodyAtmosphericComposition = new Dictionary<string, AtmosphericResource>();
             return bodyAtmosphericComposition;
         }
 
-        private static Dictionary<string, AtmosphericResource> GenerateCompositionFromCelestialBody(CelestialBody celestialBody)
+        private static Dictionary<string, AtmosphericResource> GenerateCompositionFromCelestialBody(CelestialBody body)
         {
             try
             {
                 // return empty is no atmosphere
-                if (!celestialBody.atmosphere)
+                if (!body.atmosphere)
                 {
-                    Debug.Log("[KSPI] - celestrial body " + celestialBody.name + " is missing an atmosphere");
+                    Debug.Log("[KSPI] - celestrial body " + body.name + " is missing an atmosphere");
                     return new Dictionary<string, AtmosphericResource>();
                 }
 
+                Debug.Log("[KSPI] - Start GenerateCompositionFromCelestialBody for " + body.name);
+
                 // Lookup homeworld
                 var homeworld = FlightGlobals.Bodies.First(b => b.isHomeWorld);
-                var currentPresureAtSurface = celestialBody.GetPressure(0);
+                var currentPresureAtSurface = body.GetPressure(0);
                 var homeworldPresureAtSurface = homeworld.GetPressure(0);
 
                 Debug.Log("[KSPI] - determined " + homeworld.name + " to be the home world");
-                Debug.Log("[KSPI] - surface presure " + celestialBody.name + " is " + currentPresureAtSurface);
+                Debug.Log("[KSPI] - surface presure " + body.name + " is " + currentPresureAtSurface);
                 Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworldPresureAtSurface);
-                Debug.Log("[KSPI] - mass " + celestialBody.name + " is " + celestialBody.Mass);
-                Debug.Log("[KSPI] - mass " + homeworld.name + " is " + celestialBody.Mass);
+                Debug.Log("[KSPI] - mass " + body.name + " is " + body.Mass);
+                Debug.Log("[KSPI] - mass " + homeworld.name + " is " + body.Mass);
 
-                if (celestialBody.Mass > homeworld.Mass * 10 && currentPresureAtSurface > 1000)
+                if (body.Mass > homeworld.Mass * 10 && currentPresureAtSurface > 1000)
                 {
                     float minimumTemperature;
                     float maximumTemperature;
 
-                    celestialBody.atmosphereTemperatureCurve.FindMinMaxValue(out minimumTemperature, out maximumTemperature);
+                    body.atmosphereTemperatureCurve.FindMinMaxValue(out minimumTemperature, out maximumTemperature);
 
-                    if (celestialBody.Density < 1)
+                    if (body.Density < 1)
                     {
-                        Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Saturn" );
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Saturn" );
                         return GetAtmosphericCompositionForBody("Saturn");
                     }
                     if (minimumTemperature < 80)
                     {
-                        Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Uranus");
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Uranus");
                         return GetAtmosphericCompositionForBody("Uranus");
                     }
 
-                    Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Jupiter");
+                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
                     return GetAtmosphericCompositionForBody("Jupiter");
                 }
-                if (celestialBody.atmosphereContainsOxygen)
+                if (body.atmosphereContainsOxygen)
                 {
-                    Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Earth");
+                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Earth");
                     return GetAtmosphericCompositionForBody("Earth");
                 }
                 if (currentPresureAtSurface > 200)
                 {
-                    Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Venus");
+                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Venus");
                     return GetAtmosphericCompositionForBody("Venus");
                 }
-                Debug.Log("[KSPI] - determined " + celestialBody.name + " atmosphere to be like Mars");
+                Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Mars");
                 return GetAtmosphericCompositionForBody("Mars");
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - Exception while generating atmosphere composition from celestrial atmosphere properties : " + ex);
+                Debug.LogError("[KSPI] - Exception while generating atmosphere composition from celestrial atmosphere properties for " + body.name + " : " + ex);
             }
 
             return new Dictionary<string, AtmosphericResource>();
         }
 
-        private static void GenerateCompositionFromResourceAbundances(int refBody, Dictionary<string, AtmosphericResource> bodyComposition)
+        private static void GenerateCompositionFromResourceAbundances(CelestialBody body, Dictionary<string, AtmosphericResource> bodyComposition)
         {
             try
             {
-                AddResource(InterstellarResourcesConfiguration._LIQUID_AMMONIA, "Ammonia", refBody, bodyComposition, new[] { "LqdAmmonia", "NH3", "Ammonia", "Ammonia"}, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_ARGON, "Argon", refBody, bodyComposition, new[] { "LqdArgon", "ArgonGas", "Argon", "Argon" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_CO2, "CarbonDioxide", refBody, bodyComposition, new[] { "LqdCO2", "CO2", "CarbonDioxide" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_CO, "CarbonMonoxide", refBody, bodyComposition, new[] { "LqdCO", "CO", "CarbonMonoxide" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_HEAVYWATER, "HeavyWater", refBody, bodyComposition, new[] { "DeuteriumWater", "D2O", "HeavyWater"}, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_KRYPTON, "Krypton", refBody, bodyComposition, new[] { "LqdKrypton", "KryptonGas", "Krypton" , "Kr"}, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_METHANE, "Methane", refBody, bodyComposition, new[] { "LqdMethane", "MethaneGas", "Methane", "CH4" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_NITROGEN, "Nitrogen", refBody, bodyComposition, new[] { "LqdNitrogen", "NitrogenGas", "Nitrogen", "N2" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_NEON, "Neon", refBody, bodyComposition, new[] { "LqdNeon", "NeonGas", "Neon", "Ne" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_OXYGEN, "Oxygen", refBody, bodyComposition, new[] { "LqdOxygen", "OxygenGas", "Oxygen", "O2" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_WATER, "LqdWater", refBody, bodyComposition, new[] { "LqdWater", "Water", "DihydrogenMonoxide", "H20" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_XENON, "Xenon", refBody, bodyComposition, new[] { "LqdXenon", "XenonGas", "Xenon", "Xe" }, 1);
-                AddResource(InterstellarResourcesConfiguration._SODIUM, "Sodium", refBody, bodyComposition, new[] { "LqdSodium", "SodiumGas", "Sodium", "So" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LITHIUM7, "Lithium", refBody, bodyComposition, new[] { "Lithium", "Lithium7", "Li", "Li7" }, 1);
-                AddResource(InterstellarResourcesConfiguration._LITHIUM6, "Lithium", refBody, bodyComposition, new[] { "Lithium6", "Lithium-6", "Li6" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_AMMONIA, "Ammonia", body, bodyComposition, new[] { "LqdAmmonia", "Ammonia", "NH3"}, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_ARGON, "Argon", body, bodyComposition, new[] { "LqdArgon", "ArgonGas", "Argon", "Ar" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_CO2, "CarbonDioxide", body, bodyComposition, new[] { "LqdCO2", "CarbonDioxide", "CO2" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_CO, "CarbonMonoxide", body, bodyComposition, new[] { "LqdCO", "CarbonMonoxide", "CO", }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_HEAVYWATER, "HeavyWater", body, bodyComposition, new[] { "DeuteriumWater", "HeavyWater", "D2O" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_KRYPTON, "Krypton", body, bodyComposition, new[] { "LqdKrypton", "KryptonGas", "Krypton" , "Kr"}, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_METHANE, "Methane", body, bodyComposition, new[] { "LqdMethane", "MethaneGas", "Methane", "CH4" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_NITROGEN, "Nitrogen", body, bodyComposition, new[] { "LqdNitrogen", "NitrogenGas", "Nitrogen", "N", "N2" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_NEON, "Neon", body, bodyComposition, new[] { "LqdNeon", "NeonGas", "Neon", "Ne" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_OXYGEN, "Oxygen", body, bodyComposition, new[] { "LqdOxygen", "OxygenGas", "Oxygen", "O", "O2" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_WATER, "LqdWater", body, bodyComposition, new[] { "LqdWater", "Water", "DihydrogenMonoxide", "H2O", "DHMO" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_XENON, "Xenon", body, bodyComposition, new[] { "LqdXenon", "XenonGas", "Xenon", "Xe" }, 1);
+                AddResource(InterstellarResourcesConfiguration._SODIUM, "Sodium", body, bodyComposition, new[] { "LqdSodium", "SodiumGas", "Sodium", "Natrium", "Na" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LITHIUM7, "Lithium", body, bodyComposition, new[] { "Lithium", "Lithium7", "Li", "Li7" }, 1);
+                AddResource(InterstellarResourcesConfiguration._LITHIUM6, "Lithium", body, bodyComposition, new[] { "Lithium6", "Lithium-6", "Li6" }, 1);
 
-                AddResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, "Helium-4", refBody, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas" }, 4);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_3, "Helium-3", refBody, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3", "LqdHelium3" }, 5);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_HYDROGEN, "Hydrogen", refBody, bodyComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "LiquidHydrogen", "H2", "Protium", "LqdProtium" }, 4);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM, "Deuterium", refBody, bodyComposition, new[] { "LqdDeuterium", "DeuteriumGas", "Deuterium" }, 5);
-                AddResource(InterstellarResourcesConfiguration._LIQUID_TRITIUM, "Tritium", refBody, bodyComposition, new[] { "LqdTritium", "TritiumGas", "Tritium" }, 5);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, "Helium-4", body, bodyComposition, new[] { "LqdHe4", "Helium4Gas", "Helium4", "Helium-4", "He4Gas", "He4", "LqdHelium", "Helium", "HeliumGas", "He" }, 4);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_3, "Helium-3", body, bodyComposition, new[] { "LqdHe3", "Helium3Gas", "Helium3", "Helium-3", "He3Gas", "He3", "LqdHelium3" }, 5);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_HYDROGEN, "Hydrogen", body, bodyComposition, new[] { "LqdHydrogen", "HydrogenGas", "Hydrogen", "LiquidHydrogen", "H2", "Protium", "LqdProtium", "H" }, 4);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM, "Deuterium", body, bodyComposition, new[] { "LqdDeuterium", "DeuteriumGas", "Deuterium", "D" }, 5);
+                AddResource(InterstellarResourcesConfiguration._LIQUID_TRITIUM, "Tritium", body, bodyComposition, new[] { "LqdTritium", "TritiumGas", "Tritium", "T" }, 5);
             }
             catch (Exception ex)
             {
@@ -257,7 +229,7 @@ namespace FNPlugin.Resources
             }
         }
 
-        private static void AddMissingStockResources(int refBody, Dictionary<string, AtmosphericResource> bodyComposition)
+        private static void AddMissingStockResources(CelestialBody body, Dictionary<string, AtmosphericResource> bodyComposition)
         {
             // fetch all atmospheric resources
             var allResources = ResourceMap.Instance.FetchAllResourceNames(HarvestTypes.Atmospheric);
@@ -267,11 +239,11 @@ namespace FNPlugin.Resources
             foreach (var resoureName in allResources)
             {
                 // add resource if missing
-                AddMissingResource(resoureName, refBody, bodyComposition);
+                AddMissingResource(resoureName, body, bodyComposition);
             }
         }
 
-        private static void AddMissingResource(string resourname, int refBody, Dictionary<string, AtmosphericResource> bodyComposition)
+        private static void AddMissingResource(string resourname, CelestialBody body, Dictionary<string, AtmosphericResource> bodyComposition)
         {
             // verify it is a defined resource
             var definition = PartResourceLibrary.Instance.GetDefinition(resourname);
@@ -289,7 +261,7 @@ namespace FNPlugin.Resources
             }
 
             // retreive abundance
-            var abundance = GetAbundance(definition.name, refBody);
+            var abundance = GetAbundance(definition.name, body);
             if (abundance <= 0)
             {
                 Debug.LogWarning("[KSPI] - AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
@@ -304,7 +276,7 @@ namespace FNPlugin.Resources
             bodyComposition.Add(resource.ResourceName, resource);
         }
 
-        private static void AddRaresAndIsotopesToAdmosphereComposition(IDictionary<string, AtmosphericResource> bodyAtmosphericComposition, CelestialBody celestialBody)
+        private static void AddRaresAndIsotopesToAdmosphereComposition(IDictionary<string, AtmosphericResource> bodyAtmosphericComposition, CelestialBody body)
         {
             // add heavywater based on water abundance in atmosphere
             AtmosphericResource water;
@@ -329,7 +301,7 @@ namespace FNPlugin.Resources
             if (!bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_HELIUM_3) && bodyAtmosphericComposition.TryGetValue(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, out helium))
             {
 
-                var helium3Abundance = celestialBody.GetPressure(0) > 1000
+                var helium3Abundance = body.GetPressure(0) > 1000
                     ? helium.ResourceAbundance * 0.001
                     : helium.ResourceAbundance * 1.38e-6;
 
@@ -368,72 +340,58 @@ namespace FNPlugin.Resources
                 Debug.Log("[KSPI] - No Nitrogen is present in atmosphere specification, nitrogen-15 will not be added");
         }
 
-        private static void AddResource(string outputResourname, string displayname, int refBody, IDictionary<string, AtmosphericResource> bodyComposition, string[] variants, double abundanceExponent = 1)
+        private static void AddResource(string outputResourname, string displayname, CelestialBody body, IDictionary<string, AtmosphericResource> atmosphericResourcesByName, string[] variantNames, double abundanceExponent = 1)
         {
             double finalAbundance;
 
-            AtmosphericResource existingResource;
-            if (bodyComposition.TryGetValue(outputResourname, out existingResource))
+            AtmosphericResource existingResource = FindAnyExistingAtmosphereVariant(atmosphericResourcesByName, variantNames);
+            if (existingResource != null)
             {
-                Debug.Log("[KSPI] - using kspie resource definition " + outputResourname + " for ref " + refBody);
+                Debug.Log("[KSPI] - using kspie resource definition " + outputResourname + " for " + body.name);
                 finalAbundance = existingResource.ResourceAbundance;
             }
             else
             {
-                Debug.Log("[KSPI] - using stock resource definition " + outputResourname + " for ref " + refBody);
-                var abundances = new[] { GetAbundance(outputResourname, refBody) }.Concat(variants.Select(m => GetAbundance(m, refBody)));
+                Debug.Log("[KSPI] - using stock resource definition " + outputResourname + " for " + body.name);
+                var abundances = new[] { GetAbundance(outputResourname, body) }.Concat(variantNames.Select(m => GetAbundance(m, body)));
                 finalAbundance = abundances.Max();
 
                 if (abundanceExponent != 1)
                     finalAbundance = Math.Pow(finalAbundance / 100, abundanceExponent) * 100;
             }
 
-            var resource = new AtmosphericResource(outputResourname, finalAbundance, displayname, variants);
+            var resource = new AtmosphericResource(outputResourname, finalAbundance, displayname, variantNames);
             if (resource.ResourceAbundance <= 0) return;
 
 
-            if (bodyComposition.TryGetValue(outputResourname, out existingResource))
-                bodyComposition.Remove(existingResource.ResourceName);
-            bodyComposition.Add(resource.ResourceName, resource);
+            if (atmosphericResourcesByName.TryGetValue(outputResourname, out existingResource))
+                atmosphericResourcesByName.Remove(existingResource.ResourceName);
+            atmosphericResourcesByName.Add(resource.ResourceName, resource);
         }
 
-        private static void AddResource(int refBody, IDictionary<string, AtmosphericResource> bodyComposition, string outputResourname, string inputResource1, string inputResource2, string inputResource3, string displayname)
+        private static AtmosphericResource FindAnyExistingAtmosphereVariant(IDictionary<string, AtmosphericResource> bodyComposition, string[] variants)
         {
-            double finalAbundance;
-
             AtmosphericResource existingResource;
-            if (bodyComposition.TryGetValue(outputResourname, out existingResource))
+            foreach (var variantName in variants)
             {
-                Debug.Log("[KSPI] - using kspie resource definition " + outputResourname + " for ref " + refBody);
-                finalAbundance = existingResource.ResourceAbundance;
+                if (bodyComposition.TryGetValue(variantName, out existingResource))
+                    return existingResource;
             }
-            else
-            {
-                Debug.Log("[KSPI] - using stock resource definition " + outputResourname + " for ref " + refBody);
-                var abundances = new[] { GetAbundance(inputResource1, refBody), GetAbundance(inputResource2, refBody), GetAbundance(inputResource2, refBody) };
-                finalAbundance = abundances.Max();
-            }
-
-            var resource = new AtmosphericResource(outputResourname, finalAbundance, displayname, new[] { inputResource1, inputResource2, inputResource3 });
-            if (resource.ResourceAbundance <= 0) return;
-
-            if (bodyComposition.TryGetValue(outputResourname, out existingResource))
-                bodyComposition.Remove(existingResource.ResourceName);
-            bodyComposition.Add(resource.ResourceName, resource);
+            return null;
         }
 
-        private static float GetAbundance(string resourceName, int refBody)
+        private static float GetAbundance(string resourceName, CelestialBody body)
         {
-            return ResourceMap.Instance.GetAbundance(CreateRequest(resourceName, refBody));
+            return ResourceMap.Instance.GetAbundance(CreateRequest(resourceName, body));
         }
 
-        private static AbundanceRequest CreateRequest(string resourceName, int refBody)
+        private static AbundanceRequest CreateRequest(string resourceName, CelestialBody body)
         {
             return new AbundanceRequest
             {
                 ResourceType = HarvestTypes.Atmospheric,
                 ResourceName = resourceName,
-                BodyId = refBody,
+                BodyId = body.flightGlobalsIndex,
                 CheckForLock = false
             };
         }
