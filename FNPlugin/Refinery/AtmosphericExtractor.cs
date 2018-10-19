@@ -55,6 +55,8 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true)]
         protected double _argonPercentage; // percentage of argon in the local atmosphere
         [KSPField(isPersistant = true)]
+        protected double _chlorinePercentage;
+        [KSPField(isPersistant = true)]
         protected double _dioxidePercentage; // percentage of carbon dioxide in the local atmosphere
         [KSPField(isPersistant = true)]
         protected double _helium3Percentage; // etc.
@@ -87,6 +89,7 @@ namespace FNPlugin.Refinery
         [KSPField(isPersistant = true)]
         protected double _sodiumPercentage;
 
+
         double _fixedConsumptionRate;
         double _consumptionStorageRatio;
         double intakeModifier;
@@ -96,6 +99,7 @@ namespace FNPlugin.Refinery
         // all the gases that it should be possible to collect from atmospheres
         PartResourceDefinition _ammonia;
         PartResourceDefinition _argon;
+        PartResourceDefinition _chlorine;
         PartResourceDefinition _dioxide;
         PartResourceDefinition _helium3;
         PartResourceDefinition _helium4;
@@ -112,11 +116,13 @@ namespace FNPlugin.Refinery
         PartResourceDefinition _deuterium;
         PartResourceDefinition _krypton;
         PartResourceDefinition _sodium;
+
              
         double _atmosphere_consumption_rate;
 
         double _ammonia_production_rate;
         double _argon_production_rate;
+        double _chlorine_production_rate;
         double _dioxide_production_rate;
         double _helium3_production_rate;
         double _helium4_production_rate;
@@ -135,8 +141,10 @@ namespace FNPlugin.Refinery
         double _sodium_production_rate;
 
         string _atmosphere_resource_name;
+
         string _ammonia_resource_name;
         string _argon_resource_name;
+        string _chlorine_resource_name;
         string _dioxide_resource_name;
         string _helium3_resource_name;
         string _helium4_resource_name;
@@ -212,6 +220,7 @@ namespace FNPlugin.Refinery
 
             _ammonia_resource_name = InterstellarResourcesConfiguration._LIQUID_AMMONIA;
             _argon_resource_name = InterstellarResourcesConfiguration._LIQUID_ARGON;
+            _chlorine_resource_name = InterstellarResourcesConfiguration._CHLORINE;
             _dioxide_resource_name = InterstellarResourcesConfiguration._LIQUID_CO2;
             _monoxide_resource_name = InterstellarResourcesConfiguration._LIQUID_CO;
             _helium3_resource_name = InterstellarResourcesConfiguration._LIQUID_HELIUM_3;
@@ -234,6 +243,7 @@ namespace FNPlugin.Refinery
             _atmosphere = PartResourceLibrary.Instance.GetDefinition(_atmosphere_resource_name);
             _ammonia = PartResourceLibrary.Instance.GetDefinition(_ammonia_resource_name);
             _argon = PartResourceLibrary.Instance.GetDefinition(_argon_resource_name);
+            _chlorine = PartResourceLibrary.Instance.GetDefinition(_chlorine_resource_name);
             _dioxide = PartResourceLibrary.Instance.GetDefinition(_dioxide_resource_name);
             _helium3 = PartResourceLibrary.Instance.GetDefinition(_helium3_resource_name);
             _helium4 = PartResourceLibrary.Instance.GetDefinition(_helium4_resource_name);
@@ -253,8 +263,10 @@ namespace FNPlugin.Refinery
         }
 
         double _maxCapacityAtmosphereMass;
+
         double _maxCapacityAmmoniaMass;
         double _maxCapacityArgonMass;
+        double _maxCapacityChlorineMass;
         double _maxCapacityDioxideMass;
         double _maxCapacityHelium3Mass;
         double _maxCapacityHelium4Mass;
@@ -277,6 +289,7 @@ namespace FNPlugin.Refinery
         double _spareRoomAtmosphereMass;
         double _spareRoomAmmoniaMass;
         double _spareRoomArgonMass;
+        double _spareRoomChlorineMass;
         double _spareRoomDioxideMass;
         double _spareRoomHelium3Mass;
         double _spareRoomHelium4Mass;
@@ -329,6 +342,7 @@ namespace FNPlugin.Refinery
             _part.GetResourceMass(_atmosphere, out _spareRoomAtmosphereMass, out _maxCapacityAtmosphereMass);
             _part.GetResourceMass(_ammonia, out _spareRoomAmmoniaMass , out _maxCapacityAmmoniaMass);
             _part.GetResourceMass(_argon, out _spareRoomArgonMass, out _maxCapacityArgonMass);
+            _part.GetResourceMass(_chlorine, out _spareRoomChlorineMass, out _maxCapacityChlorineMass);
             _part.GetResourceMass(_dioxide, out _spareRoomDioxideMass, out _maxCapacityDioxideMass);
             _part.GetResourceMass(_helium3, out _spareRoomHelium3Mass, out _maxCapacityHelium3Mass);
             _part.GetResourceMass(_helium4, out _spareRoomHelium4Mass, out _maxCapacityHelium4Mass);
@@ -376,10 +390,25 @@ namespace FNPlugin.Refinery
             // begin the intake atmosphere processing
             // check if there is anything to consume and if there is spare room for at least one of the products
             if (_fixedConsumptionRate > 0 && (
-                _spareRoomHydrogenMass > 0 || _spareRoomHelium3Mass > 0 || _spareRoomHelium4Mass > 0 || _spareRoomMonoxideMass > 0 ||
-                _spareRoomNitrogenMass > 0 || _spareRoomNitrogen15Mass > 0 || _spareRoomArgonMass > 0 || _spareRoomDioxideMass > 0 || _spareRoomMethaneMass > 0 ||
-                _spareRoomNeonMass > 0 || _spareRoomWaterMass > 0 || _spareRoomHeavyWaterMass > 0 || _spareRoomOxygenMass > 0 || 
-                _spareRoomXenonMass > 0 || _spareRoomDeuteriumMass > 0 || _spareRoomKryptonMass > 0 || _spareRoomSodiumMass > 0 ||  _spareRoomAmmoniaMass > 0)) 
+                _spareRoomAmmoniaMass > 0 ||
+                _spareRoomArgonMass > 0 ||
+                _spareRoomChlorineMass > 0 ||
+                _spareRoomHydrogenMass > 0 ||
+                _spareRoomHelium3Mass > 0 ||
+                _spareRoomHelium4Mass > 0 ||
+                _spareRoomMonoxideMass > 0 ||
+                _spareRoomNitrogenMass > 0 ||
+                _spareRoomNitrogen15Mass > 0 ||
+                _spareRoomDioxideMass > 0 || 
+                _spareRoomMethaneMass > 0 ||
+                _spareRoomNeonMass > 0 || 
+                _spareRoomWaterMass > 0 || 
+                _spareRoomHeavyWaterMass > 0 ||
+                _spareRoomOxygenMass > 0 ||
+                _spareRoomXenonMass > 0 ||
+                _spareRoomDeuteriumMass > 0 ||
+                _spareRoomKryptonMass > 0 ||
+                _spareRoomSodiumMass > 0 )) 
             {
                 /* Now to get the actual percentages from AtmosphericResourceHandler Freethinker extended.
                  * Calls getAtmosphericResourceContent which calls getAtmosphericCompositionForBody which (if there's no definition, i.e. we're using a custom solar system
@@ -394,6 +423,7 @@ namespace FNPlugin.Refinery
                     // remember, all these are persistent. Once we get them, we won't need to calculate them again until we change SOI
                     _ammoniaPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _ammonia_resource_name);
                     _argonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _argon_resource_name);
+                    _chlorinePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _chlorine_resource_name);
                     _monoxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _monoxide_resource_name);
                     _dioxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _dioxide_resource_name);
                     _helium3Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _helium3_resource_name);
@@ -424,6 +454,7 @@ namespace FNPlugin.Refinery
                     // how much of the consumed atmosphere is going to end up as these?
                     var fixedMaxAmmoniaRate = _fixedConsumptionRate * _ammoniaPercentage;
                     var fixedMaxArgonRate = _fixedConsumptionRate * _argonPercentage;
+                    var fixedMaxChlorineRate = _fixedConsumptionRate * _chlorinePercentage;
                     var fixedMaxDioxideRate = _fixedConsumptionRate * _dioxidePercentage;
                     var fixedMaxHelium3Rate = _fixedConsumptionRate * _helium3Percentage;
                     var fixedMaxHelium4Rate = _fixedConsumptionRate * _helium4Percentage;
@@ -444,6 +475,7 @@ namespace FNPlugin.Refinery
                     // how much can we add to the tanks per cycle? If allowOverflow is on, just push it all in, regardless of if the tank can hold the amount. Otherwise adjust accordingly
                     var fixedMaxPossibleAmmoniaRate = allowOverflow ? fixedMaxAmmoniaRate : Math.Min(_spareRoomAmmoniaMass, fixedMaxAmmoniaRate);
                     var fixedMaxPossibleArgonRate = allowOverflow ? fixedMaxArgonRate : Math.Min(_spareRoomArgonMass, fixedMaxArgonRate);
+                    var fixedMaxPossibleChlorineRate = allowOverflow ? fixedMaxChlorineRate : Math.Min(_spareRoomChlorineMass, fixedMaxChlorineRate);
                     var fixedMaxPossibleDioxideRate = allowOverflow ? fixedMaxDioxideRate : Math.Min(_spareRoomDioxideMass, fixedMaxDioxideRate);
                     var fixedMaxPossibleHelium3Rate = allowOverflow ? fixedMaxHelium3Rate : Math.Min(_spareRoomHelium3Mass, fixedMaxHelium3Rate);
                     var fixedMaxPossibleHelium4Rate = allowOverflow ? fixedMaxHelium4Rate : Math.Min(_spareRoomHelium4Mass, fixedMaxHelium4Rate);
@@ -464,6 +496,7 @@ namespace FNPlugin.Refinery
                     // Check if the denominator for each is zero (in that case, assign zero outright, so that we don't end up with an infinite mess on our hands)
                     var ammRatio = (fixedMaxAmmoniaRate == 0) ? 0 : fixedMaxPossibleAmmoniaRate / fixedMaxAmmoniaRate;
                     var arRatio = (fixedMaxArgonRate == 0) ? 0 : fixedMaxPossibleArgonRate / fixedMaxArgonRate;
+                    var chlRatio = (fixedMaxChlorineRate == 0) ? 0 : fixedMaxPossibleChlorineRate / fixedMaxChlorineRate;
                     var dioxRatio = (fixedMaxDioxideRate == 0) ? 0 : fixedMaxPossibleDioxideRate / fixedMaxDioxideRate;
                     var he3Ratio = (fixedMaxHelium3Rate == 0) ? 0 : fixedMaxPossibleHelium3Rate / fixedMaxHelium3Rate;
                     var he4Ratio = (fixedMaxHelium4Rate == 0) ? 0 : fixedMaxPossibleHelium4Rate / fixedMaxHelium4Rate;
@@ -501,6 +534,7 @@ namespace FNPlugin.Refinery
                 // produce the resources
                 _ammonia_production_rate = _ammoniaPercentage == 0 ? 0 : -_part.RequestResource(_ammonia_resource_name, -_atmosphere_consumption_rate * _ammoniaPercentage * fixedDeltaTime / _ammonia.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammonia.density;
                 _argon_production_rate = _argonPercentage == 0 ? 0 : -_part.RequestResource(_argon_resource_name, -_atmosphere_consumption_rate * _argonPercentage * fixedDeltaTime / _argon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _argon.density;
+                _chlorine_production_rate = _chlorinePercentage == 0 ? 0 : -_part.RequestResource(_chlorine_resource_name, -_atmosphere_consumption_rate * _chlorinePercentage * fixedDeltaTime / _chlorine.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _chlorine.density;
                 _dioxide_production_rate = _dioxidePercentage == 0 ? 0 : -_part.RequestResource(_dioxide_resource_name, -_atmosphere_consumption_rate * _dioxidePercentage * fixedDeltaTime / _dioxide.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _dioxide.density;
                 _helium3_production_rate = _helium3Percentage == 0 ? 0 : -_part.RequestResource(_helium3_resource_name, -_atmosphere_consumption_rate * _helium3Percentage * fixedDeltaTime / _helium3.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium3.density;
                 _helium4_production_rate = _helium4Percentage == 0 ? 0 : -_part.RequestResource(_helium4_resource_name, -_atmosphere_consumption_rate * _helium4Percentage * fixedDeltaTime / _helium4.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium4.density;
@@ -594,8 +628,9 @@ namespace FNPlugin.Refinery
             DisplayResourceExtraction("Nitrogen", _nitrogenPercentage, _nitrogen_production_rate, _spareRoomNitrogenMass, _maxCapacityNitrogenMass);
             DisplayResourceExtraction("Nitrogen-15", _nitrogen15Percentage, _nitrogen15_production_rate, _spareRoomNitrogen15Mass, _maxCapacityNitrogen15Mass);
             DisplayResourceExtraction("Oxygen", _oxygenPercentage, _oxygen_production_rate, _spareRoomOxygenMass, _maxCapacityOxygenMass);
-            DisplayResourceExtraction("Argon", _oxygenPercentage, _argon_production_rate, _spareRoomArgonMass, _maxCapacityArgonMass);
-            DisplayResourceExtraction("Neon", _oxygenPercentage, _neon_production_rate, _spareRoomNeonMass, _maxCapacityNeonMass);
+            DisplayResourceExtraction("Argon", _argonPercentage, _argon_production_rate, _spareRoomArgonMass, _maxCapacityArgonMass);
+            DisplayResourceExtraction("Chlorine", _chlorinePercentage, _chlorine_production_rate, _spareRoomChlorineMass, _maxCapacityChlorineMass);
+            DisplayResourceExtraction("Neon", _neonPercentage, _neon_production_rate, _spareRoomNeonMass, _maxCapacityNeonMass);
             DisplayResourceExtraction("Krypton", _kryptonPercentage, _krypton_production_rate, _spareRoomKryptonMass, _maxCapacityKryptonMass);
             DisplayResourceExtraction("Ammonia", _ammoniaPercentage, _ammonia_production_rate, _spareRoomAmmoniaMass, _maxCapacityAmmoniaMass);
             DisplayResourceExtraction("Water", _waterPercentage, _water_production_rate, _spareRoomWaterMass, _maxCapacityWaterMass);
