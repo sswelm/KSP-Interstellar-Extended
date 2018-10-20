@@ -16,8 +16,8 @@ namespace FNPlugin
     class ThermalNozzleController : ResourceSuppliableModule, IFNEngineNoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
         // Persistent True
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
-        public float storedRelativeFactor = 1;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true)]
+        public float storedAbsoluteFactor = 1;
 
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
@@ -406,20 +406,15 @@ namespace FNPlugin
         {
             Debug.Log("[KSPI] - ThermalNozzleController OnRescale was called with factor " + factor.absolute.linear);
 
-            storedRelativeFactor = factor.absolute.linear;
+            storedAbsoluteFactor = factor.absolute.linear;
 
-            ScaleParameters(storedRelativeFactor);
+            scaledRadius = radius * storedAbsoluteFactor;
+            scaledExitArea = exitArea * Math.Pow(storedAbsoluteFactor, exitAreaScaleExponent);
 
             // update simulation
             UpdateRadiusModifier();
         }
 
-        private void ScaleParameters(double relativeScaleFactor)
-        {
-            // update variables
-            scaledRadius = radius * relativeScaleFactor;
-            scaledExitArea = exitArea * Math.Pow(relativeScaleFactor, exitAreaScaleExponent);
-        }
 
         [KSPAction("Next Propellant")]
         public void TogglePropellantAction(KSPActionParam param)
@@ -498,8 +493,6 @@ namespace FNPlugin
         {
             try
             {
-                ScaleParameters(storedRelativeFactor);
-
                 // make sure thermal values are fixed and not screwed up by Deadly Reentry
                 part.maxTemp = maxTemp;
                 part.emissiveConstant = emissiveConstant;
