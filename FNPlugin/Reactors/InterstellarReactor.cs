@@ -75,11 +75,9 @@ namespace FNPlugin.Reactors
 
         [KSPField(isPersistant = true)]
         public double thermal_power_ratio = 1;
-        //[KSPField(isPersistant = true, guiActive = true)]
-        //public double max_reactor_power_ratio = 1;
         [KSPField(isPersistant = true)]
         public double charged_power_ratio = 1;
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         public double reactor_power_ratio = 1;
         [KSPField(isPersistant = true)]
         public double power_request_ratio;
@@ -702,9 +700,11 @@ namespace FNPlugin.Reactors
                         break;
                 }
 
-                return Math.Max(leveledThrottle, forcedMinimumThrottle / 100d);
+                return leveledThrottle;
             }
         }
+
+        public double ForcedMinimumThrottleRatio { get {  return (double)(decimal)forcedMinimumThrottle / 100d; } }
 
         public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
 
@@ -1234,10 +1234,6 @@ namespace FNPlugin.Reactors
             fuel_modes = GetReactorFuelModes();
             SetDefaultFuelMode();
             UpdateFuelMode();
-
-            var forcedMinimumThrottleField = Fields["forcedMinimumThrottle"];
-            forcedMinimumThrottleField.guiActive = showForcedMinimumThrottle;
-            forcedMinimumThrottleField.guiActiveEditor = showForcedMinimumThrottle;
 
             if (state == StartState.Editor)
             {
@@ -1805,6 +1801,7 @@ namespace FNPlugin.Reactors
         private void StoreGeneratorRequests()
         {
             var fixedReactorSpeedMult = ReactorSpeedMult * timeWarpFixedDeltaTime;
+            var requiredMinimumThrottle = Math.Max(MinimumThrottle, ForcedMinimumThrottleRatio);
 
             storedIsThermalEnergyGeneratorEfficiency = currentIsThermalEnergyGeneratorEfficiency;
             storedIsPlasmaEnergyGeneratorEfficiency = currentIsPlasmaEnergyGeneratorEfficiency;
@@ -1814,9 +1811,17 @@ namespace FNPlugin.Reactors
             currentIsPlasmaEnergyGeneratorEfficiency = 0;
             currentIsChargedEnergyGenratorEfficiency = 0;
 
+            storedGeneratorThermalEnergyRequestRatio = Math.Max(storedGeneratorThermalEnergyRequestRatio, ongoing_consumption_rate);
+            storedGeneratorPlasmaEnergyRequestRatio = Math.Max(storedGeneratorPlasmaEnergyRequestRatio, ongoing_consumption_rate);
+            storedGeneratorChargedEnergyRequestRatio = Math.Max(storedGeneratorChargedEnergyRequestRatio, ongoing_consumption_rate);
+
+            currentGeneratorThermalEnergyRequestRatio = Math.Max(currentGeneratorThermalEnergyRequestRatio, requiredMinimumThrottle);
+            currentGeneratorPlasmaEnergyRequestRatio = Math.Max(currentGeneratorPlasmaEnergyRequestRatio, requiredMinimumThrottle);
+            currentGeneratorChargedEnergyRequestRatio = Math.Max(currentGeneratorChargedEnergyRequestRatio, requiredMinimumThrottle);
+
             var thermalDifference = Math.Abs(storedGeneratorThermalEnergyRequestRatio - currentGeneratorThermalEnergyRequestRatio);
             var plasmaDifference = Math.Abs(storedGeneratorPlasmaEnergyRequestRatio - currentGeneratorPlasmaEnergyRequestRatio);
-            var chargedDifference = Math.Abs(storedGeneratorChargedEnergyRequestRatio - storedGeneratorChargedEnergyRequestRatio);
+            var chargedDifference = Math.Abs(storedGeneratorChargedEnergyRequestRatio - currentGeneratorChargedEnergyRequestRatio);
 
             var fixedThermalSpeed = fixedReactorSpeedMult > 0 ? Math.Min(thermalDifference, fixedReactorSpeedMult) : thermalDifference;
             var fixedPlasmaSpeed = fixedReactorSpeedMult > 0 ? Math.Min(plasmaDifference, fixedReactorSpeedMult) : plasmaDifference;
