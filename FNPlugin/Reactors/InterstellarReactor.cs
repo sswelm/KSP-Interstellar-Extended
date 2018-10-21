@@ -794,10 +794,10 @@ namespace FNPlugin.Reactors
             {
                 // calculate multipliers
                 Debug.Log("[KSPI] - InterstellarReactor.OnRescale called with " + factor.absolute.linear);
-                storedPowerMultiplier = Math.Pow(factor.absolute.linear, powerScaleExponent);
+                storedPowerMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, powerScaleExponent);
 
-                initialCost = part.partInfo.cost * Math.Pow(factor.absolute.linear, massCostExponent);
-                calculatedCost = part.partInfo.cost * Math.Pow(factor.absolute.linear, costScaleExponent);
+                initialCost = part.partInfo.cost * Math.Pow((double)(decimal)factor.absolute.linear, massCostExponent);
+                calculatedCost = part.partInfo.cost * Math.Pow((double)(decimal)factor.absolute.linear, costScaleExponent);
 
                 // update power
                 DeterminePowerOutput();

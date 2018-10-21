@@ -541,7 +541,7 @@ namespace FNPlugin
 
         public virtual void OnRescale(TweakScale.ScalingFactor akFactor)
         {
-            scale = akFactor.absolute.linear;
+            scale = (double)(decimal)akFactor.absolute.linear;
         }
 
         public override void OnInitialize()
@@ -884,7 +884,7 @@ namespace FNPlugin
 
         public virtual void OnRescale(ScalingFactor factor)
         {
-            Scale = factor.absolute.linear;
+            Scale = (double)(decimal)factor.absolute.linear;
         }
 
         public override void OnStart(StartState state)

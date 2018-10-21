@@ -246,8 +246,8 @@ namespace InterstellarFuelSwitch
                 storedFactorMultiplier = factor.absolute.linear;
                 storedVolumeMultiplier = Mathf.Pow(factor.absolute.linear, volumeExponent);
 
-                baseMassMultiplier = Math.Pow(factor.absolute.linear, baseMassExponent == 0 ? massExponent : baseMassExponent);
-                initialMassMultiplier = Math.Pow(factor.absolute.linear, tweakscaleMassExponent);
+                baseMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, (double)(decimal)(baseMassExponent == 0 ? massExponent : baseMassExponent));
+                initialMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, (double)(decimal)tweakscaleMassExponent);
 
                 initialMass = part.prefabMass * initialMassMultiplier;
             }

@@ -17,7 +17,7 @@ namespace FNPlugin
     {
         // Persistent True
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true)]
-        public float storedAbsoluteFactor = 1;
+        public double storedAbsoluteFactor = 1;
 
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
@@ -406,13 +406,18 @@ namespace FNPlugin
         {
             Debug.Log("[KSPI] - ThermalNozzleController OnRescale was called with factor " + factor.absolute.linear);
 
-            storedAbsoluteFactor = factor.absolute.linear;
+            storedAbsoluteFactor = (double)(decimal)factor.absolute.linear;
 
-            scaledRadius = radius * storedAbsoluteFactor;
-            scaledExitArea = exitArea * Math.Pow(storedAbsoluteFactor, exitAreaScaleExponent);
+            ScaleParameters();
 
             // update simulation
             UpdateRadiusModifier();
+        }
+
+        private void ScaleParameters()
+        {
+            scaledRadius = radius * storedAbsoluteFactor;
+            scaledExitArea = exitArea * Math.Pow(storedAbsoluteFactor, exitAreaScaleExponent);
         }
 
 
@@ -491,6 +496,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            ScaleParameters();
+
             try
             {
                 // make sure thermal values are fixed and not screwed up by Deadly Reentry

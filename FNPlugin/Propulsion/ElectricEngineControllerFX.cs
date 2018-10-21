@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using TweakScale;
 
 namespace FNPlugin
 {
@@ -14,8 +15,11 @@ namespace FNPlugin
 
 
     [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
-    class ElectricEngineControllerFX : ResourceSuppliableModule, IUpgradeableModule
+    class ElectricEngineControllerFX : ResourceSuppliableModule, IUpgradeableModule, IRescalable<ElectricEngineControllerFX>, IPartMassModifier
     {
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true)]
+        public double storedAbsoluteFactor = 1;
+
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool isupgraded;
@@ -98,9 +102,13 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
         public double engineIsp;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput", guiUnits = " MW")]
-        public double maxPower = 1000;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiUnits = " t")]
+        public double scaledMaxPower = 0;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiUnits = " t")]
         public float partMass = 0;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "expected mass", guiUnits = " t")]
+        public double expectedMass = 0;
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "desired mass", guiUnits = " t")]
+        public double desiredMass = 0;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineType")]
         public string engineTypeStr = "";
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_activePropellantName")]
@@ -163,6 +171,14 @@ namespace FNPlugin
         public string EffectName = String.Empty;
         [KSPField]
         protected string _particleFXName;
+        [KSPField]
+        public double massTweakscaleExponent = 3;
+        [KSPField]
+        public double powerExponent = 3;
+        [KSPField]
+        public double massExponent = 3;
+        [KSPField]
+        public double maxPower = 1000;
 
         int _rep;
         int _initializationCountdown;
@@ -172,7 +188,6 @@ namespace FNPlugin
         bool _hasGearTechnology;
         bool _warpToReal;
 
-
         ResourceBuffers resourceBuffers;
         FloatCurve _ispFloatCurve;
         List<ElectricEnginePropellant> _propellants;
@@ -180,7 +195,7 @@ namespace FNPlugin
 
         // Properties
         public string UpgradeTechnology { get { return upgradeTechReq; } }
-        public double MaxPower { get { return maxPower * powerReqMult * powerCapacityModifier; } }
+        public double MaxPower { get { return scaledMaxPower * powerReqMult * powerCapacityModifier; } }
         public double MaxEffectivePower { get { return ignoreWasteheat ? MaxPower :  MaxPower * CurrentPropellantEfficiency * ThermalEfficiency; } }
         public bool IsOperational {get { return _attachedEngine != null ? _attachedEngine.isOperational : false; } }
 
@@ -246,7 +261,6 @@ namespace FNPlugin
                 ? Current_propellant.DecomposedIspMult 
                 : Current_propellant.IspMultiplier; 
             }
-
         }
 
         public double ThermalEfficiency
@@ -299,6 +313,29 @@ namespace FNPlugin
             TogglePreviousPropellant();
         }
 
+        public void OnRescale(ScalingFactor factor)
+        {
+            storedAbsoluteFactor = (double)(decimal)factor.absolute.linear;
+
+            ScaleParameters();
+        }
+
+        private void ScaleParameters()
+        {
+            expectedMass = (double)(decimal)part.prefabMass * Math.Pow(storedAbsoluteFactor, massTweakscaleExponent);
+            desiredMass = (double)(decimal)part.prefabMass * Math.Pow(storedAbsoluteFactor, massExponent);
+            scaledMaxPower = maxPower * Math.Pow(storedAbsoluteFactor, powerExponent);
+        }
+
+        public float GetModuleMass(float defaultMass, ModifierStagingSituation sit)
+        {
+            return (float)(desiredMass - expectedMass);
+        }
+        public ModifierChangeWhen GetModuleMassChangeWhen()
+        {
+            return ModifierChangeWhen.STAGED;
+        }
+
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_retrofit", active = true)]
         public void RetrofitEngine()
         {
@@ -337,6 +374,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            ScaleParameters();
+
             _initializationCountdown = 10;
             Debug.Log("[KSPI] - Start Initializing ElectricEngineControllerFX");
             try
@@ -527,6 +566,7 @@ namespace FNPlugin
         // ReSharper disable once UnusedMember.Global
         public void Update()
         {
+            partMass = part.mass;
             propNameStr = Current_propellant != null ? Current_propellant.PropellantGUIName : "";
         }
 
@@ -794,8 +834,8 @@ namespace FNPlugin
                 vacplasmaadded = true;
                 var node = new ConfigNode("RESOURCE");
                 node.AddValue("name", InterstellarResourcesConfiguration.Instance.VacuumPlasma);
-                node.AddValue("maxAmount", maxPower * 0.0000001);
-                node.AddValue("amount", maxPower * 0.0000001);
+                node.AddValue("maxAmount", scaledMaxPower * 0.0000001);
+                node.AddValue("amount", scaledMaxPower * 0.0000001);
                 this.part.AddResource(node);
             }
         }
@@ -803,7 +843,7 @@ namespace FNPlugin
         public override string GetInfo()
         {
             var props = ElectricEnginePropellant.GetPropellantsEngineForType(type);
-            var returnStr = Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + " : " + MaxPower.ToString("F3") + " MW\n";
+            var returnStr = Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + " : " + maxPower.ToString("F3") + " MW\n";
             var thrustPerMw = (2e6 * powerThrustMultiplier) / GameConstants.STANDARD_GRAVITY / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
             props.ForEach(prop =>
             {

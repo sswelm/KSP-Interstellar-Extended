@@ -170,7 +170,7 @@ namespace FNPlugin
         {
             try
             {
-                storedScalingfactor = factor.absolute.linear;
+                storedScalingfactor = (double)(decimal)factor.absolute.linear;
 
                 storedMassMultiplier = Math.Pow(storedScalingfactor, massExponent);
                 storedTargetMassMultiplier = Math.Pow(storedScalingfactor, massTargetExponent);
