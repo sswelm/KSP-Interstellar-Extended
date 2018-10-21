@@ -1991,8 +1991,11 @@ namespace FNPlugin
             else
                 flowRateQueue.Enqueue(flowRate);
 
-            if (flowRateQueue.Count > 50)
-                flowRateQueue.Dequeue();
+            // accelerate refresh durring startup
+            if (flowRateQueue.Count < 50)
+                flowRateQueue.Enqueue(flowRate);
+
+            flowRateQueue.Dequeue();
 
             // ToDo: replace stabalizedFlowRate by calculated flow rate
             photovoltaicSolarSupply = flowRate == 0 ? 0 : flowRateQueue.Count > 10
