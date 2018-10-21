@@ -35,7 +35,7 @@ namespace FNPlugin.Resources
             return bodyAtmosphericComposition.Count > resource ? bodyAtmosphericComposition.Values.ToList()[resource].DisplayName : null;
         }
 
-        private static Dictionary<string, AtmosphericResource> GetAtmosphericCompositionForBody(string celestrialBodyName)
+        private static Dictionary<string, AtmosphericResource> GetAtmosphericCompositionForKnownCelestrial(string celestrialBodyName)
         {
             Dictionary<string, AtmosphericResource> bodyAtmosphericComposition;
 
@@ -43,20 +43,7 @@ namespace FNPlugin.Resources
             if (atmospheric_resource_by_body_name.TryGetValue(celestrialBodyName, out bodyAtmosphericComposition))
                 return bodyAtmosphericComposition;
 
-            // lookup celestrial body
-            var celestialBody = FlightGlobals.Bodies.FirstOrDefault(b => b.name == celestrialBodyName);
-            if (celestialBody != null)
-            {
-                bodyAtmosphericComposition = GetAtmosphericCompositionForBody(celestialBody);
-                atmospheric_resource_by_body_id.Add(celestialBody.flightGlobalsIndex, bodyAtmosphericComposition);
-            }
-            else
-            {
-                Debug.LogWarning("[KSPI] - Failed to find CelestialBody with name " + celestrialBodyName + " in FlightGlobals.Bodies");
-
-                // look for Kspi defined atmospheric compositions
-                bodyAtmosphericComposition = CreateFromKspiDefinitionFile(celestrialBodyName);
-            }
+            bodyAtmosphericComposition = CreateFromKspiDefinitionFile(celestrialBodyName);
 
             // add to database for future reference
             atmospheric_resource_by_body_name.Add(celestrialBodyName, bodyAtmosphericComposition);
@@ -186,21 +173,21 @@ namespace FNPlugin.Resources
                     if (body.atmosphereTemperatureSeaLevel > 500) // Higher than 700 K
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gliese 436b");
-                        return GetAtmosphericCompositionForBody("Gliese436b");
+                        return GetAtmosphericCompositionForKnownCelestrial("Gliese436b");
                     }
 
                     // Check if its a super giant
                     if (body.Mass > homeworld.Mass * 80)
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
-                        return GetAtmosphericCompositionForBody("Jupiter");
+                        return GetAtmosphericCompositionForKnownCelestrial("Jupiter");
                     }
 
                     // Check if its a giant gas planet
                     if (body.Mass > homeworld.Mass * 60)
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
-                        return GetAtmosphericCompositionForBody("Nero");
+                        return GetAtmosphericCompositionForKnownCelestrial("Nero");
                     }
 
                     // Check if its a warm gas planet
@@ -209,29 +196,29 @@ namespace FNPlugin.Resources
                         if (body.GeeASL > 1)
                         {
                             Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Otho");
-                            return GetAtmosphericCompositionForBody("Otho");
+                            return GetAtmosphericCompositionForKnownCelestrial("Otho");
                         }
 
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gauss");
-                        return GetAtmosphericCompositionForBody("Gauss");                        
+                        return GetAtmosphericCompositionForKnownCelestrial("Gauss");                        
                     }
 
                     // Check if its a ice giant
                     if (body.atmosphereTemperatureSeaLevel < 80)
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Uranus");
-                        return GetAtmosphericCompositionForBody("Uranus");
+                        return GetAtmosphericCompositionForKnownCelestrial("Uranus");
                     }
 
                     Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Saturn");
-                    return GetAtmosphericCompositionForBody("Saturn");
+                    return GetAtmosphericCompositionForKnownCelestrial("Saturn");
 
                 }
 
                 if (presureAtSurface >= 1000 && body.atmosphereTemperatureSeaLevel > 500)	// Higher than 1000 kPa and 500 K
                 {
                     Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Venus");
-                    return GetAtmosphericCompositionForBody("Venus");
+                    return GetAtmosphericCompositionForKnownCelestrial("Venus");
                 }
 
                 if (body.atmosphereTemperatureSeaLevel < 200) // // Colder than 200K
@@ -241,20 +228,20 @@ namespace FNPlugin.Resources
                         if (presureAtSurface < 100)
                         {
                             Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gratian");
-                            return GetAtmosphericCompositionForBody("Gratian");
+                            return GetAtmosphericCompositionForKnownCelestrial("Gratian");
                         }
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Titan");
-                        return GetAtmosphericCompositionForBody("Titan");
+                        return GetAtmosphericCompositionForKnownCelestrial("Titan");
                     }
 
                     if (body.atmosphereTemperatureSeaLevel < 50) // Surface temperature colder than 50K
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Pluto");
-                        return GetAtmosphericCompositionForBody("Pluto");
+                        return GetAtmosphericCompositionForKnownCelestrial("Pluto");
                     }
 
                     Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Triton");
-                    return GetAtmosphericCompositionForBody("Triton");
+                    return GetAtmosphericCompositionForKnownCelestrial("Triton");
                 }
 
                 if (body.atmosphereContainsOxygen)
@@ -262,23 +249,23 @@ namespace FNPlugin.Resources
                     if (body.Mass > homeworld.Mass * 5)
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Tellumo");
-                        return GetAtmosphericCompositionForBody("Tellumo");
+                        return GetAtmosphericCompositionForKnownCelestrial("Tellumo");
                     }
 
                     Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Earth");
-                    return GetAtmosphericCompositionForBody("Earth");
+                    return GetAtmosphericCompositionForKnownCelestrial("Earth");
                 }
 
                 if (body.atmosphereTemperatureSeaLevel > 270)
                 {
                     Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Niven");
-                    return GetAtmosphericCompositionForBody("Niven");
+                    return GetAtmosphericCompositionForKnownCelestrial("Niven");
                 }
 
 
                 // Otherwise is a boring Mars like planet
                 Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Mars");
-                return GetAtmosphericCompositionForBody("Mars");
+                return GetAtmosphericCompositionForKnownCelestrial("Mars");
             }
             catch (Exception ex)
             {
