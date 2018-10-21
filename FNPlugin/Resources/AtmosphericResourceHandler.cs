@@ -123,18 +123,18 @@ namespace FNPlugin.Resources
                     bodyAtmosphericComposition = GenerateCompositionFromCelestialBody(body);
 
                 // Add rare and isotopes resources
-                Debug.Log("[KSPI] - adding trace resources and isotopess");
+                Debug.Log("[KSPI] - adding trace resources and isotopess to " + body.name);
                 AddRaresAndIsotopesToAdmosphereComposition(bodyAtmosphericComposition, body);
 
                 // add missing stock resources
-                Debug.Log("[KSPI] - adding missing stock defined resources");
+                Debug.Log("[KSPI] - adding missing stock defined resources to " + body.name);
                 AddMissingStockResources(body, bodyAtmosphericComposition);
 
                 // add to dictionaries for future reference
                 atmospheric_resource_by_body_id.Add(body.flightGlobalsIndex, bodyAtmosphericComposition);
                 atmospheric_resource_by_body_name.Add(body.name, bodyAtmosphericComposition);
 
-                Debug.Log("[KSPI] - Succesfully Finished loading atmospheric composition");
+                Debug.Log("[KSPI] - Succesfully Finished loading atmospheric composition for " + body.name);
                 return bodyAtmosphericComposition;
             }
             catch (Exception ex)
@@ -166,8 +166,8 @@ namespace FNPlugin.Resources
 
                 Debug.Log("[KSPI] - determined " + homeworld.name + " to be the home world");
 
-                Debug.Log("[KSPI] - surface presure " + body.name + " is " + presureAtSurface);
-                Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworld.GetPressure(0));
+                Debug.Log("[KSPI] - surface presure " + body.name + " is " + presureAtSurface + " kPa");
+                Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworld.GetPressure(0) + " kPa");
                 Debug.Log("[KSPI] - atmospheric Density " + body.name + " is " + body.atmDensityASL);
                 Debug.Log("[KSPI] - atmospheric Density " + homeworld.name + " is " + homeworld.atmDensityASL);
                 Debug.Log("[KSPI] - mass " + body.name + " is " + body.Mass);
@@ -176,8 +176,8 @@ namespace FNPlugin.Resources
                 Debug.Log("[KSPI] - atmosphere MolarMass " + homeworld.name + " is " + homeworld.atmosphereMolarMass);
                 Debug.Log("[KSPI] - density " + body.name + " is " + body.Density);
                 Debug.Log("[KSPI] - density " + homeworld.name + " is " + homeworld.Density);
-                Debug.Log("[KSPI] - temperature " + body.name + " is " + body.atmosphereTemperatureSeaLevel);
-                Debug.Log("[KSPI] - temperature " + homeworld.name + " is " + homeworld.atmosphereTemperatureSeaLevel);
+                Debug.Log("[KSPI] - temperature " + body.name + " is " + body.atmosphereTemperatureSeaLevel + " K");
+                Debug.Log("[KSPI] - temperature " + homeworld.name + " is " + homeworld.atmosphereTemperatureSeaLevel + " K");
 
                 // determine if the planet is a gas planet
                 if (body.Mass > homeworld.Mass * 10 && presureAtSurface >= 1000)
@@ -441,14 +441,14 @@ namespace FNPlugin.Resources
             AtmosphericResource existingResource = FindAnyExistingAtmosphereVariant(atmosphericResourcesByName, variantNames);
             if (existingResource != null)
             {
-                Debug.Log("[KSPI] - using kspie resource definition " + outputResourname + " for " + body.name);
                 finalAbundance = existingResource.ResourceAbundance;
+                Debug.Log("[KSPI] - using kspie resource definition " + outputResourname + " for " + body.name + " with abundance " + finalAbundance);
             }
             else
             {
-                Debug.Log("[KSPI] - using stock resource definition " + outputResourname + " for " + body.name);
                 var abundances = new[] { GetAbundance(outputResourname, body) }.Concat(variantNames.Select(m => GetAbundance(m, body)));
                 finalAbundance = abundances.Max();
+                Debug.Log("[KSPI] - looked up stock resource definition " + outputResourname + " for " + body.name + " with abundance " + finalAbundance);
 
                 if (abundanceExponent != 1)
                     finalAbundance = Math.Pow(finalAbundance / 100, abundanceExponent) * 100;
