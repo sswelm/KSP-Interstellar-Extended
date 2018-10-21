@@ -133,6 +133,7 @@ namespace FNPlugin
         double _speedOfLight;
         double _modifiedEngineBaseIsp;
         double _electrical_share_f;
+
         double _electrical_consumption_f;
         double _heat_production_f;
         double _modifiedCurrentPropellantIspMultiplier;
@@ -650,13 +651,13 @@ namespace FNPlugin
                         : ModifiedThrotte / throttle;
 
                     _maxFuelFlowRate = _atmosphereThrustEfficiency * _spaceFuelFlowRate * _fuelFlowModifier;
-                    _attachedEngine.maxFuelFlow = (float)Math.Max(_maxFuelFlowRate, 0.0000000001);
+                    _attachedEngine.maxFuelFlow = (float)Math.Max(_maxFuelFlowRate, 0.00000000001);
                 }
                 else
                 {
-                    UpdateIsp(0.000001);
+                    UpdateIsp(1);
                     _atmosphereThrustEfficiency = 0;
-                    _attachedEngine.maxFuelFlow = 0.0000000001f;
+                    _attachedEngine.maxFuelFlow = 0.00000000001f;
                 }
 
                 if (!this.vessel.packed)
@@ -669,7 +670,7 @@ namespace FNPlugin
                 {
                     _warpToReal = true; // Set to true for transition to realtime
 
-                    thrust_d = calculated_thrust; //(double)(decimal)_attachedEngine.requestedMassFlow * GameConstants.STANDARD_GRAVITY * _ispPersistent;
+                    thrust_d = calculated_thrust;
 
                     PersistantThrust(TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), this.part.transform.up, this.vessel.totalMass, thrust_d, _ispPersistent);
                 }
@@ -712,13 +713,13 @@ namespace FNPlugin
 
             if (IsValidPositiveNumber(projected_max_thrust) && IsValidPositiveNumber(curThrustInSpace))
             {
-                UpdateIsp(projected_max_thrust / curThrustInSpace);
-                _attachedEngine.maxFuelFlow = (float)Math.Max(_spaceFuelFlowRate, 0.0000000001);
+                UpdateIsp(Math.Max(0,  projected_max_thrust / curThrustInSpace));
+                _attachedEngine.maxFuelFlow = (float)Math.Max(_spaceFuelFlowRate, 0.00000000001);
             }
             else
             {
                 UpdateIsp(1);
-                _attachedEngine.maxFuelFlow = 0.0000000001f;
+                _attachedEngine.maxFuelFlow = 0.00000000001f;
             }
 
             if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
