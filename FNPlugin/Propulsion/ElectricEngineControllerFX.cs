@@ -17,12 +17,19 @@ namespace FNPlugin
     [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
     class ElectricEngineControllerFX : ResourceSuppliableModule, IUpgradeableModule, IRescalable<ElectricEngineControllerFX>, IPartMassModifier
     {
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = true)]
         public double storedAbsoluteFactor = 1;
 
         // Persistent True
         [KSPField(isPersistant = true)]
         public bool isupgraded;
+        [KSPField(isPersistant = true)]
+        public string propellantName;
+        [KSPField(isPersistant = true)]
+        public string propellantGUIName;
+        [KSPField(isPersistant = true)]
+        public bool propellantIsSaved;
+
         [KSPField(isPersistant = true)]
         public int fuel_mode;
         [KSPField(isPersistant = true)]
@@ -101,13 +108,13 @@ namespace FNPlugin
         public double calculated_thrust;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
         public double engineIsp;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput", guiUnits = " MW")]
         public double scaledMaxPower = 0;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiUnits = " t")]
         public float partMass = 0;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "expected mass", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "expected mass", guiUnits = " t")]
         public double expectedMass = 0;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "desired mass", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "desired mass", guiUnits = " t")]
         public double desiredMass = 0;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineType")]
         public string engineTypeStr = "";
@@ -127,7 +134,7 @@ namespace FNPlugin
         public string upgradeCostStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_maxEffectivePower", guiFormat = "F3", guiUnits = " MW")]
         public double maxEffectivePower;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_maxThrottlePower", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_maxThrottlePower", guiFormat = "F3", guiUnits = " MW")]
         public double maxThrottlePower;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
         public double lightSpeedRatio;
@@ -160,7 +167,7 @@ namespace FNPlugin
         protected double _spaceFuelFlowRate;
         [KSPField(guiActive = false, guiName = "Fuel Flow Modifier")]
         protected double _fuelFlowModifier;
-        [KSPField(guiActive = true, guiName = "Current Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
+        [KSPField(guiActive = false, guiName = "Current Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
         protected double curThrustInSpace;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Max Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
         protected double maxThrustInSpace = 0.001;
@@ -242,13 +249,19 @@ namespace FNPlugin
                 _numberOfAvailableUpgradeTechs++;
         }
 
-        private ElectricEnginePropellant _current_propellant;
+        private ElectricEnginePropellant _current_propellant = null;
         public ElectricEnginePropellant Current_propellant
         {
             get { return _current_propellant; }
             set
             {
+                if (value == null)
+                    return;
+
                 _current_propellant = value;
+                propellantIsSaved = true;
+                propellantName = _current_propellant.PropellantName;
+                propellantGUIName = _current_propellant.PropellantGUIName;
                 _modifiedCurrentPropellantIspMultiplier = CurrentIspMultiplier;
             }
         }
@@ -437,21 +450,56 @@ namespace FNPlugin
         {
             try
             {
-                Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.First();
+                if (propellantIsSaved || HighLogic.LoadedSceneIsEditor)
+                {
+                    if (!string.IsNullOrEmpty(propellantName))
+                    {
+                        Current_propellant = _propellants.FirstOrDefault(m => m.PropellantName == propellantName);
+
+                        if (Current_propellant == null)
+                            Current_propellant = _propellants.FirstOrDefault(m => m.PropellantGUIName == propellantName);
+                    }
+
+                    if (Current_propellant == null && !string.IsNullOrEmpty(propellantGUIName))
+                    {
+                        Current_propellant = _propellants.FirstOrDefault(m => m.PropellantName == propellantGUIName);
+
+                        if (Current_propellant == null)
+                            Current_propellant = _propellants.FirstOrDefault(m => m.PropellantGUIName == propellantGUIName);
+                    }
+                }
+
+                Debug.LogWarning("[KSPI] - SetupPropellants Begin");
+
+                if (_propellants == null)
+                    Debug.LogWarning("[KSPI] - SetupPropellants _propellants is still null");
+
+                if (Current_propellant == null)
+                    Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.First();
+
+                 if (Current_propellant == null)
+                     Debug.LogWarning("[KSPI] - SetupPropellants Current_propellant is still null");
 
                 if ((Current_propellant.SupportedEngines & type) != type)
                 {
                     _rep++;
+                    Debug.LogWarning("[KSPI] - SetupPropellants TogglePropellant");
                     TogglePropellant(moveNext);
                     return;
                 }
 
+                Debug.LogWarning("[KSPI] - SetupPropellants Add Propellant");
+
                 var listOfPropellants = new List<Propellant>();
                 listOfPropellants.Add(Current_propellant.Propellant);
+
+                Debug.LogWarning("[KSPI] - SetupPropellants Check Propellants");
 
                 // if all propellant exist
                 if (!listOfPropellants.Exists(prop => PartResourceLibrary.Instance.GetDefinition(prop.name) == null))
                 {
+                    Debug.LogWarning("[KSPI] - SetupPropellants Load Propellant");
+
                     //Get the Ignition state, i.e. is the engine shutdown or activated
                     var engineState = _attachedEngine.getIgnitionState;
 
@@ -476,6 +524,8 @@ namespace FNPlugin
                     TogglePropellant(moveNext);
                     return;
                 }
+
+                Debug.LogWarning("[KSPI] - SetupPropellants LoadedSceneIsFlight");
 
                 if (HighLogic.LoadedSceneIsFlight)
                 {

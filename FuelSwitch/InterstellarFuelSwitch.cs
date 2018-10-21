@@ -64,9 +64,9 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public string initialTankSetup;
         [KSPField(isPersistant = true)]
-        public float storedFactorMultiplier = 1;
+        public double storedFactorMultiplier = 1;
         [KSPField(isPersistant = true)]
-        public float storedVolumeMultiplier = 1;
+        public double storedVolumeMultiplier = 1;
         [KSPField(isPersistant = true)]
         public double baseMassMultiplier = 1;
         [KSPField(isPersistant = true)]
@@ -183,13 +183,13 @@ namespace InterstellarFuelSwitch
         public string resourceAmountStr3 = "";
 
         [KSPField]
-        public float volumeExponent = 3;
+        public double volumeExponent = 3;
         [KSPField]
-        public float massExponent = 3;
+        public double massExponent = 3;
         [KSPField]
-        public float baseMassExponent = 0;
+        public double baseMassExponent = 0;
         [KSPField]
-        public float tweakscaleMassExponent = 3;
+        public double tweakscaleMassExponent = 3;
 
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_totalMass", guiUnits = " t", guiFormat = "F4")]			// Total mass
         public double totalMass;
@@ -243,8 +243,8 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                storedFactorMultiplier = factor.absolute.linear;
-                storedVolumeMultiplier = Mathf.Pow(factor.absolute.linear, volumeExponent);
+                storedFactorMultiplier = (double)(decimal)factor.absolute.linear;
+                storedVolumeMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, volumeExponent);
 
                 baseMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, (double)(decimal)(baseMassExponent == 0 ? massExponent : baseMassExponent));
                 initialMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, (double)(decimal)tweakscaleMassExponent);
@@ -651,7 +651,7 @@ namespace InterstellarFuelSwitch
                 // create new ResourceNode
                 var newResources = new List<string>();
                 var newResourceNodes = new List<ConfigNode>();
-                var parsedConfigAmount = new List<float>();
+                var parsedConfigAmount = new List<double>();
                 var parsedConfigFlowStates = new List<bool>();
 
                 // parse configured amounts
@@ -664,8 +664,8 @@ namespace InterstellarFuelSwitch
                     var configAmounts = configuredAmounts.Split(',');
                     foreach (var item in configAmounts)
                     {
-                        float value;
-                        if (float.TryParse(item, out value))
+                        double value;
+                        if (double.TryParse(item, out value))
                             parsedConfigAmount.Add(value);
                     }
 
@@ -1319,9 +1319,7 @@ namespace InterstellarFuelSwitch
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            var calculatedCost = (float)UpdateCost();
-
-            moduleCost = updateModuleCost ? calculatedCost : 0;
+            moduleCost = updateModuleCost ? (float)UpdateCost() : 0;
 
             return moduleCost;
         }

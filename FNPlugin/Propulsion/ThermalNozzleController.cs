@@ -16,7 +16,7 @@ namespace FNPlugin
     class ThermalNozzleController : ResourceSuppliableModule, IFNEngineNoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
     {
         // Persistent True
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = true)]
         public double storedAbsoluteFactor = 1;
 
         [KSPField(isPersistant = true)]
