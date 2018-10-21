@@ -1,6 +1,8 @@
 using FNPlugin.Power;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace FNPlugin 
 {
@@ -34,6 +36,8 @@ namespace FNPlugin
         ModuleResource _solarFlowRateResource;
 
         resourceType outputType = 0;
+
+        public Queue<double> flowRateQueue = new Queue<double>(50);
 
         public double SolarPower
         {
@@ -150,6 +154,23 @@ namespace FNPlugin
             double maxSupply = _solarPanel._distMult > 0
                 ? _solarPanel.chargeRate * _solarPanel._distMult * _solarPanel._efficMult
                 : solar_rate;
+
+            // when in darkness, clear buffer
+            if (solar_rate == 0)
+                flowRateQueue.Clear();
+            else
+                flowRateQueue.Enqueue(solar_rate);
+
+            // accelerate refresh durring startup
+            if (flowRateQueue.Count < 50)
+                flowRateQueue.Enqueue(solar_rate);
+
+            flowRateQueue.Dequeue();
+
+            // ToDo: replace stabalizedFlowRate by calculated flow rate
+            solar_rate = solar_rate == 0 ? 0 : flowRateQueue.Count > 10
+                ? flowRateQueue.OrderBy(m => m).Skip(10).Take(30).Average()
+                : flowRateQueue.Average();
 
             _resourceBuffers.UpdateBuffers();
 
