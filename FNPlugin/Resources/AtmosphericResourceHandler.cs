@@ -51,7 +51,12 @@ namespace FNPlugin.Resources
                 atmospheric_resource_by_body_id.Add(celestialBody.flightGlobalsIndex, bodyAtmosphericComposition);
             }
             else
-                Debug.LogWarning("[KSPI] - Failed to find CelestialBody with name " + celestrialBodyName);
+            {
+                Debug.LogWarning("[KSPI] - Failed to find CelestialBody with name " + celestrialBodyName + " in FlightGlobals.Bodies");
+
+                // look for Kspi defined atmospheric compositions
+                bodyAtmosphericComposition = CreateFromKspiDefinitionFile(celestrialBodyName);
+            }
 
             // add to database for future reference
             atmospheric_resource_by_body_name.Add(celestrialBodyName, bodyAtmosphericComposition);
@@ -63,22 +68,30 @@ namespace FNPlugin.Resources
         {
             Debug.Log("[KSPI] - searching for atmosphere definition for " + celestrialBodyName);
 
-            foreach (var atmospheric_resource_pack in GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI"))
+            try
             {
-                Debug.Log("[KSPI] - Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
 
-                var atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
-                if (atmospheric_resource_list.Any())
+                foreach (var atmospheric_resource_pack in GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI"))
                 {
-                    Debug.Log("[KSPI] - found atmospheric resource list for " + celestrialBodyName);
+                    Debug.Log("[KSPI] - Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
 
-                    // create atmospheric definition from pack
-                    return atmospheric_resource_list.Select(orsc => new AtmosphericResource(
-                        orsc.HasValue("resourceName")
-                            ? orsc.GetValue("resourceName")
-                            : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName")))
-                        .ToDictionary(m => m.ResourceName);
+                    var atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
+                    if (atmospheric_resource_list.Any())
+                    {
+                        Debug.Log("[KSPI] - found atmospheric resource list for " + celestrialBodyName);
+
+                        // create atmospheric definition from pack
+                        return atmospheric_resource_list.Select(orsc => new AtmosphericResource(
+                            orsc.HasValue("resourceName")
+                                ? orsc.GetValue("resourceName")
+                                : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName")))
+                            .ToDictionary(m => m.ResourceName);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("[KSPI] -  CreateFromKspiDefinitionFile for " + celestrialBodyName + " exception " + ex.Message);
             }
 
             Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestrialBodyName);
@@ -126,7 +139,7 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.Log("[KSPI] - Exception while loading atmospheric resources from id: " + ex);
+                Debug.LogError("[KSPI] -  GetAtmosphericCompositionForBody " + body.name + " exception " + ex.Message);
             }
 
             Debug.LogWarning("[KSPI] - Failed loading atmospheric composition for " + body.name);
@@ -306,7 +319,7 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - Exception while generating atmospheric composition from defined abundances : " + ex);
+                Debug.LogError("[KSPI] - Exception while generating atmospheric composition from defined abundances for " + body.name + " : " + ex);
             }
         }
 

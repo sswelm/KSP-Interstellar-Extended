@@ -337,28 +337,35 @@ namespace FNPlugin.Refinery
             _current_power = _effectiveMaxPower * powerFraction;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
 
-            // determine the maximum amount of a resource the vessel can hold (ie. tank capacities combined)
-            // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
-            _part.GetResourceMass(_atmosphere, out _spareRoomAtmosphereMass, out _maxCapacityAtmosphereMass);
-            _part.GetResourceMass(_ammonia, out _spareRoomAmmoniaMass , out _maxCapacityAmmoniaMass);
-            _part.GetResourceMass(_argon, out _spareRoomArgonMass, out _maxCapacityArgonMass);
-            _part.GetResourceMass(_chlorine, out _spareRoomChlorineMass, out _maxCapacityChlorineMass);
-            _part.GetResourceMass(_dioxide, out _spareRoomDioxideMass, out _maxCapacityDioxideMass);
-            _part.GetResourceMass(_helium3, out _spareRoomHelium3Mass, out _maxCapacityHelium3Mass);
-            _part.GetResourceMass(_helium4, out _spareRoomHelium4Mass, out _maxCapacityHelium4Mass);
-            _part.GetResourceMass(_hydrogen, out _spareRoomHydrogenMass, out _maxCapacityHydrogenMass);
-            _part.GetResourceMass(_methane, out _spareRoomMethaneMass, out _maxCapacityMethaneMass);
-            _part.GetResourceMass(_monoxide, out _spareRoomMonoxideMass, out _maxCapacityMonoxideMass);
-            _part.GetResourceMass(_neon, out _spareRoomNeonMass, out _maxCapacityNeonMass);
-            _part.GetResourceMass(_nitrogen, out _spareRoomNitrogenMass, out _maxCapacityNitrogenMass);
-            _part.GetResourceMass(_nitrogen15, out _spareRoomNitrogen15Mass, out _maxCapacityNitrogen15Mass);
-            _part.GetResourceMass(_oxygen, out _spareRoomOxygenMass, out _maxCapacityOxygenMass);
-            _part.GetResourceMass(_water, out _spareRoomWaterMass, out _maxCapacityWaterMass);
-            _part.GetResourceMass(_heavywater, out _spareRoomHeavyWaterMass, out _maxCapacityHeavyWaterMass);
-            _part.GetResourceMass(_xenon, out _spareRoomXenonMass, out _maxCapacityXenonMass);
-            _part.GetResourceMass(_deuterium, out _spareRoomDeuteriumMass, out _maxCapacityDeuteriumMass);
-            _part.GetResourceMass(_krypton, out _spareRoomKryptonMass, out _maxCapacityKryptonMass);
-            _part.GetResourceMass(_sodium, out _spareRoomSodiumMass, out _maxCapacitySodiumMass);
+            try
+            {
+                // determine the maximum amount of a resource the vessel can hold (ie. tank capacities combined)
+                // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
+                _part.GetResourceMass(_atmosphere, out _spareRoomAtmosphereMass, out _maxCapacityAtmosphereMass);
+                _part.GetResourceMass(_ammonia, out _spareRoomAmmoniaMass, out _maxCapacityAmmoniaMass);
+                _part.GetResourceMass(_argon, out _spareRoomArgonMass, out _maxCapacityArgonMass);
+                _part.GetResourceMass(_chlorine, out _spareRoomChlorineMass, out _maxCapacityChlorineMass);
+                _part.GetResourceMass(_dioxide, out _spareRoomDioxideMass, out _maxCapacityDioxideMass);
+                _part.GetResourceMass(_helium3, out _spareRoomHelium3Mass, out _maxCapacityHelium3Mass);
+                _part.GetResourceMass(_helium4, out _spareRoomHelium4Mass, out _maxCapacityHelium4Mass);
+                _part.GetResourceMass(_hydrogen, out _spareRoomHydrogenMass, out _maxCapacityHydrogenMass);
+                _part.GetResourceMass(_methane, out _spareRoomMethaneMass, out _maxCapacityMethaneMass);
+                _part.GetResourceMass(_monoxide, out _spareRoomMonoxideMass, out _maxCapacityMonoxideMass);
+                _part.GetResourceMass(_neon, out _spareRoomNeonMass, out _maxCapacityNeonMass);
+                _part.GetResourceMass(_nitrogen, out _spareRoomNitrogenMass, out _maxCapacityNitrogenMass);
+                _part.GetResourceMass(_nitrogen15, out _spareRoomNitrogen15Mass, out _maxCapacityNitrogen15Mass);
+                _part.GetResourceMass(_oxygen, out _spareRoomOxygenMass, out _maxCapacityOxygenMass);
+                _part.GetResourceMass(_water, out _spareRoomWaterMass, out _maxCapacityWaterMass);
+                _part.GetResourceMass(_heavywater, out _spareRoomHeavyWaterMass, out _maxCapacityHeavyWaterMass);
+                _part.GetResourceMass(_xenon, out _spareRoomXenonMass, out _maxCapacityXenonMass);
+                _part.GetResourceMass(_deuterium, out _spareRoomDeuteriumMass, out _maxCapacityDeuteriumMass);
+                _part.GetResourceMass(_krypton, out _spareRoomKryptonMass, out _maxCapacityKryptonMass);
+                _part.GetResourceMass(_sodium, out _spareRoomSodiumMass, out _maxCapacitySodiumMass);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - ExtractAir GetResourceMass Exception: " + e.Message);
+            }
 
             // determine the amount of resources needed for processing (i.e. intake atmosphere) that the vessel actually holds
             _availableAtmosphereMass = _maxCapacityAtmosphereMass - _spareRoomAtmosphereMass;
@@ -375,9 +382,16 @@ namespace FNPlugin.Refinery
             // intake can only function when heading towards orbital path
             intakeModifier = scoopAnimation == null ? 1 : Math.Max(0, Vector3d.Dot(part.transform.up, part.vessel.obt_velocity.normalized));
 
-            // calculate build in scoop capacity
-            buildInAirIntake = normalizedTime <= 0.2 ? 0 :
-                AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(_vessel) * (1 + _vessel.obt_speed) * surfaceArea * intakeModifier * Math.Sqrt((normalizedTime - 0.2) * 1.25);
+            try
+            {
+                // calculate build in scoop capacity
+                buildInAirIntake = normalizedTime <= 0.2 ? 0 :
+                    AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(_vessel) * (1 + _vessel.obt_speed) * surfaceArea * intakeModifier * Math.Sqrt((normalizedTime - 0.2) * 1.25);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI] - ExtractAir GetAtmosphericGasDensityKgPerCubicMeter Exception: " + e.Message);
+            }
 
 
             atmosphereConsumptionRatio = offlineCollecting ? 1
@@ -417,32 +431,39 @@ namespace FNPlugin.Refinery
                  *  total. Since we like CPUs and want to save them the hassle, let's close this off behind a cheap check.
                 */
                 if (FlightGlobals.currentMainBody.flightGlobalsIndex != lastBodyID) // did we change a SOI since last time? If yes, get new percentages. Should work the first time as well, since lastBodyID starts as -1, while bodies in the list start at 0
-                {
-                    Debug.Log("[KSPI] - looking up Atmosphere contents for " + FlightGlobals.currentMainBody.name);
+                    try
+                    {
+                        Debug.Log("[KSPI] - looking up Atmosphere contents for " + FlightGlobals.currentMainBody.name);
 
-                    // remember, all these are persistent. Once we get them, we won't need to calculate them again until we change SOI
-                    _ammoniaPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _ammonia_resource_name);
-                    _argonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _argon_resource_name);
-                    _chlorinePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _chlorine_resource_name);
-                    _monoxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _monoxide_resource_name);
-                    _dioxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _dioxide_resource_name);
-                    _helium3Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _helium3_resource_name);
-                    _helium4Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _helium4_resource_name);
-                    _hydrogenPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _hydrogen_resource_name);
-                    _methanePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _methane_resource_name);
-                    _neonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _neon_resource_name);
-                    _nitrogenPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _nitrogen_resource_name);
-                    _nitrogen15Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _nitrogen15_resource_name);
-                    _oxygenPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _oxygen_resource_name);
-                    _waterPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _water_resource_name);
-                    _heavywaterPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _heavywater_resource_name);
-                    _xenonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _xenon_resource_name);
-                    _deuteriumPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _deuterium_resource_name);
-                    _kryptonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _krypton_resource_name);
-                    _sodiumPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _sodium_resource_name);
+                        // remember, all these are persistent. Once we get them, we won't need to calculate them again until we change SOI
+                        _ammoniaPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _ammonia_resource_name);
+                        _argonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _argon_resource_name);
+                        _chlorinePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _chlorine_resource_name);
+                        _monoxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _monoxide_resource_name);
+                        _dioxidePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _dioxide_resource_name);
+                        _helium3Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _helium3_resource_name);
+                        _helium4Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _helium4_resource_name);
+                        _hydrogenPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _hydrogen_resource_name);
+                        _methanePercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _methane_resource_name);
+                        _neonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _neon_resource_name);
+                        _nitrogenPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _nitrogen_resource_name);
+                        _nitrogen15Percentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _nitrogen15_resource_name);
+                        _oxygenPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _oxygen_resource_name);
+                        _waterPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _water_resource_name);
+                        _heavywaterPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _heavywater_resource_name);
+                        _xenonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _xenon_resource_name);
+                        _deuteriumPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _deuterium_resource_name);
+                        _kryptonPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _krypton_resource_name);
+                        _sodiumPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _sodium_resource_name);
 
-                    lastBodyID = FlightGlobals.currentMainBody.flightGlobalsIndex; // reassign the id of current body to the lastBodyID variable, ie. remember this planet, so that we skip this check next time!
-                }
+                        lastBodyID = FlightGlobals.currentMainBody.flightGlobalsIndex; // reassign the id of current body to the lastBodyID variable, ie. remember this planet, so that we skip this check next time!
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError("[KSPI] - ExtractAir getAtmosphericResourceContent Exception: " + e.Message);
+                    }
+
+
 
                 if (offlineCollecting) // if we're collecting offline, we don't need to actually consume the resource, just provide the lines below with a number
                 {
