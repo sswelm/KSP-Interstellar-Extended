@@ -161,6 +161,8 @@ namespace FNPlugin.Resources
                 Debug.Log("[KSPI] - mass " + homeworld.name + " is " + homeworld.Mass);
                 Debug.Log("[KSPI] - atmosphere MolarMass " + body.name + " is " + body.atmosphereMolarMass);
                 Debug.Log("[KSPI] - atmosphere MolarMass " + homeworld.name + " is " + homeworld.atmosphereMolarMass);
+                Debug.Log("[KSPI] - atmosphere Depth " + body.name + " is " + body.atmosphereDepth);
+                Debug.Log("[KSPI] - atmosphere Depth " + homeworld.name + " is " + homeworld.atmosphereDepth);
                 Debug.Log("[KSPI] - density " + body.name + " is " + body.Density);
                 Debug.Log("[KSPI] - density " + homeworld.name + " is " + homeworld.Density);
                 Debug.Log("[KSPI] - temperature " + body.name + " is " + body.atmosphereTemperatureSeaLevel + " K");
@@ -170,49 +172,62 @@ namespace FNPlugin.Resources
                 if (body.Mass > homeworld.Mass * 10 && presureAtSurface >= 1000)
                 {
                     // Check if the planet  hot gas planet
-                    if (body.atmosphereTemperatureSeaLevel > 500) // Higher than 700 K
+                    if (body.Mass < homeworld.Mass * 25 && body.atmosphereTemperatureSeaLevel > 700) // Higher than 700 K
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gliese 436b");
                         return GetAtmosphericCompositionForKnownCelestrial("Gliese436b");
                     }
 
-                    // Check if its a super giant
-                    if (body.Mass > homeworld.Mass * 80)
+                    if (body.atmosphereTemperatureSeaLevel > 1400) // Class V: Silicate clouds
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere is a Class V: Silicate clouds planet");
                         return GetAtmosphericCompositionForKnownCelestrial("Jupiter");
                     }
-
-                    // Check if its a giant gas planet
-                    if (body.Mass > homeworld.Mass * 60)
+                    else if (body.atmosphereTemperatureSeaLevel > 900) // Class IV: Alkali metals
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
-                        return GetAtmosphericCompositionForKnownCelestrial("Nero");
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere is a Class IV: Alkali metals planet");
+                        return GetAtmosphericCompositionForKnownCelestrial("Jupiter");
                     }
-
-                    // Check if its a warm gas planet
-                    if (body.atmosphereTemperatureSeaLevel > 200)
+                    else if (body.atmosphereTemperatureSeaLevel > 300) // Class III: Cloudless
                     {
-                        if (body.GeeASL > 1)
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere is a Class III: Cloudless planet");
+                        return GetAtmosphericCompositionForKnownCelestrial("Jupiter");
+                    }
+                    else if (body.atmosphereTemperatureSeaLevel > 150) // Class II: Water clouds
+                    {
+                        if (body.atmosphereDepth < 500000 )
+                        {
+                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gauss");
+                            return GetAtmosphericCompositionForKnownCelestrial("Gauss");
+                        }
+                        else
                         {
                             Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Otho");
                             return GetAtmosphericCompositionForKnownCelestrial("Otho");
                         }
-
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gauss");
-                        return GetAtmosphericCompositionForKnownCelestrial("Gauss");                        
                     }
+                    else if (body.atmosphereTemperatureSeaLevel > 80)  // Class I: Ammonia clouds
+                    {
+                        // Check if its a super giant
+                        if (body.Mass > homeworld.Mass * 80)
+                        {
+                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
+                            return GetAtmosphericCompositionForKnownCelestrial("Jupiter");
+                        }
+                        if (body.Mass > homeworld.Mass * 60)
+                        {
+                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Nero");
+                            return GetAtmosphericCompositionForKnownCelestrial("Nero");
+                        }
 
-                    // Check if its a ice giant
-                    if (body.atmosphereTemperatureSeaLevel < 80)
+                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Saturn");
+                        return GetAtmosphericCompositionForKnownCelestrial("Saturn");
+                    }
+                    else // ice giant
                     {
                         Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Uranus");
                         return GetAtmosphericCompositionForKnownCelestrial("Uranus");
                     }
-
-                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Saturn");
-                    return GetAtmosphericCompositionForKnownCelestrial("Saturn");
-
                 }
 
                 if (presureAtSurface >= 1000 && body.atmosphereTemperatureSeaLevel > 500)	// Higher than 1000 kPa and 500 K
