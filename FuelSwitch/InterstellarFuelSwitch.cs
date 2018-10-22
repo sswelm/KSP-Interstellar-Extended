@@ -98,7 +98,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public float basePartMass = 0;
         [KSPField]
-        public float baseResourceMassDivider = 0;
+        public double baseResourceMassDivider = 0;
         [KSPField]
         public string tankResourceMassDivider = string.Empty;
         [KSPField]
@@ -243,11 +243,12 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                storedFactorMultiplier = (double)(decimal)factor.absolute.linear;
-                storedVolumeMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, volumeExponent);
+                var factorAbsoluteLinear = (double)(decimal)factor.absolute.linear;
+                storedFactorMultiplier = factorAbsoluteLinear;
+                storedVolumeMultiplier = Math.Pow(factorAbsoluteLinear, volumeExponent);
 
-                baseMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, (double)(decimal)(baseMassExponent == 0 ? massExponent : baseMassExponent));
-                initialMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, (double)(decimal)tweakscaleMassExponent);
+                baseMassMultiplier = Math.Pow(factorAbsoluteLinear, baseMassExponent == 0 ? massExponent : baseMassExponent);
+                initialMassMultiplier = Math.Pow(factorAbsoluteLinear, tweakscaleMassExponent);
 
                 initialMass = part.prefabMass * initialMassMultiplier;
             }
@@ -876,7 +877,7 @@ namespace InterstellarFuelSwitch
 
         private double UpdateCost()
         {
-            dryCost = part.partInfo.cost * initialMassMultiplier;
+            dryCost = (double)(decimal)part.partInfo.cost * initialMassMultiplier;
 
             if (selectedTankSetup >= 0 && selectedTankSetup < _modularTankList.Count)
                 dryCost += _modularTankList[selectedTankSetup].tankCost * initialMassMultiplier;
@@ -911,8 +912,9 @@ namespace InterstellarFuelSwitch
             var isSmaller = storedFactorMultiplier < 0.999;
             var isLarger = storedFactorMultiplier > 1.001;
 
-            resourceCost += _partRresourceDefinition0.unitCost * _partResource0.amount;
-            maxResourceCost += _partRresourceDefinition0.unitCost * _partResource0.maxAmount;
+            var unitCost0 = (double)(decimal)_partRresourceDefinition0.unitCost;
+            resourceCost += unitCost0 * _partResource0.amount;
+            maxResourceCost += unitCost0 * _partResource0.maxAmount;
 
             if (_partRresourceDefinition1 == null || _partResource1 == null)
             {
@@ -928,8 +930,9 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            resourceCost += _partRresourceDefinition1.unitCost * _partResource1.amount;
-            maxResourceCost += _partRresourceDefinition1.unitCost * _partResource1.maxAmount;
+            var unitCost1 = (double)(decimal)_partRresourceDefinition1.unitCost;
+            resourceCost += unitCost1 * _partResource1.amount;
+            maxResourceCost += unitCost1 * _partResource1.maxAmount;
 
             if (_partRresourceDefinition2 == null || _partResource2 == null)
             {
@@ -945,8 +948,9 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            resourceCost += _partRresourceDefinition2.unitCost * _partResource2.amount;
-            maxResourceCost += _partRresourceDefinition2.unitCost * _partResource2.maxAmount;
+            var unitCost2 = (double)(decimal)_partRresourceDefinition2.unitCost;
+            resourceCost += unitCost2 * _partResource2.amount;
+            maxResourceCost += unitCost2 * _partResource2.maxAmount;
 
             if (_partRresourceDefinition3 == null || _partResource3 == null)
             {
@@ -962,8 +966,9 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            resourceCost += _partRresourceDefinition3.unitCost * _partResource3.amount;
-            maxResourceCost += _partRresourceDefinition3.unitCost * _partResource3.maxAmount;
+            var unitCost3 = (double)(decimal)_partRresourceDefinition3.unitCost;
+            resourceCost += unitCost3 * _partResource3.amount;
+            maxResourceCost += unitCost3 * _partResource3.maxAmount;
 
             if (preserveInitialCost)
             {
@@ -1041,10 +1046,10 @@ namespace InterstellarFuelSwitch
             var missing2 = _partRresourceDefinition2 == null || _partResource2 == null;
             var missing3 = _partRresourceDefinition3 == null || _partResource3 == null;
 
-            var currentResourceMassAmount0 = missing0 ? 0 : _partRresourceDefinition0.density * _partResource0.amount;
-            var currentResourceMassAmount1 = missing1 ? 0 : _partRresourceDefinition1.density * _partResource1.amount;
-            var currentResourceMassAmount2 = missing2 ? 0 : _partRresourceDefinition2.density * _partResource2.amount;
-            var currentResourceMassAmount3 = missing3 ? 0 : _partRresourceDefinition3.density * _partResource3.amount;
+            var currentResourceMassAmount0 = missing0 ? 0 : (double)(decimal)_partRresourceDefinition0.density * _partResource0.amount;
+            var currentResourceMassAmount1 = missing1 ? 0 : (double)(decimal)_partRresourceDefinition1.density * _partResource1.amount;
+            var currentResourceMassAmount2 = missing2 ? 0 : (double)(decimal)_partRresourceDefinition2.density * _partResource2.amount;
+            var currentResourceMassAmount3 = missing3 ? 0 : (double)(decimal)_partRresourceDefinition3.density * _partResource3.amount;
 
             totalMass = dryMass + currentResourceMassAmount0 + currentResourceMassAmount1 + currentResourceMassAmount2 + currentResourceMassAmount3;
 
@@ -1056,10 +1061,10 @@ namespace InterstellarFuelSwitch
 
         private void UpdateMassRatio()
         {
-            var maxResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : _partRresourceDefinition0.density * _partResource0.maxAmount;
-            var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : _partRresourceDefinition1.density * _partResource1.maxAmount;
-            var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : _partRresourceDefinition2.density * _partResource2.maxAmount;
-            var maxResourceMassAmount3 = _partRresourceDefinition3 == null || _partResource3 == null ? 0 : _partRresourceDefinition3.density * _partResource3.maxAmount;
+            var maxResourceMassAmount0 = _partRresourceDefinition0 == null || _partResource0 == null ? 0 : (double)(decimal)_partRresourceDefinition0.density * _partResource0.maxAmount;
+            var maxResourceMassAmount1 = _partRresourceDefinition1 == null || _partResource1 == null ? 0 : (double)(decimal)_partRresourceDefinition1.density * _partResource1.maxAmount;
+            var maxResourceMassAmount2 = _partRresourceDefinition2 == null || _partResource2 == null ? 0 : (double)(decimal)_partRresourceDefinition2.density * _partResource2.maxAmount;
+            var maxResourceMassAmount3 = _partRresourceDefinition3 == null || _partResource3 == null ? 0 : (double)(decimal)_partRresourceDefinition3.density * _partResource3.maxAmount;
 
             if (!displayWetDryMass) return;
 
@@ -1149,6 +1154,7 @@ namespace InterstellarFuelSwitch
             {
                 var weightList = ParseTools.ParseDoubles(tankMass, () => tankMass);
                 var tankCostList = ParseTools.ParseDoubles(tankCost, () => tankCost);
+
                 var tankResourceMassDividerList = ParseTools.ParseDoubles(tankResourceMassDivider, () => tankResourceMassDivider);
                 var tankResourceMassDividerAdditionList = ParseTools.ParseDoubles(tankResourceMassDividerAddition, () => tankResourceMassDividerAddition);
 
@@ -1183,7 +1189,6 @@ namespace InterstellarFuelSwitch
 
                     var resourceAmountArray = resourceTankAbsoluteAmountArray[tankCounter].Trim().Split(',');
                     var initialResourceAmountArray = initialResourceTankArray[tankCounter].Trim().Split(',');
-                    var boilOffTempAmountArray = boilOffTempTankArray.Count() > tankCounter ? boilOffTempTankArray[tankCounter].Trim().Split(',') : new string[0];
 
                     // if missing or not complete, use full amount
                     if (initialResourceAmounts.Equals(String.Empty) ||
@@ -1213,17 +1218,6 @@ namespace InterstellarFuelSwitch
                         {
                             Debug.LogWarning("[IFS] - " + part.name + " error parsing initialResourceList amount " + tankCounter + "/" + amountCounter +
                                       ": '" + initialResourceList[tankCounter] + "': '" + initialResourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
-                        }
-
-                        try
-                        {
-                            if (tankCounter < boilOffTempList.Count && amountCounter < boilOffTempAmountArray.Length)
-                                boilOffTempList[tankCounter].Add(ParseTools.ParseDouble(boilOffTempAmountArray[amountCounter]));
-                        }
-                        catch (Exception exception)
-                        {
-                            Debug.LogWarning("[IFS] - " + part.name + " error parsing boilOffTempList amount " + tankCounter + "/" + amountCounter +
-                                      ": '" + boilOffTempList[tankCounter] + "': '" + boilOffTempAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
                     }
                 }
@@ -1417,7 +1411,6 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-
                 if (String.IsNullOrEmpty(techid))
                     return true;
 

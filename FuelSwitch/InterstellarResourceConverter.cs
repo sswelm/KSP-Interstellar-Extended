@@ -169,8 +169,8 @@ namespace InterstellarFuelSwitch
                 }
                 else if (primary.definition.unitCost > 0 && secondary.definition.unitCost > 0)
                 {
-                    primary.conversionRatio = secondary.definition.unitCost / primary.definition.unitCost;
-                    secondary.conversionRatio = primary.definition.unitCost / secondary.definition.unitCost;
+                    primary.conversionRatio = (double)(decimal)secondary.definition.unitCost / (double)(decimal)primary.definition.unitCost;
+                    secondary.conversionRatio = (double)(decimal)primary.definition.unitCost / (double)(decimal)secondary.definition.unitCost;
                 }
 
                 if (primary.normalizedDensity == 0)
@@ -295,6 +295,8 @@ namespace InterstellarFuelSwitch
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
+            var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
+
             // only process if we have some meaningfull resource
             if (!convertPercentageField.guiActive)
                 return;
@@ -376,7 +378,7 @@ namespace InterstellarFuelSwitch
                 {
                     var primaryResource = primaryResources[i];
                     transferRate = primaryResource.transferRate;
-                    var fixedTransferRate = transferRate * TimeWarp.fixedDeltaTime;
+                    var fixedTransferRate = transferRate * fixedDeltaTime;
 
                     if (fixedTransferRate == 0)
                         continue;
@@ -392,7 +394,7 @@ namespace InterstellarFuelSwitch
                         var availablePower = powerMaxAmount * Math.Max(0, powerStorageRatio - PowerUsagePercentageRatio);
 
                         var transferRatio = primaryResource.retrieveAmount >= fixedTransferRate ? 1 : primaryResource.retrieveAmount / fixedTransferRate;
-                        var maximumPower = transferRatio * maxPowerPrimary * TimeWarp.fixedDeltaTime * primaryConversionEnergyMult;
+                        var maximumPower = transferRatio * maxPowerPrimary * fixedDeltaTime * primaryConversionEnergyMult;
 
                         requestedPower = Math.Min(availablePower, maximumPower);
                         var receivedPower = part.RequestResource(definitionPrimaryPowerResource.id, requestedPower);
@@ -405,7 +407,7 @@ namespace InterstellarFuelSwitch
 
                     var receivedSourceAmountFixed = part.RequestResource(primaryResource.definition.id, fixedPrimaryRequest);
 
-                    primaryChange = -(float)(receivedSourceAmountFixed / TimeWarp.fixedDeltaTime);
+                    primaryChange = -(float)(receivedSourceAmountFixed / fixedDeltaTime);
                     primaryChangeField.guiActive = primaryChange != 0;
 
                     double createdAmount = 0;
@@ -418,7 +420,7 @@ namespace InterstellarFuelSwitch
 
                         var secondaryRequestResult = part.RequestResource(secondary.definition.id, requestedTargetAmount);
 
-                        secondaryChange = -(float)(secondaryRequestResult / TimeWarp.fixedDeltaTime);
+                        secondaryChange = -(float)(secondaryRequestResult / fixedDeltaTime);
                         secondaryChangeField.guiActive = secondaryChange != 0;
 
                         var receivedTargetAmount = secondaryRequestResult / conversionRatio;
@@ -437,7 +439,7 @@ namespace InterstellarFuelSwitch
                     var secondaryResource = secondaryResources[i];
                     transferRate = secondaryResource.transferRate;
 
-                    var fixedTransferRate = transferRate * TimeWarp.fixedDeltaTime;
+                    var fixedTransferRate = transferRate * fixedDeltaTime;
 
                     if (fixedTransferRate == 0)
                         continue;
@@ -453,7 +455,7 @@ namespace InterstellarFuelSwitch
                         var availablePower = powerMaxAmount * Math.Max(0, powerStorageRatio - PowerUsagePercentageRatio);
 
                         var transferRatio = secondaryResource.retrieveAmount >= fixedTransferRate ? 1 : secondaryResource.retrieveAmount / fixedTransferRate;
-                        var maximumPower = transferRatio * maxPowerPrimary * TimeWarp.fixedDeltaTime * secondaryConversionEnergMult;
+                        var maximumPower = transferRatio * maxPowerPrimary * fixedDeltaTime * secondaryConversionEnergMult;
 
                         requestedPower = Math.Min(availablePower, maximumPower);
                         var receivedPower = part.RequestResource(definitionSecondaryPowerResource.id, requestedPower);
@@ -463,7 +465,7 @@ namespace InterstellarFuelSwitch
                     var fixedRequest = Math.Min(fixedTransferRate, secondaryResource.retrieveAmount);
                     var receivedSourceAmountFixed = part.RequestResource(secondaryResource.definition.id, fixedRequest * powerReceiverRatio);
 
-                    secondaryChange = -(float)(receivedSourceAmountFixed / TimeWarp.fixedDeltaTime);
+                    secondaryChange = -(float)(receivedSourceAmountFixed / fixedDeltaTime);
                     secondaryChangeField.guiActive = secondaryChange != 0;
 
                     double createdAmount = 0;
@@ -476,7 +478,7 @@ namespace InterstellarFuelSwitch
 
                         var primaryRequestResult = part.RequestResource(primary.definition.id, requestedTargetAmount);
 
-                        primaryChange = -(float)(primaryRequestResult / TimeWarp.fixedDeltaTime);
+                        primaryChange = -(float)(primaryRequestResult / fixedDeltaTime);
                         primaryChangeField.guiActive = primaryChange != 0;
                         
                         var receivedTargetAmount = primaryRequestResult / conversionRatio;

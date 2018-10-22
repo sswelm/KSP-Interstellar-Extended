@@ -60,6 +60,7 @@
     <Compile Include="AnimatedContainerContent.cs" />
     <Compile Include="IFSCryostat.cs" />
     <Compile Include="InterstellarAnimate.cs" />
+    <Compile Include="InterstellarDynamicResourceBuffer.cs" />
     <Compile Include="InterstellarResourceConverter.cs" />
     <Compile Include="InterstellarTextureSwitch2.cs" />
     <Compile Include="InterstellarDebugMessages.cs" />

@@ -39,9 +39,9 @@ namespace FNPlugin.Wasteheat
 
         // non persistant
         [KSPField(guiName = "Max Vacuum Temp", guiFormat = "F0", guiUnits = "K")]
-        public float maxVacuumTemperature = maximumRadiatorTempInSpace;
+        public double maxVacuumTemperature = maximumRadiatorTempInSpace;
         [KSPField(guiName = "Max Atmosphere Temp", guiFormat = "F0", guiUnits = "K")]
-        public float maxAtmosphereTemperature = maximumRadiatorTempAtOneAtmosphere;
+        public double maxAtmosphereTemperature = maximumRadiatorTempAtOneAtmosphere;
         [KSPField(guiName = "Max Current Temp", guiFormat = "F0", guiUnits = "K")]
         public double maxCurrentRadiatorTemperature = maximumRadiatorTempAtOneAtmosphere;
         [KSPField(guiName = "Space Radiator Bonus", guiFormat = "F0", guiUnits = "K")]
@@ -69,7 +69,7 @@ namespace FNPlugin.Wasteheat
         [KSPField]
         public bool isDeployable = false;
         [KSPField(guiName = "Converction Bonus")]
-        public float convectiveBonus = 1;
+        public double convectiveBonus = 1;
         [KSPField]
         public string animName = "";
         [KSPField]
@@ -643,8 +643,8 @@ namespace FNPlugin.Wasteheat
 
             isGraphene = !String.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
 
-            maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min((float)RadiatorProperties.RadiatorTemperatureMk4, maxRadiatorTemperature);
-            maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min((float)RadiatorProperties.RadiatorTemperatureMk3, maxRadiatorTemperature);
+            maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min(RadiatorProperties.RadiatorTemperatureMk4, maxRadiatorTemperature);
+            maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min(RadiatorProperties.RadiatorTemperatureMk3, maxRadiatorTemperature);
 
             UpdateMaxCurrentTemperature();
 
@@ -864,9 +864,13 @@ namespace FNPlugin.Wasteheat
 
                 if (vessel.atmDensity > 0)
                 {
-                    atmosphere_modifier = vessel.atmDensity + vessel.dynamicPressurekPa * 1.01325e-2;
+                    atmosphere_modifier = vessel.atmDensity * convectiveBonus + Approximate.Sqrt((float)vessel.speed);
 
-                    var convPowerDissip = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * Math.Max(0, CurrentRadiatorTemperature - external_temperature) * effectiveRadiatorArea * 0.001 * convectiveBonus * Math.Max(part.submergedPortion * 10, 1);
+                    var heatTransferCooficient = 0.0005; // 500W/m2/K
+                    var temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - external_temperature);
+                    var submergedModifier = Math.Max(part.submergedPortion * 10, 1);
+
+                    var convPowerDissip = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCooficient * submergedModifier;
 
                     if (!radiatorIsEnabled)
                         convPowerDissip = convPowerDissip * 0.25;
