@@ -53,7 +53,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool chargedParticleMode = false;
         [KSPField(isPersistant = true)]
-        public float storedMassMultiplier;
+        public double storedMassMultiplier;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_powerCapacity"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerCapacity = 100;
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
@@ -166,7 +166,7 @@ namespace FNPlugin
         [KSPField]
         public double targetMass;
         [KSPField]
-        public float initialMass;
+        public double initialMass;
         [KSPField]
         public double megajouleBarRatio;
         [KSPField]
@@ -268,9 +268,6 @@ namespace FNPlugin
 
         // Internal
         protected double outputPower;
-
-
-
         protected double powerDownFraction;
 
         protected bool play_down = true;
@@ -335,8 +332,8 @@ namespace FNPlugin
             try
             {
                 Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
-                storedMassMultiplier = Mathf.Pow(factor.absolute.linear, 3);
-                initialMass = part.prefabMass * storedMassMultiplier;
+                storedMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, 3);
+                initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
             }
             catch (Exception e)
             {
@@ -360,7 +357,7 @@ namespace FNPlugin
             if (!calculatedMass)
                 return 0;
 
-            var moduleMassDelta = (float)targetMass - initialMass;
+            var moduleMassDelta = (float)(targetMass - initialMass);
 
             return moduleMassDelta;
         }
@@ -436,13 +433,14 @@ namespace FNPlugin
 
             base.OnStart(state);
 
-            targetMass = part.prefabMass * storedMassMultiplier;
-            initialMass = part.prefabMass * storedMassMultiplier;
+            var prefabMass = (double)(decimal)part.prefabMass;
+            targetMass = prefabMass * storedMassMultiplier;
+            initialMass = prefabMass * storedMassMultiplier;
 
             if (initialMass == 0)
-                initialMass = part.prefabMass;
+                initialMass = prefabMass;
             if (targetMass == 0)
-                targetMass = part.prefabMass;
+                targetMass = prefabMass;
 
             InitializeEfficiency();
             Fields["powerCapacity"].guiActiveEditor = !isLimitedByMinThrotle;
@@ -725,15 +723,15 @@ namespace FNPlugin
 
         public double CapacityRatio
         {
-            get { 
-                capacityRatio =  (double)(decimal)(powerCapacity / 100);
+            get {
+                capacityRatio = (double)(decimal)powerCapacity / 100;
                 return capacityRatio;
             }
         }
 
         public double PowerRatio
         {
-            get { return (double)(decimal)(powerPercentage / 100); }
+            get { return (double)(decimal)powerPercentage / 100; }
         }
 
         /// <summary>
@@ -801,18 +799,6 @@ namespace FNPlugin
 
         #region obsolete exposed public getters
 
-        //public double getMaxPowerOutput()
-        //{
-        //	if (chargedParticleMode)
-        //		return maxChargedPower * _totalEff;
-        //	else
-        //		return maxThermalPower * _totalEff;
-        //}
-
-        //public bool isActive() { return IsEnabled; }
-
-        //public IPowerSource getThermalSource() { return attachedPowerSource; }
-
         # endregion
 
         public double MaxStableMegaWattPower
@@ -868,7 +854,7 @@ namespace FNPlugin
                         ? plasmaTemperature
                         : plasmaTemperature * chargedPowerModifier + (1 - chargedPowerModifier) * attachedPowerSource.HotBathTemperature;	// for fusion reactors connected to MHD
 
-                averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel) );
+                averageRadiatorTemperatureQueue.Enqueue(FNRadiator.getAverageRadiatorTemperatureForVessel(vessel));
 
                 while (averageRadiatorTemperatureQueue.Count > 10)
                     averageRadiatorTemperatureQueue.Dequeue();

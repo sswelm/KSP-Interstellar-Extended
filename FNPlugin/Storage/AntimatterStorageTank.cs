@@ -655,7 +655,7 @@ namespace FNPlugin
                     if (TimeWarp.CurrentRateIndex > 3 && (antimatterResource.amount > minimimAnimatterAmount))
                     {
                         TimeWarp.SetRate(3, true);
-                        ScreenMessages.PostScreenMessage("Cannot Time Warp faster than " + + TimeWarp.CurrentRate + "x while " + antimatterResource.resourceName + " Tank is Unpowered", 1, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage("Cannot Time Warp faster than " + TimeWarp.CurrentRate + "x while " + antimatterResource.resourceName + " Tank is Unpowered", 1, ScreenMessageStyle.UPPER_CENTER);
                     }
                 }
             }
@@ -666,7 +666,7 @@ namespace FNPlugin
             if (startup_timeout == 0 && antimatterResource.amount > minimimAnimatterAmount)
             {
                 //verify temperature
-                if (!CheatOptions.IgnoreMaxTemperature &&  canExplodeFromHeat && part.temperature > maxTemperature)
+                if (!CheatOptions.IgnoreMaxTemperature &&  canExplodeFromHeat && part.temperature > (double)(decimal)maxTemperature)
                 {
                     temperature_explode_counter++;
                     if (temperature_explode_counter > 20)

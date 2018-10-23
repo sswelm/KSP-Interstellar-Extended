@@ -229,7 +229,9 @@ namespace FNPlugin.Refinery
 
             var shortage = Math.Max(currentPowerReq - consumedPowerMW, 0);
 
-            var recievedElectricCharge = part.RequestResource("ElectricCharge", shortage * 1000 * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+            var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
+
+            var recievedElectricCharge = part.RequestResource("ElectricCharge", shortage * 1000 * fixedDeltaTime) / fixedDeltaTime;
 
             consumedPowerMW += recievedElectricCharge / 1000;
 
@@ -239,7 +241,7 @@ namespace FNPlugin.Refinery
 
             var productionModifier = productionMult * baseProduction;
 
-            _current_activity.UpdateFrame(power_ratio * productionModifier, power_ratio, productionModifier, overflowAllowed, TimeWarp.fixedDeltaTime);
+            _current_activity.UpdateFrame(power_ratio * productionModifier, power_ratio, productionModifier, overflowAllowed, fixedDeltaTime);
 
             lastPowerRatio = power_ratio; // save the current power ratio in case the vessel is unloaded
             lastOverflowSettings = overflowAllowed; // save the current overflow settings in case the vessel is unloaded

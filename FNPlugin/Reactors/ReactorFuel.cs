@@ -30,7 +30,7 @@ namespace FNPlugin.Reactors
                 Debug.LogError("[KSPI] - No definition found for resource '" + _resource_name + "' for ReactorFuel " + _fuel_name);
             else
             {
-                _density = Definition.density;
+                _density = (double)(decimal)Definition.density;
                 _densityInKg = _density * 1000;
                 _amountFuelUsePerMJ = _tons_fuel_usage_per_mw / _density;
             }
@@ -117,7 +117,7 @@ namespace FNPlugin.Reactors
                 Debug.LogError("[KSPI] - No definition found for ReactorProduct '" + _resource_name + "'");
             else
             {
-                _density = Definition.density;
+                _density = (double)(decimal)Definition.density;
                 _densityInKg = _density * 1000;
                 _amountProductUsePerMJ = _tons_product_usage_per_mw / _density;
             }

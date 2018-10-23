@@ -58,7 +58,7 @@ namespace FNPlugin.Reactors
             electricPowerMaintenance = PluginHelper.getFormattedPowerString(power_consumed) + " / " + PluginHelper.getFormattedPowerString(heatingPowerRequirements);
         }
 
-        private float GetPlasmaRatio(double receivedPowerPerSecond, double fusionPowerRequirement)
+        private double GetPlasmaRatio(double receivedPowerPerSecond, double fusionPowerRequirement)
         {
             if (receivedPowerPerSecond > fusionPowerRequirement)
             {
@@ -75,7 +75,7 @@ namespace FNPlugin.Reactors
                 }
             }
 
-            return (float)Math.Round(fusionPowerRequirement > 0 ? receivedPowerPerSecond / fusionPowerRequirement : 1, 4);
+            return Math.Round(fusionPowerRequirement > 0 ? receivedPowerPerSecond / fusionPowerRequirement : 1, 4);
         }
 
         public override void StartReactor()
@@ -83,6 +83,8 @@ namespace FNPlugin.Reactors
             base.StartReactor();
 
             if (HighLogic.LoadedSceneIsEditor) return;
+
+            var fixedDeltaTime = (double)(decimal)TimeWarp.fixedDeltaTime;
 
             var availablePower = getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES);
 
@@ -93,7 +95,7 @@ namespace FNPlugin.Reactors
                 // consume from any stored megajoule source
                 power_consumed = CheatOptions.InfiniteElectricity
                     ? fusionPowerRequirement
-                    : part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, fusionPowerRequirement * TimeWarp.fixedDeltaTime) / TimeWarp.fixedDeltaTime;
+                    : part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, fusionPowerRequirement * fixedDeltaTime) / fixedDeltaTime;
             }
             else
             {
