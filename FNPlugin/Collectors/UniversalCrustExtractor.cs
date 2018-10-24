@@ -793,8 +793,8 @@ namespace FNPlugin.Collectors
                             if (resource.SpareRoom > 0)
                             {
                                 GUILayout.Label(resource.Production.ToString("##.######") + " U/s", _normal_label, GUILayout.Width(valueWidth));
-                                GUILayout.Label((resource.Production * resource.Definition.density * 3600).ToString("##.######") + " t/h", _normal_label, GUILayout.Width(valueWidth));
-                                GUILayout.Label((resource.SpareRoom * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                                GUILayout.Label((resource.Production * (double)(decimal)resource.Definition.density * 3600).ToString("##.######") + " t/h", _normal_label, GUILayout.Width(valueWidth));
+                                GUILayout.Label((resource.SpareRoom * (double)(decimal)resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
                             }
                             else
                             {
@@ -803,8 +803,8 @@ namespace FNPlugin.Collectors
                                 GUILayout.Label("full", _normal_label, GUILayout.Width(valueWidth));
                             }
 
-                            GUILayout.Label((resource.Amount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
-                            GUILayout.Label((resource.MaxAmount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                            GUILayout.Label((resource.Amount * (double)(decimal)resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                            GUILayout.Label((resource.MaxAmount * (double)(decimal)resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
                         }
                         else
                         {

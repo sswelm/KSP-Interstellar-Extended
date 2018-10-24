@@ -364,7 +364,7 @@ namespace FNPlugin.Collectors
             double dPowerRequirementsMW = PluginHelper.PowerConsumptionMultiplier * mwRequirements; // change the mwRequirements number in part config to change the power consumption
 
             // gets density of the regolith resource
-            dRegolithDensity = PartResourceLibrary.Instance.GetDefinition(strRegolithResourceName).density;
+            dRegolithDensity = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(strRegolithResourceName).density;
 
             var partsThatContainRegolith = part.GetConnectedResources(strRegolithResourceName);
             dRegolithSpareCapacity = partsThatContainRegolith.Sum(r => r.maxAmount - r.amount);

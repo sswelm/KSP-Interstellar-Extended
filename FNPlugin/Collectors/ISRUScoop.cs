@@ -219,7 +219,7 @@ namespace FNPlugin
             if (definition == null)
                 return;
 
-            double resourcedensity = definition.density;
+            double resourcedensity = (double)(decimal)definition.density;
             double maxAltitudeAtmosphere = PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody);
             
             double upperAtmospherFraction = Math.Max(0, (vessel.altitude - maxAltitudeAtmosphere) / Math.Max(0.000001, maxAltitudeAtmosphere * PluginHelper.MaxAtmosphericAltitudeMult - maxAltitudeAtmosphere));

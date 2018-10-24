@@ -1079,29 +1079,6 @@ namespace FNPlugin.Wasteheat
                             renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture(bumpMapTextureLocation, false));
                     }
 
-                    // ToDo: remove and add it to part configuration files
-                    //if (startWithCircradiator)
-                    //{
-                    //	if (renderer.material.GetTexture("_Emissive") == null)
-                    //		renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_e", false));
-
-                    //	if (renderer.material.GetTexture("_BumpMap") == null)
-                    //		renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/circradiatorKT/texture1_n", false));
-                    //}
-                    //else if (startWithRadialRadiator)
-                    //{
-                    //	if (renderer.material.GetTexture("_Emissive") == null)
-                    //		renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/RadialHeatRadiator/d_glow", false));
-                    //}
-                    //else if (startWithLargeFlatRadiator)
-                    //{
-                    //	if (renderer.material.GetTexture("_Emissive") == null)
-                    //		renderer.material.SetTexture("_Emissive", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/glow", false));
-
-                    //	if (renderer.material.GetTexture("_BumpMap") == null)
-                    //		renderer.material.SetTexture("_BumpMap", GameDatabase.Instance.GetTexture("WarpPlugin/Parts/Radiators/LargeFlatRadiator/radtex_n", false));
-                    //}
-
                     renderer.material.SetColor(colorHeat, emissiveColor);
                 }
             }

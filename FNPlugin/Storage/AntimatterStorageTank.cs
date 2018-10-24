@@ -84,9 +84,9 @@ namespace FNPlugin
         [KSPField]
         public double maxCharge = 1000;
         [KSPField]
-        public float massExponent = 3;
+        public double massExponent = 3;
         [KSPField]
-        public float massTargetExponent = 3;
+        public double massTargetExponent = 3;
         [KSPField]
         public double chargeNeeded = 100;
         [KSPField]
@@ -175,7 +175,7 @@ namespace FNPlugin
                 storedMassMultiplier = Math.Pow(storedScalingfactor, massExponent);
                 storedTargetMassMultiplier = Math.Pow(storedScalingfactor, massTargetExponent);
 
-                initialMass = part.prefabMass * storedMassMultiplier;
+                initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
                 chargestatus = maxCharge;
             }
             catch (Exception e)
@@ -285,7 +285,7 @@ namespace FNPlugin
 
             if (antimatterResource.resourceName != resourceName)
             {
-                ScreenMessages.PostScreenMessage("List all" + antimatterResource.info.displayName, 10.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage("List all" + antimatterResource.info.displayName, 10, ScreenMessageStyle.UPPER_CENTER);
                 antimatterResource.amount = 0;
                 return;
             }
@@ -350,8 +350,8 @@ namespace FNPlugin
             // charge if there is any significant antimatter
             should_charge = antimatterResource.amount > minimimAnimatterAmount;
 
-            partMass = part.mass;
-            initialMass = part.prefabMass * storedMassMultiplier;
+            partMass = (double)(decimal)part.mass;
+            initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
 
             Fields["techLevel"].guiActiveEditor = maxStorage != 0;
             capacityStrField = Fields["capacityStr"];

@@ -853,7 +853,7 @@ namespace FNPlugin
             // determine fuel availability
             if (!Current_propellant.IsInfinite && !CheatOptions.InfinitePropellant && Current_propellant.ResourceDefinition.density > 0)
             {
-                var requestedAmount = demandMass / Current_propellant.ResourceDefinition.density;
+                var requestedAmount = demandMass / (double)(decimal)Current_propellant.ResourceDefinition.density;
                 if (IsValidPositiveNumber(requestedAmount))
                     fuelRatio = part.RequestResource(Current_propellant.Propellant.name, requestedAmount) / requestedAmount;
             }

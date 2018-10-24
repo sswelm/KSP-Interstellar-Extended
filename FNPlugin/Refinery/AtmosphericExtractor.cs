@@ -117,6 +117,27 @@ namespace FNPlugin.Refinery
         PartResourceDefinition _krypton;
         PartResourceDefinition _sodium;
 
+        double _atmosphere_density;
+        double _ammonia_density;
+        double _argon_density;
+        double _chlorine_density;
+        double _dioxide_density;
+        double _helium3_density;
+        double _helium4_density;
+        double _hydrogen_density;
+        double _methane_density;
+        double _monoxide_density;
+        double _neon_density;
+        double _nitrogen_density;
+        double _nitrogen15_density;
+        double _oxygen_density;
+        double _water_density;
+        double _heavywater_density;
+        double _xenon_density;
+        double _deuterium_density;
+        double _krypton_density;
+        double _sodium_density;
+
              
         double _atmosphere_consumption_rate;
 
@@ -260,6 +281,27 @@ namespace FNPlugin.Refinery
             _deuterium = PartResourceLibrary.Instance.GetDefinition(_deuterium_resource_name);
             _krypton = PartResourceLibrary.Instance.GetDefinition(_krypton_resource_name);
             _sodium = PartResourceLibrary.Instance.GetDefinition(_sodium_resource_name);
+
+			_atmosphere_density = (double)(decimal)_atmosphere.density;
+			_ammonia_density = (double)(decimal)_ammonia.density;
+			_argon_density = (double)(decimal)_argon.density;
+			_chlorine_density = (double)(decimal)_chlorine.density;
+			_dioxide_density = (double)(decimal)_dioxide.density;
+			_helium3_density = (double)(decimal)_helium3.density;
+			_helium4_density = (double)(decimal)_helium4.density;
+			_hydrogen_density = (double)(decimal)_hydrogen.density;
+			_methane_density = (double)(decimal)_methane.density;
+			_monoxide_density = (double)(decimal)_monoxide.density;
+			_neon_density = (double)(decimal)_neon.density;
+			_nitrogen_density = (double)(decimal)_nitrogen.density;
+			_nitrogen15_density = (double)(decimal)_nitrogen15.density;
+			_oxygen_density = (double)(decimal)_oxygen.density;
+			_water_density = (double)(decimal)_water.density;
+			_heavywater_density = (double)(decimal)_heavywater.density;
+			_xenon_density = (double)(decimal)_xenon.density;
+			_deuterium_density = (double)(decimal)_deuterium.density;
+			_krypton_density = (double)(decimal)_krypton.density;
+			_sodium_density = (double)(decimal)_sodium.density;
         }
 
         double _maxCapacityAtmosphereMass;
@@ -549,29 +591,29 @@ namespace FNPlugin.Refinery
                     var remainingConsumptionNeeded = Math.Max(0, buildInAirIntake - max_atmospheric_consumption_rate);
 
                     // add the consumed atmosphere total atmopheric consumption rate
-                    _atmosphere_consumption_rate += _part.RequestResource(_atmosphere_resource_name, remainingConsumptionNeeded / _atmosphere.density) / fixedDeltaTime * _atmosphere.density;
+                    _atmosphere_consumption_rate += _part.RequestResource(_atmosphere_resource_name, remainingConsumptionNeeded / _atmosphere_density) / fixedDeltaTime * _atmosphere_density;
                 }
                 
                 // produce the resources
-                _ammonia_production_rate = _ammoniaPercentage == 0 ? 0 : -_part.RequestResource(_ammonia_resource_name, -_atmosphere_consumption_rate * _ammoniaPercentage * fixedDeltaTime / _ammonia.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammonia.density;
-                _argon_production_rate = _argonPercentage == 0 ? 0 : -_part.RequestResource(_argon_resource_name, -_atmosphere_consumption_rate * _argonPercentage * fixedDeltaTime / _argon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _argon.density;
-                _chlorine_production_rate = _chlorinePercentage == 0 ? 0 : -_part.RequestResource(_chlorine_resource_name, -_atmosphere_consumption_rate * _chlorinePercentage * fixedDeltaTime / _chlorine.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _chlorine.density;
-                _dioxide_production_rate = _dioxidePercentage == 0 ? 0 : -_part.RequestResource(_dioxide_resource_name, -_atmosphere_consumption_rate * _dioxidePercentage * fixedDeltaTime / _dioxide.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _dioxide.density;
-                _helium3_production_rate = _helium3Percentage == 0 ? 0 : -_part.RequestResource(_helium3_resource_name, -_atmosphere_consumption_rate * _helium3Percentage * fixedDeltaTime / _helium3.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium3.density;
-                _helium4_production_rate = _helium4Percentage == 0 ? 0 : -_part.RequestResource(_helium4_resource_name, -_atmosphere_consumption_rate * _helium4Percentage * fixedDeltaTime / _helium4.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium4.density;
-                _hydrogen_production_rate = _hydrogenPercentage == 0 ? 0 : -_part.RequestResource(_hydrogen_resource_name, -_atmosphere_consumption_rate * _hydrogenPercentage * fixedDeltaTime / _hydrogen.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogen.density;
-                _methane_production_rate = _methanePercentage == 0 ? 0 : -_part.RequestResource(_methane_resource_name, -_atmosphere_consumption_rate * _methanePercentage * fixedDeltaTime / _methane.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _methane.density;
-                _monoxide_production_rate = _monoxidePercentage == 0 ? 0 : -_part.RequestResource(_monoxide_resource_name, -_atmosphere_consumption_rate * _monoxidePercentage * fixedDeltaTime / _monoxide.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxide.density;
-                _neon_production_rate = _neonPercentage == 0 ? 0 : -_part.RequestResource(_neon_resource_name, -_atmosphere_consumption_rate * _neonPercentage * fixedDeltaTime / _neon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _neon.density;
-                _nitrogen_production_rate = _nitrogenPercentage == 0 ? 0 : -_part.RequestResource(_nitrogen_resource_name, -_atmosphere_consumption_rate * _nitrogenPercentage * fixedDeltaTime / _nitrogen.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen.density;
-                _nitrogen15_production_rate = _nitrogen15Percentage == 0 ? 0 : -_part.RequestResource(_nitrogen15_resource_name, -_atmosphere_consumption_rate * _nitrogen15Percentage * fixedDeltaTime / _nitrogen15.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen15.density;
-                _oxygen_production_rate = _oxygenPercentage == 0 ? 0 : -_part.RequestResource(_oxygen_resource_name, -_atmosphere_consumption_rate * _oxygenPercentage * fixedDeltaTime / _oxygen.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen.density;
-                _water_production_rate = _waterPercentage == 0 ? 0 : -_part.RequestResource(_water_resource_name, -_atmosphere_consumption_rate * _waterPercentage * fixedDeltaTime / _water.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _water.density;
-                _heavywater_production_rate = _heavywaterPercentage == 0 ? 0 : -_part.RequestResource(_heavywater_resource_name, -_atmosphere_consumption_rate * _heavywaterPercentage * fixedDeltaTime / _heavywater.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _heavywater.density;
-                _xenon_production_rate = _xenonPercentage == 0 ? 0 : -_part.RequestResource(_xenon_resource_name, -_atmosphere_consumption_rate * _xenonPercentage * fixedDeltaTime / _xenon.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _xenon.density;
-                _deuterium_production_rate = _deuteriumPercentage == 0 ? 0 : -_part.RequestResource(_deuterium_resource_name, -_atmosphere_consumption_rate * _deuteriumPercentage * fixedDeltaTime / _deuterium.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuterium.density;
-                _krypton_production_rate = _kryptonPercentage == 0 ? 0 : -_part.RequestResource(_krypton_resource_name, -_atmosphere_consumption_rate * _kryptonPercentage * fixedDeltaTime / _krypton.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _krypton.density;
-                _sodium_production_rate = _sodiumPercentage == 0 ? 0 : -_part.RequestResource(_sodium_resource_name, -_atmosphere_consumption_rate * _sodiumPercentage * fixedDeltaTime / _sodium.density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _sodium.density;
+                _ammonia_production_rate = _ammoniaPercentage == 0 ? 0 : -_part.RequestResource(_ammonia_resource_name, -_atmosphere_consumption_rate * _ammoniaPercentage * fixedDeltaTime / _ammonia_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _ammonia_density;
+                _argon_production_rate = _argonPercentage == 0 ? 0 : -_part.RequestResource(_argon_resource_name, -_atmosphere_consumption_rate * _argonPercentage * fixedDeltaTime / _argon_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _argon_density;
+                _chlorine_production_rate = _chlorinePercentage == 0 ? 0 : -_part.RequestResource(_chlorine_resource_name, -_atmosphere_consumption_rate * _chlorinePercentage * fixedDeltaTime / _chlorine_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _chlorine_density;
+                _dioxide_production_rate = _dioxidePercentage == 0 ? 0 : -_part.RequestResource(_dioxide_resource_name, -_atmosphere_consumption_rate * _dioxidePercentage * fixedDeltaTime / _dioxide_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _dioxide_density;
+                _helium3_production_rate = _helium3Percentage == 0 ? 0 : -_part.RequestResource(_helium3_resource_name, -_atmosphere_consumption_rate * _helium3Percentage * fixedDeltaTime / _helium3_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium3_density;
+                _helium4_production_rate = _helium4Percentage == 0 ? 0 : -_part.RequestResource(_helium4_resource_name, -_atmosphere_consumption_rate * _helium4Percentage * fixedDeltaTime / _helium4_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _helium4_density;
+                _hydrogen_production_rate = _hydrogenPercentage == 0 ? 0 : -_part.RequestResource(_hydrogen_resource_name, -_atmosphere_consumption_rate * _hydrogenPercentage * fixedDeltaTime / _hydrogen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _hydrogen_density;
+                _methane_production_rate = _methanePercentage == 0 ? 0 : -_part.RequestResource(_methane_resource_name, -_atmosphere_consumption_rate * _methanePercentage * fixedDeltaTime / _methane_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _methane_density;
+                _monoxide_production_rate = _monoxidePercentage == 0 ? 0 : -_part.RequestResource(_monoxide_resource_name, -_atmosphere_consumption_rate * _monoxidePercentage * fixedDeltaTime / _monoxide_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _monoxide_density;
+                _neon_production_rate = _neonPercentage == 0 ? 0 : -_part.RequestResource(_neon_resource_name, -_atmosphere_consumption_rate * _neonPercentage * fixedDeltaTime / _neon_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _neon_density;
+                _nitrogen_production_rate = _nitrogenPercentage == 0 ? 0 : -_part.RequestResource(_nitrogen_resource_name, -_atmosphere_consumption_rate * _nitrogenPercentage * fixedDeltaTime / _nitrogen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen_density;
+                _nitrogen15_production_rate = _nitrogen15Percentage == 0 ? 0 : -_part.RequestResource(_nitrogen15_resource_name, -_atmosphere_consumption_rate * _nitrogen15Percentage * fixedDeltaTime / _nitrogen15_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _nitrogen15_density;
+                _oxygen_production_rate = _oxygenPercentage == 0 ? 0 : -_part.RequestResource(_oxygen_resource_name, -_atmosphere_consumption_rate * _oxygenPercentage * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _oxygen_density;
+                _water_production_rate = _waterPercentage == 0 ? 0 : -_part.RequestResource(_water_resource_name, -_atmosphere_consumption_rate * _waterPercentage * fixedDeltaTime / _water_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _water.density;
+                _heavywater_production_rate = _heavywaterPercentage == 0 ? 0 : -_part.RequestResource(_heavywater_resource_name, -_atmosphere_consumption_rate * _heavywaterPercentage * fixedDeltaTime / _heavywater_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _heavywater_density;
+                _xenon_production_rate = _xenonPercentage == 0 ? 0 : -_part.RequestResource(_xenon_resource_name, -_atmosphere_consumption_rate * _xenonPercentage * fixedDeltaTime / _xenon_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _xenon_density;
+                _deuterium_production_rate = _deuteriumPercentage == 0 ? 0 : -_part.RequestResource(_deuterium_resource_name, -_atmosphere_consumption_rate * _deuteriumPercentage * fixedDeltaTime / _deuterium_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _deuterium_density;
+                _krypton_production_rate = _kryptonPercentage == 0 ? 0 : -_part.RequestResource(_krypton_resource_name, -_atmosphere_consumption_rate * _kryptonPercentage * fixedDeltaTime / _krypton_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _krypton_density;
+                _sodium_production_rate = _sodiumPercentage == 0 ? 0 : -_part.RequestResource(_sodium_resource_name, -_atmosphere_consumption_rate * _sodiumPercentage * fixedDeltaTime / _sodium_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _sodium_density;
             }
             else
             {

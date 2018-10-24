@@ -1263,8 +1263,8 @@ namespace FNPlugin.Reactors
             helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
             lithium6_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
 
-            tritiumBreedingMassAdjustment = tritium_molar_mass_ratio * lithium6_def.density / tritium_def.density;
-            heliumBreedingMassAdjustment = helium_molar_mass_ratio * lithium6_def.density / helium_def.density;
+            tritiumBreedingMassAdjustment = tritium_molar_mass_ratio * (double)(decimal)lithium6_def.density / (double)(decimal)tritium_def.density;
+            heliumBreedingMassAdjustment = helium_molar_mass_ratio * (double)(decimal)lithium6_def.density / (double)(decimal)helium_def.density;
 
             if (IsEnabled && last_active_time > 0)
                 DoPersistentResourceUpdate();
@@ -1678,8 +1678,8 @@ namespace FNPlugin.Reactors
                     if (requestedPropellantMassPerSecond > 0)
                     {
                         hydrogenProductionRequest = requestedPropellantMassPerSecond * 1000;
-                        var resultFixed = part.RequestResource(hydrogenDefinition.name, -requestedPropellantMassPerSecond * TimeWarp.fixedDeltaTime / hydrogenDefinition.density, ResourceFlowMode.ALL_VESSEL);
-                        hydrogenProductionReceived = -1000 * hydrogenDefinition.density * resultFixed / TimeWarp.fixedDeltaTime;
+                        var resultFixed = part.RequestResource(hydrogenDefinition.name, -requestedPropellantMassPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime / (double)(decimal)hydrogenDefinition.density, ResourceFlowMode.ALL_VESSEL);
+                        hydrogenProductionReceived = -1000 * (double)(decimal)hydrogenDefinition.density * resultFixed / (double)(decimal)TimeWarp.fixedDeltaTime;
                         requestedPropellantMassPerSecond = 0;
                     }
 
@@ -1883,7 +1883,7 @@ namespace FNPlugin.Reactors
 
             // calculate current maximum litlium consumption
             var breedRate = CurrentFuelMode.TritiumBreedModifier * staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * Math.Sqrt(ratioLithium6);
-            var lithRate = breedRate / lithium6_def.density;
+            var lithRate = breedRate / (double)(decimal)lithium6_def.density;
 
             // get spare room tritium
             var spareRoomTritiumAmount = part.GetResourceSpareCapacity(tritium_def);
@@ -2225,13 +2225,13 @@ namespace FNPlugin.Reactors
             var consumeAmountInUnitOfStorage = mJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
 
             if (fuel.ConsumeGlobal)
-                return part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage) * fuel.Definition.density;
+                return part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage) * (double)(decimal)fuel.Definition.density;
 
             if (part.Resources.Contains(fuel.ResourceName))
             {
                 double reduction = Math.Min(consumeAmountInUnitOfStorage, part.Resources[fuel.ResourceName].amount);
                 part.Resources[fuel.ResourceName].amount -= reduction;
-                return reduction * fuel.Definition.density;
+                return reduction * (double)(decimal)fuel.Definition.density;
             }
             else
                 return 0;
@@ -2417,10 +2417,10 @@ namespace FNPlugin.Reactors
                     {
                         PrintToGUILayout("Fuel Neutron Breed Rate", 100 * CurrentFuelMode.NeutronsRatio + "% ", bold_style, text_style);
 
-                        var tritiumKgDay = tritium_produced_per_second * tritium_def.density * 1000 * PluginHelper.SecondsInDay;
+                        var tritiumKgDay = tritium_produced_per_second * (double)(decimal)tritium_def.density * 1000 * PluginHelper.SecondsInDay;
                         PrintToGUILayout("Tritium Breed Rate", tritiumKgDay.ToString("0.000000") + " kg/day ", bold_style, text_style);
 
-                        var heliumKgDay = helium_produced_per_second * helium_def.density * 1000 * PluginHelper.SecondsInDay;
+                        var heliumKgDay = helium_produced_per_second * (double)(decimal)helium_def.density * 1000 * PluginHelper.SecondsInDay;
                         PrintToGUILayout("Helium Breed Rate", heliumKgDay.ToString("0.000000") + " kg/day ", bold_style, text_style);
 
                         double totalLithium6Amount;
@@ -2457,8 +2457,8 @@ namespace FNPlugin.Reactors
                         double totalTritiumMaxAmount;
                         part.GetConnectedResourceTotals(tritium_def.id, out totalTritiumAmount, out totalTritiumMaxAmount);
 
-                        var massTritiumAmount = totalTritiumAmount * tritium_def.density * 1000;
-                        var massTritiumMaxAmount = totalTritiumMaxAmount * tritium_def.density * 1000;
+                        var massTritiumAmount = totalTritiumAmount * (double)(decimal)tritium_def.density * 1000;
+                        var massTritiumMaxAmount = totalTritiumMaxAmount * (double)(decimal)tritium_def.density * 1000;
 
                         PrintToGUILayout("Tritium Storage", massTritiumAmount.ToString("0.000000") + " kg / " + massTritiumMaxAmount.ToString("0.000000") + " kg", bold_style, text_style);
 
@@ -2466,8 +2466,8 @@ namespace FNPlugin.Reactors
                         double totalHeliumMaxAmount;
                         part.GetConnectedResourceTotals(helium_def.id, out totalHeliumAmount, out totalHeliumMaxAmount);
 
-                        var massHeliumAmount = totalHeliumAmount * helium_def.density * 1000;
-                        var massHeliumMaxAmount = totalHeliumMaxAmount * helium_def.density * 1000;
+                        var massHeliumAmount = totalHeliumAmount * (double)(decimal)helium_def.density * 1000;
+                        var massHeliumMaxAmount = totalHeliumMaxAmount * (double)(decimal)helium_def.density * 1000;
 
                         PrintToGUILayout("Helium Storage", massHeliumAmount.ToString("0.000000") + " kg / " + massHeliumMaxAmount.ToString("0.000000") + " kg", bold_style, text_style);
                     }

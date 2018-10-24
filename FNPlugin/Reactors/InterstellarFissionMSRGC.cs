@@ -220,7 +220,7 @@ namespace FNPlugin.Reactors
             depletedFuelDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.DepletedFuel);
             enrichedUraniumDefinition = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.EnrichedUrarium);
 
-            depletedToEnrichVolumeMultplier = enrichedUraniumDefinition.density / (double)(decimal)depletedFuelDefinition.density;
+            depletedToEnrichVolumeMultplier = (double)(decimal)enrichedUraniumDefinition.density / (double)(decimal)depletedFuelDefinition.density;
             fluorineDepletedFuelVolumeMultiplier = ((19 * 4) / 232d) * ((double)(decimal)depletedFuelDefinition.density / fluorineGasDefinition.density);
             enrichedUraniumVolumeMultiplier = (232d / (16 * 2 + 232d)) * ((double)(decimal)depletedFuelDefinition.density / enrichedUraniumDefinition.density);
             oxygenDepletedUraniumVolumeMultipler = ((16 * 2) / (16 * 2 + 232d)) * ((double)(decimal)depletedFuelDefinition.density / oxygenGasDefinition.density);

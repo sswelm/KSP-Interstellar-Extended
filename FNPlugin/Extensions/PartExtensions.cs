@@ -19,8 +19,8 @@ namespace FNPlugin.Extensions
             double maxAmount;
             part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
 
-            maximumMass = maxAmount * definition.density;
-            spareRoomMass = (maxAmount - currentAmount) * definition.density;
+            maximumMass = maxAmount * (double)(decimal)definition.density;
+            spareRoomMass = (maxAmount - currentAmount) * (double)(decimal)definition.density;
         }
 
         public static double GetResourceSpareCapacity(this Part part, String resourcename)
@@ -45,13 +45,13 @@ namespace FNPlugin.Extensions
             return maxAmount - currentAmount;
         }
 
-		public static double GetResourceSpareCapacity(this Part part, PartResourceDefinition definition, ResourceFlowMode flowmode)
-		{
-			double currentAmount;
-			double maxAmount;
-			part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
-			return maxAmount - currentAmount;
-		}
+        public static double GetResourceSpareCapacity(this Part part, PartResourceDefinition definition, ResourceFlowMode flowmode)
+        {
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
+            return maxAmount - currentAmount;
+        }
 
         public static double GetResourceAvailable(this Part part, PartResourceDefinition definition)
         {
@@ -67,19 +67,19 @@ namespace FNPlugin.Extensions
             return currentAmount;
         }
 
-		public static double GetResourceAvailable(this Part part, PartResourceDefinition definition, ResourceFlowMode flowmode)
-		{
-			if (definition == null)
-			{
-				Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
-				return 0;
-			}
+        public static double GetResourceAvailable(this Part part, PartResourceDefinition definition, ResourceFlowMode flowmode)
+        {
+            if (definition == null)
+            {
+                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                return 0;
+            }
 
-			double currentAmount;
-			double maxAmount;
-			part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
-			return currentAmount;
-		}
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, flowmode, out currentAmount, out maxAmount);
+            return currentAmount;
+        }
 
         public static double GetResourceAvailable(this Part part, ResourceFlowMode flowmode,  PartResourceDefinition definition)
         {

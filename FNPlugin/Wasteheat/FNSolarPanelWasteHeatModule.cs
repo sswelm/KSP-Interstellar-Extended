@@ -146,13 +146,13 @@ namespace FNPlugin
             // So we need to assume that Kerbalism Power Output is ok (if present),
             // since calculating output from flowRate (or _flowRate) will not be possible.
             double solar_rate = kerbalismPowerOutput > 0 ? kerbalismPowerOutput :
-                _solarPanel.flowRate > 0 ? _solarPanel.flowRate :
+                _solarPanel.flowRate > 0 ? (double)(decimal)_solarPanel.flowRate :
                 _solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT 
                     ? _solarPanel._flowRate 
                     : _solarPanel._flowRate * _solarPanel.chargeRate;
 
             double maxSupply = _solarPanel._distMult > 0
-                ? _solarPanel.chargeRate * _solarPanel._distMult * _solarPanel._efficMult
+                ? (double)(decimal)_solarPanel.chargeRate * _solarPanel._distMult * _solarPanel._efficMult
                 : solar_rate;
 
             // when in darkness, clear buffer

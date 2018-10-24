@@ -541,7 +541,7 @@ namespace FNPlugin
         {
             double dAverageInterstellarHydrogenPerCubM = densityInterstellarDencityCubeCm * 1000000;
 
-			var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM / PhysicsGlobals.AvogadroConstant;
+            var interstellarHydrogenConcentration = dAverageInterstellarHydrogenPerCubM / PhysicsGlobals.AvogadroConstant;
 
             var interstellarDensityModifier = Math.Max(0, interstellarDensity);
 
@@ -571,7 +571,7 @@ namespace FNPlugin
                 ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHydrogenCubePerMeter.Evaluate((float)comparibleEarthAltitudeInKm))
                 : 2.101e+13f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
 
-			var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
+            var atmosphereConcentration = atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -589,7 +589,7 @@ namespace FNPlugin
                 ? Math.Max(0, AtmosphericFloatCurves.Instance.ParticlesHeliumnPerCubePerCm.Evaluate((float)comparibleEarthAltitudeInKm))
                 : 8.196E+05f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1000) / 1000)));
 
-			var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
+            var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -607,7 +607,7 @@ namespace FNPlugin
                 ? Math.Max(0, AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
                 : 6.46e+9f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1240) / 1240)));
 
-			var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
+            var atmosphereConcentration = 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -626,7 +626,7 @@ namespace FNPlugin
                 ? Math.Max(0, AtmosphericFloatCurves.Instance.HydrogenIonsPerCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
                 : 6.46e+9f * (1 / (Math.Pow(20 / radiusModifier, (comparibleEarthAltitudeInKm - 1240) / 1240)));
 
-			var atmosphereConcentration = 0.5 * 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
+            var atmosphereConcentration = 0.5 * 1e+6 * atmosphereMultiplier * atmosphereParticlesPerCubM * vessel.obt_speed / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -645,7 +645,7 @@ namespace FNPlugin
                     ? Math.Max(0, AtmosphericFloatCurves.Instance.IonSolarMinimumDayTimeCubeCm.Evaluate((float)comparibleEarthAltitudeInKm))
                     : 1.17724306767693e+004f * (1 / (Math.Pow(20, (comparibleEarthAltitudeInKm - 1000) / 1000)));
 
-			var atmosphereConcentration = 1e+3 * atmosphereMultiplier * atmosphereIonsPerCubCm / PhysicsGlobals.AvogadroConstant;
+            var atmosphereConcentration = 1e+3 * atmosphereMultiplier * atmosphereIonsPerCubCm / PhysicsGlobals.AvogadroConstant;
 
             return float.IsInfinity((float)atmosphereConcentration) ? 0 : atmosphereConcentration;
         }
@@ -692,15 +692,15 @@ namespace FNPlugin
             {
                 var requiredHeliumMass = TimeWarp.fixedDeltaTime * heliumRequirementTonPerSecond;
 
-                var heliumGasRequired = requiredHeliumMass / helium4GasResourceDefinition.density;
+                var heliumGasRequired = requiredHeliumMass / (double)(decimal)helium4GasResourceDefinition.density;
                 var receivedHeliumGas = part.RequestResource(helium4GasResourceDefinition.id, heliumGasRequired);
-                var receivedHeliumGasMass = receivedHeliumGas * helium4GasResourceDefinition.density;
+                var receivedHeliumGasMass = receivedHeliumGas * (double)(decimal)helium4GasResourceDefinition.density;
 
                 var massHeliumMassShortage = (requiredHeliumMass - receivedHeliumGasMass);
 
-                var lqdHeliumRequired = massHeliumMassShortage / lqdHelium4ResourceDefinition.density;
+                var lqdHeliumRequired = massHeliumMassShortage / (double)(decimal)lqdHelium4ResourceDefinition.density;
                 var receivedLqdHelium = part.RequestResource(lqdHelium4ResourceDefinition.id, lqdHeliumRequired);
-                var receiverLqdHeliumMass = receivedLqdHelium * lqdHelium4ResourceDefinition.density;
+                var receiverLqdHeliumMass = receivedLqdHelium * (double)(decimal)lqdHelium4ResourceDefinition.density;
 
                 var heliumRatio = Math.Min(1,  requiredHeliumMass > 0 ? (receivedHeliumGasMass + receiverLqdHeliumMass) / requiredHeliumMass : 0);
 
@@ -763,7 +763,7 @@ namespace FNPlugin
             /** The first important bit.
              * This determines how much solar wind will be collected. Can be tweaked in part configs by changing the collector's effectiveness.
              * */
-            var dSolarDustResourceChange = (solarWindGramCollectedPerSecond + interstellarGramCollectedPerSecond) * deltaTimeInSeconds * 1e-6 / solarWindResourceDefinition.density;
+            var dSolarDustResourceChange = (solarWindGramCollectedPerSecond + interstellarGramCollectedPerSecond) * deltaTimeInSeconds * 1e-6 / (double)(decimal)solarWindResourceDefinition.density;
 
             // if the vessel has been out of focus, print out the collected amount for the player
             if (offlineCollecting && dSolarDustResourceChange > 0)
@@ -777,7 +777,7 @@ namespace FNPlugin
             dWindResourceFlow = -part.RequestResource(solarWindResourceDefinition.id, -dSolarDustResourceChange);
 
             var dHydrogenCollectedPerSecond = hydrogenMolarMassPerSquareMeterPerSecond * effectiveMagneticSurfaceAreaForCollection;
-            var dHydrogenResourceChange = dHydrogenCollectedPerSecond * 1e-6 / hydrogenResourceDefinition.density;
+            var dHydrogenResourceChange = dHydrogenCollectedPerSecond * 1e-6 / (double)(decimal)hydrogenResourceDefinition.density;
             dHydrogenResourceFlow = -part.RequestResource(hydrogenResourceDefinition.id, -dHydrogenResourceChange);
 
             if (offlineCollecting && dHydrogenResourceChange > 0)
@@ -788,7 +788,7 @@ namespace FNPlugin
             }
 
             var dHeliumCollectedPerSecond = heliumMolarMassPerSquareMeterPerSecond * effectiveMagneticSurfaceAreaForCollection;
-            var dHeliumResourceChange = dHeliumCollectedPerSecond * 1e-6 / helium4GasResourceDefinition.density;
+            var dHeliumResourceChange = dHeliumCollectedPerSecond * 1e-6 / (double)(decimal)helium4GasResourceDefinition.density;
             dHeliumResourceFlow = -part.RequestResource(helium4GasResourceDefinition.id, -dHeliumResourceChange);
 
             if (offlineCollecting && dHeliumResourceChange > 0)
