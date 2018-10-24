@@ -10,8 +10,8 @@ using TweakScale;
 
 namespace FNPlugin
 {
-	[KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
-	class ElectrostaticEngineControllerFX : ElectricEngineControllerFX { }
+    [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
+    class ElectrostaticEngineControllerFX : ElectricEngineControllerFX { }
 
 
     [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
@@ -772,8 +772,8 @@ namespace FNPlugin
 
             if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
             {
-                var engineFuelFlow = _attachedEngine.maxFuelFlow * _attachedEngine.currentThrottle;  //_attachedEngine.fuelFlowGui * _attachedEngine.mixtureDensity;
-                var max_fuel_flow_rate = _attachedEngine.maxThrust / _attachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
+                var engineFuelFlow = (double)(decimal)_attachedEngine.maxFuelFlow * (double)(decimal)_attachedEngine.currentThrottle;  //_attachedEngine.fuelFlowGui * _attachedEngine.mixtureDensity;
+                var max_fuel_flow_rate = (double)(decimal)_attachedEngine.maxThrust / (double)(decimal)_attachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
 
                 effectPower = Math.Min(1, particleEffectMult * (engineFuelFlow / max_fuel_flow_rate));
 

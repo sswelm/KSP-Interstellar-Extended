@@ -46,14 +46,14 @@ namespace FNPlugin
         [KSPField]
         public double fuelRatio;
         [KSPField]
-        private double averageDensityForPopellantWithMass;
+        private double averageDensityInTonPerLiter;
         [KSPField]
         private double massPropellantRatio;
         [KSPField]
         private double ratioSumWithoutMass;
 
         // Numeric display values
-        [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
 
         protected double isp_d;
@@ -63,6 +63,11 @@ namespace FNPlugin
         double _ispPersistent;
         double _thrustPersistent;
         double _throttlePersistent;
+
+        private double fuelVolume1;
+        private double fuelVolume2;
+        private double fuelVolume3;
+        private double fuelVolume4;
 
         private double fuelWithMassPercentage1;
         private double fuelWithMassPercentage2;
@@ -138,7 +143,7 @@ namespace FNPlugin
                 if (propellantResourceDefinition1.density > 0)
                 {
                     ratioSumWithMass = ratio1;
-                    densitySum += propellantResourceDefinition1.density * ratio1;
+                    densitySum += StandardDensity(propellantResourceDefinition1) * ratio1;
                 }
             }
             if (propellantResourceDefinition2 != null)
@@ -147,7 +152,7 @@ namespace FNPlugin
                 if (propellantResourceDefinition2.density > 0)
                 {
                     ratioSumWithMass = ratio2;
-                    densitySum += propellantResourceDefinition2.density * ratio2;
+                    densitySum += StandardDensity(propellantResourceDefinition2) * ratio2;
                 }
             }
             if (propellantResourceDefinition3 != null)
@@ -156,7 +161,7 @@ namespace FNPlugin
                 if (propellantResourceDefinition3.density > 0)
                 {
                     ratioSumWithMass = ratio3;
-                    densitySum += propellantResourceDefinition3.density * ratio3;
+                    densitySum += StandardDensity(propellantResourceDefinition3) * ratio3;
                 }
             }
             if (propellantResourceDefinition4 != null)
@@ -165,13 +170,18 @@ namespace FNPlugin
                 if (propellantResourceDefinition4.density > 0)
                 {
                     ratioSumWithMass = ratio4;
-                    densitySum += propellantResourceDefinition4.density * ratio4;
+                    densitySum += StandardDensity(propellantResourceDefinition4) * ratio4;
                 }
             }
             
-            averageDensityForPopellantWithMass = densitySum / ratioSumWithMass;
+            averageDensityInTonPerLiter = densitySum / ratioSumWithMass;
             massPropellantRatio = ratioSumWithMass / ratioSumOveral;
             ratioSumWithoutMass = ratioSumOveral - ratioSumWithMass;
+
+            fuelVolume1 = propellantResourceDefinition1.density > 0 ? propellantResourceDefinition1.volume > 0 ? (double)(decimal)propellantResourceDefinition1.volume : 1 : 0;
+            fuelVolume2 = propellantResourceDefinition1.density > 0 ? propellantResourceDefinition1.volume > 0 ? (double)(decimal)propellantResourceDefinition1.volume : 1 : 0;
+            fuelVolume3 = propellantResourceDefinition1.density > 0 ? propellantResourceDefinition1.volume > 0 ? (double)(decimal)propellantResourceDefinition1.volume : 1 : 0;
+            fuelVolume4 = propellantResourceDefinition1.density > 0 ? propellantResourceDefinition1.volume > 0 ? (double)(decimal)propellantResourceDefinition1.volume : 1 : 0;
 
             fuelWithMassPercentage1 = propellantResourceDefinition1 != null && propellantResourceDefinition1.density > 0 ? ratio1 / ratioSumWithMass : 0;
             fuelWithMassPercentage2 = propellantResourceDefinition2 != null && propellantResourceDefinition2.density > 0 ? ratio2 / ratioSumWithMass : 0;
@@ -182,6 +192,13 @@ namespace FNPlugin
             masslessFuelPercentage2 = propellantResourceDefinition2 != null && propellantResourceDefinition2.density <= 0 ? ratio2 / ratioSumWithoutMass : 0;
             masslessFuelPercentage3 = propellantResourceDefinition3 != null && propellantResourceDefinition3.density <= 0 ? ratio3 / ratioSumWithoutMass : 0;
             masslessFuelPercentage4 = propellantResourceDefinition4 != null && propellantResourceDefinition4.density <= 0 ? ratio4 / ratioSumWithoutMass : 0;
+        }
+
+        private double StandardDensity(PartResourceDefinition definition)
+        {
+            return definition.volume > 0
+                ? (double)(decimal)definition.density / (double)(decimal)definition.volume
+                : (double)(decimal)definition.density;
         }
 
         private double CollectFuel(double demandMass, ResourceFlowMode fuelMode = ResourceFlowMode.STACK_PRIORITY_SEARCH)
@@ -197,57 +214,57 @@ namespace FNPlugin
             double fuelRequestAmount3 = 0;
             double fuelRequestAmount4 = 0;
 
-            var propellantWithMassNeeded = demandMass / averageDensityForPopellantWithMass;
-            var overalAmountNeeded = propellantWithMassNeeded / massPropellantRatio;
-            var masslessResourceNeeded = overalAmountNeeded - propellantWithMassNeeded;
+            var propellantWithMassNeededInLiter = demandMass / averageDensityInTonPerLiter;
+            var overalAmountNeeded = propellantWithMassNeededInLiter / massPropellantRatio;
+            var masslessResourceNeeded = overalAmountNeeded - propellantWithMassNeededInLiter;
 
             // first determine lowest availalable resource ratio
             double availableRatio = 1;
             if (propellantResourceDefinition1 != null && ratio1 > 0)
             {
-                fuelRequestAmount1 = fuelWithMassPercentage1 > 0 ? fuelWithMassPercentage1 * propellantWithMassNeeded : masslessFuelPercentage1 * masslessResourceNeeded;
-				availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(propellantResourceDefinition1, fuelMode) / fuelRequestAmount1);
+                fuelRequestAmount1 = fuelWithMassPercentage1 > 0 ? fuelWithMassPercentage1 * propellantWithMassNeededInLiter * fuelVolume1 : masslessFuelPercentage1 * masslessResourceNeeded;
+                availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(propellantResourceDefinition1, fuelMode) / fuelRequestAmount1);
             }
             if (propellantResourceDefinition2 != null && ratio2 > 0)
             {
-                fuelRequestAmount2 = fuelWithMassPercentage2 > 0 ? fuelWithMassPercentage2 * propellantWithMassNeeded : masslessFuelPercentage2 * masslessResourceNeeded;
+                fuelRequestAmount2 = fuelWithMassPercentage2 > 0 ? fuelWithMassPercentage2 * propellantWithMassNeededInLiter * fuelVolume2 : masslessFuelPercentage2 * masslessResourceNeeded;
                 availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(propellantResourceDefinition2, fuelMode) / fuelRequestAmount2);
             }
             if (propellantResourceDefinition3 != null && ratio3 > 0)
             {
-                fuelRequestAmount3 = fuelWithMassPercentage3 > 0 ? fuelWithMassPercentage3 * propellantWithMassNeeded : masslessFuelPercentage3 * masslessResourceNeeded;
+                fuelRequestAmount3 = fuelWithMassPercentage3 > 0 ? fuelWithMassPercentage3 * propellantWithMassNeededInLiter * fuelVolume3 : masslessFuelPercentage3 * masslessResourceNeeded;
                 availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(propellantResourceDefinition3, fuelMode) / fuelRequestAmount3);
             }
             if (propellantResourceDefinition4 != null && ratio4 > 0)
             {
-                fuelRequestAmount4 = fuelWithMassPercentage4 > 0 ? fuelWithMassPercentage4 * propellantWithMassNeeded : masslessFuelPercentage4 * masslessResourceNeeded;
+                fuelRequestAmount4 = fuelWithMassPercentage4 > 0 ? fuelWithMassPercentage4 * propellantWithMassNeededInLiter * fuelVolume4 : masslessFuelPercentage4 * masslessResourceNeeded;
                 availableRatio = Math.Min(availableRatio, part.GetResourceAvailable(propellantResourceDefinition4, fuelMode) / fuelRequestAmount4);
             }
 
             // ignore insignificant amount
-            if (availableRatio < 1e-3)
+            if (availableRatio < 1e-6)
                 return 0;
 
             double recievedRatio = 1;
             if (fuelRequestAmount1 > 0)
             {
-                var propellantUsed = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, fuelMode);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount1 > 0 ? propellantUsed / fuelRequestAmount1 : 0);
+                var consumePropellant1 = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, fuelMode);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount1 > 0 ? consumePropellant1 / fuelRequestAmount1 : 0);
             }
             if (fuelRequestAmount2 > 0)
             {
-                var propellantUsed = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, fuelMode);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount2 > 0 ? propellantUsed / fuelRequestAmount2 : 0);
+                var consumedPropellant2 = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, fuelMode);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount2 > 0 ? consumedPropellant2 / fuelRequestAmount2 : 0);
             }
             if (fuelRequestAmount3 > 0)
             {
-                var propellantUsed = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, fuelMode);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount3 > 0 ? propellantUsed / fuelRequestAmount3 : 0);
+                var consumedpropellant3 = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, fuelMode);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount3 > 0 ? consumedpropellant3 / fuelRequestAmount3 : 0);
             }
             if (fuelRequestAmount4 > 0)
             {
-                var propellantUsed = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, fuelMode);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount4 > 0 ? propellantUsed / fuelRequestAmount4 : 0);
+                var consumedPropellant4 = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, fuelMode);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount4 > 0 ? consumedPropellant4 / fuelRequestAmount4 : 0);
             }
 
             return Math.Min (recievedRatio, 1);
@@ -276,7 +293,7 @@ namespace FNPlugin
                     _ispPersistent = (double)(decimal)realIsp;
                     _throttlePersistent = (double)(decimal)vessel.ctrlState.mainThrottle;
 
-                    if (_throttlePersistent == 0 && finalThrust < 0.0005)
+                    if (_throttlePersistent == 0 && finalThrust < 0.0000005)
                         _thrustPersistent = 0;
                     else
                         _thrustPersistent = (double)(decimal)finalThrust;
@@ -292,7 +309,7 @@ namespace FNPlugin
                 _thrustPersistent = requestedFlow * GameConstants.STANDARD_GRAVITY * _ispPersistent;
 
                 // only persist thrust if non zero throttle or significant thrust
-                if (_throttlePersistent > 0 || _thrustPersistent >= 0.0005)
+                if (_throttlePersistent > 0 || _thrustPersistent > 0.0000005)
                 {
                     demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime; // Change in mass over dT
                     fuelRatio = CollectFuel(demandMass);
@@ -304,7 +321,7 @@ namespace FNPlugin
                         var deltaV = _ispPersistent * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
                         vessel.orbit.Perturb(deltaV * (Vector3d)this.part.transform.up, Planetarium.GetUniversalTime()); // Update vessel orbit
                     }
-                    else
+                    else if (demandMass > 0)
                     {
                         var message = "Thrust warp stopped - propellant depleted";
                         Debug.Log("[KSPI] - " + message);

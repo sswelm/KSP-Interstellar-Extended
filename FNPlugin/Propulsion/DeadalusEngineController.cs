@@ -548,17 +548,17 @@ namespace FNPlugin
             if (fusionFuelResourceDefinition1 != null)
             {
                 ratioSum += fusionFuelRatio1;
-                densitySum += fusionFuelResourceDefinition1.density * fusionFuelRatio1; 
+                densitySum += (double)(decimal)fusionFuelResourceDefinition1.density * fusionFuelRatio1; 
             }
             if (fusionFuelResourceDefinition2 != null)
             {
                 ratioSum += fusionFuelRatio2;
-                densitySum += fusionFuelResourceDefinition2.density * fusionFuelRatio2; 
+                densitySum += (double)(decimal)fusionFuelResourceDefinition2.density * fusionFuelRatio2; 
             }
             if (fusionFuelResourceDefinition3 != null)
             {
                 ratioSum += fusionFuelRatio3;
-                densitySum += fusionFuelResourceDefinition3.density * fusionFuelRatio3; 
+                densitySum += (double)(decimal)fusionFuelResourceDefinition3.density * fusionFuelRatio3; 
             }
 
             averageDensity = densitySum / ratioSum;
