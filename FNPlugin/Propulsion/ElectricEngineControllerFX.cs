@@ -104,7 +104,7 @@ namespace FNPlugin
         // GUI
         [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
-        [KSPField(guiActive = true, guiName = "Calculated Thrust", guiFormat = "F6", guiUnits = "kN")]
+        [KSPField(guiActive = false, guiName = "Calculated Thrust", guiFormat = "F6", guiUnits = "kN")]
         public double calculated_thrust;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
         public double engineIsp;
@@ -187,6 +187,8 @@ namespace FNPlugin
         [KSPField]
         public double maxPower = 1000;
 
+        int fuelRatioCounter = 0;
+
         int _rep;
         int _initializationCountdown;
         int _numberOfAvailableUpgradeTechs;
@@ -194,6 +196,7 @@ namespace FNPlugin
         bool _hasrequiredupgrade;
         bool _hasGearTechnology;
         bool _warpToReal;
+        bool _isFullyStarted;
 
         ResourceBuffers resourceBuffers;
         FloatCurve _ispFloatCurve;
@@ -260,6 +263,7 @@ namespace FNPlugin
 
                 _current_propellant = value;
                 propellantIsSaved = true;
+                fuel_mode = _propellants.IndexOf(_current_propellant);
                 propellantName = _current_propellant.PropellantName;
                 propellantGUIName = _current_propellant.PropellantGUIName;
                 _modifiedCurrentPropellantIspMultiplier = CurrentIspMultiplier;
@@ -418,8 +422,8 @@ namespace FNPlugin
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, (double)(decimal)this.part.mass);
                 resourceBuffers.Init(this.part);
 
-                // initialize propellant
-                _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
+                InitializePropellantMode();
+
                 SetupPropellants(true);
 
                 _attachedEngine.maxThrust = (float)maxThrustInSpace;
@@ -429,6 +433,36 @@ namespace FNPlugin
                 Debug.LogError("[KSPI] - Error OnStart ElectricEngineControllerFX " + e.Message);
             }
             Debug.Log("[KSPI] - End Initializing ElectricEngineControllerFX");
+        }
+
+        private void InitializePropellantMode()
+        {
+            // initialize propellant
+            _propellants = ElectricEnginePropellant.GetPropellantsEngineForType(type);
+
+            if (propellantIsSaved || HighLogic.LoadedSceneIsEditor)
+            {
+                if (!string.IsNullOrEmpty(propellantName))
+                {
+                    Current_propellant = _propellants.FirstOrDefault(m => m.PropellantName == propellantName);
+
+                    if (Current_propellant == null)
+                        Current_propellant = _propellants.FirstOrDefault(m => m.PropellantGUIName == propellantName);
+                }
+
+                if (Current_propellant == null && !string.IsNullOrEmpty(propellantGUIName))
+                {
+                    Current_propellant = _propellants.FirstOrDefault(m => m.PropellantName == propellantGUIName);
+
+                    if (Current_propellant == null)
+                        Current_propellant = _propellants.FirstOrDefault(m => m.PropellantGUIName == propellantGUIName);
+                }
+            }
+            if (_propellants == null)
+                Debug.LogWarning("[KSPI] - SetupPropellants _propellants is still null");
+
+            if (Current_propellant == null)
+                Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.First();
         }
 
         private void AttachToEngine()
@@ -450,35 +484,7 @@ namespace FNPlugin
         {
             try
             {
-                if (propellantIsSaved || HighLogic.LoadedSceneIsEditor)
-                {
-                    if (!string.IsNullOrEmpty(propellantName))
-                    {
-                        Current_propellant = _propellants.FirstOrDefault(m => m.PropellantName == propellantName);
-
-                        if (Current_propellant == null)
-                            Current_propellant = _propellants.FirstOrDefault(m => m.PropellantGUIName == propellantName);
-                    }
-
-                    if (Current_propellant == null && !string.IsNullOrEmpty(propellantGUIName))
-                    {
-                        Current_propellant = _propellants.FirstOrDefault(m => m.PropellantName == propellantGUIName);
-
-                        if (Current_propellant == null)
-                            Current_propellant = _propellants.FirstOrDefault(m => m.PropellantGUIName == propellantGUIName);
-                    }
-                }
-
-                Debug.LogWarning("[KSPI] - SetupPropellants Begin");
-
-                if (_propellants == null)
-                    Debug.LogWarning("[KSPI] - SetupPropellants _propellants is still null");
-
-                if (Current_propellant == null)
-                    Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.First();
-
-                 if (Current_propellant == null)
-                     Debug.LogWarning("[KSPI] - SetupPropellants Current_propellant is still null");
+                Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.First();
 
                 if ((Current_propellant.SupportedEngines & type) != type)
                 {
@@ -488,18 +494,12 @@ namespace FNPlugin
                     return;
                 }
 
-                Debug.LogWarning("[KSPI] - SetupPropellants Add Propellant");
-
                 var listOfPropellants = new List<Propellant>();
                 listOfPropellants.Add(Current_propellant.Propellant);
-
-                Debug.LogWarning("[KSPI] - SetupPropellants Check Propellants");
 
                 // if all propellant exist
                 if (!listOfPropellants.Exists(prop => PartResourceLibrary.Instance.GetDefinition(prop.name) == null))
                 {
-                    Debug.LogWarning("[KSPI] - SetupPropellants Load Propellant");
-
                     //Get the Ignition state, i.e. is the engine shutdown or activated
                     var engineState = _attachedEngine.getIgnitionState;
 
@@ -524,8 +524,6 @@ namespace FNPlugin
                     TogglePropellant(moveNext);
                     return;
                 }
-
-                Debug.LogWarning("[KSPI] - SetupPropellants LoadedSceneIsFlight");
 
                 if (HighLogic.LoadedSceneIsFlight)
                 {
@@ -752,6 +750,8 @@ namespace FNPlugin
 
                 if (!this.vessel.packed)
                 {
+                    _isFullyStarted = true;
+                    fuelRatioCounter = 0;
                     _ispPersistent = (double)(decimal)_attachedEngine.realIsp;
 
                     thrust_d = (double)(decimal)_attachedEngine.requestedMassFlow * GameConstants.STANDARD_GRAVITY * (double)(decimal)_attachedEngine.realIsp;
@@ -762,7 +762,7 @@ namespace FNPlugin
 
                     thrust_d = calculated_thrust;
 
-                    PersistantThrust(TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), this.part.transform.up, this.vessel.totalMass, thrust_d, _ispPersistent);
+                    PersistantThrust((double)(decimal)TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), this.part.transform.up, this.vessel.totalMass, thrust_d, _ispPersistent);
                 }
                 else
                     IdleEngine();
@@ -797,6 +797,7 @@ namespace FNPlugin
         private void IdleEngine()
         {
             thrust_d = 0;
+            fuelRatioCounter = 0;
             calculated_thrust = 0;
 
             var projected_max_thrust = Math.Max(curThrustInSpace - (exitArea * vessel.staticPressurekPa), 0);
@@ -843,12 +844,12 @@ namespace FNPlugin
             return !(value <= 0);
         }
 
-        private void PersistantThrust(float fixedDeltaTime, double universalTime, Vector3d thrustDirection, double vesselMass, double thrust, double isp)
+        private void PersistantThrust(double fixedDeltaTime, double universalTime, Vector3d thrustDirection, double vesselMass, double thrust, double isp)
         {
             double fuelRatio = 0;
             double demandMass;
 
-            var deltaVv = thrustDirection.CalculateDeltaVV(vesselMass, fixedDeltaTime, thrust, isp, out demandMass);
+            var deltaVv = CalculateDeltaVV(thrustDirection, vesselMass, fixedDeltaTime, thrust, isp, out demandMass);
 
             // determine fuel availability
             if (!Current_propellant.IsInfinite && !CheatOptions.InfinitePropellant && Current_propellant.ResourceDefinition.density > 0)
@@ -861,13 +862,16 @@ namespace FNPlugin
                 fuelRatio = 1;
 
             if (fuelRatio > 0)
-                vessel.orbit.Perturb(deltaVv * fuelRatio, universalTime);
-            else if (demandMass > 0)
             {
-                var message = "Thrust warp stopped - propellant depleted";
-                Debug.Log("[KSPI] - " + message);
+                fuelRatioCounter = 0;
+                vessel.orbit.Perturb(deltaVv * fuelRatio, universalTime);
+            }
+
+            if (fuelRatio < 0.999999 && _isFullyStarted)
+            {
+                var message = "Thrust warp stopped - " + fuelRatio + " propellant depleted thust: " + thrust;
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                // Return to realtime
+                Debug.Log("[KSPI] - " + message);
                 TimeWarp.SetRate(0, true);
             }
         }
@@ -996,6 +1000,25 @@ namespace FNPlugin
                 propellantList = propellantlist.Select(prop => new ElectricEnginePropellant(prop)).ToList();
 
             return propellantList;
+        }
+
+        public static Vector3d CalculateDeltaVV(Vector3d thrustDirection, double totalMass, double deltaTime, double thrust, double isp, out double demandMass)
+        {
+            // Mass flow rate
+            var massFlowRate = thrust / (isp * GameConstants.STANDARD_GRAVITY);
+            // Change in mass over time interval dT
+            var dm = massFlowRate * deltaTime;
+            // Resource demand from propellants with mass
+            demandMass = dm;
+            // Mass at end of time interval dT
+            var finalMass = totalMass - dm;
+            // deltaV amount
+            var deltaV = finalMass > 0 && totalMass > 0
+                ? isp * GameConstants.STANDARD_GRAVITY * Math.Log(totalMass / finalMass)
+                : 0;
+
+            // Return deltaV vector
+            return deltaV * thrustDirection;
         }
 
         public override int getPowerPriority()
