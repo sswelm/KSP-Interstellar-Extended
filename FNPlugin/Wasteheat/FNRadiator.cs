@@ -384,7 +384,7 @@ namespace FNPlugin.Wasteheat
             if (radiator_vessel.Any())
             {
                 var maxRadiatorTemperature = radiator_vessel.Max(r => r.MaxRadiatorTemperature);
-                var totalRadiatorsMass = radiator_vessel.Sum(r => r.part.mass);
+                var totalRadiatorsMass = radiator_vessel.Sum(r =>  (double)(decimal) r.part.mass);
 
                 return radiator_vessel.Sum(r => Math.Min(1, r.GetAverateRadiatorTemperature() / r.MaxRadiatorTemperature) * maxRadiatorTemperature * (r.part.mass / totalRadiatorsMass));
             }

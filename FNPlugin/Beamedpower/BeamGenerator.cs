@@ -38,9 +38,9 @@ namespace FNPlugin.Microwave
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power to Beam Efficiency", guiFormat = "F0", guiUnits = "%")]
         public double efficiencyPercentage = 90;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
-        public float storedMassMultiplier;
+        public double storedMassMultiplier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Initial Mass", guiUnits = " t")]
-        public float initialMass;
+        public double initialMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
         public double targetMass = 1;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
@@ -106,8 +106,8 @@ namespace FNPlugin.Microwave
             try
             {
                 Debug.Log("BeamGenerator.OnRescale called with " + factor.absolute.linear);
-                storedMassMultiplier = Mathf.Pow(factor.absolute.linear, 3);
-                initialMass = part.prefabMass * storedMassMultiplier;
+                storedMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, 3);
+                initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
                 if (maximumPower > 0)
                     targetMass = maximumPower * powerMassFraction * 0.001;
                 else
@@ -125,9 +125,9 @@ namespace FNPlugin.Microwave
             initialMass = part.prefabMass * storedMassMultiplier;
 
             if (initialMass == 0)
-                initialMass = part.prefabMass;
+                initialMass = (double)(decimal)part.prefabMass;
             if (targetMass == 0)
-                targetMass = part.prefabMass;
+                targetMass = (double)(decimal)part.prefabMass;
 
             InitializeWavelengthSelector();
         }

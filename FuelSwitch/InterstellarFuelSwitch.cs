@@ -250,7 +250,7 @@ namespace InterstellarFuelSwitch
                 baseMassMultiplier = Math.Pow(factorAbsoluteLinear, baseMassExponent == 0 ? massExponent : baseMassExponent);
                 initialMassMultiplier = Math.Pow(factorAbsoluteLinear, tweakscaleMassExponent);
 
-                initialMass = part.prefabMass * initialMassMultiplier;
+                initialMass = (double)(decimal)part.prefabMass * initialMassMultiplier;
             }
             catch (Exception e)
             {
@@ -311,10 +311,10 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-                initialMass = part.prefabMass * initialMassMultiplier;
+                initialMass = (double)(decimal)part.prefabMass * initialMassMultiplier;
 
                 if (initialMass == 0)
-                    initialMass = part.prefabMass;
+                    initialMass = (double)(decimal)part.prefabMass;
 
                 defaultTank = Localizer.Format(defaultTank);
 
@@ -1022,7 +1022,7 @@ namespace InterstellarFuelSwitch
 
             // prevent 0 mass
             if (mass <= 0)
-                mass = part.prefabMass * initialMassMultiplier;
+                mass = (double)(decimal)part.prefabMass * initialMassMultiplier;
 
             return mass;
         }

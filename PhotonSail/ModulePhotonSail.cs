@@ -432,7 +432,7 @@ namespace FNPlugin.Beamedpower
             {
                 Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
                 storedMassMultiplier = Mathf.Pow(factor.absolute.linear, 2);
-                initialMass = part.prefabMass * storedMassMultiplier;
+                initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
             }
             catch (Exception e)
             {
@@ -510,11 +510,11 @@ namespace FNPlugin.Beamedpower
 
         private void InitializeMassVariables()
         {
-            initialMass = part.prefabMass * storedMassMultiplier;
+            initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
             if (initialMass == 0)
             {
-                initialMass = part.mass;
-                storedMassMultiplier = initialMass / part.prefabMass;
+                initialMass = (double)(decimal)part.mass;
+                storedMassMultiplier = initialMass / (double)(decimal)part.prefabMass;
             }
         }
 
@@ -971,7 +971,7 @@ namespace FNPlugin.Beamedpower
 
         private void ProcesThermalDynamics(double absorbedPhotonHeatInWatt)
         {
-            var thermalMassPerKilogram = part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;            
+            var thermalMassPerKilogram = (double)(decimal)part.mass * part.skinThermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;            
 
             // calculate heating
             solarfluxWasteheatInMegaJoules = (1 - reflectedPhotonRatio) * totalSolarEnergyReceivedInMJ * Math.Max(0, 1 - vessel.atmDensity);

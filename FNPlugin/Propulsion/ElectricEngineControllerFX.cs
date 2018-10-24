@@ -47,7 +47,7 @@ namespace FNPlugin
         [KSPField]
         public int upgradedtype = 0;
         [KSPField]
-        public float baseISP = 1000;
+        public double baseISP = 1000;
         [KSPField]
         public double ispGears = 1;
         [KSPField]
@@ -142,7 +142,7 @@ namespace FNPlugin
         public double timeDilation;
 
         // privates
-        const double OneThird = 1.0 / 3.0;
+        const double OneThird = 1d / 3d;
 
         double _currentPropellantEfficiency;
         double _speedOfLight;
@@ -402,7 +402,7 @@ namespace FNPlugin
                 powerCapacityModifier = PowerCapacityModifier;
 
                 _ispFloatCurve = new FloatCurve();
-                _ispFloatCurve.Add(0, baseISP);
+                _ispFloatCurve.Add(0, (float)baseISP);
                 _speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
                 _hasGearTechnology = String.IsNullOrEmpty(gearsTechReq) || PluginHelper.UpgradeAvailable(gearsTechReq);
                 _modifiedEngineBaseIsp = baseISP * PluginHelper.ElectricEngineIspMult;
@@ -415,7 +415,7 @@ namespace FNPlugin
 
                 resourceBuffers = new ResourceBuffers();
                 resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+4, true));
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, (double)(decimal)this.part.mass);
                 resourceBuffers.Init(this.part);
 
                 // initialize propellant
@@ -664,7 +664,7 @@ namespace FNPlugin
 
             if (Current_propellant == null) return;
 
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, (double)(decimal)this.part.mass);
             resourceBuffers.UpdateBuffers();
 
             if (!this.vessel.packed && !_warpToReal)
@@ -711,7 +711,7 @@ namespace FNPlugin
 
             var throtteModifier = ispGears == 1 ? 1 : ModifiedThrotte;
 
-            var effectivePower = timeDilation * timeDilation * currentPropellantEfficiency * CurrentPropellantThrustMultiplier * throtteModifier * GetPowerThrustModifier() * powerReceived;
+            var effectivePower = timeDilation * currentPropellantEfficiency * CurrentPropellantThrustMultiplier * throtteModifier * GetPowerThrustModifier() * powerReceived;
 
             curThrustInSpace = effectivePower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
 
