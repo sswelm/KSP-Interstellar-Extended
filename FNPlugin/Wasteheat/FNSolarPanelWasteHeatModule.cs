@@ -25,7 +25,7 @@ namespace FNPlugin
         public double kerbalismPowerOutput;
         [KSPField(guiActive = false)]
         public double solar_supply = 0;
-        [KSPField(guiActive = false, guiName = "Solar maximum power", guiUnits = " MW", guiFormat = "F5")]
+        [KSPField(guiActive = true, guiName = "Solar maximum power", guiUnits = " MW", guiFormat = "F5")]
         public double solarMaxSupply = 0;
 
         MicrowavePowerReceiver _microwavePowerReceiver;
@@ -34,6 +34,14 @@ namespace FNPlugin
         PartModule _warpfixer;
         ResourceBuffers _resourceBuffers;
         ModuleResource _solarFlowRateResource;
+        CelestialBody localStar;
+
+        [KSPField(guiActive = true)]
+        public double chargeRate;
+        [KSPField(guiActive = true)]
+        public double distMult;
+        [KSPField(guiActive = true)]
+        public double efficMult;
 
         resourceType outputType = 0;
 
@@ -49,6 +57,8 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return;
+
+            localStar = GetCurrentStar();
 
             _microwavePowerReceiver = part.FindModuleImplementing<MicrowavePowerReceiver>();
             if (_microwavePowerReceiver != null)
@@ -151,10 +161,6 @@ namespace FNPlugin
                     ? _solarPanel._flowRate 
                     : _solarPanel._flowRate * _solarPanel.chargeRate;
 
-            double maxSupply = _solarPanel._distMult > 0
-                ? (double)(decimal)_solarPanel.chargeRate * _solarPanel._distMult * _solarPanel._efficMult
-                : solar_rate;
-
             // when in darkness, clear buffer
             if (solar_rate == 0)
                 flowRateQueue.Clear();
@@ -171,6 +177,12 @@ namespace FNPlugin
             solar_rate = solar_rate == 0 ? 0 : flowRateQueue.Count > 10
                 ? flowRateQueue.OrderBy(m => m).Skip(10).Take(30).Average()
                 : flowRateQueue.Average();
+            
+            chargeRate = (double)(decimal)_solarPanel.chargeRate;
+            distMult = getSolarDistanceMultiplier(vessel, localStar);  //_solarPanel._distMult; 
+            efficMult = _solarPanel._efficMult;
+
+            double maxSupply = chargeRate * distMult * efficMult;
 
             _resourceBuffers.UpdateBuffers();
 
@@ -182,6 +194,30 @@ namespace FNPlugin
             solarMaxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply * 0.001;
 
             megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
-        }       
+        }
+
+        private static double getSolarDistanceMultiplier(Vessel vessel, CelestialBody star)
+        {
+            var toStar = vessel.CoMD - star.position;
+            var distanceToSurfaceStar = toStar.magnitude - star.Radius;
+            var distAU = distanceToSurfaceStar / Constants.GameConstants.kerbin_sun_distance;
+            return 1 / (distAU * distAU);
+        }
+
+        protected CelestialBody GetCurrentStar()
+        {
+            var depth = 0;
+            var star = FlightGlobals.currentMainBody;
+            while ((depth < 10) && (star.GetTemperature(0) < 2000))
+            {
+                star = star.referenceBody;
+                depth++;
+            }
+
+            if ((star.GetTemperature(0) < 2000) || (star.name == "Galactic Core"))
+                star = null;
+
+            return star;
+        }
     }
 }
