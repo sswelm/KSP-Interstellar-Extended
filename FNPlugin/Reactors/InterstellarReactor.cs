@@ -1828,8 +1828,8 @@ namespace FNPlugin.Reactors
             var fixedChargedSpeed = fixedReactorSpeedMult > 0 ? Math.Min(chargedDifference, fixedReactorSpeedMult) : chargedDifference;
 
             var thermalChangeFraction = currentGeneratorThermalEnergyRequestRatio > storedGeneratorThermalEnergyRequestRatio ? fixedThermalSpeed : -fixedThermalSpeed;
-            var plasmaChangeFraction = currentIsPlasmaEnergyGeneratorEfficiency > storedGeneratorPlasmaEnergyRequestRatio ? fixedPlasmaSpeed : -fixedPlasmaSpeed;
-            var chargedChangeFraction = currentIsChargedEnergyGenratorEfficiency > storedGeneratorChargedEnergyRequestRatio ? fixedChargedSpeed : -fixedChargedSpeed;
+            var plasmaChangeFraction = currentGeneratorPlasmaEnergyRequestRatio > storedGeneratorPlasmaEnergyRequestRatio ? fixedPlasmaSpeed : -fixedPlasmaSpeed;
+            var chargedChangeFraction = currentGeneratorChargedEnergyRequestRatio > storedGeneratorChargedEnergyRequestRatio ? fixedChargedSpeed : -fixedChargedSpeed;
 
             storedGeneratorThermalEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorThermalEnergyRequestRatio + thermalChangeFraction));
             storedGeneratorPlasmaEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorPlasmaEnergyRequestRatio + plasmaChangeFraction));
