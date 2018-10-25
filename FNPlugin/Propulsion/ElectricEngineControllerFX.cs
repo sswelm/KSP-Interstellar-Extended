@@ -69,9 +69,11 @@ namespace FNPlugin
         [KSPField]
         public float storedThrotle;
         [KSPField]
-        public float particleEffectMult = 1;
+        public double particleEffectMult = 1;
         [KSPField]
         public bool ignoreWasteheat = false;
+        [KSPField]
+        public double GThreshold = 9;
 
         [KSPField]
         public double Mk1Power = 1;
@@ -186,8 +188,6 @@ namespace FNPlugin
         public double massExponent = 3;
         [KSPField]
         public double maxPower = 1000;
-
-        int fuelRatioCounter = 0;
 
         int _rep;
         int _initializationCountdown;
@@ -629,7 +629,7 @@ namespace FNPlugin
             {
                 return Current_propellant.SupportedEngines == 8
                     ? _attachedEngine.currentThrottle
-                    : Math.Min(_attachedEngine.currentThrottle * IspGears, 1);
+                    : Math.Min((double)(decimal)_attachedEngine.currentThrottle * IspGears, 1);
             }
         }
 
@@ -750,8 +750,10 @@ namespace FNPlugin
 
                 if (!this.vessel.packed)
                 {
+                    // allow throtle to be used up to Geeforce treshold
+                    TimeWarp.GThreshold = GThreshold;
+
                     _isFullyStarted = true;
-                    fuelRatioCounter = 0;
                     _ispPersistent = (double)(decimal)_attachedEngine.realIsp;
 
                     thrust_d = (double)(decimal)_attachedEngine.requestedMassFlow * GameConstants.STANDARD_GRAVITY * (double)(decimal)_attachedEngine.realIsp;
@@ -772,7 +774,7 @@ namespace FNPlugin
 
             if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
             {
-                var engineFuelFlow = (double)(decimal)_attachedEngine.maxFuelFlow * (double)(decimal)_attachedEngine.currentThrottle;  //_attachedEngine.fuelFlowGui * _attachedEngine.mixtureDensity;
+                var engineFuelFlow = (double)(decimal)_attachedEngine.maxFuelFlow * (double)(decimal)_attachedEngine.currentThrottle;
                 var max_fuel_flow_rate = (double)(decimal)_attachedEngine.maxThrust / (double)(decimal)_attachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
 
                 effectPower = Math.Min(1, particleEffectMult * (engineFuelFlow / max_fuel_flow_rate));
@@ -789,7 +791,7 @@ namespace FNPlugin
             if (isupgraded && vacuumPlasmaResource != null)
             {
                 var calculatedConsumptionInTon = this.vessel.packed ? 0 : curThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
-                vacuumPlasmaResource.maxAmount = Math.Max(0.0000001, calculatedConsumptionInTon * 200 * TimeWarp.fixedDeltaTime);
+                vacuumPlasmaResource.maxAmount = Math.Max(0.0000001, calculatedConsumptionInTon * 200 * (double)(decimal)TimeWarp.fixedDeltaTime);
                 part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, - vacuumPlasmaResource.maxAmount);
             }
         }
@@ -797,7 +799,6 @@ namespace FNPlugin
         private void IdleEngine()
         {
             thrust_d = 0;
-            fuelRatioCounter = 0;
             calculated_thrust = 0;
 
             var projected_max_thrust = Math.Max(curThrustInSpace - (exitArea * vessel.staticPressurekPa), 0);
@@ -862,10 +863,7 @@ namespace FNPlugin
                 fuelRatio = 1;
 
             if (fuelRatio > 0)
-            {
-                fuelRatioCounter = 0;
                 vessel.orbit.Perturb(deltaVv * fuelRatio, universalTime);
-            }
 
             if (fuelRatio < 0.999999 && _isFullyStarted)
             {
