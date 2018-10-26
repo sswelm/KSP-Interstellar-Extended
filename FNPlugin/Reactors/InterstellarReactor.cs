@@ -350,7 +350,9 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double hotBathTemperature = 0;
         [KSPField]
-        public bool hasAlternator = false;
+        public bool usePropellantBaseIsp = false;
+
+
         [KSPField]
         public double thermalPropulsionWasteheatModifier = 1;
 
@@ -587,6 +589,8 @@ namespace FNPlugin.Reactors
         {
             return ModifierChangeWhen.STAGED;
         }
+
+        public bool UsePropellantBaseIsp { get { return usePropellantBaseIsp; } }
 
         public bool CanUseAllPowerForPlasma { get { return canUseAllPowerForPlasma;} }
 

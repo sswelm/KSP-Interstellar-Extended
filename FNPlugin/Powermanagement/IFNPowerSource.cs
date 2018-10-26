@@ -23,5 +23,7 @@ namespace FNPlugin.Redist
         bool CanProducePower { get; }
 
         bool CanUseAllPowerForPlasma { get; }
+
+        bool UsePropellantBaseIsp { get; }
     }
 }

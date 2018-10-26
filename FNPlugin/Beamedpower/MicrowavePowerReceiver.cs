@@ -350,6 +350,8 @@ namespace FNPlugin
             received_power.Clear();
         }
 
+        public bool UsePropellantBaseIsp { get { return false; } }
+
         public bool CanUseAllPowerForPlasma { get { return false; } }
 
         public bool CanProducePower { get { return ProducedThermalHeat > 0; } }

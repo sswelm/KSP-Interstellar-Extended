@@ -955,7 +955,7 @@ namespace FNPlugin
             {
                 _heatDecompositionFraction = 1;
 
-                if ((usePropellantBaseIsp || isPlasmaNozzle) && _baseIspMultiplier > 0)
+                if ((usePropellantBaseIsp || AttachedReactor .UsePropellantBaseIsp|| isPlasmaNozzle) && _baseIspMultiplier > 0)
                     _ispPropellantMultiplier = _baseIspMultiplier;
                 else
                     _ispPropellantMultiplier = chosenpropellant.HasValue("ispMultiplier") ? float.Parse(chosenpropellant.GetValue("ispMultiplier")) : 1;
