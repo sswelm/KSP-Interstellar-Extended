@@ -206,8 +206,7 @@ namespace FNPlugin
 
         private static double GetSolarDistanceMultiplier(Vessel vessel, CelestialBody star)
         {
-            var toStar = vessel.CoMD - star.position;
-            var distanceToSurfaceStar = toStar.magnitude - star.Radius;
+            var distanceToSurfaceStar = (vessel.CoMD - star.position).magnitude - star.Radius;
             var distanceInAU = distanceToSurfaceStar / Constants.GameConstants.kerbin_sun_distance;
             return 1 / (distanceInAU * distanceInAU);
         }
@@ -223,8 +222,8 @@ namespace FNPlugin
                 depth++;
             }
 
-			Debug.Log("[KSPI] - surface temperature of local star " + star.name + " is " + star.atmosphereTemperatureSeaLevel + " K");
-			Debug.Log("[KSPI] - mass of local star " + star.name + " is " + star.Mass / FlightGlobals.GetHomeBody().Mass + " times mass homeworld");
+            Debug.Log("[KSPI] - surface temperature of local star " + star.name + " is " + star.atmosphereTemperatureSeaLevel + " K");
+            Debug.Log("[KSPI] - mass of local star " + star.name + " is " + star.Mass / FlightGlobals.GetHomeBody().Mass + " times mass homeworld");
 
             return star;
         }
