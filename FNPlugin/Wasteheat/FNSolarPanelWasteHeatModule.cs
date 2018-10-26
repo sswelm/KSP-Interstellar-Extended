@@ -42,6 +42,11 @@ namespace FNPlugin
         public double distMult;
         [KSPField(guiActive = true)]
         public double efficMult;
+        [KSPField(guiActive = true)]
+        public double sunAOA;
+
+        [KSPField(guiActive = true, guiName = "calculated Flow", guiUnits = " MW", guiFormat = "F5")]
+        public double calculatedFlow = 0;
 
         resourceType outputType = 0;
 
@@ -179,10 +184,13 @@ namespace FNPlugin
                 : flowRateQueue.Average();
             
             chargeRate = (double)(decimal)_solarPanel.chargeRate;
-            distMult = getSolarDistanceMultiplier(vessel, localStar);  //_solarPanel._distMult; 
+            distMult = GetSolarDistanceMultiplier(vessel, localStar);  //_solarPanel._distMult; 
             efficMult = _solarPanel._efficMult;
+            sunAOA = (double)(decimal)_solarPanel.sunAOA;
 
             double maxSupply = chargeRate * distMult * efficMult;
+
+            calculatedFlow = maxSupply * sunAOA;
 
             _resourceBuffers.UpdateBuffers();
 
@@ -196,26 +204,27 @@ namespace FNPlugin
             megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
-        private static double getSolarDistanceMultiplier(Vessel vessel, CelestialBody star)
+        private static double GetSolarDistanceMultiplier(Vessel vessel, CelestialBody star)
         {
             var toStar = vessel.CoMD - star.position;
             var distanceToSurfaceStar = toStar.magnitude - star.Radius;
-            var distAU = distanceToSurfaceStar / Constants.GameConstants.kerbin_sun_distance;
-            return 1 / (distAU * distAU);
+            var distanceInAU = distanceToSurfaceStar / Constants.GameConstants.kerbin_sun_distance;
+            return 1 / (distanceInAU * distanceInAU);
         }
 
-        protected CelestialBody GetCurrentStar()
+        private static CelestialBody GetCurrentStar()
         {
             var depth = 0;
             var star = FlightGlobals.currentMainBody;
-            while ((depth < 10) && (star.GetTemperature(0) < 2000))
+
+            while (depth < 10 && star.referenceBody != null && star.GetTemperature(0) < 2000)
             {
                 star = star.referenceBody;
                 depth++;
             }
 
-            if ((star.GetTemperature(0) < 2000) || (star.name == "Galactic Core"))
-                star = null;
+			Debug.Log("[KSPI] - surface temperature of local star " + star.name + " is " + star.atmosphereTemperatureSeaLevel + " K");
+			Debug.Log("[KSPI] - mass of local star " + star.name + " is " + star.Mass / FlightGlobals.GetHomeBody().Mass + " times mass homeworld");
 
             return star;
         }
