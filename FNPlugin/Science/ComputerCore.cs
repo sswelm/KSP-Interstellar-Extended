@@ -26,7 +26,8 @@ namespace FNPlugin
         public double science_to_add;
         [KSPField(isPersistant = true)]
         public bool coreInit = false;
-
+        [KSPField]
+        public double alternatorPower = 0.001;
         [KSPField]
         public string upgradeTechReq = null;
         [KSPField]
@@ -56,7 +57,7 @@ namespace FNPlugin
 
         // Privates
         double science_rate_f;
-        double effectivePowerRequirement; 
+        double effectivePowerRequirement;
 
         ConfigNode _experiment_node;
         BaseField _nameStrField;
@@ -163,6 +164,8 @@ namespace FNPlugin
         {
             base.OnFixedUpdate();
 
+            //
+
             if (isupgraded && IsEnabled)
             {
                 var power_returned = CheatOptions.InfiniteElectricity
@@ -198,6 +201,13 @@ namespace FNPlugin
             }
 
             last_active_time = Planetarium.GetUniversalTime();
+        }
+
+        public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
+        {
+            supplyFNResourcePerSecondWithMax(alternatorPower, alternatorPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+            part.temperature = part.temperature + (TimeWarp.fixedDeltaTime * 1000 * alternatorPower / (part.thermalMass * 0.8));
         }
 
         protected override bool generateScienceData()
@@ -243,6 +253,11 @@ namespace FNPlugin
         public override int getPowerPriority()
         {
             return 2;
+        }
+
+        public override int getSupplyPriority()
+        {
+            return 1;
         }
 
         public override string GetInfo()

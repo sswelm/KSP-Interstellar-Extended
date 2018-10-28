@@ -20,7 +20,7 @@ namespace FNPlugin
     class MicrowavePowerReceiverDish: MicrowavePowerReceiver  {} // tweakscales with exponent 2.25
 
     [KSPModule("Beamed Power Receiver")]
-    class MicrowavePowerReceiver : ResourceSuppliableModule, IFNPowerSource, IElectricPowerGeneratorSource, IBeamedPowerReceiver, ISolarPower // tweakscales with exponent 2.5
+    class MicrowavePowerReceiver : ResourceSuppliableModule, IFNPowerSource, IElectricPowerGeneratorSource, IBeamedPowerReceiver // tweakscales with exponent 2.5
     {
         //Persistent True
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Bandwidth")]
@@ -84,8 +84,8 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Electric Efficiency", guiFormat = "F6")]
         public double effectiveSolarThermalElectricEfficiency;
 
-        [KSPField]
-        public double photovoltaicSolarSupply;
+        //[KSPField]
+        //public double photovoltaicSolarSupply;
         [KSPField]
         public int instanceId;
         [KSPField]
@@ -400,9 +400,10 @@ namespace FNPlugin
 
         public double PowerRatio { get { return receiptPower / 100.0; } }
 
-        public double SolarPower { get { return photovoltaicSolarSupply; } }
+        //public double SolarPower { get { return photovoltaicSolarSupply; } }
 
-        public double ProducedPower { get { return ProducedThermalHeat + SolarPower; } }
+        //public double ProducedPower { get { return ProducedThermalHeat + SolarPower; } }
+        public double ProducedPower { get { return ProducedThermalHeat; } }
 
         public double PowerCapacityEfficiency
         {
@@ -1616,7 +1617,7 @@ namespace FNPlugin
                     }
 
                     // add energy from solar panel to power management and subtract generated power
-                    ProcesSolarCellEnergy();
+                    //ProcesSolarCellEnergy();
 
                     // add alternator power
                     AddAlternatorPower();
@@ -1967,6 +1968,7 @@ namespace FNPlugin
             supplyFNResourcePerSecond(alternatorRatio * powerInputMegajoules * 0.001, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
+        /*
         private void ProcesSolarCellEnergy()
         {
             if (deployableSolarPanel == null)
@@ -2031,6 +2033,7 @@ namespace FNPlugin
             if (photovoltaicSolarSupply > 0)
                 supplyFNResourcePerSecondWithMax(photovoltaicSolarSupply, photovoltaicSolarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
+        */
 
         public double MaxStableMegaWattPower
         {
