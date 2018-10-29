@@ -676,7 +676,8 @@ namespace FNPlugin
             maxThrottlePower = maxEffectivePower * ModifiedThrotte;
             var currentPropellantEfficiency = CurrentPropellantEfficiency;
 
-            var availablePower = Math.Max(getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES), 0);
+            //var availablePower = Math.Max(getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES), 0);
+            var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
             maxThrustInSpace = EvaluateMaxThrust(availablePower * _electrical_share_f);
             _attachedEngine.maxThrust = (float)Math.Max(maxThrustInSpace, 0.001);
@@ -865,7 +866,7 @@ namespace FNPlugin
             if (fuelRatio > 0)
                 vessel.orbit.Perturb(deltaVv * fuelRatio, universalTime);
 
-            if (fuelRatio < 0.999999 && _isFullyStarted)
+            if (thrust > 0.0000005 && fuelRatio < 0.999999 && _isFullyStarted)
             {
                 var message = "Thrust warp stopped - " + fuelRatio + " propellant depleted thust: " + thrust;
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);

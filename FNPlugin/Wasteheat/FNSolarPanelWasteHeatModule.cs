@@ -1,12 +1,12 @@
 using FNPlugin.Power;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
+using UnityEngine;
 
 namespace FNPlugin 
 {
-    enum resourceType
+    enum ResourceType
     {
         electricCharge, megajoule, other
     }
@@ -16,42 +16,38 @@ namespace FNPlugin
         double SolarPower { get; }
     }
 
+    class StarLight
+    {
+        public CelestialBody star;
+        public double luminocity;
+    }
+
     [KSPModule("Solar Panel Adapter")]
     class FNSolarPanelWasteHeatModule : ResourceSuppliableModule, ISolarPower
     {
-        [KSPField( guiActive = true,  guiName = "Solar current power", guiUnits = " MW", guiFormat="F5")]
+        [KSPField( guiActive = true,  guiName = "Current Solar Power", guiUnits = " MW", guiFormat="F5")]
         public double megaJouleSolarPowerSupply;
-        [KSPField(guiActive = false)]
-        public double kerbalismPowerOutput;
+        [KSPField(guiActive = true, guiName = "Maximum Solar Power", guiUnits = " MW", guiFormat = "F5")]
+        public double solarMaxSupply = 0;
+
+        [KSPField(guiActive = true, guiName = "AU", guiFormat = "F0", guiUnits = " m")]
+        public double astronomicalUnit;
+
         [KSPField(guiActive = false)]
         public double solar_supply = 0;
-        [KSPField(guiActive = true, guiName = "Solar maximum power", guiUnits = " MW", guiFormat = "F5")]
-        public double solarMaxSupply = 0;
+        [KSPField(guiActive = false)]
+        public double chargeRate;
+        [KSPField(guiActive = false)]
+        public double sunAOA;
 
         MicrowavePowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
-        BaseField _field_kerbalism_output;
-        PartModule _warpfixer;
         ResourceBuffers _resourceBuffers;
         ModuleResource _solarFlowRateResource;
-        CelestialBody localStar;
+        ResourceType outputType = 0;
 
-        [KSPField(guiActive = true)]
-        public double chargeRate;
-        [KSPField(guiActive = true)]
-        public double distMult;
-        [KSPField(guiActive = true)]
-        public double efficMult;
-        [KSPField(guiActive = true)]
-        public double sunAOA;
-
-        [KSPField(guiActive = true, guiName = "calculated Flow", guiUnits = " MW", guiFormat = "F5")]
-        public double calculatedFlow = 0;
-
-        resourceType outputType = 0;
-
-        public Queue<double> flowRateQueue = new Queue<double>(50);
-
+        static List<StarLight> stars = new List<StarLight>();
+      
         public double SolarPower
         {
             get { return solar_supply; }
@@ -63,21 +59,17 @@ namespace FNPlugin
         {
             if (state == StartState.Editor) return;
 
-            localStar = GetCurrentStar();
+            // calculate Astronomical unit on homeworld semiMajorAxis when missing
+            if (astronomicalUnit == 0)
+                astronomicalUnit = FlightGlobals.GetHomeBody().orbit.semiMajorAxis;
 
             _microwavePowerReceiver = part.FindModuleImplementing<MicrowavePowerReceiver>();
-            if (_microwavePowerReceiver != null)
-            {
-                Fields["megaJouleSolarPowerSupply"].guiActive = false;
-                Fields["solarMaxSupply"].guiActive = false;
-                return;
-            }
-
-            if (part.Modules.Contains("WarpFixer"))
-            {
-                _warpfixer = part.Modules["WarpFixer"];
-                _field_kerbalism_output = _warpfixer.Fields["field_output"];
-            }
+            //if (_microwavePowerReceiver != null)
+            //{
+            //    Fields["megaJouleSolarPowerSupply"].guiActive = false;
+            //    Fields["solarMaxSupply"].guiActive = false;
+            //    return;
+            //}
 
             _solarPanel = (ModuleDeployableSolarPanel)this.part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (_solarPanel == null) return;
@@ -92,26 +84,30 @@ namespace FNPlugin
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
-            _resourceBuffers = new ResourceBuffers();
             if (_solarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
-            {
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
-                outputType = resourceType.megajoule;
-            }
+                outputType = ResourceType.megajoule;
             else if (_solarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
-            {
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
-                outputType = resourceType.electricCharge;
-            }
+                outputType = ResourceType.electricCharge;
             else
-                outputType = resourceType.other;
+                outputType = ResourceType.other;
 
-            _resourceBuffers.Init(this.part);
+            // only manager power buffer when microwave receiver is not available
+            if (outputType !=  ResourceType.other && _microwavePowerReceiver == null)
+            {
+                _resourceBuffers = new ResourceBuffers();
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, (double)(decimal)(outputType == ResourceType.electricCharge ? _solarPanel.chargeRate * 0.001f : _solarPanel.chargeRate));
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)(decimal)(outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * 1000));
+                _resourceBuffers.Init(this.part);
+            }
+
+            ExtractKopernicusStarData("FNSolarPanel");
         }
 
         public override void OnFixedUpdate()
         {
-            if (_microwavePowerReceiver != null) return;
+            //if (_microwavePowerReceiver != null) return;
 
             if (!HighLogic.LoadedSceneIsFlight) return;
 
@@ -122,7 +118,7 @@ namespace FNPlugin
 
         public void FixedUpdate()
         {
-            if (_microwavePowerReceiver != null) return;
+            //if (_microwavePowerReceiver != null) return;
 
             if (!HighLogic.LoadedSceneIsFlight) return;
 
@@ -143,89 +139,186 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            if (_microwavePowerReceiver != null) return;
+            //if (_microwavePowerReceiver != null) return;
 
             if (_solarPanel == null) return;
 
-            if (outputType == resourceType.other) return;
-
-            // readout kerbalism solar power output so we use it
-            if (_field_kerbalism_output != null)
-            {
-                // if GUI is inactive, then Panel doesn't produce power since Kerbalism doesn't reset the value on occlusion
-                // to be fixed in Kerbalism!
-                kerbalismPowerOutput = _field_kerbalism_output.guiActive == true ? _field_kerbalism_output.GetValue<double>(_warpfixer) : 0;
-            }
-
-            // solarPanel.resHandler.outputResource[0].rate is zeroed by Kerbalism, flowRate is bogus.
-            // So we need to assume that Kerbalism Power Output is ok (if present),
-            // since calculating output from flowRate (or _flowRate) will not be possible.
-            double solar_rate = kerbalismPowerOutput > 0 ? kerbalismPowerOutput :
-                _solarPanel.flowRate > 0 ? (double)(decimal)_solarPanel.flowRate :
-                _solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT 
-                    ? _solarPanel._flowRate 
-                    : _solarPanel._flowRate * _solarPanel.chargeRate;
-
-            // when in darkness, clear buffer
-            if (solar_rate == 0)
-                flowRateQueue.Clear();
-            else
-                flowRateQueue.Enqueue(solar_rate);
-
-            // accelerate refresh durring startup
-            if (flowRateQueue.Count < 50)
-                flowRateQueue.Enqueue(solar_rate);
-
-            flowRateQueue.Dequeue();
-
-            // ToDo: replace stabalizedFlowRate by calculated flow rate
-            solar_rate = solar_rate == 0 ? 0 : flowRateQueue.Count > 10
-                ? flowRateQueue.OrderBy(m => m).Skip(10).Take(30).Average()
-                : flowRateQueue.Average();
-            
+            if (outputType == ResourceType.other) return;
+          
             chargeRate = (double)(decimal)_solarPanel.chargeRate;
-            distMult = GetSolarDistanceMultiplier(vessel, localStar);  //_solarPanel._distMult; 
-            efficMult = _solarPanel._efficMult;
-            sunAOA = (double)(decimal)_solarPanel.sunAOA;
+            sunAOA = 0;
 
-            double maxSupply = chargeRate * distMult * efficMult;
+            double efficency = _solarPanel._efficMult > 0 
+                ? _solarPanel._efficMult 
+                : (_solarPanel.temperatureEfficCurve.Evaluate((Single)part.skinTemperature) * _solarPanel.timeEfficCurve.Evaluate((Single)((Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05)) * _solarPanel.efficiencyMult);
+            
+            double maxSupply = 0;
+            double solar_rate = 0;
 
-            calculatedFlow = maxSupply * sunAOA;
+            CalculateSolarFlowRate(efficency, ref maxSupply, ref solar_rate);
 
-            _resourceBuffers.UpdateBuffers();
+            if (_resourceBuffers != null)
+                _resourceBuffers.UpdateBuffers();
 
             // extract power otherwise we end up with double power
             _solarFlowRateResource.rate = solar_rate;
 
             // provide power to supply manager
-            solar_supply = outputType == resourceType.megajoule ? solar_rate : solar_rate * 0.001;
-            solarMaxSupply = outputType == resourceType.megajoule ? maxSupply : maxSupply * 0.001;
+            solar_supply = outputType == ResourceType.megajoule ? solar_rate : solar_rate * 0.001;
+            solarMaxSupply = outputType == ResourceType.megajoule ? maxSupply : maxSupply * 0.001;
 
             megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
-        private static double GetSolarDistanceMultiplier(Vessel vessel, CelestialBody star)
+        private void CalculateSolarFlowRate(double efficency, ref double maxSupply, ref double solar_rate)
         {
-            var distanceToSurfaceStar = (vessel.CoMD - star.position).magnitude - star.Radius;
-            var distanceInAU = distanceToSurfaceStar / Constants.GameConstants.kerbin_sun_distance;
-            return 1 / (distanceInAU * distanceInAU);
+            foreach (var star in stars)
+            {
+                double _distMult = GetSolarDistanceMultiplier(vessel, star.star, astronomicalUnit) * star.luminocity;
+                double _maxSupply = chargeRate * _distMult * efficency;
+                maxSupply += _maxSupply;
+
+                Vector3d trackDir = (star.star.position - _solarPanel.panelRotationTransform.position).normalized;
+
+                var trackingLOS = GetLineOfSight(_solarPanel, star, trackDir);
+
+                if (trackingLOS)
+                {
+                    double _sunAOA;
+
+                    if (_solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT)
+                        _sunAOA = (double)(decimal)Mathf.Clamp(Vector3.Dot(_solarPanel.trackingDotTransform.forward, trackDir), 0f, 1f);
+                    else if (_solarPanel.panelType != ModuleDeployableSolarPanel.PanelType.CYLINDRICAL)
+                        _sunAOA = 0.25;
+                    else
+                    {
+                        Vector3 direction;
+                        if (_solarPanel.alignType == ModuleDeployableSolarPanel.PanelAlignType.PIVOT)
+                            direction = _solarPanel.trackingDotTransform.forward;
+                        else if (_solarPanel.alignType != ModuleDeployableSolarPanel.PanelAlignType.X)
+                            direction = _solarPanel.alignType != ModuleDeployablePart.PanelAlignType.Y ? part.partTransform.forward : part.partTransform.up;
+                        else
+                            direction = part.partTransform.right;
+
+                        _sunAOA = (1d - (double)(decimal)Math.Abs(Vector3.Dot(direction, trackDir))) * 0.318309873;
+                    }
+
+                    sunAOA += _sunAOA;
+                    solar_rate += _maxSupply * _sunAOA;
+                }
+            }
         }
 
-        private static CelestialBody GetCurrentStar()
+        private static bool GetLineOfSight(ModuleDeployableSolarPanel solarPanel, StarLight star, Vector3d trackDir)
         {
-            var depth = 0;
-            var star = FlightGlobals.currentMainBody;
+            CelestialBody old = solarPanel.trackingBody;
+            solarPanel.trackingTransformLocal = star.star.transform;
+            solarPanel.trackingTransformScaled = star.star.scaledBody.transform;
+            string blockingObject = "";
+            var trackingLOS = solarPanel.CalculateTrackingLOS(trackDir, ref blockingObject);
+            solarPanel.trackingTransformLocal = old.transform;
+            solarPanel.trackingTransformScaled = old.scaledBody.transform;
+            return trackingLOS;
+        }
 
-            while (depth < 10 && star.referenceBody != null && star.GetTemperature(0) < 2000)
+        private static double GetSolarDistanceMultiplier(Vessel vessel, CelestialBody star, double astronomicalUnit)
+        {
+            var distanceToSurfaceStar = (vessel.CoMD - star.position).magnitude - star.Radius;
+            var distanceInAU = distanceToSurfaceStar / astronomicalUnit;
+            return 1 / (distanceInAU * distanceInAU);
+        }      
+
+        // ToDo: Move to global library
+        // Scan the Kopernicus config nodes and extract Kopernicus star data
+        protected static void ExtractKopernicusStarData(string modulename)
+        {
+            // Only need to execute this once 
+            if (stars.Count > 0)
+                return;
+
+            var debugPrefix = "[" + modulename + "] - ";
+
+            var celestrialBodies = FlightGlobals.Bodies.ToDictionary(m => m.name);
+
+            ConfigNode[] nodeLevel1 = GameDatabase.Instance.GetConfigNodes("Kopernicus");
+
+            if (nodeLevel1.Length > 0)
+                Debug.Log(debugPrefix + "Loading Kopernicus Configuration Data");
+            else
+                Debug.LogWarning(debugPrefix + "Failed to find Kopernicus Configuration Data");
+
+            for (int i = 0; i < nodeLevel1.Length; i++)
             {
-                star = star.referenceBody;
-                depth++;
+                ConfigNode[] celestrialBodyNode = nodeLevel1[i].GetNodes("Body");
+
+                Debug.Log(debugPrefix + "Found " + celestrialBodyNode.Length + " celestrial bodies");
+
+                for (int j = 0; j < celestrialBodyNode.Length; j++)
+                {
+                    string bodyName = celestrialBodyNode[j].GetValue("name");
+
+                    bool usesSunTemplate = false;
+
+                    ConfigNode sunNode = celestrialBodyNode[j].GetNode("Template");
+
+                    if (sunNode != null)
+                    {
+                        string templateName = sunNode.GetValue("name");
+                        usesSunTemplate = templateName == "Sun";
+                        if (usesSunTemplate)
+                            Debug.Log(debugPrefix + "Will use default Sun template for " + bodyName);
+                    }
+
+                    ConfigNode propertiesNode = celestrialBodyNode[j].GetNode("Properties");
+
+                    float luminocity = 0;
+
+                    if (propertiesNode != null)
+                    {
+                        string starLuminosityText = propertiesNode.GetValue("starLuminosity");
+
+                        if (string.IsNullOrEmpty(starLuminosityText))
+                        {
+                            if (usesSunTemplate)
+                                Debug.LogWarning(debugPrefix + "starLuminosity in Properties ConfigNode is missing, defaulting to template");
+                        }
+                        else
+                        {
+                            float.TryParse(starLuminosityText, out luminocity);
+                            CelestialBody celestialBody;
+
+                            if (luminocity > 0 && celestrialBodies.TryGetValue(bodyName, out celestialBody))
+                            {
+                                Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with luminocity " + luminocity);
+                                stars.Add(new StarLight() { star = celestialBody, luminocity = (double)(decimal)luminocity });
+                            }
+                            else
+                                Debug.LogWarning(debugPrefix + "Failed to initialize star " + bodyName);
+                        }
+                    }
+
+                    if (usesSunTemplate && luminocity == 0)
+                    {
+                        CelestialBody celestialBody;
+
+                        if (celestrialBodies.TryGetValue(bodyName, out celestialBody))
+                        {
+                            Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with default luminocity of 1");
+                            stars.Add(new StarLight() { star = celestialBody, luminocity = 1 });
+                        }
+                        else
+                            Debug.LogWarning(debugPrefix + "Failed to initialize star " + bodyName + " as with a default luminocity of 1");
+                    }
+                }
             }
 
-            Debug.Log("[KSPI] - surface temperature of local star " + star.name + " is " + star.atmosphereTemperatureSeaLevel + " K");
-            Debug.Log("[KSPI] - mass of local star " + star.name + " is " + star.Mass / FlightGlobals.GetHomeBody().Mass + " times mass homeworld");
-
-            return star;
+            // add local sun if kopernicus configuration was not found or did not contain any star
+            var homePlanetSun = Planetarium.fetch.Sun;
+            if (!stars.Any(m => m.star.name == homePlanetSun.name))
+            {
+                Debug.LogWarning("[PhotonSailor] - homeplanet star was not found, adding homeplanet star as default sun");
+                stars.Add(new StarLight() { star = Planetarium.fetch.Sun, luminocity = 1 });
+            }
         }
     }
 }

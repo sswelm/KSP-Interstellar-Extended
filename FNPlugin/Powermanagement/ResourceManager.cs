@@ -421,7 +421,7 @@ namespace FNPlugin
         public double ResourceSupply { get { return stored_supply; } }
         public double ResourceDemand { get {  return stored_resource_demand; } }
         public double CurrentResourceDemand { get { return current_resource_demand; } }
-        public double CurrentHighPriorityResourceDemand { get { return stored_current_hp_demand; } }
+        public double CurrentHighPriorityResourceDemand { get { return stored_current_hp_demand + stored_current_charge_demand; } }
         public double PowerSupply { get { return currentPowerSupply; } }
 
         public double ResourceBarRatioBegin { get {  return resource_bar_ratio_begin; } }
@@ -867,33 +867,46 @@ namespace FNPlugin
 
         protected string getPowerFormatString(double power) 
         {
-            if (Math.Abs(power) >= 1000000)
+            var absPower = Math.Abs(power);
+
+            if (absPower >= 1000000)
             {
-                if (Math.Abs(power) > 20000000)
+                if (power > 100000000)
+                    return (power / 1000000).ToString("0") + " TW";
+                else if (power > 10000000)
                     return (power / 1000000).ToString("0.0") + " TW";
                 else
                     return (power / 1000000).ToString("0.00") + " TW";
             }
-            else if (Math.Abs(power) >= 1000) 
+            else if (absPower >= 1000) 
             {
-                if (Math.Abs(power) > 20000) 
+                if (absPower > 100000) 
+                    return (power / 1000).ToString("0") + " GW";
+                else if (absPower > 10000) 
                     return (power / 1000).ToString("0.0") + " GW";
-                else 
+                else
                     return (power / 1000).ToString("0.00") + " GW";
-            } 
-            else 
-            {
-                if (Math.Abs(power) > 20) 
-                    return power.ToString("0.0") + " MW";
-                else 
-                {
-                    if (Math.Abs(power) >= 1) 
-                        return power.ToString("0.00") + " MW";
-                    
-                    else 
-                        return (power * 1000).ToString("0.0") + " KW";
-                }
             }
+            else if (power >= 1)
+            {
+                if (absPower > 100)
+                    return power.ToString("0") + " MW";
+                else if (absPower > 10) 
+                    return power.ToString("0.0") + " MW";
+                else
+                    return power.ToString("0.00") + " MW";
+            }
+            else if (power >= 0.001)
+            {
+                if (absPower >= 0.1)
+                    return (power * 1000).ToString("0") + " KW";
+                else if (absPower >= 0.01)
+                    return (power * 1000).ToString("0.0") + " KW";
+                else 
+                    return (power * 1000).ToString("0.00") + " KW";  
+            }
+            else
+                return (power * 1000000).ToString("0") + " W";
         }
                
         protected void doWindow(int windowID) 
@@ -984,11 +997,11 @@ namespace FNPlugin
 
             if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES)
             {
-                var stored_supply_percentage = stored_supply != 0 ? stored_total_power_supplied / stored_supply * 100 : 0; 
+                var stored_supply_percentage = stored_supply != 0 ? stored_total_power_supplied / stored_supply : 0; 
 
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Current Distribution", left_bold_label, GUILayout.ExpandWidth(true));
-                GUILayout.Label(stored_supply_percentage.ToString("0.000") + "%", right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
+                GUILayout.Label(stored_supply_percentage.ToString("P2"), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
                 GUILayout.EndHorizontal();
             }
 
@@ -1013,7 +1026,7 @@ namespace FNPlugin
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Utilisation", left_bold_label, GUILayout.ExpandWidth(true));
-                GUILayout.Label((net_utilisation_supply).ToString("P3"), utilisation_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
+                GUILayout.Label((net_utilisation_supply).ToString("P2"), utilisation_style, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
                 GUILayout.EndHorizontal();
             }
 
@@ -1036,7 +1049,7 @@ namespace FNPlugin
                     var sumOfMaximumSupply = group.Sum(m => m.Value.maximumSupply);
 
                     // skip anything with less then 0.00 KW
-                    if (sumOfCurrentAverageSupply < 0.00005 && sumOfMaximumSupply <  0.00005)
+                    if (sumOfCurrentAverageSupply < 0.0000005 && sumOfMaximumSupply < 0.0000005)
                         continue;
 
                     string name = group.Key;
