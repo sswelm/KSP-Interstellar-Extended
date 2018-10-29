@@ -69,6 +69,7 @@
     <Compile Include="RDColoredUpgradeIcon.cs" />
     <Compile Include="Resources\CrustalResource.cs" />
     <Compile Include="Resources\CrustalResourceHandler.cs" />
+    <Compile Include="Resources\Kopernicus.cs" />
     <Compile Include="Resources\MagneticFieldDefinition.cs" />
     <Compile Include="Resources\MagneticFieldDefinitionsHandler.cs" />
     <Compile Include="Resources\OceanicResource.cs" />

@@ -224,14 +224,6 @@ namespace FNPlugin
         public double solarFacingFactor;
         [KSPField(guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
         public double solarFlux;
-
-        [KSPField(guiActive = false, guiName = "FlowRate", guiFormat = "F4")]
-        public double flowRate;
-        [KSPField(guiActive = false, guiName = "Solar maximum power", guiFormat = "F4")]
-        public double photovoltaicSolarMaxSupply;
-
-        [KSPField(guiActiveEditor = false, guiActive = false)]
-        public double kerbalismPowerOutput;
         [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F2")]
         public double thermal_power_ratio;
         [KSPField]
@@ -400,9 +392,6 @@ namespace FNPlugin
 
         public double PowerRatio { get { return receiptPower / 100.0; } }
 
-        //public double SolarPower { get { return photovoltaicSolarSupply; } }
-
-        //public double ProducedPower { get { return ProducedThermalHeat + SolarPower; } }
         public double ProducedPower { get { return ProducedThermalHeat; } }
 
         public double PowerCapacityEfficiency
@@ -1757,12 +1746,8 @@ namespace FNPlugin
                 connectedsatsi = 0;
                 connectedrelaysi = 0;
                 networkDepth = 0;
-
-                ////add solar power tot toal power
-                //powerInputMegajoules = thermalSolarInputMegajoules;
-                //powerInputMegajoulesMax = thermalSolarInputMegajoulesMax;
             }
-            else if (!solarPowerMode) // && (++counter + instanceId) % 11 == 0)       // recalculate input once per 10 physics cycles. Relay route algorythm is too expensive
+            else if (!solarPowerMode)
             {
                 // reset all output variables at start of loop
                 total_beamed_power = 0;
@@ -1967,73 +1952,6 @@ namespace FNPlugin
 
             supplyFNResourcePerSecond(alternatorRatio * powerInputMegajoules * 0.001, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
-
-        /*
-        private void ProcesSolarCellEnergy()
-        {
-            if (deployableSolarPanel == null)
-                return;
-
-            // readout kerbalism solar power output so we can remove it
-            if (_field_kerbalism_output != null)
-            {
-                // if GUI is inactive, then Panel doesn't produce power since Kerbalism doesn't reset the value on occlusion
-                // to be fixed in Kerbalism!
-                kerbalismPowerOutput = _field_kerbalism_output.guiActive == true ? _field_kerbalism_output.GetValue<double>(warpfixer) : 0;
-            }
-
-            // solarPanel.resHandler.outputResource[0].rate is zeroed by Kerbalism, flowRate is bogus.
-            // So we need to assume that Kerbalism Power Output is ok (if present),
-            // since calculating output from flowRate (or _flowRate) will not be possible.
-            flowRate = kerbalismPowerOutput > 0 ? kerbalismPowerOutput :
-                deployableSolarPanel.flowRate > 0 ? deployableSolarPanel.flowRate :
-                deployableSolarPanel.chargeRate * deployableSolarPanel._flowRate;
-
-            // when in darkness, clear buffer
-            if (flowRate == 0)
-                flowRateQueue.Clear();
-            else
-                flowRateQueue.Enqueue(flowRate);
-
-            // accelerate refresh durring startup
-            if (flowRateQueue.Count < 50)
-                flowRateQueue.Enqueue(flowRate);
-
-            flowRateQueue.Dequeue();
-
-            // ToDo: replace stabalizedFlowRate by calculated flow rate
-            photovoltaicSolarSupply = flowRate == 0 ? 0 : flowRateQueue.Count > 10
-                ? flowRateQueue.OrderBy(m => m).Skip(10).Take(30).Average()
-                : flowRateQueue.Average() ;
-
-            photovoltaicSolarMaxSupply = deployableSolarPanel._distMult > 0
-                ? Math.Max(photovoltaicSolarSupply, deployableSolarPanel.chargeRate * deployableSolarPanel._distMult * deployableSolarPanel._efficMult)
-                : photovoltaicSolarSupply;
-
-            // extract power otherwise we end up with double power
-            if (deployableSolarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
-            {
-                _solarFlowRateResource.rate = flowRate;
-
-                if (photovoltaicSolarSupply > 0)
-                    photovoltaicSolarSupply *= 0.001;
-                if (photovoltaicSolarMaxSupply > 0)
-                    photovoltaicSolarMaxSupply *= 0.001;
-            }
-            else if (deployableSolarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
-            {
-                _solarFlowRateResource.rate = flowRate;
-            }
-            else
-            {
-                photovoltaicSolarSupply = 0;
-                photovoltaicSolarMaxSupply = 0;
-            }
-
-            if (photovoltaicSolarSupply > 0)
-                supplyFNResourcePerSecondWithMax(photovoltaicSolarSupply, photovoltaicSolarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
-        }
-        */
 
         public double MaxStableMegaWattPower
         {

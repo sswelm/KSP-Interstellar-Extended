@@ -297,7 +297,7 @@ namespace FNPlugin
             } 
             catch (Exception ex)
             {
-                Debug.Log("[KSPI] Exception Generation Experiment Result: " + ex.Message + ": " + ex.StackTrace);
+                Debug.Log("[KSPI] - Exception Generation Experiment Result: " + ex.Message + ": " + ex.StackTrace);
                 return " has detected a glitch in the universe and recommends checking your installation of KSPInterstellar.";
             }
         }
