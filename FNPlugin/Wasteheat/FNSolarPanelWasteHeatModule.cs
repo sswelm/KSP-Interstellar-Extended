@@ -40,8 +40,7 @@ namespace FNPlugin
         ResourceBuffers _resourceBuffers;
         ModuleResource _solarFlowRateResource;
         ResourceType outputType = 0;
-
-        static List<StarLight> stars = new List<StarLight>();
+        List<StarLight> stars;        
       
         public double SolarPower
         {
@@ -91,8 +90,7 @@ namespace FNPlugin
                 _resourceBuffers.Init(this.part);
             }
 
-            if (stars.Count == 0)
-                stars = Kopernicus.ExtractStarData("KSPI");
+            stars = Kopernicus.Stars;
         }
 
         public override void OnFixedUpdate()

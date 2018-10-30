@@ -14,14 +14,33 @@ namespace FNPlugin.Resources
 
     static class Kopernicus
     {
-        // ToDo: Move to global library
-        // Scan the Kopernicus config nodes and extract Kopernicus star data
+        /// <summary>
+        /// Retrieves list of Starlight data
+        /// </summary>
+        static public List<StarLight> Stars
+        {
+            get
+            {
+                if (stars == null)
+                    stars = ExtractStarData("KSPI");
+                return stars;
+            }
+        }
+
+        static List<StarLight> stars;
+
+        const double kerbinAU = 13599840256;
+        const double kerbalLuminocity = 3.1609409786213e+24;
+
+
+        /// <summary>
+        /// // Scan the Kopernicus config nodes and extract Kopernicus star data
+        /// </summary>
+        /// <param name="modulename"></param>
+        /// <returns></returns>
         public static List<StarLight> ExtractStarData(string modulename)
         {
             var debugPrefix = "[" + modulename + "] - ";
-
-            double kerbinAU = 13599840256;
-            double kerbalLuminocity = 3.1609409786213e+24;
 
             List<StarLight> stars = new List<StarLight>();
 
@@ -51,7 +70,7 @@ namespace FNPlugin.Resources
                     celestrialBodiesByName.TryGetValue(bodyName, out celestialBody);
                     if (celestialBody == null)
                     {
-                        Debug.LogWarning(debugPrefix + "Failed to find  celestrialbody " + bodyName);
+                        Debug.LogWarning(debugPrefix + "Failed to find celestrialbody " + bodyName);
                         continue;
                     }
 
@@ -67,36 +86,37 @@ namespace FNPlugin.Resources
                             Debug.Log(debugPrefix + "Will use default Sun template for " + bodyName);
                     }
 
-                    if (usesSunTemplate)
-                    {
-                        ConfigNode scaledVersionsNode = currentBody.GetNode("ScaledVersion");
-                        if (scaledVersionsNode != null)
-                        {
-                            ConfigNode lightsNode = scaledVersionsNode.GetNode("Light");
-                            if (lightsNode != null)
-                            {
-                                string luminosityText = lightsNode.GetValue("luminosity");
-                                if (string.IsNullOrEmpty(luminosityText))
-                                    Debug.LogWarning(debugPrefix + "luminosity is missing in Light ConfigNode for " + bodyName);
-                                else
-                                {
-                                    double luminosity;
-                                    if (double.TryParse(luminosityText, out luminosity))
-                                    {
-                                        solarLuminocity = (4 * Math.PI * kerbinAU * kerbinAU * luminosity) / kerbalLuminocity;
-                                        Debug.Log(debugPrefix + "calculated solarLuminocity " + solarLuminocity + " based on luminosity " + luminosity + " for " + bodyName);
-                                    }
-                                    else
-                                        Debug.LogError(debugPrefix + "Error converting " + luminosityText + " into luminosity for " + bodyName);
-                                }
-                            }
-                            else
-                                Debug.LogWarning(debugPrefix + "failed to find Light node for " + bodyName);
+                    if (!usesSunTemplate)
+                        continue;
 
+                    ConfigNode scaledVersionsNode = currentBody.GetNode("ScaledVersion");
+                    if (scaledVersionsNode != null)
+                    {
+                        ConfigNode lightsNode = scaledVersionsNode.GetNode("Light");
+                        if (lightsNode != null)
+                        {
+                            string luminosityText = lightsNode.GetValue("luminosity");
+                            if (string.IsNullOrEmpty(luminosityText))
+                                Debug.LogWarning(debugPrefix + "luminosity is missing in Light ConfigNode for " + bodyName);
+                            else
+                            {
+                                double luminosity;
+                                if (double.TryParse(luminosityText, out luminosity))
+                                {
+                                    solarLuminocity = (4 * Math.PI * kerbinAU * kerbinAU * luminosity) / kerbalLuminocity;
+                                    Debug.Log(debugPrefix + "calculated solarLuminocity " + solarLuminocity + " based on luminosity " + luminosity + " for " + bodyName);
+                                }
+                                else
+                                    Debug.LogError(debugPrefix + "Error converting " + luminosityText + " into luminosity for " + bodyName);
+                            }
                         }
                         else
-                            Debug.LogWarning(debugPrefix + "failed to find ScaledVersion node for " + bodyName);
+                            Debug.LogWarning(debugPrefix + "failed to find Light node for " + bodyName);
+
                     }
+                    else
+                        Debug.LogWarning(debugPrefix + "failed to find ScaledVersion node for " + bodyName);
+
 
                     ConfigNode propertiesNode = currentBody.GetNode("Properties");
                     if (propertiesNode != null)
@@ -121,19 +141,17 @@ namespace FNPlugin.Resources
                         }
                     }
 
-                    if (usesSunTemplate)
+                    if (solarLuminocity > 0)
                     {
-                        if (solarLuminocity > 0)
-                        {
-                            Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with calculated luminocity of " + solarLuminocity);
-                            stars.Add(new StarLight() { star = celestialBody, relativeLuminocity = solarLuminocity });
-                        }
-                        else
-                        {
-                            Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with default luminocity of 1");
-                            stars.Add(new StarLight() { star = celestialBody, relativeLuminocity = 1 });
-                        }
+                        Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with calculated luminocity of " + solarLuminocity);
+                        stars.Add(new StarLight() { star = celestialBody, relativeLuminocity = solarLuminocity });
                     }
+                    else
+                    {
+                        Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with default luminocity of 1");
+                        stars.Add(new StarLight() { star = celestialBody, relativeLuminocity = 1 });
+                    }
+
                 }
             }
 
