@@ -14,6 +14,9 @@ namespace FNPlugin.Extensions
             public double ampere;
         }
 
+        const double sqrt2 = 1.4142135624;
+        const double sqrt2divPi = 0.79788456080;
+
         public static double GetBeltAntiparticles(this CelestialBody body, CelestialBody homeworld, double altitude, double lat)
         {
             if (body.flightGlobalsIndex != 0 && altitude <= PluginHelper.getMaxAtmosphericAltitude(body))  
@@ -29,20 +32,25 @@ namespace FNPlugin.Extensions
                 beltdata = new BeltData() 
                 {
                     density = body.Mass / homeworld.Mass * relrp / relrt * 50,
-                    ampere = 1.5 * homeworld.Radius * relrp / Math.Sqrt(2), 
+                    ampere = 1.5 * homeworld.Radius * relrp / sqrt2, 
                 };
 
                 BeltDataCache.Add(body.name, beltdata);
             }
 
             double beltparticles = beltdata.density
-                * Math.Sqrt(2 / Math.PI) 
+                * sqrt2divPi 
                 * Math.Pow(altitude, 2)
                 * Math.Exp(-Math.Pow(altitude, 2) / (2 * Math.Pow(beltdata.ampere, 2))) 
                 / (Math.Pow(beltdata.ampere, 3));
 
-            if (body.flightGlobalsIndex == 0) 
-                beltparticles = beltparticles / 1000;
+            if (KopernicusHelper.GetLuminocity(body) > 0)
+                beltparticles /= 1000;
+
+            if (body.atmosphere)
+                beltparticles *= body.atmosphereDepth / 70000;
+            else
+                beltparticles *= 0.01;
 
             return beltparticles * Math.Abs(Math.Cos(lat / 180 * Math.PI)) * body.specialMagneticFieldScaling();
         }
@@ -57,12 +65,17 @@ namespace FNPlugin.Extensions
             double relrt = body.rotationPeriod / homeworld.rotationPeriod;
             double peakbelt = body.GetPeakProtonBeltAltitude(homeworld, altitude, lat);
             double altituded = altitude;
-            double a = peakbelt / Math.Sqrt(2);
-            double beltparticles = Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2 * Math.Pow(a, 2))) / (Math.Pow(a, 3));
+            double a = peakbelt / sqrt2;
+            double beltparticles = sqrt2divPi * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2 * Math.Pow(a, 2))) / (Math.Pow(a, 3));
             beltparticles = beltparticles * relrp / relrt * 50;
 
-            if (body.flightGlobalsIndex == 0)
-                beltparticles = beltparticles / 1000;
+            if (KopernicusHelper.IsStar(body))
+                beltparticles /= 1000;
+
+            if (body.atmosphere)
+                beltparticles *= body.atmosphereDepth / 70000;
+            else
+                beltparticles *= 0.01;
 
             beltparticles = beltparticles * Math.Abs(Math.Cos(lat)) * body.specialMagneticFieldScaling() * Math.Exp(-atmosphere);
 
@@ -89,14 +102,17 @@ namespace FNPlugin.Extensions
 
             double peakbelt2 = body.GetPeakElectronBeltAltitude(homeworld, altitude, lat);
             double altituded = altitude;
-            double b = peakbelt2 / Math.Sqrt(2);
-            double beltparticles = 0.9 * Math.Sqrt(2 / Math.PI) * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2 * Math.Pow(b, 2))) / (Math.Pow(b, 3));
+            double b = peakbelt2 / sqrt2;
+            double beltparticles = 0.9 * sqrt2divPi * Math.Pow(altituded, 2) * Math.Exp(-Math.Pow(altituded, 2) / (2 * Math.Pow(b, 2))) / (Math.Pow(b, 3));
             beltparticles = beltparticles * relrp / relrt * 50;
 
-            if (body.flightGlobalsIndex == 0)
-            {
-                beltparticles = beltparticles / 1000;
-            }
+            if (KopernicusHelper.IsStar(body))
+                beltparticles /= 1000;
+
+            if (body.atmosphere)
+                beltparticles *= body.atmosphereDepth / 70000;
+            else
+                beltparticles *= 0.01;
 
             beltparticles = beltparticles * Math.Abs(Math.Cos(lat)) * body.specialMagneticFieldScaling() * atmosphere_scaling;
 
@@ -127,6 +143,14 @@ namespace FNPlugin.Extensions
             double altituded = altitude + body.Radius;
             double Bmag = VanAllen.B0 / relrt * relmp * Math.Pow((body.Radius / altituded), 3) * Math.Sqrt(1 + 3 * Math.Pow(Math.Cos(mlat), 2)) * body.specialMagneticFieldScaling();
 
+            if (KopernicusHelper.IsStar(body))
+                Bmag /= 1000;
+
+            if (body.atmosphere)
+                Bmag *= body.atmosphereDepth / 70000;
+            else
+                Bmag *= 0.01;
+
             return Bmag;
         }
 
@@ -141,6 +165,14 @@ namespace FNPlugin.Extensions
             double altituded = altitude + body.Radius;
             double Bmag = -2 / relrt * relmp * VanAllen.B0 * Math.Pow((body.Radius / altituded), 3) * Math.Cos(mlat) * body.specialMagneticFieldScaling();
 
+            if (KopernicusHelper.GetLuminocity(body) > 0)
+                Bmag /= 1000;
+
+            if (body.atmosphere)
+                Bmag *= body.atmosphereDepth / 70000;
+            else
+                Bmag *= 0.01;
+
             return Bmag;
         }
 
@@ -154,6 +186,14 @@ namespace FNPlugin.Extensions
 
             double altituded = altitude + body.Radius;
             double Bmag = -relmp * VanAllen.B0 / relrt * Math.Pow((body.Radius / altituded), 3) * Math.Sin(mlat) * body.specialMagneticFieldScaling();
+
+            if (KopernicusHelper.IsStar(body))
+                Bmag /= 1000;
+
+            if (body.atmosphere)
+                Bmag *= body.atmosphereDepth / 70000;
+            else
+                Bmag *= 0.01;
 
             return Bmag;
         }

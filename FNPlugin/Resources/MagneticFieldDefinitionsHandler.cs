@@ -25,13 +25,15 @@ namespace FNPlugin.Resources
                 if (!magneticFieldDefinitions_by_name.TryGetValue(celestialBodyName, out magneticFieldDefinition))
                 {
                     Debug.LogWarning("[KSPI] - Failed to find magneticFieldDefinition for: " + celestialBodyName);
-                    magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding all the resources
+                    magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding default multiplier
+                    magneticFieldDefinitions_by_name.Add(celestialBodyName, magneticFieldDefinition);
                 }
             }
             catch (Exception ex)
             {
                 Debug.Log("[KSPI] - Exception while retrieving MagneticFieldDefinition : " + ex.ToString());
-                magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding all the resources
+                magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding default multiplier
+                magneticFieldDefinitions_by_name.Add(celestialBodyName, magneticFieldDefinition);
             }
             return magneticFieldDefinition;
         }

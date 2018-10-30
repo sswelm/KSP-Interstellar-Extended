@@ -22,13 +22,34 @@ namespace FNPlugin.Resources
             get
             {
                 if (stars == null)
-                    stars = ExtractStarData("KSPI");
+                    stars = ExtractStarData(moduleName);
                 return stars;
             }
         }
 
-        static List<StarLight> stars;
+        public static bool IsStar(CelestialBody body)
+        {
+            return GetLuminocity(body) > 0;
+        }
 
+        public static double GetLuminocity(CelestialBody body)
+        {
+            if (stars == null )
+                stars = ExtractStarData(moduleName);
+            if (starsByBody == null)
+                starsByBody = stars.ToDictionary(m => m.star);
+
+            StarLight starlight;
+            if (starsByBody.TryGetValue(body, out starlight))
+                return starlight.relativeLuminocity;
+            else
+                return 0;
+        }
+
+        static List<StarLight> stars;
+        static Dictionary<CelestialBody, StarLight> starsByBody;
+
+        const string moduleName = "KSPI";
         const double kerbinAU = 13599840256;
         const double kerbalLuminocity = 3.1609409786213e+24;
 
@@ -165,5 +186,7 @@ namespace FNPlugin.Resources
 
             return stars;
         }
+
+
     }
 }
