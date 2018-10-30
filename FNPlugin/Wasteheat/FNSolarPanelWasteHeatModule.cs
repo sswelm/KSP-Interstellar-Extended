@@ -90,7 +90,7 @@ namespace FNPlugin
                 _resourceBuffers.Init(this.part);
             }
 
-            stars = Kopernicus.Stars;
+            stars = KopernicusHelper.Stars;
         }
 
         public override void OnFixedUpdate()

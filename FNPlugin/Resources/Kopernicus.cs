@@ -12,7 +12,7 @@ namespace FNPlugin.Resources
         public double relativeLuminocity;
     }
 
-    static class Kopernicus
+    static class KopernicusHelper
     {
         /// <summary>
         /// Retrieves list of Starlight data
