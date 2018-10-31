@@ -625,7 +625,11 @@ namespace FNPlugin.Wasteheat
                     _moduleActiveRadiator.Shutdown();
             }
 
-            if (state == StartState.Editor) return;
+            if (state == StartState.Editor)
+                return;
+
+            if (isAutomated && !isDeployable)
+                radiatorIsEnabled = true;
 
             InitializeTemperatureColorChannels();
 
