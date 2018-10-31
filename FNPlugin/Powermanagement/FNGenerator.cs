@@ -1048,7 +1048,15 @@ namespace FNPlugin
 
                     if (IsEnabled && !vessel.packed)
                     {
-                        if (attachedPowerSource == null || !FNRadiator.hasRadiatorsForVessel(vessel))
+                        if (attachedPowerSource == null)
+                        {
+                            IsEnabled = false;
+                            var message = "Generator Shutdown: No Attached Power Source";
+                            Debug.Log("[KSPI] - " + message);
+                            ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                            PowerDown();
+                        }
+                        else if ( !FNRadiator.hasRadiatorsForVessel(vessel))
                         {
                             IsEnabled = false;
                             var message = "Generator Shutdown: No radiators available!";
