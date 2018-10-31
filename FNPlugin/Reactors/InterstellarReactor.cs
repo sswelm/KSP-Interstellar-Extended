@@ -1815,9 +1815,11 @@ namespace FNPlugin.Reactors
             currentIsPlasmaEnergyGeneratorEfficiency = 0;
             currentIsChargedEnergyGenratorEfficiency = 0;
 
-            storedGeneratorThermalEnergyRequestRatio = Math.Max(storedGeneratorThermalEnergyRequestRatio, ongoing_consumption_rate);
-            storedGeneratorPlasmaEnergyRequestRatio = Math.Max(storedGeneratorPlasmaEnergyRequestRatio, ongoing_consumption_rate);
-            storedGeneratorChargedEnergyRequestRatio = Math.Max(storedGeneratorChargedEnergyRequestRatio, ongoing_consumption_rate);
+            var previousMaxRatio = Math.Max(Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorPlasmaEnergyRequestRatio), storedGeneratorChargedEnergyRequestRatio);
+
+            storedGeneratorThermalEnergyRequestRatio = Math.Max(storedGeneratorThermalEnergyRequestRatio, previousMaxRatio);
+            storedGeneratorPlasmaEnergyRequestRatio = Math.Max(storedGeneratorPlasmaEnergyRequestRatio, previousMaxRatio);
+            storedGeneratorChargedEnergyRequestRatio = Math.Max(storedGeneratorChargedEnergyRequestRatio, previousMaxRatio);
 
             currentGeneratorThermalEnergyRequestRatio = Math.Max(currentGeneratorThermalEnergyRequestRatio, requiredMinimumThrottle);
             currentGeneratorPlasmaEnergyRequestRatio = Math.Max(currentGeneratorPlasmaEnergyRequestRatio, requiredMinimumThrottle);
