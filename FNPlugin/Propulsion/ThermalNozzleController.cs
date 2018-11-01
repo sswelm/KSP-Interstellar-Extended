@@ -762,9 +762,7 @@ namespace FNPlugin
                     curprop.Load(propNode);
 
                     if (curprop.drawStackGauge && HighLogic.LoadedSceneIsFlight)
-                    {
                         curprop.drawStackGauge = false;
-                    }
 
                     if (list_of_propellants == null)
                         Debug.LogWarning("[KSPI] - ThermalNozzleController - SetupPropellants list_of_propellants is null");
@@ -772,14 +770,54 @@ namespace FNPlugin
                     list_of_propellants.Add(curprop);
                 }
 
+                string missingResources = String.Empty;
+                bool canLoadPropellant = true;
+
+                if (
+                         list_of_propellants.Any(m => PartResourceLibrary.Instance.GetDefinition(m.name) == null) 
+                    || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
+                    || (_fuelRequiresUpgrade && !isupgraded)
+                    || (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
+                    || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
+                    || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
+                    || ((_atomType & this.supportedPropellantAtoms) != _atomType)
+                    || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
+                    || ((_propType & this.supportedPropellantTypes) != _propType)
+                    )
+                {
+                    canLoadPropellant = false;
+                }
+
+                if (canLoadPropellant && HighLogic.LoadedSceneIsFlight)
+                {
+                    foreach (Propellant curEngine_propellant in list_of_propellants)
+                    {
+                        var extendedPropellant = curEngine_propellant as ExtendedPropellant;
+
+                        var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(extendedPropellant.StoragePropellantName);
+                        double amount = 0;
+                        double maxAmount = 0;
+                        if (resourceDefinition != null)
+                            part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
+
+                        if (maxAmount == 0)
+                        {
+                            if (notifySwitching)
+                                missingResources += curEngine_propellant.name + " ";
+                            canLoadPropellant = false;
+                            break;
+                        }
+                    }
+                }
+
                 //Get the Ignition state, i.e. is the engine shutdown or activated
                 var engineState = myAttachedEngine.getIgnitionState;
 
-                myAttachedEngine.Shutdown();
-
                 // update the engine with the new propellants
-                if (PartResourceLibrary.Instance.GetDefinition(list_of_propellants[0].name) != null)
+                if (canLoadPropellant)
                 {
+                    myAttachedEngine.Shutdown();
+
                     var newPropNode = new ConfigNode();
 
                     foreach (var prop in list_of_propellants)
@@ -789,6 +827,7 @@ namespace FNPlugin
                         propellantConfigNode.AddValue("ratio", prop.ratio);
                         propellantConfigNode.AddValue("DrawGauge", "true");
                     }
+
                     myAttachedEngine.Load(newPropNode);
 
                     // update timewarp propellant
@@ -817,7 +856,7 @@ namespace FNPlugin
                     }
                 }
 
-                if (engineState == true)
+                if (canLoadPropellant && engineState == true)
                     myAttachedEngine.Activate();
 
                 if (HighLogic.LoadedSceneIsFlight)
@@ -825,41 +864,8 @@ namespace FNPlugin
                     // should we switch to another propellant because we have none of this one?
                     bool next_propellant = false;
 
-                    string missingResources = String.Empty;
-
-                    foreach (Propellant curEngine_propellant in list_of_propellants)
-                    {
-
-                        var extendedPropellant = curEngine_propellant as ExtendedPropellant;
-
-                        var resourceDefinition = PartResourceLibrary.Instance.GetDefinition(extendedPropellant.StoragePropellantName);
-                        double amount = 0;
-                        double maxAmount = 0;
-                        if (resourceDefinition != null)
-                            part.GetConnectedResourceTotals(resourceDefinition.id, out amount, out maxAmount);
-
-                        //if (!partresources.Any() || !PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
-                        if (maxAmount == 0)
-                        {
-                            if (notifySwitching)
-                                missingResources += curEngine_propellant.name + " ";
-                            next_propellant = true;
-                        }
-                        else if (
-                               (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
-                            || (_fuelRequiresUpgrade && !isupgraded)
-                            || (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
-                            || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
-                            || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
-                            || ((_atomType & this.supportedPropellantAtoms) != _atomType)
-                            || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
-                            || ((_propType & this.supportedPropellantTypes) != _propType)
-
-                            )
-                        {
-                            next_propellant = true;
-                        }
-                    }
+                    if (!canLoadPropellant)
+                        next_propellant = true;
 
                     // do the switch if needed
                     if (next_propellant && (switches <= propellantsConfignodes.Length || fuel_mode != 0))
@@ -880,19 +886,8 @@ namespace FNPlugin
 
                     UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant " + list_of_propellants[0].name);
 
-                    // Still ignore propellants that don't exist or we cannot use due to the limmitations of the engine
-                    if (
-                        ((!PartResourceLibrary.Instance.resourceDefinitions.Contains(list_of_propellants[0].name))
-                        || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
-                        || (_fuelRequiresUpgrade && !isupgraded)
-                        || (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
-                        || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
-                        || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
-                        || ((_atomType & this.supportedPropellantAtoms) != _atomType)
-                        || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
-                        || ((_propType & this.supportedPropellantTypes) != _propType)
-                        
-                        ) && (switches <= propellantsConfignodes.Length || fuel_mode != 0))
+                    // Still ignore propellants that don't exist or we cannot use due to the limitations of the engine
+                    if (!canLoadPropellant && (switches <= propellantsConfignodes.Length || fuel_mode != 0))
                     {
                         if (((_atomType & this.supportedPropellantAtoms) != _atomType))
                             UnityEngine.Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant nozzle atom " + this.supportedPropellantAtoms + " != " + _atomType);
