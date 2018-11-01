@@ -924,6 +924,8 @@ namespace FNPlugin
                     // don't produce any power when our reactor has stopped
                     if (maxStableMegaWattPower <= 0)
                     {
+						electricdtps = 0;
+						maxElectricdtps = 0;
                         PowerDown();
                         return;
                     }
@@ -1044,6 +1046,8 @@ namespace FNPlugin
                 }
                 else
                 {
+                    electricdtps = 0;
+                    maxElectricdtps = 0;
                     generatorInit = true;
 
                     if (IsEnabled && !vessel.packed)
