@@ -744,8 +744,6 @@ namespace FNPlugin
             if (_myAttachedReactor == null)
                 return;
 
-            Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant chosenpropellant " + fuel_mode + " / " + propellantsConfignodes.Count());
-
             try
             {
                 var chosenpropellant = propellantsConfignodes[fuel_mode];
@@ -754,15 +752,10 @@ namespace FNPlugin
                 ConfigNode[] propellantNodes = chosenpropellant.GetNodes("PROPELLANT");
                 list_of_propellants.Clear();
 
-                // loop though propellants until we get to the selected one, then set it up
                 foreach (ConfigNode propNode in propellantNodes)
                 {
                     var curprop = new ExtendedPropellant();
-
                     curprop.Load(propNode);
-
-                    if (curprop.drawStackGauge && HighLogic.LoadedSceneIsFlight)
-                        curprop.drawStackGauge = false;
 
                     if (list_of_propellants == null)
                         Debug.LogWarning("[KSPI] - ThermalNozzleController - SetupPropellants list_of_propellants is null");
@@ -816,6 +809,8 @@ namespace FNPlugin
                 // update the engine with the new propellants
                 if (canLoadPropellant)
                 {
+                    Debug.Log("[KSPI] - ThermalNozzleController - Setup propellant chosenpropellant " + fuel_mode + " / " + propellantsConfignodes.Count());
+
                     myAttachedEngine.Shutdown();
 
                     var newPropNode = new ConfigNode();
