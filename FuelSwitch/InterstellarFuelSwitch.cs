@@ -1302,7 +1302,18 @@ namespace InterstellarFuelSwitch
                 }
 
                 if (orderBySwitchName)
+                {
                     _modularTankList = _modularTankList.OrderBy(m => m.SwitchName).ToList();
+                }
+
+                foreach (var config in _modularTankList)
+                {
+                    string description = "Composition:" + config.Composition + " GuiName:" + config.GuiName + " SwitchName: " + config.SwitchName + " Resources: ";
+
+                    description += string.Join(",", config.Resources.Select(m => m.name).ToArray());
+
+                    Debug.Log(description);
+                }
             }
             catch (Exception e)
             {

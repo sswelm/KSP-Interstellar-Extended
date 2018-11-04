@@ -185,7 +185,7 @@ namespace InterstellarFuelSwitch
 
             if (useFuelSwitchModule && fuelSwitch != null && objectNumber >= 0 && objectNumber < meshConfigurationList.Count)
             {
-                var newTankMame = meshConfigurationList[objectNumber].fuelTankSetup;
+                //var newTankMame = meshConfigurationList[objectNumber].fuelTankSetup;
                 //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " calls fuelSwitch.SelectTankSetup with " + newTankMame + " derived from  objectNumber " + objectNumber);
                 fuelSwitch.SelectTankSetup(meshConfigurationList[objectNumber].fuelTankSetup, calledByPlayer);
             }
@@ -267,6 +267,11 @@ namespace InterstellarFuelSwitch
                 {
                     //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " order meshConfigurationList on indexName");
                     meshConfigurationList = meshConfigurationList.OrderBy(m => m.indexName).ToList();
+                }
+
+                foreach (var config in meshConfigurationList)
+                {
+                    Debug.Log("fuelTankSetup:" + config.fuelTankSetup + " indexName:" + config.indexName + " objectDisplay: " + config.objectDisplay + " tankSwitchName:" + config.tankSwitchName);
                 }
 
                 if (useFuelSwitchModule)
