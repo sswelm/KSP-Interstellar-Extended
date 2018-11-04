@@ -681,7 +681,7 @@ namespace PhotonSail
  
                 foreach(var wavelengthData in transmitter.SupportedTransmitWavelengths)
                 {
-                    var transmittedPower = (wavelengthData.nuclearPower + wavelengthData.solarPower) / 1000d;
+                    var transmittedPower = (wavelengthData.nuclearPower + wavelengthData.solarPower) * 0.001;
 
                     maxNetworkPower += transmittedPower;
 
@@ -797,7 +797,7 @@ namespace PhotonSail
             connectedTransmittersCount = connectedTransmitters.Count;
 
             // apply photon pressure from Kerbal Space Station Beamed Power facility
-            ProcesKscBeamedPower(vesselMassInKg, universalTime, ref positionVessel, beamedPowerThrottleRatio * rentedBeamedPowerThrottleRatio, ref absorbedPhotonHeatInWatt);
+            ProcesKscBeamedPower(vesselMassInKg, universalTime, ref positionVessel, (double)(decimal)beamedPowerThrottleRatio * (double)(decimal)rentedBeamedPowerThrottleRatio, ref absorbedPhotonHeatInWatt);
 
             // sort transmitter on most favoritable angle
             var sortedConnectedTransmitters =  connectedTransmitters.Select(transmitter =>
@@ -867,11 +867,11 @@ namespace PhotonSail
         private void GetPhotonStatisticsForWavelength(double wavelength, ref double reflection, ref double photovolaticEfficiency)
         {
             var reflectionDefinition = photonReflectionDefinitions.FirstOrDefault(m => (wavelength >= m.minimumWavelength && wavelength <= m.maximumWavelength));
-            reflection = reflectionDefinition != null ? reflectionDefinition.PhotonReflectionPercentage / 100 : 0;
-            photovolaticEfficiency = reflectionDefinition != null ? reflectionDefinition.PhotonPhotovoltaicPercentage / 100 : 0;
+            reflection = reflectionDefinition != null ? reflectionDefinition.PhotonReflectionPercentage * 0.01 : 0;
+            photovolaticEfficiency = reflectionDefinition != null ? reflectionDefinition.PhotonPhotovoltaicPercentage * 0.01 : 0;
         }
 
-        private void ProcesKscBeamedPower(double vesselMassInKg, double universalTime, ref Vector3d positionVessel, float beamedPowerThrottleRatio, ref double receivedHeatInWatt)
+        private void ProcesKscBeamedPower(double vesselMassInKg, double universalTime, ref Vector3d positionVessel, double beamedPowerThrottleRatio, ref double receivedHeatInWatt)
         {
             if (kscLaserPowerInWatt <= 0 || kscLaserAperture <= 0)
                 return;
@@ -972,7 +972,7 @@ namespace PhotonSail
             {
                 sailHeatDissipationTemperature = Math.Pow(currentSailHeatingInMegajoules * 1e+6 / currentSurfaceArea / PhysicsGlobals.StefanBoltzmanConstant, 0.25);
 
-                var relaxedSailHeatingInMegajoules = updateCounter > 10 ? currentSailHeatingInMegajoules : currentSailHeatingInMegajoules * (updateCounter / 10d);
+                var relaxedSailHeatingInMegajoules = updateCounter > 10 ? currentSailHeatingInMegajoules : currentSailHeatingInMegajoules * (updateCounter * 0.1);
                 var temperatureChange = (relaxedSailHeatingInMegajoules - dissipationInMegaJoules) / thermalMassPerKilogram;
                 var modifiedTemperature = part.skinTemperature + temperatureChange;
 
@@ -1055,7 +1055,7 @@ namespace PhotonSail
             var combinedDragDeceleration = (specularDragForce + diffuseDragForce) / vesselMassInKg;
 
             // apply drag to vessel
-            ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * combinedDragDeceleration * TimeWarp.fixedDeltaTime);
+            ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * combinedDragDeceleration * (double)(decimal)TimeWarp.fixedDeltaTime);
 
             weightedDragCoefficient = specularDragCoefficient * specularRatio + diffuseDragCoefficient * diffuseRatio;
 
@@ -1102,7 +1102,7 @@ namespace PhotonSail
             }
 
             // convert radian into angle in degree
-            var pitchAngleInDegree = Math.Acos(cosConeAngle) * Mathf.Rad2Deg;
+            var pitchAngleInDegree = Math.Acos(cosConeAngle) * (double)(decimal)Mathf.Rad2Deg;
             if (double.IsNaN(pitchAngleInDegree))
                 pitchAngleInDegree = 0;
 
@@ -1220,7 +1220,7 @@ namespace PhotonSail
             var totalAccelerationVector = totalForceVector / vesselMassInKg;
 
             // all force
-            ChangeVesselVelocity(this.vessel, universalTime, totalAccelerationVector * TimeWarp.fixedDeltaTime);
+            ChangeVesselVelocity(this.vessel, universalTime, totalAccelerationVector * (double)(decimal)TimeWarp.fixedDeltaTime);
 
             // Update displayed force & acceleration
             var signedForce = totalForceVector.magnitude * sign(cosConeAngleIsNegative);
@@ -1243,7 +1243,7 @@ namespace PhotonSail
 
         private void UpdateChangeGui()
         {
-            var averageFixedDeltaTime = (previousFixedDeltaTime + TimeWarp.fixedDeltaTime) / 2;
+            var averageFixedDeltaTime = ((double)(decimal)previousFixedDeltaTime + (double)(decimal)TimeWarp.fixedDeltaTime) / 2;
 
             periapsisChangeQueue.Enqueue((vessel.orbit.PeA - previousPeA) / averageFixedDeltaTime);
             if (periapsisChangeQueue.Count > 30)
@@ -1276,7 +1276,7 @@ namespace PhotonSail
             var normalizedPowerSourceToVesselVector = powerSourceToVesselVector.normalized;
             var endBeamPos = part.transform.position + normalizedPowerSourceToVesselVector * beamlength;
             var midPos = part.transform.position - endBeamPos;
-            var timeCorrection = TimeWarp.CurrentRate > 1 ? -part.vessel.obt_velocity * TimeWarp.fixedDeltaTime : Vector3d.zero;
+            var timeCorrection = TimeWarp.CurrentRate > 1 ? -part.vessel.obt_velocity * (double)(decimal)TimeWarp.fixedDeltaTime : Vector3d.zero;
 
             var solarVectorX = normalizedPowerSourceToVesselVector.x * 90;
             var solarVectorY = normalizedPowerSourceToVesselVector.y * 90 - 90;
