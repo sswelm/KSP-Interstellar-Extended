@@ -54,6 +54,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Kopernicus.cs" />
     <Compile Include="ModulePhotonSail.cs" />
     <Compile Include="PhotonSailFilter.cs" />
     <Compile Include="PhotonReflection.cs" />

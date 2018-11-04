@@ -1,13 +1,15 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Resources;
+using FNPlugin.Beamedpower;
+using FNPlugin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
 using UnityEngine;
 
-namespace FNPlugin.Beamedpower
+namespace PhotonSail
 {
     class BeamEffect
     {
@@ -22,15 +24,6 @@ namespace FNPlugin.Beamedpower
         public double pitchAngle;
         public double spotsize;
         public double cosConeAngle;
-    }
-
-    class StarLight
-    {
-        public CelestialBody star;
-        public Vector3d position; 
-        public float luminocity;
-        public double solarFlux;
-        public bool hasLineOfSight; 
     }
 
     class BeamRay
@@ -379,8 +372,6 @@ namespace FNPlugin.Beamedpower
         Queue<double> periapsisChangeQueue = new Queue<double>(30);
         Queue<double> apapsisChangeQueue = new Queue<double>(30);
 
-        static List<StarLight> starLights = new List<StarLight>();
-
         public int ReceiverType { get { return 7; } }                       // receiver from either top or bottom
 
         public double Diameter { get { return diameter; } }
@@ -504,8 +495,6 @@ namespace FNPlugin.Beamedpower
             this.part.force_activate();
 
             CreateBeamArray();
-
-            ExtractKopernicusStarData("PhotonSailor");
         }
 
         private void InitializeMassVariables()
@@ -799,7 +788,7 @@ namespace FNPlugin.Beamedpower
             UpdateSolarFlux(universalTime, positionVessel);
 
             // unconditionally apply solarflux energy for every star
-            foreach (var starLight in starLights)
+            foreach (var starLight in KopernicusHelper.Stars)
             {
                 GenerateForce(reflectedPhotonRatio, solarPhotovoltaicEfficiencyFactor, ref absorbedPhotonHeatInWatt, ref starLight.position, ref positionVessel, starLight.solarFlux, universalTime, vesselMassInKg);
             }
@@ -1014,11 +1003,11 @@ namespace FNPlugin.Beamedpower
         {
             totalSolarFluxInWatt = 0;
 
-            foreach(var starLight in starLights)
+            foreach (var starLight in KopernicusHelper.Stars)
             {
                 starLight.position = starLight.star.position;
                 starLight.hasLineOfSight = LineOfSightToSun(vesselPosition, starLight.star);
-                starLight.solarFlux = starLight.hasLineOfSight ? solarFluxAtDistance(part.vessel, starLight.star, starLight.luminocity) : 0;
+                starLight.solarFlux = starLight.hasLineOfSight ? solarFluxAtDistance(part.vessel, starLight.star, starLight.relativeLuminocity) : 0;
                 totalSolarFluxInWatt += starLight.solarFlux;
             }
         }
@@ -1305,7 +1294,7 @@ namespace FNPlugin.Beamedpower
             var scaledDistance = 1 + Math.Min(1, distanceToSurfaceStar / star.Radius);
             var nearStarDistance = star.Radius * 0.25 * scaledDistance * scaledDistance;
             var distanceForeffectiveDistance = Math.Max(distanceToSurfaceStar, nearStarDistance);
-            var distAU = distanceForeffectiveDistance / Constants.GameConstants.kerbin_sun_distance;
+            var distAU = distanceForeffectiveDistance / GameConstants.kerbin_sun_distance;
             return luminosity * PhysicsGlobals.SolarLuminosityAtHome / (distAU * distAU);
         }
 
@@ -1388,99 +1377,5 @@ namespace FNPlugin.Beamedpower
         {
             return PartUpgradeManager.Handler.IsUnlocked(name);
         }
-
-        // ToDo: Move to global library
-        // Scan the Kopernicus config nodes and extract Kopernicus star data
-        protected static void ExtractKopernicusStarData(string modulename)
-        {
-            // Only need to execute this once 
-            if (starLights.Count > 0)
-                return;
-
-            var debugPrefix = "[" + modulename + "] - ";
-
-            var celestrialBodies = FlightGlobals.Bodies.ToDictionary(m => m.name);
-
-            ConfigNode[] nodeLevel1 = GameDatabase.Instance.GetConfigNodes("Kopernicus");
-
-            if (nodeLevel1.Length > 0)
-                Debug.Log(debugPrefix + "Loading Kopernicus Configuration Data");
-            else
-                Debug.LogWarning(debugPrefix + "Failed to find Kopernicus Configuration Data");
-
-            for (int i = 0; i < nodeLevel1.Length; i++)
-            {
-                ConfigNode[] celestrialBodyNode = nodeLevel1[i].GetNodes("Body");
-
-                Debug.Log(debugPrefix + "Found " + celestrialBodyNode.Length + " celestrial bodies");
-
-                for (int j = 0; j < celestrialBodyNode.Length; j++)
-                {
-                    string bodyName = celestrialBodyNode[j].GetValue("name");
-
-                    bool usesSunTemplate = false;
-
-                    ConfigNode sunNode = celestrialBodyNode[j].GetNode("Template");
-
-                    if (sunNode != null)
-                    {
-                        string templateName = sunNode.GetValue("name");
-                        usesSunTemplate = templateName == "Sun";
-                        if (usesSunTemplate)
-                            Debug.Log(debugPrefix + "Will use default Sun template for " + bodyName);
-                    }
-
-                    ConfigNode propertiesNode = celestrialBodyNode[j].GetNode("Properties");
-
-                    float luminocity = 0;
-
-                    if (propertiesNode != null)
-                    {
-                        string starLuminosityText = propertiesNode.GetValue("starLuminosity");
-
-                        if (string.IsNullOrEmpty(starLuminosityText))
-                        {
-                            if (usesSunTemplate)
-                                Debug.LogWarning(debugPrefix + "starLuminosity in Properties ConfigNode is missing, defaulting to template");
-                        }
-                        else
-                        {
-                            float.TryParse(starLuminosityText, out luminocity);
-                            CelestialBody celestialBody;
-
-                            if (luminocity > 0 && celestrialBodies.TryGetValue(bodyName, out celestialBody))
-                            {
-                                Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with luminocity " + luminocity);
-                                starLights.Add(new StarLight() { star = celestialBody, luminocity = luminocity });
-                            }
-                            else
-                                Debug.LogWarning(debugPrefix + "Failed to initialize star " + bodyName);
-                        }
-                    }
-
-                    if (usesSunTemplate && luminocity == 0)
-                    {
-                        CelestialBody celestialBody;
-
-                        if (celestrialBodies.TryGetValue(bodyName, out celestialBody))
-                        {
-                            Debug.Log(debugPrefix + "Added Star " + celestialBody.name + " with default luminocity of 1");
-                            starLights.Add(new StarLight() { star = celestialBody, luminocity = 1 });
-                        }
-                        else
-                            Debug.LogWarning(debugPrefix + "Failed to initialize star " + bodyName + " as with a default luminocity of 1");
-                    }
-                }
-            }
-
-            // add local sun if kopernicus configuration was not found or did not contain any star
-            var homePlanetSun = Planetarium.fetch.Sun;
-            if (!starLights.Any(m => m.star.name == homePlanetSun.name))
-            {
-                Debug.LogWarning("[PhotonSailor] - homeplanet star was not found, adding homeplanet star as default sun");
-                starLights.Add(new StarLight() { star = Planetarium.fetch.Sun, luminocity = 1 });
-            }
-        }
-
     }
 }
