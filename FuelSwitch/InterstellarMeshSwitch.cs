@@ -119,7 +119,7 @@ namespace InterstellarFuelSwitch
             //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " calls SetObject with " + objectNumber);
             SetObject(objectNumber, calledByPlayer);
 
-            if (!updateSymmetry)
+            if (HighLogic.LoadedSceneIsFlight || !updateSymmetry)
                 return;
 
             for (var i = 0; i < part.symmetryCounterparts.Count; i++)
@@ -265,14 +265,16 @@ namespace InterstellarFuelSwitch
 
                 if (orderByIndexNames)
                 {
-                    //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " order meshConfigurationList on indexName");
+                    if (debugMode)
+                        Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " order meshConfigurationList on indexName");
                     meshConfigurationList = meshConfigurationList.OrderBy(m => m.indexName).ToList();
                 }
 
-                foreach (var config in meshConfigurationList)
-                {
-                    Debug.Log("fuelTankSetup:" + config.fuelTankSetup + " indexName:" + config.indexName + " objectDisplay: " + config.objectDisplay + " tankSwitchName:" + config.tankSwitchName);
-                }
+                if (debugMode)
+                    foreach (var config in meshConfigurationList)
+                    {
+                        Debug.Log("fuelTankSetup:" + config.fuelTankSetup + " indexName:" + config.indexName + " objectDisplay: " + config.objectDisplay + " tankSwitchName:" + config.tankSwitchName);
+                    }
 
                 if (useFuelSwitchModule)
                 {
@@ -292,7 +294,8 @@ namespace InterstellarFuelSwitch
 
                         if (HighLogic.LoadedSceneIsFlight || matchingObject >= 0)
                         {
-                            //Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " sets selectedObject to matching object " + matchingObject);
+                            if (debugMode)
+                                Debug.Log("[IFS] - InterstellarMeshSwitch " + part.GetInstanceID() + " sets selectedObject to matching object " + matchingObject);
                             selectedObject = matchingObject;
                         }
                     }

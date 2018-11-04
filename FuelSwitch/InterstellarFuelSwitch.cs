@@ -162,6 +162,8 @@ namespace InterstellarFuelSwitch
 
         // Debug
         [KSPField]
+        public bool debugMode = false;
+        [KSPField]
         public float moduleCost;
         [KSPField]
         public double dryMass;
@@ -1306,13 +1308,14 @@ namespace InterstellarFuelSwitch
                     _modularTankList = _modularTankList.OrderBy(m => m.SwitchName).ToList();
                 }
 
-                foreach (var config in _modularTankList)
+                if (debugMode)
                 {
-                    string description = "Composition:" + config.Composition + " GuiName:" + config.GuiName + " SwitchName: " + config.SwitchName + " Resources: ";
-
-                    description += string.Join(",", config.Resources.Select(m => m.name).ToArray());
-
-                    Debug.Log(description);
+                    foreach (var config in _modularTankList)
+                    {
+                        string description = "Composition:" + config.Composition + " GuiName:" + config.GuiName + " SwitchName: " + config.SwitchName + " Resources: ";
+                        description += string.Join(",", config.Resources.Select(m => m.name).ToArray());
+                        Debug.Log(description);
+                    }
                 }
             }
             catch (Exception e)
