@@ -1297,6 +1297,8 @@ namespace FNPlugin.Reactors
                 Debug.Log("[KSPI] - skipped calling Force on " + part.name);
 
             Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
+            Fields["forcedMinimumThrottle"].guiActive = showForcedMinimumThrottle;
+            Fields["forcedMinimumThrottle"].guiActiveEditor = showForcedMinimumThrottle;
         }
 
         private void UpdateReactorCharacteristics()

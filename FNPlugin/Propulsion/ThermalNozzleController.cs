@@ -174,26 +174,22 @@ namespace FNPlugin
         public bool controlHeatProduction = true;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Exponent")]
         public float heatProductionExponent = 7.1f;
-
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Heat Exponent")]
         public double radiusHeatProductionExponent = 0.3;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Heat Multiplier")]
         public double radiusHeatProductionMult = 10;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Multiplier")]
         public double heatProductionMultiplier = 1;
-
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Isp modifier")]
         public double ispHeatModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius modifier")]
         public double radiusHeatModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production Mult")]
         public double engineHeatProductionMult;
-
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Power To Mass")]
         public double powerToMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Space Heat Production")]
         public double spaceHeatProduction = 100;
-
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max FuelFlow On Engine")]
@@ -279,13 +275,17 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
         protected double airflowHeatModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Supply", guiFormat = "F3")]
-        protected double effectiveThermalPower;
+        protected double effectiveThermalSupply;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Charged Power Supply", guiFormat = "F3")]
-        protected double effectiveChargedPower;
+        protected double effectiveChargedSupply;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Wasteheat Efficiency Modifier")]
         public double wasteheatEfficiencyModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         public double maximumPowerUsageForPropulsionRatio;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
+        public double maximumThermalPower;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
+        public double maximumChargedPower;
 
         [KSPField(guiActive = false)]
         public double powerHeatModifier;
@@ -496,6 +496,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            Debug.Log("[KSPI] - ThermalNozzleController - start");
+
             ScaleParameters();
 
             try
@@ -542,6 +544,8 @@ namespace FNPlugin
                     _originalEngineAccelerationSpeed = myAttachedEngine.engineAccelerationSpeed;
                     _originalEngineDecelerationSpeed = myAttachedEngine.engineDecelerationSpeed;
                 }
+                else
+                    Debug.LogError("[KSPI] - ThermalNozzleController - failed to find engine!");
 
                 // find attached thermal source
                 ConnectToThermalSource();
@@ -596,8 +600,10 @@ namespace FNPlugin
                 _jetTechBonusCurveChange = _jetTechBonus / 9.92992f;
                 _jetTechBonusPercentage = _jetTechBonus / 49.6496f;
 
-                effectiveJetengineAccelerationSpeed = overrideAccelerationSpeed ? jetengineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * _jetTechBonusCurveChange * 5 : _originalEngineAccelerationSpeed;
-                effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ? jetengineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult * _jetTechBonusCurveChange * 5 : _originalEngineDecelerationSpeed;
+                var reactorSpeed = AttachedReactor.ReactorSpeedMult > 0 ? AttachedReactor.ReactorSpeedMult : 1;
+
+                effectiveJetengineAccelerationSpeed = overrideAccelerationSpeed ? jetengineAccelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineAccelerationSpeed;
+                effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ? jetengineDecelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineDecelerationSpeed;
 
                 Fields["temperatureStr"].guiActive = showPartTemperature;
             }
@@ -979,9 +985,9 @@ namespace FNPlugin
 
                 myAttachedEngine.useAtmCurve = false;
                 myAttachedEngine.useVelCurve = false;
+                myAttachedEngine.useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
                 myAttachedEngine.engineAccelerationSpeed = engineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult;
                 myAttachedEngine.engineDecelerationSpeed = engineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult;
-                myAttachedEngine.useEngineResponseTime = true;
             }
             else
             {
@@ -1046,7 +1052,7 @@ namespace FNPlugin
 
                 myAttachedEngine.useAtmCurve = true;
                 myAttachedEngine.useVelCurve = true;
-                myAttachedEngine.useEngineResponseTime = true;
+                myAttachedEngine.useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
             }
 
 
@@ -1140,15 +1146,18 @@ namespace FNPlugin
                 else
                     AttachedReactor.DetachThermalReciever(id);
 
-                effectiveThermalPower = getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER);
-                effectiveChargedPower = getResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                effectiveThermalSupply = getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER);
+                effectiveChargedSupply = getResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                 maximumPowerUsageForPropulsionRatio = isPlasmaNozzle
                     ? AttachedReactor.PlasmaPropulsionEfficiency
                     : AttachedReactor.ThermalPropulsionEfficiency;
 
-                currentMaxThermalPower = Math.Min(effectiveThermalPower, AttachedReactor.MaximumThermalPower * maximumPowerUsageForPropulsionRatio * currentThrottle);
-                currentMaxChargedPower = Math.Min(effectiveChargedPower, AttachedReactor.MaximumChargedPower * maximumPowerUsageForPropulsionRatio * currentThrottle);
+                maximumThermalPower = AttachedReactor.MaximumThermalPower;
+                maximumChargedPower = AttachedReactor.MaximumChargedPower;
+
+                currentMaxThermalPower = Math.Min(effectiveThermalSupply, maximumThermalPower * maximumPowerUsageForPropulsionRatio * currentThrottle);
+                currentMaxChargedPower = Math.Min(effectiveChargedSupply, maximumChargedPower * maximumPowerUsageForPropulsionRatio * currentThrottle);
 
                 thermalRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_THERMALPOWER);
                 chargedParticleRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
