@@ -30,7 +30,7 @@ namespace FNPlugin.Reactors
         public float electricPowerPriority = 2;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_powerPercentage"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 10)]
         public float powerPercentage = 100;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Minimum Throtle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Forced Minimum Throtle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
         public float forcedMinimumThrottle = 0;
 
         // Persistent True
@@ -300,7 +300,7 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double massPowerExp = 0;
         [KSPField]
-        public double heatTransportationEfficiency = 0.85;
+        public double heatTransportationEfficiency = 0.9;
         [KSPField]
         public double ReactorTemp = 0;
         [KSPField]

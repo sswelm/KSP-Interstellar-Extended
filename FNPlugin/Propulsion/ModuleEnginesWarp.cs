@@ -64,6 +64,8 @@ namespace FNPlugin
         double _thrustPersistent;
         double _throttlePersistent;
 
+        int vesselChangedSIOCountdown;
+
         private double fuelVolume1;
         private double fuelVolume2;
         private double fuelVolume3;
@@ -86,6 +88,11 @@ namespace FNPlugin
 
         // Are we transitioning from timewarp to reatime?
         bool _warpToReal = false;
+
+        public void VesselChangedSOI()
+        {
+            vesselChangedSIOCountdown = 10;
+        }
 
         // Update
         public override void OnUpdate()
@@ -275,6 +282,9 @@ namespace FNPlugin
         {
             if (FlightGlobals.fetch == null || !isEnabled) return;
 
+            if (vesselChangedSIOCountdown > 0)
+                vesselChangedSIOCountdown--;
+
             UpdateFuelFactors();
 
             // Check if we are in time warp mode
@@ -311,15 +321,41 @@ namespace FNPlugin
                 // only persist thrust if non zero throttle or significant thrust
                 if (_throttlePersistent > 0 || _thrustPersistent > 0.0000005)
                 {
-                    demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime; // Change in mass over dT
+                    if (!PersistHeading())
+                        return;
+
+                    // determine maximum deltaV durring this frame
+                    demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
+                    var remainingMass = this.vessel.totalMass - demandMass; 
+                    var deltaV = _ispPersistent * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass);
+
+                    double persistentThrustDot = Vector3d.Dot(this.part.transform.up, vessel.obt_velocity);
+                    if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaV * 2))
+                    {
+                        var message = "Thrust warp stopped - orbital speed too low";
+                        ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                        Debug.Log("[KSPI] - " + message);
+                        TimeWarp.SetRate(0, true);
+                        return;
+                    }
+                    
                     fuelRatio = CollectFuel(demandMass);
 
                     // Calculate thrust and deltaV if demand output > 0
-                    if (fuelRatio > 0)
+                    if (!double.IsNaN(fuelRatio) && !double.IsInfinity(fuelRatio) && fuelRatio > 0)
                     {
-                        var remainingMass = this.vessel.totalMass - (demandMass * fuelRatio); // Mass at end of burn
-                        var deltaV = _ispPersistent * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
+                        remainingMass = this.vessel.totalMass - (demandMass * fuelRatio); // Mass at end of burn
+                        deltaV = _ispPersistent * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
                         vessel.orbit.Perturb(deltaV * (Vector3d)this.part.transform.up, Planetarium.GetUniversalTime()); // Update vessel orbit
+
+                        if (fuelRatio < 0.999)
+                        {
+                            var message = "Thrust warp stopped - running out of propellant";
+                            Debug.Log("[KSPI] - " + message);
+                            ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                            // Return to realtime
+                            TimeWarp.SetRate(0, true);
+                        }
                     }
                     else if (demandMass > 0)
                     {
@@ -343,6 +379,34 @@ namespace FNPlugin
             thrust_d = _thrustPersistent;
             isp_d = _ispPersistent;
             throttle_d = _throttlePersistent;
+        }
+
+        private bool PersistHeading()
+        {
+            var canPersistDirection = vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.ORBITING;
+
+            if (canPersistDirection && vessel.ActionGroups[KSPActionGroup.SAS] && (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde || vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Retrograde))
+            {
+                var requestedDirection = vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde ? vessel.obt_velocity.normalized : vessel.obt_velocity.normalized * -1;
+                var vesselDirection = vessel.transform.up.normalized;
+
+                if (vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.99)
+                {
+                    var rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
+                    vessel.transform.Rotate(rotation.eulerAngles, Space.World);
+                    vessel.SetRotation(vessel.transform.rotation);
+                }
+                else
+                {
+                    var directionName = Enum.GetName(typeof(VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
+                    var message = "Thrust warp stopped - vessel is not facing " + directionName;
+                    ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                    Debug.Log("[KSPI] - " + message);
+                    TimeWarp.SetRate(0, true);
+                    return false;
+                }
+            }
+            return true;
         }
 
         // Format thrust into mN, N, kN

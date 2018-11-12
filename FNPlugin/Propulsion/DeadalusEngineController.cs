@@ -276,6 +276,7 @@ namespace FNPlugin
         bool warpToReal;
         double engineIsp;
         double percentageFuelRemaining;
+        int vesselChangedSIOCountdown;
 
         double fusionFuelFactor1;
         double fusionFuelFactor2;
@@ -313,6 +314,11 @@ namespace FNPlugin
         public void ActivateRadSafety() 
         {
             rad_safety_features = true;
+        }
+
+        public void VesselChangedSOI()
+        {
+            vesselChangedSIOCountdown = 10;
         }
 
         #region IUpgradeableModule
@@ -825,10 +831,13 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
+            if (curEngineT == null) return;
+
+            if (vesselChangedSIOCountdown > 0)
+                vesselChangedSIOCountdown--;
+
             try
             {
-                if (curEngineT == null) return;
-
                 stopWatch.Reset();
                 stopWatch.Start();
 
@@ -915,9 +924,9 @@ namespace FNPlugin
                     else
                         PersistantThrust(TimeWarp.fixedDeltaTime, universalTime, this.part.transform.up, this.vessel.totalMass);
 
-                    if (fuelRatio <= 0.01)
+                    if (fuelRatio < 0.999)
                     {
-                        var message = "Thrust warp stopped - propellant depleted";
+                        var message = (fuelRatio <= 0) ? "Thrust warp stopped - propellant depleted" : "Thrust warp stopped - running out of propellant";
                         UnityEngine.Debug.Log("[KSPI] - " + message);
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime
@@ -963,9 +972,22 @@ namespace FNPlugin
 
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
+            if (!PersistHeading())
+                return;
+            
             var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
 
             var deltaVv = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDilation * engineIsp, out demandMass);
+
+            double persistentThrustDot = Vector3d.Dot(this.part.transform.up, vessel.obt_velocity);
+            if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaVv.magnitude * 2))
+            {
+                var message = "Thrust warp stopped - orbital speed too low";
+                ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                UnityEngine.Debug.Log("[KSPI] - " + message);
+                TimeWarp.SetRate(0, true);
+                return;
+            }
 
             fuelRatio = CollectFuel(demandMass);
 
@@ -1098,6 +1120,34 @@ namespace FNPlugin
                 partWithCrewMember.RemoveCrewmember(crewMember);
                 crewMember.Die();
             }
+        }
+
+        private bool PersistHeading()
+        {
+            var canPersistDirection = vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.ORBITING;
+
+            if (canPersistDirection && vessel.ActionGroups[KSPActionGroup.SAS] && (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde || vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Retrograde))
+            {
+                var requestedDirection = vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde ? vessel.obt_velocity.normalized : vessel.obt_velocity.normalized * -1;
+                var vesselDirection = vessel.transform.up.normalized;
+
+                if (vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.99)
+                {
+                    var rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
+                    vessel.transform.Rotate(rotation.eulerAngles, Space.World);
+                    vessel.SetRotation(vessel.transform.rotation);
+                }
+                else
+                {
+                    var directionName = Enum.GetName(typeof(VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
+                    var message = "Thrust warp stopped - vessel is not facing " + directionName;
+                    ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                    UnityEngine.Debug.Log("[KSPI] - " + message);
+                    TimeWarp.SetRate(0, true);
+                    return false;
+                }
+            }
+            return true;
         }
 
         public override int getPowerPriority() 

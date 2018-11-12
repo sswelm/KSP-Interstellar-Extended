@@ -43,8 +43,6 @@ namespace FNPlugin.Reactors
         public double geeForceMaintenancePowerMultiplier = 0;
 
         // Persistant
-        //[KSPField(isPersistant = true, guiActive = true, guiName = "Throttling"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        //public bool autoThrottle = true;
         [KSPField(isPersistant = true)]
         public double accumulatedElectricChargeInMW;
         [KSPField(guiActiveEditor = true, guiName = "Power Affects Maintenance")]
@@ -55,11 +53,11 @@ namespace FNPlugin.Reactors
         public float maxSecondaryPowerUsage = 90;
 
         // UI Display
-        [KSPField(guiActive = true, guiUnits = "%", guiName = "Minimum Throtle", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiUnits = "%", guiName = "Minimum Throtle", guiFormat = "F2")]
         public double minimumThrottlePercentage;
         [KSPField(guiActive = true, guiName = "Charge")]
         public string accumulatedChargeStr = String.Empty;
-        [KSPField(guiActive = true, guiName = "Fusion Power Requirement", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiName = "Fusion Power Requirement", guiFormat = "F2")]
         public double currentLaserPowerRequirements = 0;
 
         double power_consumed;

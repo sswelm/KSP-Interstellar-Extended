@@ -29,6 +29,7 @@ namespace FNPlugin
             GameEvents.onGameStateSaved.Add(OnGameStateSaved);
             GameEvents.onDockingComplete.Add(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
+            GameEvents.onVesselSOIChanged.Add(OmVesselSOIChanged);
 
             Debug.Log("[KSPI] - GameEventSubscriber Initialised");
         }
@@ -40,9 +41,12 @@ namespace FNPlugin
             //GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
             //GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
 
+            
+
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
             GameEvents.onDockingComplete.Remove(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
+            GameEvents.onVesselSOIChanged.Remove(OmVesselSOIChanged);
 
             Debug.Log("[KSPI] - GameEventSubscriber Deinitialised");
         }
@@ -61,6 +65,14 @@ namespace FNPlugin
             SupplyPriorityManager.Reset();
 
             ResetReceivers();
+        }
+
+        void  OmVesselSOIChanged (GameEvents.HostedFromToAction<Vessel, CelestialBody> gameEvent)
+        {
+            Debug.Log("[KSPI] - GameEventSubscriber - detected OmVesselSOIChanged");
+            gameEvent.host.FindPartModulesImplementing<ElectricEngineControllerFX>().ForEach(e => e.VesselChangedSOI());
+            gameEvent.host.FindPartModulesImplementing<ModuleEnginesWarp>().ForEach(e => e.VesselChangedSOI());
+            gameEvent.host.FindPartModulesImplementing<DaedalusEngineController>().ForEach(e => e.VesselChangedSOI());
         }
 
         void  OnPartDeCoupleComplete (Part part)
