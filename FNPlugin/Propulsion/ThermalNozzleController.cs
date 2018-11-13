@@ -156,7 +156,7 @@ namespace FNPlugin
         [KSPField]
         public double exitAreaScaleExponent = 2;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Radius", guiUnits = " m", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m", guiFormat = "F3")]
         public double scaledRadius;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Exit Area", guiUnits = " m2", guiFormat = "F3")]
         public double scaledExitArea = 1;
@@ -1195,8 +1195,8 @@ namespace FNPlugin
 
                 bool canUseChargedPower = this.allowUseOfChargedPower && AttachedReactor.ChargedPowerRatio > 0;
 
-                effectiveThermalSupply = UseThermalAndChargdPower ? getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
-                effectiveChargedSupply = canUseChargedPower ? getResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
+                effectiveThermalSupply = UseThermalAndChargdPower ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
+                effectiveChargedSupply = canUseChargedPower ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
 
                 maximumPowerUsageForPropulsionRatio = isPlasmaNozzle
                     ? AttachedReactor.PlasmaPropulsionEfficiency
@@ -1650,16 +1650,17 @@ namespace FNPlugin
             else if (UseThermalAndChargdPower)
             {
                 var scaledChargedRatio = 0.2 + Math.Pow((Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25), 2);
-                _maxISP = (scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * 3000);
+                _maxISP = scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * 3000;
             }
             else if (!UseChangedPowerOnly)  // when only mixing charged particles from reactor with propellant
             {
-                _maxISP = baseMaxIsp + Math.Pow((double)(decimal)ispThrottle / 100, 2) * 20 * baseMaxIsp;
+                var scaledChargedRatio = 0.2 + Math.Pow((Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25), 2);
+                _maxISP = (scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * 3000) + Math.Pow((double)(decimal)ispThrottle / 100, 2) * 20 * baseMaxIsp;
             }
             else
             {
                 var joules_per_amu = AttachedReactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
-                _maxISP = Math.Sqrt(joules_per_amu * 2 / GameConstants.ATOMIC_MASS_UNIT) / GameConstants.STANDARD_GRAVITY;
+                _maxISP = 100 * Math.Sqrt(joules_per_amu * 2 / GameConstants.ATOMIC_MASS_UNIT) / GameConstants.STANDARD_GRAVITY;
             }
             _maxISP *= _ispPropellantMultiplier;
         }
