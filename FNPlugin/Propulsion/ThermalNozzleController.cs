@@ -31,6 +31,8 @@ namespace FNPlugin
         public bool isDeployed = false;
         [KSPField(isPersistant = true)]
         public double animationStarted = 0;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Use Thermal Power"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
+        public bool useThermalPower = true;
 
         [KSPField]
         public float jetengineAccelerationBaseSpeed = 0.2f;
@@ -120,6 +122,11 @@ namespace FNPlugin
         public double baseMaxIsp;
         [KSPField]
         public double wasteHeatBufferMult = 1;
+        [KSPField]
+
+        public bool allowUseOfThermalPower = true;
+        [KSPField]
+        public bool allowUseOfChargedPower = true;
         [KSPField]
 
         public bool overrideAtmCurve = true;
@@ -384,6 +391,11 @@ namespace FNPlugin
         public double EffectiveIspMult
         {
             get { return PluginHelper.IspCoreTempMult + IspTempMultOffset; }
+        }
+
+        public bool UseThermalPower
+        {
+            get { return useThermalPower; }
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next Propellant", active = true)]
@@ -698,6 +710,11 @@ namespace FNPlugin
                     Events["RetrofitEngine"].active = false;
 
                 Fields["upgradeCostStr"].guiActive = !isupgraded && _hasrequiredupgrade && isJet;
+
+                // only show switch when relevant
+                var showCanUseThermalPowerSwitch = this.allowUseOfThermalPower && !AttachedReactor.SupportMHD && !AttachedReactor.ChargedPowerRatio;
+                Fields["useThermalPower"].guiActiveEditor = showCanUseThermalPowerSwitch;
+                Fields["useThermalPower"].guiActive = showCanUseThermalPowerSwitch;
 
                 if (myAttachedEngine == null)
                     return;
@@ -1161,8 +1178,11 @@ namespace FNPlugin
                 else
                     AttachedReactor.DetachThermalReciever(id);
 
-                effectiveThermalSupply = getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER);
-                effectiveChargedSupply = getResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                bool canUseThermalPower = UseThermalPower;
+                bool canUseChargedPower = this.allowUseOfChargedPower && AttachedReactor.ChargedPowerRatio > 0;
+
+                effectiveThermalSupply = canUseThermalPower ? getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
+                effectiveChargedSupply = canUseChargedPower ? getResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
 
                 maximumPowerUsageForPropulsionRatio = isPlasmaNozzle
                     ? AttachedReactor.PlasmaPropulsionEfficiency
@@ -1335,7 +1355,7 @@ namespace FNPlugin
                     power_received += consumeFNResourcePerSecond(requested_charge_particles, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 }
 
-                // shotdown engine when connected heatsource cannot produce power
+                // shutdown engine when connected heatsource cannot produce power
                 if (!AttachedReactor.CanProducePower)
                 {
                     ScreenMessages.PostScreenMessage("no power produced by thermal source!", 0.02f, ScreenMessageStyle.UPPER_CENTER);
