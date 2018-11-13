@@ -381,6 +381,11 @@ namespace FNPlugin
 
         private int switches = 0;
 
+        public double EffectiveIspMult
+        {
+            get { return PluginHelper.IspCoreTempMult + IspTempMultOffset; }
+        }
+
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next Propellant", active = true)]
         public void NextPropellant()
         {
@@ -971,8 +976,8 @@ namespace FNPlugin
             _ispPropellantMultiplier = _baseIspMultiplier * rawthrustPropellantMultiplier;
             _thrustPropellantMultiplier = _propellantIsLFO ? rawthrustPropellantMultiplier : (rawthrustPropellantMultiplier + 1) / 2;
 
-            // lower efficiency of plasma nozzle when used with heavier propellants
-            if (isPlasmaNozzle)
+            // lower efficiency of plasma nozzle when used with heavier propellants except when used with a neutron absorber like lithium
+            if (isPlasmaNozzle && !_isNeutronAbsorber)
             {
                 var plasmaEfficiency = Math.Pow(_baseIspMultiplier, 1d/3d);
                 _ispPropellantMultiplier *= plasmaEfficiency;
@@ -1587,7 +1592,7 @@ namespace FNPlugin
 
         private void UpdateMaxIsp()
         {
-            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * (PluginHelper.IspCoreTempMult + IspTempMultOffset);
+            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveIspMult;
 
             if (baseMaxIsp > GameConstants.MaxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = GameConstants.MaxThermalNozzleIsp;
