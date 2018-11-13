@@ -398,7 +398,7 @@ namespace FNPlugin
 
         public bool UseThermalPower
         {
-            get { return useThermalPower; }
+            get { return useThermalPower || ispThrottle <= 5; }
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next Propellant", active = true)]
@@ -625,9 +625,10 @@ namespace FNPlugin
                 effectiveJetengineAccelerationSpeed = overrideAccelerationSpeed ? jetengineAccelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineAccelerationSpeed;
                 effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ? jetengineDecelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineDecelerationSpeed;
 
+                var showIspThrotle = isPlasmaNozzle && !AttachedReactor.SupportMHD && !(AttachedReactor.ChargedPowerRatio > 0);
                 Fields["temperatureStr"].guiActive = showPartTemperature;
-                Fields["ispThrottle"].guiActiveEditor = useThermalPower && isPlasmaNozzle;
-                Fields["ispThrottle"].guiActive = useThermalPower && isPlasmaNozzle;
+                Fields["ispThrottle"].guiActiveEditor = showIspThrotle;
+                Fields["ispThrottle"].guiActive = showIspThrotle;
             }
             catch (Exception e)
             {
