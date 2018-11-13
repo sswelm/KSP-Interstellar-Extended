@@ -625,7 +625,7 @@ namespace FNPlugin
                 effectiveJetengineAccelerationSpeed = overrideAccelerationSpeed ? jetengineAccelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineAccelerationSpeed;
                 effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ? jetengineDecelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineDecelerationSpeed;
 
-                var showIspThrotle = isPlasmaNozzle && !AttachedReactor.SupportMHD && !(AttachedReactor.ChargedPowerRatio > 0);
+                var showIspThrotle = isPlasmaNozzle && AttachedReactor.ChargedPowerRatio > 0;
                 Fields["temperatureStr"].guiActive = showPartTemperature;
                 Fields["ispThrottle"].guiActiveEditor = showIspThrotle;
                 Fields["ispThrottle"].guiActive = showIspThrotle;
@@ -720,7 +720,6 @@ namespace FNPlugin
                 // only show switch when relevant
                 var showCanUseThermalPowerSwitch = this.allowUseOfThermalPower && !AttachedReactor.SupportMHD && !(AttachedReactor.ChargedPowerRatio > 0);
                 Fields["useThermalPower"].guiActive = showCanUseThermalPowerSwitch;
-                Fields["ispThrottle"].guiActive = useThermalPower && isPlasmaNozzle;
 
                 if (myAttachedEngine == null)
                     return;
