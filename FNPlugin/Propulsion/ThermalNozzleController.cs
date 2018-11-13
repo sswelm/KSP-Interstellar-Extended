@@ -31,8 +31,11 @@ namespace FNPlugin
         public bool isDeployed = false;
         [KSPField(isPersistant = true)]
         public double animationStarted = 0;
+
         [KSPField(isPersistant = true, guiActive = true, guiName = "Use Thermal Power"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool useThermalPower = true;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Isp Throtle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 5f)]
+        public float ispThrottle = 100;
 
         [KSPField]
         public float jetengineAccelerationBaseSpeed = 0.2f;
@@ -388,7 +391,7 @@ namespace FNPlugin
 
         private int switches = 0;
 
-        public double EffectiveIspMult
+        public double EffectiveCorTempIspMult
         {
             get { return PluginHelper.IspCoreTempMult + IspTempMultOffset; }
         }
@@ -623,6 +626,8 @@ namespace FNPlugin
                 effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ? jetengineDecelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineDecelerationSpeed;
 
                 Fields["temperatureStr"].guiActive = showPartTemperature;
+                Fields["ispThrottle"].guiActiveEditor = useThermalPower && isPlasmaNozzle;
+                Fields["ispThrottle"].guiActive = useThermalPower && isPlasmaNozzle;
             }
             catch (Exception e)
             {
@@ -712,9 +717,9 @@ namespace FNPlugin
                 Fields["upgradeCostStr"].guiActive = !isupgraded && _hasrequiredupgrade && isJet;
 
                 // only show switch when relevant
-                var showCanUseThermalPowerSwitch = this.allowUseOfThermalPower && !AttachedReactor.SupportMHD && !AttachedReactor.ChargedPowerRatio;
-                Fields["useThermalPower"].guiActiveEditor = showCanUseThermalPowerSwitch;
+                var showCanUseThermalPowerSwitch = this.allowUseOfThermalPower && !AttachedReactor.SupportMHD && !(AttachedReactor.ChargedPowerRatio > 0);
                 Fields["useThermalPower"].guiActive = showCanUseThermalPowerSwitch;
+                Fields["ispThrottle"].guiActive = useThermalPower && isPlasmaNozzle;
 
                 if (myAttachedEngine == null)
                     return;
@@ -1612,18 +1617,22 @@ namespace FNPlugin
 
         private void UpdateMaxIsp()
         {
-            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveIspMult;
+            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveCorTempIspMult;
 
             if (baseMaxIsp > GameConstants.MaxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = GameConstants.MaxThermalNozzleIsp;
 
             if (!isPlasmaNozzle || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0) 
                 _maxISP = baseMaxIsp * _ispPropellantMultiplier;
-            else
+            else if (UseThermalPower)
             {
                 var scaledChargedRatio = 0.2 + Math.Pow((Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25), 2);
 
                 _maxISP = (scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * 3000) * _ispPropellantMultiplier;
+            }
+            else // when only consuming charged particles from reactor
+            {
+                _maxISP = Math.Pow((double)(decimal)ispThrottle / 100, 2) * 200000;
             }
         }
 
