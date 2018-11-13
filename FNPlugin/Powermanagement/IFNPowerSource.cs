@@ -25,5 +25,9 @@ namespace FNPlugin.Redist
         bool CanUseAllPowerForPlasma { get; }
 
         bool UsePropellantBaseIsp { get; }
+
+        double CurrentMeVPerChargedProduct { get; }
+
+        void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource);
     }
 }

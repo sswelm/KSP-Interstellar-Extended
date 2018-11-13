@@ -590,6 +590,8 @@ namespace FNPlugin.Reactors
             return ModifierChangeWhen.STAGED;
         }
 
+        public double CurrentMeVPerChargedProduct { get { return current_fuel_mode.MeVPerChargedProduct; } }
+
         public bool UsePropellantBaseIsp { get { return usePropellantBaseIsp; } }
 
         public bool CanUseAllPowerForPlasma { get { return canUseAllPowerForPlasma;} }
@@ -636,6 +638,26 @@ namespace FNPlugin.Reactors
             }
 
             requestedPropellantMassPerSecond = propellantMassPerSecond;
+        }
+
+        public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource)
+        {
+            if (ratio <= 0) return;
+
+            foreach (var product in reactorProduction)
+            {
+                if (product.mass <= 0) continue;
+
+                var effectiveMass = ratio * product.mass;
+
+                // remove product from store
+                var fuelAmount = product.fuelmode.DensityInTon > 0 ? (effectiveMass / product.fuelmode.DensityInTon) : 0;
+                if (fuelAmount == 0) continue;
+
+                part.RequestResource(product.fuelmode.ResourceName, fuelAmount);
+            }
+
+            var resultFixed = part.RequestResource(resource.name, -propellantMassPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime / (double)(decimal)resource.density, ResourceFlowMode.ALL_VESSEL);
         }
 
         public void ConnectWithEngine(IEngineNoozle engine)

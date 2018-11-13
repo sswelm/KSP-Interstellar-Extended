@@ -36,6 +36,8 @@ namespace FNPlugin
         public float ispThrottle = 0;
 
         [KSPField]
+        public bool canUsePureChargedPower = false;
+        [KSPField]
         public float jetengineAccelerationBaseSpeed = 0.2f;
         [KSPField]
         public float jetengineDecelerationBaseSpeed = 0.4f;
@@ -144,6 +146,8 @@ namespace FNPlugin
 
         [KSPField]
         public bool isPlasmaNozzle = false;
+        [KSPField]
+        public double requiredMegajouleRatio = 0.05;
 
         [KSPField]
         public double radius = 2.5;
@@ -213,7 +217,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Requested Charge", guiUnits = " MJ")]
         public double requested_charge_particles;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Recieved Power", guiUnits = " MJ", guiFormat = "F3")]
-        public double power_received;
+        public double reactor_power_received;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Modifier")]
         public string radiusModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Vacuum")]
@@ -275,7 +279,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Charged Power", guiUnits = " MJ")]
         protected double currentMaxChargedPower;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Modifier")]
-        protected double thrust_modifiers;
+        protected double powerFraction;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Available T Power ", guiUnits = " MJ")]
         protected double availableThermalPower;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Available C Power ", guiUnits = " MJ")]
@@ -304,6 +308,8 @@ namespace FNPlugin
         [KSPField(guiActive = false)]
         public float effectRatio;
 
+        [KSPField]
+        double received_megajoules_ratio;
         [KSPField]
         int pre_coolers_active;
         [KSPField]
@@ -394,9 +400,19 @@ namespace FNPlugin
             get { return PluginHelper.IspCoreTempMult + IspTempMultOffset; }
         }
 
-        public bool UseThermalPower
+        public bool UseOnlyPlasmaPower
         {
-            get { return ispThrottle == 0; }
+            get { return !isPlasmaNozzle || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0 || list_of_propellants.Count > 1; }
+        }
+
+        public bool UseThermalAndChargdPower
+        {
+            get { return !UseOnlyPlasmaPower && ispThrottle == 0; }
+        }
+
+        public bool UseChangedPowerOnly
+        {
+            get { return canUsePureChargedPower && ispThrottle == 100 && list_of_propellants.Count == 1; }
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Next Propellant", active = true)]
@@ -1179,7 +1195,7 @@ namespace FNPlugin
 
                 bool canUseChargedPower = this.allowUseOfChargedPower && AttachedReactor.ChargedPowerRatio > 0;
 
-                effectiveThermalSupply = UseThermalPower ? getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
+                effectiveThermalSupply = UseThermalAndChargdPower ? getResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
                 effectiveChargedSupply = canUseChargedPower ? getResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
 
                 maximumPowerUsageForPropulsionRatio = isPlasmaNozzle
@@ -1342,16 +1358,26 @@ namespace FNPlugin
 
                 GetMaximumIspAndThrustMultiplier();
 
-                thrust_modifiers = AttachedReactor.GetFractionThermalReciever(id);
-                requested_thermal_power = availableThermalPower * thrust_modifiers;
+                powerFraction = AttachedReactor.GetFractionThermalReciever(id);
+                requested_thermal_power = availableThermalPower * powerFraction;
 
-                power_received = consumeFNResourcePerSecond(requested_thermal_power, ResourceManager.FNRESOURCE_THERMALPOWER);
+                reactor_power_received = consumeFNResourcePerSecond(requested_thermal_power, ResourceManager.FNRESOURCE_THERMALPOWER);
 
                 if (currentMaxChargedPower > 0)
                 {
-                    requested_charge_particles = availableChargedPower * thrust_modifiers;
-                    power_received += consumeFNResourcePerSecond(requested_charge_particles, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    requested_charge_particles = availableChargedPower * powerFraction;
+                    reactor_power_received += consumeFNResourcePerSecond(requested_charge_particles, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 }
+
+                // consume power when plasma nozzle
+				if (isPlasmaNozzle && reactor_power_received > 0 && requiredMegajouleRatio > 0)
+				{
+					var requested_megajoules = reactor_power_received * requiredMegajouleRatio;
+					var received_megajoules = consumeFNResourcePerSecond(requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
+					received_megajoules_ratio = received_megajoules / requested_megajoules;
+				}
+				else
+					received_megajoules_ratio = 1;
 
                 // shutdown engine when connected heatsource cannot produce power
                 if (!AttachedReactor.CanProducePower)
@@ -1376,13 +1402,13 @@ namespace FNPlugin
 
                     wasteheatEfficiencyModifier = 1 - ((1 - baseWasteheatEfficiency) * reactorWasteheatModifier * AttachedReactor.ThermalPropulsionWasteheatModifier / _fuelCoolingFactor);
 
-                    consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * reactor_power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // calculate max thrust
                 heatExchangerThrustDivisor = GetHeatExchangerThrustDivisor();
 
-                if (power_received > 0 && _maxISP > 0)
+                if (reactor_power_received > 0 && _maxISP > 0)
                 {
                     if (_engineWasInactivePreviousFrame)
                     {
@@ -1394,7 +1420,7 @@ namespace FNPlugin
 
                     powerHeatModifier = GetPowerThrustModifier() * GetHeatThrustModifier();
 
-                    engineMaxThrust = powerHeatModifier * power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
+                    engineMaxThrust = received_megajoules_ratio * powerHeatModifier * reactor_power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
 
                     thrustPerMegaJoule = powerHeatModifier * maximumPowerUsageForPropulsionRatio / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
 
@@ -1517,6 +1543,10 @@ namespace FNPlugin
 
                 currentEngineFuelFlow = myAttachedEngine.fuelFlowGui * myAttachedEngine.mixtureDensity;
 
+                // give back propellant
+                if (isPlasmaNozzle && list_of_propellants.Count == 1)
+                    AttachedReactor.UseProductForPropulsion(powerFraction, currentEngineFuelFlow, list_of_propellants.First().getPartResourceDefinition());
+
                 maxFuelFlowOnEngine = myAttachedEngine.maxFuelFlow;
                 maxThrustOnEngine = myAttachedEngine.maxThrust;
                 realIspEngine = myAttachedEngine.realIsp;
@@ -1615,18 +1645,23 @@ namespace FNPlugin
             if (baseMaxIsp > GameConstants.MaxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = GameConstants.MaxThermalNozzleIsp;
 
-            if (!isPlasmaNozzle || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0) 
-                _maxISP = baseMaxIsp * _ispPropellantMultiplier;
-            else if (UseThermalPower)
+            if (UseOnlyPlasmaPower) 
+                _maxISP = baseMaxIsp;
+            else if (UseThermalAndChargdPower)
             {
                 var scaledChargedRatio = 0.2 + Math.Pow((Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25), 2);
-
-                _maxISP = (scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * 3000) * _ispPropellantMultiplier;
+                _maxISP = (scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * 3000);
             }
-            else // when only consuming charged particles from reactor
+            else if (!UseChangedPowerOnly)  // when only mixing charged particles from reactor with propellant
             {
                 _maxISP = baseMaxIsp + Math.Pow((double)(decimal)ispThrottle / 100, 2) * 20 * baseMaxIsp;
             }
+            else
+            {
+                var joules_per_amu = AttachedReactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
+                _maxISP = Math.Sqrt(joules_per_amu * 2 / GameConstants.ATOMIC_MASS_UNIT) / GameConstants.STANDARD_GRAVITY;
+            }
+            _maxISP *= _ispPropellantMultiplier;
         }
 
         public override string GetInfo()

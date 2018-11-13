@@ -342,6 +342,13 @@ namespace FNPlugin
             received_power.Clear();
         }
 
+		public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource)
+		{
+			// do nothing
+		}
+
+        public double CurrentMeVPerChargedProduct { get { return 0; } }
+
         public bool UsePropellantBaseIsp { get { return false; } }
 
         public bool CanUseAllPowerForPlasma { get { return false; } }
