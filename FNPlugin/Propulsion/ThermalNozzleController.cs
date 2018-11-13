@@ -1632,7 +1632,7 @@ namespace FNPlugin
             }
             else // when only consuming charged particles from reactor
             {
-                _maxISP = Math.Pow((double)(decimal)ispThrottle / 100, 2) * 200000;
+                _maxISP = Math.Pow((double)(decimal)ispThrottle / 100, 2) * 20 * baseMaxIsp;
             }
         }
 
