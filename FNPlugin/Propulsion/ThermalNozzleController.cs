@@ -966,8 +966,18 @@ namespace FNPlugin
             var linearFraction = Math.Max(0, Math.Min(1, (AttachedReactor.CoreTemperature - _minDecompositionTemp) / (_maxDecompositionTemp - _minDecompositionTemp)));
             _heatDecompositionFraction = Math.Pow(0.36, Math.Pow(3 - linearFraction * 3, 2) / 2);
             var rawthrustPropellantMultiplier = Math.Sqrt(_heatDecompositionFraction * _decompositionEnergy / _hydroloxDecompositionEnergy) * 1.04 + 1;
+
+            
             _ispPropellantMultiplier = _baseIspMultiplier * rawthrustPropellantMultiplier;
             _thrustPropellantMultiplier = _propellantIsLFO ? rawthrustPropellantMultiplier : (rawthrustPropellantMultiplier + 1) / 2;
+
+            // lower efficiency of plasma nozzle when used with heavier propellants
+            if (isPlasmaNozzle)
+            {
+                var plasmaEfficiency = Math.Pow(_baseIspMultiplier, 1d/3d);
+                _ispPropellantMultiplier *= plasmaEfficiency;
+                _thrustPropellantMultiplier *= plasmaEfficiency;
+            }
         }
 
         public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1)
