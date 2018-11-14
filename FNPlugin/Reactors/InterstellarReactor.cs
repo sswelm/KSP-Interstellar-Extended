@@ -379,6 +379,8 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double geeForceTreshHold = 1.5;
         [KSPField]
+        public double geeForceExponent = 2;
+        [KSPField]
         public double minGeeForceModifier = 0.01;
         [KSPField]
         public double neutronEmbrittlementLifepointsMax = 100;
@@ -1607,10 +1609,12 @@ namespace FNPlugin.Reactors
                 if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
                 {
                     averageGeeForce.Enqueue(part.vessel.geeForce);
-                    if (averageGeeForce.Count > 50)
+                    if (averageGeeForce.Count > 20)
                         averageGeeForce.Dequeue();
 
-                    geeForceModifier = Math.Min(Math.Max(1 - ((averageGeeForce.Average() - geeForceTreshHold) * geeForceMultiplier), minGeeForceModifier), 1);
+                    var scaledGeeforce = Math.Pow(Math.Max(averageGeeForce.Average - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
+
+                    geeForceModifier = Math.Min(Math.Max(1 - scaledGeeforce, minGeeForceModifier), 1);
                 }
                 else
                     geeForceModifier = 1;
