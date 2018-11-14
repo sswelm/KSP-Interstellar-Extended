@@ -297,15 +297,20 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         public double maximumChargedPower;
 
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double powerHeatModifier;
-        [KSPField(guiActive = false)]
+        [KSPField]
+        public double plasmaDuelModeHeatModifier = 0.1;
+        [KSPField]
+        public double plasmaAfterburnerHeatModifier = 0.5;
+        [KSPField]
+        public double thermalHeatModifier = 5;
+        [KSPField]
         public double currentThrottle;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double requestedThrottle;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public float effectRatio;
-
         [KSPField]
         double received_megajoules_ratio;
         [KSPField]
@@ -393,7 +398,7 @@ namespace FNPlugin
 
         private int switches = 0;
 
-        public double EffectiveCorTempIspMult
+        public double EffectiveCoreTempIspMult
         {
             get { return PluginHelper.IspCoreTempMult + IspTempMultOffset; }
         }
@@ -1556,7 +1561,7 @@ namespace FNPlugin
 
                 if (controlHeatProduction)
                 {
-                    ispHeatModifier = Approximate.Sqrt(realIspEngine) * (isPlasmaNozzle ? UseThermalAndChargdPower ? 0.1 : 0.5 : 5);
+                    ispHeatModifier = Approximate.Sqrt(realIspEngine) * (isPlasmaNozzle ? UseThermalAndChargdPower ? plasmaDuelModeHeatModifier : plasmaAfterburnerHeatModifier : thermalHeatModifier);
                     powerToMass = Approximate.Sqrt(maxThrustOnEngine / part.mass);
                     radiusHeatModifier = Math.Pow(scaledRadius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
@@ -1639,7 +1644,7 @@ namespace FNPlugin
 
         private void UpdateMaxIsp()
         {
-            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveCorTempIspMult;
+            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveCoreTempIspMult;
 
             if (baseMaxIsp > GameConstants.MaxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = GameConstants.MaxThermalNozzleIsp;
