@@ -288,8 +288,6 @@ namespace FNPlugin
         protected double effectiveThermalSupply;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Charged Power Supply", guiFormat = "F3")]
         protected double effectiveChargedSupply;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Wasteheat Efficiency Modifier")]
-        public double wasteheatEfficiencyModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         public double maximumPowerUsageForPropulsionRatio;
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
@@ -1382,7 +1380,7 @@ namespace FNPlugin
                 {
                     var requested_megajoules = reactor_power_received * requiredMegajouleRatio;
                     var received_megajoules = consumeFNResourcePerSecond(requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
-                    received_megajoules_ratio = received_megajoules / requested_megajoules;
+                    received_megajoules_ratio = requested_megajoules > 0 ? received_megajoules / requested_megajoules : 0;
                 }
                 else
                     received_megajoules_ratio = 1;
@@ -1408,9 +1406,11 @@ namespace FNPlugin
 
                     var reactorWasteheatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaWasteheatProductionMult : AttachedReactor.EngineWasteheatProductionMult;
 
-                    wasteheatEfficiencyModifier = 1 - ((1 - baseWasteheatEfficiency) * reactorWasteheatModifier * AttachedReactor.ThermalPropulsionWasteheatModifier / _fuelCoolingFactor);
+                    var wasteheatEfficiencyModifier = (1 - baseWasteheatEfficiency) * reactorWasteheatModifier * AttachedReactor.ThermalPropulsionWasteheatModifier;
+                    if (_fuelCoolingFactor > 0)
+                        wasteheatEfficiencyModifier /= _fuelCoolingFactor;
 
-                    consumeFNResourcePerSecond(sootModifier * wasteheatEfficiencyModifier * reactor_power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(sootModifier * (1 - wasteheatEfficiencyModifier) * reactor_power_received, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // calculate max thrust

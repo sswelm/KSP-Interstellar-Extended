@@ -487,9 +487,9 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double maximumThermalPowerEffective = 0;
         [KSPField]
-        public double geeForceModifier;
+        public double geeForceModifier = 1;
         [KSPField]
-        public double overheatModifier;
+        public double overheatModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Requested", guiUnits = " kg/s")]
         public double hydrogenProductionRequest;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
@@ -984,8 +984,7 @@ namespace FNPlugin.Reactors
                         break;
                 }
 
-                var overheatEffectOnTemperature = overheatModifier * overheatModifier;
-                return baseCoreTemperature * overheatEffectOnTemperature * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
+                return baseCoreTemperature * Math.Pow(overheatModifier, 1.5) * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
             }
         }
 
@@ -1021,8 +1020,7 @@ namespace FNPlugin.Reactors
         { 
             get 
             {
-                var power = PowerRatio * NormalisedMaximumPower;
-                return power * ThermalPowerRatio;
+                return PowerRatio * NormalisedMaximumPower * ThermalPowerRatio * geeForceModifier * overheatModifier;
             } 
         }
 
@@ -1620,11 +1618,13 @@ namespace FNPlugin.Reactors
 
                 if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
                 {
-                    averageGeeForce.Enqueue(part.vessel.geeForce);
-                    if (averageGeeForce.Count > 20)
-                        averageGeeForce.Dequeue();
+                    //averageGeeForce.Enqueue(part.vessel.geeForce);
+                    //if (averageGeeForce.Count > 20)
+                    //    averageGeeForce.Dequeue();
 
-                    var scaledGeeforce = Math.Pow(Math.Max(averageGeeForce.Average() - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
+                    var geeforce = double.IsNaN(part.vessel.geeForce) || double.IsInfinity(part.vessel.geeForce) ? 0 : part.vessel.geeForce;
+
+                    var scaledGeeforce = Math.Pow(Math.Max(geeforce - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
 
                     geeForceModifier = Math.Min(Math.Max(1 - scaledGeeforce, minGeeForceModifier), 1);
                 }
@@ -1633,11 +1633,11 @@ namespace FNPlugin.Reactors
 
                 if (hasOverheatEffects && !CheatOptions.IgnoreMaxTemperature)
                 {
-                    averageOverheat.Enqueue(getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT));
-                    if (averageOverheat.Count > 20)
-                        averageOverheat.Dequeue();
+                    //averageOverheat.Enqueue(getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT));
+                    //if (averageOverheat.Count > 20)
+                    //    averageOverheat.Dequeue();
 
-                    var scaledOverheating = Math.Pow(Math.Max(averageOverheat.Average() - overheatTreshHold, 0) * overheatMultiplier, overheatExponent);
+                    var scaledOverheating = Math.Pow(Math.Max(getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) - overheatTreshHold, 0) * overheatMultiplier, overheatExponent);
 
                     overheatModifier = Math.Min(Math.Max(1 - scaledOverheating, minOverheatModifier), 1);
                 }
