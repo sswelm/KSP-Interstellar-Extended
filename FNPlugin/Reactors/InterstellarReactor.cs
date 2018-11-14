@@ -347,11 +347,10 @@ namespace FNPlugin.Reactors
         public double hotBathTemperature = 0;
         [KSPField]
         public bool usePropellantBaseIsp = false;
-
-
+        [KSPField]
+        public double emergencyPowerShutdownFraction = 0.99;
         [KSPField]
         public double thermalPropulsionWasteheatModifier = 1;
-
         [KSPField]
         public double thermalPropulsionEfficiency = 1;
         [KSPField]
@@ -388,7 +387,7 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double overheatExponent = 2;
         [KSPField]
-        public double minoverheatModifier = 0.01;
+        public double minOverheatModifier = 0.01;
 
 
         [KSPField]
@@ -531,7 +530,7 @@ namespace FNPlugin.Reactors
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
         Queue<double> averageGeeForce = new Queue<double>();
-        Queue<double> averageWasteheat = new Queue<double>();
+        Queue<double> averageOverheat = new Queue<double>();
         Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
         Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
 
@@ -1625,7 +1624,7 @@ namespace FNPlugin.Reactors
                     if (averageGeeForce.Count > 20)
                         averageGeeForce.Dequeue();
 
-                    var scaledGeeforce = Math.Pow(Math.Max(averageGeeForce.Average - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
+                    var scaledGeeforce = Math.Pow(Math.Max(averageGeeForce.Average() - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
 
                     geeForceModifier = Math.Min(Math.Max(1 - scaledGeeforce, minGeeForceModifier), 1);
                 }
@@ -1638,7 +1637,7 @@ namespace FNPlugin.Reactors
                     if (averageOverheat.Count > 20)
                         averageOverheat.Dequeue();
 
-                    var scaledOverheating = Math.Pow(Math.Max(averageOverheat.Average - overheatTreshHold, 0) * overheatMultiplier, overheatExponent);
+                    var scaledOverheating = Math.Pow(Math.Max(averageOverheat.Average() - overheatTreshHold, 0) * overheatMultiplier, overheatExponent);
 
                     overheatModifier = Math.Min(Math.Max(1 - scaledOverheating, minOverheatModifier), 1);
                 }
