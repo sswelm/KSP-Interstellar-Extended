@@ -871,18 +871,18 @@ namespace FNPlugin
 
             if (absPower >= 1000000)
             {
-                if (power > 100000000)
+                if (absPower > 100000000)
                     return (power / 1000000).ToString("0") + " TW";
-                else if (power > 10000000)
+                else if (absPower > 10000000)
                     return (power / 1000000).ToString("0.0") + " TW";
                 else
                     return (power / 1000000).ToString("0.00") + " TW";
             }
             else if (absPower >= 1000) 
             {
-                if (absPower > 100000) 
+                if (absPower > 100000)
                     return (power / 1000).ToString("0") + " GW";
-                else if (absPower > 10000) 
+                else if (absPower > 10000)
                     return (power / 1000).ToString("0.0") + " GW";
                 else
                     return (power / 1000).ToString("0.00") + " GW";
@@ -896,7 +896,7 @@ namespace FNPlugin
                 else
                     return power.ToString("0.00") + " MW";
             }
-            else if (power >= 0.001)
+            else if (absPower >= 0.001)
             {
                 if (absPower >= 0.1)
                     return (power * 1000).ToString("0") + " KW";

@@ -179,8 +179,10 @@ namespace FNPlugin
         public double rawChargedPower;
         [KSPField]
         public double rawReactorPower;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double maxThermalPower;
+        [KSPField(guiActive = true)]
+        public double maximumThermalPower;
         [KSPField]
         public double maxChargedPower;
         [KSPField]
@@ -210,7 +212,7 @@ namespace FNPlugin
         // Debug
         [KSPField]
         public double maximumElectricPower;
-        [KSPField(guiActive = false)]
+        [KSPField(guiActive = true)]
         public double stableMaximumReactorPower;
         [KSPField]
         public double megawattBufferAmount;
@@ -232,15 +234,15 @@ namespace FNPlugin
         public double powerBufferBonus;
         [KSPField]
         public double stablePowerForBuffer;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double maxStableMegaWattPower;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public bool applies_balance;
         [KSPField]
         public double thermalPowerCurrentlyNeededForElectricity;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double effectiveThermalPowerNeededForElectricity;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double thermalPowerRequested;
         [KSPField]
         public double reactorPowerRequested;
@@ -259,9 +261,10 @@ namespace FNPlugin
         [KSPField(guiActive = false)]
         public double maxPowerFromProducedHeat;
 
-        [KSPField(guiActive = false, guiName = "Consumes Charged Power")]
+        [KSPField(guiActive = true)]
         public bool shouldUseChargedPower;
-        [KSPField(guiActive = false)]
+
+        [KSPField(guiActive = true)]
         public double _totalEff;
         [KSPField(guiActive = false)]
         public double capacityRatio;
@@ -953,19 +956,18 @@ namespace FNPlugin
                         thermalPowerRequested = Math.Max(Math.Min(maxThermalPower, effectiveThermalPowerNeededForElectricity), attachedPowerSource.MinimumPower * (1 - attachedPowerSource.ChargedPowerRatio));
                         reactorPowerRequested = Math.Max(Math.Min(maxReactorPower, effectiveThermalPowerNeededForElectricity), attachedPowerSource.MinimumPower);
 
-                        shouldUseChargedPower = !applies_balance && attachedPowerSource.ChargedPowerRatio > 0;
+                        shouldUseChargedPower = attachedPowerSource.ChargedPowerRatio > 0;
 
                         // attempt to balance power
-                        thermalPowerRequested *= shouldUseChargedPower && attachedPowerSource.ChargedPowerRatio != 1 ? (1 - attachedPowerSource.ChargedPowerRatio) : 1;
+                        thermalPowerRequested *= applies_balance && attachedPowerSource.ChargedPowerRatio != 1 ? (1 - attachedPowerSource.ChargedPowerRatio) : 1;
 
                         requested_power_per_second = thermalPowerRequested;
 
                         if (attachedPowerSource.ChargedPowerRatio != 1)
                         {
-                            var maximumThermalPower = attachedPowerSource.MaximumThermalPower * powerUsageEfficiency * CapacityRatio;
-
+                            maximumThermalPower = attachedPowerSource.MaximumThermalPower * powerUsageEfficiency * CapacityRatio;
                             var thermalPowerRequestRatio = Math.Min(1, maximumThermalPower > 0 ? thermalPowerRequested / maximumThermalPower : 0);
-                            thermalPowerReceived = consumeFNResourcePerSecond(thermalPowerRequested, ResourceManager.FNRESOURCE_THERMALPOWER);
+                            thermalPowerReceived = consumeFNResourcePerSecond(Math.Min(thermalPowerRequested, maximumThermalPower), ResourceManager.FNRESOURCE_THERMALPOWER);
 
                             attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD);
                         }

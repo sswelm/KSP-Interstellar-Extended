@@ -625,30 +625,32 @@ namespace FNPlugin
 
         public static string getFormattedPowerString(double power, string shortFormat = "0", string longFormat = "0.0")
         {
-            if (power > 1e6)
+            var absPower = Math.Abs(power);
+
+            if (absPower > 1e6)
             {
-                if (power > 2e7)
-                    return (power / 1e6).ToString(shortFormat) + " TW";
+                if (absPower > 2e7)
+                    return (absPower / 1e6).ToString(shortFormat) + " TW";
                 else
-                    return (power / 1e6).ToString(longFormat) + " TW";
+                    return (absPower / 1e6).ToString(longFormat) + " TW";
             }
-            else if (power > 1e3)
+            else if (absPower > 1e3)
             {
-                if (power > 2e4)
-                    return (power / 1e3).ToString(shortFormat) + " GW";
+                if (absPower > 2e4)
+                    return (absPower / 1e3).ToString(shortFormat) + " GW";
                 else
-                    return (power / 1e3).ToString(longFormat) + " GW";
+                    return (absPower / 1e3).ToString(longFormat) + " GW";
             }
             else
             {
-                if (power > 20)
+                if (absPower > 20)
                     return power.ToString(shortFormat) + " MW";
                 else
                 {
-                    if (power > 1)
-                        return power.ToString(longFormat) + " MW";
+                    if (absPower > 1)
+                        return absPower.ToString(longFormat) + " MW";
                     else
-                        return (power * 1000).ToString(longFormat) + " KW";
+                        return (absPower * 1000).ToString(longFormat) + " KW";
                 }
             }
         }

@@ -778,7 +778,12 @@ namespace FNPlugin.Reactors
         {
             //shouldApplyBalance = isConnectedToThermalGenerator && generatorType == ElectricGeneratorType.thermal && storedIsThermalEnergyGeneratorEfficiency > 0 && storedIsChargedEnergyGeneratorEfficiency > 0;
 
-            shouldApplyBalance = isConnectedToThermalGenerator && isConnectedToChargedGenerator;
+            shouldApplyBalance = isConnectedToThermalGenerator && (isConnectedToChargedGenerator || (plasmaThrottleRatio <= ThermalPowerRatio && chargedThrottleRatio <= ThermalPowerRatio));
+
+            //var noChargedPowerNeededForPropulsion = connectedEngines != null && 
+            //    (connectedEngines.Where(m => m.RequiresPlasmaHeat).Max(e => e.CurrentThrottle) == 0 &&
+            //    connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle) == 0);
+            //shouldApplyBalance = isConnectedToThermalGenerator && (isConnectedToChargedGenerator || noChargedPowerNeededForPropulsion);
 
             return shouldApplyBalance;
         }
@@ -931,6 +936,11 @@ namespace FNPlugin.Reactors
             }
         }
 
+        public double ThermalPowerRatio
+        {
+            get { return 1 - ChargedPowerRatio; }
+        }
+
         public virtual double CoreTemperature
         {
             get
@@ -998,7 +1008,7 @@ namespace FNPlugin.Reactors
             get 
             {
                 var power = PowerRatio * NormalisedMaximumPower;
-                return power * (1 - ChargedPowerRatio);
+                return power * ThermalPowerRatio;
             } 
         }
 
@@ -2173,7 +2183,7 @@ namespace FNPlugin.Reactors
             }
 
             // breed tritium
-            BreedTritium(ongoing_total_power_generated * (1 - CurrentFuelMode.ChargedPowerRatio), deltaTimeDiff);
+            BreedTritium(ongoing_total_power_generated * ThermalPowerRatio, deltaTimeDiff);
 
         }
 
