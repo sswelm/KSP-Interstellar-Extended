@@ -66,7 +66,7 @@ namespace FNPlugin
         public bool isLimitedByMinThrotle = false;
         [KSPField]
         public double powerOutputMultiplier = 1;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double hotColdBathRatio;
         [KSPField]
         public bool calculatedMass = false;
@@ -179,9 +179,9 @@ namespace FNPlugin
         public double rawChargedPower;
         [KSPField]
         public double rawReactorPower;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double maxThermalPower;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double maximumThermalPower;
         [KSPField]
         public double maxChargedPower;
@@ -200,7 +200,7 @@ namespace FNPlugin
         public string OverallEfficiency;
         [KSPField]
         public string upgradeCostStr = "";
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double coldBathTemp = 500;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_coldBathTemp", guiUnits = " K", guiFormat = "F1")]
         public double coldBathTempDisplay = 500;
@@ -212,7 +212,7 @@ namespace FNPlugin
         // Debug
         [KSPField]
         public double maximumElectricPower;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double stableMaximumReactorPower;
         [KSPField]
         public double megawattBufferAmount;
@@ -234,15 +234,15 @@ namespace FNPlugin
         public double powerBufferBonus;
         [KSPField]
         public double stablePowerForBuffer;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double maxStableMegaWattPower;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public bool applies_balance;
         [KSPField]
         public double thermalPowerCurrentlyNeededForElectricity;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double effectiveThermalPowerNeededForElectricity;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double thermalPowerRequested;
         [KSPField]
         public double reactorPowerRequested;
@@ -250,23 +250,21 @@ namespace FNPlugin
         public double thermalPowerReceived;
         [KSPField]
         public double requestedChargedPower;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double effectiveMaxThermalPowerRatio;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double electricdtps;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double maxElectricdtps;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double projectedMaximumPower;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double maxPowerFromProducedHeat;
-
-        [KSPField(guiActive = true)]
+        [KSPField]
         public bool shouldUseChargedPower;
-
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double _totalEff;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double capacityRatio;
 
         // Internal
@@ -927,8 +925,8 @@ namespace FNPlugin
                     // don't produce any power when our reactor has stopped
                     if (maxStableMegaWattPower <= 0)
                     {
-						electricdtps = 0;
-						maxElectricdtps = 0;
+                        electricdtps = 0;
+                        maxElectricdtps = 0;
                         PowerDown();
                         return;
                     }

@@ -126,12 +126,10 @@ namespace FNPlugin
         [KSPField]
         public double wasteHeatBufferMult = 1;
         [KSPField]
-
         public bool allowUseOfThermalPower = true;
         [KSPField]
         public bool allowUseOfChargedPower = true;
         [KSPField]
-
         public bool overrideAtmCurve = true;
         [KSPField]
         public bool overrideVelocityCurve = true;
@@ -143,18 +141,18 @@ namespace FNPlugin
         public bool overrideDecelerationSpeed = true;
         [KSPField]
         public bool usePropellantBaseIsp = false;
-
         [KSPField]
         public bool isPlasmaNozzle = false;
         [KSPField]
         public double requiredMegajouleRatio = 0.05;
-
         [KSPField]
         public double radius = 2.5;
         [KSPField]
         public double exitArea = 1;
         [KSPField]
         public double exitAreaScaleExponent = 2;
+        [KSPField]
+        public double plasmaAfterburnerRange = 20;
 
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m", guiFormat = "F3")]
         public double scaledRadius;
@@ -408,6 +406,11 @@ namespace FNPlugin
         public bool UseThermalAndChargdPower
         {
             get { return !UseOnlyPlasmaPower && ispThrottle == 0; }
+        }
+
+        public bool UsePlasmaAfterBurner
+        {
+            get { return isPlasmaNozzle && ispThrottle != 0 && (ispThrottle != 1 || !canUsePureChargedPower); }
         }
 
         public bool UseChangedPowerOnly
@@ -1370,14 +1373,14 @@ namespace FNPlugin
                 }
 
                 // consume power when plasma nozzle
-				if (isPlasmaNozzle && reactor_power_received > 0 && requiredMegajouleRatio > 0)
-				{
-					var requested_megajoules = reactor_power_received * requiredMegajouleRatio;
-					var received_megajoules = consumeFNResourcePerSecond(requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
-					received_megajoules_ratio = received_megajoules / requested_megajoules;
-				}
-				else
-					received_megajoules_ratio = 1;
+                if (isPlasmaNozzle && reactor_power_received > 0 && requiredMegajouleRatio > 0)
+                {
+                    var requested_megajoules = reactor_power_received * requiredMegajouleRatio;
+                    var received_megajoules = consumeFNResourcePerSecond(requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    received_megajoules_ratio = received_megajoules / requested_megajoules;
+                }
+                else
+                    received_megajoules_ratio = 1;
 
                 // shutdown engine when connected heatsource cannot produce power
                 if (!AttachedReactor.CanProducePower)
@@ -1516,7 +1519,7 @@ namespace FNPlugin
                 myAttachedEngine.maxFuelFlow = (float)Math.Max( max_fuel_flow_rate, 1e-10);
 
                 // act as open cycle cooler
-                if (!isPlasmaNozzle && !CheatOptions.IgnoreMaxTemperature)
+                if ((!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature)
                 {
                     consumeFNResourcePerSecond(20 * getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) * currentEngineFuelFlow, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
@@ -1553,11 +1556,7 @@ namespace FNPlugin
 
                 if (controlHeatProduction)
                 {
-                    //engineHeatProduction = (currentEngineFuelFlow >= engineHeatFuelThreshold && _maxISP > 100 && part.mass > 0.0001 && myAttachedEngine.currentThrottle > 0)
-                    //    ? 0.5 * myAttachedEngine.currentThrottle * Math.Pow(radius, heatProductionExponent) * heatProductionMult * PluginHelper.EngineHeatProduction / currentEngineFuelFlow / _maxISP / part.mass
-                    //    : 1;
-
-                    ispHeatModifier = isPlasmaNozzle ? 0.5 * Approximate.Sqrt(realIspEngine) : 5 * Approximate.Sqrt(realIspEngine);
+                    ispHeatModifier = Approximate.Sqrt(realIspEngine) * (isPlasmaNozzle ? UseThermalAndChargdPower ? 0.1 : 0.5 : 5);
                     powerToMass = Approximate.Sqrt(maxThrustOnEngine / part.mass);
                     radiusHeatModifier = Math.Pow(scaledRadius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
@@ -1645,23 +1644,24 @@ namespace FNPlugin
             if (baseMaxIsp > GameConstants.MaxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = GameConstants.MaxThermalNozzleIsp;
 
-            if (UseOnlyPlasmaPower) 
+            if (UseOnlyPlasmaPower)
+            {
                 _maxISP = baseMaxIsp;
-            else if (UseThermalAndChargdPower)
-            {
-                var scaledChargedRatio = 0.2 + Math.Pow((Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25), 2);
-                _maxISP = scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * 3000;
             }
-            else if (!UseChangedPowerOnly)  // when only mixing charged particles from reactor with propellant
-            {
-                var scaledChargedRatio = 0.2 + Math.Pow((Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25), 2);
-                _maxISP = (scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * 3000) + Math.Pow((double)(decimal)ispThrottle / 100, 2) * 20 * baseMaxIsp;
-            }
-            else
+            else if (UseChangedPowerOnly)
             {
                 var joules_per_amu = AttachedReactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
                 _maxISP = 100 * Math.Sqrt(joules_per_amu * 2 / GameConstants.ATOMIC_MASS_UNIT) / GameConstants.STANDARD_GRAVITY;
             }
+            else
+            {
+                var scaledChargedRatio = 0.2 + Math.Pow((Math.Max(0, AttachedReactor.ChargedPowerRatio - 0.2) * 1.25), 2);
+                _maxISP = scaledChargedRatio * baseMaxIsp + (1 - scaledChargedRatio) * GameConstants.MaxThermalNozzleIsp;
+
+                if (UsePlasmaAfterBurner)  // when  mixing charged particles from reactor with cold propellant
+                    _maxISP = _maxISP + Math.Pow((double)(decimal)ispThrottle / 100, 2) * plasmaAfterburnerRange * baseMaxIsp;
+            }
+
             _maxISP *= _ispPropellantMultiplier;
         }
 
