@@ -282,10 +282,6 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double costScaleExponent = 1.86325;
         [KSPField]
-        public double safetyPowerReductionFraction = 0.95;
-        [KSPField]
-        public double emergencyPowerShutdownFraction = 0.99;
-        [KSPField]
         public double breedDivider = 100000;
         [KSPField]
         public double effectivePowerMultiplier;
@@ -369,19 +365,32 @@ namespace FNPlugin.Reactors
         public double chargedParticleEnergyEfficiency = 1;
         [KSPField] 
         public double plasmaEnergyEfficiency = 1;
-
         [KSPField]
         public double maxGammaRayPower = 0;
+
         [KSPField]
-        public bool hasBuoyancyEffects = false;
+        public bool hasBuoyancyEffects = true;
         [KSPField]
-        public double geeForceMultiplier = 2;
+        public double geeForceMultiplier = 0.1;
         [KSPField]
-        public double geeForceTreshHold = 1.5;
+        public double geeForceTreshHold = 9;
         [KSPField]
         public double geeForceExponent = 2;
         [KSPField]
         public double minGeeForceModifier = 0.01;
+
+        [KSPField]
+        public bool hasOverheatEffects = true;
+        [KSPField]
+        public double overheatMultiplier = 10;
+        [KSPField]
+        public double overheatTreshHold = 0.95;
+        [KSPField]
+        public double overheatExponent = 2;
+        [KSPField]
+        public double minoverheatModifier = 0.01;
+
+
         [KSPField]
         public double neutronEmbrittlementLifepointsMax = 100;
         [KSPField]
@@ -455,8 +464,8 @@ namespace FNPlugin.Reactors
         protected double max_charged_to_supply_per_second;
         [KSPField]
         protected double min_throttle;
-        [KSPField]
-        protected double safetyThrotleModifier;
+        //[KSPField]
+        //protected double safetyThrotleModifier;
         [KSPField]
         public double massCostExponent = 2.5;
 
@@ -480,6 +489,8 @@ namespace FNPlugin.Reactors
         public double maximumThermalPowerEffective = 0;
         [KSPField]
         public double geeForceModifier;
+        [KSPField]
+        public double overheatModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Requested", guiUnits = " kg/s")]
         public double hydrogenProductionRequest;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
@@ -520,6 +531,7 @@ namespace FNPlugin.Reactors
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
         Queue<double> averageGeeForce = new Queue<double>();
+        Queue<double> averageWasteheat = new Queue<double>();
         Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
         Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
 
@@ -973,7 +985,8 @@ namespace FNPlugin.Reactors
                         break;
                 }
 
-                return baseCoreTemperature * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
+                var overheatEffectOnTemperature = overheatModifier * overheatModifier;
+                return baseCoreTemperature * overheatEffectOnTemperature * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
             }
         }
 
@@ -1619,7 +1632,20 @@ namespace FNPlugin.Reactors
                 else
                     geeForceModifier = 1;
 
-                current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier, fuelUsePerMJMult);
+                if (hasOverheatEffects && !CheatOptions.IgnoreMaxTemperature)
+                {
+                    averageOverheat.Enqueue(getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT));
+                    if (averageOverheat.Count > 20)
+                        averageOverheat.Dequeue();
+
+                    var scaledOverheating = Math.Pow(Math.Max(averageOverheat.Average - overheatTreshHold, 0) * overheatMultiplier, overheatExponent);
+
+                    overheatModifier = Math.Min(Math.Max(1 - scaledOverheating, minOverheatModifier), 1);
+                }
+                else
+                    overheatModifier = 1;
+
+                current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier * overheatModifier, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
                 
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
@@ -1669,8 +1695,8 @@ namespace FNPlugin.Reactors
 
                 power_request_ratio = Math.Max(maxThrottleRatio, maxStoredGeneratorEnergyRequestedRatio);
 
-                safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
-                max_charged_to_supply_per_second = maximumChargedPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * powerAccessModifier;
+                //safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
+                max_charged_to_supply_per_second = maximumChargedPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
                 requested_charged_to_supply_per_second = max_charged_to_supply_per_second * power_request_ratio * maximum_charged_request_ratio;
 
                 var chargedParticlesManager = getManagerForVessel(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
@@ -1679,15 +1705,15 @@ namespace FNPlugin.Reactors
                 min_throttle = stored_fuel_ratio > 0 ? MinimumThrottle / stored_fuel_ratio : 1;
                 var neededChargedPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(max_charged_to_supply_per_second, min_throttle, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
                 charged_power_ratio = Math.Min(maximum_charged_request_ratio, maximumChargedPower > 0 ? neededChargedPowerPerSecond / maximumChargedPower : 0);
-                         
-                max_thermal_to_supply_per_second = maximumThermalPower * stored_fuel_ratio * geeForceModifier * safetyThrotleModifier * powerAccessModifier;
+
+                max_thermal_to_supply_per_second = maximumThermalPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
                 requested_thermal_to_supply_per_second = max_thermal_to_supply_per_second * power_request_ratio * maximum_thermal_request_ratio;
 
                 var neededThermalPowerPerSecond = getNeededPowerSupplyPerSecondWithMinimumRatio(max_thermal_to_supply_per_second, min_throttle, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
                 requested_thermal_power_ratio =  maximumThermalPower > 0 ? neededThermalPowerPerSecond / maximumThermalPower : 0;
                 thermal_power_ratio = Math.Min(maximum_thermal_request_ratio, requested_thermal_power_ratio);
 
-                reactor_power_ratio = Math.Min(safetyThrotleModifier * maximum_reactor_request_ratio, PowerRatio);
+                reactor_power_ratio = Math.Min(overheatModifier * maximum_reactor_request_ratio, PowerRatio);
 
                 ongoing_charged_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requested_charged_to_supply_per_second, max_charged_to_supply_per_second, reactor_power_ratio, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedParticlesManager);
                 ongoing_thermal_power_generated = managedProvidedPowerSupplyPerSecondMinimumRatio(requested_thermal_to_supply_per_second, max_thermal_to_supply_per_second, reactor_power_ratio, ResourceManager.FNRESOURCE_THERMALPOWER, thermalHeatManager);
@@ -2203,18 +2229,6 @@ namespace FNPlugin.Reactors
                 deactivate_timer = 0;
 
             return false;
-        }
-
-        protected double GetSafetyOverheatPreventionRatio()
-        {
-            if (CheatOptions.IgnoreMaxTemperature)
-                return 1;
-
-            var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-            if (wasteheatRatio < safetyPowerReductionFraction)
-                return 1;
-
-            return  1 - (wasteheatRatio - safetyPowerReductionFraction) / (emergencyPowerShutdownFraction - safetyPowerReductionFraction);
         }
 
         protected List<ReactorFuelType> GetReactorFuelModes()
