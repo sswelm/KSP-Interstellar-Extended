@@ -1025,8 +1025,8 @@ namespace FNPlugin.Reactors
         }
 
         public virtual double MaximumChargedPower 
-        { 
-            get { return PowerRatio * NormalisedMaximumPower * ChargedPowerRatio; }
+        {
+            get { return PowerRatio * NormalisedMaximumPower * ChargedPowerRatio * geeForceModifier * overheatModifier; }
         }
 
         public double ReactorSpeedMult { get { return reactorSpeedMult; } }
