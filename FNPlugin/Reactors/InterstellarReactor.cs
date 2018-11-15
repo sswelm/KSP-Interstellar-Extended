@@ -350,8 +350,6 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double emergencyPowerShutdownFraction = 0.99;
         [KSPField]
-        public double thermalPropulsionWasteheatModifier = 1;
-        [KSPField]
         public double thermalPropulsionEfficiency = 1;
         [KSPField]
         public double plasmaPropulsionEfficiency = 1;
@@ -619,7 +617,7 @@ namespace FNPlugin.Reactors
 
         public double PlasmaWasteheatProductionMult { get { return plasmaWasteheatProductionMult; } }
 
-        public double ThermalPropulsionWasteheatModifier { get { return thermalPropulsionWasteheatModifier; } }
+        public double ThermalPropulsionWasteheatModifier { get { return 1; } }
 
         public double ConsumedFuelFixed { get { return consumedFuelTotalFixed; } }
 
