@@ -1889,20 +1889,32 @@ namespace FNPlugin.Reactors
             var plasmaDifference = Math.Abs(storedGeneratorPlasmaEnergyRequestRatio - currentGeneratorPlasmaEnergyRequestRatio);
             var chargedDifference = Math.Abs(storedGeneratorChargedEnergyRequestRatio - currentGeneratorChargedEnergyRequestRatio);
 
+            var thermalThrotleIsGrowing = currentGeneratorThermalEnergyRequestRatio > storedGeneratorThermalEnergyRequestRatio;
+            var plasmaThrotleIsGrowing = currentGeneratorPlasmaEnergyRequestRatio > storedGeneratorPlasmaEnergyRequestRatio;
+            var chargedThrotleIsGrowing = currentGeneratorChargedEnergyRequestRatio > storedGeneratorChargedEnergyRequestRatio;
+
             var fixedReactorSpeedMult = ReactorSpeedMult * timeWarpFixedDeltaTime;
             var minimumAcceleration = fixedReactorSpeedMult * timeWarpFixedDeltaTime;
 
-            var accelerationReductionRatio = previousStoredRatio <= 0.5
-                ? minimumAcceleration + previousStoredRatio / 0.5
-                : minimumAcceleration + (1 - previousStoredRatio) / 0.5;
+            var thermalAccelerationReductionRatio = thermalThrotleIsGrowing
+                ? storedGeneratorThermalEnergyRequestRatio <= 0.5 ? 1 : minimumAcceleration + (1 - storedGeneratorThermalEnergyRequestRatio) / 0.5
+                : storedGeneratorThermalEnergyRequestRatio <= 0.5 ? minimumAcceleration + storedGeneratorThermalEnergyRequestRatio / 0.5 : 1;
 
-            var fixedThermalSpeed = fixedReactorSpeedMult > 0 ? Math.Min(thermalDifference, fixedReactorSpeedMult) * accelerationReductionRatio : thermalDifference;
-            var fixedPlasmaSpeed =  fixedReactorSpeedMult > 0 ? Math.Min(plasmaDifference,  fixedReactorSpeedMult) * accelerationReductionRatio : plasmaDifference;
-            var fixedChargedSpeed = fixedReactorSpeedMult > 0 ? Math.Min(chargedDifference, fixedReactorSpeedMult) * accelerationReductionRatio : chargedDifference;
+            var plasmaAccelerationReductionRatio = plasmaThrotleIsGrowing
+                ? storedGeneratorPlasmaEnergyRequestRatio <= 0.5 ? 1 : minimumAcceleration + (1 - storedGeneratorPlasmaEnergyRequestRatio) / 0.5
+                : storedGeneratorPlasmaEnergyRequestRatio <= 0.5 ? minimumAcceleration + storedGeneratorPlasmaEnergyRequestRatio / 0.5 : 1;
 
-            var thermalChangeFraction = currentGeneratorThermalEnergyRequestRatio > storedGeneratorThermalEnergyRequestRatio ? fixedThermalSpeed : -fixedThermalSpeed;
-            var plasmaChangeFraction =  currentGeneratorPlasmaEnergyRequestRatio  > storedGeneratorPlasmaEnergyRequestRatio  ? fixedPlasmaSpeed  : -fixedPlasmaSpeed;
-            var chargedChangeFraction = currentGeneratorChargedEnergyRequestRatio > storedGeneratorChargedEnergyRequestRatio ? fixedChargedSpeed : -fixedChargedSpeed;
+            var chargedAccelerationReductionRatio = chargedThrotleIsGrowing
+                ? storedGeneratorChargedEnergyRequestRatio <= 0.5 ? 1 : minimumAcceleration + (1 - storedGeneratorChargedEnergyRequestRatio) / 0.5
+                : storedGeneratorChargedEnergyRequestRatio <= 0.5 ? minimumAcceleration + storedGeneratorChargedEnergyRequestRatio / 0.5 : 1;
+
+            var fixedThermalSpeed = fixedReactorSpeedMult > 0 ? Math.Min(thermalDifference, fixedReactorSpeedMult) * thermalAccelerationReductionRatio : thermalDifference;
+            var fixedPlasmaSpeed = fixedReactorSpeedMult > 0 ? Math.Min(plasmaDifference, fixedReactorSpeedMult) * plasmaAccelerationReductionRatio : plasmaDifference;
+            var fixedChargedSpeed = fixedReactorSpeedMult > 0 ? Math.Min(chargedDifference, fixedReactorSpeedMult) * chargedAccelerationReductionRatio : chargedDifference;
+
+            var thermalChangeFraction = thermalThrotleIsGrowing ? fixedThermalSpeed : -fixedThermalSpeed;
+            var plasmaChangeFraction = plasmaThrotleIsGrowing ? fixedPlasmaSpeed : -fixedPlasmaSpeed;
+            var chargedChangeFraction = chargedThrotleIsGrowing ? fixedChargedSpeed : -fixedChargedSpeed;
 
             storedGeneratorThermalEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorThermalEnergyRequestRatio + thermalChangeFraction));
             storedGeneratorPlasmaEnergyRequestRatio = Math.Max(0, Math.Min(1, storedGeneratorPlasmaEnergyRequestRatio + plasmaChangeFraction));
