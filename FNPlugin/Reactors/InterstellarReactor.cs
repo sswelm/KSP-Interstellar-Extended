@@ -484,9 +484,11 @@ namespace FNPlugin.Reactors
         public float currentMass = 0;
         [KSPField]
         public double maximumThermalPowerEffective = 0;
-        [KSPField]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Embrittlement Fraction", guiFormat = "F4")]
+        public double embrittlementModifier;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Buoyancy Fraction", guiFormat = "F4")]
         public double geeForceModifier = 1;
-        [KSPField]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
         public double overheatModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Requested", guiUnits = " kg/s")]
         public double hydrogenProductionRequest;
@@ -982,7 +984,7 @@ namespace FNPlugin.Reactors
                         break;
                 }
 
-                return baseCoreTemperature * Math.Pow(overheatModifier, 1.5) * EffectiveEmbrittlemenEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
+                return baseCoreTemperature * Math.Pow(overheatModifier, 1.5) * EffectiveEmbrittlementEffectRatio * Math.Pow(part.mass / partMass, massCoreTempExp);
             }
         }
 
@@ -997,9 +999,13 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public double EffectiveEmbrittlemenEffectRatio
+        public double EffectiveEmbrittlementEffectRatio
         {
-            get { return CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlemenConditionRatio * Math.PI * 0.5); }
+            get 
+            {
+                embrittlementModifier = CheatOptions.UnbreakableJoints ? 1 : Math.Sin(ReactorEmbrittlemenConditionRatio * Math.PI * 0.5);
+                return embrittlementModifier;
+            }
         }
 
         public virtual double ReactorEmbrittlemenConditionRatio
@@ -1009,7 +1015,7 @@ namespace FNPlugin.Reactors
 
         public virtual double NormalisedMaximumPower
         {
-            get { return RawPowerOutput * EffectiveEmbrittlemenEffectRatio * (CurrentFuelMode == null ? 1 : CurrentFuelMode.NormalisedReactionRate); }        
+            get { return RawPowerOutput * EffectiveEmbrittlementEffectRatio * (CurrentFuelMode == null ? 1 : CurrentFuelMode.NormalisedReactionRate); }        
         }
 
         public virtual double MinimumPower { get { return MaximumPower * MinimumThrottle; } }
@@ -1631,9 +1637,9 @@ namespace FNPlugin.Reactors
 
                 if (hasOverheatEffects && !CheatOptions.IgnoreMaxTemperature)
                 {
-                    //averageOverheat.Enqueue(getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT));
-                    //if (averageOverheat.Count > 20)
-                    //    averageOverheat.Dequeue();
+                    averageOverheat.Enqueue(getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT));
+                    if (averageOverheat.Count > 10)
+                        averageOverheat.Dequeue();
 
                     var scaledOverheating = Math.Pow(Math.Max(getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) - overheatTreshHold, 0) * overheatMultiplier, overheatExponent);
 
@@ -1894,7 +1900,7 @@ namespace FNPlugin.Reactors
             var chargedThrotleIsGrowing = currentGeneratorChargedEnergyRequestRatio > storedGeneratorChargedEnergyRequestRatio;
 
             var fixedReactorSpeedMult = ReactorSpeedMult * timeWarpFixedDeltaTime;
-            var minimumAcceleration = fixedReactorSpeedMult * timeWarpFixedDeltaTime;
+            var minimumAcceleration = timeWarpFixedDeltaTime * timeWarpFixedDeltaTime;
 
             var thermalAccelerationReductionRatio = thermalThrotleIsGrowing
                 ? storedGeneratorThermalEnergyRequestRatio <= 0.5 ? 1 : minimumAcceleration + (1 - storedGeneratorThermalEnergyRequestRatio) / 0.5
