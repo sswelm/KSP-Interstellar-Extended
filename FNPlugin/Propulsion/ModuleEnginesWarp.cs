@@ -316,7 +316,7 @@ namespace FNPlugin
 
                 requestedFlow = (double)(decimal)this.requestedMassFlow;
 
-                _thrustPersistent = requestedFlow * GameConstants.STANDARD_GRAVITY * _ispPersistent;
+                _thrustPersistent = requestedFlow * GameConstants.STANDARD_GRAVITY * (double)(decimal)realIsp;
 
                 // only persist thrust if non zero throttle or significant thrust
                 if (_throttlePersistent > 0 || _thrustPersistent > 0.0000005)
@@ -326,8 +326,8 @@ namespace FNPlugin
 
                     // determine maximum deltaV durring this frame
                     demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
-                    var remainingMass = this.vessel.totalMass - demandMass; 
-                    var deltaV = _ispPersistent * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass);
+                    var remainingMass = this.vessel.totalMass - demandMass;
+                    var deltaV = (double)(decimal)realIsp * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass);
 
                     double persistentThrustDot = Vector3d.Dot(this.part.transform.up, vessel.obt_velocity);
                     if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaV * 2))

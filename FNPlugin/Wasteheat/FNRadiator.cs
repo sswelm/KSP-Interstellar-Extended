@@ -631,6 +631,11 @@ namespace FNPlugin.Wasteheat
             if (isAutomated && !isDeployable)
                 radiatorIsEnabled = true;
 
+            for (var i = 0; i < 20; i++ )
+            {
+                radTempQueue.Enqueue(currentRadTemp);
+            }        
+
             InitializeTemperatureColorChannels();
 
             ApplyColorHeat();
@@ -960,15 +965,15 @@ namespace FNPlugin.Wasteheat
             }
             set
             {
-                if (!double.IsNaN(value) || !double.IsInfinity(value))
+                if (!double.IsNaN(value) || !double.IsInfinity(value) || value != 0)
+                    currentRadTemp = value;
 
-                currentRadTemp = value;
-                partTempQueue.Enqueue(part.temperature);
-                if (partTempQueue.Count > 20)
-                    partTempQueue.Dequeue();
                 radTempQueue.Enqueue(currentRadTemp);
                 if (radTempQueue.Count > 20)
                     radTempQueue.Dequeue();
+                partTempQueue.Enqueue(part.temperature);
+                if (partTempQueue.Count > 20)
+                    partTempQueue.Dequeue();
             }
         }
 

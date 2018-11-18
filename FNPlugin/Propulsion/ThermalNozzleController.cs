@@ -104,7 +104,7 @@ namespace FNPlugin
         [KSPField]
         public double wasteheatEfficiencyLowTemperature = 0.99;
         [KSPField]
-        public double wasteheatEfficiencyHighTemperature = 0.9;
+        public double wasteheatEfficiencyHighTemperature = 0.99;
         [KSPField]
         public float upgradeCost = 1;
         [KSPField]
@@ -425,7 +425,7 @@ namespace FNPlugin
             get { return isPlasmaNozzle && ispThrottle != 0 && (ispThrottle != 1 || !canUsePureChargedPower); }
         }
 
-        public bool UseChangedPowerOnly
+        public bool UseChargedPowerOnly
         {
             get { return canUsePureChargedPower && ispThrottle == 100 && list_of_propellants.Count == 1; }
         }
@@ -1210,7 +1210,7 @@ namespace FNPlugin
 
                 bool canUseChargedPower = this.allowUseOfChargedPower && AttachedReactor.ChargedPowerRatio > 0;
 
-                effectiveThermalSupply = !UseChangedPowerOnly ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
+                effectiveThermalSupply = !UseChargedPowerOnly ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
                 effectiveChargedSupply = canUseChargedPower ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
 
                 maximumPowerUsageForPropulsionRatio = UsePlasmaPower
@@ -1559,7 +1559,7 @@ namespace FNPlugin
                 currentEngineFuelFlow = myAttachedEngine.fuelFlowGui * myAttachedEngine.mixtureDensity;
 
                 // give back propellant
-                if (isPlasmaNozzle && list_of_propellants.Count == 1)
+                if (UseChargedPowerOnly && list_of_propellants.Count == 1)
                     AttachedReactor.UseProductForPropulsion(powerFraction, currentEngineFuelFlow, list_of_propellants.First().getPartResourceDefinition());
 
                 maxFuelFlowOnEngine = myAttachedEngine.maxFuelFlow;
@@ -1660,7 +1660,7 @@ namespace FNPlugin
             {
                 _maxISP = baseMaxIsp;
             }
-            else if (UseChangedPowerOnly)
+            else if (UseChargedPowerOnly)
             {
                 var joules_per_amu = AttachedReactor.CurrentMeVPerChargedProduct * 1e6 * GameConstants.ELECTRON_CHARGE / GameConstants.dilution_factor;
                 _maxISP = 100 * Math.Sqrt(joules_per_amu * 2 / GameConstants.ATOMIC_MASS_UNIT) / GameConstants.STANDARD_GRAVITY;

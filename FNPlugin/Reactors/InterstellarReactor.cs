@@ -247,7 +247,7 @@ namespace FNPlugin.Reactors
 
         // Settings
         [KSPField]
-        public double minThermalNozzleTempRequired;
+        public double minThermalNozzleTempRequired = 0;
         [KSPField]
         public bool canUseAllPowerForPlasma = true;
         [KSPField]
@@ -487,16 +487,18 @@ namespace FNPlugin.Reactors
         public float currentMass = 0;
         [KSPField]
         public double maximumThermalPowerEffective = 0;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Embrittlement Fraction", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Embrittlement Fraction", guiFormat = "F4")]
         public double embrittlementModifier;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Buoyancy Fraction", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Buoyancy Fraction", guiFormat = "F4")]
         public double geeForceModifier = 1;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
         public double overheatModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Requested", guiUnits = " kg/s")]
         public double hydrogenProductionRequest;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
         public double hydrogenProductionReceived;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Calculated Geeforce", guiFormat = "F4")]
+        public double calculatedGeeForce;
 
         [KSPField]
         public bool isConnectedToThermalGenerator;
@@ -532,7 +534,6 @@ namespace FNPlugin.Reactors
 
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
-        Queue<double> averageGeeForce = new Queue<double>();
         Queue<double> averageOverheat = new Queue<double>();
         Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
         Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
@@ -1627,11 +1628,16 @@ namespace FNPlugin.Reactors
 
                 if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
                 {
-                    //averageGeeForce.Enqueue(part.vessel.geeForce);
-                    //if (averageGeeForce.Count > 20)
-                    //    averageGeeForce.Dequeue();
+                    var engines = vessel.FindPartModulesImplementing<ModuleEngines>();
 
-                    var geeforce = double.IsNaN(part.vessel.geeForce) || double.IsInfinity(part.vessel.geeForce) ? 0 : part.vessel.geeForce;
+                    calculatedGeeForce = 0;
+                    if (engines.Any())
+                    {
+                        var totalThrust = engines.Sum(m => (double)(decimal)m.realIsp * (double)(decimal)m.requestedMassFlow * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
+                        calculatedGeeForce = totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY;
+                    }
+
+                    var geeforce = double.IsNaN(calculatedGeeForce) || double.IsInfinity(calculatedGeeForce) ? 0 : calculatedGeeForce;
 
                     var scaledGeeforce = Math.Pow(Math.Max(geeforce - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
 
@@ -2481,6 +2487,9 @@ namespace FNPlugin.Reactors
                 GUILayout.EndHorizontal();
 
                 PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000000") + "%", bold_style, text_style);
+                PrintToGUILayout("Geeforce overload ", (100 * (1 - geeForceModifier)).ToString("0.000000") + "%", bold_style, text_style);
+                PrintToGUILayout("Overheating ", (100 * (1 - overheatModifier)).ToString("0.000000") + "%", bold_style, text_style);
+
                 PrintToGUILayout("Radius", radius + "m", bold_style, text_style);
                 PrintToGUILayout("Core Temperature", coretempStr, bold_style, text_style);
                 PrintToGUILayout("Status", statusStr, bold_style, text_style);
