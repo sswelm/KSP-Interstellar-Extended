@@ -997,7 +997,7 @@ namespace FNPlugin
             _propType = chosenpropellant.HasValue("propType") ? int.Parse(chosenpropellant.GetValue("propType")) : 1;
             _isNeutronAbsorber = chosenpropellant.HasValue("isNeutronAbsorber") ? bool.Parse(chosenpropellant.GetValue("isNeutronAbsorber")) : false;
 
-            if (!isPlasmaNozzle && !usePropellantBaseIsp && !_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
+            if (!UsePlasmaPower && !usePropellantBaseIsp && !_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
                 UpdateThrustPropellantMultiplier();
             else
             {
@@ -1024,7 +1024,7 @@ namespace FNPlugin
             _thrustPropellantMultiplier = _propellantIsLFO ? rawthrustPropellantMultiplier : (rawthrustPropellantMultiplier + 1) / 2;
 
             // lower efficiency of plasma nozzle when used with heavier propellants except when used with a neutron absorber like lithium
-            if (isPlasmaNozzle && !_isNeutronAbsorber)
+            if (UsePlasmaPower && !_isNeutronAbsorber)
             {
                 var plasmaEfficiency = Math.Pow(_baseIspMultiplier, 1d/3d);
                 _ispPropellantMultiplier *= plasmaEfficiency;
@@ -1314,8 +1314,6 @@ namespace FNPlugin
                     : GameConstants.EarthAtmospherePressureAtSeaLevel;
 
                 pressureThreshold = scaledExitArea * staticPresure;
-                //if (_maxISP > GameConstants.MaxThermalNozzleIsp && isPlasmaNozzle)
-                //    pressureThreshold *= 2;
             }
             else
                 pressureThreshold = 0;
