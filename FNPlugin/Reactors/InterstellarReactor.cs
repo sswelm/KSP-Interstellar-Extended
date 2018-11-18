@@ -498,7 +498,7 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
         public double hydrogenProductionReceived;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Calculated Geeforce", guiFormat = "F4")]
-        public double calculatedGeeForce;
+        public double currentGeeForce;
 
         [KSPField]
         public bool isConnectedToThermalGenerator;
@@ -1628,16 +1628,20 @@ namespace FNPlugin.Reactors
 
                 if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
                 {
-                    var engines = vessel.FindPartModulesImplementing<ModuleEngines>();
-
-                    calculatedGeeForce = 0;
-                    if (engines.Any())
+                    currentGeeForce = 0;
+                    if (vessel.atmDensity == 0 && (vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING))
                     {
-                        var totalThrust = engines.Sum(m => (double)(decimal)m.realIsp * (double)(decimal)m.requestedMassFlow * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
-                        calculatedGeeForce = totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY;
+                        var engines = vessel.FindPartModulesImplementing<ModuleEngines>();
+                        if (engines.Any())
+                        {
+                            var totalThrust = engines.Sum(m => (double)(decimal)m.realIsp * (double)(decimal)m.requestedMassFlow * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
+                            currentGeeForce = totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY;
+                        }
                     }
+                    else
+                        currentGeeForce = vessel.geeForce;
 
-                    var geeforce = double.IsNaN(calculatedGeeForce) || double.IsInfinity(calculatedGeeForce) ? 0 : calculatedGeeForce;
+                    var geeforce = double.IsNaN(currentGeeForce) || double.IsInfinity(currentGeeForce) ? 0 : currentGeeForce;
 
                     var scaledGeeforce = Math.Pow(Math.Max(geeforce - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
 
