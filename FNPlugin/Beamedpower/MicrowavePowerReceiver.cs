@@ -345,6 +345,8 @@ namespace FNPlugin
 			// do nothing
 		}
 
+        public double MinThermalNozzleTempRequired { get { return 0; } }
+
         public double CurrentMeVPerChargedProduct { get { return 0; } }
 
         public bool UsePropellantBaseIsp { get { return false; } }

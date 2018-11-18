@@ -72,6 +72,7 @@ namespace FNPlugin.Reactors
         public double requested_thermal_power_ratio = 1;
         [KSPField(isPersistant = true)]
         public double maximumThermalPower;
+        
 
         [KSPField(isPersistant = true)]
         public double thermal_power_ratio = 1;
@@ -245,6 +246,8 @@ namespace FNPlugin.Reactors
         public double powerOutputMk7;
 
         // Settings
+        [KSPField]
+        public double minThermalNozzleTempRequired;
         [KSPField]
         public bool canUseAllPowerForPlasma = true;
         [KSPField]
@@ -602,6 +605,8 @@ namespace FNPlugin.Reactors
         {
             return ModifierChangeWhen.STAGED;
         }
+
+        public double MinThermalNozzleTempRequired { get { return minThermalNozzleTempRequired; } }
 
         public double CurrentMeVPerChargedProduct { get { return current_fuel_mode.MeVPerChargedProduct; } }
 
