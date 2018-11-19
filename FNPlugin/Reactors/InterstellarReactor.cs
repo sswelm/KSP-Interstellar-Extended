@@ -72,7 +72,8 @@ namespace FNPlugin.Reactors
         public double requested_thermal_power_ratio = 1;
         [KSPField(isPersistant = true)]
         public double maximumThermalPower;
-        
+        [KSPField(isPersistant = true)]
+        public double maximumChargedPower;
 
         [KSPField(isPersistant = true)]
         public double thermal_power_ratio = 1;
@@ -497,8 +498,8 @@ namespace FNPlugin.Reactors
         public double hydrogenProductionRequest;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
         public double hydrogenProductionReceived;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Calculated Geeforce", guiFormat = "F4")]
-        public double currentGeeForce;
+
+        
 
         [KSPField]
         public bool isConnectedToThermalGenerator;
@@ -509,6 +510,7 @@ namespace FNPlugin.Reactors
         protected bool decay_ongoing = false;
         protected bool initialized = false;
 
+        protected double currentGeeForce;
         protected double animationStarted = 0;
         protected double powerPcnt;
         protected double totalAmountLithium = 0;
@@ -1630,7 +1632,7 @@ namespace FNPlugin.Reactors
                 if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
                 {
                     averageGeeforce.Enqueue(getResourceBarRatio(vessel.geeForce));
-                    if (averageGeeforce.Count > 20)
+                    if (averageGeeforce.Count > 10)
                         averageGeeforce.Dequeue();
 
                     currentGeeForce = vessel.geeForce > 0 && averageGeeforce.Any() ? averageGeeforce.Average() : 0;
@@ -1709,7 +1711,7 @@ namespace FNPlugin.Reactors
                         storedIsChargedEnergyGeneratorEfficiency > 0 ? 1 : 0
                    ));
 
-                var maximumChargedPower = MaximumChargedPower;
+                maximumChargedPower = MaximumChargedPower;
                 maximumThermalPower = MaximumThermalPower;
 
                 var maxStoredGeneratorEnergyRequestedRatio = Math.Max(Math.Max(storedGeneratorThermalEnergyRequestRatio, storedGeneratorPlasmaEnergyRequestRatio), storedGeneratorChargedEnergyRequestRatio);
