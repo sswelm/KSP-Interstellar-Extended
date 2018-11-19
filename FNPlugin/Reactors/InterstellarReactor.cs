@@ -1631,7 +1631,7 @@ namespace FNPlugin.Reactors
 
                 if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
                 {
-                    averageGeeforce.Enqueue(getResourceBarRatio(vessel.geeForce));
+                    averageGeeforce.Enqueue(vessel.geeForce);
                     if (averageGeeforce.Count > 10)
                         averageGeeforce.Dequeue();
 
