@@ -534,6 +534,7 @@ namespace FNPlugin.Reactors
 
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
+        Queue<double> averageGeeforce = new Queue<double>();
         Queue<double> averageOverheat = new Queue<double>();
         Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
         Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
@@ -1628,18 +1629,21 @@ namespace FNPlugin.Reactors
 
                 if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
                 {
-                    currentGeeForce = 0;
-                    if (vessel.atmDensity == 0 && (vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING))
+                    averageGeeforce.Enqueue(getResourceBarRatio(vessel.geeForce));
+                    if (averageGeeforce.Count > 20)
+                        averageGeeforce.Dequeue();
+
+                    currentGeeForce = vessel.geeForce > 0 && averageGeeforce.Any() ? averageGeeforce.Average() : 0;
+
+                    if (vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING)
                     {
                         var engines = vessel.FindPartModulesImplementing<ModuleEngines>();
                         if (engines.Any())
                         {
                             var totalThrust = engines.Sum(m => (double)(decimal)m.realIsp * (double)(decimal)m.requestedMassFlow * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
-                            currentGeeForce = totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY;
+                            currentGeeForce = Math.Max(currentGeeForce, totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY);
                         }
                     }
-                    else
-                        currentGeeForce = vessel.geeForce;
 
                     var geeforce = double.IsNaN(currentGeeForce) || double.IsInfinity(currentGeeForce) ? 0 : currentGeeForce;
 
