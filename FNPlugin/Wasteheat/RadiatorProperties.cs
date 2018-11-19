@@ -5,12 +5,12 @@ namespace FNPlugin.Wasteheat
 	static public class RadiatorProperties
 	{
 		private static bool _isInitialized = false;
-		private static double _radiatorTemperatureMk1 = 1850;
-		private static double _radiatorTemperatureMk2 = 2200;
-		private static double _radiatorTemperatureMk3 = 2616;
-		private static double _radiatorTemperatureMk4 = 3111;
-		private static double _radiatorTemperatureMk5 = 3700;
-		private static double _radiatorTemperatureMk6 = 4400;
+        private static double _radiatorTemperatureMk1 = 1918;
+        private static double _radiatorTemperatureMk2 = 2272;
+        private static double _radiatorTemperatureMk3 = 2698;
+        private static double _radiatorTemperatureMk4 = 3200;
+        private static double _radiatorTemperatureMk5 = 3795;
+        private static double _radiatorTemperatureMk6 = 4500;
 
 		private static string _radiatorUpgradeTech1 = "heatManagementSystems";
 		private static string _radiatorUpgradeTech2 = "advHeatManagement";

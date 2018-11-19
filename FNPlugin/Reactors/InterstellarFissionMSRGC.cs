@@ -21,6 +21,8 @@ namespace FNPlugin.Reactors
         public int fuel_mode = 0;
         [KSPField]
         public double actinidesModifer;
+        [KSPField]
+        public double temperatureThrotleExponent = 0.5;
 
         PartResourceDefinition fluorineGasDefinition;
         PartResourceDefinition depletedFuelDefinition;
@@ -174,7 +176,7 @@ namespace FNPlugin.Reactors
                     else
                         temp_scale = baseCoreTemperature / 2;
 
-                    double temp_diff = (baseCoreTemperature - temp_scale) * Math.Sqrt(powerPcnt / 100.0);
+                    double temp_diff = (baseCoreTemperature - temp_scale) * Math.Pow(powerPcnt / 100.0, temperatureThrotleExponent);
                     return Math.Min(temp_scale + temp_diff, baseCoreTemperature);
                 }
                 else

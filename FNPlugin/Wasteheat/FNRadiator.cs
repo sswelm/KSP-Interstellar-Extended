@@ -88,9 +88,9 @@ namespace FNPlugin.Wasteheat
         [KSPField]
         public string colorHeat = "_EmissiveColor";
         [KSPField]
-        public string emissiveTextureLocation;
+        public string emissiveTextureLocation = "";
         [KSPField]
-        public string bumpMapTextureLocation;
+        public string bumpMapTextureLocation = "";
 
         [KSPField(guiActive = false, guiName = "Atmosphere Modifier")]
         public double atmosphere_modifier;
@@ -286,19 +286,22 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        private double GetMaximumTemperatureForGen(GenerationType generation)
+        private double GetMaximumTemperatureForGen(GenerationType generationType)
         {
-            if (generation == GenerationType.Mk6)
+            var generation = (int)generationType;
+
+            if (generation >= (int)GenerationType.Mk6 && isGraphene)
                 return RadiatorProperties.RadiatorTemperatureMk6;
-            if (generation == GenerationType.Mk5)
+            if (generation >= (int)GenerationType.Mk5 && isGraphene)
                 return RadiatorProperties.RadiatorTemperatureMk5;
-            if (generation == GenerationType.Mk4)
+            if (generation >= (int)GenerationType.Mk4)
                 return RadiatorProperties.RadiatorTemperatureMk4;
-            if (generation == GenerationType.Mk3)
+            if (generation >= (int)GenerationType.Mk3)
                 return RadiatorProperties.RadiatorTemperatureMk3;
-            if (generation == GenerationType.Mk2)
+            if (generation >= (int)GenerationType.Mk2)
                 return RadiatorProperties.RadiatorTemperatureMk2;
-            return RadiatorProperties.RadiatorTemperatureMk1;
+            else
+                return RadiatorProperties.RadiatorTemperatureMk1;
         }
 
         public double EffectiveRadiatorArea
@@ -331,7 +334,7 @@ namespace FNPlugin.Wasteheat
             if (PluginHelper.UpgradeAvailable(RadiatorProperties.RadiatorUpgradeTech1))
                 nrAvailableUpgradeTechs++;
 
-            // determine fusion tech levels
+            // determine tech levels
             if (nrAvailableUpgradeTechs == 6)
                 CurrentGenerationType = GenerationType.Mk6;
             else if (nrAvailableUpgradeTechs == 5)
@@ -524,6 +527,7 @@ namespace FNPlugin.Wasteheat
 
             DetermineGenerationType();
 
+            isGraphene = !String.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
             maximumRadiatorTempInSpace = (float)RadiatorProperties.RadiatorTemperatureMk6;
             maxSpaceTempBonus = maximumRadiatorTempInSpace - maximumRadiatorTempAtOneAtmosphere;
             temperatureRange = maximumRadiatorTempInSpace - drapperPoint;
@@ -649,8 +653,6 @@ namespace FNPlugin.Wasteheat
                 radiatorInit = true;
 
             radiatorTempStr = maxRadiatorTemperature + "K";
-
-            isGraphene = !String.IsNullOrEmpty(surfaceAreaUpgradeTechReq);
 
             maxVacuumTemperature = isGraphene ? Math.Min(maxVacuumTemperature, maxRadiatorTemperature) : Math.Min(RadiatorProperties.RadiatorTemperatureMk4, maxRadiatorTemperature);
             maxAtmosphereTemperature = isGraphene ? Math.Min(maxAtmosphereTemperature, maxRadiatorTemperature) : Math.Min(RadiatorProperties.RadiatorTemperatureMk3, maxRadiatorTemperature);
