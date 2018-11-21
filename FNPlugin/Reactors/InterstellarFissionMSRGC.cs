@@ -23,6 +23,8 @@ namespace FNPlugin.Reactors
         public double actinidesModifer;
         [KSPField]
         public double temperatureThrotleExponent = 0.5;
+        [KSPField(guiActive = true)]
+        public double maxExhaustAngle;
 
         PartResourceDefinition fluorineGasDefinition;
         PartResourceDefinition depletedFuelDefinition;
@@ -196,6 +198,13 @@ namespace FNPlugin.Reactors
             Events["EditorSwapFuel"].guiActiveEditor = fuel_modes.Count > 1;
 
             base.OnUpdate();
+
+			if (!vessel.mainBody.isHomeWorld)
+				maxExhaustAngle = double.PositiveInfinity;
+			if (vessel.altitude > vessel.mainBody.scienceValues.spaceAltitudeThreshold)
+				maxExhaustAngle = Math.Tanh((vessel.mainBody.Radius + vessel.mainBody.scienceValues.spaceAltitudeThreshold) / vessel.altitude) / Math.PI;
+			else
+				maxExhaustAngle = double.NaN;
         }
 
         public override void OnStart(PartModule.StartState state)
