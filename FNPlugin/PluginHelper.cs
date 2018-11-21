@@ -746,7 +746,7 @@ namespace FNPlugin
                         for (int i = 0; i < totalValues; i += 2)
                             PartTechUpgrades.Add(splitValues[i], splitValues[i + 1]);
 
-                        Debug.Log("[KSPI] Part Tech Upgrades set to: " + rawstring);
+                        Debug.Log("[KSPI] - Part Tech Upgrades set to: " + rawstring);
                     }
                     if (plugin_settings.HasValue("OrsResourceMappings"))
                     {
@@ -769,37 +769,38 @@ namespace FNPlugin
                         if (int.TryParse(thermalUiKeyStr, out thermalUiKeyInt))
                         {
                             _thermalUiKey = (KeyCode)thermalUiKeyInt;
-                            Debug.Log("[KSPI] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
+                            Debug.Log("[KSPI] - ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
                         }
                         else
                         {
                             try
                             {
                                 _thermalUiKey = (KeyCode)Enum.Parse(typeof(KeyCode), thermalUiKeyStr, true);
-                                Debug.Log("[KSPI] ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
+                                Debug.Log("[KSPI] - ThermalUiKey set to: " + PluginHelper.ThermalUiKey.ToString());
                             }
                             catch
                             {
-                                Debug.LogError("[KSPI] failed to convert " + thermalUiKeyStr + " to a KeyCode for ThermalUiKey");
+                                Debug.LogError("[KSPI] - failed to convert " + thermalUiKeyStr + " to a KeyCode for ThermalUiKey");
                             }
                         }
                     }
 
+                    
                     if (plugin_settings.HasValue("SecondsInDay"))
                     {
                         _secondsInDay = int.Parse(plugin_settings.GetValue("SecondsInDay"));
-                        Debug.Log("[KSPI] SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
+                        Debug.Log("[KSPI] - SecondsInDay set to: " + PluginHelper.SecondsInDay.ToString());
                     }
 
                     if (plugin_settings.HasValue("MicrowaveApertureDiameterMult"))
                     {
                         _microwaveApertureDiameterMult = double.Parse(plugin_settings.GetValue("MicrowaveApertureDiameterMult"));
-                        Debug.Log("[KSPI] Microwave Aperture Diameter Multiplier set to: " + PluginHelper.MicrowaveApertureDiameterMult.ToString());
+                        Debug.Log("[KSPI] - Microwave Aperture Diameter Multiplier set to: " + PluginHelper.MicrowaveApertureDiameterMult.ToString());
                     }
                     if (plugin_settings.HasValue("SpotsizeMult"))
                     {
                         _spotsizeMult = double.Parse(plugin_settings.GetValue("SpotsizeMult"));
-                        Debug.Log("[KSPI] Spotsize Multiplier set to: " + PluginHelper.SpotsizeMult.ToString());
+                        Debug.Log("[KSPI] - Spotsize Multiplier set to: " + PluginHelper.SpotsizeMult.ToString());
                     }
 
                     if (plugin_settings.HasValue("SpeedOfLightMult"))
@@ -807,52 +808,52 @@ namespace FNPlugin
                         _speedOfLightMult = double.Parse(plugin_settings.GetValue("SpeedOfLightMult"));
                         _speedOfLight = GameConstants.speedOfLight * _speedOfLightMult;
 
-                        Debug.Log("[KSPI] Speed Of Light Multiplier set to: " + PluginHelper.SpeedOfLightMult.ToString());
+                        Debug.Log("[KSPI] - Speed Of Light Multiplier set to: " + PluginHelper.SpeedOfLightMult.ToString());
                     }
                     if (plugin_settings.HasValue("RadiationMechanicsDisabled"))
                     {
                         PluginHelper._radiationMechanicsDisabled = bool.Parse(plugin_settings.GetValue("RadiationMechanicsDisabled"));
-                        Debug.Log("[KSPI] Radiation Mechanics Disabled set to: " + PluginHelper.RadiationMechanicsDisabled.ToString());
+                        Debug.Log("[KSPI] - Radiation Mechanics Disabled set to: " + PluginHelper.RadiationMechanicsDisabled.ToString());
                     }
                     if (plugin_settings.HasValue("ThermalMechanicsDisabled"))
                     {
                         PluginHelper._isThermalDissipationDisabled = bool.Parse(plugin_settings.GetValue("ThermalMechanicsDisabled"));
-                        Debug.Log("[KSPI] ThermalMechanics set to : " + (!PluginHelper.IsThermalDissipationDisabled).ToString());
+                        Debug.Log("[KSPI] - ThermalMechanics set to : " + (!PluginHelper.IsThermalDissipationDisabled).ToString());
                     }
                     if (plugin_settings.HasValue("SolarPanelClampedHeating"))
                     {
                         PluginHelper._isPanelHeatingClamped = bool.Parse(plugin_settings.GetValue("SolarPanelClampedHeating"));
-                        Debug.Log("[KSPI] Solar panels clamped heating set to enabled: " + PluginHelper.IsSolarPanelHeatingClamped.ToString());
+                        Debug.Log("[KSPI] - Solar panels clamped heating set to enabled: " + PluginHelper.IsSolarPanelHeatingClamped.ToString());
                     }
                     if (plugin_settings.HasValue("RecieverTempTweak"))
                     {
                         PluginHelper._isRecieverTempTweaked = bool.Parse(plugin_settings.GetValue("RecieverTempTweak"));
-                        Debug.Log("[KSPI] Microwave reciever CoreTemp tweak is set to enabled: " + PluginHelper.IsRecieverCoreTempTweaked.ToString());
+                        Debug.Log("[KSPI] - Microwave reciever CoreTemp tweak is set to enabled: " + PluginHelper.IsRecieverCoreTempTweaked.ToString());
                     }
                     if (plugin_settings.HasValue("LimitedWarpTravel"))
                     {
                         PluginHelper._limitedWarpTravel = bool.Parse(plugin_settings.GetValue("LimitedWarpTravel"));
-                        Debug.Log("[KSPI] Apply Limited Warp Travel: " + PluginHelper.LimitedWarpTravel.ToString());
+                        Debug.Log("[KSPI] - Apply Limited Warp Travel: " + PluginHelper.LimitedWarpTravel.ToString());
                     }
                     if (plugin_settings.HasValue("MatchDemandWithSupply"))
                     {
                         PluginHelper._matchDemandWithSupply = bool.Parse(plugin_settings.GetValue("MatchDemandWithSupply"));
-                        Debug.Log("[KSPI] Match Demand With Supply: " + PluginHelper.MatchDemandWithSupply.ToString());
+                        Debug.Log("[KSPI] - Match Demand With Supply: " + PluginHelper.MatchDemandWithSupply.ToString());
                     }
                     if (plugin_settings.HasValue("MaxPowerDrawForExoticMatterMult"))
                     {
                         PluginHelper._maxPowerDrawForExoticMatterMult = double.Parse(plugin_settings.GetValue("MaxPowerDrawForExoticMatterMult"));
-                        Debug.Log("[KSPI] Max Power Draw For Exotic Matter Multiplier set to: " + PluginHelper.MaxPowerDrawForExoticMatterMult.ToString("0.000000"));
+                        Debug.Log("[KSPI] - Max Power Draw For Exotic Matter Multiplier set to: " + PluginHelper.MaxPowerDrawForExoticMatterMult.ToString("0.000000"));
                     }
                     if (plugin_settings.HasValue("IspCoreTempMult"))
                     {
                         PluginHelper._ispCoreTempMult = double.Parse(plugin_settings.GetValue("IspCoreTempMult"));
-                        Debug.Log("[KSPI] Isp core temperature multiplier set to: " + PluginHelper.IspCoreTempMult.ToString("0.000000"));
+                        Debug.Log("[KSPI] - Isp core temperature multiplier set to: " + PluginHelper.IspCoreTempMult.ToString("0.000000"));
                     }
                     if (plugin_settings.HasValue("ElectricEngineIspMult"))
                     {
                         PluginHelper._electricEngineIspMult = double.Parse(plugin_settings.GetValue("ElectricEngineIspMult"));
-                        Debug.Log("[KSPI] Electric EngineIsp Multiplier set to: " + PluginHelper.ElectricEngineIspMult.ToString("0.000000"));
+                        Debug.Log("[KSPI] - Electric EngineIsp Multiplier set to: " + PluginHelper.ElectricEngineIspMult.ToString("0.000000"));
                     }
 
 
@@ -860,17 +861,17 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("GlobalThermalNozzlePowerMaxTrustMult"))
                     {
                         PluginHelper._globalThermalNozzlePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalThermalNozzlePowerMaxTrustMult"));
-                        Debug.Log("[KSPI] Maximum Global Thermal Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalThermalNozzlePowerMaxThrustMult.ToString("0.0"));
+                        Debug.Log("[KSPI] - Maximum Global Thermal Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalThermalNozzlePowerMaxThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("GlobalMagneticNozzlePowerMaxTrustMult"))
                     {
                         PluginHelper._globalMagneticNozzlePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalMagneticNozzlePowerMaxTrustMult"));
-                        Debug.Log("[KSPI] Maximum Global Magnetic Nozzle Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalMagneticNozzlePowerMaxThrustMult.ToString("0.0"));
+                        Debug.Log("[KSPI] - Maximum Global Magnetic Nozzle Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalMagneticNozzlePowerMaxThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("GlobalElectricEnginePowerMaxTrustMult"))
                     {
                         PluginHelper._globalElectricEnginePowerMaxThrustMult = double.Parse(plugin_settings.GetValue("GlobalElectricEnginePowerMaxTrustMult"));
-                        Debug.Log("[KSPI] Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
+                        Debug.Log("[KSPI] - Maximum Global Electric Engine Power Maximum Thrust Multiplier set to: " + PluginHelper.GlobalElectricEnginePowerMaxThrustMult.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("MaxThermalNozzleIsp"))
@@ -882,82 +883,82 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("EngineHeatProduction"))
                     {
                         PluginHelper._engineHeatProduction = double.Parse(plugin_settings.GetValue("EngineHeatProduction"));
-                        Debug.Log("[KSPI] EngineHeatProduction set to: " + PluginHelper.EngineHeatProduction.ToString("0.0"));
+                        Debug.Log("[KSPI] - EngineHeatProduction set to: " + PluginHelper.EngineHeatProduction.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("EngineHeatProduction"))
                     {
                         PluginHelper._airflowHeatMult = double.Parse(plugin_settings.GetValue("AirflowHeatMult"));
-                        Debug.Log("[KSPI] AirflowHeatMultipler Isp set to: " + PluginHelper.AirflowHeatMult.ToString("0.0"));
+                        Debug.Log("[KSPI] - AirflowHeatMultipler Isp set to: " + PluginHelper.AirflowHeatMult.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("TrustCoreTempThreshold"))
                     {
                         PluginHelper._thrustCoreTempThreshold = double.Parse(plugin_settings.GetValue("TrustCoreTempThreshold"));
-                        Debug.Log("[KSPI] Thrust core temperature threshold set to: " + PluginHelper.ThrustCoreTempThreshold.ToString("0.0"));
+                        Debug.Log("[KSPI] - Thrust core temperature threshold set to: " + PluginHelper.ThrustCoreTempThreshold.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("LowCoreTempBaseTrust"))
                     {
                         PluginHelper._lowCoreTempBaseThrust = double.Parse(plugin_settings.GetValue("LowCoreTempBaseTrust"));
-                        Debug.Log("[KSPI] Low core temperature base thrust modifier set to: " + PluginHelper.LowCoreTempBaseThrust.ToString("0.0"));
+                        Debug.Log("[KSPI] - Low core temperature base thrust modifier set to: " + PluginHelper.LowCoreTempBaseThrust.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("HighCoreTempTrustMult"))
                     {
                         PluginHelper._highCoreTempThrustMult = double.Parse(plugin_settings.GetValue("HighCoreTempTrustMult"));
-                        Debug.Log("[KSPI] High core temperature thrust divider set to: " + PluginHelper.HighCoreTempThrustMult.ToString("0.0"));
+                        Debug.Log("[KSPI] - High core temperature thrust divider set to: " + PluginHelper.HighCoreTempThrustMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("BasePowerConsumption"))
                     {
                         PluginHelper._basePowerConsumption = double.Parse(plugin_settings.GetValue("BasePowerConsumption"));
-                        Debug.Log("[KSPI] Base Power Consumption set to: " + PluginHelper.BasePowerConsumption.ToString("0.0"));
+                        Debug.Log("[KSPI] - Base Power Consumption set to: " + PluginHelper.BasePowerConsumption.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("PowerConsumptionMultiplier"))
                     {
                         PluginHelper._powerConsumptionMultiplier = double.Parse(plugin_settings.GetValue("PowerConsumptionMultiplier"));
-                        Debug.Log("[KSPI] Base Power Consumption set to: " + PluginHelper.PowerConsumptionMultiplier.ToString("0.0"));
+                        Debug.Log("[KSPI] - Base Power Consumption set to: " + PluginHelper.PowerConsumptionMultiplier.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("IspElectroPropellantModifierBase"))
                     {
                         PluginHelper._ispElectroPropellantModifierBase = double.Parse(plugin_settings.GetValue("IspNtrPropellantModifierBase"));
-                        Debug.Log("[KSPI] Isp Ntr Propellant Modifier Base set to: " + PluginHelper.IspElectroPropellantModifierBase.ToString("0.0"));
+                        Debug.Log("[KSPI] - Isp Ntr Propellant Modifier Base set to: " + PluginHelper.IspElectroPropellantModifierBase.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("ElectricEnginePowerPropellantIspMultLimiter"))
                     {
                         PluginHelper._electricEnginePowerPropellantIspMultLimiter = double.Parse(plugin_settings.GetValue("ElectricEnginePowerPropellantIspMultLimiter"));
-                        Debug.Log("[KSPI] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEnginePowerPropellantIspMultLimiter.ToString("0.0"));
+                        Debug.Log("[KSPI] - Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEnginePowerPropellantIspMultLimiter.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("ElectricEngineAtmosphericDensityTrustLimiter"))
                     {
                         PluginHelper._electricEngineAtmosphericDensityThrustLimiter = double.Parse(plugin_settings.GetValue("ElectricEngineAtmosphericDensityTrustLimiter"));
-                        Debug.Log("[KSPI] Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEngineAtmosphericDensityThrustLimiter.ToString("0.0"));
+                        Debug.Log("[KSPI] - Electric Engine Power Propellant IspMultiplier Limiter set to: " + PluginHelper.ElectricEngineAtmosphericDensityThrustLimiter.ToString("0.0"));
                     }
 
                     if (plugin_settings.HasValue("MaxAtmosphericAltitudeMult"))
                     {
                         PluginHelper._maxAtmosphericAltitudeMult = double.Parse(plugin_settings.GetValue("MaxAtmosphericAltitudeMult"));
-                        Debug.Log("[KSPI] Maximum Atmospheric Altitude Multiplier set to: " + PluginHelper.MaxAtmosphericAltitudeMult.ToString("0.0"));
+                        Debug.Log("[KSPI] - Maximum Atmospheric Altitude Multiplier set to: " + PluginHelper.MaxAtmosphericAltitudeMult.ToString("0.0"));
                     }
                     if (plugin_settings.HasValue("MinAtmosphericAirDensity"))
                     {
                         PluginHelper._minAtmosphericAirDensity = double.Parse(plugin_settings.GetValue("MinAtmosphericAirDensity"));
-                        Debug.Log("[KSPI] Minimum Atmospheric Air Density set to: " + PluginHelper.MinAtmosphericAirDensity.ToString("0.0"));
+                        Debug.Log("[KSPI] - Minimum Atmospheric Air Density set to: " + PluginHelper.MinAtmosphericAirDensity.ToString("0.0"));
                     }
 
                     // Jet Upgrade techs
                     if (plugin_settings.HasValue("JetUpgradeTech1"))
                     {
                         PluginHelper.JetUpgradeTech1 = plugin_settings.GetValue("JetUpgradeTech1");
-                        Debug.Log("[KSPI] JetUpgradeTech1 " + PluginHelper.JetUpgradeTech1);
+                        Debug.Log("[KSPI] - JetUpgradeTech1 " + PluginHelper.JetUpgradeTech1);
                     }
                     if (plugin_settings.HasValue("JetUpgradeTech1"))
                     {
                         PluginHelper.JetUpgradeTech2 = plugin_settings.GetValue("JetUpgradeTech2");
-                        Debug.Log("[KSPI] JetUpgradeTech2 " + PluginHelper.JetUpgradeTech2);
+                        Debug.Log("[KSPI] - JetUpgradeTech2 " + PluginHelper.JetUpgradeTech2);
                     }
                     if (plugin_settings.HasValue("JetUpgradeTech3"))
                     {
                         PluginHelper.JetUpgradeTech3 = plugin_settings.GetValue("JetUpgradeTech3");
-                        Debug.Log("[KSPI] JetUpgradeTech3 " + PluginHelper.JetUpgradeTech3);
+                        Debug.Log("[KSPI] - JetUpgradeTech3 " + PluginHelper.JetUpgradeTech3);
                     }
                     if (plugin_settings.HasValue("JetUpgradeTech4"))
                     {
@@ -967,14 +968,14 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("JetUpgradeTech5"))
                     {
                         PluginHelper.JetUpgradeTech5 = plugin_settings.GetValue("JetUpgradeTech5");
-                        Debug.Log("[KSPI] JetUpgradeTech5 " + PluginHelper.JetUpgradeTech5);
+                        Debug.Log("[KSPI] - JetUpgradeTech5 " + PluginHelper.JetUpgradeTech5);
                     }
 
                     // Radiator
                     if (plugin_settings.HasValue("RadiatorAreaMultiplier"))
                     {
                         PluginHelper.RadiatorAreaMultiplier = double.Parse(plugin_settings.GetValue("RadiatorAreaMultiplier"));
-                        Debug.Log("[KSPI] RadiatorAreaMultiplier " + PluginHelper.RadiatorAreaMultiplier);
+                        Debug.Log("[KSPI] - RadiatorAreaMultiplier " + PluginHelper.RadiatorAreaMultiplier);
                     }
 
                     resources_configured = true;
