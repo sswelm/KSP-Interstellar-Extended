@@ -23,8 +23,11 @@ namespace FNPlugin.Reactors
         public double actinidesModifer;
         [KSPField]
         public double temperatureThrotleExponent = 0.5;
-        [KSPField(guiActive = true)]
+        [KSPField(guiActive = true, guiName = "Maximum Exhaust Angle")]
         public double maxExhaustAngle;
+
+        [KSPField(guiActive = true, guiName = "Current Exhaust Angle")]
+        public double currentExhaustAngle;
 
         PartResourceDefinition fluorineGasDefinition;
         PartResourceDefinition depletedFuelDefinition;
@@ -199,10 +202,15 @@ namespace FNPlugin.Reactors
 
             base.OnUpdate();
 
+            var cosineAngle = Vector3d.Dot(part.transform.up.normalized, vessel.graviticAcceleration.normalized);
+            currentExhaustAngle = 180 - Math.Acos(cosineAngle) * (180 / Math.PI);
+            if (double.IsNaN(currentExhaustAngle))
+                currentExhaustAngle = cosineAngle > 0 ? 180 : 0;
+
 			if (!vessel.mainBody.isHomeWorld)
 				maxExhaustAngle = double.PositiveInfinity;
 			if (vessel.altitude > vessel.mainBody.scienceValues.spaceAltitudeThreshold)
-				maxExhaustAngle = Math.Tanh((vessel.mainBody.Radius + vessel.mainBody.scienceValues.spaceAltitudeThreshold) / vessel.altitude) / Math.PI;
+                maxExhaustAngle = Math.Tanh((vessel.mainBody.Radius + vessel.mainBody.scienceValues.spaceAltitudeThreshold) / vessel.altitude) * (180 / Math.PI);
 			else
 				maxExhaustAngle = double.NaN;
         }

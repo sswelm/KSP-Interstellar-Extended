@@ -890,7 +890,7 @@ namespace PhotonSail
                 var beamAngleKscToVesselInDegree = Vector3d.Angle(centerOfHomeworld - positionKscLaser, centerOfHomeworld - positionVessel);
 
                 kscLaserElevationAngle = 90 - beamAngleKscToCenterInDegree - beamAngleKscToVesselInDegree;
-                var kscAtmosphereMultiplier = 1 / (Math.Sin(kscLaserElevationAngle * Mathf.Deg2Rad));
+                var kscAtmosphereMultiplier = 1 / (Math.Sin(kscLaserElevationAngle * (double)(decimal)Mathf.Deg2Rad));
                 var kscAtmosphereAbsorbtionEfficiency = Math.Max(0, 1 - kscAtmosphereMultiplier * kscAtmosphereAbsorbtionRatio);
 
                 var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature
