@@ -30,6 +30,10 @@ namespace FNPlugin.Redist
 
         double CurrentMeVPerChargedProduct { get; }
 
+        bool MayExhaustInAtmosphereHomeworld { get; }
+
+        bool MayExhaustInLowSpaceHomeworld { get; }
+
         void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource);
     }
 }

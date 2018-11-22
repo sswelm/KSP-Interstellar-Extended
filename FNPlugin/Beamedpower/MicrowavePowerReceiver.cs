@@ -345,6 +345,10 @@ namespace FNPlugin
 			// do nothing
 		}
 
+		public bool MayExhaustInAtmosphereHomeworld { get { return true; } }
+
+		public bool MayExhaustInLowSpaceHomeworld { get { return true; } }
+
         public double MinThermalNozzleTempRequired { get { return 0; } }
 
         public double CurrentMeVPerChargedProduct { get { return 0; } }
