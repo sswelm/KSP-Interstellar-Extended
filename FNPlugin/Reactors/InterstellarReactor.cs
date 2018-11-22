@@ -247,10 +247,10 @@ namespace FNPlugin.Reactors
         public double powerOutputMk7;
 
         // Settings
-		[KSPField]
-		public bool mayExhaustInAtmosphereHomeworld = true;
-		[KSPField]
-		public bool mayExhaustInLowSpaceHomeworld = true;
+        [KSPField]
+        public bool mayExhaustInAtmosphereHomeworld = true;
+        [KSPField]
+        public bool mayExhaustInLowSpaceHomeworld = true;
         [KSPField]
         public double minThermalNozzleTempRequired = 0;
         [KSPField]
@@ -608,18 +608,18 @@ namespace FNPlugin.Reactors
 
             return moduleCost;
         }
-				
+                
 
         public ModifierChangeWhen GetModuleCostChangeWhen()
-		{
+        {
             return ModifierChangeWhen.STAGED;
         }
 
-		// properties
+        // properties
 
-		public bool MayExhaustInAtmosphereHomeworld { get { return mayExhaustInAtmosphereHomeworld; } }
+        public bool MayExhaustInAtmosphereHomeworld { get { return mayExhaustInAtmosphereHomeworld; } }
 
-		public bool MayExhaustInLowSpaceHomeworld { get { return mayExhaustInLowSpaceHomeworld; } }
+        public bool MayExhaustInLowSpaceHomeworld { get { return mayExhaustInLowSpaceHomeworld; } }
 
         public double MinThermalNozzleTempRequired { get { return minThermalNozzleTempRequired; } }
 
