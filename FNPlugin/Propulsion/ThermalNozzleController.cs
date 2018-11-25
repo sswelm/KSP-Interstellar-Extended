@@ -35,6 +35,8 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Isp Throtle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0f)]
         public float ispThrottle = 0;
 
+        [KSPField(guiActive = false, guiName = "Distance to Homeworld")]
+        public double distanceToSurfaceHomeworld;
         [KSPField(guiActive = false, guiName = "Cone Angle")]
         public double coneAngle;
         [KSPField(guiActive = false, guiName = "Allowed Exhaust Angle")]
@@ -806,7 +808,7 @@ namespace FNPlugin
         {
             var homeworld = FlightGlobals.GetHomeBody();
             var toHomeworld = vessel.CoMD - homeworld.position;
-            var distanceToSurfaceHomeworld = toHomeworld.magnitude - homeworld.Radius;
+            distanceToSurfaceHomeworld = toHomeworld.magnitude - homeworld.Radius;
             var cosineAngle = Vector3d.Dot(part.transform.up.normalized, toHomeworld.normalized);
             currentExhaustAngle = Math.Acos(cosineAngle) * (180 / Math.PI);
             if (double.IsNaN(currentExhaustAngle))
@@ -815,24 +817,24 @@ namespace FNPlugin
             if (AttachedReactor == null)
                 return false;
 
-            if (AttachedReactor.MayExhaustInAtmosphereHomeworld || !vessel.mainBody.atmosphere || !vessel.mainBody.isHomeWorld)
+            if (AttachedReactor.MayExhaustInAtmosphereHomeworld)
             {
                 allowedExhaustAngle = 180;
                 return true;
             }
 
-            var minAltitude = AttachedReactor.MayExhaustInLowSpaceHomeworld ? vessel.mainBody.atmosphereDepth : vessel.mainBody.scienceValues.spaceAltitudeThreshold;
+            var minAltitude = AttachedReactor.MayExhaustInLowSpaceHomeworld ? homeworld.atmosphereDepth : homeworld.scienceValues.spaceAltitudeThreshold;
 
             if (distanceToSurfaceHomeworld < minAltitude)
                 return false;
 
-            var radiusDividedByAltitude = (vessel.mainBody.Radius + minAltitude) / distanceToSurfaceHomeworld;
+            var radiusDividedByAltitude = (homeworld.Radius + minAltitude) / distanceToSurfaceHomeworld;
 
-            coneAngle = Math.Max(0, 25 - (1 / radiusDividedByAltitude * 5));
+            coneAngle = Math.Max(0, 25 - (1 / radiusDividedByAltitude * 50));
 
             allowedExhaustAngle = coneAngle + Math.Tanh(radiusDividedByAltitude) * (180 / Math.PI);
 
-            if (allowedExhaustAngle < 5)
+            if (allowedExhaustAngle < 3)
                 return true;
 
             return currentExhaustAngle > allowedExhaustAngle;
