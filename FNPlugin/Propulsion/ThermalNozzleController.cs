@@ -32,8 +32,17 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public double animationStarted = 0;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Isp Throtle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0f)]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Isp Throtle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0f)]
         public float ispThrottle = 0;
+
+        [KSPField(guiActive = false, guiName = "Cone Angle")]
+        public double coneAngle;
+        [KSPField(guiActive = false, guiName = "Allowed Exhaust Angle")]
+        public double allowedExhaustAngle;
+        [KSPField(guiActive = false, guiName = "Current Exhaust Angle")]
+        public double currentExhaustAngle;
+        [KSPField(guiActive = false, guiName = "Exhaust Allowed")]
+        public bool exhaustAllowed;
 
         [KSPField]
         public bool canUsePureChargedPower = false;
@@ -495,7 +504,7 @@ namespace FNPlugin
         {
             get
             {
-                if (myAttachedEngine != null && myAttachedEngine.isOperational)
+                if (myAttachedEngine != null && myAttachedEngine.isOperational && exhaustAllowed)
                     return myAttachedEngine.currentThrottle;
                 else
                     return 0;
@@ -749,6 +758,8 @@ namespace FNPlugin
                 if (myAttachedEngine == null)
                     return;
 
+                exhaustAllowed = AllowedExhaust();
+
                 // only allow shutdown when engine throttle is down
                 myAttachedEngine.Events["Shutdown"].active = myAttachedEngine.currentThrottle == 0;
 
@@ -789,6 +800,38 @@ namespace FNPlugin
                 UnityEngine.Debug.LogError("[KSPI] - ThermalNozzle OnUpdates " + e.Message);
             }
 
+        }
+
+        private bool AllowedExhaust()
+        {
+            var toMainBody = this.part.transform.position - vessel.mainBody.position;
+
+            var cosineAngle = Vector3d.Dot(part.transform.up.normalized, toMainBody.normalized);
+            currentExhaustAngle = Math.Acos(cosineAngle) * (180 / Math.PI);
+            if (double.IsNaN(currentExhaustAngle))
+                currentExhaustAngle = cosineAngle > 0 ? 180 : 0;
+
+            if (AttachedReactor == null)
+                return false;
+
+            if (AttachedReactor.MayExhaustInAtmosphereHomeworld || !vessel.mainBody.atmosphere || !vessel.mainBody.isHomeWorld)
+            {
+                allowedExhaustAngle = 180;
+                return true;
+            }
+
+            var minAltitude = AttachedReactor.MayExhaustInLowSpaceHomeworld ? vessel.mainBody.atmosphereDepth : vessel.mainBody.scienceValues.spaceAltitudeThreshold;
+
+            if (vessel.altitude < minAltitude)
+                return false;
+
+            var radiusDividedByAltitude = (vessel.mainBody.Radius + minAltitude) / vessel.altitude;
+
+            coneAngle = 25 - (1 / radiusDividedByAltitude * 5);
+
+            allowedExhaustAngle = coneAngle + Math.Tanh(radiusDividedByAltitude) * (180 / Math.PI);
+
+            return currentExhaustAngle > allowedExhaustAngle;
         }
 
         public override void OnActive()
@@ -1181,6 +1224,17 @@ namespace FNPlugin
             {
                 ConfigEffects();
 
+                if (myAttachedEngine.currentThrottle > 0 && !exhaustAllowed)
+                {
+                    string message = "Engine halted - Radioactive exhaust not allowed toward or inside homeworld atmosphere";
+                    ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                    vessel.ctrlState.mainThrottle = 0;
+
+                    // Return to realtime
+                    if (vessel.packed)
+                        TimeWarp.SetRate(0, true);
+                }
+
                 currentThrottle = myAttachedEngine.currentThrottle;
                 requestedThrottle = myAttachedEngine.requestedThrottle;
 
@@ -1192,7 +1246,8 @@ namespace FNPlugin
                         myAttachedEngine.Shutdown();
                         ScreenMessages.PostScreenMessage("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     }
-                    myAttachedEngine.maxFuelFlow = 0.0000000001f;
+                    vessel.ctrlState.mainThrottle = 0;
+                    myAttachedEngine.maxFuelFlow = 1e-10f;
                     return;
                 }
 
@@ -1226,8 +1281,8 @@ namespace FNPlugin
                 thermalRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_THERMALPOWER);
                 chargedParticleRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
-                availableThermalPower = currentMaxThermalPower * (thermalRatio > 0.5 ? 1 : thermalRatio * 2);
-                availableChargedPower = currentMaxChargedPower * (chargedParticleRatio > 0.5 ? 1 : chargedParticleRatio * 2);
+                availableThermalPower = exhaustAllowed ? currentMaxThermalPower * (thermalRatio > 0.5 ? 1 : thermalRatio * 2): 0;
+                availableChargedPower = exhaustAllowed ? currentMaxChargedPower * (chargedParticleRatio > 0.5 ? 1 : chargedParticleRatio * 2): 0;
 
                 UpdateAnimation();
 
@@ -1289,7 +1344,7 @@ namespace FNPlugin
                     }
 
                     // set engines maximum fuel flow
-                    myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate, 0.0000000001);
+                    myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate, 1e-10);
                     myAttachedEngine.heatProduction = 1;
 
                     if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
@@ -1372,6 +1427,7 @@ namespace FNPlugin
                 GetMaximumIspAndThrustMultiplier();
 
                 powerFraction = AttachedReactor.GetFractionThermalReciever(id);
+
                 requested_thermal_power = availableThermalPower * powerFraction;
 
                 // consume power when plasma nozzle
@@ -1441,7 +1497,9 @@ namespace FNPlugin
 
                     expectedMaxThrust = thrustPerMegaJoule * AttachedReactor.MaximumPower;
 
-                    myAttachedEngine.maxThrust = (float)Math.Max(thrustPerMegaJoule * AttachedReactor.RawMaximumPower, 0.000001);
+                    final_max_thrust_in_space = Math.Max(thrustPerMegaJoule * AttachedReactor.RawMaximumPower, 0.000001);
+
+                    myAttachedEngine.maxThrust = (float)final_max_thrust_in_space;
 
                     calculatedMaxThrust = expectedMaxThrust;
                 }
