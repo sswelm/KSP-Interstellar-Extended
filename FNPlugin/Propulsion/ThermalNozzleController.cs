@@ -804,9 +804,10 @@ namespace FNPlugin
 
         private bool AllowedExhaust()
         {
-            var toMainBody = this.part.transform.position - vessel.mainBody.position;
-
-            var cosineAngle = Vector3d.Dot(part.transform.up.normalized, toMainBody.normalized);
+            var homeworld = FlightGlobals.GetHomeBody();
+            var toHomeworld = vessel.CoMD - homeworld.position;
+            var distanceToSurfaceHomeworld = toHomeworld.magnitude - homeworld.Radius;
+            var cosineAngle = Vector3d.Dot(part.transform.up.normalized, toHomeworld.normalized);
             currentExhaustAngle = Math.Acos(cosineAngle) * (180 / Math.PI);
             if (double.IsNaN(currentExhaustAngle))
                 currentExhaustAngle = cosineAngle > 0 ? 180 : 0;
@@ -822,14 +823,17 @@ namespace FNPlugin
 
             var minAltitude = AttachedReactor.MayExhaustInLowSpaceHomeworld ? vessel.mainBody.atmosphereDepth : vessel.mainBody.scienceValues.spaceAltitudeThreshold;
 
-            if (vessel.altitude < minAltitude)
+            if (distanceToSurfaceHomeworld < minAltitude)
                 return false;
 
-            var radiusDividedByAltitude = (vessel.mainBody.Radius + minAltitude) / vessel.altitude;
+            var radiusDividedByAltitude = (vessel.mainBody.Radius + minAltitude) / distanceToSurfaceHomeworld;
 
-            coneAngle = 25 - (1 / radiusDividedByAltitude * 5);
+            coneAngle = Math.Max(0, 25 - (1 / radiusDividedByAltitude * 5));
 
             allowedExhaustAngle = coneAngle + Math.Tanh(radiusDividedByAltitude) * (180 / Math.PI);
+
+            if (allowedExhaustAngle < 5)
+                return true;
 
             return currentExhaustAngle > allowedExhaustAngle;
         }
