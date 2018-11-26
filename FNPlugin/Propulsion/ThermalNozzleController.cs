@@ -423,7 +423,7 @@ namespace FNPlugin
 
         public bool UseThermalPowerOnly
         {
-            get { return AttachedReactor != null && (!isPlasmaNozzle || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0 || list_of_propellants.Count > 1); }
+            get { return AttachedReactor != null && (!isPlasmaNozzle || AttachedReactor.ChargedParticlePropulsionEfficiency == 0 || AttachedReactor.SupportMHD || AttachedReactor.ChargedPowerRatio == 0 || list_of_propellants.Count > 1 ); }
         }
 
         public bool UseThermalAndChargdPower
@@ -433,7 +433,7 @@ namespace FNPlugin
 
         public bool UsePlasmaAfterBurner
         {
-            get { return isPlasmaNozzle && ispThrottle != 0 && (ispThrottle != 1 || !canUsePureChargedPower); }
+            get { return AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && isPlasmaNozzle && ispThrottle != 0 && (ispThrottle != 1 || !canUsePureChargedPower); }
         }
 
         public bool UseChargedPowerOnly
@@ -665,7 +665,7 @@ namespace FNPlugin
                 effectiveJetengineAccelerationSpeed = overrideAccelerationSpeed ? jetengineAccelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineAccelerationSpeed;
                 effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ? jetengineDecelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineDecelerationSpeed;
 
-                var showIspThrotle = isPlasmaNozzle && AttachedReactor.ChargedPowerRatio > 0;
+                var showIspThrotle = isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
                 Fields["temperatureStr"].guiActive = showPartTemperature;
                 Fields["ispThrottle"].guiActiveEditor = showIspThrotle;
                 Fields["ispThrottle"].guiActive = showIspThrotle;
@@ -1726,7 +1726,9 @@ namespace FNPlugin
 
             if (UseThermalPowerOnly)
             {
-                _maxISP = baseMaxIsp;
+                _maxISP = isPlasmaNozzle 
+                    ? baseMaxIsp + AttachedReactor.ChargedPowerRatio * baseMaxIsp 
+                    : baseMaxIsp;
             }
             else if (UseChargedPowerOnly)
             {
