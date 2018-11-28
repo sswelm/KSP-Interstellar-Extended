@@ -34,6 +34,8 @@ namespace FNPlugin.Redist
 
         bool MayExhaustInLowSpaceHomeworld { get; }
 
+        double MagneticNozzlePowerMult { get; }
+
         void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource);
     }
 }

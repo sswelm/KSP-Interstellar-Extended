@@ -14,7 +14,8 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true, guiActive = false)]
         public bool allowJumpStart = true;
 
-
+        [KSPField]
+        public double magneticNozzlePowerMult = 1;
         [KSPField]
         public int powerPriority = 0;
         [KSPField]
@@ -83,7 +84,7 @@ namespace FNPlugin.Reactors
 
         public override double MaximumChargedPower { get { return base.MaximumChargedPower * PlasmaModifier; }  }
 
-        public double MagneticNozzlePowerMult { get { return 1; } }
+        public override double MagneticNozzlePowerMult { get { return magneticNozzlePowerMult; } }
 
         public virtual double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
 

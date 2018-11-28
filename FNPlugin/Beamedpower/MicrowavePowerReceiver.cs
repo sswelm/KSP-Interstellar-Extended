@@ -345,6 +345,8 @@ namespace FNPlugin
 			// do nothing
 		}
 
+		public double MagneticNozzlePowerMult { get { return 1; } }
+
 		public bool MayExhaustInAtmosphereHomeworld { get { return true; } }
 
 		public bool MayExhaustInLowSpaceHomeworld { get { return true; } }

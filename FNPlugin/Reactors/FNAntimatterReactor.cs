@@ -25,6 +25,6 @@ namespace FNPlugin.Reactors
 
         public double MinimumChargdIspMult { get { return minimumChargdIspMult; } }
 
-        public double MagneticNozzlePowerMult { get { return magneticNozzlePowerMult; } }
+        public override double MagneticNozzlePowerMult { get { return magneticNozzlePowerMult; } }
     }
 }

@@ -617,6 +617,8 @@ namespace FNPlugin.Reactors
 
         // properties
 
+        public virtual double MagneticNozzlePowerMult { get { return 1; } }
+
         public bool MayExhaustInAtmosphereHomeworld { get { return mayExhaustInAtmosphereHomeworld; } }
 
         public bool MayExhaustInLowSpaceHomeworld { get { return mayExhaustInLowSpaceHomeworld; } }
