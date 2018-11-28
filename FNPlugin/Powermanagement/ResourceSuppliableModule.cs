@@ -117,12 +117,12 @@ namespace FNPlugin
             var powerShortage = requestedPowerPerSecond - avialablePower;
             if (powerShortage > 0)
             {
-                var currentCapacity = manager.getTotalResourceCapacity();
+                var currentCapacity = (decimal)manager.getTotalResourceCapacity();
                 var currentAmount = currentCapacity * manager.ResourceBarRatioBegin;
-                var fixedPowerShortage = powerShortage * timeWarpFixedDeltaTime;
+                decimal fixedPowerShortage = (decimal)powerShortage * (decimal)timeWarpFixedDeltaTime;
 
-                if (currentAmount - fixedPowerShortage > currentCapacity * limitBarRatio)
-                    power_taken_per_second += part.RequestResource(resourcename, fixedPowerShortage) / timeWarpFixedDeltaTime;
+                if (currentAmount - fixedPowerShortage > currentCapacity * (decimal)limitBarRatio)
+                    power_taken_per_second += part.RequestResource(resourcename, (double)fixedPowerShortage) / timeWarpFixedDeltaTime;
             }
 
             manager.powerDrawPerSecond(this, requestedPowerPerSecond, power_taken_per_second);
@@ -471,6 +471,21 @@ namespace FNPlugin
             if (String.IsNullOrEmpty(resourcename)) 
             {
                 Debug.Log("[KSPI] - getResourceBarRatio illegal values.");
+                return 0;
+            }
+
+            ResourceManager manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            return (double)manager.ResourceBarRatioBegin;
+        }
+
+        public decimal getResourceBarFraction(String resourcename)
+        {
+            if (String.IsNullOrEmpty(resourcename))
+            {
+                Debug.Log("[KSPI] - getResourceBarFraction illegal values.");
                 return 0;
             }
 

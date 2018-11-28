@@ -270,9 +270,9 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
         protected double maxPressureThresholdAtKerbinSurface;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Ratio")]
-        protected double thermalRatio;
+        protected decimal thermalRatio;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Charged Power Ratio")]
-        protected double chargedParticleRatio;
+        protected decimal chargedParticleRatio;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Expected Max Thrust")]
         protected double expectedMaxThrust;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Is LFO")]
@@ -300,15 +300,15 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Air Flow Heat Modifier", guiFormat = "F3")]
         protected double airflowHeatModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Power Supply", guiFormat = "F3")]
-        protected double effectiveThermalSupply;
+        protected decimal effectiveThermalSupply;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Charged Power Supply", guiFormat = "F3")]
-        protected double effectiveChargedSupply;
+        protected decimal effectiveChargedSupply;
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
-        public double maximumPowerUsageForPropulsionRatio;
+        public decimal maximumPowerUsageForPropulsionRatio;
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
-        public double maximumThermalPower;
+        public decimal maximumThermalPower;
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
-        public double maximumChargedPower;
+        public decimal maximumChargedPower;
 
         [KSPField]
         public double powerHeatModifier;
@@ -1274,24 +1274,24 @@ namespace FNPlugin
 
                 bool canUseChargedPower = this.allowUseOfChargedPower && AttachedReactor.ChargedPowerRatio > 0;
 
-                effectiveThermalSupply = !UseChargedPowerOnly ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
-                effectiveChargedSupply = canUseChargedPower ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
+                effectiveThermalSupply = !UseChargedPowerOnly ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER).ToDecimal() : 0;
+                effectiveChargedSupply = canUseChargedPower ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES).ToDecimal() : 0;
 
                 maximumPowerUsageForPropulsionRatio = UsePlasmaPower
-                    ? AttachedReactor.PlasmaPropulsionEfficiency
-                    : AttachedReactor.ThermalPropulsionEfficiency;
+                    ? AttachedReactor.PlasmaPropulsionEfficiency.ToDecimal()
+                    : AttachedReactor.ThermalPropulsionEfficiency.ToDecimal();
 
-                maximumThermalPower = AttachedReactor.MaximumThermalPower;
-                maximumChargedPower = AttachedReactor.MaximumChargedPower;
+                maximumThermalPower = AttachedReactor.MaximumThermalPower.ToDecimal();
+                maximumChargedPower = AttachedReactor.MaximumChargedPower.ToDecimal();
 
-                currentMaxThermalPower = Math.Min((decimal)effectiveThermalSupply, (decimal)maximumThermalPower * (decimal)maximumPowerUsageForPropulsionRatio * currentThrottle);
-                currentMaxChargedPower = Math.Min((decimal)effectiveChargedSupply, (decimal)maximumChargedPower * (decimal)maximumPowerUsageForPropulsionRatio * currentThrottle);
+                currentMaxThermalPower = Math.Min(effectiveThermalSupply, maximumThermalPower * maximumPowerUsageForPropulsionRatio * currentThrottle);
+                currentMaxChargedPower = Math.Min(effectiveChargedSupply, maximumChargedPower * maximumPowerUsageForPropulsionRatio * currentThrottle);
 
-                thermalRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_THERMALPOWER);
-                chargedParticleRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                thermalRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_THERMALPOWER);
+                chargedParticleRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
-                availableThermalPower = exhaustAllowed ? currentMaxThermalPower * (decimal)(thermalRatio > 0.5 ? 1 : thermalRatio * 2): 0;
-                availableChargedPower = exhaustAllowed ? currentMaxChargedPower * (decimal)(chargedParticleRatio > 0.5 ? 1 : chargedParticleRatio * 2): 0;
+                availableThermalPower = exhaustAllowed ? currentMaxThermalPower * (thermalRatio > 0.5m ? 1 : thermalRatio * 2) : 0;
+                availableChargedPower = exhaustAllowed ? currentMaxChargedPower * (chargedParticleRatio > 0.5m ? 1 : chargedParticleRatio * 2) : 0;
 
                 UpdateAnimation();
 
@@ -1305,7 +1305,7 @@ namespace FNPlugin
 
                     UpdateIspEngineParams();
 
-                    expectedMaxThrust = AttachedReactor.MaximumPower * maximumPowerUsageForPropulsionRatio * GetPowerThrustModifier() * GetHeatThrustModifier() / GameConstants.STANDARD_GRAVITY / _maxISP * GetHeatExchangerThrustDivisor();
+                    expectedMaxThrust = AttachedReactor.MaximumPower * (double)maximumPowerUsageForPropulsionRatio * GetPowerThrustModifier() * GetHeatThrustModifier() / GameConstants.STANDARD_GRAVITY / _maxISP * GetHeatExchangerThrustDivisor();
                     calculatedMaxThrust = expectedMaxThrust;
 
                     var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / 200;
@@ -1435,13 +1435,13 @@ namespace FNPlugin
 
                 GetMaximumIspAndThrustMultiplier();
 
-                powerFraction = (decimal)AttachedReactor.GetFractionThermalReciever(id);
+                powerFraction = AttachedReactor.GetFractionThermalReciever(id).ToDecimal();
 
                 // consume power when plasma nozzle
                 if (requiredMegajouleRatio > 0)
                 {
-                    decimal requested_megajoules = (availableThermalPower + availableChargedPower) * (decimal)requiredMegajouleRatio * (decimal)AttachedReactor.MagneticNozzlePowerMult;
-                    decimal received_megajoules = (decimal)consumeFNResourcePerSecond((double)requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    decimal requested_megajoules = (availableThermalPower + availableChargedPower) * requiredMegajouleRatio.ToDecimal() * AttachedReactor.MagneticNozzlePowerMult.ToDecimal();
+                    decimal received_megajoules = consumeFNResourcePerSecond((double)requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES).ToDecimal();
                     received_megajoules_ratio = requested_megajoules > 0 ? received_megajoules / requested_megajoules : 0;
                 }
                 else
@@ -1502,7 +1502,7 @@ namespace FNPlugin
 
                     engineMaxThrust = (double)received_megajoules_ratio * powerHeatModifier * reactor_power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
 
-                    thrustPerMegaJoule = powerHeatModifier * maximumPowerUsageForPropulsionRatio / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
+                    thrustPerMegaJoule = powerHeatModifier * (double)maximumPowerUsageForPropulsionRatio / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
 
                     expectedMaxThrust = thrustPerMegaJoule * AttachedReactor.MaximumPower;
 
@@ -1639,8 +1639,8 @@ namespace FNPlugin
 
                 if (controlHeatProduction)
                 {
-                    ispHeatModifier = Approximate.Sqrt(realIspEngine) * (UsePlasmaPower ? plasmaAfterburnerHeatModifier : thermalHeatModifier);
-                    powerToMass = Approximate.Sqrt(maxThrustOnEngine / part.mass);
+                    ispHeatModifier = realIspEngine.Sqrt() * (UsePlasmaPower ? plasmaAfterburnerHeatModifier : thermalHeatModifier);
+                    powerToMass = (maxThrustOnEngine / part.mass).Sqrt();
                     radiusHeatModifier = Math.Pow(scaledRadius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
                     var reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;

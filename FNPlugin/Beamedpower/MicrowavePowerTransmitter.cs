@@ -808,7 +808,7 @@ namespace FNPlugin.Beamedpower
                 }
             }
 
-            vesselTransmitters.Aperture = transmitters.Average(m => m.aperture) * Approximate.Sqrt(transmitters.Count);
+            vesselTransmitters.Aperture = transmitters.Average(m => m.aperture) * transmitters.Count.Sqrt();
             vesselTransmitters.NuclearPower = transmitters.Sum(m => m.getNuclearPower());
             vesselTransmitters.SolarPower = transmitters.Sum(m => m.getSolarPower());
             vesselTransmitters.PowerCapacity = transmitters.Sum(m => m.getPowerCapacity());

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Constants;
+using FNPlugin.Extensions;
 
 namespace FNPlugin 
 {
@@ -104,7 +105,8 @@ namespace FNPlugin
 
         Rect windowPosition = new Rect(50, 50, 300, 100);
         int windowID = 36549835;
-        double resource_bar_ratio_begin = 0;
+
+        decimal resource_bar_ratio_begin = 0;		
 
         double temperature_ratio = 0;
         double sqrt_resource_bar_ratio_begin = 0;
@@ -424,7 +426,8 @@ namespace FNPlugin
         public double CurrentHighPriorityResourceDemand { get { return stored_current_hp_demand + stored_current_charge_demand; } }
         public double PowerSupply { get { return currentPowerSupply; } }
 
-        public double ResourceBarRatioBegin { get {  return resource_bar_ratio_begin; } }
+        public decimal ResourceBarRatioBegin { get {  return resource_bar_ratio_begin; } }
+
         public double TemperatureRatio { get { return temperature_ratio; } }
         public double SqrtResourceBarRatioBegin { get { return sqrt_resource_bar_ratio_begin; } }
         public double RadiatorEfficiency { get { return radiator_efficiency; } }
@@ -793,18 +796,18 @@ namespace FNPlugin
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out availableResourceAmount, out maxResouceAmount);
 
             if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount))
-                resource_bar_ratio_begin = availableResourceAmount / maxResouceAmount;
+                resource_bar_ratio_begin = availableResourceAmount.ToDecimal() / maxResouceAmount.ToDecimal();
             else
-                resource_bar_ratio_begin = resourceDefinition.id == wasteheatResourceDefinition.id ? 0.999 : 0;
+                resource_bar_ratio_begin = resourceDefinition.id == wasteheatResourceDefinition.id ? 0.999m : 0;
 
             if (resource_name == ResourceManager.FNRESOURCE_WASTEHEAT)
             {
 
-                sqrt_resource_bar_ratio_begin = Math.Sqrt(resource_bar_ratio_begin);
+                sqrt_resource_bar_ratio_begin = Math.Sqrt((double)resource_bar_ratio_begin);
 
-                temperature_ratio = Math.Pow(resource_bar_ratio_begin, 0.75);
+                temperature_ratio = Math.Pow((double)resource_bar_ratio_begin, 0.75);
 
-                radiator_efficiency = 1 - Math.Pow(1 - resource_bar_ratio_begin, 400);
+                radiator_efficiency = 1 - Math.Pow(1 - (double)resource_bar_ratio_begin, 400);
             }
 
             //calculate total input and output
@@ -975,15 +978,15 @@ namespace FNPlugin
             GUILayout.Space(2);
             GUILayout.BeginVertical();
 
-			//GUILayout.BeginHorizontal();
-			//GUILayout.Label("Resource Manager Id", left_bold_label, GUILayout.ExpandWidth(true));
-			//GUILayout.Label(Id.ToString(), right_aligned_label, GUILayout.ExpandWidth(true), GUILayout.MinWidth(labelWidth));
-			//GUILayout.EndHorizontal();
+            //GUILayout.BeginHorizontal();
+            //GUILayout.Label("Resource Manager Id", left_bold_label, GUILayout.ExpandWidth(true));
+            //GUILayout.Label(Id.ToString(), right_aligned_label, GUILayout.ExpandWidth(true), GUILayout.MinWidth(labelWidth));
+            //GUILayout.EndHorizontal();
 
-			//GUILayout.BeginHorizontal();
-			//GUILayout.Label("Over Manager Id", left_bold_label, GUILayout.ExpandWidth(true));
-			//GUILayout.Label(OverManagerId.ToString(), right_aligned_label, GUILayout.ExpandWidth(true), GUILayout.MinWidth(labelWidth));
-			//GUILayout.EndHorizontal();
+            //GUILayout.BeginHorizontal();
+            //GUILayout.Label("Over Manager Id", left_bold_label, GUILayout.ExpandWidth(true));
+            //GUILayout.Label(OverManagerId.ToString(), right_aligned_label, GUILayout.ExpandWidth(true), GUILayout.MinWidth(labelWidth));
+            //GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Theoretical Supply",left_bold_label, GUILayout.ExpandWidth(true));

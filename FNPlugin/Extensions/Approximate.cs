@@ -6,14 +6,24 @@ using System.Runtime.InteropServices;
 
 namespace FNPlugin.Extensions
 {
-	public class Approximate
+	public static class Approximate
 	{
-		public static float FourthRoot(float z)
+		public static float FourthRoot(this float z)
 		{
 			return Sqrt(Sqrt(z));
 		}
 
-		public static float Sqrt(float z)
+		public static float Sqrt(this int z)
+		{
+			return ((float)z).Sqrt();
+		}
+
+		public static float Sqrt(this double z)
+		{
+			return ((float)z).Sqrt();
+		}
+
+		public static float Sqrt(this float z)
 		{
 			if (z == 0) return 0;
 			FloatIntUnion u;

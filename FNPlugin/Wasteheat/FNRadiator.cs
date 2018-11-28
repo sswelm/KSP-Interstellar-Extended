@@ -783,7 +783,7 @@ namespace FNPlugin.Wasteheat
                     if (ratio <= 1)
                         ratio *= ratio;
                     else
-                        ratio = Approximate.Sqrt((float)ratio);
+                        ratio = ratio.Sqrt();
                     oxidationModifier = 1 + ratio * 0.1;
                 }
                 else
@@ -875,7 +875,7 @@ namespace FNPlugin.Wasteheat
 
                 if (vessel.atmDensity > 0)
                 {
-                    atmosphere_modifier = vessel.atmDensity * convectiveBonus + Approximate.Sqrt((float)vessel.speed);
+                    atmosphere_modifier = vessel.atmDensity * convectiveBonus + vessel.speed.Sqrt();
 
                     var heatTransferCooficient = 0.0005; // 500W/m2/K
                     var temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - external_temperature);
@@ -1048,7 +1048,7 @@ namespace FNPlugin.Wasteheat
 
             if (heatStates != null && heatStates.Any())
             {
-                SetHeatAnimationRatio(Approximate.Sqrt(colorRatio));
+                SetHeatAnimationRatio(colorRatio.Sqrt());
             }
             else if (!string.IsNullOrEmpty(colorHeat))
             {

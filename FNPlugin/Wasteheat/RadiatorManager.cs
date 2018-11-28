@@ -97,7 +97,7 @@ namespace FNPlugin.Wasteheat
 			Counter = UpdatingRadiator.updateCounter;
 
 			WasteHeatRatio = UpdatingRadiator.getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-			var sqrtWasteHeatRatio = Approximate.Sqrt((float)WasteHeatRatio);
+			var sqrtWasteHeatRatio = WasteHeatRatio.Sqrt();
 
 			if (Double.IsNaN(WasteHeatRatio))
 			{
