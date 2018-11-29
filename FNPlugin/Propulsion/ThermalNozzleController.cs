@@ -1441,7 +1441,7 @@ namespace FNPlugin
                 if (requiredMegajouleRatio > 0)
                 {
                     decimal requested_megajoules = (availableThermalPower + availableChargedPower) * requiredMegajouleRatio.ToDecimal() * AttachedReactor.MagneticNozzlePowerMult.ToDecimal();
-                    decimal received_megajoules = consumeFNResourcePerSecond((double)requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES).ToDecimal();
+                    decimal received_megajoules = consumeFNResourcePerSecond(requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
                     received_megajoules_ratio = requested_megajoules > 0 ? received_megajoules / requested_megajoules : 0;
                 }
                 else

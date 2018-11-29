@@ -9,8 +9,8 @@ namespace FNPlugin
 {
     public class PowerDistribution
     {
-        public double Power_requested { get; set; }
-        public double Power_consumed { get; set; }
+        public decimal Power_requested { get; set; }
+        public decimal Power_consumed { get; set; }
     }
 
     public class PowerGenerated
@@ -20,12 +20,12 @@ namespace FNPlugin
             efficiencyRatio = 1;
         }
 
-        public double currentSupply { get; set; }
-        public double averageSupply { get; set; }
-        public double currentProvided { get; set; }
-        public double maximumSupply { get; set; }
-        public double minimumSupply { get; set; }
-        public double efficiencyRatio { get; set; }
+        public decimal currentSupply { get; set; }
+        public decimal averageSupply { get; set; }
+        public decimal currentProvided { get; set; }
+        public decimal maximumSupply { get; set; }
+        public decimal minimumSupply { get; set; }
+        public decimal efficiencyRatio { get; set; }
     }
 
     public class PowerProduction
@@ -74,25 +74,26 @@ namespace FNPlugin
 
         Dictionary<IResourceSuppliable, PowerDistribution> power_consumption;
         Dictionary<IResourceSupplier, PowerGenerated> power_produced;
-        Dictionary<IResourceSupplier, Queue<double>> power_produced_history = new Dictionary<IResourceSupplier, Queue<double>>() ;
+        Dictionary<IResourceSupplier, Queue<decimal>> power_produced_history = new Dictionary<IResourceSupplier, Queue<decimal>>() ;
 
         string resource_name;
-        double currentPowerSupply = 0;
-        double stable_supply = 0;
+        decimal currentPowerSupply = 0;
+        decimal stable_supply = 0;
 
-        double stored_stable_supply = 0;
-        double stored_resource_demand = 0;
-        double stored_current_hp_demand = 0;
-        double stored_current_demand = 0;
-        double stored_current_charge_demand = 0;
-        double stored_supply = 0;
-        double stored_total_power_supplied = 0;
+        decimal stored_stable_supply = 0;
+        decimal stored_resource_demand = 0;
+        decimal stored_current_hp_demand = 0;
+        decimal stored_current_demand = 0;
+        decimal stored_current_charge_demand = 0;
+        decimal stored_supply = 0;
+        decimal stored_total_power_supplied = 0;
 
-        double current_resource_demand = 0;
-        double high_priority_resource_demand = 0;
-        double charge_resource_demand = 0;
-        double total_power_distributed = 0;
-        double internl_power_extract_fixed = 0;
+        decimal current_resource_demand = 0;
+        decimal high_priority_resource_demand = 0;
+        decimal charge_resource_demand = 0;
+        decimal total_power_distributed = 0;
+        decimal internl_power_extract_fixed = 0;
+        decimal resource_bar_ratio_begin = 0;	
 
         int flow_type = 0;
         List<KeyValuePair<IResourceSuppliable, PowerDistribution>> power_draw_list_archive;
@@ -106,14 +107,13 @@ namespace FNPlugin
         Rect windowPosition = new Rect(50, 50, 300, 100);
         int windowID = 36549835;
 
-        decimal resource_bar_ratio_begin = 0;		
-
         double temperature_ratio = 0;
         double sqrt_resource_bar_ratio_begin = 0;
         double resource_bar_ratio_end = 0;
         double radiator_efficiency;
 
         const double passive_temp_p4 = 2947.295521;
+
         const int labelWidth = 240;
         const int valueWidth = 55;
         const int priorityWidth = 30;
@@ -195,7 +195,7 @@ namespace FNPlugin
                 flow_type = FNRESOURCE_FLOWTYPE_SMALLEST_FIRST;
         }
 
-        public void powerDrawFixed(IResourceSuppliable pm, double power_draw, double power_cosumtion) 
+        public void powerDrawFixed(IResourceSuppliable pm, decimal power_draw, decimal power_cosumtion) 
         {
             var timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
             var power_draw_per_second = power_draw / timeWarpFixedDeltaTime;
@@ -211,7 +211,7 @@ namespace FNPlugin
             powerDistribution.Power_consumed += power_cosumtion_per_second;         
         }
 
-        public void powerDrawPerSecond(IResourceSuppliable pm, double power_requested, double power_consumed)
+        public void powerDrawPerSecond(IResourceSuppliable pm, decimal power_requested, decimal power_consumed)
         {
             PowerDistribution powerDistribution;
             if (!power_consumption.TryGetValue(pm, out powerDistribution))
@@ -223,7 +223,7 @@ namespace FNPlugin
             powerDistribution.Power_consumed += power_consumed;
         }
 
-        public double powerSupplyFixed(IResourceSupplier pm, double power) 
+        public decimal powerSupplyFixed(IResourceSupplier pm, decimal power) 
         {
             var current_power_supply_per_second = power / TimeWarpFixedDeltaTime;
 
@@ -243,7 +243,7 @@ namespace FNPlugin
             return power;
         }
 
-        public double powerSupplyPerSecond(IResourceSupplier pm, double power)
+        public decimal powerSupplyPerSecond(IResourceSupplier pm, decimal power)
         {
             currentPowerSupply += power;
             stable_supply += power;
@@ -261,7 +261,7 @@ namespace FNPlugin
             return power;
         }
 
-        public double powerSupplyFixedWithMax(IResourceSupplier pm, double power, double maxpower) 
+        public decimal powerSupplyFixedWithMax(IResourceSupplier pm, decimal power, decimal maxpower) 
         {
             var timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
 
@@ -284,7 +284,7 @@ namespace FNPlugin
             return power;
         }
 
-        public double powerSupplyPerSecondWithMaxAndEfficiency(IResourceSupplier pm, double power, double maxpower, double efficiencyRatio)
+        public decimal powerSupplyPerSecondWithMaxAndEfficiency(IResourceSupplier pm, decimal power, decimal maxpower, decimal efficiencyRatio)
         {
             currentPowerSupply += power;
             stable_supply += maxpower;
@@ -302,7 +302,7 @@ namespace FNPlugin
             return power;
         }
 
-        public double powerSupplyPerSecondWithMax(IResourceSupplier pm, double power, double maxpower)
+        public decimal powerSupplyPerSecondWithMax(IResourceSupplier pm, decimal power, decimal maxpower)
         {
             currentPowerSupply += power;
             stable_supply += maxpower;
@@ -319,7 +319,7 @@ namespace FNPlugin
             return power;
         }
 
-        public double managedPowerSupplyPerSecond(IResourceSupplier pm, double power)
+        public decimal managedPowerSupplyPerSecond(IResourceSupplier pm, decimal power)
         {
             return managedPowerSupplyPerSecondWithMinimumRatio(pm, power, 0);
         }
@@ -351,7 +351,7 @@ namespace FNPlugin
             return maxAmount;
         }
 
-        public double getNeededPowerSupplyPerSecondWithMinimumRatio(double power, double ratio_min)
+        public decimal getNeededPowerSupplyPerSecondWithMinimumRatio(decimal power, decimal ratio_min)
         {
             var minimum_power_per_second = power * ratio_min;
             var needed_power_per_second = Math.Min(power, (Math.Max(GetCurrentUnfilledResourceDemand(), minimum_power_per_second)));
@@ -359,7 +359,7 @@ namespace FNPlugin
             return needed_power_per_second;
         }
 
-        public PowerGenerated managedRequestedPowerSupplyPerSecondMinimumRatio(IResourceSupplier pm, double available_power, double maximum_power, double ratio_min)
+        public PowerGenerated managedRequestedPowerSupplyPerSecondMinimumRatio(IResourceSupplier pm, decimal available_power, decimal maximum_power, decimal ratio_min)
         {
             var minimum_power_per_second = maximum_power * ratio_min;
 
@@ -393,7 +393,7 @@ namespace FNPlugin
             return addedPower; 
         }
 
-        public double managedPowerSupplyPerSecondWithMinimumRatio(IResourceSupplier pm, double maximum_power, double ratio_min)
+        public decimal managedPowerSupplyPerSecondWithMinimumRatio(IResourceSupplier pm, decimal maximum_power, decimal ratio_min)
         {
             var minimum_power_per_second = maximum_power * ratio_min;
 
@@ -419,41 +419,40 @@ namespace FNPlugin
             return provided_demand_power_per_second;
         }
 
-        public double StableResourceSupply { get { return stored_stable_supply; } }
-        public double ResourceSupply { get { return stored_supply; } }
-        public double ResourceDemand { get {  return stored_resource_demand; } }
-        public double CurrentResourceDemand { get { return current_resource_demand; } }
-        public double CurrentHighPriorityResourceDemand { get { return stored_current_hp_demand + stored_current_charge_demand; } }
-        public double PowerSupply { get { return currentPowerSupply; } }
-
+        public decimal StableResourceSupply { get { return stored_stable_supply; } }
+        public decimal ResourceSupply { get { return stored_supply; } }
+        public decimal ResourceDemand { get { return stored_resource_demand; } }
+        public decimal CurrentResourceDemand { get { return current_resource_demand; } }
+        public decimal CurrentHighPriorityResourceDemand { get { return stored_current_hp_demand + stored_current_charge_demand; } }
+        public decimal PowerSupply { get { return currentPowerSupply; } }
         public decimal ResourceBarRatioBegin { get {  return resource_bar_ratio_begin; } }
 
         public double TemperatureRatio { get { return temperature_ratio; } }
         public double SqrtResourceBarRatioBegin { get { return sqrt_resource_bar_ratio_begin; } }
         public double RadiatorEfficiency { get { return radiator_efficiency; } }
-
         public double ResourceBarRatioEnd { get { return resource_bar_ratio_end; } }
+
         public Vessel Vessel { get { return my_vessel; } }
         public PartModule PartModule { get { return my_partmodule; } }
 
-        public double getOverproduction()
+        public decimal getOverproduction()
         {
             return stored_supply - stored_resource_demand;
         }
 
-        public double getDemandStableSupply()
+        public decimal getDemandStableSupply()
         {
             return stored_stable_supply > 0 ? stored_resource_demand / stored_stable_supply : 1;
         }
 
-        public double GetCurrentUnfilledResourceDemand()
+        public decimal GetCurrentUnfilledResourceDemand()
         {
             return current_resource_demand - currentPowerSupply;
         }
 
-        public double GetRequiredResourceDemand()
+        public decimal GetRequiredResourceDemand()
         {
-            return GetCurrentUnfilledResourceDemand() + getSpareResourceCapacity();
+            return GetCurrentUnfilledResourceDemand() + getSpareResourceCapacity().ToDecimal();
         }
 
         public void UpdatePartModule(PartModule pm) 
@@ -503,16 +502,16 @@ namespace FNPlugin
             else
                 resource_bar_ratio_end = 0.0001;
 
-            double missingResourceAmount = maxResouceAmount - availableResourceAmount;
-            currentPowerSupply += availableResourceAmount;
+            var missingResourceAmount = (maxResouceAmount - availableResourceAmount).ToDecimal();
+            currentPowerSupply += availableResourceAmount.ToDecimal();
 
-            double high_priority_demand_supply_ratio = high_priority_resource_demand > 0
-                ? Math.Min((currentPowerSupply - stored_current_charge_demand) / stored_current_hp_demand, 1.0)
-                : 1.0;
+            var high_priority_demand_supply_ratio = high_priority_resource_demand > 0
+                ? Math.Min((currentPowerSupply - stored_current_charge_demand) / stored_current_hp_demand, 1)
+                : 1;
 
-            double demand_supply_ratio = stored_current_demand > 0
-                ? Math.Min((currentPowerSupply - stored_current_charge_demand - stored_current_hp_demand) / stored_current_demand, 1.0)
-                : 1.0;
+            var demand_supply_ratio = stored_current_demand > 0
+                ? Math.Min((currentPowerSupply - stored_current_charge_demand - stored_current_hp_demand) / stored_current_demand, 1)
+                : 1;
 
             //First supply minimal Amount of Stock ElectricCharge resource to keep probe core and life support functioning
             if (resourceDefinition.id == megajouleResourceDefinition.id && stored_stable_supply > 0)
@@ -521,7 +520,7 @@ namespace FNPlugin
                 double maxAmount;
 
                 my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
-                double stock_electric_charge_needed = Math.Min(10, maxAmount - amount);
+                var stock_electric_charge_needed = Math.Min(10, maxAmount - amount).ToDecimal();
                 if (stock_electric_charge_needed > 0)
                 {
                     var deltaResourceDemand = stock_electric_charge_needed / 1000 / timeWarpFixedDeltaTime;
@@ -529,11 +528,11 @@ namespace FNPlugin
                     charge_resource_demand += deltaResourceDemand;
                 }
 
-                double power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
+                var power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
                 if (power_supplied > 0)
                 {
-                    double fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -power_supplied) / 1000;
-                    var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW / timeWarpFixedDeltaTime;
+                    var fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)-power_supplied) / 1000;
+                    var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW.ToDecimal() / timeWarpFixedDeltaTime;
                     total_power_distributed += -provided_electric_charge_per_second;
                     currentPowerSupply += provided_electric_charge_per_second;
                 }
@@ -553,11 +552,11 @@ namespace FNPlugin
             // store current supply and update average
             power_supply_list_archive.ForEach(m =>
                 {
-                    Queue<double> queue;
+                    Queue<decimal> queue;
 
                     if (!power_produced_history.TryGetValue(m.Key, out queue))
                     {
-                        queue = new Queue<double>(10);
+                        queue = new Queue<decimal>(10);
                         power_produced_history.Add(m.Key, queue);
                     }
 
@@ -580,20 +579,20 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() == 0)
                 {
-                    double power = power_kvp.Value.Power_requested;
+                    var power = power_kvp.Value.Power_requested;
                     current_resource_demand += power;
                     high_priority_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN)
                         power = power * high_priority_demand_supply_ratio;
 
-                    double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
+                    var power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0);
 
                     currentPowerSupply -= power_supplied;
                     total_power_distributed += power_supplied;
 
                     //notify of supply
-                    resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
+                    resourceSuppliable.receiveFNResource((double)power_supplied, this.resource_name);
                 }
             }
 
@@ -604,9 +603,9 @@ namespace FNPlugin
                 double maxAmount;
 
                 my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
-                double stock_electric_charge_needed = maxAmount - amount;
+                var stock_electric_charge_needed = (maxAmount - amount).ToDecimal();
 
-                double power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
+                var power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
                 if (stock_electric_charge_needed > 0)
                 {
                     var deltaResourceDemand = stock_electric_charge_needed / 1000 / timeWarpFixedDeltaTime;
@@ -616,8 +615,8 @@ namespace FNPlugin
 
                 if (power_supplied > 0)
                 {
-                    double fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -power_supplied) / 1000;
-                    var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW / timeWarpFixedDeltaTime;
+                    double fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)-power_supplied) / 1000;
+                    var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW.ToDecimal() / timeWarpFixedDeltaTime;
                     total_power_distributed += -provided_electric_charge_per_second;
                     currentPowerSupply += provided_electric_charge_per_second;
                 }
@@ -630,11 +629,11 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() == 1) 
                 {
-                    double power = power_kvp.Value.Power_requested;
+                    var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.14 && resourceDefinition.id == megajouleResourceDefinition.id)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.12;
+                    if (supplyEfficiencyRatio < 0.14m && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02m) / 0.12m;
 
                     current_resource_demand += power;
                     high_priority_resource_demand += power;
@@ -642,13 +641,13 @@ namespace FNPlugin
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
                         power = power * high_priority_demand_supply_ratio;
 
-                    double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
+                    var power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0);
 
                     currentPowerSupply -= power_supplied;
                     total_power_distributed += power_supplied;
 
                     //notify of supply
-                    resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
+                    resourceSuppliable.receiveFNResource((double)power_supplied, this.resource_name);
                 }
             }
 
@@ -659,26 +658,26 @@ namespace FNPlugin
                 
                 if (resourceSuppliable.getPowerPriority() == 2) 
                 {
-                    double power = power_kvp.Value.Power_requested;
+                    var power = power_kvp.Value.Power_requested;
 
                     //Debug.Log("Requested: " + power + " Efficiency " + supplyEfficiencyRatio);
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.16 && resourceDefinition.id == megajouleResourceDefinition.id)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.14;
+                    if (supplyEfficiencyRatio < 0.16m && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02m) / 0.14m;
 
                     current_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
                         power = power * demand_supply_ratio;
                     
-                    double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
+                    var power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0);
 
                     currentPowerSupply -= power_supplied;
                     total_power_distributed += power_supplied;
 
                     //notify of supply
-                    resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
+                    resourceSuppliable.receiveFNResource((double)power_supplied, this.resource_name);
                 }
             }
 
@@ -689,24 +688,24 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() == 3) 
                 {
-                    double power = power_kvp.Value.Power_requested;
+                    var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.18 && resourceDefinition.id == megajouleResourceDefinition.id)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.16;
+                    if (supplyEfficiencyRatio < 0.18m && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02m) / 0.16m;
 
                     current_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN) 
                         power = power * demand_supply_ratio;
 
-                    double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
+                    var power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0);
 
                     currentPowerSupply -= power_supplied;
                     total_power_distributed += power_supplied;
 
                     //notify of supply
-                    resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
+                    resourceSuppliable.receiveFNResource((double)power_supplied, this.resource_name);
                 }
             }
 
@@ -717,24 +716,24 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() == 4)
                 {
-                    double power = power_kvp.Value.Power_requested;
+                    var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.2 && resourceDefinition.id == megajouleResourceDefinition.id)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.18;
+                    if (supplyEfficiencyRatio < 0.2m && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02m) / 0.18m;
 
                     current_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN)
                         power = power * demand_supply_ratio;
 
-                    double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
+                    var power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0);
 
                     currentPowerSupply -= power_supplied;
                     total_power_distributed += power_supplied;
 
                     //notify of supply
-                    resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
+                    resourceSuppliable.receiveFNResource((double)power_supplied, this.resource_name);
                 }
             }
 
@@ -745,53 +744,53 @@ namespace FNPlugin
 
                 if (resourceSuppliable.getPowerPriority() >= 5)
                 {
-                    double power = power_kvp.Value.Power_requested;
+                    var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.22 && resourceDefinition.id == megajouleResourceDefinition.id)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.2;
+                    if (supplyEfficiencyRatio < 0.22m && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02m) / 0.2m;
 
                     current_resource_demand += power;
 
                     if (flow_type == FNRESOURCE_FLOWTYPE_EVEN)
                         power = power * demand_supply_ratio;
 
-                    double power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0.0);
+                    var power_supplied = Math.Max(Math.Min(currentPowerSupply, power), 0);
 
                     currentPowerSupply -= power_supplied;
                     total_power_distributed += power_supplied;
 
                     //notify of supply
-                    resourceSuppliable.receiveFNResource(power_supplied, this.resource_name);
+                    resourceSuppliable.receiveFNResource((double)power_supplied, this.resource_name);
                 }
             }
 
             // substract avaialble resource amount to get delta resource change
-            currentPowerSupply -= Math.Max(availableResourceAmount, 0.0);
+            currentPowerSupply -= Math.Max(availableResourceAmount.ToDecimal(), 0);
             internl_power_extract_fixed = -currentPowerSupply * timeWarpFixedDeltaTime;
 
             if (resourceDefinition.id == wasteheatResourceDefinition.id)
             {
                 // passive dissip of waste heat - a little bit of this
-                double vessel_mass = my_vessel.totalMass;
-                double passive_dissip = 2947.295521 * GameConstants.stefan_const * vessel_mass * 2;
-                internl_power_extract_fixed += passive_dissip * TimeWarp.fixedDeltaTime;
+                var vessel_mass = my_vessel.totalMass;
+                var passive_dissip = 2947.295521 * GameConstants.stefan_const * vessel_mass * 2;
+                internl_power_extract_fixed += passive_dissip.ToDecimal() * timeWarpFixedDeltaTime;
 
                 if (my_vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(my_vessel.mainBody))
                 {
                     // passive convection - a lot of this
                     double pressure = FlightGlobals.getStaticPressure(my_vessel.transform.position) * 0.01;
                     double conv_power_dissip = pressure * 40 * vessel_mass * GameConstants.rad_const_h / 1e6 * TimeWarp.fixedDeltaTime;
-                    internl_power_extract_fixed += conv_power_dissip;
+                    internl_power_extract_fixed += conv_power_dissip.ToDecimal();
                 }
             }
 
             if (internl_power_extract_fixed > 0)
-                internl_power_extract_fixed = Math.Min(internl_power_extract_fixed, availableResourceAmount);
+                internl_power_extract_fixed = Math.Min(internl_power_extract_fixed, availableResourceAmount.ToDecimal());
             else
                 internl_power_extract_fixed = Math.Max(internl_power_extract_fixed, -missingResourceAmount);            
 
-            my_part.RequestResource(resourceDefinition.id, internl_power_extract_fixed);
+            my_part.RequestResource(resourceDefinition.id, (double)internl_power_extract_fixed);
 
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out availableResourceAmount, out maxResouceAmount);
 
@@ -802,7 +801,6 @@ namespace FNPlugin
 
             if (resource_name == ResourceManager.FNRESOURCE_WASTEHEAT)
             {
-
                 sqrt_resource_bar_ratio_begin = Math.Sqrt((double)resource_bar_ratio_begin);
 
                 temperature_ratio = Math.Pow((double)resource_bar_ratio_begin, 0.75);
@@ -844,9 +842,9 @@ namespace FNPlugin
             power_consumption.Clear();
         }
 
-        protected double TimeWarpFixedDeltaTime
+        protected decimal TimeWarpFixedDeltaTime
         {
-            get { return (double)(decimal)TimeWarp.fixedDeltaTime; }
+            get { return (decimal)TimeWarp.fixedDeltaTime; }
         }
 
         public void showWindow() 
@@ -990,12 +988,12 @@ namespace FNPlugin
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Theoretical Supply",left_bold_label, GUILayout.ExpandWidth(true));
-            GUILayout.Label(getPowerFormatString(stored_stable_supply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
+            GUILayout.Label(getPowerFormatString((double)stored_stable_supply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Current Supply", left_bold_label, GUILayout.ExpandWidth(true));
-            GUILayout.Label(getPowerFormatString(stored_supply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
+            GUILayout.Label(getPowerFormatString((double)stored_supply), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
             if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES)
@@ -1010,11 +1008,11 @@ namespace FNPlugin
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Power Demand", left_bold_label, GUILayout.ExpandWidth(true));
-            GUILayout.Label(getPowerFormatString(stored_resource_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
+            GUILayout.Label(getPowerFormatString((double)stored_resource_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
-            double new_power_supply = getOverproduction(); 
-            double net_utilisation_supply = getDemandStableSupply();
+            double new_power_supply = (double)getOverproduction();
+            double net_utilisation_supply = (double)getDemandStableSupply();
 
             GUIStyle net_poer_style = new_power_supply < -0.001 ? red_label : green_label;
             GUIStyle utilisation_style = net_utilisation_supply > 1.001 ? red_label : green_label;
@@ -1052,7 +1050,7 @@ namespace FNPlugin
                     var sumOfMaximumSupply = group.Sum(m => m.Value.maximumSupply);
 
                     // skip anything with less then 0.00 KW
-                    if (sumOfCurrentAverageSupply < 0.0000005 && sumOfMaximumSupply < 0.0000005)
+                    if (sumOfCurrentAverageSupply < 0.0000005m && sumOfMaximumSupply < 0.0000005m)
                         continue;
 
                     string name = group.Key;
@@ -1060,7 +1058,7 @@ namespace FNPlugin
                     if (count > 1)
                         name = count + " " + name;
 
-                    sumarizedList.Add(new PowerProduction() { component = name,   averageSupply = sumOfCurrentAverageSupply, maximumSupply = sumOfMaximumSupply });
+                    sumarizedList.Add(new PowerProduction() { component = name, averageSupply = (double)sumOfCurrentAverageSupply, maximumSupply = (double)sumOfMaximumSupply });
                 }
 
                 foreach ( var production in sumarizedList.OrderByDescending(m => m.averageSupply))
@@ -1096,10 +1094,10 @@ namespace FNPlugin
                     var count = group.Count();
                     if (count > 1)
                         name = count + " " + name;
-                    if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && sumOfConsumePercentage < 99.5)
+                    if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && sumOfConsumePercentage < 99.5m)
                         name = name + " " + sumOfConsumePercentage.ToString("0") + "%";
 
-                    sumarizedList.Add(new PowerConsumption() { component = name, sum = sumOfPowerDraw, priority = group.First().Key.getPowerPriority() });
+                    sumarizedList.Add(new PowerConsumption() { component = name, sum = (double)sumOfPowerDraw, priority = group.First().Key.getPowerPriority() });
                 }
 
                 foreach (var consumption in sumarizedList.OrderByDescending(m => m.sum))
@@ -1116,7 +1114,7 @@ namespace FNPlugin
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("DC Electrical System", left_aligned_label, GUILayout.ExpandWidth(true));
-                GUILayout.Label(getPowerFormatString(stored_current_charge_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
+                GUILayout.Label(getPowerFormatString((double)stored_current_charge_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(valueWidth));
                 GUILayout.Label("0", right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(priorityWidth));
                 GUILayout.EndHorizontal();
             }

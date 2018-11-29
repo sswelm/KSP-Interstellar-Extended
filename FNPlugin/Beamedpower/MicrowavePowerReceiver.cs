@@ -1644,12 +1644,12 @@ namespace FNPlugin
 
                             if (!CheatOptions.IgnoreMaxTemperature)
                             {
-                                var supply_ratio = powerGeneratedResult.currentSupply / total_thermal_power_provided;
-                                var final_thermal_wasteheat = powerGeneratedResult.currentSupply + supply_ratio * total_conversion_waste_heat_production;
+                                var supply_ratio = (double)powerGeneratedResult.currentSupply / total_thermal_power_provided;
+                                var final_thermal_wasteheat = (double)powerGeneratedResult.currentSupply + supply_ratio * total_conversion_waste_heat_production;
                                 supplyFNResourcePerSecondWithMax(final_thermal_wasteheat, total_beamed_power_max, ResourceManager.FNRESOURCE_WASTEHEAT);
                             }
 
-                            thermal_power_ratio = total_thermal_power_available > 0 ? powerGeneratedResult.currentSupply / total_thermal_power_available : 0;
+                            thermal_power_ratio = total_thermal_power_available > 0 ? (double)powerGeneratedResult.currentSupply / total_thermal_power_available : 0;
 
                             foreach (var item in received_power)
                             {
@@ -1688,7 +1688,7 @@ namespace FNPlugin
                         if (!(total_beamed_electric_power_provided > 0)) return;
 
                         var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_beamed_electric_power_provided, total_beamed_electric_power_provided, 0, ResourceManager.FNRESOURCE_MEGAJOULES);
-                        var supply_ratio = powerGeneratedResult.currentSupply / total_beamed_electric_power_provided;
+                        var supply_ratio = (double)powerGeneratedResult.currentSupply / total_beamed_electric_power_provided;
 
                         // only generate wasteheat from beamed power when actualy using the energy
                         if (!CheatOptions.IgnoreMaxTemperature)

@@ -625,7 +625,7 @@ namespace FNPlugin.Reactors
 
         public double MinThermalNozzleTempRequired { get { return minThermalNozzleTempRequired; } }
 
-        public double CurrentMeVPerChargedProduct { get { return current_fuel_mode.MeVPerChargedProduct; } }
+        public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode.MeVPerChargedProduct; } }
 
         public bool UsePropellantBaseIsp { get { return usePropellantBaseIsp; } }
 
