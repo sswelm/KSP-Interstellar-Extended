@@ -108,9 +108,9 @@ namespace FNPlugin
         int windowID = 36549835;
 
         double temperature_ratio = 0;
-        double sqrt_resource_bar_ratio_begin = 0;
+        decimal sqrt_resource_bar_ratio_begin = 0;
         double resource_bar_ratio_end = 0;
-        double radiator_efficiency;
+        decimal radiator_efficiency;
 
         const double passive_temp_p4 = 2947.295521;
 
@@ -428,8 +428,8 @@ namespace FNPlugin
         public decimal ResourceBarRatioBegin { get {  return resource_bar_ratio_begin; } }
 
         public double TemperatureRatio { get { return temperature_ratio; } }
-        public double SqrtResourceBarRatioBegin { get { return sqrt_resource_bar_ratio_begin; } }
-        public double RadiatorEfficiency { get { return radiator_efficiency; } }
+        public decimal SqrtResourceBarRatioBegin { get { return sqrt_resource_bar_ratio_begin; } }
+        public decimal RadiatorEfficiency { get { return radiator_efficiency; } }
         public double ResourceBarRatioEnd { get { return resource_bar_ratio_end; } }
 
         public Vessel Vessel { get { return my_vessel; } }
@@ -801,11 +801,11 @@ namespace FNPlugin
 
             if (resource_name == ResourceManager.FNRESOURCE_WASTEHEAT)
             {
-                sqrt_resource_bar_ratio_begin = Math.Sqrt((double)resource_bar_ratio_begin);
+                sqrt_resource_bar_ratio_begin = resource_bar_ratio_begin.Sqrt();
 
-                temperature_ratio = Math.Pow((double)resource_bar_ratio_begin, 0.75);
+				temperature_ratio =  Math.Pow((double)resource_bar_ratio_begin, 0.75);
 
-                radiator_efficiency = 1 - Math.Pow(1 - (double)resource_bar_ratio_begin, 400);
+                radiator_efficiency = 1 - (1 - resource_bar_ratio_begin).Pow(400);
             }
 
             //calculate total input and output

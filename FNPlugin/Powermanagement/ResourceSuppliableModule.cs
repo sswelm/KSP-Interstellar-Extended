@@ -517,7 +517,7 @@ namespace FNPlugin
             return manager.ResourceBarRatioBegin;
         }
 
-        public double getSqrtResourceBarRatio(String resourcename)
+        public decimal getSqrtResourceBarRatio(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename))
             {

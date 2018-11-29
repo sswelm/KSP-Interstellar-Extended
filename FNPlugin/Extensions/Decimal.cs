@@ -9,7 +9,7 @@ namespace FNPlugin.Extensions
 {
 	public static class Decimal
 	{
-		public static decimal ToDecimal(this double input)
+		public static decimal ToDecimal(this float input)
 		{
 			if (input < (double)decimal.MinValue)
 				return decimal.MinValue;

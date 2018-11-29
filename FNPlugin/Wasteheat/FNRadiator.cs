@@ -845,7 +845,7 @@ namespace FNPlugin.Wasteheat
                     else
                         explode_counter = 0;
 
-                    thermalPowerDissipPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea;
+                    thermalPowerDissipPerSecond = (double)wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea;
 
                     if (Double.IsNaN(thermalPowerDissipPerSecond))
                         Debug.LogWarning("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in thermalPowerDissipPerSecond");
@@ -864,7 +864,7 @@ namespace FNPlugin.Wasteheat
                 }
                 else
                 {
-                    thermalPowerDissipPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea * 0.5;
+                    thermalPowerDissipPerSecond = (double)wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea * 0.5;
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond, wasteheatManager) : 0;
 
@@ -881,7 +881,7 @@ namespace FNPlugin.Wasteheat
                     var temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - external_temperature);
                     var submergedModifier = Math.Max(part.submergedPortion * 10, 1);
 
-                    var convPowerDissip = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCooficient * submergedModifier;
+                    var convPowerDissip = (double)wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCooficient * submergedModifier;
 
                     if (!radiatorIsEnabled)
                         convPowerDissip = convPowerDissip * 0.25;
