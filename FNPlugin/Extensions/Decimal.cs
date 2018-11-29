@@ -49,6 +49,46 @@ namespace FNPlugin.Extensions
 			return current;
 		}
 
+
+
+		// Adjust this to modify the precision
+		public const int ITERATIONS = 27;
+
+		public static int Factorial(int n)
+		{
+			int j = 1;
+			for (int i = 1; i <= n; i++) { j = j * i; }
+			return j;
+		}
+
+		// power series
+		public static decimal DecimalExp(decimal power)
+		{
+			int iteration = ITERATIONS;
+			decimal result = 1;
+			while (iteration > 0)
+			{
+				decimal fatorial = Factorial(iteration);
+				result += Pow(power, iteration) / fatorial;
+				iteration--;
+			}
+			return result;
+		}
+
+		// natural logarithm series
+		public static decimal LogN(decimal number)
+		{
+			decimal aux = (number - 1);
+			decimal result = 0;
+			uint iteration = ITERATIONS;
+			while (iteration > 0)
+			{
+				result += Pow(aux, iteration) / iteration;
+				iteration--;
+			}
+			return result;
+		}
+
 		// From http://www.daimi.au.dk/~ivan/FastExpproject.pdf
 		// Left to Right Binary Exponentiation
 		public static decimal Pow(this decimal x, uint y)
@@ -66,6 +106,12 @@ namespace FNPlugin.Extensions
 				}
 			}
 			return A;
+		}
+
+		// from https://pastebin.com/ZXpn4cvh
+		public static decimal Pow(decimal baseValue, decimal expValue)
+		{
+			return DecimalExp(expValue * LogN(baseValue));
 		}
 	}
 }
