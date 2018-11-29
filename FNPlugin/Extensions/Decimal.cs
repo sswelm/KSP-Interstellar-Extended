@@ -9,6 +9,26 @@ namespace FNPlugin.Extensions
 {
 	public static class Decimal
 	{
+		public static decimal ToDecimal(this double input)
+		{
+			if (input < (double)decimal.MinValue)
+				return decimal.MinValue;
+			else if (input > (double)decimal.MaxValue)
+				return decimal.MaxValue;
+			else
+				return (decimal)input;
+		}
+
+		public static decimal ToDecimal(this double input)
+		{
+			if (input < (double)decimal.MinValue)
+				return decimal.MinValue;
+			else if (input > (double)decimal.MaxValue)
+				return decimal.MaxValue;
+			else
+				return (decimal)input;
+		}
+
 		// x - a number, from which we need to calculate the square root
 		// epsilon - an accuracy of calculation of the root from our number.
 		// The result of the calculations will differ from an actual value
