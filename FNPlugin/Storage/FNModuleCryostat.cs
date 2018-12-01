@@ -129,7 +129,7 @@ namespace FNPlugin
                     return;
                 }
 
-                isDisabledField.guiActive = true;
+                isDisabledField.guiActive = powerReqKW > 0;
 
                 bool coolingIsRelevant = cryostat_resource.amount > 0.0000001 && (boilOffRate > 0 || requiresPower);
 

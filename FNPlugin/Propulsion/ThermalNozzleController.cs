@@ -1500,7 +1500,7 @@ namespace FNPlugin
 
                     powerHeatModifier = received_megajoules_ratio * GetPowerThrustModifier().ToDecimal() * GetHeatThrustModifier().ToDecimal();
 
-                    engineMaxThrust = (double)powerHeatModifier * reactor_power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
+                    engineMaxThrust = (double)powerHeatModifier * (double)reactor_power_received / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
 
                     thrustPerMegaJoule = (double)powerHeatModifier * (double)maximumPowerUsageForPropulsionRatio / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor * ispRatio;
 
