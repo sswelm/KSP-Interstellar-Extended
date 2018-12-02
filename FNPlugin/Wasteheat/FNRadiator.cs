@@ -118,6 +118,8 @@ namespace FNPlugin.Wasteheat
         public double radiator_temperature_temp_val;
         [KSPField]
         public double instantaneous_rad_temp;
+        [KSPField(guiName = "Max Energy Transfer", guiActive = true, guiFormat = "P2")]
+        public double dynamicPressureStress;
         //[KSPField(guiName = "WasteHeat Ratio")]
         //public double wasteheatRatio;
         [KSPField(guiName = "Max Energy Transfer", guiFormat = "F2")]
@@ -889,7 +891,7 @@ namespace FNPlugin.Wasteheat
                     convectedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(convPowerDissip, wasteheatManager) : 0;
 
                     if (radiator_deploy_delay >= DEPLOYMENT_DELAY)
-                        DeployMentControl(atmosphere_modifier);
+                        DeployMentControl();
                 }
                 else
                 {
@@ -918,15 +920,17 @@ namespace FNPlugin.Wasteheat
             return result;
         }
 
-        private void DeployMentControl(double dynamic_pressure)
+        private void DeployMentControl()
         {
-            if (dynamic_pressure > 0 && (atmosphereToleranceModifier * dynamic_pressure * 6.73659786) > 100)
+            dynamicPressureStress = 4 * vessel.dynamicPressurekPa;
+
+            if (dynamicPressureStress > 1)
             {
                 if (!isDeployable || !radiatorIsEnabled) return;
 
                 if (isAutomated)
                 {
-                    Debug.Log("[KSPI] - DeployMentControl Auto Retracted");
+                    Debug.Log("[KSPI] - DeployMentControl Auto Retracted, stress at " + dynamicPressureStress.ToString("P2") + "%");
                     Retract();
                 }
                 else

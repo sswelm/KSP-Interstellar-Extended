@@ -64,7 +64,7 @@ namespace FNPlugin.Extensions
             double currentAmount;
             double maxAmount;
 
-            part.GetConnectedResourceTotals(definition.id, ResourceFlowMode.STACK_PRIORITY_SEARCH, out currentAmount, out maxAmount);
+            part.GetConnectedResourceTotals(definition.id, ResourceFlowMode.STAGE_PRIORITY_FLOW, out currentAmount, out maxAmount);
             return currentAmount;
         }
 

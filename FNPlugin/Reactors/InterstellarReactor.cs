@@ -66,7 +66,7 @@ namespace FNPlugin.Reactors
         public int currentGenerationType;
         [KSPField(isPersistant = true)]
         public double storedPowerMultiplier = 1;
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         public double stored_fuel_ratio = 1;
         [KSPField(isPersistant = true)]
         public double requested_thermal_power_ratio = 1;
@@ -286,6 +286,8 @@ namespace FNPlugin.Reactors
         [KSPField]
         public bool showForcedMinimumThrottle = false;
         [KSPField]
+        public bool showPowerPercentage = true;
+        [KSPField]
         public double powerScaleExponent = 3;
         [KSPField]
         public double costScaleExponent = 1.86325;
@@ -408,6 +410,8 @@ namespace FNPlugin.Reactors
         public int supportedPropellantTypes = GameConstants.defaultSupportedPropellantTypes;
         [KSPField]
         public bool fullPowerForNonNeutronAbsorbants = true;
+        [KSPField]
+        public bool showPowerPriority = true;
         [KSPField]
         public bool showSpecialisedUI = true;
         [KSPField]
@@ -1269,6 +1273,7 @@ namespace FNPlugin.Reactors
             staticBreedRate = 1 / powerOutputMultiplier / breedDivider / GameConstants.tritiumBreedRate;
 
             var powerPercentageField = Fields["powerPercentage"];
+            powerPercentageField.guiActive = showPowerPercentage;
             UI_FloatRange[] powerPercentageFloatRange = { powerPercentageField.uiControlFlight as UI_FloatRange, powerPercentageField.uiControlEditor as UI_FloatRange };
             powerPercentageFloatRange[0].minValue = minimumPowerPercentage;
             powerPercentageFloatRange[1].minValue = minimumPowerPercentage;
@@ -1364,6 +1369,7 @@ namespace FNPlugin.Reactors
             else
                 Debug.Log("[KSPI] - skipped calling Force on " + part.name);
 
+            Fields["electricPowerPriority"].guiActive = showPowerPriority;
             Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
             Fields["forcedMinimumThrottle"].guiActive = showForcedMinimumThrottle;
             Fields["forcedMinimumThrottle"].guiActiveEditor = showForcedMinimumThrottle;
@@ -2336,7 +2342,7 @@ namespace FNPlugin.Reactors
             var consumeAmountInUnitOfStorage = mJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
 
             if (fuel.ConsumeGlobal)
-                return part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STACK_PRIORITY_SEARCH) * (double)(decimal)fuel.Definition.density;
+                return part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW) * (double)(decimal)fuel.Definition.density;
 
             if (part.Resources.Contains(fuel.ResourceName))
             {
@@ -2369,7 +2375,7 @@ namespace FNPlugin.Reactors
                     return 0;
             }
 
-            part.RequestResource(product.Definition.id, -productSupply, ResourceFlowMode.ALL_VESSEL);
+            part.RequestResource(product.Definition.id, -productSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW);
             return productSupply * product.DensityInTon;
         }
 

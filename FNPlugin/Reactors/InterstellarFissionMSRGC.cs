@@ -19,7 +19,7 @@ namespace FNPlugin.Reactors
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double actinidesModifer;
         [KSPField]
         public double temperatureThrotleExponent = 0.5;
