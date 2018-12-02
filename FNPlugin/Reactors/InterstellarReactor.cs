@@ -66,7 +66,7 @@ namespace FNPlugin.Reactors
         public int currentGenerationType;
         [KSPField(isPersistant = true)]
         public double storedPowerMultiplier = 1;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true)]
         public double stored_fuel_ratio = 1;
         [KSPField(isPersistant = true)]
         public double requested_thermal_power_ratio = 1;
@@ -336,8 +336,6 @@ namespace FNPlugin.Reactors
         [KSPField]
         public bool canShutdown = true;
         [KSPField]
-        public bool consumeGlobal = false;
-        [KSPField]
         public int reactorType = 0;
         [KSPField]
         public double fuelEfficiency = 1;
@@ -498,10 +496,10 @@ namespace FNPlugin.Reactors
         public double geeForceModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
         public double overheatModifier = 1;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Requested", guiUnits = " kg/s")]
-        public double hydrogenProductionRequest;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
-        public double hydrogenProductionReceived;
+        //[KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Requested", guiUnits = " kg/s")]
+        //public double hydrogenProductionRequest;
+        //[KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
+        //public double hydrogenProductionReceived;
 
         
 
@@ -1782,9 +1780,9 @@ namespace FNPlugin.Reactors
 
                     if (requestedPropellantMassPerSecond > 0)
                     {
-                        hydrogenProductionRequest = requestedPropellantMassPerSecond * 1000;
+                        //hydrogenProductionRequest = requestedPropellantMassPerSecond * 1000;
                         var resultFixed = part.RequestResource(hydrogenDefinition.name, -requestedPropellantMassPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime / (double)(decimal)hydrogenDefinition.density, ResourceFlowMode.ALL_VESSEL);
-                        hydrogenProductionReceived = -1000 * (double)(decimal)hydrogenDefinition.density * resultFixed / (double)(decimal)TimeWarp.fixedDeltaTime;
+                        //hydrogenProductionReceived = -1000 * (double)(decimal)hydrogenDefinition.density * resultFixed / (double)(decimal)TimeWarp.fixedDeltaTime;
                         requestedPropellantMassPerSecond = 0;
                     }
 
@@ -2338,7 +2336,7 @@ namespace FNPlugin.Reactors
             var consumeAmountInUnitOfStorage = mJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
 
             if (fuel.ConsumeGlobal)
-                return part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage) * (double)(decimal)fuel.Definition.density;
+                return part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STACK_PRIORITY_SEARCH) * (double)(decimal)fuel.Definition.density;
 
             if (part.Resources.Contains(fuel.ResourceName))
             {

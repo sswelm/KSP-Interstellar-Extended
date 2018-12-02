@@ -831,9 +831,9 @@ namespace FNPlugin
             if (distanceToSurfaceHomeworld < minAltitude)
                 return false;
 
-            var radiusDividedByAltitude = (homeworld.Radius + minAltitude) / distanceToSurfaceHomeworld;
+            var radiusDividedByAltitude = (homeworld.Radius + minAltitude) / (distanceToSurfaceHomeworld - minAltitude);
 
-            coneAngle = Math.Max(0, 25 - (1 / radiusDividedByAltitude * 50));
+            coneAngle = Math.Max(0, 25 - (1 / radiusDividedByAltitude * 200));
 
             allowedExhaustAngle = coneAngle + Math.Tanh(radiusDividedByAltitude) * (180 / Math.PI);
 
@@ -927,10 +927,16 @@ namespace FNPlugin
 
                     foreach (var prop in list_of_propellants)
                     {
+                        var flowMode = prop.GetFlowMode();
+                        Debug.Log("[KSPI] - ThermalNozzleController set propellant name: " + prop.name + " ratio: " + prop.ratio + " resourceFlowMode: " + flowMode.ToString());
+
                         var propellantConfigNode = newPropNode.AddNode("PROPELLANT");
                         propellantConfigNode.AddValue("name", prop.name);
                         propellantConfigNode.AddValue("ratio", prop.ratio);
                         propellantConfigNode.AddValue("DrawGauge", "true");
+
+                        if (flowMode != ResourceFlowMode.NULL)
+                            propellantConfigNode.AddValue("resourceFlowMode", flowMode.ToString());
                     }
 
                     myAttachedEngine.Load(newPropNode);
