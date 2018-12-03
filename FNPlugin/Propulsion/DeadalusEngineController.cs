@@ -1131,7 +1131,7 @@ namespace FNPlugin
                 var requestedDirection = vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde ? vessel.obt_velocity.normalized : vessel.obt_velocity.normalized * -1;
                 var vesselDirection = vessel.transform.up.normalized;
 
-                if (vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.99)
+                if (vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.9)
                 {
                     var rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
                     vessel.transform.Rotate(rotation.eulerAngles, Space.World);
