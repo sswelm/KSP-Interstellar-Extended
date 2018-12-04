@@ -346,6 +346,8 @@ namespace FNPlugin
         public int supportedPropellantAtoms = 511;
         [KSPField]
         public int supportedPropellantTypes = 511;
+        [KSPField]
+        public float throttleMin = 0;
 
 
         // Constants
@@ -601,6 +603,7 @@ namespace FNPlugin
 
                 if (myAttachedEngine != null)
                 {
+                    myAttachedEngine.throttleMin = this.throttleMin;
                     myAttachedEngine.Fields["thrustPercentage"].guiActive = showThrustPercentage; 
 
                     originalAtmCurve = myAttachedEngine.atmCurve;
