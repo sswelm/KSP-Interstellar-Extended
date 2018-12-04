@@ -23,6 +23,10 @@ namespace FNPlugin.Reactors
         public double actinidesModifer;
         [KSPField]
         public double temperatureThrotleExponent = 0.5;
+        [KSPField(guiActive = false)]
+        public double temp_scale;
+        [KSPField(guiActive = false)]
+        public double temp_diff;
 
         PartResourceDefinition fluorineGasDefinition;
         PartResourceDefinition depletedFuelDefinition;
@@ -167,8 +171,6 @@ namespace FNPlugin.Reactors
             {
                 if (!CheatOptions.IgnoreMaxTemperature && HighLogic.LoadedSceneIsFlight && !isupgraded)
                 {
-                    double temp_scale;
-
                     var baseCoreTemperature = base.CoreTemperature;
 
                     if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
@@ -176,7 +178,7 @@ namespace FNPlugin.Reactors
                     else
                         temp_scale = baseCoreTemperature / 2;
 
-                    double temp_diff = (baseCoreTemperature - temp_scale) * Math.Pow(powerPcnt / 100.0, temperatureThrotleExponent);
+                    temp_diff = (baseCoreTemperature - temp_scale) * Math.Pow(powerPcnt / 100, temperatureThrotleExponent);
                     return Math.Min(temp_scale + temp_diff, baseCoreTemperature);
                 }
                 else

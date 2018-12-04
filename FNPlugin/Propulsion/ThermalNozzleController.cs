@@ -38,7 +38,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "Distance to Homeworld")]
         public double distanceToSurfaceHomeworld;
         [KSPField(guiActive = false, guiName = "Radius / Altitude")]
-        public decimal radiusDividedByAltitude;
+        public double radiusDividedByAltitude;
         [KSPField(guiActive = false, guiName = "Cone Angle")]
         public double coneAngle;
         [KSPField(guiActive = false, guiName = "Allowed Exhaust Angle")]
@@ -346,9 +346,6 @@ namespace FNPlugin
         public int supportedPropellantAtoms = 511;
         [KSPField]
         public int supportedPropellantTypes = 511;
-        [KSPField]
-        public float throttleMin = 0;
-
 
         // Constants
         protected const double _hydroloxDecompositionEnergy = 16.2137;
@@ -603,7 +600,6 @@ namespace FNPlugin
 
                 if (myAttachedEngine != null)
                 {
-                    myAttachedEngine.throttleMin = this.throttleMin;
                     myAttachedEngine.Fields["thrustPercentage"].guiActive = showThrustPercentage; 
 
                     originalAtmCurve = myAttachedEngine.atmCurve;
@@ -843,9 +839,9 @@ namespace FNPlugin
             if (distanceToSurfaceHomeworld > 20 * homeworld.Radius)
                 return true;
 
-            radiusDividedByAltitude = (homeworld.Radius.ToDecimal() + minAltitude.ToDecimal()) / toHomeworld.magnitude.ToDecimal();
+            radiusDividedByAltitude = (homeworld.Radius + minAltitude) / toHomeworld.magnitude;
 
-            coneAngle = (double)(45M * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude);
+            coneAngle = 45 * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude;
 
             allowedExhaustAngle = coneAngle + Math.Tanh((double)radiusDividedByAltitude) * (180 / Math.PI);
 
@@ -1251,15 +1247,18 @@ namespace FNPlugin
             {
                 ConfigEffects();
 
-                if (myAttachedEngine.currentThrottle > 0 && !exhaustAllowed)
+                if (myAttachedEngine.currentThrottle > 0)
                 {
-                    string message = "Engine halted - Radioactive exhaust not allowed toward or inside homeworld atmosphere";
-                    ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                    vessel.ctrlState.mainThrottle = 0;
+                    if (!exhaustAllowed)
+                    {
+                        string message = "Engine halted - Radioactive exhaust not allowed towards or inside homeworld atmosphere";
+                        ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                        vessel.ctrlState.mainThrottle = 0;
 
-                    // Return to realtime
-                    if (vessel.packed)
-                        TimeWarp.SetRate(0, true);
+                        // Return to realtime
+                        if (vessel.packed)
+                            TimeWarp.SetRate(0, true);
+                    }
                 }
 
                 currentThrottle = (double)(decimal)myAttachedEngine.currentThrottle;
