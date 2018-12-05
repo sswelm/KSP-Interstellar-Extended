@@ -21,7 +21,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true)]
+        [KSPField(isPersistant = true)]
         public bool isupgraded = false;
         [KSPField(isPersistant = true)]
         public int fuel_mode = 0;
@@ -606,7 +606,7 @@ namespace FNPlugin
 
                 if (myAttachedEngine != null)
                 {
-                    myAttachedEngine.Fields["thrustPercentage"].guiActive = showThrustPercentage; 
+                    myAttachedEngine.Fields["thrustPercentage"].guiActive = showThrustPercentage;
 
                     originalAtmCurve = myAttachedEngine.atmCurve;
                     originalAtmosphereCurve = myAttachedEngine.atmosphereCurve;
@@ -616,7 +616,9 @@ namespace FNPlugin
                     _originalEngineDecelerationSpeed = myAttachedEngine.engineDecelerationSpeed;
                 }
                 else
+                {
                     Debug.LogError("[KSPI] - ThermalNozzleController - failed to find engine!");
+                }
 
                 // find attached thermal source
                 ConnectToThermalSource();
@@ -679,10 +681,7 @@ namespace FNPlugin
                 effectiveJetengineAccelerationSpeed = overrideAccelerationSpeed ? jetengineAccelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineAccelerationSpeed;
                 effectiveJetengineDecelerationSpeed = overrideDecelerationSpeed ? jetengineDecelerationBaseSpeed * (float)reactorSpeed * _jetTechBonusCurveChange * 5 : _originalEngineDecelerationSpeed;
 
-                var showIspThrotle = isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
                 Fields["temperatureStr"].guiActive = showPartTemperature;
-                Fields["ispThrottle"].guiActiveEditor = showIspThrotle;
-                Fields["ispThrottle"].guiActive = showIspThrotle;
             }
             catch (Exception e)
             {
@@ -725,21 +724,38 @@ namespace FNPlugin
 
         private void ConnectToThermalSource()
         {
-            Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
-
-            var source = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource && maxThermalNozzleIsp >= p.MinThermalNozzleTempRequired, 10, 10, 10);
-
-            if (source == null || source.Source == null)
+            try
             {
-                Debug.LogWarning("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource-Failed to find thermal source");
-                return;
+
+                Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
+
+                var source = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource && maxThermalNozzleIsp >= p.MinThermalNozzleTempRequired, 10, 10, 10);
+
+                if (source == null || source.Source == null)
+                {
+                    Debug.LogWarning("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource-Failed to find thermal source");
+                    return;
+                }
+
+                AttachedReactor = source.Source;
+                AttachedReactor.ConnectWithEngine(this);
+
+                partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
+
+                if (AttachedReactor != null)
+                {
+                    var showIspThrotle = isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
+
+                    Fields["ispThrottle"].guiActiveEditor = showIspThrotle;
+                    Fields["ispThrottle"].guiActive = showIspThrotle;
+                }
+
+                Debug.Log("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource- Found thermal searchResult with distance " + partDistance);
             }
-
-            AttachedReactor = source.Source;
-            AttachedReactor.ConnectWithEngine(this);
-
-            partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
-            Debug.Log("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource- Found thermal searchResult with distance " + partDistance);
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError("[KSPI] - ThermalNozzleController ConnectToThermalSource  " + e.Message);
+            }
         }
 
         // Note: does not seem to be called while in vab mode
