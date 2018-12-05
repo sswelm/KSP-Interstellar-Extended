@@ -322,10 +322,14 @@ namespace FNPlugin
         public double plasmaAfterburnerHeatModifier = 0.5;
         [KSPField]
         public double thermalHeatModifier = 5;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double currentThrottle;
-        [KSPField]
-        public double requestedThrottle;
+        [KSPField(guiActive = true)]
+        public double adjustedThrottle;
+        [KSPField(guiActive = true)]
+        public double adjustedFuelFlowMult;
+		[KSPField(guiActive = true)]
+        public float requestedThrottle;
         [KSPField]
         public float effectRatio;
         [KSPField]
@@ -346,6 +350,8 @@ namespace FNPlugin
         public int supportedPropellantAtoms = 511;
         [KSPField]
         public int supportedPropellantTypes = 511;
+        [KSPField]
+        public double minThrottle = 0;
 
         // Constants
         protected const double _hydroloxDecompositionEnergy = 16.2137;
@@ -1261,8 +1267,15 @@ namespace FNPlugin
                     }
                 }
 
-                currentThrottle = (double)(decimal)myAttachedEngine.currentThrottle;
                 requestedThrottle = myAttachedEngine.requestedThrottle;
+
+                currentThrottle = (double)(decimal)myAttachedEngine.currentThrottle;
+
+                adjustedThrottle = currentThrottle >= 0.01 
+                    ? minThrottle + (1 - minThrottle) * currentThrottle 
+                    : Math.Max(currentThrottle, currentThrottle * 100 * minThrottle);  
+
+                adjustedFuelFlowMult = currentThrottle > 0 ? (1 / currentThrottle) * adjustedThrottle : 0;
 
                 if (AttachedReactor == null)
                 {
@@ -1325,7 +1338,7 @@ namespace FNPlugin
                     expectedMaxThrust = AttachedReactor.MaximumPower * (double)maximumPowerUsageForPropulsionRatio * GetPowerThrustModifier() * GetHeatThrustModifier() / GameConstants.STANDARD_GRAVITY / _maxISP * GetHeatExchangerThrustDivisor();
                     calculatedMaxThrust = expectedMaxThrust;
 
-                    var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1f - sootAccumulationPercentage / 200;
+                    var sootMult = CheatOptions.UnbreakableJoints ? 1 : 1 - sootAccumulationPercentage / 200;
 
                     expectedMaxThrust *= _thrustPropellantMultiplier * sootMult;
 
@@ -1339,7 +1352,7 @@ namespace FNPlugin
 
                     calculatedMaxThrust = Math.Max((calculatedMaxThrust - pressureThreshold), 0.000001);
 
-                    var sootModifier = CheatOptions.UnbreakableJoints ? 1 : sootHeatDivider > 0 ? 1f - (sootAccumulationPercentage / sootThrustDivider) : 1;
+                    var sootModifier = CheatOptions.UnbreakableJoints ? 1 : sootHeatDivider > 0 ? 1 - (sootAccumulationPercentage / sootThrustDivider) : 1;
 
                     calculatedMaxThrust *= _thrustPropellantMultiplier * sootModifier;
 
