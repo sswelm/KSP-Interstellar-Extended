@@ -1068,7 +1068,7 @@ namespace FNPlugin
                 ? requestedPower * wasteheatModifier
                 : consumeFNResourcePerSecond(requestedPower * wasteheatModifier, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            var plasmaRatio = effectivePowerRequirement > 0 ? recievedPower / requestedPower : 1;
+            var plasmaRatio = effectivePowerRequirement > 0 ? recievedPower / requestedPower : wasteheatModifier;
 
             powerUsage = (recievedPower * 0.001).ToString("0.000") + " GW / " + (requestedPower * 0.001).ToString("0.000") + " GW";
 
