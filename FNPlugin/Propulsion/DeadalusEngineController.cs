@@ -1058,11 +1058,15 @@ namespace FNPlugin
 
             var scaledThrottle = Math.Pow(thrustRatio * throtle, powerThrottleExponent);
 
+            var wasteheatRatio = (double)getResourceBarFraction(ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            var wasteheatModifier = wasteheatRatio > 0.9 ? 1 - (wasteheatRatio - 0.9) / 0.1 : 1;
+
             var requestedPower = scaledThrottle * effectivePowerRequirement;
 
             var recievedPower = CheatOptions.InfiniteElectricity || requestedPower <= 0
-                ? requestedPower
-                : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                ? requestedPower * wasteheatModifier
+                : consumeFNResourcePerSecond(requestedPower * wasteheatModifier, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             var plasmaRatio = effectivePowerRequirement > 0 ? recievedPower / requestedPower : 1;
 
