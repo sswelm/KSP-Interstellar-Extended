@@ -517,11 +517,11 @@ namespace FNPlugin
 
                 var requestedPower = Math.Min(requestedPowerPerSecond, availablePower * effectivePowerThrotling);
 
-                var recievedPowerPerSecond = CheatOptions.InfiniteElectricity
+                var recievedPowerPerSecond = CheatOptions.InfiniteElectricity || requestedPower <= 0
                     ? requestedPowerPerSecond
                     : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                var plasmaRatio = recievedPowerPerSecond / requestedPowerPerSecond;
+                var plasmaRatio = requestedPowerPerSecond > 0 ? recievedPowerPerSecond / requestedPowerPerSecond : 1;
                 fusionRatio = plasmaRatio;
 
                 laserWasteheat = recievedPowerPerSecond * (1 - LaserEfficiency);
@@ -546,7 +546,7 @@ namespace FNPlugin
                 maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
 
                 // Update FuelFlow
-				var maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+                var maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
 
 
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
@@ -568,7 +568,7 @@ namespace FNPlugin
                 curEngineT.maxThrust = (float)maximumThrust;
                 var rateMultplier = hasIspThrottling ? MinIsp / SelectedIsp : 1;
 
-				var maxFuelFlow = maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+                var maxFuelFlow = maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)(standard_deuterium_rate / rateMultplier));
                 SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)(standard_tritium_rate / rateMultplier));
