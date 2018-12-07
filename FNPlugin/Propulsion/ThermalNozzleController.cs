@@ -37,10 +37,6 @@ namespace FNPlugin
 
         [KSPField(guiActive = false, guiName = "Distance to Homeworld")]
         public double distanceToSurfaceHomeworld;
-        [KSPField(guiActive = false, guiName = "Radius / Altitude")]
-        public double radiusDividedByAltitude;
-        [KSPField(guiActive = false, guiName = "Cone Angle")]
-        public double coneAngle;
         [KSPField(guiActive = false, guiName = "Allowed Exhaust Angle")]
         public double allowedExhaustAngle;
         [KSPField(guiActive = false, guiName = "Current Exhaust Angle")]
@@ -318,6 +314,8 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         public double maximumChargedPower;
 
+        [KSPField(guiActive = true)]
+        public bool showIspThrotle;
         [KSPField]
         public double powerHeatModifier;
         [KSPField]
@@ -737,25 +735,24 @@ namespace FNPlugin
         {
             try
             {
-
-                Debug.Log("[KSPI] - ThermalNozzleController - start BreadthFirstSearchForThermalSource");
+                Debug.Log("[KSPI] - ThermalNozzleController - start ConnectToThermalSource");
 
                 var source = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part, (p) => p.IsThermalSource && maxThermalNozzleIsp >= p.MinThermalNozzleTempRequired, 10, 10, 10);
 
                 if (source == null || source.Source == null)
                 {
-                    Debug.LogWarning("[KSPI] - ThermalNozzleController - BreadthFirstSearchForThermalSource-Failed to find thermal source");
+                    Debug.LogWarning("[KSPI] - ThermalNozzleController - ConnectToThermalSource Failed to find thermal source");
                     return;
                 }
 
                 AttachedReactor = source.Source;
                 AttachedReactor.ConnectWithEngine(this);
 
-                partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
+                this.partDistance = (int)Math.Max(Math.Ceiling(source.Cost) - 1, 0);
 
                 if (AttachedReactor != null)
                 {
-                    var showIspThrotle = isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
+                    this.showIspThrotle = this.isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
 
                     Fields["ispThrottle"].guiActiveEditor = showIspThrotle;
                     Fields["ispThrottle"].guiActive = showIspThrotle;
@@ -852,7 +849,7 @@ namespace FNPlugin
             distanceToSurfaceHomeworld = toHomeworld.magnitude - homeworld.Radius;
             var cosineAngle = Vector3d.Dot(part.transform.up.normalized, toHomeworld.normalized);
             currentExhaustAngle = Math.Acos(cosineAngle) * (180 / Math.PI);
-            if (double.IsNaN(currentExhaustAngle))
+            if (double.IsNaN(currentExhaustAngle) || double.IsInfinity(currentExhaustAngle))
                 currentExhaustAngle = cosineAngle > 0 ? 180 : 0;
 
             if (AttachedReactor == null)
@@ -872,11 +869,11 @@ namespace FNPlugin
             if (distanceToSurfaceHomeworld > 20 * homeworld.Radius)
                 return true;
 
-            radiusDividedByAltitude = (homeworld.Radius + minAltitude) / toHomeworld.magnitude;
+            var radiusDividedByAltitude = (homeworld.Radius + minAltitude) / toHomeworld.magnitude;
 
-            coneAngle = 45 * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude;
+            var coneAngle = 45 * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude;
 
-            allowedExhaustAngle = coneAngle + Math.Tanh((double)radiusDividedByAltitude) * (180 / Math.PI);
+            allowedExhaustAngle = coneAngle + Math.Tanh(radiusDividedByAltitude) * (180 / Math.PI);
 
             if (allowedExhaustAngle < 3)
                 return true;
@@ -1142,7 +1139,7 @@ namespace FNPlugin
 
             if (!_currentpropellant_is_jet)
             {
-                atmosphereIspCurve.Add(0, (float)_maxISP * (float)atmosphere_isp_efficiency, 0, 0);
+                atmosphereIspCurve.Add(0, (float)(_maxISP * atmosphere_isp_efficiency), 0, 0);
 
                 myAttachedEngine.useAtmCurve = false;
                 myAttachedEngine.useVelCurve = false;
@@ -1242,7 +1239,7 @@ namespace FNPlugin
 
                 final_max_thrust_in_space = base_max_thrust;
 
-                myAttachedEngine.maxFuelFlow = (float)Math.Max(base_max_thrust / (GameConstants.STANDARD_GRAVITY * _maxISP), 0.0000000001);
+                myAttachedEngine.maxFuelFlow = (float)Math.Max(base_max_thrust / (GameConstants.STANDARD_GRAVITY * _maxISP), 1e-10);
                 myAttachedEngine.maxThrust = (float)Math.Max(base_max_thrust, 0.000001);
 
                 var max_thrust_in_current_atmosphere = max_thrust_in_space;
