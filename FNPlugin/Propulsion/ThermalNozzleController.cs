@@ -172,6 +172,10 @@ namespace FNPlugin
         public double plasmaAfterburnerRange = 20;
         [KSPField]
         public bool showThrustPercentage = true;
+        [KSPField]
+        public double delayedThrottleSpeedUp = 0;
+        [KSPField]
+        public double delayedThrottleSpeedDown = 0;
 
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m", guiFormat = "F3")]
         public double scaledRadius;
@@ -324,6 +328,13 @@ namespace FNPlugin
         public double thermalHeatModifier = 5;
         [KSPField(guiActive = true)]
         public double currentThrottle;
+        [KSPField(guiActive = true)]
+        public double previousThrottle;
+
+        [KSPField(guiActive = true)]
+        public double delayedThrottle;
+        [KSPField(guiActive = true)]
+        public double previousDelayedThrottle;
         [KSPField(guiActive = true)]
         public double adjustedThrottle;
         [KSPField(guiActive = true)]
@@ -1285,13 +1296,33 @@ namespace FNPlugin
 
                 requestedThrottle = myAttachedEngine.requestedThrottle;
 
+                previousThrottle = currentThrottle;
                 currentThrottle = (double)(decimal)myAttachedEngine.currentThrottle;
 
-                adjustedThrottle = currentThrottle >= 0.01 
-                    ? minThrottle + (1 - minThrottle) * currentThrottle 
-                    : Math.Max(currentThrottle, currentThrottle * 100 * minThrottle);  
+                if (requestedThrottle > 0 && delayedThrottleSpeedUp > 0)
+                {
+                    previousDelayedThrottle = delayedThrottle;
+                    delayedThrottle = Math.Min(delayedThrottle + timeWarpFixedDeltaTime * delayedThrottleSpeedUp, minThrottle);
+                }
+                else if (requestedThrottle == 0 && delayedThrottleSpeedDown > 0)
+                {
+                    delayedThrottle = Math.Max(delayedThrottle - timeWarpFixedDeltaTime * delayedThrottleSpeedDown, 0);
+                    previousDelayedThrottle = adjustedThrottle;
+                }
+                else
+                {
+                    previousDelayedThrottle = previousThrottle; 
+                    delayedThrottle = minThrottle;
+                }
 
-                adjustedFuelFlowMult = currentThrottle > 0 ? (1 / currentThrottle) * adjustedThrottle : 0;
+                adjustedThrottle = currentThrottle >= 0.01
+                    ? delayedThrottle + (1 - delayedThrottle) * currentThrottle
+                    : Math.Max(currentThrottle, currentThrottle * 100 * delayedThrottle);
+
+                if (minThrottle > 0)
+                    adjustedFuelFlowMult = previousThrottle > 0 ? Math.Min(100, (1 / previousThrottle) * previousDelayedThrottle * previousDelayedThrottle) : 0;
+                else
+                    adjustedFuelFlowMult = 1;
 
                 if (AttachedReactor == null)
                 {

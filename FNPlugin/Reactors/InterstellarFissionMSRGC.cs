@@ -27,6 +27,8 @@ namespace FNPlugin.Reactors
         public double temp_scale;
         [KSPField(guiActive = false)]
         public double temp_diff;
+        [KSPField(guiActive = false)]
+        public double minimumTemperature;
 
         PartResourceDefinition fluorineGasDefinition;
         PartResourceDefinition depletedFuelDefinition;
@@ -173,7 +175,9 @@ namespace FNPlugin.Reactors
                 {
                     var baseCoreTemperature = base.CoreTemperature;
 
-                    if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
+                    if (minimumTemperature > 0)
+                        temp_scale = minimumTemperature;
+                    else if (vessel != null && FNRadiator.hasRadiatorsForVessel(vessel))
                         temp_scale = FNRadiator.getAverageMaximumRadiatorTemperatureForVessel(vessel);
                     else
                         temp_scale = baseCoreTemperature / 2;
