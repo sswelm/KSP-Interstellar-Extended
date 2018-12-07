@@ -314,7 +314,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         public double maximumChargedPower;
 
-        [KSPField(guiActive = true)]
+        [KSPField]
         public bool showIspThrotle;
         [KSPField]
         public double powerHeatModifier;
@@ -324,25 +324,26 @@ namespace FNPlugin
         public double plasmaAfterburnerHeatModifier = 0.5;
         [KSPField]
         public double thermalHeatModifier = 5;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double currentThrottle;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double previousThrottle;
-
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double delayedThrottle;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double previousDelayedThrottle;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double adjustedThrottle;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double adjustedFuelFlowMult;
-        [KSPField(guiActive = true)]
+        [KSPField]
+        public double adjustedFuelFlowExponent = 2;
+        [KSPField]
         public float requestedThrottle;
         [KSPField]
         public float effectRatio;
         [KSPField]
-        double received_megajoules_ratio = 0;
+        double received_megajoules_ratio;
         [KSPField]
         int pre_coolers_active;
         [KSPField]
@@ -1327,7 +1328,7 @@ namespace FNPlugin
                     : Math.Max(currentThrottle, currentThrottle * 100 * delayedThrottle);
 
                 if (minThrottle > 0)
-                    adjustedFuelFlowMult = previousThrottle > 0 ? Math.Min(100, (1 / previousThrottle) * previousDelayedThrottle * previousDelayedThrottle) : 0;
+                    adjustedFuelFlowMult = previousThrottle > 0 ? Math.Min(100, (1 / previousThrottle) * Math.Pow(previousDelayedThrottle, 2)) : 0;
                 else
                     adjustedFuelFlowMult = 1;
 
