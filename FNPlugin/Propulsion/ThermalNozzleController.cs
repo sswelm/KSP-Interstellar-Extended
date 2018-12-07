@@ -31,7 +31,8 @@ namespace FNPlugin
         public bool isDeployed = false;
         [KSPField(isPersistant = true)]
         public double animationStarted = 0;
-
+        [KSPField(isPersistant = true)]
+        public bool exhaustAllowed = true;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Isp Throtle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0f)]
         public float ispThrottle = 0;
 
@@ -41,8 +42,7 @@ namespace FNPlugin
         public double allowedExhaustAngle;
         [KSPField(guiActive = false, guiName = "Current Exhaust Angle")]
         public double currentExhaustAngle;
-        [KSPField(guiActive = false, guiName = "Exhaust Allowed")]
-        public bool exhaustAllowed;
+
 
         [KSPField]
         public bool canUsePureChargedPower = false;
