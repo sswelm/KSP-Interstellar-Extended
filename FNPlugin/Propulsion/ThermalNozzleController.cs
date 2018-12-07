@@ -754,6 +754,16 @@ namespace FNPlugin
                 {
                     this.showIspThrotle = this.isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
 
+                    if (!showIspThrotle)
+                    {
+                        if (!this.isPlasmaNozzle)
+                            Debug.LogWarning("[KSPI] - ThermalNozzleController - isPlasmaNozzle is false ");
+                        if (AttachedReactor.ChargedParticlePropulsionEfficiency <= 0)
+                            Debug.LogWarning("[KSPI] - ThermalNozzleController - ChargedParticlePropulsionEfficiency is " + AttachedReactor.ChargedParticlePropulsionEfficiency);
+                        if (AttachedReactor.ChargedPowerRatio <= 0)
+                            Debug.LogWarning("[KSPI] - ThermalNozzleController - ChargedPowerRatio is " + AttachedReactor.ChargedPowerRatio);
+                    }
+
                     Fields["ispThrottle"].guiActiveEditor = showIspThrotle;
                     Fields["ispThrottle"].guiActive = showIspThrotle;
                 }
