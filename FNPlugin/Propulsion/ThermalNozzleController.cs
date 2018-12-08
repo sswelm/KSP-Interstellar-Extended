@@ -51,9 +51,9 @@ namespace FNPlugin
         [KSPField]
         public float jetengineDecelerationBaseSpeed = 0.4f;
         [KSPField]
-        public float engineAccelerationBaseSpeed = 2f;
+        public float engineAccelerationBaseSpeed = 2;
         [KSPField]
-        public float engineDecelerationBaseSpeed = 10f;
+        public float engineDecelerationBaseSpeed = 10;
         [KSPField]
         public bool initialized = false;
         [KSPField]
@@ -168,10 +168,6 @@ namespace FNPlugin
         public double plasmaAfterburnerRange = 20;
         [KSPField]
         public bool showThrustPercentage = true;
-        [KSPField]
-        public double delayedThrottleSpeedUp = 0;
-        [KSPField]
-        public double delayedThrottleSpeedDown = 0;
 
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Radius", guiUnits = " m", guiFormat = "F3")]
         public double scaledRadius;
@@ -1157,6 +1153,13 @@ namespace FNPlugin
                 myAttachedEngine.useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
                 myAttachedEngine.engineAccelerationSpeed = engineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult;
                 myAttachedEngine.engineDecelerationSpeed = engineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult;
+
+                if (minThrottle > 0)
+                {
+                    var multiplier = 0.5f + myAttachedEngine.currentThrottle;
+                    myAttachedEngine.engineAccelerationSpeed *= multiplier;
+                    myAttachedEngine.engineDecelerationSpeed *= multiplier;
+                }
             }
             else
             {
@@ -1307,14 +1310,14 @@ namespace FNPlugin
                 previousThrottle = currentThrottle;
                 currentThrottle = (double)(decimal)myAttachedEngine.currentThrottle;
 
-                if (requestedThrottle > 0 && delayedThrottleSpeedUp > 0)
+                if (minThrottle > 0 && requestedThrottle > 0 && AttachedReactor.ReactorSpeedMult > 0)
                 {
                     previousDelayedThrottle = delayedThrottle;
-                    delayedThrottle = Math.Min(delayedThrottle + timeWarpFixedDeltaTime * delayedThrottleSpeedUp, minThrottle);
+                    delayedThrottle = Math.Min(delayedThrottle + timeWarpFixedDeltaTime * myAttachedEngine.engineAccelerationSpeed, minThrottle);
                 }
-                else if (requestedThrottle == 0 && delayedThrottleSpeedDown > 0)
+                else if (minThrottle > 0 &&  requestedThrottle == 0 && AttachedReactor.ReactorSpeedMult > 0)
                 {
-                    delayedThrottle = Math.Max(delayedThrottle - timeWarpFixedDeltaTime * delayedThrottleSpeedDown, 0);
+                    delayedThrottle = Math.Max(delayedThrottle - timeWarpFixedDeltaTime * myAttachedEngine.engineAccelerationSpeed, 0);
                     previousDelayedThrottle = adjustedThrottle;
                 }
                 else
