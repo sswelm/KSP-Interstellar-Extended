@@ -1328,7 +1328,7 @@ namespace FNPlugin
                     : Math.Max(currentThrottle, currentThrottle * 100 * delayedThrottle);
 
                 if (minThrottle > 0)
-                    adjustedFuelFlowMult = previousThrottle > 0 ? Math.Min(100, (1 / previousThrottle) * Math.Pow(previousDelayedThrottle, 2)) : 0;
+                    adjustedFuelFlowMult = previousThrottle > 0 ? Math.Min(100, (1 / previousThrottle) * Math.Pow(previousDelayedThrottle, adjustedFuelFlowExponent)) : 0;
                 else
                     adjustedFuelFlowMult = 1;
 
