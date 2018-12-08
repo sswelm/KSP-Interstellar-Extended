@@ -25,7 +25,7 @@ namespace FNPlugin
         protected double timeWarpFixedDeltaTime;
         protected double previousFixedDeltaTime;
 
-        private Dictionary<String, decimal> fnresource_supplied = new Dictionary<String, decimal>();
+        private Dictionary<String, double> fnresource_supplied = new Dictionary<String, double>();
 
         public void receiveFNResource(double power, String resourcename)
         {
@@ -34,7 +34,7 @@ namespace FNPlugin
                 return;
             }
 
-            fnresource_supplied[resourcename] = power.ToDecimal();
+            fnresource_supplied[resourcename] = power;
             //if (fnresource_supplied.ContainsKey(resourcename))
             //	fnresource_supplied[resourcename] = power;
             //else
@@ -60,8 +60,8 @@ namespace FNPlugin
 
             fixedDeltaTime = fixedDeltaTime > 0 ? fixedDeltaTime : (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);
             double power_taken_fixed = Math.Max(Math.Min(power_fixed, (double)fnresource_supplied[resourcename] * fixedDeltaTime), 0);
-            fnresource_supplied[resourcename] -= (power_taken_fixed / fixedDeltaTime).ToDecimal();
-            manager.powerDrawFixed(this, power_fixed.ToDecimal(), power_taken_fixed.ToDecimal());
+            fnresource_supplied[resourcename] -= (power_taken_fixed / fixedDeltaTime);
+            manager.powerDrawFixed(this, power_fixed, power_taken_fixed);
 
             return power_taken_fixed;
         }
@@ -78,10 +78,10 @@ namespace FNPlugin
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
 
-            var power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, fnresource_supplied[resourcename]), 0);
-            fnresource_supplied[resourcename] -= power_taken_per_second;
+            var power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, (decimal)fnresource_supplied[resourcename]), 0);
+            fnresource_supplied[resourcename] -= (double)power_taken_per_second;
 
-            manager.powerDrawPerSecond(this, power_requested_per_second, power_taken_per_second);
+            manager.powerDrawPerSecond(this, (double)power_requested_per_second, (double)power_taken_per_second);
 
             return power_taken_per_second;
         }
@@ -104,10 +104,10 @@ namespace FNPlugin
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
 
-            var power_taken_per_second = Math.Max(Math.Min(power_requested_per_second.ToDecimal(), fnresource_supplied[resourcename]), 0);
+            var power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, fnresource_supplied[resourcename]), 0);
             fnresource_supplied[resourcename] -= power_taken_per_second;
 
-            manager.powerDrawPerSecond(this, power_requested_per_second.ToDecimal(), power_taken_per_second);
+            manager.powerDrawPerSecond(this, power_requested_per_second, power_taken_per_second);
 
             return (double)power_taken_per_second;
         }
@@ -131,22 +131,22 @@ namespace FNPlugin
                 fnresource_supplied.Add(resourcename, 0);
 
             var avialablePower = fnresource_supplied[resourcename];
-            var power_taken_per_second = Math.Max(Math.Min(requestedPowerPerSecond.ToDecimal(), avialablePower), 0);
+            var power_taken_per_second = Math.Max(Math.Min(requestedPowerPerSecond, avialablePower), 0);
             fnresource_supplied[resourcename] -= power_taken_per_second;
 
             // supplement with buffer power if needed and available
-            var powerShortage = requestedPowerPerSecond.ToDecimal() - avialablePower;
+            var powerShortage = requestedPowerPerSecond - avialablePower;
             if (powerShortage > 0)
             {
-                var currentCapacity = manager.getTotalResourceCapacity().ToDecimal();
+                var currentCapacity = manager.getTotalResourceCapacity();
                 var currentAmount = currentCapacity * manager.ResourceBarRatioBegin;
-                var fixedPowerShortage = powerShortage * (decimal)timeWarpFixedDeltaTime;
+                var fixedPowerShortage = powerShortage * timeWarpFixedDeltaTime;
 
-                if (currentAmount - fixedPowerShortage > currentCapacity * limitBarRatio.ToDecimal())
-                    power_taken_per_second += (part.RequestResource(resourcename, (double)fixedPowerShortage) / timeWarpFixedDeltaTime).ToDecimal();
+                if (currentAmount - fixedPowerShortage > currentCapacity * limitBarRatio)
+                    power_taken_per_second += (part.RequestResource(resourcename, (double)fixedPowerShortage) / timeWarpFixedDeltaTime);
             }
 
-            manager.powerDrawPerSecond(this, requestedPowerPerSecond.ToDecimal(), power_taken_per_second);
+            manager.powerDrawPerSecond(this, requestedPowerPerSecond, power_taken_per_second);
 
             return (double)power_taken_per_second;
         }
@@ -163,7 +163,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyFixed(this, Math.Max(supply, 0).ToDecimal());
+            return (double)manager.powerSupplyFixed(this, Math.Max(supply, 0));
         }
 
         public double supplyFNResourcePerSecond(double supply, String resourcename)
@@ -178,7 +178,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyPerSecond(this, Math.Max(supply, 0).ToDecimal());
+            return (double)manager.powerSupplyPerSecond(this, Math.Max(supply, 0));
         }
 
         public double supplyFNResourceFixedWithMax(double supply, double maxsupply, String resourcename)
@@ -193,7 +193,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyFixedWithMax(this, Math.Max(supply, 0).ToDecimal(), Math.Max(maxsupply, 0).ToDecimal());
+            return (double)manager.powerSupplyFixedWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
         }
 
         public double supplyFNResourcePerSecondWithMaxAndEfficiency(double supply, double maxsupply, double efficiencyRatio, String resourcename)
@@ -208,7 +208,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyPerSecondWithMaxAndEfficiency(this, Math.Max(supply, 0).ToDecimal(), Math.Max(maxsupply, 0).ToDecimal(), efficiencyRatio.ToDecimal());
+            return (double)manager.powerSupplyPerSecondWithMaxAndEfficiency(this, Math.Max(supply, 0), Math.Max(maxsupply, 0), efficiencyRatio);
         }
 
         public double supplyFNResourcePerSecondWithMax(double supply, double maxsupply, String resourcename)
@@ -223,7 +223,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyPerSecondWithMax(this, Math.Max(supply, 0).ToDecimal(), Math.Max(maxsupply, 0).ToDecimal());
+            return (double)manager.powerSupplyPerSecondWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
         }
 
         public double supplyManagedFNResourcePerSecond(double supply, String resourcename)
@@ -238,7 +238,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.managedPowerSupplyPerSecond(this, Math.Max(supply, 0).ToDecimal());
+            return (double)manager.managedPowerSupplyPerSecond(this, Math.Max(supply, 0));
         }
 
         public double getNeededPowerSupplyPerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ResourceManager manager = null)
@@ -257,7 +257,7 @@ namespace FNPlugin
                 return 0;
             }
 
-            return (double)manager.getNeededPowerSupplyPerSecondWithMinimumRatio(Math.Max(supply, 0).ToDecimal(), Math.Max(ratio_min, 0).ToDecimal());
+            return (double)manager.getNeededPowerSupplyPerSecondWithMinimumRatio(Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
         public double supplyManagedFNResourcePerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ResourceManager manager = null)
@@ -273,7 +273,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0).ToDecimal(), Math.Max(ratio_min, 0).ToDecimal());
+            return (double)manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
         public double managedProvidedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
@@ -289,7 +289,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            var result = manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power.ToDecimal(), Math.Max(maximum_power, 0).ToDecimal(), Math.Max(ratio_min, 0).ToDecimal());
+            var result = manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
 
             return (double)result.currentSupply;
         }
@@ -307,7 +307,7 @@ namespace FNPlugin
             if (manager == null)
                 return null;
 
-            return manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power.ToDecimal(), Math.Max(maximum_power, 0).ToDecimal(), Math.Max(ratio_min, 0).ToDecimal());
+            return manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
         }
 
         public double getCurrentResourceDemand(String resourcename)
@@ -514,7 +514,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.ResourceBarRatioBegin;
+            return manager.ResourceBarRatioBegin.ToDecimal();
         }
 
         public decimal getSqrtResourceBarRatio(String resourcename)
@@ -529,7 +529,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.SqrtResourceBarRatioBegin;
+            return manager.SqrtResourceBarRatioBegin.ToDecimal();
         }
 
         public double getResourceBarRatioEnd(String resourcename)

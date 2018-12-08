@@ -1328,7 +1328,7 @@ namespace FNPlugin
                     : Math.Max(currentThrottle, currentThrottle * 100 * delayedThrottle);
 
                 if (minThrottle > 0)
-                    adjustedFuelFlowMult = previousThrottle > 0 ? Math.Min(100, (1 / previousThrottle) * Math.Pow(previousDelayedThrottle, adjustedFuelFlowExponent)) : 0;
+                    adjustedFuelFlowMult = previousThrottle > 0 ? Math.Min(100, (1 / Math.Max(currentThrottle, previousThrottle)) * Math.Pow(previousDelayedThrottle, adjustedFuelFlowExponent)) : 0;
                 else
                     adjustedFuelFlowMult = 1;
 
@@ -1739,7 +1739,7 @@ namespace FNPlugin
                     var reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
 
                     spaceHeatProduction = heatProductionMultiplier * reactorHeatModifier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
-                    engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 99999);
+                    engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 999999);
 
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;
                 }
