@@ -1567,7 +1567,7 @@ namespace FNPlugin
                             ? 1 - (sootAccumulationPercentage / sootHeatDivider)
                             : 1;
 
-                    var baseWasteheatEfficiency = _maxISP > GameConstants.MaxThermalNozzleIsp ? wasteheatEfficiencyHighTemperature : wasteheatEfficiencyLowTemperature;
+                    var baseWasteheatEfficiency = isPlasmaNozzle ? wasteheatEfficiencyHighTemperature : wasteheatEfficiencyLowTemperature;
 
                     var reactorWasteheatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaWasteheatProductionMult : AttachedReactor.EngineWasteheatProductionMult;
 

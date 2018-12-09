@@ -171,7 +171,7 @@ namespace FNPlugin.Reactors
         {
             get
             {
-                if (!CheatOptions.IgnoreMaxTemperature && HighLogic.LoadedSceneIsFlight && !isupgraded && powerPcnt > 0)
+                if (!CheatOptions.IgnoreMaxTemperature && HighLogic.LoadedSceneIsFlight && !isupgraded && powerPcnt > min_throttle * 100)
                 {
                     var baseCoreTemperature = base.CoreTemperature;
 
