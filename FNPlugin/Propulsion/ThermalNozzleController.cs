@@ -1343,6 +1343,7 @@ namespace FNPlugin
                         myAttachedEngine.Shutdown();
                         ScreenMessages.PostScreenMessage("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     }
+                    myAttachedEngine.flameoutBar = 0;
                     vessel.ctrlState.mainThrottle = 0;
                     myAttachedEngine.maxFuelFlow = 1e-10f;
                     return;
@@ -1553,8 +1554,11 @@ namespace FNPlugin
                 // shutdown engine when connected heatsource cannot produce power
                 if (!AttachedReactor.CanProducePower)
                 {
+                    myAttachedEngine.flameoutBar = 0;
                     ScreenMessages.PostScreenMessage("no power produced by thermal source!", 0.02f, ScreenMessageStyle.UPPER_CENTER);
                 }
+                else
+                    myAttachedEngine.flameoutBar = float.MaxValue;
 
                 UpdateSootAccumulation();
 
