@@ -1753,8 +1753,8 @@ namespace FNPlugin
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                 {
-                    var maxEngineFuelFlow = myAttachedEngine.maxThrust / myAttachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
-                    effectRatio = (float)Math.Min(1, currentEngineFuelFlow / maxEngineFuelFlow);
+                    var maxEngineFuelFlow = myAttachedEngine.maxThrust > 0 ?   myAttachedEngine.maxThrust / myAttachedEngine.realIsp / GameConstants.STANDARD_GRAVITY : 0;
+                    effectRatio = maxEngineFuelFlow > 0 ? (float)Math.Min(1, currentEngineFuelFlow / maxEngineFuelFlow) : 0;
                     part.Effect(_particleFXName, effectRatio, -1);
                 }
             }
