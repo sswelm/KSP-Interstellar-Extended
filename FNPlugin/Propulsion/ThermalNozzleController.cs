@@ -1385,6 +1385,9 @@ namespace FNPlugin
 
                 UpdateAnimation();
 
+                // flameout when reactor cannot produce power
+                myAttachedEngine.flameoutBar = AttachedReactor.CanProducePower ? 0 : float.MaxValue;
+
                 if (myAttachedEngine.getIgnitionState && currentThrottle > 0)
                     GenerateThrustFromReactorHeat();
                 else
@@ -1554,16 +1557,7 @@ namespace FNPlugin
 
                 // shutdown engine when connected heatsource cannot produce power
                 if (!AttachedReactor.CanProducePower)
-                {
-                    myAttachedEngine.CLAMP = 0;
-                    myAttachedEngine.flameoutBar = float.MaxValue;
                     ScreenMessages.PostScreenMessage("no power produced by thermal source!", 0.02f, ScreenMessageStyle.UPPER_CENTER);
-                }
-                else
-                {
-                    myAttachedEngine.CLAMP = float.MaxValue;
-                    myAttachedEngine.flameoutBar = 0;
-                }
 
                 UpdateSootAccumulation();
 
