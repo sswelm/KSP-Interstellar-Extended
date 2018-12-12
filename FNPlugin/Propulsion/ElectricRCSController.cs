@@ -33,6 +33,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public double powerMult = 1;
 
+        [KSPField(isPersistant = true)]
+        public double storedPower = 0;
+        [KSPField(isPersistant = true)]
+        public double maxStoredPower = 0;
+
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Full Thrust", advancedTweakable = true), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool fullThrustEnabled;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "FT Threshold", guiUnits = "%", advancedTweakable = true), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 0, affectSymCounterparts = UI_Scene.All)]
@@ -293,6 +298,8 @@ namespace FNPlugin
                 base.OnStart(state);
 
                 Fields["electricalPowerConsumptionStr"].guiActive = showConsumption;
+
+                maxStoredPower = maxThrust * maxIsp * 9.81 / efficiency / 1000;
             }
             catch (Exception e)
             {
@@ -408,27 +415,48 @@ namespace FNPlugin
                 thrustForcesStr += attachedRCS.thrustForces[i].ToString("0.00") + "kN ";
             }
 
-            if (powerEnabled && currentThrust > 0)
+            if (powerEnabled)
             {
-                power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000 / Current_propellant.ThrustMultiplier;
+                if (currentThrust > 0)
+                {
+                    power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000 / Current_propellant.ThrustMultiplier;
 
-                if (CheatOptions.InfiniteElectricity)
-                    power_recieved_f = power_requested_f;
+                    if (CheatOptions.InfiniteElectricity)
+                        power_recieved_f = power_requested_f;
+                    else
+                    {
+                        var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                        power_recieved_f = availablePower >= power_requested_f
+                            ? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES)
+                            : 0;
+                    }
+
+                    var final_received_power = power_recieved_f;
+                    if (power_recieved_f < power_requested_f)
+                    {
+                        var shortage = power_requested_f - power_recieved_f;
+                        if (shortage <= storedPower)
+                        {
+                            final_received_power = power_requested_f;
+                            storedPower -= shortage;
+                        }
+                    }
+
+                    power_ratio = power_requested_f > 0 ? Math.Min(final_received_power / power_requested_f, 1.0) : 1;
+                }
                 else
                 {
-                    var avaialablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-                    power_recieved_f = avaialablePower >= power_requested_f 
-                        ? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES) 
-                        : 0;
+                    var neededPower = maxStoredPower - storedPower;
+                    power_recieved_f = consumeFNResourcePerSecond(neededPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                    storedPower += power_recieved_f;
                 }
 
                 var heatToProduce = power_recieved_f * (1 - efficiency);
 
-                heat_production_f = CheatOptions.IgnoreMaxTemperature 
+                heat_production_f = CheatOptions.IgnoreMaxTemperature
                     ? heatToProduce
                     : supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
-
-                power_ratio = power_requested_f > 0 ? Math.Min(power_recieved_f / power_requested_f, 1.0) : 1;
+               
             }
             else
             {
