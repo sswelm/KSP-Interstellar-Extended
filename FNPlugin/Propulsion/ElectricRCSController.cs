@@ -37,7 +37,8 @@ namespace FNPlugin
         public double storedPower = 0;
         [KSPField(isPersistant = true)]
         public double maxStoredPower = 0;
-
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
+        public bool hasSufficientPower = true;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Full Thrust", advancedTweakable = true), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool fullThrustEnabled;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "FT Threshold", guiUnits = "%", advancedTweakable = true), UI_FloatRange(stepIncrement = 1f, maxValue = 100, minValue = 0, affectSymCounterparts = UI_Scene.All)]
@@ -71,9 +72,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
 
-        // GUI
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Is Powered")]
-        public bool hasSufficientPower = true;
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Consumption")]
         public string electricalPowerConsumptionStr = "";
@@ -96,7 +94,6 @@ namespace FNPlugin
         private ModuleRCSFX attachedRCS;
         private float oldThrustLimiter;
         private bool oldPowerEnabled;
-        private int insufficientPowerTimout = 2;
         private bool delayedVerificationPropellant;
 
         public ElectricEnginePropellant Current_propellant { get; set; }
@@ -417,46 +414,50 @@ namespace FNPlugin
 
             if (powerEnabled)
             {
-                if (currentThrust > 0)
+                if (CheatOptions.InfiniteElectricity)
                 {
-                    power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000 / Current_propellant.ThrustMultiplier;
-
-                    if (CheatOptions.InfiniteElectricity)
-                        power_recieved_f = power_requested_f;
-                    else
-                    {
-                        var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-                        power_recieved_f = availablePower >= power_requested_f
-                            ? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES)
-                            : 0;
-                    }
-
-                    var final_received_power = power_recieved_f;
-                    if (power_recieved_f < power_requested_f)
-                    {
-                        var shortage = power_requested_f - power_recieved_f;
-                        if (shortage <= storedPower)
-                        {
-                            final_received_power = power_requested_f;
-                            storedPower -= shortage;
-                        }
-                    }
-
-                    power_ratio = power_requested_f > 0 ? Math.Min(final_received_power / power_requested_f, 1.0) : 1;
+                    power_ratio = 1;
                 }
                 else
                 {
-                    var neededPower = maxStoredPower - storedPower;
-                    power_recieved_f = consumeFNResourcePerSecond(neededPower, ResourceManager.FNRESOURCE_MEGAJOULES);
-                    storedPower += power_recieved_f;
-                }
+                    var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                var heatToProduce = power_recieved_f * (1 - efficiency);
+                    if (currentThrust > 0)
+                    {
+                        power_requested_f = 0.5 * powerMult * currentThrust * maxIsp * 9.81 / efficiency / 1000 / Current_propellant.ThrustMultiplier;
 
-                heat_production_f = CheatOptions.IgnoreMaxTemperature
-                    ? heatToProduce
-                    : supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
-               
+                        power_recieved_f = power_requested_f <= availablePower
+                           ? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES)
+                           : 0;
+
+                        var final_received_power = power_recieved_f;
+                        if (power_recieved_f < power_requested_f)
+                        {
+                            var shortage = power_requested_f - power_recieved_f;
+                            if (shortage <= storedPower)
+                            {
+                                final_received_power = power_requested_f;
+                                storedPower -= shortage;
+                            }
+                        }
+
+                        power_ratio = power_requested_f > 0 ? Math.Min(final_received_power / power_requested_f, 1.0) : 1;
+                    }
+                    else
+                    {
+                        power_requested_f = maxStoredPower - storedPower;
+                        power_recieved_f = power_requested_f <= availablePower 
+                            ? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES) 
+                            : 0;
+                        storedPower += power_recieved_f;
+                    }
+
+                    var heatToProduce = power_recieved_f * (1 - efficiency);
+
+                    heat_production_f = CheatOptions.IgnoreMaxTemperature
+                        ? heatToProduce
+                        : supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
+                }               
             }
             else
             {
@@ -467,17 +468,11 @@ namespace FNPlugin
 
             if (hasSufficientPower && power_ratio <= 0.9 && power_recieved_f <= 0.01 )
             {
-                if (insufficientPowerTimout < 1)
-                {
-                    hasSufficientPower = false;
-                    SetupPropellants();
-                }
-                else
-                    insufficientPowerTimout--;
+                hasSufficientPower = false;
+                SetupPropellants();
             }
             else if (!hasSufficientPower && power_ratio > 0.9 && power_recieved_f > 0.01)
             {
-                insufficientPowerTimout = 2;
                 hasSufficientPower = true;
                 SetupPropellants();
             }
