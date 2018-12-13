@@ -337,20 +337,20 @@ namespace FNPlugin
 
         public override void OnUpdate() 
         {
-            if (delayedVerificationPropellant)
-            {
-                // test is we got any megajoules
-                power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResourcePerSecond(powerMult, ResourceManager.FNRESOURCE_MEGAJOULES);
-                hasSufficientPower = power_recieved_f > powerMult * 0.99;
+            //if (delayedVerificationPropellant)
+            //{
+            //	// test is we got any megajoules
+            //	power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResourcePerSecond(powerMult, ResourceManager.FNRESOURCE_MEGAJOULES);
+            //	hasSufficientPower = power_recieved_f > powerMult * 0.99;
 
-                // return test power
-                if (!CheatOptions.InfiniteElectricity && power_recieved_f > 0)
-                    part.RequestResource(definitionMegajoule.id, -power_recieved_f);
+            //	// return test power
+            //	if (!CheatOptions.InfiniteElectricity && power_recieved_f > 0)
+            //		part.RequestResource(definitionMegajoule.id, -power_recieved_f);
 
-                delayedVerificationPropellant = false;
-                SetupPropellants(true, _propellants.Count);
-                currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
-            }
+            //	delayedVerificationPropellant = false;
+            //	SetupPropellants(true, _propellants.Count);
+            //	currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
+            //}
 
             if (attachedRCS != null && vessel.ActionGroups[KSPActionGroup.RCS]) 
             {
@@ -416,6 +416,7 @@ namespace FNPlugin
             {
                 if (CheatOptions.InfiniteElectricity)
                 {
+                    hasSufficientPower = true;
                     power_ratio = 1;
                 }
                 else
@@ -450,6 +451,9 @@ namespace FNPlugin
                             ? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES) 
                             : 0;
                         storedPower += power_recieved_f;
+
+                        if (storedPower == maxStoredPower)
+                            hasSufficientPower = true;
                     }
 
                     var heatToProduce = power_recieved_f * (1 - efficiency);
@@ -479,7 +483,9 @@ namespace FNPlugin
 
             // return any unused power
             if (!hasSufficientPower && power_recieved_f > 0)
+            {
                 part.RequestResource(definitionMegajoule.id, -power_recieved_f * TimeWarp.fixedDeltaTime);
+            }
         }
 
         public override string getResourceManagerDisplayName() 
