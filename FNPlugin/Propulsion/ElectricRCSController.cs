@@ -57,14 +57,12 @@ namespace FNPlugin
         public float maxPropellantIsp;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Propellant Thrust Multiplier")]
         public double currentThrustMultiplier = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = false, guiName = "Thrust / ISP Mult")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Thrust / ISP Mult")]
         public string thrustIspMultiplier = "";
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Thrust Limiter", advancedTweakable = true), UI_FloatRange(stepIncrement = 0.05f, maxValue = 100, minValue = 5, affectSymCounterparts = UI_Scene.All)]
         public float thrustLimiter = 100;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Base Thrust", guiUnits = " kN")]
         public float baseThrust = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = true, guiName = "Max Thrust", guiUnits = " kN")]
-        public float thrustStr;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Forces")]
         public string thrustForcesStr;
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Current Total Thrust", guiUnits = " kN")]
@@ -330,27 +328,25 @@ namespace FNPlugin
 
             propNameStr = Current_propellant.PropellantGUIName;
 
-            thrustStr = attachedRCS.thrusterPower;
-
             thrustIspMultiplier = maxPropellantIsp + "s / " + currentThrustMultiplier;
         }
 
         public override void OnUpdate() 
         {
-            //if (delayedVerificationPropellant)
-            //{
-            //	// test is we got any megajoules
-            //	power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResourcePerSecond(powerMult, ResourceManager.FNRESOURCE_MEGAJOULES);
-            //	hasSufficientPower = power_recieved_f > powerMult * 0.99;
+            if (delayedVerificationPropellant)
+            {
+                // test is we got any megajoules
+                //power_recieved_f = CheatOptions.InfiniteElectricity ? 1 : consumeFNResourcePerSecond(powerMult, ResourceManager.FNRESOURCE_MEGAJOULES);
+                //hasSufficientPower = power_recieved_f > powerMult * 0.99;
 
-            //	// return test power
-            //	if (!CheatOptions.InfiniteElectricity && power_recieved_f > 0)
-            //		part.RequestResource(definitionMegajoule.id, -power_recieved_f);
+                // return test power
+                //if (!CheatOptions.InfiniteElectricity && power_recieved_f > 0)
+                //    part.RequestResource(definitionMegajoule.id, -power_recieved_f);
 
-            //	delayedVerificationPropellant = false;
-            //	SetupPropellants(true, _propellants.Count);
-            //	currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
-            //}
+                delayedVerificationPropellant = false;
+                SetupPropellants(true, _propellants.Count);
+                currentThrustMultiplier = hasSufficientPower ? Current_propellant.ThrustMultiplier : Current_propellant.ThrustMultiplierCold;
+            }
 
             if (attachedRCS != null && vessel.ActionGroups[KSPActionGroup.RCS]) 
             {
@@ -405,11 +401,14 @@ namespace FNPlugin
 
             if (!vessel.ActionGroups[KSPActionGroup.RCS]) return;
 
-            var thrustForcesCount = thrustForcesStr.Count();
+            var forcesCount = attachedRCS.thrustForces.Count();
 
-            for (var i = 0; i < thrustForcesCount; i++)
+            for (var i = 0; i < forcesCount; i++)
             {
-                thrustForcesStr += attachedRCS.thrustForces[i].ToString("0.00") + "kN ";
+                if (forcesCount > 8)
+                    thrustForcesStr += attachedRCS.thrustForces[i].ToString("0.0") + " ";
+                else
+                    thrustForcesStr += attachedRCS.thrustForces[i].ToString("0.00") + " ";
             }
 
             if (powerEnabled)
@@ -422,6 +421,9 @@ namespace FNPlugin
                 else
                 {
                     var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                    power_requested_f = 0;
+                    power_recieved_f = 0;
 
                     if (currentThrust > 0)
                     {
@@ -444,30 +446,30 @@ namespace FNPlugin
 
                         power_ratio = power_requested_f > 0 ? Math.Min(final_received_power / power_requested_f, 1.0) : 1;
                     }
-                    else
-                    {
-                        power_requested_f = maxStoredPower - storedPower;
-                        power_recieved_f = power_requested_f <= availablePower 
-                            ? consumeFNResourcePerSecond(power_requested_f, ResourceManager.FNRESOURCE_MEGAJOULES) 
-                            : 0;
-                        storedPower += power_recieved_f;
 
-                        if (storedPower == maxStoredPower)
-                            hasSufficientPower = true;
+                    var additionalPowerNeeded = Math.Max(maxStoredPower - storedPower, 0);
+                    if (additionalPowerNeeded > 0 && additionalPowerNeeded <= availablePower)
+                    {
+                        power_requested_f += additionalPowerNeeded;
+                        var additionalPowerReceived = consumeFNResourcePerSecond(additionalPowerNeeded, ResourceManager.FNRESOURCE_MEGAJOULES);
+                        power_recieved_f += additionalPowerReceived;
+                        storedPower += additionalPowerReceived;
                     }
+
+                    if (storedPower == maxStoredPower)
+                        hasSufficientPower = true;
 
                     var heatToProduce = power_recieved_f * (1 - efficiency);
 
                     heat_production_f = CheatOptions.IgnoreMaxTemperature
                         ? heatToProduce
                         : supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
-                }               
+                }           
             }
             else
             {
                 power_recieved_f = 0;
                 power_ratio = 0;
-                insufficientPowerTimout = 0;
             }
 
             if (hasSufficientPower && power_ratio <= 0.9 && power_recieved_f <= 0.01 )
