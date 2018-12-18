@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -42,7 +43,6 @@ namespace FNPlugin
         public double allowedExhaustAngle;
         [KSPField(guiActive = false, guiName = "Current Exhaust Angle")]
         public double currentExhaustAngle;
-
 
         [KSPField]
         public bool canUsePureChargedPower = false;
@@ -263,8 +263,8 @@ namespace FNPlugin
         protected double calculatedMaxThrust;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
         protected double max_fuel_flow_rate = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Fuel Flow", guiFormat = "F5")]
-        protected double currentEngineFuelFlow;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Mass Flow")]
+        protected double currentMassFlow;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
@@ -330,7 +330,7 @@ namespace FNPlugin
         public double previousDelayedThrottle;
         [KSPField]
         public double adjustedThrottle;
-        [KSPField]
+        [KSPField(guiActive = false)]
         public double adjustedFuelFlowMult;
         [KSPField]
         public double adjustedFuelFlowExponent = 2;
@@ -363,6 +363,7 @@ namespace FNPlugin
         protected const double _hydroloxDecompositionEnergy = 16.2137;
 
         //Internal
+        protected string _flameoutText;
         protected string _particleFXName;
         protected string _fuelTechRequirement;
         
@@ -572,6 +573,8 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             Debug.Log("[KSPI] - ThermalNozzleController - start");
+
+            _flameoutText = Localizer.Format("#autoLOC_219016");
 
             ScaleParameters();
 
@@ -808,7 +811,7 @@ namespace FNPlugin
                 exhaustAllowed = AllowedExhaust();
 
                 // only allow shutdown when engine throttle is down
-                myAttachedEngine.Events["Shutdown"].active = myAttachedEngine.currentThrottle == 0;
+                myAttachedEngine.Events["Shutdown"].active = myAttachedEngine.currentThrottle == 0 && myAttachedEngine.getIgnitionState;
 
                 if (myAttachedEngine.isOperational && !IsEnabled)
                 {
@@ -1330,6 +1333,9 @@ namespace FNPlugin
                     ? delayedThrottle + (1 - delayedThrottle) * currentThrottle
                     : Math.Max(currentThrottle, currentThrottle * 100 * delayedThrottle);
 
+                //if (AttachedReactor.FuelRato < 0.9999)
+                //    adjustedFuelFlowMult = 1;
+                //else 
                 if (minThrottle > 0)
                     adjustedFuelFlowMult = previousThrottle > 0 ? Math.Min(100, (1 / Math.Max(currentThrottle, previousThrottle)) * Math.Pow(previousDelayedThrottle, adjustedFuelFlowExponent)) : 0;
                 else
@@ -1384,6 +1390,12 @@ namespace FNPlugin
                 availableChargedPower = exhaustAllowed ? currentMaxChargedPower * (chargedResourceRatio > 0.5 ? 1 : chargedResourceRatio * 2) : 0;
 
                 UpdateAnimation();
+
+                if (myAttachedEngine.getIgnitionState && myAttachedEngine.status == _flameoutText)
+                {
+                    myAttachedEngine.Shutdown();
+                    ScreenMessages.PostScreenMessage("Engine Shutdown: fuel missing", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                }
 
                 // flameout when reactor cannot produce power
                 myAttachedEngine.flameoutBar = AttachedReactor.CanProducePower ? 0 : float.MaxValue;
@@ -1447,7 +1459,7 @@ namespace FNPlugin
 
                     // set engines maximum fuel flow
                     if (!double.IsNaN(max_fuel_flow_rate) && !double.IsInfinity(max_fuel_flow_rate))
-                        myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate, 1e-10);
+                        myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
                     else
                         myAttachedEngine.maxFuelFlow = 1e-10f;
 
@@ -1692,15 +1704,9 @@ namespace FNPlugin
 
                 // set engines maximum fuel flow
                 if (!double.IsNaN(max_fuel_flow_rate) && !double.IsInfinity(max_fuel_flow_rate))
-                    myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate * adjustedFuelFlowMult, 1e-10);
+                    myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate * adjustedFuelFlowMult * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
                 else
                     myAttachedEngine.maxFuelFlow = 1e-10f;
-
-                // act as open cycle cooler
-                if ((!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature)
-                {
-                    consumeFNResourcePerSecond(20 * getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) * currentEngineFuelFlow, ResourceManager.FNRESOURCE_WASTEHEAT);
-                }
 
                 // Calculate
                 pre_coolers_active = _vesselPrecoolers.Sum(prc => prc.ValidAttachedIntakes);
@@ -1715,21 +1721,29 @@ namespace FNPlugin
                     proportion = 0;
 
                 airflowHeatModifier = proportion > 0
-                    ? Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20.0 / GameConstants.atmospheric_non_precooled_limit * proportion), 0)
+                    ? Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20 / GameConstants.atmospheric_non_precooled_limit * proportion), 0)
                     : 0;
 
                 airflowHeatModifier *= vessel.atmDensity * (vessel.speed / vessel.speedOfSound);
                 if (double.IsNaN(airflowHeatModifier) || double.IsInfinity(airflowHeatModifier))
                     airflowHeatModifier = 0;
 
-                currentEngineFuelFlow = myAttachedEngine.fuelFlowGui * myAttachedEngine.mixtureDensity;
+                currentMassFlow = (double)(decimal)myAttachedEngine.fuelFlowGui * (double)(decimal)myAttachedEngine.mixtureDensity;
+
+                //expectedMassFlow = adjustedThrottle * max_fuel_flow_rate * (double)(decimal)myAttachedEngine.mixtureDensity;
+
+                // act as open cycle cooler
+                if ((!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature)
+                {
+                    consumeFNResourcePerSecond(20 * getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) * currentMassFlow, ResourceManager.FNRESOURCE_WASTEHEAT);
+                }
 
                 // give back propellant
                 if (UseChargedPowerOnly && list_of_propellants.Count == 1)
                 {
                     //AttachedReactor.UseProductForPropulsion(powerFraction, currentEngineFuelFlow, list_of_propellants.First().getPartResourceDefinition());
                     var resource = PartResourceLibrary.Instance.GetDefinition(list_of_propellants.First().name);
-                    AttachedReactor.UseProductForPropulsion(powerFraction, currentEngineFuelFlow, resource);
+                    AttachedReactor.UseProductForPropulsion(powerFraction, currentMassFlow, resource);
                 }
 
                 maxFuelFlowOnEngine = myAttachedEngine.maxFuelFlow;
@@ -1739,7 +1753,7 @@ namespace FNPlugin
                 if (controlHeatProduction)
                 {
                     ispHeatModifier = realIspEngine.Sqrt() * (UsePlasmaPower ? plasmaAfterburnerHeatModifier : thermalHeatModifier);
-                    powerToMass = (maxThrustOnEngine / part.mass).Sqrt();
+                    powerToMass = part.mass > 0 ? Math.Sqrt(maxThrustOnEngine / part.mass) : 0;
                     radiusHeatModifier = Math.Pow(scaledRadius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
                     var reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
@@ -1753,7 +1767,7 @@ namespace FNPlugin
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
                 {
                     var maxEngineFuelFlow = myAttachedEngine.maxThrust > 0 ?   myAttachedEngine.maxThrust / myAttachedEngine.realIsp / GameConstants.STANDARD_GRAVITY : 0;
-                    effectRatio = maxEngineFuelFlow > 0 ? (float)Math.Min(1, currentEngineFuelFlow / maxEngineFuelFlow) : 0;
+                    effectRatio = maxEngineFuelFlow > 0 ? (float)Math.Min(1, currentMassFlow / maxEngineFuelFlow) : 0;
                     part.Effect(_particleFXName, effectRatio, -1);
                 }
             }
@@ -1821,7 +1835,7 @@ namespace FNPlugin
 
         private void UpdateMaxIsp()
         {
-            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveCoreTempIspMult;
+            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveCoreTempIspMult * AttachedReactor.FuelRato;
 
             if (baseMaxIsp > maxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = maxThermalNozzleIsp;

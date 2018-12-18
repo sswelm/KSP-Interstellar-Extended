@@ -22,6 +22,8 @@ namespace FNPlugin.Redist
 
         bool CanProducePower { get; }
 
+        double FuelRato { get; }
+
         double MinThermalNozzleTempRequired { get; }
 
         bool CanUseAllPowerForPlasma { get; }

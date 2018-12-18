@@ -69,6 +69,8 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)]
         public double stored_fuel_ratio = 1;
         [KSPField(isPersistant = true)]
+        public double fuel_ratio = 1;
+        [KSPField(isPersistant = true)]
         public double requested_thermal_power_ratio = 1;
         [KSPField(isPersistant = true)]
         public double maximumThermalPower;
@@ -342,8 +344,6 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double fuelEfficiency = 1;
         [KSPField]
-        public double upgradedFuelEfficiency = 1;
-        [KSPField]
         public bool containsPowerGenerator = false;
         [KSPField]
         public double fuelUsePerMJMult = 1;
@@ -499,13 +499,7 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Buoyancy Fraction", guiFormat = "F4")]
         public double geeForceModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
-        public double overheatModifier = 1;
-        //[KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Requested", guiUnits = " kg/s")]
-        //public double hydrogenProductionRequest;
-        //[KSPField(guiActive = false, guiActiveEditor = false, guiName = "Propellant Received", guiUnits = " kg/s")]
-        //public double hydrogenProductionReceived;
-
-        
+        public double overheatModifier = 1;     
 
         [KSPField]
         public bool isConnectedToThermalGenerator;
@@ -548,6 +542,7 @@ namespace FNPlugin.Reactors
         Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
 
         double consumedFuelTotalFixed;
+        double consumedFuelTotalPerSecond;
         double requestedPropellantMassPerSecond;
         double connectedRecieversSum;
 
@@ -618,6 +613,7 @@ namespace FNPlugin.Reactors
         }
 
         // properties
+        public double FuelRato { get { return fuel_ratio; } }
 
         public virtual double MagneticNozzlePowerMult { get { return 1; } }
 
@@ -1458,8 +1454,6 @@ namespace FNPlugin.Reactors
             // if fuel efficency is missing, try to use lagacy value
             if (fuelEfficencyMk1 == 0)
                 fuelEfficencyMk1 = fuelEfficiency;
-            if (fuelEfficencyMk2 == 0)
-                fuelEfficencyMk2 = upgradedFuelEfficiency;
 
             // prevent any initial values
             if (fuelEfficencyMk1 == 0)
@@ -1591,7 +1585,12 @@ namespace FNPlugin.Reactors
                 if (CheatOptions.InfinitePropellant || stored_fuel_ratio > 0.99)
                     statusStr = "Active (" + powerPcnt.ToString("0.000") + "%)";
                 else if (current_fuel_variant != null)
-                    statusStr = current_fuel_variant.ReactorFuels.OrderBy(fuel => GetFuelAvailability(fuel)).First().ResourceName + " Deprived";
+                {
+                    if (stored_fuel_ratio == 0)
+                        statusStr = current_fuel_variant.ReactorFuels.OrderBy(fuel => GetFuelAvailability(fuel)).First().ResourceName + " Deprived";
+                    else
+                        statusStr = current_fuel_variant.ReactorFuels.OrderBy(fuel => GetFuelAvailability(fuel)).First().ResourceName + (stored_fuel_ratio * 100) + "%";
+                }
             }
             else
             {
@@ -1691,11 +1690,14 @@ namespace FNPlugin.Reactors
                 
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
 
+                var true_variant = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult, false).FirstOrDefault();
+                fuel_ratio = CheatOptions.InfinitePropellant ? 1 : true_variant != null ? Math.Min(true_variant.FuelRatio, 1) : 0;
+
                 LookForAlternativeFuelTypes();
 
                 UpdateCapacities();
 
-                if (stored_fuel_ratio > 0.0001 && stored_fuel_ratio < 0.99)
+                if (fuel_ratio < 0.99999)
                 {
                     var message = Localizer.Format("#LOC_KSPIE_Reactor_ranOutOfFuelFor") + " " + CurrentFuelMode.ModeGUIName;
                     Debug.Log("[KSPI] - " + message);
@@ -1764,7 +1766,7 @@ namespace FNPlugin.Reactors
 
                 UpdateEmbrittlement(Math.Max(thermalThrottleRatio, plasmaThrottleRatio));
 
-                ongoing_consumption_rate = ongoing_total_power_generated / maximumPower;
+                ongoing_consumption_rate = maximumPower > 0 ? ongoing_total_power_generated / maximumPower : 0;
                 PluginHelper.SetAnimationRatio((float)ongoing_consumption_rate, pulseAnimation);
                 powerPcnt = 100 * ongoing_consumption_rate;
 
@@ -1787,7 +1789,7 @@ namespace FNPlugin.Reactors
                     if (requestedPropellantMassPerSecond > 0)
                     {
                         //hydrogenProductionRequest = requestedPropellantMassPerSecond * 1000;
-                        var resultFixed = part.RequestResource(hydrogenDefinition.name, -requestedPropellantMassPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime / (double)(decimal)hydrogenDefinition.density, ResourceFlowMode.ALL_VESSEL);
+                        var resultFixed = part.RequestResource(hydrogenDefinition.name, -requestedPropellantMassPerSecond * timeWarpFixedDeltaTime / (double)(decimal)hydrogenDefinition.density, ResourceFlowMode.ALL_VESSEL);
                         //hydrogenProductionReceived = -1000 * (double)(decimal)hydrogenDefinition.density * resultFixed / (double)(decimal)TimeWarp.fixedDeltaTime;
                         requestedPropellantMassPerSecond = 0;
                     }
@@ -1798,6 +1800,8 @@ namespace FNPlugin.Reactors
 
                         consumedFuelTotalFixed += consumedMass;
                     }
+
+                    consumedFuelTotalPerSecond = consumedFuelTotalFixed / timeWarpFixedDeltaTime;
 
                     // refresh production list
                     reactorProduction.Clear();
@@ -2339,16 +2343,20 @@ namespace FNPlugin.Reactors
             if (mJpower < (0.000005 / powerOutputMultiplier))
                 return 0;
 
-            var consumeAmountInUnitOfStorage = mJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency;
+            var consumeAmountInUnitOfStorage = FuelEfficiency > 0 ?  mJpower * fuel.AmountFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency : 0;
 
             if (fuel.ConsumeGlobal)
-                return part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW) * (double)(decimal)fuel.Definition.density;
+            {
+                var result = part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW, fuel.Simulate);
+                var fuelconsumption = fuel.Simulate ? consumeAmountInUnitOfStorage : result;
+                return (fuel.Simulate ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
+            }
 
             if (part.Resources.Contains(fuel.ResourceName))
             {
                 double reduction = Math.Min(consumeAmountInUnitOfStorage, part.Resources[fuel.ResourceName].amount);
                 part.Resources[fuel.ResourceName].amount -= reduction;
-                return reduction * (double)(decimal)fuel.Definition.density;
+                return reduction * fuel.DensityInTon;
             }
             else
                 return 0;
@@ -2375,7 +2383,7 @@ namespace FNPlugin.Reactors
                     return 0;
             }
 
-            part.RequestResource(product.Definition.id, -productSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW);
+            part.RequestResource(product.Definition.id, -productSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW, product.Simulate);
             return productSupply * product.DensityInTon;
         }
 
@@ -2521,6 +2529,7 @@ namespace FNPlugin.Reactors
                 PrintToGUILayout("Core Temperature", coretempStr, bold_style, text_style);
                 PrintToGUILayout("Status", statusStr, bold_style, text_style);
                 PrintToGUILayout("Fuel Mode", fuelModeStr, bold_style, text_style);
+                PrintToGUILayout("Fuel Efficiency", (FuelEfficiency * 100).ToString(), bold_style, text_style);
 
                 WindowReactorSpecificOverride();
 
@@ -2618,7 +2627,10 @@ namespace FNPlugin.Reactors
                         var kgFuelUsePerHour = tonFuelUsePerHour * 1000;
                         var kgFuelUsePerDay = kgFuelUsePerHour * PluginHelper.HoursInDay;
 
-                        PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.formatMassStr(tonFuelUsePerHour) + " / hour", bold_style, text_style);
+                        if (tonFuelUsePerHour > 120)
+                            PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.formatMassStr(tonFuelUsePerHour / 60) + " / min", bold_style, text_style);
+                        else
+                            PrintToGUILayout(fuel.FuelName + " Consumption ", PluginHelper.formatMassStr(tonFuelUsePerHour) + " / hour", bold_style, text_style);
 
                         if (kgFuelUsePerDay > 0)
                         {
@@ -2630,6 +2642,14 @@ namespace FNPlugin.Reactors
                                 {
                                     var lifetimeYearsDayRemainder = lifetimeYears < 1e+6 ? fuelLifetimeD % GameConstants.KERBIN_YEAR_IN_DAYS : 0;
                                     PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetimeYears) ? "-" : lifetimeYears + " years " + (lifetimeYearsDayRemainder).ToString("0.00")) + " days", bold_style, text_style);
+                                }
+                                else if (fuelLifetimeD < 1)
+                                {
+                                    var minutesD = fuelLifetimeD * PluginHelper.HoursInDay * 60;
+                                    var minutes = (int)Math.Floor(minutesD);
+                                    var seconds = (int)Math.Ceiling((minutesD - minutes) * 60);
+
+                                    PrintToGUILayout(fuel.FuelName + " Lifetime", minutes.ToString("F0") + " minutes " + seconds.ToString("F0") + " seconds", bold_style, text_style);
                                 }
                                 else
                                     PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(fuelLifetimeD) ? "-" : (fuelLifetimeD).ToString("0.00")) + " days", bold_style, text_style);

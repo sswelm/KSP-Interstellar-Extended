@@ -15,11 +15,13 @@ namespace FNPlugin.Reactors
         double _ratio;
         string _unit;
         bool _consumeGlobal;
+        bool _simulate;
 
         public ReactorFuel(ConfigNode node)
         {
             _fuel_name = node.GetValue("name");
             _ratio = node.HasValue("ratio") ? Convert.ToDouble(node.GetValue("ratio")) : 1;
+            _simulate = node.HasValue("simulate") ? Boolean.Parse(node.GetValue("simulate")) : false;
             _resource_name = node.HasValue("resource") ? node.GetValue("resource") : _fuel_name;
             _tons_fuel_usage_per_mw = Convert.ToDouble(node.GetValue("UsagePerMW"));
             _unit = node.GetValue("Unit");
@@ -46,6 +48,8 @@ namespace FNPlugin.Reactors
 
         public double DensityInKg { get { return _densityInKg; } }
 
+        public bool Simulate { get { return _simulate; } }
+
         public double AmountFuelUsePerMJ { get { return _amountFuelUsePerMJ; } }
 
         public double TonsFuelUsePerMJ { get { return _tons_fuel_usage_per_mw; } }
@@ -58,9 +62,12 @@ namespace FNPlugin.Reactors
 
         public string Unit { get { return _unit; } }
 
-        public double GetFuelRatio(Part part, double fuelEfficency, double megajoules, double fuelUsePerMJMult)
+        public double GetFuelRatio(Part part, double fuelEfficency, double megajoules, double fuelUsePerMJMult, bool simulate)
         {
             if (CheatOptions.InfinitePropellant)
+                return 1;
+
+            if (simulate)
                 return 1;
 
             var fuelUseForPower = this.GetFuelUseForPower(fuelEfficency, megajoules, fuelUsePerMJMult);
@@ -101,6 +108,7 @@ namespace FNPlugin.Reactors
         string _unit;
         bool _isPropellant;
         bool _produceGlobal;
+        bool _simulate;
         double _amountProductUsePerMJ;
 
         public ReactorProduct(ConfigNode node)
@@ -108,6 +116,7 @@ namespace FNPlugin.Reactors
             _fuel_name = node.GetValue("name");
             _resource_name = node.HasValue("resource") ? node.GetValue("resource") : _fuel_name;
             _unit = node.GetValue("Unit");
+            _simulate = node.HasValue("simulate") ? Boolean.Parse(node.GetValue("simulate")) : false;
             _isPropellant = node.HasValue("isPropellant") ? Boolean.Parse(node.GetValue("isPropellant")) : true;
             _produceGlobal = node.HasValue("produceGlobal") ? Boolean.Parse(node.GetValue("produceGlobal")) : true;
             _tons_product_usage_per_mw = Convert.ToDouble(node.GetValue("ProductionPerMW"));
@@ -119,7 +128,7 @@ namespace FNPlugin.Reactors
             {
                 _density = (double)(decimal)Definition.density;
                 _densityInKg = _density * 1000;
-                _amountProductUsePerMJ = _tons_product_usage_per_mw / _density;
+                _amountProductUsePerMJ = _density > 0 ? _tons_product_usage_per_mw / _density : 0;
             }
         }
 
@@ -128,6 +137,8 @@ namespace FNPlugin.Reactors
         public bool ProduceGlobal { get { return _produceGlobal; } }
 
         public bool IsPropellant { get { return _isPropellant; } }
+
+        public bool Simulate { get { return _simulate; } }
 
         public double DensityInTon { get { return _density; } }
 

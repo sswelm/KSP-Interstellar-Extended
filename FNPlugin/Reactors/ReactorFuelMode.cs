@@ -98,11 +98,11 @@ namespace FNPlugin.Reactors
         public List<ResourceGroupMetaData> ResourceGroups { get; private set; }
 
         // Methods
-        public List<ReactorFuelMode> GetVariantsOrderedByFuelRatio(Part part, double fuelEfficiency, double powerToSupply, double fuelUsePerMjMult)
+        public List<ReactorFuelMode> GetVariantsOrderedByFuelRatio(Part part, double fuelEfficiency, double powerToSupply, double fuelUsePerMjMult, bool allowSimulate = true)
         {
             foreach (var fuelMode in Variants)
             {
-                fuelMode.FuelRatio = fuelMode.ReactorFuels.Min(fuel => fuel.GetFuelRatio(part, fuelEfficiency, powerToSupply, fuelUsePerMjMult));
+                fuelMode.FuelRatio = fuelMode.ReactorFuels.Min(fuel => fuel.GetFuelRatio(part, fuelEfficiency, powerToSupply, fuelUsePerMjMult, allowSimulate ? fuel.Simulate : false));
             }
 
             return Variants.OrderByDescending(m => m.FuelRatio).ThenBy(m => m.Position).ToList();
