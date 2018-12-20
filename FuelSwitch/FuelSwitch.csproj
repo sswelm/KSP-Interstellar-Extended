@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="AnimatedContainerContent.cs" />
     <Compile Include="IFSCryostat.cs" />
+    <Compile Include="IFSinfoPopup.cs" />
     <Compile Include="InterstellarAnimate.cs" />
     <Compile Include="InterstellarDynamicResourceBuffer.cs" />
     <Compile Include="InterstellarResourceConverter.cs" />
