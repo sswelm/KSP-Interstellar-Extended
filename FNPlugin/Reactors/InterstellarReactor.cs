@@ -2347,7 +2347,8 @@ namespace FNPlugin.Reactors
 
             if (fuel.ConsumeGlobal)
             {
-                var result = part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW, fuel.Simulate);
+                var result = fuel.Simulate ? 0 : part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW, fuel.Simulate);
+                //var result = part.RequestResource(fuel.Definition.id, consumeAmountInUnitOfStorage, ResourceFlowMode.STAGE_PRIORITY_FLOW);
                 var fuelconsumption = fuel.Simulate ? consumeAmountInUnitOfStorage : result;
                 return (fuel.Simulate ? consumeAmountInUnitOfStorage : result) * fuel.DensityInTon;
             }
@@ -2383,7 +2384,9 @@ namespace FNPlugin.Reactors
                     return 0;
             }
 
-            part.RequestResource(product.Definition.id, -productSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW, product.Simulate);
+            //part.RequestResource(product.Definition.id, -productSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW, product.Simulate);
+            if (!product.Simulate)
+                part.RequestResource(product.Definition.id, -productSupply, ResourceFlowMode.STAGE_PRIORITY_FLOW);
             return productSupply * product.DensityInTon;
         }
 
