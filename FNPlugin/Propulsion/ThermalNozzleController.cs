@@ -1458,7 +1458,7 @@ namespace FNPlugin
                     }
 
                     // set engines maximum fuel flow
-                    if (!double.IsNaN(max_fuel_flow_rate) && !double.IsInfinity(max_fuel_flow_rate))
+                    if (IsPositiveValidNumber(max_fuel_flow_rate) && IsPositiveValidNumber(adjustedFuelFlowMult) && IsPositiveValidNumber(AttachedReactor.FuelRato))
                         myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
                     else
                         myAttachedEngine.maxFuelFlow = 1e-10f;
@@ -1703,7 +1703,7 @@ namespace FNPlugin
                 }
 
                 // set engines maximum fuel flow
-                if (!double.IsNaN(max_fuel_flow_rate) && !double.IsInfinity(max_fuel_flow_rate))
+                if (IsPositiveValidNumber(max_fuel_flow_rate) && IsPositiveValidNumber(adjustedFuelFlowMult) && IsPositiveValidNumber(AttachedReactor.FuelRato))
                     myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate * adjustedFuelFlowMult * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
                 else
                     myAttachedEngine.maxFuelFlow = 1e-10f;
@@ -1752,7 +1752,7 @@ namespace FNPlugin
 
                 if (controlHeatProduction)
                 {
-                    ispHeatModifier = realIspEngine.Sqrt() * (UsePlasmaPower ? plasmaAfterburnerHeatModifier : thermalHeatModifier);
+                    ispHeatModifier =  Math.Sqrt(realIspEngine) * (UsePlasmaPower ? plasmaAfterburnerHeatModifier : thermalHeatModifier);
                     powerToMass = part.mass > 0 ? Math.Sqrt(maxThrustOnEngine / part.mass) : 0;
                     radiusHeatModifier = Math.Pow(scaledRadius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
@@ -1775,6 +1775,11 @@ namespace FNPlugin
             {
                 Debug.LogError("[KSPI] - Error GenerateThrustFromReactorHeat " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
             }
+        }
+
+        private bool IsPositiveValidNumber(double vaiable)
+        {
+            return !double.IsNaN(vaiable) && !double.IsInfinity(vaiable) && vaiable > 0;
         }
 
         private void UpdateSootAccumulation()
@@ -1835,7 +1840,10 @@ namespace FNPlugin
 
         private void UpdateMaxIsp()
         {
-            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveCoreTempIspMult * AttachedReactor.FuelRato;
+            baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveCoreTempIspMult;
+
+            if (IsPositiveValidNumber(AttachedReactor.FuelRato))
+                baseMaxIsp *= AttachedReactor.FuelRato;
 
             if (baseMaxIsp > maxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = maxThermalNozzleIsp;

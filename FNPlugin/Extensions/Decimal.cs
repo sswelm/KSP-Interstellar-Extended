@@ -11,6 +11,8 @@ namespace FNPlugin.Extensions
 	{
 		public static decimal ToDecimal(this float input)
 		{
+            // ToDo: add check on Nan and Infinite
+
 			if (input < (double)decimal.MinValue)
 				return decimal.MinValue;
 			else if (input > (double)decimal.MaxValue)
@@ -21,6 +23,8 @@ namespace FNPlugin.Extensions
 
 		public static decimal ToDecimal(this double input)
 		{
+            // ToDo: add check on Nan and Infinite
+
 			if (input < (double)decimal.MinValue)
 				return decimal.MinValue;
 			else if (input > (double)decimal.MaxValue)

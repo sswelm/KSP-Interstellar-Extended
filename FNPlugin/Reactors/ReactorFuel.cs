@@ -72,12 +72,12 @@ namespace FNPlugin.Reactors
 
             var fuelUseForPower = this.GetFuelUseForPower(fuelEfficency, megajoules, fuelUsePerMJMult);
 
-            return Math.Min(this.GetFuelAvailability(part) / fuelUseForPower, 1);
+            return fuelUseForPower > 0 ?  Math.Min(this.GetFuelAvailability(part) / fuelUseForPower, 1) : 0;
         }
 
         public double GetFuelUseForPower(double efficiency, double megajoules, double fuelUsePerMJMult)
         {
-            return AmountFuelUsePerMJ * fuelUsePerMJMult * megajoules / efficiency;
+            return efficiency > 0 ?  AmountFuelUsePerMJ * fuelUsePerMJMult * megajoules / efficiency : 0;
         }
 
         public double GetFuelAvailability(Part part)

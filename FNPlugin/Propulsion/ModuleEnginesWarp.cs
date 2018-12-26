@@ -216,22 +216,22 @@ namespace FNPlugin
                 return 0;
 
             double recievedRatio = 1;
-            if (fuelRequestAmount1 > 0)
+            if (fuelRequestAmount1 > 0 && !double.IsNaN(fuelRequestAmount1) && !double.IsInfinity(fuelRequestAmount1))
             {
                 var consumePropellant1 = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount1 > 0 ? consumePropellant1 / fuelRequestAmount1 : 0);
             }
-            if (fuelRequestAmount2 > 0)
+            if (fuelRequestAmount2 > 0 && !double.IsNaN(fuelRequestAmount2) && !double.IsInfinity(fuelRequestAmount2))
             {
                 var consumedPropellant2 = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount2 > 0 ? consumedPropellant2 / fuelRequestAmount2 : 0);
             }
-            if (fuelRequestAmount3 > 0)
+            if (fuelRequestAmount3 > 0 && !double.IsNaN(fuelRequestAmount3) && !double.IsInfinity(fuelRequestAmount3))
             {
                 var consumedpropellant3 = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount3 > 0 ? consumedpropellant3 / fuelRequestAmount3 : 0);
             }
-            if (fuelRequestAmount4 > 0)
+            if (fuelRequestAmount4 > 0 && !double.IsNaN(fuelRequestAmount4) && !double.IsInfinity(fuelRequestAmount4))
             {
                 var consumedPropellant4 = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount4 > 0 ? consumedPropellant4 / fuelRequestAmount4 : 0);
@@ -250,6 +250,13 @@ namespace FNPlugin
 
             UpdateFuelFactors();
 
+            if (double.IsNaN(this.requestedMassFlow) || double.IsInfinity(requestedMassFlow))
+                Debug.LogWarning("[KSPI] - requestedMassFlow  is " + requestedMassFlow);
+            if (double.IsNaN(this.realIsp) || double.IsInfinity(realIsp))
+                Debug.LogWarning("[KSPI] - realIsp  is " + realIsp);
+            if (double.IsNaN(this.finalThrust) || double.IsInfinity(finalThrust))
+                Debug.LogWarning("[KSPI] - finalThrust  is " + finalThrust);
+
             // Check if we are in time warp mode
             if (!vessel.packed)
             {
@@ -257,6 +264,7 @@ namespace FNPlugin
                 TimeWarp.GThreshold = GThreshold;
 
                 requestedFlow = (double)(decimal)this.requestedMassFlow;
+
                 demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
 
                 // if not transitioning from warp to real
@@ -264,12 +272,13 @@ namespace FNPlugin
                 if (!_warpToReal)
                 {
                     _ispPersistent = (double)(decimal)realIsp;
+
                     _throttlePersistent = (double)(decimal)vessel.ctrlState.mainThrottle;
 
                     if (_throttlePersistent == 0 && finalThrust < 0.0000005)
                         _thrustPersistent = 0;
                     else
-                        _thrustPersistent = (double)(decimal)finalThrust;
+                        _thrustPersistent = finalThrust;
                 }
             }
             else
@@ -305,7 +314,7 @@ namespace FNPlugin
                     fuelRatio = CollectFuel(demandMass);
 
                     // Calculate thrust and deltaV if demand output > 0
-                    if (!double.IsNaN(fuelRatio) && !double.IsInfinity(fuelRatio) && fuelRatio > 0)
+                    if (IsPositiveValidNumber(fuelRatio) && IsPositiveValidNumber(demandMass) && IsPositiveValidNumber(this.vessel.totalMass) && IsPositiveValidNumber(_ispPersistent))
                     {
                         remainingMass = this.vessel.totalMass - (demandMass * fuelRatio); // Mass at end of burn
                         deltaV = _ispPersistent * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass); // Delta V from burn
@@ -342,6 +351,11 @@ namespace FNPlugin
             thrust_d = _thrustPersistent;
             isp_d = _ispPersistent;
             throttle_d = _throttlePersistent;
+        }
+
+        private bool IsPositiveValidNumber(double vaiable)
+        {
+            return !double.IsNaN(vaiable) && !double.IsInfinity(vaiable) && vaiable > 0;
         }
 
         private bool PersistHeading()

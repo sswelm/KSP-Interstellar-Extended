@@ -66,34 +66,8 @@ namespace FNPlugin
             return power_taken_fixed;
         }
 
-        public decimal consumeFNResourcePerSecond(decimal power_requested_per_second, String resourcename, ResourceManager manager = null)
-        {
-            power_requested_per_second = Math.Max(power_requested_per_second, 0);
-
-            if (manager == null)
-                manager = getManagerForVessel(resourcename);
-            if (manager == null)
-                return 0;
-
-            if (!fnresource_supplied.ContainsKey(resourcename))
-                fnresource_supplied.Add(resourcename, 0);
-
-            var power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, (decimal)fnresource_supplied[resourcename]), 0);
-            fnresource_supplied[resourcename] -= (double)power_taken_per_second;
-
-            manager.powerDrawPerSecond(this, (double)power_requested_per_second, (double)power_taken_per_second);
-
-            return power_taken_per_second;
-        }
-
         public double consumeFNResourcePerSecond(double power_requested_per_second, String resourcename, ResourceManager manager = null)
         {
-            if (double.IsNaN(power_requested_per_second) || double.IsInfinity(power_requested_per_second) || String.IsNullOrEmpty(resourcename)) 
-            {
-                Debug.Log("[KSPI] - consumeFNResourcePerSecond was called with illegal value");
-                return 0;
-            }
-
             power_requested_per_second = Math.Max(power_requested_per_second, 0);
 
             if (manager == null)
@@ -105,11 +79,11 @@ namespace FNPlugin
                 fnresource_supplied.Add(resourcename, 0);
 
             var power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, fnresource_supplied[resourcename]), 0);
-            fnresource_supplied[resourcename] -= power_taken_per_second;
+            fnresource_supplied[resourcename] -= (double)power_taken_per_second;
 
-            manager.powerDrawPerSecond(this, power_requested_per_second, power_taken_per_second);
+            manager.powerDrawPerSecond(this, (double)power_requested_per_second, (double)power_taken_per_second);
 
-            return (double)power_taken_per_second;
+            return power_taken_per_second;
         }
 
         public double consumeFNResourcePerSecondBuffered(double requestedPowerPerSecond, String resourcename, double limitBarRatio = 0.1, ResourceManager manager = null)
@@ -502,7 +476,7 @@ namespace FNPlugin
             return (double)manager.ResourceBarRatioBegin;
         }
 
-        public decimal getResourceBarFraction(String resourcename)
+        public double getResourceBarFraction(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename))
             {
@@ -514,10 +488,10 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.ResourceBarRatioBegin.ToDecimal();
+            return manager.ResourceBarRatioBegin;
         }
 
-        public decimal getSqrtResourceBarRatio(String resourcename)
+        public double getSqrtResourceBarRatio(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename))
             {
@@ -529,7 +503,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return manager.SqrtResourceBarRatioBegin.ToDecimal();
+            return manager.SqrtResourceBarRatioBegin;
         }
 
         public double getResourceBarRatioEnd(String resourcename)
