@@ -51,9 +51,9 @@ namespace FNPlugin
         [KSPField]
         public float jetengineDecelerationBaseSpeed = 0.4f;
         [KSPField]
-        public float engineAccelerationBaseSpeed = 2;
+        public double engineAccelerationBaseSpeed = 2;
         [KSPField]
-        public float engineDecelerationBaseSpeed = 10;
+        public double engineDecelerationBaseSpeed = 2;
         [KSPField]
         public bool initialized = false;
         [KSPField]
@@ -1138,7 +1138,7 @@ namespace FNPlugin
             }
         }
 
-        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1)
+        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1, double wasteheatRatio = 1)
         {
             // recaculate ISP based on power and core temp available
             FloatCurve atmCurve = new FloatCurve();
@@ -1154,8 +1154,8 @@ namespace FNPlugin
                 myAttachedEngine.useAtmCurve = false;
                 myAttachedEngine.useVelCurve = false;
                 myAttachedEngine.useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
-                myAttachedEngine.engineAccelerationSpeed = engineAccelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult;
-                myAttachedEngine.engineDecelerationSpeed = engineDecelerationBaseSpeed * (float)AttachedReactor.ReactorSpeedMult;
+                myAttachedEngine.engineAccelerationSpeed = (float)(engineAccelerationBaseSpeed * AttachedReactor.ReactorSpeedMult);
+                myAttachedEngine.engineDecelerationSpeed = (float)(engineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * (1.1 - wasteheatRatio) * 10);
 
                 if (minThrottle > 0)
                 {
@@ -1349,7 +1349,7 @@ namespace FNPlugin
                         myAttachedEngine.Shutdown();
                         ScreenMessages.PostScreenMessage("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     }
-					myAttachedEngine.CLAMP = 0;
+                    myAttachedEngine.CLAMP = 0;
                     myAttachedEngine.flameoutBar = float.MaxValue;
                     vessel.ctrlState.mainThrottle = 0;
                     myAttachedEngine.maxFuelFlow = 1e-10f;
@@ -1632,6 +1632,8 @@ namespace FNPlugin
 
                 UpdateAtmosphericPresureTreshold();
 
+                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+
                 // update engine thrust/ISP for thermal noozle
                 if (!_currentpropellant_is_jet)
                 {
@@ -1640,7 +1642,8 @@ namespace FNPlugin
                     var atmosphereThrustEfficiency = max_thrust_in_space > 0 ? Math.Min(1, max_thrust_in_current_atmosphere / max_thrust_in_space) : 0;
 
                     var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(atmosphereThrustEfficiency, 0.01) : 0.01;
-                    UpdateIspEngineParams(thrustAtmosphereRatio);
+                    
+                    UpdateIspEngineParams(thrustAtmosphereRatio, wasteheatRatio);
                     current_isp = _maxISP * thrustAtmosphereRatio;
                     calculatedMaxThrust = calculatedMaxThrust * atmosphereThrustEfficiency;
                 }
@@ -1735,7 +1738,7 @@ namespace FNPlugin
                 // act as open cycle cooler
                 if ((!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature)
                 {
-                    consumeFNResourcePerSecond(20 * getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT) * currentMassFlow, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(20 * wasteheatRatio * currentMassFlow, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // give back propellant
