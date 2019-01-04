@@ -876,7 +876,10 @@ namespace FNPlugin
             if (distanceToSurfaceHomeworld < minAltitude)
                 return false;
 
-            if (distanceToSurfaceHomeworld > 20 * homeworld.Radius)
+            if (AttachedReactor.MayExhaustInLowSpaceHomeworld && distanceToSurfaceHomeworld > 10 * homeworld.Radius)
+                return true;
+
+            if (!AttachedReactor.MayExhaustInLowSpaceHomeworld && distanceToSurfaceHomeworld > 20 * homeworld.Radius)
                 return true;
 
             var radiusDividedByAltitude = (homeworld.Radius + minAltitude) / toHomeworld.magnitude;
