@@ -541,6 +541,10 @@ namespace FNPlugin.Reactors
         Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
         Dictionary<Guid, double> connectedRecieversFraction = new Dictionary<Guid, double>();
 
+        double tritium_density;
+        double helium4_density;
+        double lithium6_density;
+
         double consumedFuelTotalFixed;
         double consumedFuelTotalPerSecond;
         double requestedPropellantMassPerSecond;
@@ -589,7 +593,7 @@ namespace FNPlugin.Reactors
         { 
             get 
             {
-                powerRatio = (double)(decimal)(powerPercentage / 100d);
+                powerRatio = ((double)(decimal)powerPercentage) / 100;
 
                 return powerRatio; 
             } 
@@ -690,7 +694,7 @@ namespace FNPlugin.Reactors
                 part.RequestResource(product.fuelmode.ResourceName, fuelAmount);
             }
 
-            var resultFixed = part.RequestResource(resource.name, -propellantMassPerSecond * (double)(decimal)TimeWarp.fixedDeltaTime / (double)(decimal)resource.density, ResourceFlowMode.ALL_VESSEL);
+            var resultFixed = part.RequestResource(resource.name, -propellantMassPerSecond * ((double)(decimal)TimeWarp.fixedDeltaTime) / ((double)(decimal)resource.density), ResourceFlowMode.ALL_VESSEL);
         }
 
         public void ConnectWithEngine(IEngineNoozle engine)
@@ -763,7 +767,7 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public double ForcedMinimumThrottleRatio { get {  return (double)(decimal)forcedMinimumThrottle / 100d; } }
+        public double ForcedMinimumThrottleRatio { get {  return ((double)(decimal)forcedMinimumThrottle) / 100; } }
 
         public int SupportedPropellantAtoms { get { return supportedPropellantAtoms; } }
 
@@ -1336,8 +1340,12 @@ namespace FNPlugin.Reactors
             helium_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Helium4Gas);
             lithium6_def = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Lithium6);
 
-            tritiumBreedingMassAdjustment = tritium_molar_mass_ratio * (double)(decimal)lithium6_def.density / (double)(decimal)tritium_def.density;
-            heliumBreedingMassAdjustment = helium_molar_mass_ratio * (double)(decimal)lithium6_def.density / (double)(decimal)helium_def.density;
+            tritium_density = (double)(decimal)tritium_def.density;
+            helium4_density = (double)(decimal)helium_def.density;
+            lithium6_density = (double)(decimal)lithium6_def.density);
+
+            tritiumBreedingMassAdjustment = tritium_molar_mass_ratio * lithium6_density/ tritium_density;
+            heliumBreedingMassAdjustment = helium_molar_mass_ratio * lithium6_density / helium4_density;
 
             if (IsEnabled && last_active_time > 0)
                 DoPersistentResourceUpdate();
@@ -1634,14 +1642,14 @@ namespace FNPlugin.Reactors
 
             if (IsEnabled && maximumPower > 0)
             {
-                if (ReactorIsOverheating())
-                {
-                    if (FlightGlobals.ActiveVessel == vessel)
-                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_Reactor_reactorIsOverheating"), 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                //if (ReactorIsOverheating())
+                //{
+                //	if (FlightGlobals.ActiveVessel == vessel)
+                //		ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_Reactor_reactorIsOverheating"), 5.0f, ScreenMessageStyle.UPPER_CENTER);
 
-                    IsEnabled = false;
-                    return;
-                }
+                //	IsEnabled = false;
+                //	return;
+                //}
 
                 max_power_to_supply = Math.Max(maximumPower * timeWarpFixedDeltaTime, 0);
 
@@ -1658,7 +1666,7 @@ namespace FNPlugin.Reactors
                         var engines = vessel.FindPartModulesImplementing<ModuleEngines>();
                         if (engines.Any())
                         {
-                            var totalThrust = engines.Sum(m => (double)(decimal)m.realIsp * (double)(decimal)m.requestedMassFlow * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
+                            var totalThrust = engines.Sum(m => ((double)(decimal)m.realIsp) * ((double)(decimal)m.requestedMassFlow) * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
                             currentGeeForce = Math.Max(currentGeeForce, totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY);
                         }
                     }
@@ -1788,9 +1796,7 @@ namespace FNPlugin.Reactors
 
                     if (requestedPropellantMassPerSecond > 0)
                     {
-                        //hydrogenProductionRequest = requestedPropellantMassPerSecond * 1000;
-                        var resultFixed = part.RequestResource(hydrogenDefinition.name, -requestedPropellantMassPerSecond * timeWarpFixedDeltaTime / (double)(decimal)hydrogenDefinition.density, ResourceFlowMode.ALL_VESSEL);
-                        //hydrogenProductionReceived = -1000 * (double)(decimal)hydrogenDefinition.density * resultFixed / (double)(decimal)TimeWarp.fixedDeltaTime;
+                        var resultFixed = part.RequestResource(hydrogenDefinition.name, -requestedPropellantMassPerSecond * timeWarpFixedDeltaTime / ((double)(decimal)hydrogenDefinition.density), ResourceFlowMode.ALL_VESSEL);
                         requestedPropellantMassPerSecond = 0;
                     }
 
@@ -2016,7 +2022,7 @@ namespace FNPlugin.Reactors
 
             // calculate current maximum litlium consumption
             var breedRate = CurrentFuelMode.TritiumBreedModifier * staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * Math.Sqrt(ratioLithium6);
-            var lithRate = breedRate / (double)(decimal)lithium6_def.density;
+            var lithRate = breedRate / lithium6_density;
 
             // get spare room tritium
             var spareRoomTritiumAmount = part.GetResourceSpareCapacity(tritium_def);
@@ -2549,10 +2555,10 @@ namespace FNPlugin.Reactors
                     {
                         PrintToGUILayout("Fuel Neutron Breed Rate", 100 * CurrentFuelMode.NeutronsRatio + "% ", bold_style, text_style);
 
-                        var tritiumKgDay = tritium_produced_per_second * (double)(decimal)tritium_def.density * 1000 * PluginHelper.SecondsInDay;
+                        var tritiumKgDay = tritium_produced_per_second * tritium_density * 1000 * PluginHelper.SecondsInDay;
                         PrintToGUILayout("Tritium Breed Rate", tritiumKgDay.ToString("0.000000") + " kg/day ", bold_style, text_style);
 
-                        var heliumKgDay = helium_produced_per_second * (double)(decimal)helium_def.density * 1000 * PluginHelper.SecondsInDay;
+                        var heliumKgDay = helium_produced_per_second * helium4_density * 1000 * PluginHelper.SecondsInDay;
                         PrintToGUILayout("Helium Breed Rate", heliumKgDay.ToString("0.000000") + " kg/day ", bold_style, text_style);
 
                         double totalLithium6Amount;
@@ -2589,8 +2595,8 @@ namespace FNPlugin.Reactors
                         double totalTritiumMaxAmount;
                         part.GetConnectedResourceTotals(tritium_def.id, out totalTritiumAmount, out totalTritiumMaxAmount);
 
-                        var massTritiumAmount = totalTritiumAmount * (double)(decimal)tritium_def.density * 1000;
-                        var massTritiumMaxAmount = totalTritiumMaxAmount * (double)(decimal)tritium_def.density * 1000;
+                        var massTritiumAmount = totalTritiumAmount * tritium_density * 1000;
+                        var massTritiumMaxAmount = totalTritiumMaxAmount * tritium_density * 1000;
 
                         PrintToGUILayout("Tritium Storage", massTritiumAmount.ToString("0.000000") + " kg / " + massTritiumMaxAmount.ToString("0.000000") + " kg", bold_style, text_style);
 
@@ -2598,8 +2604,8 @@ namespace FNPlugin.Reactors
                         double totalHeliumMaxAmount;
                         part.GetConnectedResourceTotals(helium_def.id, out totalHeliumAmount, out totalHeliumMaxAmount);
 
-                        var massHeliumAmount = totalHeliumAmount * (double)(decimal)helium_def.density * 1000;
-                        var massHeliumMaxAmount = totalHeliumMaxAmount * (double)(decimal)helium_def.density * 1000;
+                        var massHeliumAmount = totalHeliumAmount * helium4_density * 1000;
+                        var massHeliumMaxAmount = totalHeliumMaxAmount * helium4_density * 1000;
 
                         PrintToGUILayout("Helium Storage", massHeliumAmount.ToString("0.000000") + " kg / " + massHeliumMaxAmount.ToString("0.000000") + " kg", bold_style, text_style);
                     }
