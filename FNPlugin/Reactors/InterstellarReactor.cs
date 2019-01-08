@@ -1342,7 +1342,7 @@ namespace FNPlugin.Reactors
 
             tritium_density = (double)(decimal)tritium_def.density;
             helium4_density = (double)(decimal)helium_def.density;
-            lithium6_density = (double)(decimal)lithium6_def.density);
+            lithium6_density = (double)(decimal)lithium6_def.density;
 
             tritiumBreedingMassAdjustment = tritium_molar_mass_ratio * lithium6_density/ tritium_density;
             heliumBreedingMassAdjustment = helium_molar_mass_ratio * lithium6_density / helium4_density;
