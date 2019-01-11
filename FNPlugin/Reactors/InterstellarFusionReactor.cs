@@ -22,6 +22,12 @@ namespace FNPlugin.Reactors
         public bool powerIsAffectedByLithium = true;
 
         [KSPField]
+        public double minimumLithiumModifier = 0.001;
+        [KSPField]
+        public double maximumLithiumModifier = 1;
+        [KSPField]
+        public double lithiumModifierExponent = 0.5;
+        [KSPField]
         public double maximumChargedIspMult = 100;
         [KSPField]
         public double minimumChargdIspMult = 1;
@@ -55,7 +61,15 @@ namespace FNPlugin.Reactors
 
         public double MinimumChargdIspMult { get { return minimumChargdIspMult; } }
 
-        public override double StableMaximumReactorPower { get { return base.StableMaximumReactorPower * lithium_modifier; } }
+        public override double StableMaximumReactorPower 
+        { 
+            get 
+            {
+                var stablePower = base.StableMaximumReactorPower;
+
+                return stablePower * ChargedPowerRatio + stablePower * ThermalPowerRatio * lithium_modifier;
+            } 
+        }
 
         public virtual double PlasmaModifier
         {
@@ -70,11 +84,10 @@ namespace FNPlugin.Reactors
         {
             get
             {
-                var modifier = CheatOptions.InfinitePropellant || !powerIsAffectedByLithium ? 1
+                var modifier = CheatOptions.InfinitePropellant || !powerIsAffectedByLithium || minimumLithiumModifier == 1 ? 1
                     : totalAmountLithium > 0
-                        ? Math.Sqrt(totalAmountLithium / totalMaxAmountLithium)
-                        : 0.001;
-
+                        ? Math.Min(maximumLithiumModifier, Math.Max(minimumLithiumModifier, Math.Pow(totalAmountLithium / totalMaxAmountLithium, lithiumModifierExponent)))
+                        : minimumLithiumModifier;
 
                 return modifier;
             }
