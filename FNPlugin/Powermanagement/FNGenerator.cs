@@ -156,7 +156,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxTheoreticalPower", guiFormat = "F3")]
         public string maximumTheoreticalPower;
         [KSPField]
-        public double coreTemperateHotBathExponent = 0.75;
+        public double coreTemperateHotBathExponent = 0.7;
         [KSPField]
         public double capacityToMassExponent = 0.7;
 
@@ -851,7 +851,7 @@ namespace FNPlugin
 
                 hotBathTemp = applies_balance || !isMHD
                     ? attachedPowerSource.HotBathTemperature 
-                    : attachedPowerSource.SupportMHD 
+                    : attachedPowerSource.SupportMHD
                         ? plasmaTemperature
                         : plasmaTemperature * chargedPowerModifier + (1 - chargedPowerModifier) * attachedPowerSource.HotBathTemperature;	// for fusion reactors connected to MHD
 
