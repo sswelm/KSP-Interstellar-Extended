@@ -23,7 +23,6 @@ namespace InterstellarFuelSwitch
         public string mapNames = string.Empty;
         [KSPField]
         public string textureDisplayNames = "Default";
-
         [KSPField]
         public string statusText = "Current Texture";
 
@@ -35,7 +34,6 @@ namespace InterstellarFuelSwitch
         public string switcherDescription = "#LOC_IFS_TextureSwitch_TextureName";
         [KSPField]
         public bool hasSwitchChooseOption = true;
-
         [KSPField(isPersistant = true)]
         public string selectedMapURL = string.Empty;
         [KSPField]
@@ -407,6 +405,12 @@ namespace InterstellarFuelSwitch
                 {
                     useFuelSwitchModule = false;
                     debug.debugMessage("no InterstellarFuelSwitch module found, despite useFuelSwitchModule being true");
+                }
+                else
+                {
+                    var matchingObject = fuelSwitch.FindMatchingConfig();
+                    if (matchingObject >= 0)
+                        selectedTexture = matchingObject;
                 }
             }
             initialized = true;
