@@ -440,9 +440,10 @@ namespace PhotonSail
                 powerSupply.DisplayName = "started";
 
             diameter = Math.Sqrt(surfaceArea);
-            frontPhotovotalicRatio = frontPhotovoltaicArea / surfaceArea;
-            backPhotovotalicRatio = backPhotovoltaicArea / surfaceArea;
-            doorPhotovotalicRatio = doorsPhotovoltaicArea / surfaceArea;
+
+            frontPhotovotalicRatio = surfaceArea > 0 ? frontPhotovoltaicArea / surfaceArea : 0;
+            backPhotovotalicRatio = surfaceArea > 0 ? backPhotovoltaicArea / surfaceArea : 0;
+            doorPhotovotalicRatio = surfaceArea > 0 ? doorsPhotovoltaicArea / surfaceArea : 0;
 
             if (animName != null)
             {
@@ -499,11 +500,12 @@ namespace PhotonSail
 
         private void InitializeMassVariables()
         {
-            initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
+            double prefabMass = (double)(decimal)part.prefabMass;
+            initialMass = prefabMass * storedMassMultiplier;
             if (initialMass == 0)
             {
                 initialMass = (double)(decimal)part.mass;
-                storedMassMultiplier = initialMass / (double)(decimal)part.prefabMass;
+                storedMassMultiplier = prefabMass > 0 ? initialMass / prefabMass : 0;
             }
         }
 
@@ -890,10 +892,11 @@ namespace PhotonSail
                 var beamAngleKscToVesselInDegree = Vector3d.Angle(centerOfHomeworld - positionKscLaser, centerOfHomeworld - positionVessel);
 
                 kscLaserElevationAngle = 90 - beamAngleKscToCenterInDegree - beamAngleKscToVesselInDegree;
-                var kscAtmosphereMultiplier = 1 / (Math.Sin(kscLaserElevationAngle * (double)(decimal)Mathf.Deg2Rad));
+                var kscLaserElevationAngleInRadian = (Math.Sin(kscLaserElevationAngle * (double)(decimal)Mathf.Deg2Rad));
+                var kscAtmosphereMultiplier = kscLaserElevationAngleInRadian > 0 ? 1 / kscLaserElevationAngleInRadian : 0;
                 var kscAtmosphereAbsorbtionEfficiency = Math.Max(0, 1 - kscAtmosphereMultiplier * kscAtmosphereAbsorbtionRatio);
 
-                var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature
+                var surfaceKscEnergy = CheatOptions.IgnoreMaxTemperature || kscPhotonReflection == 1 
                     ? kscLaserPowerInWatt
                     : Math.Min(kscLaserPowerInWatt, Math.Max(0, (maxSailHeatDissipationInWatt - receivedHeatInWatt - dragHeatInJoule) / (1 - kscPhotonReflection)));
 
@@ -915,8 +918,8 @@ namespace PhotonSail
                     var centralSpotSize = labdaSpotSize * kscCentralSpotsizeMult;
                     var sideSpotSize = labdaSpotSize * kscSideSpotsizeMult;
 
-                    var centralSpotsizeRatio = Math.Min(1, effectiveDiameter / centralSpotSize);
-                    var sideSpotsizeRatio = Math.Min(1, effectiveDiameter / sideSpotSize);
+                    var centralSpotsizeRatio = centralSpotSize > 0 ? Math.Min(1, effectiveDiameter / centralSpotSize) : 1;
+                    var sideSpotsizeRatio = sideSpotSize > 0 ? Math.Min(1, effectiveDiameter / sideSpotSize) : 1;
                     var sideSpotsizeToFourthPowerRatio = sideSpotsizeRatio * sideSpotsizeRatio * sideSpotsizeRatio * sideSpotsizeRatio;
 
                     var throtledPower = availableBeamedKscEnergy * beamedPowerThrottleRatio;
@@ -945,6 +948,9 @@ namespace PhotonSail
                 var effect = Math.Ceiling(10 * Math.Pow(ray.energyInGigaWatt, 0.35));
                 var effectCount = (int)effect;
 
+                if (effect == 0)
+                    continue;
+
                 for (int i = 0; i < effectCount; i++)
                 {
                     if (beamCounter < animatedRays)
@@ -968,12 +974,14 @@ namespace PhotonSail
             currentSailHeatingInMegajoules = beamPowerWasteheatInMegaJoules + solarfluxWasteheatInMegaJoules + dragHeatInMegajoule;
             dissipationInMegaJoules = GetBlackBodyDissipation(currentSurfaceArea, Math.Max(0, part.skinTemperature - externalTemperature)) * 1e-6;
 
-            if (currentSurfaceArea > 0)
+            if (currentSurfaceArea > 0 && thermalMassPerKilogram > 0)
             {
                 sailHeatDissipationTemperature = Math.Pow(currentSailHeatingInMegajoules * 1e+6 / currentSurfaceArea / PhysicsGlobals.StefanBoltzmanConstant, 0.25);
 
                 var relaxedSailHeatingInMegajoules = updateCounter > 10 ? currentSailHeatingInMegajoules : currentSailHeatingInMegajoules * (updateCounter * 0.1);
-                var temperatureChange = (relaxedSailHeatingInMegajoules - dissipationInMegaJoules) / thermalMassPerKilogram;
+
+                var temperatureChange = (relaxedSailHeatingInMegajoules - dissipationInMegaJoules) / thermalMassPerKilogram; 
+
                 var modifiedTemperature = part.skinTemperature + temperatureChange;
 
                 if (part.skinTemperature < sailHeatDissipationTemperature)
@@ -983,7 +991,7 @@ namespace PhotonSail
             }
 
             //part.AddThermalFlux
-            //part.AddSkinThermalFlux			
+            //part.AddSkinThermalFlux
         }
 
         private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)
@@ -1016,19 +1024,20 @@ namespace PhotonSail
         {
             atmosphericGasKgPerSquareMeter = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel);
 
-            var specularRatio = Math.Max(0, Math.Min(1, part.skinTemperature / part.skinMaxTemp));
+            var specularRatio = part.skinMaxTemp > 0 ? Math.Max(0, Math.Min(1, part.skinTemperature / part.skinMaxTemp)) : 1;
             var diffuseRatio = 1 - specularRatio;
+
             var maximumDragCoefficient = 4 * specularRatio + 3.3 * diffuseRatio;
-            var normalizedOrbitalVelocity = part.vessel.obt_velocity.normalized;
-            var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, normalizedOrbitalVelocity);
+            Vector3d normalizedOrbitalVector = part.vessel.obt_velocity.normalized;
+            var cosOrbitRaw = Vector3d.Dot(this.part.transform.up, normalizedOrbitalVector);
             var cosObitalDrag = Math.Abs(cosOrbitRaw);
             var squaredCosOrbitalDrag = cosObitalDrag * cosObitalDrag;
-            var siderealSpeed = 2 * vessel.mainBody.Radius * Math.PI / vessel.mainBody.rotationPeriod;
-            var effectiveSurfaceArea = cosObitalDrag * currentSurfaceArea * (IsEnabled ? 1 : 0);
 
-            var highAltitudeDistance = Math.Min(1, vessel.altitude / vessel.mainBody.atmosphereDepth);
-            var highAtmosphereModifier = highAltitudeDistance * highAltitudeDistance * highAltitudeDistance;
-            var lowOrbitModifier = Math.Min(1, vessel.mainBody.atmosphereDepth / vessel.altitude);
+            var siderealSpeed = vessel.mainBody.rotationPeriod > 0 ? 2 * vessel.mainBody.Radius * Math.PI / vessel.mainBody.rotationPeriod : 0;
+            var effectiveSurfaceArea = cosObitalDrag * currentSurfaceArea * (IsEnabled ? 1 : 0);
+            var highAltitudeDistance = vessel.mainBody.atmosphereDepth > 0 ? Math.Min(1, vessel.altitude / vessel.mainBody.atmosphereDepth) : 1;
+            var lowOrbitModifier =  vessel.altitude > 0 ? Math.Min(1, vessel.mainBody.atmosphereDepth / vessel.altitude) : 1;
+
             var highOrbitModifier = Math.Sqrt(1 - lowOrbitModifier);
             var effectiveSpeedForDrag = Math.Max(0, vessel.obt_speed - siderealSpeed * lowOrbitModifier);
             var dragForcePerSquareMeter = atmosphericGasKgPerSquareMeter * 0.5 * effectiveSpeedForDrag * effectiveSpeedForDrag;
@@ -1043,19 +1052,21 @@ namespace PhotonSail
             var specularDragPerSquareMeter = specularDragCoefficient * dragForcePerSquareMeter * specularRatio;
             var specularDragInNewton = specularDragPerSquareMeter * effectiveSurfaceArea;
             specularSailDragInNewton = (float)specularDragInNewton;
-            var specularDragForce = specularDragInNewton * partNormal;
+            Vector3d specularDragForce = specularDragInNewton * partNormal;
 
             // calculate Diffuse Drag
             var diffuseDragCoefficient = 1 + highOrbitModifier + squaredCosOrbitalDrag * 1.3 * highOrbitModifier;
             var diffuseDragPerSquareMeter = diffuseDragCoefficient * dragForcePerSquareMeter * diffuseRatio;
             var diffuseDragInNewton = diffuseDragPerSquareMeter * effectiveSurfaceArea;
             diffuseSailDragInNewton = (float)diffuseDragInNewton;
-            var diffuseDragForce = diffuseDragInNewton * normalizedOrbitalVelocity;
+            Vector3d diffuseDragForceVector = diffuseDragInNewton * normalizedOrbitalVector;
 
-            var combinedDragDeceleration = (specularDragForce + diffuseDragForce) / vesselMassInKg;
+            Vector3d combinedDragDecelerationVector = vesselMassInKg > 0 ? (specularDragForce + diffuseDragForceVector) / vesselMassInKg : Vector3d.zero;
 
             // apply drag to vessel
-            ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * combinedDragDeceleration * (double)(decimal)TimeWarp.fixedDeltaTime);
+            var highAtmosphereModifier = highAltitudeDistance * highAltitudeDistance * highAltitudeDistance;
+
+            ChangeVesselVelocity(this.vessel, universalTime, highAtmosphereModifier * combinedDragDecelerationVector * (double)(decimal)TimeWarp.fixedDeltaTime);
 
             weightedDragCoefficient = specularDragCoefficient * specularRatio + diffuseDragCoefficient * diffuseRatio;
 
@@ -1080,7 +1091,7 @@ namespace PhotonSail
 
         private double GenerateForce(double photonReflectionRatio, double photovoltaicEffiency, ref double receivedHeatInWatt, ref Vector3d positionPowerSource, ref Vector3d positionVessel, double availableEnergyInWatt, double universalTime, double vesselMassInKg, bool isSun = true, double beamspotsize = 1)
         {
-            // calculate vector between vessel and star/transmitter
+            // calculate vector between vessel and star transmitter
             Vector3d powerSourceToVesselVector = positionVessel - positionPowerSource;
 
             // take part vector 
@@ -1154,12 +1165,19 @@ namespace PhotonSail
             if (!isSun && sailSurfaceModifier > 0 && beamedPowerThrottle > 0)
             {
                 var availableEnergyInGigaWatt = availableEnergyInWatt * 1e-9;
-                var ray = beamRays.FirstOrDefault(m => Math.Abs(m.cosConeAngle - cosConeAngle) < 0.0001);
+                BeamRay ray = beamRays.FirstOrDefault(m => Math.Abs(m.cosConeAngle - cosConeAngle) < 0.0001);
 
                 if (ray != null)
                 {
                     var totalEnergy = ray.energyInGigaWatt + availableEnergyInGigaWatt;
-                    ray.spotsize = (ray.spotsize * (ray.energyInGigaWatt / totalEnergy)) + (beamspotsize * (availableEnergyInGigaWatt / totalEnergy));
+
+                    if (totalEnergy > 0)
+                    {
+                        ray.spotsize = totalEnergy > 0
+                            ? (ray.spotsize * (ray.energyInGigaWatt / totalEnergy)) + (beamspotsize * (availableEnergyInGigaWatt / totalEnergy)) 
+                            : 0;
+                    }
+
                     ray.energyInGigaWatt = totalEnergy;
                 }
                 else
@@ -1202,22 +1220,22 @@ namespace PhotonSail
             var totalEmissivity = absorbedPhotonsRatio + backsideEmissivity;
 
             // calculate percentage of energy leaving through the receiving side, accelerating the vessel
-            var pushDissipationRatio = absorbedPhotonsRatio / totalEmissivity;
-
-            // calculate equlibrium drag force from dissipation at back side
-            var dissipationPushForceVector = partNormal * absorbedPhotonForce * pushDissipationRatio;
+            var pushDissipationRatio = totalEmissivity > 0 ? Math.Min(0, absorbedPhotonsRatio / totalEmissivity) : 0;
 
             // calculate percentage of energy leaving through the backside, decelerating the vessel
-            var dragDissipationRatio = backsideEmissivity / totalEmissivity;
+            var dragDissipationRatio = totalEmissivity > 0 ? Math.Min(0, backsideEmissivity / totalEmissivity) : 0;
 
             // calculate equlibrium drag force from dissipation at back side
             var dissipationDragForceVector = -partNormal * absorbedPhotonForce * dragDissipationRatio;
 
+            // calculate equlibrium drag force from dissipation at back side
+            var dissipationPushForceVector = partNormal * absorbedPhotonForce * pushDissipationRatio;
+
             // calculate sum of all force vectors
-            var totalForceVector = reflectedPhotonForceVector + absorbedPhotonForceVector + dissipationPushForceVector + dissipationDragForceVector;
+            Vector3d totalForceVector = reflectedPhotonForceVector + absorbedPhotonForceVector + dissipationPushForceVector + dissipationDragForceVector;
 
             // caclculate acceleration
-            var totalAccelerationVector = totalForceVector / vesselMassInKg;
+            var totalAccelerationVector = vesselMassInKg > 0 ? totalForceVector / vesselMassInKg: Vector3d.zero;
 
             // all force
             ChangeVesselVelocity(this.vessel, universalTime, totalAccelerationVector * (double)(decimal)TimeWarp.fixedDeltaTime);
