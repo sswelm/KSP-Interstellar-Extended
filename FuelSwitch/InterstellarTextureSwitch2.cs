@@ -12,7 +12,7 @@ namespace InterstellarFuelSwitch
     public class InterstellarTextureSwitch2 : PartModule
     {
         [KSPField]
-        public int moduleID = 0;
+        public string moduleID = "0";
         [KSPField]
         public string textureRootFolder = string.Empty;
         [KSPField]

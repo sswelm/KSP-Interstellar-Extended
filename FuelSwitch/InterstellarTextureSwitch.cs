@@ -42,7 +42,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string displayName = "Texture switcher";
         [KSPField]
-        public int moduleID = 0;
+        public string moduleID = "0";
         [KSPField(isPersistant = true)]
         public int selectedTexture = 0;
         [KSPField(isPersistant = true)]

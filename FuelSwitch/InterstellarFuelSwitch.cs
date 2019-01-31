@@ -74,6 +74,8 @@ namespace InterstellarFuelSwitch
 
         // Config properties
         [KSPField]
+        public string moduleID = "0";
+        [KSPField]
         public string tankId = string.Empty;
         [KSPField]
         public string resourceGui = string.Empty;

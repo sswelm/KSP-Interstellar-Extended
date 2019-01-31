@@ -20,7 +20,7 @@ namespace InterstellarFuelSwitch
     public class InterstellarMeshSwitch : PartModule 
     {
         [KSPField]
-        public int moduleID = 0;
+        public string moduleID = "0";
         [KSPField]
         public string switcherDescription = "#LOC_IFS_MeshSwitch_MeshName";
         [KSPField]
