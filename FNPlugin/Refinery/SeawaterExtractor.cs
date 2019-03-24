@@ -25,7 +25,7 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Ocean Extraction"; } }
 
-        public bool HasActivityRequirements { get {  return IsThereAnyLiquid();  } }
+        public bool HasActivityRequirements() { return IsThereAnyLiquid();  }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
@@ -55,8 +55,8 @@ namespace FNPlugin.Refinery
         // variables for the ExtractSeawater function
         double currentResourceProductionRate;
         // end of variables for the ExtractSeawater function
-        
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double timeDifference)
+
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModifier, bool allowOverflow, double timeDifference, bool isStartup = false)
         {
             ExtractSeawater(rateMultiplier, powerFraction, productionModifier, allowOverflow, timeDifference, false);
 

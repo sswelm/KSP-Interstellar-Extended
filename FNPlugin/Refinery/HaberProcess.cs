@@ -27,11 +27,11 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
-        public string ActivityName { get { return "Haber Process (Ammonia Production)"; } }
+        public string ActivityName { get { return "Haber Process: H<size=7>2</size> + N<size=7>2</size> => NH<size=7>3</size> (Ammonia) "; } }
 
-        public bool HasActivityRequirements 
+        public bool HasActivityRequirements ()
         {
-            get { return HasAccessToHydrogen() && HasAccessToNitrogen() && HasSpareCapacityAmmonia(); } 
+            return HasAccessToHydrogen() & HasAccessToNitrogen() & HasSpareCapacityAmmonia();  
         }
 
         private bool HasAccessToHydrogen()
@@ -75,15 +75,14 @@ namespace FNPlugin.Refinery
             nitrogen_density = (double)(decimal)definition_nitrogen.density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double powerModifier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double powerModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _effectiveMaxPowerRequirements = PowerRequirements * powerModifier;
             _current_power = powerFraction * _effectiveMaxPowerRequirements;
-
             _current_rate = CurrentPower / PluginHelper.HaberProcessEnergyPerTon;
 
             var hydrogen_rate = _current_rate * GameConstants.ammoniaHydrogenFractionByMass;
-            var nitrogen_rate = _current_rate * 1 - GameConstants.ammoniaHydrogenFractionByMass;
+            var nitrogen_rate = _current_rate * (1 - GameConstants.ammoniaHydrogenFractionByMass);
 
             var required_hydrogen = hydrogen_rate * fixedDeltaTime / hydrogen_density;
             var required_nitrogen = nitrogen_rate * fixedDeltaTime / nitrogen_density;
@@ -104,7 +103,18 @@ namespace FNPlugin.Refinery
             var consumedRatio = Math.Min(consumed_ratio_hydrogen, consumed_ratio_nitrogen);
 
             if (consumedRatio > 0)
-                _ammonia_production_rate = -_part.RequestResource(definition_ammonia.id, -consumedRatio * max_production_ammonia, ResourceFlowMode.ALL_VESSEL) * ammonia_density / fixedDeltaTime;
+            {
+                var ammonia_production = -consumedRatio * max_production_ammonia;
+                var ammonia_produced = -_part.RequestResource(definition_ammonia.id, ammonia_production, ResourceFlowMode.ALL_VESSEL);
+                _ammonia_production_rate = ammonia_produced * ammonia_density / fixedDeltaTime;
+
+                if (isStartup)
+                {
+                    string message = "produced: " + (ammonia_produced * ammonia_density * 1000).ToString("0.000") + " kg Ammonia";
+                    Debug.Log("[KSPI] - " + message);
+                    ScreenMessages.PostScreenMessage(message, 20, ScreenMessageStyle.LOWER_CENTER);
+                }
+            }
             
             updateStatusMessage();
         }
@@ -119,37 +129,37 @@ namespace FNPlugin.Refinery
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Current Rate ", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Current Rate:", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(_current_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Nitrogen Available", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((availalble_nitrogen * nitrogen_density).ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Nitrogen Available:", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((availalble_nitrogen * nitrogen_density * 1000).ToString("0.0000") + " kg", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Nitrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Nitrogen Consumption Rate:", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(_nitrogen_consumption_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Available", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((availalble_hydrogen * hydrogen_density).ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Hydrogen Available:", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((availalble_hydrogen * hydrogen_density * 1000).ToString("0.0000") + " kg", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Hydrogen Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Hydrogen Consumption Rate:", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(_hydrogen_consumption_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Ammonia Spare Capacity", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label((spare_capacity_ammonia * ammonia_density).ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label("Ammonia Spare Capacity:", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label((spare_capacity_ammonia * ammonia_density * 1000).ToString("0.0000") + " kg", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Ammonia Production Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Ammonia Production Rate:", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label(_ammonia_production_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
         }

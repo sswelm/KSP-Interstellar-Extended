@@ -54,12 +54,9 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Regolith Process"; } }
 
-        public bool HasActivityRequirements
+        public bool HasActivityRequirements()
         {
-            get
-            {
-                return _part.GetConnectedResources(strRegolithResourceName).Any(rs => rs.amount > 0);
-            }
+            return _part.GetConnectedResources(strRegolithResourceName).Any(rs => rs.amount > 0);
         }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
@@ -146,7 +143,7 @@ namespace FNPlugin.Refinery
             return collectorsList.Where(m => m.bIsEnabled).Sum(m => m.resourceProduction);
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             dFixedDeltaTime = fixedDeltaTime;
             _effectiveMaxPower = PowerRequirements * productionModidier;

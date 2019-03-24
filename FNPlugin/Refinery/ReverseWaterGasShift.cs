@@ -47,12 +47,9 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Reverse Water Gas Shift"; } }
 
-        public bool HasActivityRequirements 
+        public bool HasActivityRequirements ()
         {
-            get 
-            {
                 return _part.GetConnectedResources(_dioxideResourceName).Any(rs => rs.amount > 0) && _part.GetConnectedResources(_hydrogenResourceName).Any(rs => rs.amount > 0); 
-            } 
         }
 
         public double PowerRequirements { get { return PluginHelper.BaseHaberProcessPowerConsumption * 5; } }
@@ -75,7 +72,7 @@ namespace FNPlugin.Refinery
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _allowOverflow = allowOverflow;
             

@@ -36,15 +36,12 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
-        public String ActivityName { get { return "Anthraquinone Process (HTP production)"; } }
+        public String ActivityName { get { return "Anthraquinone Process: H<size=7>2</size> + O<size=7>2</size> => H<size=7>2</size>O<size=7>2</size> (HTP) "; } }
 
-        public bool HasActivityRequirements 
-        { 
-            get 
-            {
-                return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0) &&
-                    _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0); 
-            } 
+        public bool HasActivityRequirements()
+        {
+            return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0) &
+                _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0);
         }
 
         public double PowerRequirements { get { return PluginHelper.BaseAnthraquiononePowerConsumption; } }
@@ -65,7 +62,7 @@ namespace FNPlugin.Refinery
             _hydrogen_peroxide_density = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.HydrogenPeroxide).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _effectiveMaxPower = PowerRequirements * productionModidier;
 
@@ -176,7 +173,8 @@ namespace FNPlugin.Refinery
                 _status = "Insufficient Storage";
         }
 
-        public void PrintMissingResources() {
+        public void PrintMissingResources() 
+        {
             if (! _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Hydrogen).Any(rs => rs.amount > 0) )
                 ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Hydrogen, 3.0f, ScreenMessageStyle.UPPER_CENTER);
             if (!_part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.LqdOxygen).Any(rs => rs.amount > 0) )

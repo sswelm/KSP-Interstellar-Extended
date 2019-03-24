@@ -46,21 +46,17 @@ namespace FNPlugin.Refinery
      
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
-        public String ActivityName { get { return "Sabatier Process"; } }
+        public String ActivityName { get { return "Sabatier Process: CO<size=7>2</size> + H<size=7>2</size> => O<size=7>2</size> + CH<size=7>4</size> (Methane)"; } }
 
-        public bool HasActivityRequirements {
-            get
-            {
-                return _part.GetConnectedResources(_hydrogen_resource_name).Any(rs => rs.amount > 0) &&
-                    _part.GetConnectedResources(_carbondioxide_resource_name).Any(rs => rs.amount > 0);
-            }
+        public bool HasActivityRequirements()
+        {
+            return _part.GetConnectedResources(_hydrogen_resource_name).Any(rs => rs.amount > 0) &
+                _part.GetConnectedResources(_carbondioxide_resource_name).Any(rs => rs.amount > 0);
         }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
         public String Status { get { return String.Copy(_status); } }
-
-
 
         public void Initialize(Part part)
         {
@@ -80,7 +76,7 @@ namespace FNPlugin.Refinery
 
 
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon; //* _vessel.atmDensity;
@@ -160,7 +156,7 @@ namespace FNPlugin.Refinery
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Carbon Dioxid Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label("Carbon Dioxide Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
             GUILayout.Label((_carbondioxide_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.000") + " mT/hour", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 

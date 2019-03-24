@@ -42,12 +42,9 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Solar Wind Process"; } }
 
-        public bool HasActivityRequirements 
+        public bool HasActivityRequirements ()
         {
-            get
-            {
-                return _part.GetConnectedResources(_solar_wind_resource_name).Any(rs => rs.maxAmount > 0);
-            }
+           return _part.GetConnectedResources(_solar_wind_resource_name).Any(rs => rs.maxAmount > 0);
         }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
@@ -109,7 +106,7 @@ namespace FNPlugin.Refinery
         protected double _nitrogenMassByFraction  = 0.04173108;
         protected double _neonMassByFraction      = 0.06012;
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;

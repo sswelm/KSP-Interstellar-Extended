@@ -20,13 +20,10 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Uranium Tetraflouride Ammonolysis"; } }
 
-        public bool HasActivityRequirements 
-        { 
-            get 
-            {
-                    return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride)
-                        .Any(rs => rs.amount > 0) && _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0);
-            } 
+        public bool HasActivityRequirements()
+        {
+            return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.UraniumTetraflouride)
+                .Any(rs => rs.amount > 0) && _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0);
         }
 
         public double PowerRequirements { get { return PluginHelper.BaseUraniumAmmonolysisPowerConsumption; } }
@@ -42,7 +39,7 @@ namespace FNPlugin.Refinery
             _uranium_nitride_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.UraniumNitride).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_rate = CurrentPower * GameConstants.baseUraniumAmmonolysisRate;

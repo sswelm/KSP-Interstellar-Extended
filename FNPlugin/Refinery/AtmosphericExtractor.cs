@@ -205,13 +205,10 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Atmospheric Extraction"; } }
 
-        public bool HasActivityRequirements
+        public bool HasActivityRequirements()
         {
-            get
-            {
                 //return _vessel.atmDensity > 0 ||  _part.GetConnectedResources(_atmosphere_resource_name).Any(rs => rs.amount > 0);
                 return true;
-            }
         }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
@@ -351,7 +348,7 @@ namespace FNPlugin.Refinery
 
         List<AtmosphericIntake> _intakesList; // create a new list for keeping track of atmo intakes
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             ExtractAir(rateMultiplier, powerFraction, productionModidier, allowOverflow, fixedDeltaTime, false);
 

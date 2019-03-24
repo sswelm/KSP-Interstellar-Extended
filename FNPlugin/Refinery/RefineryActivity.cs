@@ -59,19 +59,18 @@ namespace FNPlugin.Refinery
 
         double CurrentPower { get; }
 
-        bool HasActivityRequirements { get; }
+        bool HasActivityRequirements();
 
         double PowerRequirements { get; }
 
         String Status { get; }
 
-        void UpdateFrame(double rateMultiplier, double powerFraction,  double powerModidier, bool allowOverfow, double fixedDeltaTime);
+        void UpdateFrame(double rateMultiplier, double powerFraction,  double powerModidier, bool allowOverfow, double fixedDeltaTime, bool isStartup = false);
 
         void UpdateGUI();
 
         void PrintMissingResources();
 
         void Initialize(Part part);
-
     }
 }

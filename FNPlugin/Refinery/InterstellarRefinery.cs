@@ -8,16 +8,18 @@ namespace FNPlugin.Refinery
     [KSPModule("ISRU Refinery")]
     class InterstellarRefineryController : PartModule
     {
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = false)]
         protected bool refinery_is_enabled;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = false)]
         protected bool lastOverflowSettings;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = false)]
         protected double lastActiveTime;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = false)]
         protected double lastPowerRatio;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Current")]
         protected string lastActivityName = "";
+        [KSPField(isPersistant = true, guiActive = false)]
+        protected string lastClassName = "";
 
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Refinery Type")]
         public int refineryType = 255;
@@ -156,24 +158,40 @@ namespace FNPlugin.Refinery
             // load same 
             if (refinery_is_enabled && !string.IsNullOrEmpty(lastActivityName))
             {
+                Debug.Log("[KSPI] - ISRU Refinery looking to restart " + lastActivityName);
                 _current_activity = _refinery_activities.FirstOrDefault(a => a.ActivityName == lastActivityName);
+
+                if (_current_activity == null)
+                {
+                    Debug.Log("[KSPI] - ISRU Refinery looking to restart " + lastClassName);
+                    _current_activity = _refinery_activities.FirstOrDefault(a => a.GetType().Name == lastClassName);
+                }
             }
 
             if (_current_activity != null)
             {
-                var productionRate = lastPowerRatio * productionMult * baseProduction;
+                bool hasRequirement =_current_activity.HasActivityRequirements();
+                lastActivityName = _current_activity.ActivityName;
+
+                Debug.Log("[KSPI] - ISRU Refinery initializing " + lastActivityName + " for which hasRequirement: " + hasRequirement);
+
+                var productionModifier = productionMult * baseProduction;
 
                 var timeDifference = (Planetarium.GetUniversalTime() - lastActiveTime);
-                //string message = "[KSPI] - IRSU performed " + lastActivityName + " for " + timeDifference.ToString("0.0") + " seconds with production rate " + productionRate.ToString("0.0");
-                //Debug.Log(message);
-                //ScreenMessages.PostScreenMessage(message, 60.0f, ScreenMessageStyle.LOWER_CENTER);
+
+                if (timeDifference > 0.01)
+                {
+                    string message = "IRSU performed " + lastActivityName + " for " + timeDifference.ToString("0") + " seconds";
+                    Debug.Log("[KSPI] - "  + message);
+                    ScreenMessages.PostScreenMessage(message, 20, ScreenMessageStyle.LOWER_CENTER);
+                }
 
                 if (lastActivityName == "Atmospheric Extraction")
-                    ((AtmosphericExtractor)_current_activity).ExtractAir(productionRate, lastPowerRatio, productionMult * baseProduction, lastOverflowSettings, timeDifference, true);
+                    ((AtmosphericExtractor)_current_activity).ExtractAir(lastPowerRatio * productionModifier, lastPowerRatio, productionModifier, lastOverflowSettings, timeDifference, true);
                 else if (lastActivityName == "Seawater Extraction")
-                    ((SeawaterExtractor)_current_activity).ExtractSeawater(productionRate, lastPowerRatio, productionMult * baseProduction, lastOverflowSettings, timeDifference, true);
+                    ((SeawaterExtractor)_current_activity).ExtractSeawater(lastPowerRatio * productionModifier, lastPowerRatio, productionModifier, lastOverflowSettings, timeDifference, true);
                 else
-                    _current_activity.UpdateFrame(productionRate, lastPowerRatio, productionMult * baseProduction, lastOverflowSettings, timeDifference);
+                    _current_activity.UpdateFrame(lastPowerRatio * productionModifier, lastPowerRatio, productionModifier, lastOverflowSettings, timeDifference, true);
             }
 
         }
@@ -246,6 +264,7 @@ namespace FNPlugin.Refinery
             lastPowerRatio = power_ratio; // save the current power ratio in case the vessel is unloaded
             lastOverflowSettings = overflowAllowed; // save the current overflow settings in case the vessel is unloaded
             lastActivityName = _current_activity.ActivityName; // take the string with the name of the current activity, store it in persistent string
+            lastClassName = _current_activity.GetType().Name;
             lastActiveTime = Planetarium.GetUniversalTime();
         }
 
@@ -299,19 +318,18 @@ namespace FNPlugin.Refinery
                 _refinery_activities.ForEach(act => // per each activity (notice the end brackets are there, 13 lines below)
                 {
                     GUILayout.BeginHorizontal();
-                    bool hasRequirement = act.HasActivityRequirements; // if the requirements for the activity are fulfilled
+                    bool hasRequirement = act.HasActivityRequirements(); // if the requirements for the activity are fulfilled
                     GUIStyle guistyle = hasRequirement ? _enabled_button : _disabled_button; // either draw the enabled, bold button, or the disabled one
 
                     if (GUILayout.Button(act.ActivityName, guistyle, GUILayout.ExpandWidth(true))) // if user clicks the button and has requirements for the activity
                     {
-                        if(hasRequirement) { 
+                        if (hasRequirement)
+                        {
                             _current_activity = act; // the activity will be treated as the current activity
                             refinery_is_enabled = true; // refinery is now on
-                         }
-                        else
-                        {
-                            act.PrintMissingResources(); 
                         }
+                        else
+                            act.PrintMissingResources();
 
                     }
                     GUILayout.EndHorizontal();
@@ -319,6 +337,8 @@ namespace FNPlugin.Refinery
             }
             else
             {
+                bool hasRequirement = _current_activity.HasActivityRequirements();
+
                 // show button to enable/disable resource overflow
                 GUILayout.BeginHorizontal();
                 if (overflowAllowed)

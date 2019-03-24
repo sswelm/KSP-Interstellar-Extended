@@ -17,12 +17,9 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Nuclear Fuel Reprocessing"; } }
 
-        public bool HasActivityRequirements 
-        { 
-            get 
-            {
-                    return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Actinides).Any(rs => rs.amount < rs.maxAmount);
-            } 
+        public bool HasActivityRequirements()
+        {
+            return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Actinides).Any(rs => rs.amount < rs.maxAmount);
         }
 
         public double PowerRequirements { get { return PluginHelper.BasePowerConsumption; } }
@@ -35,7 +32,7 @@ namespace FNPlugin.Refinery
             _vessel = part.vessel;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime) 
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false) 
         {
             _current_power = PowerRequirements * rateMultiplier;
             List<INuclearFuelReprocessable> nuclear_reactors = _vessel.FindPartModulesImplementing<INuclearFuelReprocessable>();

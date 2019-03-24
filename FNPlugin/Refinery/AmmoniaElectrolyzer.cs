@@ -19,9 +19,9 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; ; } }
 
-        public String ActivityName { get { return "Ammonia Electrolysis"; } }
+        public String ActivityName { get { return "Ammonia Electrolysis: NH<size=7>3</size> => N<size=7>2</size> + H<size=7>2</size>"; } }
 
-        public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0); } }
+        public bool HasActivityRequirements() { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Ammonia).Any(rs => rs.amount > 0);  }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
@@ -36,7 +36,7 @@ namespace FNPlugin.Refinery
             _hydrogen_density = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Hydrogen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _current_power = PowerRequirements * rateMultiplier;
             _current_mass_rate = (CurrentPower / PluginHelper.ElectrolysisEnergyPerTon) * 14.45;

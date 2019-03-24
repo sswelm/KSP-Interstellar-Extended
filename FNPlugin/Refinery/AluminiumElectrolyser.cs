@@ -18,9 +18,9 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 
-        public String ActivityName { get { return "Aluminium Electrolysis"; } }
+        public String ActivityName { get { return "Aliminium Electrolysis: Al<size=7>2</size>O<size=7>3</size> => O<size=7>2</size> + Al<size=7>2</size>"; } }
 
-        public bool HasActivityRequirements { get { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Alumina).Any(rs => rs.amount > 0); } }
+        public bool HasActivityRequirements() { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Alumina).Any(rs => rs.amount > 0);  }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
@@ -37,7 +37,7 @@ namespace FNPlugin.Refinery
             _oxygen_density = (double)(decimal)PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdOxygen).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double powerModifier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double powerModifier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _effectivePowerRequirements = powerModifier * PowerRequirements;
             _current_power = powerFraction * _effectivePowerRequirements;

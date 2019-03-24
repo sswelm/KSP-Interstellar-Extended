@@ -35,7 +35,7 @@ namespace FNPlugin.Refinery
 
         public String ActivityName { get { return "Heavy Water Electrolysis"; } }
 
-        public bool HasActivityRequirements {  get  {  return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HeavyWater).Any(rs => rs.amount > 0);  } }
+        public bool HasActivityRequirements() {  return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.HeavyWater).Any(rs => rs.amount > 0);   }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
@@ -51,7 +51,7 @@ namespace FNPlugin.Refinery
             _deuterium_density = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.LqdDeuterium).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             // determine how much mass we can produce at max
             _current_power = PowerRequirements * rateMultiplier;

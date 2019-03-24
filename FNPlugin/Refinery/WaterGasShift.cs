@@ -44,14 +44,11 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
-        public String ActivityName { get { return "Water Gas Shift"; } }
+        public String ActivityName { get { return "Water Gas Shift: H<size=7>2</size>0 + CO => CO<size=7>2</size> + H<size=7>2</size>"; } }
 
-        public bool HasActivityRequirements 
+        public bool HasActivityRequirements()
         {
-            get 
-            {
-                return _part.GetConnectedResources(_waterResourceName).Any(rs => rs.amount > 0) && _part.GetConnectedResources(_monoxideResourceName).Any(rs => rs.amount > 0); 
-            } 
+            return _part.GetConnectedResources(_waterResourceName).Any(rs => rs.amount > 0) && _part.GetConnectedResources(_monoxideResourceName).Any(rs => rs.amount > 0);
         }
 
         public double PowerRequirements { get { return PluginHelper.BaseHaberProcessPowerConsumption * 5; } }
@@ -74,7 +71,7 @@ namespace FNPlugin.Refinery
             _monoxide_density = PartResourceLibrary.Instance.GetDefinition(_monoxideResourceName).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _allowOverflow = allowOverflow;
             

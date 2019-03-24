@@ -44,16 +44,12 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
-        public String ActivityName { get { return "Peroxide Process"; } }
+        public String ActivityName { get { return "Peroxide Process: H<size=7>2</size>O<size=7>2</size> + NH<size=7>3</size> => H<size=7>2</size>O + N<size=7>2H<size=7>4</size> (Hydrazine)"; } }
 
-
-        public bool HasActivityRequirements 
-        { 
-            get 
-            {
-                return _part.GetConnectedResources(_hydrogen_peroxide_name).Any(rs => rs.amount > 0)
-                && _part.GetConnectedResources(_ammonia_resource_name).Any(rs => rs.amount > 0); 
-            } 
+        public bool HasActivityRequirements()
+        {
+            return _part.GetConnectedResources(_hydrogen_peroxide_name).Any(rs => rs.amount > 0)
+            & _part.GetConnectedResources(_ammonia_resource_name).Any(rs => rs.amount > 0);
         }
 
         public double PowerRequirements { get { return PluginHelper.BasePechineyUgineKuhlmannPowerConsumption; } }
@@ -76,7 +72,7 @@ namespace FNPlugin.Refinery
             _hydrazine_density = PartResourceLibrary.Instance.GetDefinition(_hydrazine_resource_name).density;
         }
 
-        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime)
+        public void UpdateFrame(double rateMultiplier, double powerFraction, double productionModidier, bool allowOverflow, double fixedDeltaTime, bool isStartup = false)
         {
             _effectiveMaxPower = PowerRequirements * productionModidier;
             _current_power = PowerRequirements * powerFraction;
