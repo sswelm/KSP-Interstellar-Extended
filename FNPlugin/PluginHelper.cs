@@ -40,8 +40,6 @@ namespace FNPlugin
             //GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
             //GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
 
-            
-
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
             GameEvents.onDockingComplete.Remove(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
