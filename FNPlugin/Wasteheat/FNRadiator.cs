@@ -68,6 +68,8 @@ namespace FNPlugin.Wasteheat
         public float partMass;
         [KSPField]
         public bool isDeployable = false;
+        [KSPField]
+        public bool isPassive = false;
         [KSPField(guiName = "Converction Bonus")]
         public double convectiveBonus = 1;
         [KSPField]
@@ -78,8 +80,13 @@ namespace FNPlugin.Wasteheat
         public string originalName = "";
         [KSPField]
         public float upgradeCost = 100;
+
+        [KSPField]
+        public bool maintainResourceBuffers = true;
         [KSPField]
         public float emissiveColorPower = 3;
+        [KSPField]
+        public float colorRatioExponent = 1;
         [KSPField]
         public double wasteHeatMultiplier = 1;
         [KSPField]
@@ -670,10 +677,13 @@ namespace FNPlugin.Wasteheat
                 part.maxTemp = maxCurrentRadiatorTemperature;
             }
 
-            resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+6));
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            resourceBuffers.Init(this.part);
+            if (maintainResourceBuffers)
+            {
+                resourceBuffers = new ResourceBuffers();
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+6));
+                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                resourceBuffers.Init(this.part);
+            }
         }
 
         void radiatorIsEnabled_OnValueModified(object arg1)
@@ -744,8 +754,8 @@ namespace FNPlugin.Wasteheat
                     radiatorIsEnabled = false;
             }
 
-            radiatorIsEnabledField.guiActive = showControls;
-            radiatorIsEnabledField.guiActiveEditor = showControls;
+            radiatorIsEnabledField.guiActive = !isPassive && showControls;
+            radiatorIsEnabledField.guiActiveEditor = !isPassive && showControls;
 
             isAutomatedField.guiActive = showControls && isDeployable;
             isAutomatedField.guiActiveEditor = showControls && isDeployable;
@@ -818,8 +828,11 @@ namespace FNPlugin.Wasteheat
                 if (!active)
                     base.OnFixedUpdate();
 
-                resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, radiatorIsEnabled ? this.part.mass : this.part.mass * 1e-3);
-                resourceBuffers.UpdateBuffers();
+                if (resourceBuffers != null)
+                {
+                    resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, radiatorIsEnabled ? this.part.mass : this.part.mass * 1e-3);
+                    resourceBuffers.UpdateBuffers();
+                }
 
                 // get resource bar ratio at start of frame
                 ResourceManager wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
@@ -1070,7 +1083,9 @@ namespace FNPlugin.Wasteheat
                     colorRatioBlue = blueTempColorChannel.Evaluate(displayTemperature);
                 }
 
-                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, (float)colorRatio);
+                var effectiveColorRatio = Mathf.Pow(colorRatio, colorRatioExponent);
+
+                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, effectiveColorRatio);
 
                 for (var i = 0; i < renderArray.Count(); i++)
                 {

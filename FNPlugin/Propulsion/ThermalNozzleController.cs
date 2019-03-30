@@ -54,6 +54,14 @@ namespace FNPlugin
         public double engineAccelerationBaseSpeed = 2;
         [KSPField]
         public double engineDecelerationBaseSpeed = 2;
+
+        [KSPField]
+        public double wasteheatRatioDecelerationMult = 10;
+
+        [KSPField(guiActive = false)]
+        public float finalEngineDecelerationSpeed;
+        [KSPField(guiActive = false)]
+        public float finalEngineAccelerationSpeed;
         [KSPField]
         public bool initialized = false;
         [KSPField]
@@ -332,6 +340,8 @@ namespace FNPlugin
         public double adjustedThrottle;
         [KSPField(guiActive = false)]
         public double adjustedFuelFlowMult;
+        [KSPField(guiActive = false)]
+        public double attachedReactorFuelRato;
         [KSPField]
         public double adjustedFuelFlowExponent = 2;
         [KSPField]
@@ -1141,7 +1151,7 @@ namespace FNPlugin
             }
         }
 
-        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1, double wasteheatRatio = 1)
+        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1)
         {
             // recaculate ISP based on power and core temp available
             FloatCurve atmCurve = new FloatCurve();
@@ -1157,8 +1167,16 @@ namespace FNPlugin
                 myAttachedEngine.useAtmCurve = false;
                 myAttachedEngine.useVelCurve = false;
                 myAttachedEngine.useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
-                myAttachedEngine.engineAccelerationSpeed = (float)(engineAccelerationBaseSpeed * AttachedReactor.ReactorSpeedMult);
-                myAttachedEngine.engineDecelerationSpeed = (float)(engineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * (1.1 - wasteheatRatio) * 10);
+
+                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+
+                var wasteheatModifier = wasteheatRatioDecelerationMult > 0 ? Math.Max ((1 - wasteheatRatio) * wasteheatRatioDecelerationMult,  1) : 1;
+                
+                finalEngineAccelerationSpeed = (float)Math.Min(engineAccelerationBaseSpeed * AttachedReactor.ReactorSpeedMult, 33);
+                finalEngineDecelerationSpeed = (float)Math.Min(engineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * wasteheatModifier, 33);
+
+                myAttachedEngine.engineAccelerationSpeed = finalEngineAccelerationSpeed;
+                myAttachedEngine.engineDecelerationSpeed = finalEngineDecelerationSpeed;
 
                 if (minThrottle > 0)
                 {
@@ -1301,7 +1319,10 @@ namespace FNPlugin
                 {
                     if (!exhaustAllowed)
                     {
-                        string message = "Engine halted - Radioactive exhaust not allowed towards or inside homeworld atmosphere";
+                        string message = AttachedReactor.MayExhaustInLowSpaceHomeworld 
+                            ? "Engine halted - Radioactive exhaust not allowed towards or inside homeworld atmosphere" 
+                            : "Engine halted - Radioactive exhaust not allowed towards or near homeworld atmosphere";
+
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         vessel.ctrlState.mainThrottle = 0;
 
@@ -1460,11 +1481,15 @@ namespace FNPlugin
                         max_fuel_flow_rate = 0;
                     }
 
+                    attachedReactorFuelRato = AttachedReactor.FuelRato;
+
                     // set engines maximum fuel flow
-                    if (IsPositiveValidNumber(max_fuel_flow_rate) && IsPositiveValidNumber(adjustedFuelFlowMult) && IsPositiveValidNumber(AttachedReactor.FuelRato))
-                        myAttachedEngine.maxFuelFlow = (float)Math.Max(max_fuel_flow_rate * AttachedReactor.FuelRato * AttachedReactor.FuelRato, 1e-10);
+                    if (IsPositiveValidNumber(max_fuel_flow_rate) && IsPositiveValidNumber(attachedReactorFuelRato))
+                        maxFuelFlowOnEngine = (float)Math.Max(max_fuel_flow_rate * AttachedReactor.FuelRato * attachedReactorFuelRato, 1e-10);
                     else
-                        myAttachedEngine.maxFuelFlow = 1e-10f;
+                        maxFuelFlowOnEngine = 1e-10f;
+
+                    myAttachedEngine.maxFuelFlow = maxFuelFlowOnEngine;
 
                     // set heat production to 1 to prevent heat spike at activation
                     myAttachedEngine.heatProduction = 1;
@@ -1635,8 +1660,6 @@ namespace FNPlugin
 
                 UpdateAtmosphericPresureTreshold();
 
-                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-
                 // update engine thrust/ISP for thermal noozle
                 if (!_currentpropellant_is_jet)
                 {
@@ -1646,7 +1669,7 @@ namespace FNPlugin
 
                     var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(atmosphereThrustEfficiency, 0.01) : 0.01;
                     
-                    UpdateIspEngineParams(thrustAtmosphereRatio, wasteheatRatio);
+                    UpdateIspEngineParams(thrustAtmosphereRatio);
                     current_isp = _maxISP * thrustAtmosphereRatio;
                     calculatedMaxThrust = calculatedMaxThrust * atmosphereThrustEfficiency;
                 }
@@ -1736,11 +1759,11 @@ namespace FNPlugin
 
                 currentMassFlow = (double)(decimal)myAttachedEngine.fuelFlowGui * (double)(decimal)myAttachedEngine.mixtureDensity;
 
-                //expectedMassFlow = adjustedThrottle * max_fuel_flow_rate * (double)(decimal)myAttachedEngine.mixtureDensity;
-
                 // act as open cycle cooler
                 if ((!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature)
                 {
+                    var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+
                     consumeFNResourcePerSecond(20 * wasteheatRatio * currentMassFlow, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
