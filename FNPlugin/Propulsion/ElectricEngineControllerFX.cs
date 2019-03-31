@@ -108,6 +108,8 @@ namespace FNPlugin
         public double thrust_d;
         [KSPField(guiActive = false, guiName = "Calculated Thrust", guiFormat = "F6", guiUnits = "kN")]
         public double calculated_thrust;
+        [KSPField(guiActive = false)]
+        public double simulated_max_thrust;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
         public double engineIsp;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput", guiUnits = " MW")]
@@ -136,8 +138,10 @@ namespace FNPlugin
         public string upgradeCostStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_maxEffectivePower", guiFormat = "F3", guiUnits = " MW")]
         public double maxEffectivePower;
+        [KSPField(guiActive = false)]
+        public double currentPropellantEfficiency;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_maxThrottlePower", guiFormat = "F3", guiUnits = " MW")]
-        public double maxThrottlePower;
+        public double modifiedMaxThrottlePower;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
         public double lightSpeedRatio;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
@@ -158,6 +162,23 @@ namespace FNPlugin
         double _ispPersistent;
         int vesselChangedSIOCountdown;
 
+        [KSPField(guiActive = false)]
+        protected double currentPowerForEngine;
+        [KSPField(guiActive = false)]
+        protected double availablePowerForEngine;
+        [KSPField(guiActive = false)]
+        protected double effectiveRecievedPower;
+        [KSPField(guiActive = false)]
+        protected double effectiveSimulatedPower;
+        [KSPField(guiActive = false)]
+        protected double effectiveIsp;
+        [KSPField(guiActive = false)]
+        protected double effectivePowerThrustModifier;
+        [KSPField(guiActive = false)]
+        public double actualPowerReceived;
+        [KSPField(guiActive = false)]
+        public double simulatedPowerReceived;
+
         [KSPField(guiActive = false, guiName = "Capacity Modifier")]
         protected double powerCapacityModifier = 1;
         [KSPField(guiActive = false, guiName = "Atm Trust Efficiency")]
@@ -165,15 +186,19 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Atm Trust Efficiency", guiFormat = "F3", guiUnits = "%")]
         protected double _atmosphereThrustEfficiencyPercentage;
         [KSPField(guiActive = false, guiName = "Max Fuel Flow Rate")]
-        protected double _maxFuelFlowRate;
-        [KSPField(guiActive = false, guiName = "Space Fuel Flow Rate")]
-        protected double _spaceFuelFlowRate;
+        protected float _maxFuelFlowRate;
+        [KSPField(guiActive = false, guiName = "Current Space Fuel Flow Rate")]
+        protected double _currentSpaceFuelFlowRate;
+        [KSPField(guiActive = false, guiName = "Potential Space Fuel Flow Rate")]
+        protected double _simulatedSpaceFuelFlowRate;
         [KSPField(guiActive = false, guiName = "Fuel Flow Modifier")]
         protected double _fuelFlowModifier;
-        [KSPField(guiActive = false, guiName = "Current Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
-        protected double curThrustInSpace;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Max Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
-        protected double maxThrustInSpace = 0.001;
+        [KSPField(guiActive = true, guiName = "Current Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
+        protected double currentThrustInSpace;
+        [KSPField(guiActive = true, guiName = "Max Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
+        protected double simulatedThrustInSpace;
+        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Thrust from Power", guiFormat = "F6", guiUnits = " kN")]
+        protected double maxThrustFromPower = 0.001;
 
         [KSPField]
         protected double effectPower = 0;
@@ -432,7 +457,7 @@ namespace FNPlugin
 
                 SetupPropellants(true);
 
-                _attachedEngine.maxThrust = (float)maxThrustInSpace;
+                _attachedEngine.maxThrust = (float)maxThrustFromPower;
             }
             catch (Exception e)
             {
@@ -677,60 +702,75 @@ namespace FNPlugin
             if (!this.vessel.packed && !_warpToReal)
                 storedThrotle = vessel.ctrlState.mainThrottle;
 
-            // retrieve power
             maxEffectivePower = MaxEffectivePower;
+            currentPropellantEfficiency = CurrentPropellantEfficiency;
+
             var sumOfAllEffectivePower = vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.MaxEffectivePower);
             _electrical_share_f = sumOfAllEffectivePower > 0 ? maxEffectivePower / sumOfAllEffectivePower : 1;
 
-            maxThrottlePower = maxEffectivePower * ModifiedThrotte;
-            var currentPropellantEfficiency = CurrentPropellantEfficiency;
+            modifiedMaxThrottlePower = maxEffectivePower * ModifiedThrotte;
 
-            //var availablePower = Math.Max(getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) - getCurrentHighPriorityResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES), 0);
-            var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+             var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            maxThrustInSpace = EvaluateMaxThrust(availablePower * _electrical_share_f);
-            _attachedEngine.maxThrust = (float)Math.Max(maxThrustInSpace, 0.001);
+            maxThrustFromPower = EvaluateMaxThrust(availablePower * _electrical_share_f);
+            _attachedEngine.maxThrust = (float)Math.Max(maxThrustFromPower, 0.001);
 
-            if (CheatOptions.InfiniteElectricity)
-                power_request = maxThrottlePower;
-            else
-            {
-                var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-                var effectiveResourceThrotling = megaJoulesBarRatio > OneThird ? 1 : megaJoulesBarRatio * 3;
-                var powerPerEngine = effectiveResourceThrotling * ModifiedThrotte * maxThrustInSpace * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
-                power_request = currentPropellantEfficiency <= 0 ? 0 : Math.Min(powerPerEngine / currentPropellantEfficiency, maxThrottlePower);
-            }
+            var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var effectiveResourceThrotling = megaJoulesBarRatio > OneThird ? 1 : megaJoulesBarRatio * 3;
 
-            var powerReceived = CheatOptions.InfiniteElectricity 
+            var rawPowerForEngine = effectiveResourceThrotling * maxThrustFromPower * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
+
+            currentPowerForEngine = rawPowerForEngine * ModifiedThrotte;
+            availablePowerForEngine = rawPowerForEngine;
+            
+            power_request = CheatOptions.InfiniteElectricity 
+                ? modifiedMaxThrottlePower 
+                : currentPropellantEfficiency <= 0 
+                    ? 0 
+                    : Math.Min(currentPowerForEngine / currentPropellantEfficiency, modifiedMaxThrottlePower);            
+
+            actualPowerReceived = CheatOptions.InfiniteElectricity 
                 ? power_request
                 : consumeFNResourcePerSecond(power_request, ResourceManager.FNRESOURCE_MEGAJOULES);
 
+            simulatedPowerReceived = Math.Min(availablePowerForEngine / currentPropellantEfficiency, maxEffectivePower);
+
             // produce waste heat
-            var heatToProduce = powerReceived * (1 - currentPropellantEfficiency) * Current_propellant.WasteHeatMultiplier;
+            var heatToProduce = actualPowerReceived * (1 - currentPropellantEfficiency) * Current_propellant.WasteHeatMultiplier;
 
             _heat_production_f = CheatOptions.IgnoreMaxTemperature 
                 ? heatToProduce
                 : supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
 
             // update GUI Values
-            _electrical_consumption_f = powerReceived;
+            _electrical_consumption_f = actualPowerReceived;
 
-            var effectiveIsp = _modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseIsp * ThrottleModifiedIsp();
+            effectiveIsp = _modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseIsp * ThrottleModifiedIsp();
 
             var throtteModifier = ispGears == 1 ? 1 : ModifiedThrotte;
 
-            var effectivePower = timeDilation * currentPropellantEfficiency * CurrentPropellantThrustMultiplier * throtteModifier * GetPowerThrustModifier() * powerReceived;
+            effectivePowerThrustModifier = timeDilation * currentPropellantEfficiency * CurrentPropellantThrustMultiplier * GetPowerThrustModifier();
 
-            curThrustInSpace = effectivePower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
+            effectiveRecievedPower = effectivePowerThrustModifier * actualPowerReceived * throtteModifier;
+            effectiveSimulatedPower = effectivePowerThrustModifier * simulatedPowerReceived;
+
+            currentThrustInSpace = effectiveRecievedPower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
+            simulatedThrustInSpace = effectiveSimulatedPower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
 
             _maxIsp = _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
-            _spaceFuelFlowRate = _maxIsp <= 0 ? 0 : curThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
 
-            var maxThrustWithCurrentThrottle = curThrustInSpace * throtteModifier;
+            _currentSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : currentThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
+            _simulatedSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : simulatedThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
+
+            var maxThrustWithCurrentThrottle = currentThrustInSpace * throtteModifier;
 
             calculated_thrust = Current_propellant.SupportedEngines == 8
                 ? maxThrustWithCurrentThrottle
                 : Math.Max(maxThrustWithCurrentThrottle - (exitArea * vessel.staticPressurekPa), 0);
+
+            simulated_max_thrust = Current_propellant.SupportedEngines == 8
+                ? simulatedThrustInSpace
+                : Math.Max(simulatedThrustInSpace - (exitArea * vessel.staticPressurekPa), 0);
 
             var throttle = _attachedEngine.currentThrottle > 0 ? Math.Max((double)(decimal)_attachedEngine.currentThrottle, 0.01) : 0;
 
@@ -748,14 +788,15 @@ namespace FNPlugin
                         ? 1 / throttle
                         : ModifiedThrotte / throttle;
 
-                    _maxFuelFlowRate = _atmosphereThrustEfficiency * _spaceFuelFlowRate * _fuelFlowModifier;
-                    _attachedEngine.maxFuelFlow = (float)Math.Max(_maxFuelFlowRate, 0.00000000001);
+                    _maxFuelFlowRate = (float)Math.Max(_atmosphereThrustEfficiency * _currentSpaceFuelFlowRate * _fuelFlowModifier, 1e-11);
+                    _attachedEngine.maxFuelFlow = _maxFuelFlowRate;
                 }
                 else
                 {
                     UpdateIsp(1);
                     _atmosphereThrustEfficiency = 0;
-                    _attachedEngine.maxFuelFlow = 0.00000000001f;
+                    _maxFuelFlowRate = 1e-11f;
+                    _attachedEngine.maxFuelFlow = _maxFuelFlowRate;
                 }
 
                 if (!this.vessel.packed)
@@ -801,7 +842,7 @@ namespace FNPlugin
             var vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
             {
-                var calculatedConsumptionInTon = this.vessel.packed ? 0 : curThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
+                var calculatedConsumptionInTon = this.vessel.packed ? 0 : currentThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
                 vacuumPlasmaResource.maxAmount = Math.Max(0.0000001, calculatedConsumptionInTon * 200 * (double)(decimal)TimeWarp.fixedDeltaTime);
                 part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, - vacuumPlasmaResource.maxAmount);
             }
@@ -838,19 +879,20 @@ namespace FNPlugin
         private void IdleEngine()
         {
             thrust_d = 0;
-            calculated_thrust = 0;
 
-            var projected_max_thrust = Math.Max(curThrustInSpace - (exitArea * vessel.staticPressurekPa), 0);
+            //var projected_max_thrust = Math.Max(potentialThrustInSpace - (exitArea * vessel.staticPressurekPa), 0);
 
-            if (IsValidPositiveNumber(projected_max_thrust) && IsValidPositiveNumber(curThrustInSpace))
+            if (IsValidPositiveNumber(simulated_max_thrust) && IsValidPositiveNumber(simulatedThrustInSpace))
             {
-                UpdateIsp(Math.Max(0,  projected_max_thrust / curThrustInSpace));
-                _attachedEngine.maxFuelFlow = (float)Math.Max(_spaceFuelFlowRate, 0.00000000001);
+                UpdateIsp(Math.Max(0, simulated_max_thrust / simulatedThrustInSpace));
+                _maxFuelFlowRate = (float)Math.Max(_simulatedSpaceFuelFlowRate, 1e-11);
+                _attachedEngine.maxFuelFlow = _maxFuelFlowRate;
             }
             else
             {
                 UpdateIsp(1);
-                _attachedEngine.maxFuelFlow = 0.00000000001f;
+                _maxFuelFlowRate = 1e-11f;
+                _attachedEngine.maxFuelFlow = _maxFuelFlowRate;
             }
 
             if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
