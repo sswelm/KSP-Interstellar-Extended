@@ -250,6 +250,8 @@ namespace FNPlugin.Reactors
 
         // Settings
         [KSPField]
+        public bool showPowerGeneratorConnectionInfo = true;
+        [KSPField]
         public bool mayExhaustInAtmosphereHomeworld = true;
         [KSPField]
         public bool mayExhaustInLowSpaceHomeworld = true;
@@ -2096,12 +2098,16 @@ namespace FNPlugin.Reactors
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_plasmaNozzle") + ": " + UtilisationInfo(plasmaPropulsionEfficiency));
             sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_magneticNozzle") + ": " + UtilisationInfo(chargedParticlePropulsionEfficiency));
             sb.Append("</size>");
-            sb.AppendLine();
-            sb.AppendLine("<size=11><color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Reactor_powerGeneration") + ":</color><size=10>");
-            sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_thermalGenerator") + ": " + UtilisationInfo(thermalEnergyEfficiency));
-            sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_MHDGenerator") + ": " + UtilisationInfo(plasmaEnergyEfficiency));
-            sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_chargedParticleGenerator") + ": " + UtilisationInfo(chargedParticleEnergyEfficiency));
-            sb.Append("</size>");
+
+            if (showPowerGeneratorConnectionInfo)
+            {
+                sb.AppendLine();
+                sb.AppendLine("<size=11><color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_Reactor_powerGeneration") + ":</color><size=10>");
+                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_thermalGenerator") + ": " + UtilisationInfo(thermalEnergyEfficiency));
+                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_MHDGenerator") + ": " + UtilisationInfo(plasmaEnergyEfficiency));
+                sb.AppendLine(Localizer.Format("#LOC_KSPIE_Reactor_chargedParticleGenerator") + ": " + UtilisationInfo(chargedParticleEnergyEfficiency));
+                sb.Append("</size>");
+            }
 
             if (!string.IsNullOrEmpty(upgradeTechReqMk2))
             {

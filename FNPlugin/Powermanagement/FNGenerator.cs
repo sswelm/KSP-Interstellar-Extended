@@ -1174,9 +1174,9 @@ namespace FNPlugin
             if (!string.IsNullOrEmpty(Mk4TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk4TechReq)));
             if (!string.IsNullOrEmpty(Mk5TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk5TechReq)));
             if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk6TechReq)));
-            if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk7TechReq)));
-            if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk8TechReq)));
-            if (!string.IsNullOrEmpty(Mk6TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk9TechReq)));
+            if (!string.IsNullOrEmpty(Mk7TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk7TechReq)));
+            if (!string.IsNullOrEmpty(Mk8TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk8TechReq)));
+            if (!string.IsNullOrEmpty(Mk9TechReq)) sb.AppendLine("- " + Localizer.Format(PluginHelper.GetTechTitleById(Mk9TechReq)));
             sb.AppendLine();
             sb.Append("</size>");
 
