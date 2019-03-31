@@ -754,8 +754,8 @@ namespace FNPlugin
             effectiveRecievedPower = effectivePowerThrustModifier * actualPowerReceived * throtteModifier;
             effectiveSimulatedPower = effectivePowerThrustModifier * simulatedPowerReceived;
 
-            currentThrustInSpace = effectiveRecievedPower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
-            simulatedThrustInSpace = effectiveSimulatedPower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
+            currentThrustInSpace = effectiveIsp <= 0 ? 0 : effectiveRecievedPower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
+            simulatedThrustInSpace = effectiveIsp <= 0 ? 0 :effectiveSimulatedPower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
 
             _maxIsp = _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
 
@@ -879,8 +879,6 @@ namespace FNPlugin
         private void IdleEngine()
         {
             thrust_d = 0;
-
-            //var projected_max_thrust = Math.Max(potentialThrustInSpace - (exitArea * vessel.staticPressurekPa), 0);
 
             if (IsValidPositiveNumber(simulated_max_thrust) && IsValidPositiveNumber(simulatedThrustInSpace))
             {
