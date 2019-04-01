@@ -159,6 +159,7 @@ namespace FNPlugin
         double _heat_production_f;
         double _modifiedCurrentPropellantIspMultiplier;
         double _maxIsp;
+        double _effectiveIsp;
         double _ispPersistent;
         int vesselChangedSIOCountdown;
 
@@ -170,8 +171,7 @@ namespace FNPlugin
         protected double effectiveRecievedPower;
         [KSPField(guiActive = false)]
         protected double effectiveSimulatedPower;
-        [KSPField(guiActive = false)]
-        protected double effectiveIsp;
+        
         [KSPField(guiActive = false)]
         protected double effectivePowerThrustModifier;
         [KSPField(guiActive = false)]
@@ -745,7 +745,8 @@ namespace FNPlugin
             // update GUI Values
             _electrical_consumption_f = actualPowerReceived;
 
-            effectiveIsp = _modifiedCurrentPropellantIspMultiplier * _modifiedEngineBaseIsp * ThrottleModifiedIsp();
+            _effectiveIsp = _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * ThrottleModifiedIsp();
+            _maxIsp = _effectiveIsp * CurrentPropellantThrustMultiplier;
 
             var throtteModifier = ispGears == 1 ? 1 : ModifiedThrotte;
 
@@ -754,10 +755,8 @@ namespace FNPlugin
             effectiveRecievedPower = effectivePowerThrustModifier * actualPowerReceived * throtteModifier;
             effectiveSimulatedPower = effectivePowerThrustModifier * simulatedPowerReceived;
 
-            currentThrustInSpace = effectiveIsp <= 0 ? 0 : effectiveRecievedPower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
-            simulatedThrustInSpace = effectiveIsp <= 0 ? 0 :effectiveSimulatedPower / effectiveIsp / GameConstants.STANDARD_GRAVITY;
-
-            _maxIsp = _modifiedEngineBaseIsp * _modifiedCurrentPropellantIspMultiplier * CurrentPropellantThrustMultiplier * ThrottleModifiedIsp();
+            currentThrustInSpace = _effectiveIsp <= 0 ? 0 : effectiveRecievedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
+            simulatedThrustInSpace = _effectiveIsp <= 0 ? 0 :effectiveSimulatedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
 
             _currentSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : currentThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
             _simulatedSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : simulatedThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
