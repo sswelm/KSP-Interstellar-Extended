@@ -2629,14 +2629,15 @@ namespace FNPlugin.Reactors
 
                         var resourceVariantsDefinitions = CurrentFuelMode.ResourceGroups.First(m => m.name == fuel.FuelName).resourceVariantsMetaData;
 
-                        var availableRessources = resourceVariantsDefinitions
+                        var availableResources = resourceVariantsDefinitions
                             .Select(m => new { m.resourceDefinition, m.ratio }).Distinct()
                             .Select(d => new { definition = d.resourceDefinition, amount = GetFuelAvailability(d.resourceDefinition), effectiveDensity = d.resourceDefinition.density * d.ratio})
                             .Where(m => m.amount > 0).ToList();
 
-                        var availabilityInTon = availableRessources.Sum(m => m.amount * m.effectiveDensity);
+                        var availabilityInTon = availableResources.Sum(m => m.amount * m.effectiveDensity);
 
-                        PrintToGUILayout(fuel.FuelName + " Reserves", PluginHelper.formatMassStr(availabilityInTon) + " (" + availableRessources.Count + " variants)", bold_style, text_style);
+                        var variantText = availableResources.Count > 1 ? " (" + availableResources.Count + " variants)" : "";
+                        PrintToGUILayout(fuel.FuelName + " Reserves", PluginHelper.formatMassStr(availabilityInTon) + variantText, bold_style, text_style);
 
                         var tonFuelUsePerHour = ongoing_total_power_generated * fuel.TonsFuelUsePerMJ * fuelUsePerMJMult / FuelEfficiency * PluginHelper.SecondsInHour;
                         var kgFuelUsePerHour = tonFuelUsePerHour * 1000;
