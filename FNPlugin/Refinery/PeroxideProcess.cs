@@ -44,7 +44,7 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.synthesize; } }
 
-        public String ActivityName { get { return "Peroxide Process: H<size=7>2</size>O<size=7>2</size> + NH<size=7>3</size> => H<size=7>2</size>O + N<size=7>2H<size=7>4</size> (Hydrazine)"; } }
+		public String ActivityName { get { return "Peroxide Process: H<size=7>2</size>O<size=7>2</size> + NH<size=7>3</size> => H<size=7>2</size>O + N<size=7>2</size>H<size=7>4</size> (Hydrazine)"; } }
 
         public bool HasActivityRequirements()
         {
