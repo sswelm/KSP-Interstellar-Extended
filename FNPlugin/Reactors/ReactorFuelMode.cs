@@ -130,6 +130,8 @@ namespace FNPlugin.Reactors
         protected int _techLevel;
         protected bool _aneutronic;
         protected double _gammaRayEnergy;
+        protected double _fuelUseInGramPerTeraJoule;
+        protected double _gigawattPerGram;
 
         protected string _alternativeFuelType1;
         protected string _alternativeFuelType2;
@@ -176,6 +178,12 @@ namespace FNPlugin.Reactors
 
             AllFuelResourcesDefinitionsAvailable = _fuels.All(m => m.Definition != null);
             AllProductResourcesDefinitionsAvailable = _products.All(m => m.Definition != null);
+
+            var totalTonsFuelUsePerMJ = _fuels.Sum(m => m.TonsFuelUsePerMJ);
+
+            _fuelUseInGramPerTeraJoule = totalTonsFuelUsePerMJ * 1e12;
+
+            _gigawattPerGram = 1 / (totalTonsFuelUsePerMJ * 1e9);
         }
 
         public string AlternativeFuelType1 { get { return _alternativeFuelType1; } }
@@ -221,6 +229,10 @@ namespace FNPlugin.Reactors
         public float TritiumBreedModifier { get { return _neutrons_ratio; } }
 
         public double FuelEfficencyMultiplier { get { return _fuel_efficency_multiplier; } }
+
+        public double FuelUseInGramPerTeraJoule { get { return _fuelUseInGramPerTeraJoule; } }
+
+        public double GigawattPerGram { get { return _gigawattPerGram; } }
 
         public int Position { get; set; }
 

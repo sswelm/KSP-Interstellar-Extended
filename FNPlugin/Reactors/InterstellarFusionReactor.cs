@@ -258,7 +258,7 @@ namespace FNPlugin.Reactors
             }
             GUILayout.EndHorizontal();
 
-            PrintToGUILayout("Fusion Maintenance", electricPowerMaintenance, bold_style, text_style);
+            PrintToGUILayout("Current/Max Fusion Maintenance", electricPowerMaintenance, bold_style, text_style);
         }
 
         public override void OnFixedUpdate()

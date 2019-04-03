@@ -2548,15 +2548,18 @@ namespace FNPlugin.Reactors
 
                 WindowReactorSpecificOverride();
 
-                PrintToGUILayout("Max Power Output", PluginHelper.getFormattedPowerString(NormalisedMaximumPower, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(RawPowerOutput, "0.0", "0.000"), bold_style, text_style);
+                PrintToGUILayout("Current/Max Power Output", PluginHelper.getFormattedPowerString(ongoing_total_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(NormalisedMaximumPower, "0.0", "0.000"), bold_style, text_style);
 
                 if (ChargedPowerRatio < 1.0)
-                    PrintToGUILayout("Thermal Power", PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower, "0.0", "0.000"), bold_style, text_style);
+                    PrintToGUILayout("Current/Max Thermal Power", PluginHelper.getFormattedPowerString(ongoing_thermal_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumThermalPower, "0.0", "0.000"), bold_style, text_style);
                 if (ChargedPowerRatio > 0)
-                    PrintToGUILayout("Charged Power", PluginHelper.getFormattedPowerString(ongoing_charged_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower, "0.0", "0.000"), bold_style, text_style);
+                    PrintToGUILayout("Current/Max Charged Power", PluginHelper.getFormattedPowerString(ongoing_charged_power_generated, "0.0", "0.000") + " / " + PluginHelper.getFormattedPowerString(MaximumChargedPower, "0.0", "0.000"), bold_style, text_style);
 
                 if (CurrentFuelMode != null && current_fuel_variant.ReactorFuels != null)
                 {
+                    PrintToGUILayout("Energy Production", current_fuel_variant.GigawattPerGram.ToString("0.0") + " GW / g", bold_style, text_style);
+                    PrintToGUILayout("Fuel Usage", current_fuel_variant.FuelUseInGramPerTeraJoule.ToString("0.000") + " g / TW", bold_style, text_style);
+
                     if (IsFuelNeutronRich && breedtritium && canBreedTritium)
                     {
                         PrintToGUILayout("Fuel Neutron Breed Rate", 100 * CurrentFuelMode.NeutronsRatio + "% ", bold_style, text_style);
@@ -2619,7 +2622,7 @@ namespace FNPlugin.Reactors
                         PrintToGUILayout("Is Neutron rich", IsFuelNeutronRich.ToString(), bold_style, text_style);
 
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label("Fuel", bold_style, GUILayout.Width(150));
+                    GUILayout.Label("Fuels:", bold_style, GUILayout.Width(150));
                     GUILayout.EndHorizontal();
 
                     foreach (var fuel in current_fuel_variant.ReactorFuels)
@@ -2680,7 +2683,7 @@ namespace FNPlugin.Reactors
                     if (current_fuel_variant.ReactorProducts.Count > 0)
                     {
                         GUILayout.BeginHorizontal();
-                        GUILayout.Label("Products", bold_style, GUILayout.Width(150));
+                        GUILayout.Label("Products:", bold_style, GUILayout.Width(150));
                         GUILayout.EndHorizontal();
 
                         foreach (var product in current_fuel_variant.ReactorProducts)
