@@ -450,10 +450,7 @@ namespace FNPlugin.Wasteheat
             if (_moduleDeployableRadiator != null)
                 _moduleDeployableRadiator.Extend();
 
-            if (_moduleActiveRadiator != null)
-                _moduleActiveRadiator.Activate();
-
-            radiatorIsEnabled = true;
+            ActivateRadiator();
 
             if (deployAnimation == null) return;
 
@@ -461,6 +458,14 @@ namespace FNPlugin.Wasteheat
             deployAnimation[animName].speed = 0.5f;
             deployAnimation[animName].normalizedTime = 0f;
             deployAnimation.Blend(animName, 2);
+        }
+
+        private void ActivateRadiator()
+        {
+            if (_moduleActiveRadiator != null)
+                _moduleActiveRadiator.Activate();
+
+            radiatorIsEnabled = true;
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Retract Radiator", active = true)]
@@ -483,10 +488,7 @@ namespace FNPlugin.Wasteheat
                 _moduleDeployableRadiator.Retract();
             }
 
-            if (_moduleActiveRadiator != null)
-                _moduleActiveRadiator.Shutdown();
-
-            radiatorIsEnabled = false;
+            DeactivateRadiator();
 
             if (deployAnimation == null) return;
 
@@ -494,6 +496,14 @@ namespace FNPlugin.Wasteheat
             deployAnimation[animName].speed = -0.5f;
             deployAnimation[animName].normalizedTime = 1;
             deployAnimation.Blend(animName, 2);
+        }
+
+        private void DeactivateRadiator()
+        {
+            if (_moduleActiveRadiator != null)
+                _moduleActiveRadiator.Shutdown();
+
+            radiatorIsEnabled = false;
         }
 
         [KSPAction("Deploy Radiator")]
@@ -642,7 +652,9 @@ namespace FNPlugin.Wasteheat
                 return;
 
             if (isAutomated && !isDeployable)
-                radiatorIsEnabled = true;
+            {
+                ActivateRadiator();
+            }
 
             for (var i = 0; i < 20; i++ )
             {
@@ -749,9 +761,9 @@ namespace FNPlugin.Wasteheat
             if (_moduleDeployableRadiator != null && pivotEnabled && showControls)
             {
                 if (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.EXTENDED)
-                    radiatorIsEnabled = true;
+                    ActivateRadiator();
                 else if (_moduleDeployableRadiator.deployState == ModuleDeployablePart.DeployState.RETRACTED)
-                    radiatorIsEnabled = false;
+                    DeactivateRadiator();
             }
 
             radiatorIsEnabledField.guiActive = !isPassive && showControls;
