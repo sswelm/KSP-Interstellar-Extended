@@ -37,6 +37,11 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)]
         public int fuelmode_index = -1;
         [KSPField(isPersistant = true)]
+        public string fuel_mode_name = string.Empty;
+        [KSPField(isPersistant = true)]
+        public string fuel_mode_variant = string.Empty;
+
+        [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
         public bool isDeployed = false;
@@ -584,10 +589,14 @@ namespace FNPlugin.Reactors
             set
             {
                 current_fuel_mode = value;
-                fuelmode_index = current_fuel_mode.Index;
                 max_power_to_supply = Math.Max(MaximumPower * TimeWarpFixedDeltaTime, 0);
                 current_fuel_variants_sorted = current_fuel_mode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.First();
+
+                // persist
+                fuelmode_index = current_fuel_mode.Index;
+                fuel_mode_name = current_fuel_mode.ModeGUIName;
+                fuel_mode_variant = current_fuel_variant.Name;
             }
         }
 
@@ -629,7 +638,7 @@ namespace FNPlugin.Reactors
 
         public double MinThermalNozzleTempRequired { get { return minThermalNozzleTempRequired; } }
 
-        public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode.MeVPerChargedProduct; } }
+        public virtual double CurrentMeVPerChargedProduct { get { return current_fuel_mode != null ? current_fuel_mode.MeVPerChargedProduct : 0; } }
 
         public bool UsePropellantBaseIsp { get { return usePropellantBaseIsp; } }
 
@@ -1048,10 +1057,7 @@ namespace FNPlugin.Reactors
 
         public virtual double MaximumThermalPower 
         { 
-            get 
-            {
-                return PowerRatio * NormalisedMaximumPower * ThermalPowerRatio * geeForceModifier * overheatModifier;
-            } 
+            get { return PowerRatio * NormalisedMaximumPower * ThermalPowerRatio * geeForceModifier * overheatModifier; } 
         }
 
         public virtual double MaximumChargedPower 
@@ -1697,6 +1703,7 @@ namespace FNPlugin.Reactors
 
                 current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply * geeForceModifier * overheatModifier, fuelUsePerMJMult);
                 current_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
+                fuel_mode_variant = current_fuel_variant.Name;
                 
                 stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
 

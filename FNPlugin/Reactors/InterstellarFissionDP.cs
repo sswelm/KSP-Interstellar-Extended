@@ -8,8 +8,6 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double magneticNozzlePowerMult = 1;
 
-        public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
-
         public double MaximumChargedIspMult { get { return (float)maximumChargedIspMult; } }
 
         public double MinimumChargdIspMult { get { return (float)minimumChargdIspMult; } }

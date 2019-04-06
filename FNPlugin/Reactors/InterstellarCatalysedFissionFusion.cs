@@ -9,8 +9,6 @@ namespace FNPlugin.Reactors
 		[KSPField]
 		public double magneticNozzlePowerMult = 1;
 
-        public double CurrentMeVPerChargedProduct { get { return CurrentFuelMode != null ? CurrentFuelMode.MeVPerChargedProduct : 0; } }
-
         public override bool IsFuelNeutronRich { get { return CurrentFuelMode != null ? !CurrentFuelMode.Aneutronic : false; } }
 
         public double MaximumChargedIspMult { get { return 1; } }
