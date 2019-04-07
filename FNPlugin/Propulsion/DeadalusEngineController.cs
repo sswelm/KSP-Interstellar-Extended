@@ -535,7 +535,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error OnStart " + e.Message + " stack " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI]: Error OnStart " + e.Message + " stack " + e.StackTrace);
             }
         }
 
@@ -655,7 +655,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error Update " + e.Message + " stack " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI]: Error Update " + e.Message + " stack " + e.StackTrace);
             }
         }
 
@@ -776,7 +776,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error ShutDown " + e.Message + " stack " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI]: Error ShutDown " + e.Message + " stack " + e.StackTrace);
             }
         }
 
@@ -794,7 +794,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI]: Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
             }
         }
 
@@ -812,7 +812,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error FixedUpdate " + e.Message + " stack " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI]: Error FixedUpdate " + e.Message + " stack " + e.StackTrace);
             }
         }
 
@@ -825,7 +825,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error UpdateTime " + e.Message + " stack " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI]: Error UpdateTime " + e.Message + " stack " + e.StackTrace);
             }
         }
 
@@ -900,7 +900,7 @@ namespace FNPlugin
                     if (fusionRatio <= 0.01)
                     {
                         var message = "Thrust warp stopped - insuficient power";
-                        UnityEngine.Debug.Log("[KSPI] - " + message);
+                        UnityEngine.Debug.Log("[KSPI]: " + message);
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime
                         TimeWarp.SetRate(0, true);
@@ -927,7 +927,7 @@ namespace FNPlugin
                     if (fuelRatio < 0.999)
                     {
                         var message = (fuelRatio <= 0) ? "Thrust warp stopped - propellant depleted" : "Thrust warp stopped - running out of propellant";
-                        UnityEngine.Debug.Log("[KSPI] - " + message);
+                        UnityEngine.Debug.Log("[KSPI]: " + message);
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime
                         TimeWarp.SetRate(0, true);
@@ -958,7 +958,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error UpdateTime " + e.Message + " stack " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI]: Error UpdateTime " + e.Message + " stack " + e.StackTrace);
             }
         }
 
@@ -984,7 +984,7 @@ namespace FNPlugin
             {
                 var message = "Thrust warp stopped - orbital speed too low";
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                UnityEngine.Debug.Log("[KSPI] - " + message);
+                UnityEngine.Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);
                 return;
             }
@@ -1146,7 +1146,7 @@ namespace FNPlugin
                     var directionName = Enum.GetName(typeof(VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
                     var message = "Thrust warp stopped - vessel is not facing " + directionName;
                     ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                    UnityEngine.Debug.Log("[KSPI] - " + message);
+                    UnityEngine.Debug.Log("[KSPI]: " + message);
                     TimeWarp.SetRate(0, true);
                     return false;
                 }

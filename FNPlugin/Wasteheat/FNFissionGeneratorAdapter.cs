@@ -52,7 +52,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in FNFissionGeneratorAdapter.OnStart " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNFissionGeneratorAdapter.OnStart " + e.Message);
                 throw;
             }
         }
@@ -70,7 +70,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in FNFissionGeneratorAdapter.OnFixedUpdate " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNFissionGeneratorAdapter.OnFixedUpdate " + e.Message);
                 throw;
             }
         }
@@ -89,7 +89,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in FNFissionGeneratorAdapter.OnFixedUpdate " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNFissionGeneratorAdapter.OnFixedUpdate " + e.Message);
                 throw;
             }
         }
@@ -134,7 +134,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in FNFissionGeneratorAdapter.OnFixedUpdateResourceSuppliable " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNFissionGeneratorAdapter.OnFixedUpdateResourceSuppliable " + e.Message);
                 throw;
             }
         }

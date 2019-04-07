@@ -251,11 +251,11 @@ namespace FNPlugin
             UpdateFuelFactors();
 
             if (double.IsNaN(this.requestedMassFlow) || double.IsInfinity(requestedMassFlow))
-                Debug.LogWarning("[KSPI] - requestedMassFlow  is " + requestedMassFlow);
+                Debug.LogWarning("[KSPI]: requestedMassFlow  is " + requestedMassFlow);
             if (double.IsNaN(this.realIsp) || double.IsInfinity(realIsp))
-                Debug.LogWarning("[KSPI] - realIsp  is " + realIsp);
+                Debug.LogWarning("[KSPI]: realIsp  is " + realIsp);
             if (double.IsNaN(this.finalThrust) || double.IsInfinity(finalThrust))
-                Debug.LogWarning("[KSPI] - finalThrust  is " + finalThrust);
+                Debug.LogWarning("[KSPI]: finalThrust  is " + finalThrust);
 
             // Check if we are in time warp mode
             if (!vessel.packed)
@@ -306,7 +306,7 @@ namespace FNPlugin
                     {
                         var message = "Thrust warp stopped - orbital speed too low";
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                        Debug.Log("[KSPI] - " + message);
+                        Debug.Log("[KSPI]: " + message);
                         TimeWarp.SetRate(0, true);
                         return;
                     }
@@ -323,7 +323,7 @@ namespace FNPlugin
                         if (fuelRatio < 0.999)
                         {
                             var message = "Thrust warp stopped - running out of propellant";
-                            Debug.Log("[KSPI] - " + message);
+                            Debug.Log("[KSPI]: " + message);
                             ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                             // Return to realtime
                             TimeWarp.SetRate(0, true);
@@ -332,7 +332,7 @@ namespace FNPlugin
                     else if (demandMass > 0)
                     {
                         var message = "Thrust warp stopped - propellant depleted";
-                        Debug.Log("[KSPI] - " + message);
+                        Debug.Log("[KSPI]: " + message);
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime
                         TimeWarp.SetRate(0, true);
@@ -378,7 +378,7 @@ namespace FNPlugin
                     var directionName = Enum.GetName(typeof(VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
                     var message = "Thrust warp stopped - vessel is not facing " + directionName;
                     ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                    Debug.Log("[KSPI] - " + message);
+                    Debug.Log("[KSPI]: " + message);
                     TimeWarp.SetRate(0, true);
                     return false;
                 }

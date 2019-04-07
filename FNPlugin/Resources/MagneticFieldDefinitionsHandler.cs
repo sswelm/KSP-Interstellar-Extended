@@ -24,14 +24,14 @@ namespace FNPlugin.Resources
                 // check if there's a composition for this body
                 if (!magneticFieldDefinitions_by_name.TryGetValue(celestialBodyName, out magneticFieldDefinition))
                 {
-                    Debug.LogWarning("[KSPI] - Failed to find magneticFieldDefinition for: " + celestialBodyName);
+                    Debug.LogWarning("[KSPI]: Failed to find magneticFieldDefinition for: " + celestialBodyName);
                     magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding default multiplier
                     magneticFieldDefinitions_by_name.Add(celestialBodyName, magneticFieldDefinition);
                 }
             }
             catch (Exception ex)
             {
-                Debug.Log("[KSPI] - Exception while retrieving MagneticFieldDefinition : " + ex.ToString());
+                Debug.Log("[KSPI]: Exception while retrieving MagneticFieldDefinition : " + ex.ToString());
                 magneticFieldDefinition = new MagneticFieldDefinition(celestialBodyName, 1); // create an object list for holding default multiplier
                 magneticFieldDefinitions_by_name.Add(celestialBodyName, magneticFieldDefinition);
             }
@@ -45,13 +45,13 @@ namespace FNPlugin.Resources
                 if (magneticFieldDefinitions_by_name != null)
                     return;
 
-                Debug.Log("[KSPI] - Start Loading Magnetic Field Definitions");
+                Debug.Log("[KSPI]: Start Loading Magnetic Field Definitions");
 
                 ConfigNode magneticFieldDefinitionsRoot = GameDatabase.Instance.GetConfigNodes("MAGNETIC_FIELD_DEFINITION_KSPI").FirstOrDefault();
 
                 if (magneticFieldDefinitionsRoot == null)
                 {
-                    Debug.LogWarning("[KSPI] - failed to find ConfigNodes MAGNETIC_FIELD_DEFINITION_KSPI");
+                    Debug.LogWarning("[KSPI]: failed to find ConfigNodes MAGNETIC_FIELD_DEFINITION_KSPI");
 
                     // create empty dictionary
                     magneticFieldDefinitions_by_name = new Dictionary<string, MagneticFieldDefinition>();
@@ -63,14 +63,14 @@ namespace FNPlugin.Resources
                     var magneticFieldDefinitionModels = magneticFieldDefinitionsRoot.nodes.Cast<ConfigNode>()
                         .Select(m => new MagneticFieldDefinition(m.GetValue("celestialBodyName"), double.Parse(m.GetValue("strengthMult")))).ToList();
 
-                    Debug.Log("[KSPI] - found " + magneticFieldDefinitionModels.Count + " Magnetic Field Definitions");
+                    Debug.Log("[KSPI]: found " + magneticFieldDefinitionModels.Count + " Magnetic Field Definitions");
 
                     magneticFieldDefinitions_by_name = magneticFieldDefinitionModels.ToDictionary(m => m.CelestialBodyName);
                 }
             }
             catch (Exception ex)
             {
-                Debug.Log("[KSPI] - Exception while loading MagneticFieldDefinitions : " + ex.ToString());
+                Debug.Log("[KSPI]: Exception while loading MagneticFieldDefinitions : " + ex.ToString());
             }
             
         }

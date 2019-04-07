@@ -53,19 +53,19 @@ namespace FNPlugin.Resources
 
         private static Dictionary<string, AtmosphericResource> CreateFromKspiDefinitionFile(string celestrialBodyName)
         {
-            Debug.Log("[KSPI] - searching for atmosphere definition for " + celestrialBodyName);
+            Debug.Log("[KSPI]: searching for atmosphere definition for " + celestrialBodyName);
 
             try
             {
 
                 foreach (var atmospheric_resource_pack in GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_RESOURCE_PACK_DEFINITION_KSPI"))
                 {
-                    Debug.Log("[KSPI] - Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
+                    Debug.Log("[KSPI]: Loading atmospheric data from pack: " + (atmospheric_resource_pack.HasValue("name") ? atmospheric_resource_pack.GetValue("name") : "unknown pack"));
 
                     var atmospheric_resource_list = atmospheric_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
                     if (atmospheric_resource_list.Any())
                     {
-                        Debug.Log("[KSPI] - found atmospheric resource list for " + celestrialBodyName);
+                        Debug.Log("[KSPI]: found atmospheric resource list for " + celestrialBodyName);
 
                         // create atmospheric definition from pack
                         return atmospheric_resource_list.Select(orsc => new AtmosphericResource(
@@ -78,10 +78,10 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] -  CreateFromKspiDefinitionFile for " + celestrialBodyName + " exception " + ex.Message);
+                Debug.LogError("[KSPI]:  CreateFromKspiDefinitionFile for " + celestrialBodyName + " exception " + ex.Message);
             }
 
-            Debug.LogWarning("[KSPI] - Failed to find atmospheric resource list for " + celestrialBodyName);
+            Debug.LogWarning("[KSPI]: Failed to find atmospheric resource list for " + celestrialBodyName);
             return new Dictionary<string, AtmosphericResource>();
         }
 
@@ -99,37 +99,37 @@ namespace FNPlugin.Resources
                 bodyAtmosphericComposition = CreateFromKspiDefinitionFile(body.name);
 
                 // add from stock resource definitions if missing
-                Debug.Log("[KSPI] - adding stock resource definitions for " + body.name);
+                Debug.Log("[KSPI]: adding stock resource definitions for " + body.name);
                 GenerateCompositionFromResourceAbundances(body, bodyAtmosphericComposition);
 
                 var sumOfResourceAbundances = bodyAtmosphericComposition.Values.Sum(m => m.ResourceAbundance);
-                Debug.Log("[KSPI] - sum of all resource abundance = " + sumOfResourceAbundances);
+                Debug.Log("[KSPI]: sum of all resource abundance = " + sumOfResourceAbundances);
 
                 // if abundance does not approximate 1, create one base on celestrialbody characteristics
                 if (sumOfResourceAbundances < 0.8 || sumOfResourceAbundances > 1.2)
                     bodyAtmosphericComposition = GenerateCompositionFromCelestialBody(body);
 
                 // Add rare and isotopes resources
-                Debug.Log("[KSPI] - adding trace resources and isotopess to " + body.name);
+                Debug.Log("[KSPI]: adding trace resources and isotopess to " + body.name);
                 AddRaresAndIsotopesToAdmosphereComposition(bodyAtmosphericComposition, body);
 
                 // add missing stock resources
-                Debug.Log("[KSPI] - adding missing stock defined resources to " + body.name);
+                Debug.Log("[KSPI]: adding missing stock defined resources to " + body.name);
                 AddMissingStockResources(body, bodyAtmosphericComposition);
 
                 // add to dictionaries for future reference
                 atmospheric_resource_by_body_id.Add(body.flightGlobalsIndex, bodyAtmosphericComposition);
                 atmospheric_resource_by_body_name.Add(body.name, bodyAtmosphericComposition);
 
-                Debug.Log("[KSPI] - Succesfully Finished loading atmospheric composition for " + body.name);
+                Debug.Log("[KSPI]: Succesfully Finished loading atmospheric composition for " + body.name);
                 return bodyAtmosphericComposition;
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] -  GetAtmosphericCompositionForBody " + body.name + " exception " + ex.Message);
+                Debug.LogError("[KSPI]:  GetAtmosphericCompositionForBody " + body.name + " exception " + ex.Message);
             }
 
-            Debug.LogWarning("[KSPI] - Failed loading atmospheric composition for " + body.name);
+            Debug.LogWarning("[KSPI]: Failed loading atmospheric composition for " + body.name);
             bodyAtmosphericComposition = new Dictionary<string, AtmosphericResource>();
             return bodyAtmosphericComposition;
         }
@@ -141,32 +141,32 @@ namespace FNPlugin.Resources
                 // return empty is no atmosphere
                 if (!body.atmosphere)
                 {
-                    Debug.Log("[KSPI] - celestrial body " + body.name + " is missing an atmosphere");
+                    Debug.Log("[KSPI]: celestrial body " + body.name + " is missing an atmosphere");
                     return new Dictionary<string, AtmosphericResource>();
                 }
 
-                Debug.Log("[KSPI] - Start GenerateCompositionFromCelestialBody for " + body.name);
+                Debug.Log("[KSPI]: Start GenerateCompositionFromCelestialBody for " + body.name);
 
                 // Lookup homeworld
                 var homeworld = FlightGlobals.Bodies.First(b => b.isHomeWorld);
                 var presureAtSurface = body.GetPressure(0);
 
-                Debug.Log("[KSPI] - determined " + homeworld.name + " to be the home world");
+                Debug.Log("[KSPI]: determined " + homeworld.name + " to be the home world");
 
-                Debug.Log("[KSPI] - surface presure " + body.name + " is " + presureAtSurface + " kPa");
-                Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworld.GetPressure(0) + " kPa");
-                Debug.Log("[KSPI] - atmospheric Density " + body.name + " is " + body.atmDensityASL);
-                Debug.Log("[KSPI] - atmospheric Density " + homeworld.name + " is " + homeworld.atmDensityASL);
-                Debug.Log("[KSPI] - mass " + body.name + " is " + body.Mass);
-                Debug.Log("[KSPI] - mass " + homeworld.name + " is " + homeworld.Mass);
-                Debug.Log("[KSPI] - atmosphere MolarMass " + body.name + " is " + body.atmosphereMolarMass);
-                Debug.Log("[KSPI] - atmosphere MolarMass " + homeworld.name + " is " + homeworld.atmosphereMolarMass);
-                Debug.Log("[KSPI] - atmosphere Depth " + body.name + " is " + body.atmosphereDepth);
-                Debug.Log("[KSPI] - atmosphere Depth " + homeworld.name + " is " + homeworld.atmosphereDepth);
-                Debug.Log("[KSPI] - density " + body.name + " is " + body.Density);
-                Debug.Log("[KSPI] - density " + homeworld.name + " is " + homeworld.Density);
-                Debug.Log("[KSPI] - temperature " + body.name + " is " + body.atmosphereTemperatureSeaLevel + " K");
-                Debug.Log("[KSPI] - temperature " + homeworld.name + " is " + homeworld.atmosphereTemperatureSeaLevel + " K");
+                Debug.Log("[KSPI]: surface presure " + body.name + " is " + presureAtSurface + " kPa");
+                Debug.Log("[KSPI]: surface presure " + homeworld.name + " is " + homeworld.GetPressure(0) + " kPa");
+                Debug.Log("[KSPI]: atmospheric Density " + body.name + " is " + body.atmDensityASL);
+                Debug.Log("[KSPI]: atmospheric Density " + homeworld.name + " is " + homeworld.atmDensityASL);
+                Debug.Log("[KSPI]: mass " + body.name + " is " + body.Mass);
+                Debug.Log("[KSPI]: mass " + homeworld.name + " is " + homeworld.Mass);
+                Debug.Log("[KSPI]: atmosphere MolarMass " + body.name + " is " + body.atmosphereMolarMass);
+                Debug.Log("[KSPI]: atmosphere MolarMass " + homeworld.name + " is " + homeworld.atmosphereMolarMass);
+                Debug.Log("[KSPI]: atmosphere Depth " + body.name + " is " + body.atmosphereDepth);
+                Debug.Log("[KSPI]: atmosphere Depth " + homeworld.name + " is " + homeworld.atmosphereDepth);
+                Debug.Log("[KSPI]: density " + body.name + " is " + body.Density);
+                Debug.Log("[KSPI]: density " + homeworld.name + " is " + homeworld.Density);
+                Debug.Log("[KSPI]: temperature " + body.name + " is " + body.atmosphereTemperatureSeaLevel + " K");
+                Debug.Log("[KSPI]: temperature " + homeworld.name + " is " + homeworld.atmosphereTemperatureSeaLevel + " K");
 
                 // determine if the planet is a gas planet
                 if (body.Mass > homeworld.Mass * 10 && presureAtSurface >= 1000)
@@ -174,35 +174,35 @@ namespace FNPlugin.Resources
                     // Check if the planet  hot gas planet
                     if (body.Mass < homeworld.Mass * 25 && body.atmosphereTemperatureSeaLevel > 700) // Higher than 700 K
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gliese 436b");
+                        Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Gliese 436b");
                         return GetAtmosphericCompositionForKnownCelestrial("Gliese436b");
                     }
 
                     if (body.atmosphereTemperatureSeaLevel > 1400) // Class V: Silicate clouds
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere is a Class V: Silicate clouds planet");
+                        Debug.Log("[KSPI]: determined " + body.name + " atmosphere is a Class V: Silicate clouds planet");
                         return GetAtmosphericCompositionForKnownCelestrial("Jupiter");
                     }
                     else if (body.atmosphereTemperatureSeaLevel > 900) // Class IV: Alkali metals
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere is a Class IV: Alkali metals planet");
+                        Debug.Log("[KSPI]: determined " + body.name + " atmosphere is a Class IV: Alkali metals planet");
                         return GetAtmosphericCompositionForKnownCelestrial("Jupiter");
                     }
                     else if (body.atmosphereTemperatureSeaLevel > 300) // Class III: Cloudless
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere is a Class III: Cloudless planet");
+                        Debug.Log("[KSPI]: determined " + body.name + " atmosphere is a Class III: Cloudless planet");
                         return GetAtmosphericCompositionForKnownCelestrial("Jupiter");
                     }
                     else if (body.atmosphereTemperatureSeaLevel > 150) // Class II: Water clouds
                     {
                         if (body.atmosphereDepth < 500000 )
                         {
-                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gauss");
+                            Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Gauss");
                             return GetAtmosphericCompositionForKnownCelestrial("Gauss");
                         }
                         else
                         {
-                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Otho");
+                            Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Otho");
                             return GetAtmosphericCompositionForKnownCelestrial("Otho");
                         }
                     }
@@ -211,28 +211,28 @@ namespace FNPlugin.Resources
                         // Check if its a super giant
                         if (body.Mass > homeworld.Mass * 80)
                         {
-                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Jupiter");
+                            Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Jupiter");
                             return GetAtmosphericCompositionForKnownCelestrial("Jupiter");
                         }
                         if (body.Mass > homeworld.Mass * 60)
                         {
-                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Nero");
+                            Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Nero");
                             return GetAtmosphericCompositionForKnownCelestrial("Nero");
                         }
 
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Saturn");
+                        Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Saturn");
                         return GetAtmosphericCompositionForKnownCelestrial("Saturn");
                     }
                     else // ice giant
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Uranus");
+                        Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Uranus");
                         return GetAtmosphericCompositionForKnownCelestrial("Uranus");
                     }
                 }
 
                 if (presureAtSurface >= 1000 && body.atmosphereTemperatureSeaLevel > 500)	// Higher than 1000 kPa and 500 K
                 {
-                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Venus");
+                    Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Venus");
                     return GetAtmosphericCompositionForKnownCelestrial("Venus");
                 }
 
@@ -242,20 +242,20 @@ namespace FNPlugin.Resources
                     {
                         if (presureAtSurface < 100)
                         {
-                            Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Gratian");
+                            Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Gratian");
                             return GetAtmosphericCompositionForKnownCelestrial("Gratian");
                         }
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Titan");
+                        Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Titan");
                         return GetAtmosphericCompositionForKnownCelestrial("Titan");
                     }
 
                     if (body.atmosphereTemperatureSeaLevel < 50) // Surface temperature colder than 50K
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Pluto");
+                        Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Pluto");
                         return GetAtmosphericCompositionForKnownCelestrial("Pluto");
                     }
 
-                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Triton");
+                    Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Triton");
                     return GetAtmosphericCompositionForKnownCelestrial("Triton");
                 }
 
@@ -263,28 +263,28 @@ namespace FNPlugin.Resources
                 {
                     if (body.Mass > homeworld.Mass * 5)
                     {
-                        Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Tellumo");
+                        Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Tellumo");
                         return GetAtmosphericCompositionForKnownCelestrial("Tellumo");
                     }
 
-                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Earth");
+                    Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Earth");
                     return GetAtmosphericCompositionForKnownCelestrial("Earth");
                 }
 
                 if (body.atmosphereTemperatureSeaLevel > 270)
                 {
-                    Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Niven");
+                    Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Niven");
                     return GetAtmosphericCompositionForKnownCelestrial("Niven");
                 }
 
 
                 // Otherwise is a boring Mars like planet
-                Debug.Log("[KSPI] - determined " + body.name + " atmosphere to be like Mars");
+                Debug.Log("[KSPI]: determined " + body.name + " atmosphere to be like Mars");
                 return GetAtmosphericCompositionForKnownCelestrial("Mars");
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - Exception while generating atmosphere composition from celestrial atmosphere properties for " + body.name + " : " + ex);
+                Debug.LogError("[KSPI]: Exception while generating atmosphere composition from celestrial atmosphere properties for " + body.name + " : " + ex);
             }
 
             return new Dictionary<string, AtmosphericResource>();
@@ -321,7 +321,7 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - Exception while generating atmospheric composition from defined abundances for " + body.name + " : " + ex);
+                Debug.LogError("[KSPI]: Exception while generating atmospheric composition from defined abundances for " + body.name + " : " + ex);
             }
         }
 
@@ -330,7 +330,7 @@ namespace FNPlugin.Resources
             // fetch all atmospheric resources
             var allResources = ResourceMap.Instance.FetchAllResourceNames(HarvestTypes.Atmospheric);
 
-            Debug.Log("[KSPI] - AddMissingStockResources : found " + allResources.Count + " resources");
+            Debug.Log("[KSPI]: AddMissingStockResources : found " + allResources.Count + " resources");
 
             foreach (var resoureName in allResources)
             {
@@ -345,14 +345,14 @@ namespace FNPlugin.Resources
             var definition = PartResourceLibrary.Instance.GetDefinition(resourname);
             if (definition == null)
             {
-                Debug.LogWarning("[KSPI] - AddMissingResource : Failed to find resource definition for '" + resourname + "'");
+                Debug.LogWarning("[KSPI]: AddMissingResource : Failed to find resource definition for '" + resourname + "'");
                 return;
             }
 
             // skip it already registred or used as a Synonym
             if (bodyComposition.Values.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.displayName || m.Synonyms.Contains(definition.name)))
             {
-                Debug.Log("[KSPI] - AddMissingResource : Already found existing composition for '" + resourname + "'");
+                Debug.Log("[KSPI]: AddMissingResource : Already found existing composition for '" + resourname + "'");
                 return;
             }
 
@@ -360,7 +360,7 @@ namespace FNPlugin.Resources
             var abundance = GetAbundance(definition.name, body);
             if (abundance <= 0)
             {
-                Debug.LogWarning("[KSPI] - AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
+                Debug.LogWarning("[KSPI]: AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
                 return;
             }
 
@@ -368,7 +368,7 @@ namespace FNPlugin.Resources
             var resource = new AtmosphericResource(definition, abundance);
 
             // add to composition
-            Debug.Log("[KSPI] - AddMissingResource : add resource '" + resourname + "'");
+            Debug.Log("[KSPI]: AddMissingResource : add resource '" + resourname + "'");
             bodyComposition.Add(resource.ResourceName, resource);
         }
 
@@ -386,11 +386,11 @@ namespace FNPlugin.Resources
             if (!bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_HELIUM_4))
             {
                 const double helium4Abundance = 5.2e-6;
-                Debug.Log("[KSPI] - Added helum-4 to atmosphere with abundance " + helium4Abundance);
+                Debug.Log("[KSPI]: Added helum-4 to atmosphere with abundance " + helium4Abundance);
                 bodyAtmosphericComposition.Add(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_4, helium4Abundance, "Helium-4"));
             }
             else
-                Debug.Log("[KSPI] - Helium is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_HELIUM_4].ResourceAbundance);
+                Debug.Log("[KSPI]: Helium is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_HELIUM_4].ResourceAbundance);
 
             // if helium3 is undefined, but helium is, derive it
             AtmosphericResource helium;
@@ -401,39 +401,39 @@ namespace FNPlugin.Resources
                     ? helium.ResourceAbundance * 0.001
                     : helium.ResourceAbundance * 1.38e-6;
 
-                Debug.Log("[KSPI] - Added helium-3 to atmosphere eith abundance " + helium3Abundance);
+                Debug.Log("[KSPI]: Added helium-3 to atmosphere eith abundance " + helium3Abundance);
                 bodyAtmosphericComposition.Add(InterstellarResourcesConfiguration._LIQUID_HELIUM_3, new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_HELIUM_3, helium3Abundance, "Helium-3"));
             }
             else if (bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_HELIUM_3))
-                Debug.Log("[KSPI] - Helium-3 is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_HELIUM_3].ResourceAbundance);
+                Debug.Log("[KSPI]: Helium-3 is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_HELIUM_3].ResourceAbundance);
             else
-                Debug.Log("[KSPI] - No Helium is present in atmosphere specification, helium-4 will not be added");
+                Debug.Log("[KSPI]: No Helium is present in atmosphere specification, helium-4 will not be added");
 
             // if deteurium is undefined, but hydrogen is, derive it
             AtmosphericResource hydrogen;
             if (!bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM) && bodyAtmosphericComposition.TryGetValue(InterstellarResourcesConfiguration._LIQUID_HYDROGEN, out hydrogen))
             {
                 var deuteriumAbundance = hydrogen.ResourceAbundance / 6420;
-                Debug.Log("[KSPI] - Added deuterium to atmosphere with abundance " + deuteriumAbundance);
+                Debug.Log("[KSPI]: Added deuterium to atmosphere with abundance " + deuteriumAbundance);
                 bodyAtmosphericComposition.Add(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM, new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM, deuteriumAbundance, "Deuterium"));
             }
             else if (bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_DEUTERIUM))
-                Debug.Log("[KSPI] - Deuterium is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_DEUTERIUM].ResourceAbundance);
+                Debug.Log("[KSPI]: Deuterium is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_DEUTERIUM].ResourceAbundance);
             else 
-                Debug.Log("[KSPI] - No Hydrogen is present in atmosphere specification, deuterium will not be added");
+                Debug.Log("[KSPI]: No Hydrogen is present in atmosphere specification, deuterium will not be added");
 
             // if nitrogen-15 is undefined, but nitrogen is, derive it
             AtmosphericResource nitrogen;
             if (!bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_NITROGEN_15) && bodyAtmosphericComposition.TryGetValue(InterstellarResourcesConfiguration._LIQUID_NITROGEN, out nitrogen))
             {
                 var nitrogen15Abundance = nitrogen.ResourceAbundance * 0.00364;
-                Debug.Log("[KSPI] - Added nitrogen-15 to atmosphere with abundance " + nitrogen15Abundance);
+                Debug.Log("[KSPI]: Added nitrogen-15 to atmosphere with abundance " + nitrogen15Abundance);
                 bodyAtmosphericComposition.Add(InterstellarResourcesConfiguration._LIQUID_NITROGEN_15, new AtmosphericResource(InterstellarResourcesConfiguration._LIQUID_NITROGEN_15, nitrogen15Abundance, "Nitrogen-15"));
             }
             else if (bodyAtmosphericComposition.ContainsKey(InterstellarResourcesConfiguration._LIQUID_NITROGEN_15))
-                Debug.Log("[KSPI] - Nitrogen-15 is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_NITROGEN_15].ResourceAbundance);
+                Debug.Log("[KSPI]: Nitrogen-15 is already present in atmosphere specification at " + bodyAtmosphericComposition[InterstellarResourcesConfiguration._LIQUID_NITROGEN_15].ResourceAbundance);
             else
-                Debug.Log("[KSPI] - No Nitrogen is present in atmosphere specification, nitrogen-15 will not be added");
+                Debug.Log("[KSPI]: No Nitrogen is present in atmosphere specification, nitrogen-15 will not be added");
         }
 
         private static void AddResource(string outputResourname, string displayname, CelestialBody body, IDictionary<string, AtmosphericResource> atmosphericResourcesByName, string[] variantNames, double abundanceExponent = 1)
@@ -444,13 +444,13 @@ namespace FNPlugin.Resources
             if (existingResource != null)
             {
                 finalAbundance = existingResource.ResourceAbundance;
-                Debug.Log("[KSPI] - using kspie resource definition " + outputResourname + " for " + body.name + " with abundance " + finalAbundance);
+                Debug.Log("[KSPI]: using kspie resource definition " + outputResourname + " for " + body.name + " with abundance " + finalAbundance);
             }
             else
             {
                 var abundances = new[] { GetAbundance(outputResourname, body) }.Concat(variantNames.Select(m => GetAbundance(m, body)));
                 finalAbundance = abundances.Max();
-                Debug.Log("[KSPI] - looked up stock resource definition " + outputResourname + " for " + body.name + " with abundance " + finalAbundance);
+                Debug.Log("[KSPI]: looked up stock resource definition " + outputResourname + " for " + body.name + " with abundance " + finalAbundance);
 
                 if (abundanceExponent != 1)
                     finalAbundance = Math.Pow(finalAbundance / 100, abundanceExponent) * 100;

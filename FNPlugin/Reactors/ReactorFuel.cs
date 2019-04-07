@@ -29,7 +29,7 @@ namespace FNPlugin.Reactors
 
             Definition = PartResourceLibrary.Instance.GetDefinition(_resource_name);
             if (Definition == null)
-                Debug.LogError("[KSPI] - No definition found for resource '" + _resource_name + "' for ReactorFuel " + _fuel_name);
+                Debug.LogError("[KSPI]: No definition found for resource '" + _resource_name + "' for ReactorFuel " + _fuel_name);
             else
             {
                 _density = (double)(decimal)Definition.density;
@@ -123,7 +123,7 @@ namespace FNPlugin.Reactors
 
             Definition = PartResourceLibrary.Instance.GetDefinition(_fuel_name);
             if (Definition == null)
-                Debug.LogError("[KSPI] - No definition found for ReactorProduct '" + _resource_name + "'");
+                Debug.LogError("[KSPI]: No definition found for ReactorProduct '" + _resource_name + "'");
             else
             {
                 _density = (double)(decimal)Definition.density;

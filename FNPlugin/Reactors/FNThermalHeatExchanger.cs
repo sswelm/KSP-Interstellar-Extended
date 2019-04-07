@@ -99,7 +99,7 @@ namespace FNPlugin.Reactors
         {
             try
             {
-                UnityEngine.Debug.Log("[KSPI] - InterstellarReactor.ConnectReciever: Guid: " + key + " radius: " + radius);
+                UnityEngine.Debug.Log("[KSPI]: InterstellarReactor.ConnectReciever: Guid: " + key + " radius: " + radius);
 
                 if (!connectedRecievers.ContainsKey(key))
                 {
@@ -110,7 +110,7 @@ namespace FNPlugin.Reactors
             }
             catch (Exception error)
             {
-                UnityEngine.Debug.LogError("[KSPI] - InterstellarReactor.ConnectReciever exception: " + error.Message);
+                UnityEngine.Debug.LogError("[KSPI]: InterstellarReactor.ConnectReciever exception: " + error.Message);
             }
         }
 

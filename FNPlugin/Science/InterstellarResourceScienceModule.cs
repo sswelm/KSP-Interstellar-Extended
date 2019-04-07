@@ -71,7 +71,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            Debug.Log("[KSPI] - InterstellarResourceScienceModule - OnStart " + state.ToString());
+            Debug.Log("[KSPI]: InterstellarResourceScienceModule - OnStart " + state.ToString());
 
             //this.Events["Deploy"].guiActive = false;
             Events["activateGenerator"].guiName = generatorActivateName;
@@ -90,7 +90,7 @@ namespace FNPlugin
                 double time_diff = Planetarium.GetUniversalTime() - last_active_time;
                 
                 var minutes = time_diff / 60;
-                Debug.Log("[KSPI] - InterstellarResourceScienceModule - time difference " + minutes + " minutes");
+                Debug.Log("[KSPI]: InterstellarResourceScienceModule - time difference " + minutes + " minutes");
                 ScreenMessages.PostScreenMessage("Generated Science Data for " + minutes.ToString("0.00") + " minutes", 5.0f, ScreenMessageStyle.LOWER_CENTER);
 
                 GenerateScience(time_diff, true);
@@ -131,9 +131,9 @@ namespace FNPlugin
             if (biome != currentBiome || (needSubjects && lcrewCount != crewCount))
             {
                 if (biome != currentBiome)
-                    UnityEngine.Debug.Log("[KSPI] - InterstellarResourceScienceModule - reseting research because biome " + biome + " != biome " + currentBiome);
+                    UnityEngine.Debug.Log("[KSPI]: InterstellarResourceScienceModule - reseting research because biome " + biome + " != biome " + currentBiome);
                 else
-                    UnityEngine.Debug.Log("[KSPI] - InterstellarResourceScienceModule - reseting research because lcrewCount " + lcrewCount + " !=  crewCount " + crewCount);
+                    UnityEngine.Debug.Log("[KSPI]: InterstellarResourceScienceModule - reseting research because lcrewCount " + lcrewCount + " !=  crewCount " + crewCount);
 
                 print("biome change " + biome);
                 currentBiome = biome;
@@ -160,7 +160,7 @@ namespace FNPlugin
             else
             {
                 spent = lastGeneratedPerSecond * deltaTime;
-                UnityEngine.Debug.Log("[KSPI] - InterstellarResourceScienceModule - available power: " + spent);
+                UnityEngine.Debug.Log("[KSPI]: InterstellarResourceScienceModule - available power: " + spent);
             }
 
             //  print(spent.ToString());
@@ -171,7 +171,7 @@ namespace FNPlugin
             var generatedScience = generatorResourceOut * deltaTime * generatescale;
             if (offlineCollecting)
             {
-                UnityEngine.Debug.Log("[KSPI] - InterstellarResourceScienceModule - generatedScience: " + generatedScience);
+                UnityEngine.Debug.Log("[KSPI]: InterstellarResourceScienceModule - generatedScience: " + generatedScience);
             }
 
             double generated = part.RequestResource(generatorResourceOutName, -generatedScience);

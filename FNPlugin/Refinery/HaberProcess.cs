@@ -111,7 +111,7 @@ namespace FNPlugin.Refinery
                 if (isStartup)
                 {
                     string message = "produced: " + (ammonia_produced * ammonia_density * 1000).ToString("0.000") + " kg Ammonia";
-                    Debug.Log("[KSPI] - " + message);
+                    Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 20, ScreenMessageStyle.LOWER_CENTER);
                 }
             }

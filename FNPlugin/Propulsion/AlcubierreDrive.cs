@@ -185,13 +185,13 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_startChargingDrive", active = true)]
         public void StartCharging()
         {
-            Debug.Log("[KSPI] - Start Charging pressed");
+            Debug.Log("[KSPI]: Start Charging pressed");
 
             if (IsEnabled) return;
 
             if (warpToMassRatio < 1)
             {
-                Debug.Log("[KSPI] - warpToMassRatio: " + warpToMassRatio + " is less than 1" );
+                Debug.Log("[KSPI]: warpToMassRatio: " + warpToMassRatio + " is less than 1" );
                 var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpStrenthToLowForVesselMass");
                 ScreenMessages.PostScreenMessage(message);
                 return;
@@ -204,7 +204,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_stopChargingDrive", active = false)]
         public void StopCharging()
         {
-            Debug.Log("[KSPI] - Stop Charging button pressed");
+            Debug.Log("[KSPI]: Stop Charging button pressed");
             IsCharging = false;
 
             // flush all exotic matter
@@ -218,13 +218,13 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_activateWarpDrive", active = true)]
         public void ActivateWarpDrive()
         {
-            Debug.Log("[KSPI] - Activate Warp Drive button pressed");
+            Debug.Log("[KSPI]: Activate Warp Drive button pressed");
             if (IsEnabled) return;
 
             if (warpToMassRatio < 1)
             {
                 var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_notEnoughWarpPowerToVesselMass");
-                Debug.Log("[KSPI] - " + message);
+                Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
@@ -232,7 +232,7 @@ namespace FNPlugin
             if (part.vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(part.vessel.mainBody) && part.vessel.mainBody.flightGlobalsIndex != 0)
             {
                 var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_cannotActivateWarpdriveWithinAtmosphere");
-                Debug.Log("[KSPI] - " + message);
+                Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
@@ -244,7 +244,7 @@ namespace FNPlugin
             if (exoticMatterAvailable < exotic_power_required)
             {
                 string message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpdriveIsNotFullyChargedForWarp");
-                Debug.Log("[KSPI] - " + message);
+                Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
@@ -255,7 +255,7 @@ namespace FNPlugin
             if (!CheatOptions.InfiniteElectricity && GetPowerRequirementForWarp(_engineThrotle[selected_factor]) > getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES))
             {
                 var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpPowerReqIsHigherThanMaxPowerSupply");
-                Debug.Log("[KSPI] - " + message);
+                Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 return;
             }
@@ -281,7 +281,7 @@ namespace FNPlugin
 
         private void InitiateWarp()
         {
-            Debug.Log("[KSPI] - InitiateWarp started");
+            Debug.Log("[KSPI]: InitiateWarp started");
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
 
@@ -301,7 +301,7 @@ namespace FNPlugin
                 {
                     while (selected_factor != minimum_selected_factor)
                     {
-                        Debug.Log("[KSPI] - call ReduceWarpPower");
+                        Debug.Log("[KSPI]: call ReduceWarpPower");
                         ReduceWarpPower();
                         newWarpSpeed = _engineThrotle[selected_factor];
                         currentPowerRequirementForWarp = GetPowerRequirementForWarp(newWarpSpeed);
@@ -312,7 +312,7 @@ namespace FNPlugin
                 if (initiateWarpTimeout == 0)
                 {
                     var message = "Not enough power to initiate warp!" + powerReturned + " " + currentPowerRequirementForWarp;
-                    Debug.Log("[KSPI] - " + message);
+                    Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     IsCharging = true;
                     return;
@@ -354,11 +354,11 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_deactivateWarpDrive", active = false)]
         public void DeactivateWarpDrive()
         {
-            Debug.Log("[KSPI] - Deactivate Warp Drive event called");
+            Debug.Log("[KSPI]: Deactivate Warp Drive event called");
 
             if (!IsEnabled)
             {
-                Debug.Log("[KSPI] - canceled, Warp Drive is already inactive");
+                Debug.Log("[KSPI]: canceled, Warp Drive is already inactive");
                 return;
             }
 
@@ -392,7 +392,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed", active = true)]
         public void ToggleWarpSpeedUp()
         {
-            Debug.Log("[KSPI] - Warp Throttle (+) button pressed");
+            Debug.Log("[KSPI]: Warp Throttle (+) button pressed");
             selected_factor++;
             if (selected_factor >= _engineThrotle.Length)
                 selected_factor = _engineThrotle.Length - 1;
@@ -403,7 +403,7 @@ namespace FNPlugin
 
         private void ToggleWarpSpeedUp3()
         {
-            Debug.Log("[KSPI] - 3x Speed Up pressed");
+            Debug.Log("[KSPI]: 3x Speed Up pressed");
 
             for (var i = 0; i < 3; i++)
             {
@@ -421,7 +421,7 @@ namespace FNPlugin
 
         private void ToggleWarpSpeedUp10()
         {
-            Debug.Log("[KSPI] - 10x Speed Up pressed");
+            Debug.Log("[KSPI]: 10x Speed Up pressed");
 
             for (var i = 0; i < 10; i++)
             {
@@ -440,7 +440,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiActiveUnfocused = true, guiName = "#LOC_KSPIE_AlcubierreDrive_decreaseWarpSpeed", active = true)]
         public void ToggleWarpSpeedDown()
         {
-            Debug.Log("[KSPI] - Warp Throttle (-) button pressed");
+            Debug.Log("[KSPI]: Warp Throttle (-) button pressed");
             selected_factor--;
             if (selected_factor < 0)
                 selected_factor = 0;
@@ -451,7 +451,7 @@ namespace FNPlugin
 
         private void ToggleWarpSpeedDown3()
         {
-            Debug.Log("[KSPI] - 3x Speed Down pressed");
+            Debug.Log("[KSPI]: 3x Speed Down pressed");
 
             for (var i = 0; i < 3; i++)
             {
@@ -469,7 +469,7 @@ namespace FNPlugin
 
         private void ToggleWarpSpeedDown10()
         {
-            Debug.Log("[KSPI] - 10x Speed Down pressed");
+            Debug.Log("[KSPI]: 10x Speed Down pressed");
 
             for (var i = 0; i  < 10; i++)
             {
@@ -488,7 +488,7 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "Reduce Warp Power", active = true)]
         public void ReduceWarpPower()
         {
-            Debug.Log("[KSPI] - Reduce Warp Power button pressed");
+            Debug.Log("[KSPI]: Reduce Warp Power button pressed");
             if (selected_factor == minimum_selected_factor) return;
 
             if (selected_factor < minimum_selected_factor)
@@ -500,28 +500,28 @@ namespace FNPlugin
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_warpControlWindow")]
         public void ToggleWarpControlWindowAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Toggled Warp Control Window");
+            Debug.Log("[KSPI]: Toggled Warp Control Window");
             ToggleWarpControlWindow();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_startChargingDrive")]
         public void StartChargingAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Start Charging Action activated");
+            Debug.Log("[KSPI]: Start Charging Action activated");
             StartCharging();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_stopChargingDrive")]
         public void StopChargingAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Stop Charging Action activated");
+            Debug.Log("[KSPI]: Stop Charging Action activated");
             StopCharging();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_toggleChargingDrive")]
         public void ToggleChargingAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Toggle Charging Action activated");
+            Debug.Log("[KSPI]: Toggle Charging Action activated");
             if (IsCharging)
                 StopCharging();
             else
@@ -531,42 +531,42 @@ namespace FNPlugin
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_reducePowerConsumption")]
         public void ReduceWarpDriveAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - ReduceWarpPower action activated");
+            Debug.Log("[KSPI]: ReduceWarpPower action activated");
             ReduceWarpPower();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_activateWarpDrive")]
         public void ActivateWarpDriveAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Activate Warp Drive action activated");
+            Debug.Log("[KSPI]: Activate Warp Drive action activated");
             ActivateWarpDrive();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_deactivateWarpDrive")]
         public void DeactivateWarpDriveAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Deactivate Warp Drive action activated");
+            Debug.Log("[KSPI]: Deactivate Warp Drive action activated");
             DeactivateWarpDrive();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed")]
         public void ToggleWarpSpeedUpAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Toggle Warp SpeedUp pressed");
+            Debug.Log("[KSPI]: Toggle Warp SpeedUp pressed");
             ToggleWarpSpeedUp();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed3")]
         public void ToggleWarpSpeedUpAction3(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Toggle Warp Speed Up x3 pressed");
+            Debug.Log("[KSPI]: Toggle Warp Speed Up x3 pressed");
             ToggleWarpSpeedUp3();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed10")]
         public void ToggleWarpSpeedUpAction10(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Toggle Warp Speed Up x10 pressed");
+            Debug.Log("[KSPI]: Toggle Warp Speed Up x10 pressed");
             ToggleWarpSpeedUp10();
         }
 
@@ -574,28 +574,28 @@ namespace FNPlugin
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_decreaseWarpSpeed")]
         public void ToggleWarpSpeedDownAction(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Toggle Warp Speed Down pressed");
+            Debug.Log("[KSPI]: Toggle Warp Speed Down pressed");
             ToggleWarpSpeedDown();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_decreaseWarpSpeed3")]
         public void ToggleWarpSpeedDownAction3(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Toggle Warp Speed Down x3 pressed");
+            Debug.Log("[KSPI]: Toggle Warp Speed Down x3 pressed");
             ToggleWarpSpeedDown3();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_decreaseWarpSpeed10")]
         public void ToggleWarpSpeedDownAction10(KSPActionParam param)
         {
-            Debug.Log("[KSPI] - Toggle Warp Speed Down x10 pressed");
+            Debug.Log("[KSPI]: Toggle Warp Speed Down x10 pressed");
             ToggleWarpSpeedDown10();
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_retrofit", active = true)]
         public void RetrofitDrive()
         {
-            Debug.Log("[KSPI] - Retrofit button pressed");
+            Debug.Log("[KSPI]: Retrofit button pressed");
             if (ResearchAndDevelopment.Instance == null) return;
 
             if (isupgraded || ResearchAndDevelopment.Instance.Science < UpgradeCost()) return;
@@ -794,7 +794,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - AlcubierreDrive OnStart 1 Exception " + e.Message);
+                Debug.LogError("[KSPI]: AlcubierreDrive OnStart 1 Exception " + e.Message);
             }
 
             warpdriveType = originalName;
@@ -1051,7 +1051,7 @@ namespace FNPlugin
                 if (insufficientPowerTimeout < 0)
                 {
                     insufficientPowerTimeout--;
-                    Debug.Log("[KSPI] - Not enough power to initiate stable warp field");
+                    Debug.Log("[KSPI]: Not enough power to initiate stable warp field");
                     ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_notEnoughElectricPowerForWarp"), 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     StopCharging();
 
@@ -1149,7 +1149,7 @@ namespace FNPlugin
                         ? "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToAtmosphere"
                         : "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToSurface";
 
-                    Debug.Log("[KSPI] - " + Localizer.Format(message));
+                    Debug.Log("[KSPI]: " + Localizer.Format(message));
                     ScreenMessages.PostScreenMessage(message, 5);
                     DeactivateWarpDrive();
                     return;
@@ -1184,13 +1184,13 @@ namespace FNPlugin
                     else
                         message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_criticalPowerShortageWhileAtMinimumSpeed") + " " + Localizer.Format("#LOC_KSPIE_AlcubierreDrive_deactivatingWarpDrive");
 
-                    Debug.Log("[KSPI] - " + message);
+                    Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5);
                     DeactivateWarpDrive();
                     return;
                 }
                 var insufficientMessage = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_insufficientPowerPercentageAt") + " " + (powerReturned / currentPowerRequirementForWarp * 100).ToString("0.0") + "% " + Localizer.Format("#LOC_KSPIE_AlcubierreDrive_reducingElectricPowerDrain");
-                Debug.Log("[KSPI] - " + insufficientMessage);
+                Debug.Log("[KSPI]: " + insufficientMessage);
                 ScreenMessages.PostScreenMessage(insufficientMessage, 5);
                 ReduceWarpPower();
             }
@@ -1232,7 +1232,7 @@ namespace FNPlugin
 
         private void Develocitize()
         {
-            Debug.Log("[KSPI] - Develocitize");
+            Debug.Log("[KSPI]: Develocitize");
 
             // This code is inspired quite heavily by HyperEdit's OrbitEditor.cs
             var universalTime = Planetarium.GetUniversalTime();
@@ -1381,7 +1381,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - AlcubierreDrive Window(" + windowID + "): " + e.Message);
+                Debug.LogError("[KSPI]: AlcubierreDrive Window(" + windowID + "): " + e.Message);
             }
         }
 

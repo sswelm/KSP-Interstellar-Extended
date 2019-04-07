@@ -129,7 +129,7 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.Log("[KSPI] - Exception while loading Crustal resources : " + ex.ToString());
+                Debug.Log("[KSPI]: Exception while loading Crustal resources : " + ex.ToString());
             }
             return bodyCrustalComposition;
         }
@@ -140,10 +140,10 @@ namespace FNPlugin.Resources
             //CRUSTAL_RESOURCE_PACK_DEFINITION_KSPI
             ConfigNode Crustal_resource_pack = GameDatabase.Instance.GetConfigNodes("CRUSTAL_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
 
-            //Debug.Log("[KSPI] - Loading Crustal data from pack: " + (Crustal_resource_pack.HasValue("name") ? Crustal_resource_pack.GetValue("name") : "unknown pack"));
+            //Debug.Log("[KSPI]: Loading Crustal data from pack: " + (Crustal_resource_pack.HasValue("name") ? Crustal_resource_pack.GetValue("name") : "unknown pack"));
             if (Crustal_resource_pack != null)
             {
-                Debug.Log("[KSPI] - searching for crustal definition for " + celestialBody.name);
+                Debug.Log("[KSPI]: searching for crustal definition for " + celestialBody.name);
                 List<ConfigNode> Crustal_resource_list = Crustal_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestialBody.name).ToList();
                 if (Crustal_resource_list.Any())
                 {
@@ -163,10 +163,10 @@ namespace FNPlugin.Resources
             //CRUSTAL_RESOURCE_PACK_DEFINITION_KSPI
             ConfigNode Crustal_resource_pack = GameDatabase.Instance.GetConfigNodes("CRUSTAL_RESOURCE_PACK_DEFINITION_KSPI").FirstOrDefault();
 
-            //Debug.Log("[KSPI] - Loading Crustal data from pack: " + (Crustal_resource_pack.HasValue("name") ? Crustal_resource_pack.GetValue("name") : "unknown pack"));
+            //Debug.Log("[KSPI]: Loading Crustal data from pack: " + (Crustal_resource_pack.HasValue("name") ? Crustal_resource_pack.GetValue("name") : "unknown pack"));
             if (Crustal_resource_pack != null)
             {
-                Debug.Log("[KSPI] - searching for crustal definition for " + celestrialBodyName);
+                Debug.Log("[KSPI]: searching for crustal definition for " + celestrialBodyName);
                 List<ConfigNode> Crustal_resource_list = Crustal_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == celestrialBodyName).ToList();
                 if (Crustal_resource_list.Any())
                 {
@@ -234,7 +234,7 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - Exception while generating Crustal resource composition from celestial properties : " + ex.ToString());
+                Debug.LogError("[KSPI]: Exception while generating Crustal resource composition from celestial properties : " + ex.ToString());
             }
 
             return bodyCrustalComposition;
@@ -269,7 +269,7 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - Exception while generating Crustal composition from defined abundances : " + ex.ToString());
+                Debug.LogError("[KSPI]: Exception while generating Crustal composition from defined abundances : " + ex.ToString());
             }
 
             return bodyCrustalComposition;
@@ -280,7 +280,7 @@ namespace FNPlugin.Resources
             // fetch all Crustal resources
             var allCrustalResources = ResourceMap.Instance.FetchAllResourceNames(HarvestTypes.Planetary);
 
-            Debug.Log("[KSPI] - AddMissingStockResources : found " + allCrustalResources.Count + " resources");
+            Debug.Log("[KSPI]: AddMissingStockResources : found " + allCrustalResources.Count + " resources");
 
             foreach (var resoureName in allCrustalResources)
             {
@@ -295,14 +295,14 @@ namespace FNPlugin.Resources
             PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resourname);
             if (definition == null)
             {
-                Debug.LogWarning("[KSPI] - AddMissingResource : Failed to find resource definition for '" + resourname + "'");
+                Debug.LogWarning("[KSPI]: AddMissingResource : Failed to find resource definition for '" + resourname + "'");
                 return;
             }
 
             // skip it already registred or used as a Synonym
             if (bodyCrustalComposition.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.displayName || m.Synonyms.Contains(definition.name)))
             {
-                Debug.Log("[KSPI] - AddMissingResource : Already found existing composition for '" + resourname + "'");
+                Debug.Log("[KSPI]: AddMissingResource : Already found existing composition for '" + resourname + "'");
                 return;
             }
 
@@ -310,7 +310,7 @@ namespace FNPlugin.Resources
             var abundance = GetAbundance(definition.name, refBody);
             if (abundance <= 0)
             {
-                Debug.LogWarning("[KSPI] - AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
+                Debug.LogWarning("[KSPI]: AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
                 //return;
             }
 
@@ -318,7 +318,7 @@ namespace FNPlugin.Resources
             var CrustalResource = new CrustalResource(definition, abundance);
 
             // add to Crustal composition
-            Debug.Log("[KSPI] - AddMissingResource : add resource '" + resourname + "'");
+            Debug.Log("[KSPI]: AddMissingResource : add resource '" + resourname + "'");
             bodyCrustalComposition.Add(CrustalResource);
         }
 
@@ -332,7 +332,7 @@ namespace FNPlugin.Resources
                 var existingResource = bodyCrustalComposition.FirstOrDefault(a => a.ResourceName == outputResourname);
                 if (existingResource != null)
                 {
-                    Debug.Log("[KSPI] - replaced resource " + outputResourname + " with stock defined abundance " + CrustalResource.ResourceAbundance);
+                    Debug.Log("[KSPI]: replaced resource " + outputResourname + " with stock defined abundance " + CrustalResource.ResourceAbundance);
                     bodyCrustalComposition.Remove(existingResource);
                 }
                 bodyCrustalComposition.Add(CrustalResource);
@@ -349,7 +349,7 @@ namespace FNPlugin.Resources
                 var existingResource = bodyCrustalComposition.FirstOrDefault(a => a.ResourceName == outputResourname);
                 if (existingResource != null)
                 {
-                    Debug.Log("[KSPI] - replaced resource " + outputResourname + " with stock defined abundance " + CrustalResource.ResourceAbundance);
+                    Debug.Log("[KSPI]: replaced resource " + outputResourname + " with stock defined abundance " + CrustalResource.ResourceAbundance);
                     bodyCrustalComposition.Remove(existingResource);
                 }
                 bodyCrustalComposition.Add(CrustalResource);

@@ -872,7 +872,7 @@ namespace FNPlugin.Reactors
             try
             {
                 // calculate multipliers
-                Debug.Log("[KSPI] - InterstellarReactor.OnRescale called with " + factor.absolute.linear);
+                Debug.Log("[KSPI]: InterstellarReactor.OnRescale called with " + factor.absolute.linear);
                 storedPowerMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, powerScaleExponent);
 
                 initialCost = part.partInfo.cost * Math.Pow((double)(decimal)factor.absolute.linear, massCostExponent);
@@ -889,7 +889,7 @@ namespace FNPlugin.Reactors
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNGenerator.OnRescale" + e.Message);
+                Debug.LogError("[KSPI]: InterstellarReactor.OnRescale" + e.Message);
             }
         }
 
@@ -1210,18 +1210,18 @@ namespace FNPlugin.Reactors
         {
             if (PluginHelper.PartTechUpgrades == null)
             {
-                print("[KSPI] - PartTechUpgrades is not initialized");
+                print("[KSPI]: PartTechUpgrades is not initialized");
                 return false;
             }
 
             string upgradetechName;
             if (!PluginHelper.PartTechUpgrades.TryGetValue(part.name, out upgradetechName))
             {
-                print("[KSPI] - PartTechUpgrade entry is not found for part '" + part.name + "'");
+                print("[KSPI]: PartTechUpgrade entry is not found for part '" + part.name + "'");
                 return false;
             }
 
-            print("[KSPI] - Found matching Interstellar upgradetech for part '" + part.name + "' with technode " + upgradetechName);
+            print("[KSPI]: Found matching Interstellar upgradetech for part '" + part.name + "' with technode " + upgradetechName);
 
             return PluginHelper.UpgradeAvailable(upgradetechName);
         }
@@ -1371,7 +1371,7 @@ namespace FNPlugin.Reactors
             var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
             if (myAttachedEngine == null)
             {
-                Debug.Log("[KSPI] - Force activate called on " + part.name);
+                Debug.Log("[KSPI]: Force activate called on " + part.name);
                 this.part.force_activate();
                 Fields["currentMass"].guiActiveEditor = true;
                 Fields["radius"].guiActiveEditor = true;
@@ -1379,7 +1379,7 @@ namespace FNPlugin.Reactors
                 Fields["heatTransportationEfficiency"].guiActiveEditor = true;
             }
             else
-                Debug.Log("[KSPI] - skipped calling Force on " + part.name);
+                Debug.Log("[KSPI]: skipped calling Force on " + part.name);
 
             Fields["electricPowerPriority"].guiActive = showPowerPriority;
             Fields["reactorSurface"].guiActiveEditor = showSpecialisedUI;
@@ -1535,7 +1535,7 @@ namespace FNPlugin.Reactors
         {
             try
             {
-                Debug.Log("[KSPI] - attach " + part.partInfo.title);
+                Debug.Log("[KSPI]: attach " + part.partInfo.title);
                 foreach (var node in part.attachNodes)
                 {
                     if (node.attachedPart == null) continue;
@@ -1547,7 +1547,7 @@ namespace FNPlugin.Reactors
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Reactor.OnEditorAttach " + e.Message);
+                Debug.LogError("[KSPI]: Reactor.OnEditorAttach " + e.Message);
             }
         }
 
@@ -1555,7 +1555,7 @@ namespace FNPlugin.Reactors
         {
             try
             {
-                Debug.Log("[KSPI] - detach " + part.partInfo.title);
+                Debug.Log("[KSPI]: detach " + part.partInfo.title);
                 if (ConnectedChargedParticleElectricGenerator != null)
                     ConnectedChargedParticleElectricGenerator.FindAndAttachToPowerSource();
 
@@ -1564,7 +1564,7 @@ namespace FNPlugin.Reactors
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Reactor.OnEditorDetach " + e.Message);
+                Debug.LogError("[KSPI]: Reactor.OnEditorDetach " + e.Message);
             }
         }
 
@@ -1717,7 +1717,7 @@ namespace FNPlugin.Reactors
                 if (fuel_ratio < 0.99999)
                 {
                     var message = Localizer.Format("#LOC_KSPIE_Reactor_ranOutOfFuelFor") + " " + CurrentFuelMode.ModeGUIName;
-                    Debug.Log("[KSPI] - " + message);
+                    Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
              
@@ -1895,11 +1895,11 @@ namespace FNPlugin.Reactors
             var alternativeFuelType = fuel_modes.LastOrDefault(m => m.ModeGUIName.Contains(alternativeFuelTypeName));
             if (alternativeFuelType == null)
             {
-                Debug.LogWarning("[KSPI] - failed to find fueltype " + alternativeFuelTypeName);
+                Debug.LogWarning("[KSPI]: failed to find fueltype " + alternativeFuelTypeName);
                 return;
             }
 
-            Debug.Log("[KSPI] - searching fuelmodes for alternative for fuel type " + alternativeFuelTypeName);
+            Debug.Log("[KSPI]: searching fuelmodes for alternative for fuel type " + alternativeFuelTypeName);
             var alternativeFuelVariantsSorted = alternativeFuelType.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, max_power_to_supply, fuelUsePerMJMult);
 
             if (alternativeFuelVariantsSorted == null)
@@ -1908,18 +1908,18 @@ namespace FNPlugin.Reactors
             var alternativeFuelVariant = alternativeFuelVariantsSorted.FirstOrDefault();
             if (alternativeFuelVariant == null)
             {
-                Debug.LogError("[KSPI] - failed to find any variant for fueltype " + alternativeFuelTypeName);
+                Debug.LogError("[KSPI]: failed to find any variant for fueltype " + alternativeFuelTypeName);
                 return;
             }
 
             if (alternativeFuelVariant.FuelRatio < 0.99)
             {
-                Debug.LogWarning("[KSPI] - failed to find sufficient resource for " + alternativeFuelVariant.Name);
+                Debug.LogWarning("[KSPI]: failed to find sufficient resource for " + alternativeFuelVariant.Name);
                 return;
             }
 
             var message = Localizer.Format("#LOC_KSPIE_Reactor_switchingToAlternativeFuelMode") + " " + alternativeFuelType.ModeGUIName;
-            Debug.Log("[KSPI] - " + message);
+            Debug.Log("[KSPI]: " + message);
             ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
 
             CurrentFuelMode = alternativeFuelType;
@@ -2329,12 +2329,12 @@ namespace FNPlugin.Reactors
                 filteredFuelModes[i].Position = i;
             }
 
-            Debug.Log("[KSPI] - found " + filteredFuelModes.Count + " valid fuel types");
+            Debug.Log("[KSPI]: found " + filteredFuelModes.Count + " valid fuel types");
 
             //return filteredFuelModes;
             var groups = filteredFuelModes.GroupBy(mode => mode.ModeGUIName).Select(group => new ReactorFuelType(group)).ToList();
 
-            Debug.Log("[KSPI] - grouped them into " + groups.Count + " valid fuel modes");
+            Debug.Log("[KSPI]: grouped them into " + groups.Count + " valid fuel modes");
 
             return groups;
         }
@@ -2352,9 +2352,9 @@ namespace FNPlugin.Reactors
             CurrentFuelMode = fuel_modes.FirstOrDefault();
 
             if (CurrentFuelMode == null)
-                print("[KSPI] - Warning : CurrentFuelMode is null");
+                print("[KSPI]: Warning : CurrentFuelMode is null");
             else
-                print("[KSPI] - CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
+                print("[KSPI]: CurrentFuelMode = " + CurrentFuelMode.ModeGUIName);
         }
 
         protected double ConsumeReactorFuel(ReactorFuel fuel, double mJpower)
@@ -2412,7 +2412,7 @@ namespace FNPlugin.Reactors
         protected double GetFuelAvailability(ReactorFuel fuel)
         {
             if (fuel == null)
-                UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability fuel null");
+                UnityEngine.Debug.LogError("[KSPI]: GetFuelAvailability fuel null");
 
             if (!fuel.ConsumeGlobal)
                 return GetLocalResourceAmount(fuel);
@@ -2442,7 +2442,7 @@ namespace FNPlugin.Reactors
         protected double GetFuelAvailability(PartResourceDefinition definition)
         {
             if (definition == null)
-                UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability definition null");
+                UnityEngine.Debug.LogError("[KSPI]: GetFuelAvailability definition null");
 
             if (definition.resourceTransferMode == ResourceTransferMode.NONE)
             {
@@ -2461,11 +2461,11 @@ namespace FNPlugin.Reactors
         protected double GetProductAvailability(ReactorProduct product)
         {
             if (product == null)
-                UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability product null");
+                UnityEngine.Debug.LogError("[KSPI]: GetFuelAvailability product null");
 
             if (product.Definition == null)
             {
-                UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability product definition null");
+                UnityEngine.Debug.LogError("[KSPI]: GetFuelAvailability product definition null");
                 return 0;
             }
 
@@ -2486,7 +2486,7 @@ namespace FNPlugin.Reactors
         protected double GetMaxProductAvailability(ReactorProduct product)
         {
             if (product == null)
-                UnityEngine.Debug.LogError("[KSPI] - GetFuelAvailability product null");
+                UnityEngine.Debug.LogError("[KSPI]: GetFuelAvailability product null");
 
             if (product.Definition == null)
                 return 0;
@@ -2744,7 +2744,7 @@ namespace FNPlugin.Reactors
 
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - ElectricRCSController Window(" + windowID + "): " + e.Message);
+                Debug.LogError("[KSPI]: InterstellarReactor Window(" + windowID + "): " + e.Message);
                 throw;
             }
         }

@@ -23,7 +23,7 @@ namespace FNPlugin
             {
                 fnro = new ResourceOvermanager(resource_name);
                 if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES)
-                    Debug.Log("[KSPI] - Created new ResourceOvermanager for resource " + resource_name + " with Id" + fnro.Id);
+                    Debug.Log("[KSPI]: Created new ResourceOvermanager for resource " + resource_name + " with Id" + fnro.Id);
                 resources_managers.Add(resource_name, fnro);
             }
 

@@ -425,7 +425,7 @@ namespace FNPlugin
             ScaleParameters();
 
             _initializationCountdown = 10;
-            Debug.Log("[KSPI] - Start Initializing ElectricEngineControllerFX");
+            Debug.Log("[KSPI]: Start Initializing ElectricEngineControllerFX");
             try
             {
                 // initialise resources
@@ -461,9 +461,9 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Error OnStart ElectricEngineControllerFX " + e.Message);
+                Debug.LogError("[KSPI]: Error OnStart ElectricEngineControllerFX " + e.Message);
             }
-            Debug.Log("[KSPI] - End Initializing ElectricEngineControllerFX");
+            Debug.Log("[KSPI]: End Initializing ElectricEngineControllerFX");
         }
 
         private void InitializePropellantMode()
@@ -490,7 +490,7 @@ namespace FNPlugin
                 }
             }
             if (_propellants == null)
-                Debug.LogWarning("[KSPI] - SetupPropellants _propellants is still null");
+                Debug.LogWarning("[KSPI]: SetupPropellants _propellants is still null");
 
             if (Current_propellant == null)
                 Current_propellant = fuel_mode < _propellants.Count ? _propellants[fuel_mode] : _propellants.First();
@@ -520,7 +520,7 @@ namespace FNPlugin
                 if ((Current_propellant.SupportedEngines & type) != type)
                 {
                     _rep++;
-                    Debug.LogWarning("[KSPI] - SetupPropellants TogglePropellant");
+                    Debug.LogWarning("[KSPI]: SetupPropellants TogglePropellant");
                     TogglePropellant(moveNext);
                     return;
                 }
@@ -572,7 +572,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - SetupPropellants ElectricEngineControllerFX " + e.Message);
+                Debug.LogError("[KSPI]: SetupPropellants ElectricEngineControllerFX " + e.Message);
             }
         }
 
@@ -867,7 +867,7 @@ namespace FNPlugin
                     var directionName = Enum.GetName(typeof(VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
                     var message = "Thrust warp stopped - vessel is not facing " + directionName;
                     ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                    Debug.Log("[KSPI] - " + message);
+                    Debug.Log("[KSPI]: " + message);
                     TimeWarp.SetRate(0, true);
                     return false;
                 }
@@ -908,7 +908,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI] - Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
+                UnityEngine.Debug.LogError("[KSPI]: Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
             }
         }
 
@@ -934,7 +934,7 @@ namespace FNPlugin
             {
                 var message = "Thrust warp stopped - orbital speed too low";
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                Debug.Log("[KSPI] - " + message);
+                Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);
                 return;
             }
@@ -960,7 +960,7 @@ namespace FNPlugin
             {
                 var message = "Thrust warp stopped - " + fuelRatio + " propellant depleted thust: " + thrust;
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                Debug.Log("[KSPI] - " + message);
+                Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);
             }
         }
@@ -1031,7 +1031,7 @@ namespace FNPlugin
 
         private void ToggleNextPropellant()
         {
-            Debug.Log("[KSPI] - ElectricEngineControllerFX toggleNextPropellant");
+            Debug.Log("[KSPI]: ElectricEngineControllerFX toggleNextPropellant");
             fuel_mode++;
             if (fuel_mode >= _propellants.Count)
                 fuel_mode = 0;
@@ -1041,7 +1041,7 @@ namespace FNPlugin
 
         private void TogglePreviousPropellant()
         {
-            Debug.Log("[KSPI] - ElectricEngineControllerFX togglePreviousPropellant");
+            Debug.Log("[KSPI]: ElectricEngineControllerFX togglePreviousPropellant");
             fuel_mode--;
             if (fuel_mode < 0)
                 fuel_mode = _propellants.Count - 1;

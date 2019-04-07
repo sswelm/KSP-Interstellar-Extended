@@ -73,7 +73,7 @@ namespace FNPlugin.Microwave
                         .Where(m => PluginHelper.HasTechRequirementOrEmpty(m.techRequirement0))
                         .OrderByDescending(m => m.wavelength).ToList();
 
-                    Debug.Log("[KSPI] - Found " + beamConfigurations.Count + " BeamConfigurations");
+                    Debug.Log("[KSPI]: Found " + beamConfigurations.Count + " BeamConfigurations");
                 }
                 return beamConfigurations;
             }
@@ -115,7 +115,7 @@ namespace FNPlugin.Microwave
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - BeamGenerator.OnRescale" + e.Message);
+                Debug.LogError("[KSPI]: BeamGenerator.OnRescale" + e.Message);
             }
         }
 
@@ -134,7 +134,7 @@ namespace FNPlugin.Microwave
 
         private void InitializeWavelengthSelector()
         {
-            Debug.Log("[KSPI] - Setup Transmit Beams Configurations for " + part.partInfo.title);
+            Debug.Log("[KSPI]: Setup Transmit Beams Configurations for " + part.partInfo.title);
 
             chooseField = Fields["selectedBeamConfiguration"];
             chooseField.guiActive = CheatOptions.NonStrictAttachmentOrientation || (canSwitchWavelengthInFlight && BeamConfigurations.Count > 1);
@@ -180,7 +180,7 @@ namespace FNPlugin.Microwave
                 }
                 else
                 {
-                    Debug.LogWarning("[KSPI] - selectedBeamConfiguration < BeamConfigurations.Count, selecting last");
+                    Debug.LogWarning("[KSPI]: selectedBeamConfiguration < BeamConfigurations.Count, selecting last");
                     selectedBeamConfiguration = BeamConfigurations.Count - 1;
                     activeConfiguration = BeamConfigurations.Last();
                 }
@@ -188,7 +188,7 @@ namespace FNPlugin.Microwave
 
             if (activeConfiguration == null)
             {
-                Debug.Log("[KSPI] - UpdateFromGUI no activeConfiguration found");
+                Debug.Log("[KSPI]: UpdateFromGUI no activeConfiguration found");
                 return;
             }
 

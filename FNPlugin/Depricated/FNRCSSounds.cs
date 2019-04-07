@@ -48,7 +48,7 @@ namespace FNPlugin
             {
                 if (!GameDatabase.Instance.ExistsAudioClip(filename))
                 {
-                    Debug.LogError("[KSPI] - ERROR - file " + filename + ".* not found!");
+                    Debug.LogError("[KSPI]: ERROR - file " + filename + ".* not found!");
                     return false;
                 }
                 group.audio = gameObject.AddComponent<AudioSource>();
@@ -75,13 +75,13 @@ namespace FNPlugin
 
                 // Works with squad sounds, not with rcsSoundFile.
                 if (!GameDatabase.Instance.ExistsAudioClip(rcsSoundFile))
-                    Debug.LogError("[KSPI] -RcsSounds: Audio file not found: " + rcsSoundFile);
+                    Debug.LogError("[KSPI]:RcsSounds: Audio file not found: " + rcsSoundFile);
 
                 if (RcsSound == null)
-                    Debug.LogError("[KSPI] -RcsSounds: Sound FXGroup not found.");
+                    Debug.LogError("[KSPI]:RcsSounds: Sound FXGroup not found.");
 
                 if (RcsShutoffSound == null)
-                    Debug.LogError("[KSPI] - RcsSounds: Sound shuttof FXGroup not found.");
+                    Debug.LogError("[KSPI]: RcsSounds: Sound shuttof FXGroup not found.");
 
                 CreateGroup(RcsSound, rcsSoundFile, false);
                 CreateGroup(RcsShutoffSound, rcsShutoffSoundFile, false);
@@ -92,7 +92,7 @@ namespace FNPlugin
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - RcsSounds OnStart: " + ex.Message);
+                Debug.LogError("[KSPI]: RcsSounds OnStart: " + ex.Message);
             }
         }
 
@@ -137,7 +137,7 @@ namespace FNPlugin
                         }
                         catch (Exception ex)
                         {
-                            Debug.LogError("[KSPI] - RcsSounds OnUpdate: " + ex.Message);
+                            Debug.LogError("[KSPI]: RcsSounds OnUpdate: " + ex.Message);
                             m = ResourceFlowMode.ALL_VESSEL;
                         }
 
@@ -201,7 +201,7 @@ namespace FNPlugin
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - RcsSounds Error OnUpdate: " + ex.Message);
+                Debug.LogError("[KSPI]: RcsSounds Error OnUpdate: " + ex.Message);
             }
         }
 

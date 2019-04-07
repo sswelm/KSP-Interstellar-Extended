@@ -184,14 +184,14 @@ namespace FNPlugin.Beamedpower
                 //ignore if no power or transmitter is on the same vessel
                 if (transmitter.Vessel == receiver.Vessel)
                 {
-                    //Debug.Log("[KSPI] - Transmitter vessel is equal to receiver vessel");
+                    //Debug.Log("[KSPI]: Transmitter vessel is equal to receiver vessel");
                     continue;
                 }
 
                 //first check for direct connection from current vessel to transmitters, will always be optimal
                 if (!transmitter.HasPower)
                 {
-                    //Debug.Log("[KSPI] - Transmitter vessel has no power available");
+                    //Debug.Log("[KSPI]: Transmitter vessel has no power available");
                     continue;
                 }
 

@@ -141,118 +141,118 @@ namespace FNPlugin
                 if (plugin_settings.HasValue("AluminiumResourceName"))
                 {
                     _aluminium = plugin_settings.GetValue("AluminiumResourceName");
-                    Debug.Log("[KSPI] - Aluminium resource name set to " + Aluminium);
+                    Debug.Log("[KSPI]: Aluminium resource name set to " + Aluminium);
                 }
                 if (plugin_settings.HasValue("AmmoniaResourceName"))
                 {
                     _ammonia = plugin_settings.GetValue("AmmoniaResourceName");
-                    Debug.Log("[KSPI] - Ammonia resource name set to " + Ammonia);
+                    Debug.Log("[KSPI]: Ammonia resource name set to " + Ammonia);
                 }
                 if (plugin_settings.HasValue("ArgonResourceName"))
                 {
                     _argon = plugin_settings.GetValue("ArgonResourceName");
-                    Debug.Log("[KSPI] - Argon resource name set to " + Argon);
+                    Debug.Log("[KSPI]: Argon resource name set to " + Argon);
                 }
                 if (plugin_settings.HasValue("CarbonDioxideResourceName"))
                 {
                     _carbonDioxide = plugin_settings.GetValue("CarbonDioxideResourceName");
-                    Debug.Log("[KSPI] - CarbonDioxide resource name set to " + CarbonDioxide);
+                    Debug.Log("[KSPI]: CarbonDioxide resource name set to " + CarbonDioxide);
                 }
                 if (plugin_settings.HasValue("CarbonMonoxideResourceName"))
                 {
                     _carbonMoxoxide = plugin_settings.GetValue("CarbonMonoxideResourceName");
-                    Debug.Log("[KSPI] - CarbonMonoxide resource name set to " + CarbonMoxoxide);
+                    Debug.Log("[KSPI]: CarbonMonoxide resource name set to " + CarbonMoxoxide);
                 }
                 if (plugin_settings.HasValue("Helium4GasResourceName"))
                 {
                     _helium4_gas = plugin_settings.GetValue("Helium4GasResourceName");
-                    Debug.Log("[KSPI] - Helium4 Gas resource name set to " + LqdHelium4);
+                    Debug.Log("[KSPI]: Helium4 Gas resource name set to " + LqdHelium4);
                 }
                 if (plugin_settings.HasValue("Helium3GasResourceName"))
                 {
                     _helium3_gas = plugin_settings.GetValue("Helium3GasResourceName");
-                    Debug.Log("[KSPI] - Helium3 Gas resource name set to " + LqdHelium4);
+                    Debug.Log("[KSPI]: Helium3 Gas resource name set to " + LqdHelium4);
                 }
                 if (plugin_settings.HasValue("HeliumResourceName"))
                 {
                     _liquid_helium4 = plugin_settings.GetValue("HeliumResourceName");
-                    Debug.Log("[KSPI] - Helium4 Liquid resource name set to " + LqdHelium4);
+                    Debug.Log("[KSPI]: Helium4 Liquid resource name set to " + LqdHelium4);
                 }
                 if (plugin_settings.HasValue("Helium3ResourceName"))
                 {
                     _liquid_helium3 = plugin_settings.GetValue("Helium3ResourceName");
-                    Debug.Log("[KSPI] - Helium3 resource name set to " + LqdHelium3);
+                    Debug.Log("[KSPI]: Helium3 resource name set to " + LqdHelium3);
                 }
                 if (plugin_settings.HasValue("HydrazineResourceName"))
                 {
                     _hydrazine = plugin_settings.GetValue("HydrazineResourceName");
-                    Debug.Log("[KSPI] - Hydrazine resource name set to " + Hydrazine);
+                    Debug.Log("[KSPI]: Hydrazine resource name set to " + Hydrazine);
                 }
                 if (plugin_settings.HasValue("HydrogenResourceName"))
                 {
                     _hydrogen = plugin_settings.GetValue("HydrogenResourceName");
-                    Debug.Log("[KSPI] - Hydrogen resource name set to " + Hydrogen);
+                    Debug.Log("[KSPI]: Hydrogen resource name set to " + Hydrogen);
                 }
                 if (plugin_settings.HasValue("HydrogenPeroxideResourceName"))
                 {
                     _hydrogen_peroxide = plugin_settings.GetValue("HydrogenPeroxideResourceName");
-                    Debug.Log("[KSPI] - Hydrogen Peroxide resource name set to " + HydrogenPeroxide);
+                    Debug.Log("[KSPI]: Hydrogen Peroxide resource name set to " + HydrogenPeroxide);
                 }
 
                 if (plugin_settings.HasValue("MethaneResourceName"))
                 {
                     _methane = plugin_settings.GetValue("MethaneResourceName");
-                    Debug.Log("[KSPI] - Methane resource name set to " + Methane);
+                    Debug.Log("[KSPI]: Methane resource name set to " + Methane);
                 }
                 if (plugin_settings.HasValue("NeonResourceName"))
                 {
                     _neon_gas = plugin_settings.GetValue("NeonResourceName");
-                    Debug.Log("[KSPI] - Neon resource name set to " + NeonGas);
+                    Debug.Log("[KSPI]: Neon resource name set to " + NeonGas);
                 }
                 if (plugin_settings.HasValue("NitrogenResourceName"))
                 {
                     _nitrogen = plugin_settings.GetValue("NitrogenResourceName");
-                    Debug.Log("[KSPI] - Nitrogen resource name set to " + Nitrogen);
+                    Debug.Log("[KSPI]: Nitrogen resource name set to " + Nitrogen);
                 }
                 if (plugin_settings.HasValue("OxygenResourceName"))
                 {
                     _lqdOxygen = plugin_settings.GetValue("OxygenResourceName");
-                    Debug.Log("[KSPI] - Oxygen resource name set to " + LqdOxygen);
+                    Debug.Log("[KSPI]: Oxygen resource name set to " + LqdOxygen);
                 }
                 if (plugin_settings.HasValue("RegolithResourceName"))
                 {
                     _regolith = plugin_settings.GetValue("RegolithResourceName");
-                    Debug.Log("[KSPI] - Regolith resource name set to " + Regolith);
+                    Debug.Log("[KSPI]: Regolith resource name set to " + Regolith);
                 }
                 if (plugin_settings.HasValue("XenonGasResourceName"))
                 {
                     _xenongas = plugin_settings.GetValue("XenonGasResourceName");
-                    Debug.Log("[KSPI] - XenonGas resource name set to " + Regolith);
+                    Debug.Log("[KSPI]: XenonGas resource name set to " + Regolith);
                 }
                 if (plugin_settings.HasValue("SolarWindResourceName"))
                 {
                     _solarWind = plugin_settings.GetValue("SolarWindResourceName");
-                    Debug.Log("[KSPI] - SolarWind resource name set to " + SolarWind);
+                    Debug.Log("[KSPI]: SolarWind resource name set to " + SolarWind);
                 }
                 if (plugin_settings.HasValue("TritiumResourceName"))
                 {
                     _tritium = plugin_settings.GetValue("TritiumResourceName");
-                    Debug.Log("[KSPI] - Tritium resource name set to " + LqdTritium);
+                    Debug.Log("[KSPI]: Tritium resource name set to " + LqdTritium);
                 }
                 if (plugin_settings.HasValue("UraniumTetraflourideName"))
                 {
                     _uranium_TerraFloride = plugin_settings.GetValue("UraniumTetraflourideName");
-                    Debug.Log("[KSPI] - UraniumTetraflouride resource name set to " + _uranium_TerraFloride);
+                    Debug.Log("[KSPI]: UraniumTetraflouride resource name set to " + _uranium_TerraFloride);
                 }
                 if (plugin_settings.HasValue("WaterResourceName"))
                 {
                     _water = plugin_settings.GetValue("WaterResourceName");
-                    Debug.Log("[KSPI] - Water resource name set to " + Water);
+                    Debug.Log("[KSPI]: Water resource name set to " + Water);
                 }
                 if (plugin_settings.HasValue("HeavyWaterResourceName"))
                 {
                     _heavyWater = plugin_settings.GetValue("HeavyWaterResourceName");
-                    Debug.Log("[KSPI] - Heavy Water resource name set to " + HeavyWater);
+                    Debug.Log("[KSPI]: Heavy Water resource name set to " + HeavyWater);
                 }
             } 
             else

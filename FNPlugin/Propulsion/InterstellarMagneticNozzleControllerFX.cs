@@ -111,7 +111,7 @@ namespace FNPlugin
 
             if (_attached_reactor == null)
             {
-                Debug.Log("[KSPI] - InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
+                Debug.Log("[KSPI]: InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
                 return;
             }
             exchanger_thrust_divisor = radius > _attached_reactor.Radius
@@ -126,7 +126,7 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSPI] - attach " + part.partInfo.title);
+                Debug.Log("[KSPI]: attach " + part.partInfo.title);
 
                 if (HighLogic.LoadedSceneIsEditor && _attached_engine != null)
                 {
@@ -137,7 +137,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNGenerator.OnEditorAttach " + e.Message);
+                Debug.LogError("[KSPI]: FNGenerator.OnEditorAttach " + e.Message);
             }
         }
 

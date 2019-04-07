@@ -432,7 +432,7 @@ namespace FNPlugin.Wasteheat
         {
             isAutomated = false;
 
-            Debug.Log("[KSPI] - DeployRadiator Called ");
+            Debug.Log("[KSPI]: DeployRadiator Called ");
 
             Deploy();
         }
@@ -441,11 +441,11 @@ namespace FNPlugin.Wasteheat
         {
             if (preventShieldedDeploy && (part.ShieldedFromAirstream || radiator_deploy_delay < RADIATOR_DELAY)) 
             {
-                //Debug.Log("[KSPI] - Deploy Aborted, Part is shielded or nor ready");
+                //Debug.Log("[KSPI]: Deploy Aborted, Part is shielded or nor ready");
                 return;
             }
 
-            Debug.Log("[KSPI] - Deploy Called ");
+            Debug.Log("[KSPI]: Deploy Called ");
 
             if (_moduleDeployableRadiator != null)
                 _moduleDeployableRadiator.Extend();
@@ -480,7 +480,7 @@ namespace FNPlugin.Wasteheat
 
         private void Retract()
         {
-            Debug.Log("[KSPI] - Retract Called ");
+            Debug.Log("[KSPI]: Retract Called ");
 
             if (_moduleDeployableRadiator != null)
             {
@@ -509,7 +509,7 @@ namespace FNPlugin.Wasteheat
         [KSPAction("Deploy Radiator")]
         public void DeployRadiatorAction(KSPActionParam param) 
         {
-            Debug.Log("[KSPI] - DeployRadiatorAction Called ");
+            Debug.Log("[KSPI]: DeployRadiatorAction Called ");
             DeployRadiator();
         }
 
@@ -526,7 +526,7 @@ namespace FNPlugin.Wasteheat
                 RetractRadiator();
             else
             {
-                Debug.Log("[KSPI] - ToggleRadiatorAction Called ");
+                Debug.Log("[KSPI]: ToggleRadiatorAction Called ");
                 DeployRadiator();
             }
         }
@@ -700,7 +700,7 @@ namespace FNPlugin.Wasteheat
 
         void radiatorIsEnabled_OnValueModified(object arg1)
         {
-            Debug.Log("[KSPI] - radiatorIsEnabled_OnValueModified " + arg1);
+            Debug.Log("[KSPI]: radiatorIsEnabled_OnValueModified " + arg1);
 
             isAutomated = false;
 
@@ -733,7 +733,7 @@ namespace FNPlugin.Wasteheat
                 if (radiatorState != _moduleDeployableRadiator.deployState) 
                 {
                     part.SendMessage("GeometryPartModuleRebuildMeshData");
-                    Debug.Log("[KSPI] - Updating geometry mesh due to radiator deployment.");
+                    Debug.Log("[KSPI]: Updating geometry mesh due to radiator deployment.");
                 }
                 radiatorState = _moduleDeployableRadiator.deployState;
             }
@@ -851,7 +851,7 @@ namespace FNPlugin.Wasteheat
 
                 if (Double.IsNaN(wasteheatManager.TemperatureRatio))
                 {
-                    Debug.LogError("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in TemperatureRatio");
+                    Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in TemperatureRatio");
                     return;
                 }
 
@@ -875,12 +875,12 @@ namespace FNPlugin.Wasteheat
                     thermalPowerDissipPerSecond = (double)wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea;
 
                     if (Double.IsNaN(thermalPowerDissipPerSecond))
-                        Debug.LogWarning("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in thermalPowerDissipPerSecond");
+                        Debug.LogWarning("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in thermalPowerDissipPerSecond");
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond, wasteheatManager) : 0;
 
                     if (Double.IsNaN(radiatedThermalPower))
-                        Debug.LogError("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermalPowerDissipPerSecond + ")");
+                        Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermalPowerDissipPerSecond + ")");
 
                     instantaneous_rad_temp = CalculateInstantaniousRadTemp(external_temperature);
 
@@ -924,14 +924,14 @@ namespace FNPlugin.Wasteheat
 
                     if (radiatorIsEnabled || !isAutomated || !canRadiateHeat || !showControls || radiator_deploy_delay < DEPLOYMENT_DELAY) return;
 
-                    Debug.Log("[KSPI] - FixedUpdate Automated Deployment ");
+                    Debug.Log("[KSPI]: FixedUpdate Automated Deployment ");
                     Deploy();
                 }
 
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception on " +  part.name + " durring FNRadiator.FixedUpdate with message " + e.Message);
+                Debug.LogError("[KSPI]: Exception on " +  part.name + " durring FNRadiator.FixedUpdate with message " + e.Message);
             }
         }
 
@@ -940,7 +940,7 @@ namespace FNPlugin.Wasteheat
             var result = Math.Max(radiator_temperature_temp_val, externalTemperature);
 
             if (Double.IsNaN(result))
-                Debug.LogError("[KSPI] - FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
+                Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
 
             return result;
         }
@@ -955,14 +955,14 @@ namespace FNPlugin.Wasteheat
 
                 if (isAutomated)
                 {
-                    Debug.Log("[KSPI] - DeployMentControl Auto Retracted, stress at " + dynamicPressureStress.ToString("P2") + "%");
+                    Debug.Log("[KSPI]: DeployMentControl Auto Retracted, stress at " + dynamicPressureStress.ToString("P2") + "%");
                     Retract();
                 }
                 else
                 {
                     if (CheatOptions.UnbreakableJoints) return;
 
-                    Debug.Log("[KSPI] - DeployMentControl Decoupled!");
+                    Debug.Log("[KSPI]: DeployMentControl Decoupled!");
                     part.deactivate();
                     part.decouple(1);
                 }
@@ -971,7 +971,7 @@ namespace FNPlugin.Wasteheat
             {
                 // Suppress message spam on repeated deploy attempts due to radiator delay
                 //if (radiator_deploy_delay > DEPLOYMENT_DELAY)
-                Debug.Log("[KSPI] - DeployMentControl Auto Deploy");
+                Debug.Log("[KSPI]: DeployMentControl Auto Deploy");
                 Deploy();
             }
         }

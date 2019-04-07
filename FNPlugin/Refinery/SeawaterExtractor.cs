@@ -154,7 +154,7 @@ namespace FNPlugin.Refinery
                         currentResourcePercentage = percentage;
                     else
                     {
-                        Debug.Log("[KSPI] - Could not retrieve resource percentage from dictionary, setting to zero");
+                        Debug.Log("[KSPI]: Could not retrieve resource percentage from dictionary, setting to zero");
                         currentResourcePercentage = 0;
                     }
                 }
@@ -226,7 +226,7 @@ namespace FNPlugin.Refinery
                     resourcePercentageUI = percentage;
                 else
                 {
-                    Debug.Log("[KSPI] - UI could not access resourcePercentage from dictionary, setting to zero");
+                    Debug.Log("[KSPI]: UI could not access resourcePercentage from dictionary, setting to zero");
                     resourcePercentageUI = 0;
                 }
 

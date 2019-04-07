@@ -238,7 +238,7 @@ namespace FNPlugin
                 {
                     warningShown = true;
                     var message = "Warning: " + boiloffStr + " Boiloff";
-                    Debug.LogWarning("[KSPI] - FNModuleCryostat: " + message);
+                    Debug.LogWarning("[KSPI]: FNModuleCryostat: " + message);
                     ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 }
             }

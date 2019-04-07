@@ -65,19 +65,19 @@ namespace FNPlugin.Refinery
 
             AtmosphericResourceHandler.GenerateCompositionFromCelestialBody(celestialBody);
 
-            Debug.Log("[KSPI] - determined " + celestialBody.name + " to be current celestrial body");
+            Debug.Log("[KSPI]: determined " + celestialBody.name + " to be current celestrial body");
 
             // Lookup homeworld
             CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
 
-            Debug.Log("[KSPI] - determined " + homeworld.name + " to be the home world");
+            Debug.Log("[KSPI]: determined " + homeworld.name + " to be the home world");
 
             double presureAtSurface = celestialBody.GetPressure(0);
 
-            Debug.Log("[KSPI] - surface presure " + celestialBody.name + " is " + presureAtSurface);
-            Debug.Log("[KSPI] - surface presure " + homeworld.name + " is " + homeworld.GetPressure(0));
-            Debug.Log("[KSPI] - mass " + celestialBody.name + " is " + celestialBody.Mass);
-            Debug.Log("[KSPI] - mass " + homeworld.name + " is " + celestialBody.Mass);
+            Debug.Log("[KSPI]: surface presure " + celestialBody.name + " is " + presureAtSurface);
+            Debug.Log("[KSPI]: surface presure " + homeworld.name + " is " + homeworld.GetPressure(0));
+            Debug.Log("[KSPI]: mass " + celestialBody.name + " is " + celestialBody.Mass);
+            Debug.Log("[KSPI]: mass " + homeworld.name + " is " + celestialBody.Mass);
 
             List<AtmosphericResource> resources = AtmosphericResourceHandler.GetAtmosphericCompositionForBody(part.vessel.mainBody);
 
@@ -158,12 +158,12 @@ namespace FNPlugin.Refinery
             // load same 
             if (refinery_is_enabled && !string.IsNullOrEmpty(lastActivityName))
             {
-                Debug.Log("[KSPI] - ISRU Refinery looking to restart " + lastActivityName);
+                Debug.Log("[KSPI]: ISRU Refinery looking to restart " + lastActivityName);
                 _current_activity = _refinery_activities.FirstOrDefault(a => a.ActivityName == lastActivityName);
 
                 if (_current_activity == null)
                 {
-                    Debug.Log("[KSPI] - ISRU Refinery looking to restart " + lastClassName);
+                    Debug.Log("[KSPI]: ISRU Refinery looking to restart " + lastClassName);
                     _current_activity = _refinery_activities.FirstOrDefault(a => a.GetType().Name == lastClassName);
                 }
             }
@@ -173,7 +173,7 @@ namespace FNPlugin.Refinery
                 bool hasRequirement =_current_activity.HasActivityRequirements();
                 lastActivityName = _current_activity.ActivityName;
 
-                Debug.Log("[KSPI] - ISRU Refinery initializing " + lastActivityName + " for which hasRequirement: " + hasRequirement);
+                Debug.Log("[KSPI]: ISRU Refinery initializing " + lastActivityName + " for which hasRequirement: " + hasRequirement);
 
                 var productionModifier = productionMult * baseProduction;
 
@@ -182,7 +182,7 @@ namespace FNPlugin.Refinery
                 if (timeDifference > 0.01)
                 {
                     string message = "IRSU performed " + lastActivityName + " for " + timeDifference.ToString("0") + " seconds";
-                    Debug.Log("[KSPI] - "  + message);
+                    Debug.Log("[KSPI]: "  + message);
                     ScreenMessages.PostScreenMessage(message, 20, ScreenMessageStyle.LOWER_CENTER);
                 }
 
@@ -213,7 +213,7 @@ namespace FNPlugin.Refinery
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - InterstellarRefineryController Exception " + e.Message);
+                Debug.LogError("[KSPI]: InterstellarRefineryController Exception " + e.Message);
             }
         }
 

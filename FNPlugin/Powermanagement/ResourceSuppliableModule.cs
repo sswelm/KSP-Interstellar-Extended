@@ -30,7 +30,7 @@ namespace FNPlugin
         public void receiveFNResource(double power, String resourcename)
         {
             if (double.IsNaN(power) || String.IsNullOrEmpty(resourcename)) {
-                Debug.Log("[KSPI] - receiveFNResource illegal values.");
+                Debug.Log("[KSPI]: receiveFNResource illegal values.");
                 return;
             }
 
@@ -45,7 +45,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(power_fixed) || double.IsNaN(fixedDeltaTime) || String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - consumeFNResource illegal values.");
+                Debug.Log("[KSPI]: consumeFNResource illegal values.");
                 return 0;
             }
 
@@ -90,7 +90,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(requestedPowerPerSecond) || double.IsInfinity(requestedPowerPerSecond) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - consumeFNResourcePerSecond was called with illegal value");
+                Debug.Log("[KSPI]: consumeFNResourcePerSecond was called with illegal value");
                 return 0;
             }
 
@@ -129,7 +129,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(supply) || double.IsInfinity(supply) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - supplyFNResourceFixed was called with illegal value");
+                Debug.Log("[KSPI]: supplyFNResourceFixed was called with illegal value");
                 return 0;
             }
 
@@ -144,7 +144,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(supply) || double.IsInfinity(supply) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - supplyFNResourcePerSecond  was called with illegal value");
+                Debug.Log("[KSPI]: supplyFNResourcePerSecond  was called with illegal value");
                 return 0;
             }
 
@@ -159,7 +159,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(supply) || double.IsInfinity(maxsupply) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - supplyFNResourceFixedWithMax  was called with illegal value");
+                Debug.Log("[KSPI]: supplyFNResourceFixedWithMax  was called with illegal value");
                 return 0;
             }
 
@@ -174,7 +174,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(supply) || double.IsInfinity(supply) || double.IsNaN(maxsupply) || double.IsInfinity(maxsupply) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - supplyFNResourcePerSecondWithMax was called with illegal value");
+                Debug.Log("[KSPI]: supplyFNResourcePerSecondWithMax was called with illegal value");
                 return 0;
             }
 
@@ -189,7 +189,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(supply) || double.IsInfinity(supply) || double.IsNaN(maxsupply) || double.IsInfinity(maxsupply) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - supplyFNResourcePerSecondWithMax was called with illegal value");
+                Debug.Log("[KSPI]: supplyFNResourcePerSecondWithMax was called with illegal value");
                 return 0;
             }
 
@@ -204,7 +204,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(supply) || double.IsInfinity(supply) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - supplyManagedFNResourcePerSecond  was called with illegal values.");
+                Debug.Log("[KSPI]: supplyManagedFNResourcePerSecond  was called with illegal values.");
                 return 0;
             }
 
@@ -219,7 +219,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(supply) || double.IsInfinity(supply) || double.IsNaN(ratio_min) || double.IsInfinity(ratio_min) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - getNeededPowerSupplyPerSecondWithMinimumRatio was called with illegal values.");
+                Debug.Log("[KSPI]: getNeededPowerSupplyPerSecondWithMinimumRatio was called with illegal values.");
                 return 0;
             }
 
@@ -227,7 +227,7 @@ namespace FNPlugin
                 manager = getManagerForVessel(resourcename);
             if (manager == null)
             {
-                Debug.LogError("[KSPI] - failed to find resource Manager For Current Vessel");
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
             }
 
@@ -238,7 +238,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(supply) || double.IsInfinity(supply) || double.IsNaN(ratio_min) || double.IsInfinity(ratio_min) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - supplyManagedFNResourcePerSecondWithMinimumRatio illegal values.");
+                Debug.Log("[KSPI]: supplyManagedFNResourcePerSecondWithMinimumRatio illegal values.");
                 return 0;
             }
 
@@ -254,7 +254,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(requested_power) || double.IsNaN(maximum_power) || double.IsNaN(ratio_min) || String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - managedProvidedPowerSupplyPerSecondMinimumRatio illegal values.");
+                Debug.Log("[KSPI]: managedProvidedPowerSupplyPerSecondMinimumRatio illegal values.");
                 return 0;
             }
 
@@ -272,7 +272,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(requested_power) || double.IsNaN(maximum_power) || double.IsNaN(ratio_min) || String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - managedPowerSupplyPerSecondMinimumRatio illegal values.");
+                Debug.Log("[KSPI]: managedPowerSupplyPerSecondMinimumRatio illegal values.");
                 return null;
             }
 
@@ -288,7 +288,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getCurrentResourceDemand illegal values.");
+                Debug.Log("[KSPI]: getCurrentResourceDemand illegal values.");
                 return 0;
             }
 
@@ -303,7 +303,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getCurrentResourceDemand illegal values.");
+                Debug.Log("[KSPI]: getCurrentResourceDemand illegal values.");
                 return 0;
             }
 
@@ -318,7 +318,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getCurrentHighPriorityResourceDemand illegal values.");
+                Debug.Log("[KSPI]: getCurrentHighPriorityResourceDemand illegal values.");
                 return 0;
             }
 
@@ -333,7 +333,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getAvailableResourceSupply illegal values.");
+                Debug.Log("[KSPI]: getAvailableResourceSupply illegal values.");
                 return 0;
             }
 
@@ -347,7 +347,7 @@ namespace FNPlugin
         public double getResourceSupply(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename)) {
-                Debug.Log("[KSPI] - getResourceSupply illegal values.");
+                Debug.Log("[KSPI]: getResourceSupply illegal values.");
                 return 0;
             }
             
@@ -361,7 +361,7 @@ namespace FNPlugin
         public double GetOverproduction(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename)) {
-                Debug.Log("[KSPI] - GetOverproduction illegal values.");
+                Debug.Log("[KSPI]: GetOverproduction illegal values.");
                 return 0;
             }
 
@@ -375,7 +375,7 @@ namespace FNPlugin
         public double getDemandStableSupply(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename)) {
-                Debug.Log("[KSPI] - getDemandStableSupply illegal values.");
+                Debug.Log("[KSPI]: getDemandStableSupply illegal values.");
                 return 0;
             }
 
@@ -390,7 +390,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getResourceDemand illegal values.");
+                Debug.Log("[KSPI]: getResourceDemand illegal values.");
                 return 0;
             }
 
@@ -405,7 +405,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - GetRequiredResourceDemand illegal values.");
+                Debug.Log("[KSPI]: GetRequiredResourceDemand illegal values.");
                 return 0;
             }
 
@@ -420,7 +420,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - GetRequiredResourceDemand illegal values.");
+                Debug.Log("[KSPI]: GetRequiredResourceDemand illegal values.");
                 return 0;
             }
 
@@ -435,7 +435,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - GetPowerSupply illegal values.");
+                Debug.Log("[KSPI]: GetPowerSupply illegal values.");
                 return 0;
             }
 
@@ -450,7 +450,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - GetCurrentResourceDemand illegal values.");
+                Debug.Log("[KSPI]: GetCurrentResourceDemand illegal values.");
                 return 0;
             }
 
@@ -465,7 +465,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getResourceBarRatio illegal values.");
+                Debug.Log("[KSPI]: getResourceBarRatio illegal values.");
                 return 0;
             }
 
@@ -480,7 +480,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - getResourceBarFraction illegal values.");
+                Debug.Log("[KSPI]: getResourceBarFraction illegal values.");
                 return 0;
             }
 
@@ -495,7 +495,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI] - getResourceBarRatio illegal values.");
+                Debug.Log("[KSPI]: getResourceBarRatio illegal values.");
                 return 0;
             }
 
@@ -510,7 +510,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getResourceBarRatioEnd illegal values.");
+                Debug.Log("[KSPI]: getResourceBarRatioEnd illegal values.");
                 return 0;
             }
 
@@ -525,7 +525,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getSpareResourceCapacity illegal values.");
+                Debug.Log("[KSPI]: getSpareResourceCapacity illegal values.");
                 return 0;
             }
 
@@ -540,7 +540,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getResourceAvailability illegal values.");
+                Debug.Log("[KSPI]: getResourceAvailability illegal values.");
                 return 0;
             }
 
@@ -555,7 +555,7 @@ namespace FNPlugin
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
-                Debug.Log("[KSPI] - getTotalResourceCapacity illegal values.");
+                Debug.Log("[KSPI]: getTotalResourceCapacity illegal values.");
                 return 0;
             }
 
@@ -582,7 +582,7 @@ namespace FNPlugin
                     similarParts = null;
                     manager = CreateResourceManagerForResource(resourcename);
 
-                    Debug.Log("[KSPI] - ResourceSuppliableModule.OnStart created Resource Manager for Vessel " + vessel.GetName() + " for " + resourcename + " with manager Id " + manager.Id + " and overmanager id " + manager.OverManagerId);
+                    Debug.Log("[KSPI]: ResourceSuppliableModule.OnStart created Resource Manager for Vessel " + vessel.GetName() + " for " + resourcename + " with manager Id " + manager.Id + " and overmanager id " + manager.OverManagerId);
                 }
             }
 
@@ -595,7 +595,7 @@ namespace FNPlugin
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
-            Debug.LogWarning("[KSPI] - detecting supplyable part " + part.partInfo.title + " is being destroyed");
+            Debug.LogWarning("[KSPI]: detecting supplyable part " + part.partInfo.title + " is being destroyed");
 
             var priority_manager = getSupplyPriorityManager(this.vessel);
             if (priority_manager != null)
@@ -633,7 +633,7 @@ namespace FNPlugin
                     similarParts = null;
                     resource_manager = CreateResourceManagerForResource(resourcename);
 
-                     Debug.Log("[KSPI] - ResourceSuppliableModule.OnFixedUpdate created Resourcemanager for Vessel " + vessel.GetName() + " for " + resourcename + " with ResourseManagerId " + resource_manager.Id + " with OvermanagerId" + resource_manager.Id);
+                     Debug.Log("[KSPI]: ResourceSuppliableModule.OnFixedUpdate created Resourcemanager for Vessel " + vessel.GetName() + " for " + resourcename + " with ResourseManagerId " + resource_manager.Id + " with OvermanagerId" + resource_manager.Id);
                 }
 
                 if (resource_manager != null)
@@ -725,7 +725,7 @@ namespace FNPlugin
             var overmanager = getOvermanagerForResource(resourcename);
             if (overmanager == null)
             {
-                Debug.LogError("[KSPI] - ResourceSuppliableModule failed to find " + resourcename + " Overmanager for " + vessel.name);
+                Debug.LogError("[KSPI]: ResourceSuppliableModule failed to find " + resourcename + " Overmanager for " + vessel.name);
                 return null;
             }
             return overmanager.getManagerForVessel(vessel);

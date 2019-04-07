@@ -206,7 +206,7 @@ namespace FNPlugin.Reactors
 
         public override void OnStart(PartModule.StartState state)
         {
-            Debug.Log("[KSPI] - OnStart MSRGC " + part.name);
+            Debug.Log("[KSPI]: OnStart MSRGC " + part.name);
 
             // start as normal
             base.OnStart(state);

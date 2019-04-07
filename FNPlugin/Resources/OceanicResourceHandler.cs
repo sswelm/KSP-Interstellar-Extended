@@ -88,7 +88,7 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.Log("[KSPI] - Exception while loading oceanic resources : " + ex.ToString());
+                Debug.Log("[KSPI]: Exception while loading oceanic resources : " + ex.ToString());
             }
             return bodyOceanicComposition;
         }
@@ -102,7 +102,7 @@ namespace FNPlugin.Resources
             Debug.Log("[KSPI] Loading oceanic data from pack: " + (oceanic_resource_pack.HasValue("name") ? oceanic_resource_pack.GetValue("name") : "unknown pack"));
             if (oceanic_resource_pack != null)
             {
-                Debug.Log("[KSPI] - searching for ocean definition for " + celestialBody.name);
+                Debug.Log("[KSPI]: searching for ocean definition for " + celestialBody.name);
                 List<ConfigNode> oceanic_resource_list = oceanic_resource_pack.nodes.Cast<ConfigNode>().Where(res => res.GetValue("celestialBodyName") == FlightGlobals.Bodies[refBody].name).ToList();
                 if (oceanic_resource_list.Any())
                     bodyOceanicComposition = oceanic_resource_list.Select(orsc => new OceanicResource(orsc.HasValue("resourceName") ? orsc.GetValue("resourceName") : null, double.Parse(orsc.GetValue("abundance")), orsc.GetValue("guiName"))).ToList();
@@ -167,7 +167,7 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - Exception while generating oceanic composition from celestial ocean properties : " + ex.ToString());
+                Debug.LogError("[KSPI]: Exception while generating oceanic composition from celestial ocean properties : " + ex.ToString());
             }
 
             return bodyOceanicComposition;
@@ -198,7 +198,7 @@ namespace FNPlugin.Resources
             }
             catch (Exception ex)
             {
-                Debug.LogError("[KSPI] - Exception while generating oceanic composition from defined abundances : " + ex.ToString());
+                Debug.LogError("[KSPI]: Exception while generating oceanic composition from defined abundances : " + ex.ToString());
             }
 
             return bodyComposition;
@@ -209,7 +209,7 @@ namespace FNPlugin.Resources
             // fetch all oceanic resources
             var allOceanicResources = ResourceMap.Instance.FetchAllResourceNames(HarvestTypes.Oceanic);
 
-            Debug.Log("[KSPI] - AddMissingStockResources : found " + allOceanicResources.Count + " resources");
+            Debug.Log("[KSPI]: AddMissingStockResources : found " + allOceanicResources.Count + " resources");
 
             foreach (var resoureName in allOceanicResources)
             {
@@ -224,14 +224,14 @@ namespace FNPlugin.Resources
             PartResourceDefinition definition = PartResourceLibrary.Instance.GetDefinition(resourname);
             if (definition == null)
             {
-                Debug.LogWarning("[KSPI] - AddMissingResource : Failed to find resource definition for '" + resourname + "'");
+                Debug.LogWarning("[KSPI]: AddMissingResource : Failed to find resource definition for '" + resourname + "'");
                 return;
             }
 
             // skip it already registred or used as a Synonym
             if (bodyComposition.Any(m => m.ResourceName == definition.name || m.DisplayName == definition.displayName || m.Synonyms.Contains(definition.name)))
             {
-                Debug.Log("[KSPI] - AddMissingResource : Already found existing composition for '" + resourname + "'");
+                Debug.Log("[KSPI]: AddMissingResource : Already found existing composition for '" + resourname + "'");
                 return;
             }
 
@@ -239,7 +239,7 @@ namespace FNPlugin.Resources
             var abundance = GetAbundance(definition.name, refBody);
             if (abundance <= 0)
             {
-                Debug.LogWarning("[KSPI] - AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
+                Debug.LogWarning("[KSPI]: AddMissingResource : Abundance for resource '" + resourname + "' was " + abundance);
                 return;
             }
 
@@ -247,7 +247,7 @@ namespace FNPlugin.Resources
             var OceanicResource = new OceanicResource(definition, abundance);
 
             // add to oceanic composition
-            Debug.Log("[KSPI] - AddMissingResource : add resource '" + resourname + "'");
+            Debug.Log("[KSPI]: AddMissingResource : add resource '" + resourname + "'");
             bodyComposition.Add(OceanicResource);
         }
 
@@ -261,7 +261,7 @@ namespace FNPlugin.Resources
                 var existingResource = bodyOceanicComposition.FirstOrDefault(a => a.ResourceName == outputResourname);
                 if (existingResource != null)
                 {
-                    Debug.Log("[KSPI] - replaced resource " + outputResourname + " with stock defined abundance " + OceanicResource.ResourceAbundance);
+                    Debug.Log("[KSPI]: replaced resource " + outputResourname + " with stock defined abundance " + OceanicResource.ResourceAbundance);
                     bodyOceanicComposition.Remove(existingResource);
                 }
                 bodyOceanicComposition.Add(OceanicResource);
@@ -278,7 +278,7 @@ namespace FNPlugin.Resources
                 var existingResource = bodyOceanicComposition.FirstOrDefault(a => a.ResourceName == outputResourname);
                 if (existingResource != null)
                 {
-                    Debug.Log("[KSPI] - replaced resource " + outputResourname + " with stock defined abundance " + OceanicResource.ResourceAbundance);
+                    Debug.Log("[KSPI]: replaced resource " + outputResourname + " with stock defined abundance " + OceanicResource.ResourceAbundance);
                     bodyOceanicComposition.Remove(existingResource);
                 }
                 bodyOceanicComposition.Add(OceanicResource);
@@ -287,12 +287,12 @@ namespace FNPlugin.Resources
 
         private static void AddRaresAndIsotopesToOceanComposition(List<OceanicResource> bodyOceanicComposition)
         {
-            Debug.Log("[KSPI] - Checking for missing rare isotopes");
+            Debug.Log("[KSPI]: Checking for missing rare isotopes");
 
             // add heavywater based on water abundance in ocean
             if (bodyOceanicComposition.All(m => m.ResourceName != InterstellarResourcesConfiguration.Instance.HeavyWater) && bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water))
             {
-                Debug.Log("[KSPI] - Added heavy water based on presence water in ocean");
+                Debug.Log("[KSPI]: Added heavy water based on presence water in ocean");
                 var water = bodyOceanicComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water);
                 var heavywaterAbundance = water.ResourceAbundance / 6420;
                 bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.HeavyWater, heavywaterAbundance, "HeavyWater", new[] { "HeavyWater", "D2O", "DeuteriumWater"}));
@@ -300,14 +300,14 @@ namespace FNPlugin.Resources
             else
             {
                 if (bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Water))
-                    Debug.Log("[KSPI] - No heavy water added because no water found in Ocean");
+                    Debug.Log("[KSPI]: No heavy water added because no water found in Ocean");
                 else
-                    Debug.Log("[KSPI] - No heavy water already present in Ocean");
+                    Debug.Log("[KSPI]: No heavy water already present in Ocean");
             }
 
             if (bodyOceanicComposition.All(m => m.ResourceName != InterstellarResourcesConfiguration.Instance.Lithium6) && bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Lithium7))
             {
-                Debug.Log("[KSPI] - Added lithium-6 based on presence Lithium in ocean");
+                Debug.Log("[KSPI]: Added lithium-6 based on presence Lithium in ocean");
                 var lithium = bodyOceanicComposition.First(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Lithium7);
                 var heavywaterAbundance = lithium.ResourceAbundance * 0.0759;
                 bodyOceanicComposition.Add(new OceanicResource(InterstellarResourcesConfiguration.Instance.Lithium6, heavywaterAbundance, "Lithium-6", new[] { "Lithium6", "Lithium-6", "Li6", "Li-6" }));
@@ -315,9 +315,9 @@ namespace FNPlugin.Resources
             else
             {
                 if (bodyOceanicComposition.Any(m => m.ResourceName == InterstellarResourcesConfiguration.Instance.Lithium7))
-                    Debug.Log("[KSPI] - No Lithium-6 added because no Lithium found in Ocean");
+                    Debug.Log("[KSPI]: No Lithium-6 added because no Lithium found in Ocean");
                 else
-                    Debug.Log("[KSPI] - No Lithium-6 slready present in Ocean");
+                    Debug.Log("[KSPI]: No Lithium-6 slready present in Ocean");
             }
         }
 

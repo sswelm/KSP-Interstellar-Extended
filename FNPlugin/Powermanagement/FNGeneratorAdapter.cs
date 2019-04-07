@@ -67,7 +67,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in FNGeneratorAdapter.OnStart " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnStart " + e.Message);
                 throw;
             }
         }
@@ -85,7 +85,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in FNGeneratorAdapter.OnFixedUpdate " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnFixedUpdate " + e.Message);
                 throw;
             }
         }
@@ -104,7 +104,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in FNGeneratorAdapter.OnFixedUpdate " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnFixedUpdate " + e.Message);
                 throw;
             }
         }
@@ -139,7 +139,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in FNGeneratorAdapter.OnFixedUpdateResourceSuppliable " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnFixedUpdateResourceSuppliable " + e.Message);
                 throw;
             }
         }

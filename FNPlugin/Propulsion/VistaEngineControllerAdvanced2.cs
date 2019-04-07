@@ -350,7 +350,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FusionEngine FCsetup exception: " + e.Message);
+                Debug.LogError("[KSPI]: FusionEngine FCsetup exception: " + e.Message);
             }
         }
      
@@ -389,7 +389,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FusionEngine OnStart eception: " + e.Message);
+                Debug.LogError("[KSPI]: FusionEngine OnStart eception: " + e.Message);
             }
         }
         

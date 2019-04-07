@@ -517,7 +517,7 @@ namespace FNPlugin.Collectors
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine("[KSPI] - UniversalCrustExtractor - Error while retrieving crustal resource percentage for " + currentResource.ResourceName + " from CrustalResourceHandler. Setting to zero.");
+                    Console.WriteLine("[KSPI]: UniversalCrustExtractor - Error while retrieving crustal resource percentage for " + currentResource.ResourceName + " from CrustalResourceHandler. Setting to zero.");
                     return null; // if the percentage was not gotten correctly, we want to know, so return false
                 }
 
@@ -525,7 +525,7 @@ namespace FNPlugin.Collectors
             }
             else
             {
-                Console.WriteLine("[KSPI] - UniversalCrustExtractor - Error while calculating percentage, resource null. Setting to zero.");
+                Console.WriteLine("[KSPI]: UniversalCrustExtractor - Error while calculating percentage, resource null. Setting to zero.");
                 return null; // resource was null, we want to know that we should disregard it, so return false
             }
         }
@@ -554,7 +554,7 @@ namespace FNPlugin.Collectors
             CelestialBody homeworld = FlightGlobals.Bodies.SingleOrDefault(b => b.isHomeWorld);
             if (homeworld == null)
             {
-                Console.WriteLine("[KSPI] - UniversalCrustExtractor. Homeworld not found, setting crust thickness to 0.");
+                Console.WriteLine("[KSPI]: UniversalCrustExtractor. Homeworld not found, setting crust thickness to 0.");
                 return false;
             }
             double homeplanetMass = homeworld.Mass; // This will usually be Kerbin, but players can always use custom planet packs with a custom homeplanet or resized systems
@@ -694,7 +694,7 @@ namespace FNPlugin.Collectors
                 // get the resource data
                 if (!GetResourceData()) // if getting the resource data went wrong, no offline mining
                 {
-                    Debug.Log("[KSPI] - Universal Drill - Error while getting resource data for offline mining calculations.");
+                    Debug.Log("[KSPI]: Universal Drill - Error while getting resource data for offline mining calculations.");
                     return;
                 }
 

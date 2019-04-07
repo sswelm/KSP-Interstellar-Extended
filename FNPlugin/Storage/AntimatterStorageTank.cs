@@ -180,7 +180,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - AntimatterStorageTank.OnRescale " + e.Message);
+                Debug.LogError("[KSPI]: AntimatterStorageTank.OnRescale " + e.Message);
             }
         }
 
@@ -292,7 +292,7 @@ namespace FNPlugin
 
             if (!string.IsNullOrEmpty(reason))
             {
-                Debug.Log("[KSPI] - " + reason);
+                Debug.Log("[KSPI]: " + reason);
                 ScreenMessages.PostScreenMessage(reason, 10.0f, ScreenMessageStyle.UPPER_CENTER);
             }
 
@@ -389,49 +389,49 @@ namespace FNPlugin
 
         void OnJustAboutToDie()
         {
-            Debug.Log("[KSPI] - OnJustAboutToDie called on " + part.name);
+            Debug.Log("[KSPI]: OnJustAboutToDie called on " + part.name);
 
             isJustAboutToDie = true;
         }
 
         void OnJustAboutToBeDestroyed()
         {
-            Debug.Log("[KSPI] - OnJustAboutToBeDestroyed called on " + part.name);
+            Debug.Log("[KSPI]: OnJustAboutToBeDestroyed called on " + part.name);
 
             if (!isJustAboutToDie)
             {
-                Debug.Log("[KSPI] - isJustAboutToDie == false");
+                Debug.Log("[KSPI]: isJustAboutToDie == false");
                 return;
             }
 
             var antimatterResource = part.Resources[resourceName];
             if (antimatterResource == null)
             {
-                Debug.Log("[KSPI] - antimatterResource == null");
+                Debug.Log("[KSPI]: antimatterResource == null");
                 return;
             }
 
             if (antimatterResource.resourceName != resourceName)
             {
-                Debug.Log("[KSPI] - antimatterResource.resourceName != resourceName");
+                Debug.Log("[KSPI]: antimatterResource.resourceName != resourceName");
                 return;
             }
 
             if (!HighLogic.LoadedSceneIsFlight)
             {
-                Debug.Log("[KSPI] - !HighLogic.LoadedSceneIsFlight");
+                Debug.Log("[KSPI]: !HighLogic.LoadedSceneIsFlight");
                 return;
             }
 
             if (antimatterResource.amount <= minimimAnimatterAmount)
             {
-                Debug.Log("[KSPI] - antimatterResource.amount <= minimimAnimatterAmount");
+                Debug.Log("[KSPI]: antimatterResource.amount <= minimimAnimatterAmount");
                 return;
             }
 
             if (!FlightGlobals.VesselsLoaded.Contains(this.vessel))
             {
-                Debug.Log("[KSPI] - !FlightGlobals.VesselsLoaded.Contains(this.vessel)");
+                Debug.Log("[KSPI]: !FlightGlobals.VesselsLoaded.Contains(this.vessel)");
                 return;
             }
 

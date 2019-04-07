@@ -253,13 +253,13 @@ namespace FNPlugin
                 // find correct fuel mode index
                 if (!String.IsNullOrEmpty(fuel_mode_name))
                 {
-                    Debug.Log("[KSPI] - ElectricRCSController OnStart loaded fuelmode " + fuel_mode_name);
+                    Debug.Log("[KSPI]: ElectricRCSController OnStart loaded fuelmode " + fuel_mode_name);
                     Current_propellant = _propellants.FirstOrDefault(p => p.PropellantName == fuel_mode_name);
                 }
                 if (Current_propellant != null && _propellants.Contains(Current_propellant))
                 {
                     fuel_mode = _propellants.IndexOf(Current_propellant);
-                    Debug.Log("[KSPI] - ElectricRCSController OnStart index of fuelmode " + Current_propellant.PropellantGUIName + " = " + fuel_mode);
+                    Debug.Log("[KSPI]: ElectricRCSController OnStart index of fuelmode " + Current_propellant.PropellantGUIName + " = " + fuel_mode);
                 }
 
                 base.OnStart(state);
@@ -270,7 +270,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - ElectricRCSController OnStart Error: " + e.Message);
+                Debug.LogError("[KSPI]: ElectricRCSController OnStart Error: " + e.Message);
                 throw;
             }
          }

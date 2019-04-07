@@ -100,14 +100,14 @@ namespace FNPlugin.Reactors
             else
             {
                 var message = "Not enough power to start fusion reactor, it requires at " + fusionPowerRequirement.ToString("F2") + " MW";
-                UnityEngine.Debug.Log("[KSPI] - " + message);
+                UnityEngine.Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 5f, ScreenMessageStyle.LOWER_CENTER);
                 return;
             }
 
             // determine if we have received enough power
             plasma_ratio = GetPlasmaRatio(power_consumed, fusionPowerRequirement);
-            UnityEngine.Debug.Log("[KSPI] - InterstellarTokamakFusionReactor StartReactor plasma_ratio " + plasma_ratio);
+            UnityEngine.Debug.Log("[KSPI]: InterstellarTokamakFusionReactor StartReactor plasma_ratio " + plasma_ratio);
             allowJumpStart = plasma_ratio > 0.99;
             if (allowJumpStart)
             {
@@ -173,7 +173,7 @@ namespace FNPlugin.Reactors
                         jumpstartPowerTime = 10;
                     }
 
-                    UnityEngine.Debug.Log("[KSPI] - Jumpstart InterstellarTokamakFusionReactor ");
+                    UnityEngine.Debug.Log("[KSPI]: Jumpstart InterstellarTokamakFusionReactor ");
                 }
             }
 

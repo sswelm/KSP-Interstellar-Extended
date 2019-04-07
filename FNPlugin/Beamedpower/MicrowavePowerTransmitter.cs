@@ -666,7 +666,7 @@ namespace FNPlugin.Beamedpower
             }
             catch (NullReferenceException e)
             {
-                Debug.LogError("[KSPI] - exception in CollectBiomeData " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI]: exception in CollectBiomeData " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -917,7 +917,7 @@ namespace FNPlugin.Beamedpower
                     if (protomodule.moduleValues.HasValue("mergingBeams"))
                     {
                         try { bool.TryParse(protomodule.moduleValues.GetValue("mergingBeams"), out isMergingBeams); }
-                        catch (Exception e) { UnityEngine.Debug.LogError("[KSPI] - Exception while reading mergingBeams" + e.Message); }
+                        catch (Exception e) { UnityEngine.Debug.LogError("[KSPI]: Exception while reading mergingBeams" + e.Message); }
                     }
 
                     // filter on transmitters

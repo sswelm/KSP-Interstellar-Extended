@@ -540,7 +540,7 @@ namespace FNPlugin
             }
             catch (Exception error)
             {
-                UnityEngine.Debug.LogError("[KSPI] - InterstellarReactor.ConnectReciever exception: " + error.Message);
+                UnityEngine.Debug.LogError("[KSPI]: InterstellarReactor.ConnectReciever exception: " + error.Message);
             }
         }
 
@@ -909,7 +909,7 @@ namespace FNPlugin
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("[KSPI] - Error while disabling antenna deploy button " + e.Message + " at " + e.StackTrace);
+                    Debug.LogError("[KSPI]: Error while disabling antenna deploy button " + e.Message + " at " + e.StackTrace);
                 }
             }
 
@@ -973,7 +973,7 @@ namespace FNPlugin
                 var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is MicrowavePowerReceiver && (MicrowavePowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
 
                 if (result == null || result.Source == null)
-                    UnityEngine.Debug.LogWarning("[KSPI] - MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
+                    UnityEngine.Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
                 else
                     ((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
             }
@@ -1006,7 +1006,7 @@ namespace FNPlugin
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError("[KSPI] - Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
+                    Debug.LogError("[KSPI]: Error while disabling radiator button " + e.Message + " at " + e.StackTrace);
                 }
             }
 
@@ -1045,7 +1045,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - MicrowavePowerReceiver.UpdateBuffers " + e.Message);
+                Debug.LogError("[KSPI]: MicrowavePowerReceiver.UpdateBuffers " + e.Message);
             }
         }
 
@@ -1074,7 +1074,7 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSPI] - attach " + part.partInfo.title);
+                Debug.Log("[KSPI]: attach " + part.partInfo.title);
                 foreach (var node in part.attachNodes)
                 {
                     if (node.attachedPart == null) continue;
@@ -1086,7 +1086,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - MicrowavePowerReceiver.OnEditorAttach " + e.Message);
+                Debug.LogError("[KSPI]: MicrowavePowerReceiver.OnEditorAttach " + e.Message);
             }
         }
 
@@ -1097,7 +1097,7 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSPI] - detach " + part.partInfo.title);
+                Debug.Log("[KSPI]: detach " + part.partInfo.title);
                 if (ConnectedChargedParticleElectricGenerator != null)
                     ConnectedChargedParticleElectricGenerator.FindAndAttachToPowerSource();
 
@@ -1106,7 +1106,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Reactor.OnEditorDetach " + e.Message);
+                Debug.LogError("[KSPI]: Reactor.OnEditorDetach " + e.Message);
             }
         }
 
@@ -1134,7 +1134,7 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSPI] - Setup Receiver BrandWidth Configurations for " + part.partInfo.title);
+                Debug.Log("[KSPI]: Setup Receiver BrandWidth Configurations for " + part.partInfo.title);
 
                 _powerInputMegajoulesField = Fields["powerInputMegajoules"];
                 _maximumWavelengthField = Fields["maximumWavelength"];
@@ -1174,7 +1174,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Error in MicrowaveReceiver InitializeBrandwitdhSelector " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI]: Error in MicrowaveReceiver InitializeBrandwitdhSelector " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -1186,7 +1186,7 @@ namespace FNPlugin
 
                 var currentWavelength = targetWavelength != 0 ? targetWavelength : 1;
 
-                Debug.Log("[KSPI] - LoadInitialConfiguration initialize initial beam configuration with wavelength target " + currentWavelength);
+                Debug.Log("[KSPI]: LoadInitialConfiguration initialize initial beam configuration with wavelength target " + currentWavelength);
 
                 // find wavelength closes to target wavelength
                 activeBandwidthConfiguration = BandwidthConverters.FirstOrDefault();
@@ -1210,7 +1210,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Error in MicrowaveReceiver LoadInitialConfiguration " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI]: Error in MicrowaveReceiver LoadInitialConfiguration " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -1218,12 +1218,12 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSPI] - UpdateFromGUI is called with selectedBandwidth " + selectedBandwidthConfiguration);
+                Debug.Log("[KSPI]: UpdateFromGUI is called with selectedBandwidth " + selectedBandwidthConfiguration);
 
                 if (!BandwidthConverters.Any())
                     return;
 
-                Debug.Log("[KSPI] - UpdateFromGUI found " + BandwidthConverters.Count + " BandwidthConverters");
+                Debug.Log("[KSPI]: UpdateFromGUI found " + BandwidthConverters.Count + " BandwidthConverters");
 
                 if (isLoaded == false)
                     LoadInitialConfiguration();
@@ -1231,12 +1231,12 @@ namespace FNPlugin
                 {
                     if (selectedBandwidthConfiguration < BandwidthConverters.Count)
                     {
-                        Debug.Log("[KSPI] - UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
+                        Debug.Log("[KSPI]: UpdateFromGUI selectedBeamGenerator < orderedBeamGenerators.Count");
                         activeBandwidthConfiguration = BandwidthConverters[selectedBandwidthConfiguration];
                     }
                     else
                     {
-                        Debug.Log("[KSPI] - UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
+                        Debug.Log("[KSPI]: UpdateFromGUI selectedBeamGenerator >= orderedBeamGenerators.Count");
                         selectedBandwidthConfiguration = BandwidthConverters.Count - 1;
                         activeBandwidthConfiguration = BandwidthConverters.Last();
                     }
@@ -1244,7 +1244,7 @@ namespace FNPlugin
 
                 if (activeBandwidthConfiguration == null)
                 {
-                    Debug.LogWarning("[KSPI] - UpdateFromGUI failed to find BandwidthConfiguration");
+                    Debug.LogWarning("[KSPI]: UpdateFromGUI failed to find BandwidthConfiguration");
                     return;
                 }
 
@@ -1259,7 +1259,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Error in MicrowaveReceiver UpdateFromGUI " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI]: Error in MicrowaveReceiver UpdateFromGUI " + e.Message + " at " + e.StackTrace);
             }
         }
 
@@ -1418,7 +1418,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in GetSolarFacingFactor " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI]: Exception in GetSolarFacingFactor " + e.Message + " at " + e.StackTrace);
                 return 0; 
             }
         }
@@ -1735,7 +1735,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in MicrowavePowerReceiver.OnFixedUpdateResourceSuppliable " + e.Message + " at " + e.StackTrace);
+                Debug.LogError("[KSPI]: Exception in MicrowavePowerReceiver.OnFixedUpdateResourceSuppliable " + e.Message + " at " + e.StackTrace);
             }
         }
 

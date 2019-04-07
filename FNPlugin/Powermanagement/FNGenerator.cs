@@ -338,7 +338,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNGenerator.OnRescale " + e.Message);
+                Debug.LogError("[KSPI]: FNGenerator.OnRescale " + e.Message);
             }
         }
 
@@ -375,12 +375,12 @@ namespace FNPlugin
         {
             try
             {
-                Debug.Log("[KSPI] - attach " + part.partInfo.title);
+                Debug.Log("[KSPI]: attach " + part.partInfo.title);
                 FindAndAttachToPowerSource();
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNGenerator.OnEditorAttach " + e.Message);
+                Debug.LogError("[KSPI]: FNGenerator.OnEditorAttach " + e.Message);
             }
         }
 
@@ -394,7 +394,7 @@ namespace FNPlugin
                 if (attachedPowerSource == null)
                     return;
 
-                Debug.Log("[KSPI] - detach " + part.partInfo.title);
+                Debug.Log("[KSPI]: detach " + part.partInfo.title);
                 if (chargedParticleMode && attachedPowerSource.ConnectedChargedParticleElectricGenerator != null)
                     attachedPowerSource.ConnectedChargedParticleElectricGenerator = null;
                 if (!chargedParticleMode && attachedPowerSource.ConnectedThermalElectricGenerator != null)
@@ -402,7 +402,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNGenerator.OnEditorDetach " + e.Message);
+                Debug.LogError("[KSPI]: FNGenerator.OnEditorDetach " + e.Message);
             }
         }
 
@@ -416,7 +416,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception on " + part.name + " durring FNGenerator.OnDestroyed with message " + e.Message);
+                Debug.LogError("[KSPI]: Exception on " + part.name + " durring FNGenerator.OnDestroyed with message " + e.Message);
             }
         }
 
@@ -474,7 +474,7 @@ namespace FNPlugin
             // only force activate if no certain partmodules are not present and not limited by minimum throtle
             if (!isLimitedByMinThrotle && part.FindModuleImplementing<MicrowavePowerReceiver>() == null)
             {
-                Debug.Log("[KSPI] - Generator on " + part.name + " was Force Activated");
+                Debug.Log("[KSPI]: Generator on " + part.name + " was Force Activated");
                 part.force_activate();
             }
 
@@ -597,18 +597,18 @@ namespace FNPlugin
             if (attachedPowerSource != null)
             {
                 ConnectToPowerSource();
-                Debug.Log("[KSPI] - Found power source localy");
+                Debug.Log("[KSPI]: Found power source localy");
                 return;
             }
 
             if (!part.attachNodes.Any() || part.attachNodes.All(m => m.attachedPart == null))
             {
-                Debug.Log("[KSPI] - not connected to any parts yet");
+                Debug.Log("[KSPI]: not connected to any parts yet");
                 UpdateTargetMass();
                 return;
             }
 
-            Debug.Log("[KSPI] - generator is currently connected to " + part.attachNodes.Count + " parts");
+            Debug.Log("[KSPI]: generator is currently connected to " + part.attachNodes.Count + " parts");
             // otherwise look for other non selfcontained thermal sources that is not already connected
 
             var searchResult = chargedParticleMode 
@@ -620,7 +620,7 @@ namespace FNPlugin
             // quit if we failed to find anything
             if (searchResult == null)
             {
-                Debug.LogWarning("[KSPI] - Failed to find power source");
+                Debug.LogWarning("[KSPI]: Failed to find power source");
                 return;
             }
 
@@ -628,14 +628,14 @@ namespace FNPlugin
             partDistance = (int)Math.Max(Math.Ceiling(searchResult.Cost), 0);
             if (partDistance > 1)
             {
-                Debug.LogWarning("[KSPI] - Found power source but at too high cost");
+                Debug.LogWarning("[KSPI]: Found power source but at too high cost");
                 return;
             }
 
             // update attached thermalsource
             attachedPowerSource = searchResult.Source;
 
-            Debug.Log("[KSPI] - succesfully connected to " + attachedPowerSource.Part.partInfo.title);
+            Debug.Log("[KSPI]: succesfully connected to " + attachedPowerSource.Part.partInfo.title);
 
             ConnectToPowerSource();
         }
@@ -718,7 +718,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNGenerator.UpdateTargetMass " + e.Message);
+                Debug.LogError("[KSPI]: FNGenerator.UpdateTargetMass " + e.Message);
             }
         }
 
@@ -1056,7 +1056,7 @@ namespace FNPlugin
                         {
                             IsEnabled = false;
                             var message = "Generator Shutdown: No Attached Power Source";
-                            Debug.Log("[KSPI] - " + message);
+                            Debug.Log("[KSPI]: " + message);
                             ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                             PowerDown();
                         }
@@ -1064,7 +1064,7 @@ namespace FNPlugin
                         {
                             IsEnabled = false;
                             var message = "Generator Shutdown: No radiators available!";
-                            Debug.Log("[KSPI] - " + message);
+                            Debug.Log("[KSPI]: " + message);
                             ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                             PowerDown();
                         }
@@ -1077,7 +1077,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in FNGenerator OnFixedUpdateResourceSuppliable: " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNGenerator OnFixedUpdateResourceSuppliable: " + e.Message);
             }
         }
 

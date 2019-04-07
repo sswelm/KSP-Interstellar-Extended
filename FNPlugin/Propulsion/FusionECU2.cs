@@ -299,7 +299,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FusionEngine FCUpdate exception: " + e.Message);
+                Debug.LogError("[KSPI]: FusionEngine FCUpdate exception: " + e.Message);
             }
         }
 
@@ -313,13 +313,13 @@ namespace FNPlugin
             base.UpdateFuel(isEditor);
             if (isEditor) return;
 
-            Debug.Log("[KSPI] - Fusion Gui Updated");
+            Debug.Log("[KSPI]: Fusion Gui Updated");
             BaseFloatCurve = CurrentActiveConfiguration.atmosphereCurve;
             standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
             standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
             curveMaxISP = GetMaxKey(BaseFloatCurve);
             FcSetup();
-            Debug.Log("[KSPI] - Curve Max ISP:" + curveMaxISP);
+            Debug.Log("[KSPI]: Curve Max ISP:" + curveMaxISP);
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -328,7 +328,7 @@ namespace FNPlugin
             {
                 if (state.ToString().Contains(StartState.PreLaunch.ToString()))
                 {
-                    Debug.Log("[KSPI] - PreLaunch uses InitialGearRatio:" + InitialGearRatio);
+                    Debug.Log("[KSPI]: PreLaunch uses InitialGearRatio:" + InitialGearRatio);
                     SelectedIsp = ((MaxIsp - MinIsp) * Math.Max(0, Math.Min(1, InitialGearRatio))) + MinIsp;
                 }
 
@@ -341,7 +341,7 @@ namespace FNPlugin
                 curEngineT = this.part.FindModuleImplementing<ModuleEngines>();
                 if (curEngineT == null)
                 {
-                    Debug.LogError("[KSPI] - FusionEngine OnStart Engine not found");
+                    Debug.LogError("[KSPI]: FusionEngine OnStart Engine not found");
                     return;
                 }
                 BaseFloatCurve = curEngineT.atmosphereCurve;
@@ -366,7 +366,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FusionEngine OnStart eception: " + e.Message);
+                Debug.LogError("[KSPI]: FusionEngine OnStart eception: " + e.Message);
             }
         }
 

@@ -310,7 +310,7 @@ namespace FNPlugin
 
                 if (curEngineT == null)
                 {
-                    Debug.LogWarning("[KSPI] - FusionEngine OnStart Engine not found");
+                    Debug.LogWarning("[KSPI]: FusionEngine OnStart Engine not found");
                     return;
                 }
 
@@ -331,7 +331,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FusionEngine OnStart eception: " + e.Message);
+                Debug.LogError("[KSPI]: FusionEngine OnStart eception: " + e.Message);
             }
         }
 

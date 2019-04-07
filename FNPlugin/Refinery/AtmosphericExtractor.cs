@@ -403,7 +403,7 @@ namespace FNPlugin.Refinery
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - ExtractAir GetResourceMass Exception: " + e.Message);
+                Debug.LogError("[KSPI]: ExtractAir GetResourceMass Exception: " + e.Message);
             }
 
             // determine the amount of resources needed for processing (i.e. intake atmosphere) that the vessel actually holds
@@ -429,7 +429,7 @@ namespace FNPlugin.Refinery
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - ExtractAir GetAtmosphericGasDensityKgPerCubicMeter Exception: " + e.Message);
+                Debug.LogError("[KSPI]: ExtractAir GetAtmosphericGasDensityKgPerCubicMeter Exception: " + e.Message);
             }
 
 
@@ -472,7 +472,7 @@ namespace FNPlugin.Refinery
                 if (FlightGlobals.currentMainBody.flightGlobalsIndex != lastBodyID) // did we change a SOI since last time? If yes, get new percentages. Should work the first time as well, since lastBodyID starts as -1, while bodies in the list start at 0
                     try
                     {
-                        Debug.Log("[KSPI] - looking up Atmosphere contents for " + FlightGlobals.currentMainBody.name);
+                        Debug.Log("[KSPI]: looking up Atmosphere contents for " + FlightGlobals.currentMainBody.name);
 
                         // remember, all these are persistent. Once we get them, we won't need to calculate them again until we change SOI
                         _ammoniaPercentage = AtmosphericResourceHandler.getAtmosphericResourceContent(FlightGlobals.currentMainBody, _ammonia_resource_name);
@@ -499,7 +499,7 @@ namespace FNPlugin.Refinery
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError("[KSPI] - ExtractAir getAtmosphericResourceContent Exception: " + e.Message);
+                        Debug.LogError("[KSPI]: ExtractAir getAtmosphericResourceContent Exception: " + e.Message);
                     }
 
 

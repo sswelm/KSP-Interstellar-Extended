@@ -57,7 +57,7 @@ namespace FNPlugin.Extensions
         {
             if (definition == null)
             {
-                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                Debug.LogError("[KSPI]: PartResourceDefinition definition is NULL");
                 return 0;
             }
 
@@ -72,7 +72,7 @@ namespace FNPlugin.Extensions
         {
             if (definition == null)
             {
-                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                Debug.LogError("[KSPI]: PartResourceDefinition definition is NULL");
                 return 0;
             }
 
@@ -86,7 +86,7 @@ namespace FNPlugin.Extensions
         {
             if (definition == null)
             {
-                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                Debug.LogError("[KSPI]: PartResourceDefinition definition is NULL");
                 return 0;
             }
 
@@ -102,7 +102,7 @@ namespace FNPlugin.Extensions
 
             if (definition == null)
             {
-                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                Debug.LogError("[KSPI]: PartResourceDefinition definition is NULL");
                 return 0;
             }
 
@@ -118,7 +118,7 @@ namespace FNPlugin.Extensions
 
             if (definition == null)
             {
-                Debug.LogError("[KSPI] - PartResourceDefinition definition is NULL");
+                Debug.LogError("[KSPI]: PartResourceDefinition definition is NULL");
                 return 0;
             }
 
@@ -244,7 +244,7 @@ namespace FNPlugin.Extensions
             if (currentPart.Resources.Contains(resourcename))
             {
                 var partResourceAmount = currentPart.Resources[resourcename].amount;
-                //UnityEngine.Debug.Log("[KSPI] - found " + partResourceAmount.ToString("0.0000") + " " + resourcename + " resource in " + currentPart.name);
+                //UnityEngine.Debug.Log("[KSPI]: found " + partResourceAmount.ToString("0.0000") + " " + resourcename + " resource in " + currentPart.name);
                 amount += partResourceAmount;
             }
 
@@ -268,7 +268,7 @@ namespace FNPlugin.Extensions
             if (currentPart.Resources.Contains(resourcename))
             {
                 var partResourceAmount = currentPart.Resources[resourcename].maxAmount;
-                //UnityEngine.Debug.Log("[KSPI] - found " + partResourceAmount.ToString("0.0000") + " " + resourcename + " resource in " + currentPart.name);
+                //UnityEngine.Debug.Log("[KSPI]: found " + partResourceAmount.ToString("0.0000") + " " + resourcename + " resource in " + currentPart.name);
                 maxAmount += partResourceAmount;
             }
 

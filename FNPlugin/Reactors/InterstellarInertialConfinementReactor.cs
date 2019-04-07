@@ -98,7 +98,7 @@ namespace FNPlugin.Reactors
                     reactor_power_ratio = 1;
                 }
 
-                UnityEngine.Debug.LogWarning("[KSPI] - InterstellarInertialConfinementReactor.OnStart allowJumpStart");
+                UnityEngine.Debug.LogWarning("[KSPI]: InterstellarInertialConfinementReactor.OnStart allowJumpStart");
             }
 
             primaryInputResourceDefinition = !string.IsNullOrEmpty(primaryInputResource)

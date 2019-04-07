@@ -30,7 +30,7 @@ namespace FNPlugin
 
             if (!supply_priority_managers.TryGetValue(vessel, out manager))
             {
-                Debug.Log("[KSPI] - Creating new supply priority manager for " + vessel.GetName());
+                Debug.Log("[KSPI]: Creating new supply priority manager for " + vessel.GetName());
                 manager = new SupplyPriorityManager(vessel);
                 
                 supply_priority_managers.Add(vessel, manager);
@@ -80,7 +80,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - Exception in SupplyPriorityManager.UpdateResourceSuppliables " + e.Message);
+                Debug.LogError("[KSPI]: Exception in SupplyPriorityManager.UpdateResourceSuppliables " + e.Message);
                 throw;
             }
         }
