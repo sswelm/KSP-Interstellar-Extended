@@ -71,8 +71,14 @@ namespace InterstellarFuelSwitch
         public double baseMassMultiplier = 1;
         [KSPField(isPersistant = true)]
         public double initialMassMultiplier = 1;
+        [KSPField(isPersistant = true)]
+        public float windowPositionX = 1000;
+        [KSPField(isPersistant = true)]
+        public float windowPositionY = 150;
 
         // Config properties
+        [KSPField]
+        public float windowWidth = 200;
         [KSPField]
         public string moduleID = "0";
         [KSPField]
@@ -161,6 +167,8 @@ namespace InterstellarFuelSwitch
         public string maxWetDryMass = "";
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_massRatioStr")] // Mass Ratio
         public string massRatioStr = "";
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Switch Window"),  UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.None)] // Mass Ratio
+        public bool render_window = false;
 
         // Debug
         [KSPField]
@@ -211,9 +219,13 @@ namespace InterstellarFuelSwitch
         IFSmodularTank selectedTank;
         UIPartActionWindow tweakableUI;
         HashSet<string> activeResourceList = new HashSet<string>();
+        Rect windowPosition;
 
         bool _initialized;
+
+
         int _numberOfAvailableTanks;
+        int _windowID;
 
         double _partResourceMaxAmountFraction0;
         double _partResourceMaxAmountFraction1;
@@ -241,7 +253,16 @@ namespace InterstellarFuelSwitch
         BaseEvent _nextTankSetupEvent;
         BaseEvent _previousTankSetupEvent;
 
+        IHaveFuelTankSetup _fuelTankSetupControl;
+
         static HashSet<string> _researchedTechs;
+
+        [KSPAction("Show Switch Tank Window")]
+        public void ToggleSwitchWindowwAction(KSPActionParam param)
+        {
+            Debug.Log("[IFS] - Toggled Switch Window");
+            render_window = !render_window;
+        }
 
         public virtual void OnRescale(ScalingFactor factor)
         {
@@ -258,13 +279,16 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - OnRescale Error: " + e.Message);
+                Debug.LogError("[IFS]: OnRescale Error: " + e.Message);
                 throw;
             }
         }
 
-        public int FindMatchingConfig()
+        public int FindMatchingConfig(IHaveFuelTankSetup control = null)
         {
+            if (control != null)
+                _fuelTankSetupControl = control;
+
             InitializeData();
 
             if (selectedTankSetup == -1 && !string.IsNullOrEmpty(defaultTank))
@@ -321,6 +345,10 @@ namespace InterstellarFuelSwitch
                     initialMass = (double)(decimal)part.prefabMass;
 
                 defaultTank = Localizer.Format(defaultTank);
+
+                _windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
+
+                windowPosition = new Rect(windowPositionX, windowPositionY, windowWidth, 10);
 
                 InitializeData();
 
@@ -385,7 +413,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - OnStart Error: " + e.Message);
+                Debug.LogError("[IFS]: OnStart Error: " + e.Message);
                 throw;
             }
         }
@@ -449,7 +477,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - SelectTankSetup Error: " + e.Message);
+                Debug.LogError("[IFS]: SelectTankSetup Error: " + e.Message);
                 throw;
             }
         }
@@ -463,7 +491,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - OnAwake Error: " + e.Message);
+                Debug.LogError("[IFS]: OnAwake Error: " + e.Message);
                 throw;
             }
         }
@@ -528,7 +556,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - InitializeData Error: " + e.Message);
+                Debug.LogError("[IFS]: InitializeData Error: " + e.Message);
                 throw;
             }
         }
@@ -552,7 +580,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - nextTankSetupEvent Error: " + e.Message);
+                Debug.LogError("[IFS]: nextTankSetupEvent Error: " + e.Message);
                 throw;
             }
         }
@@ -576,7 +604,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - previousTankSetupEvent Error: " + e.Message);
+                Debug.LogError("[IFS]: previousTankSetupEvent Error: " + e.Message);
                 throw;
             }
         }
@@ -623,7 +651,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - AssignResourcesToPart Error " + e.Message);
+                Debug.LogError("[IFS]: AssignResourcesToPart Error " + e.Message);
                 throw;
             }
         }
@@ -791,7 +819,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - SetupTankInPart Error: " + e.Message);
+                Debug.LogError("[IFS]: SetupTankInPart Error: " + e.Message);
                 throw;
             }
         }
@@ -816,7 +844,7 @@ namespace InterstellarFuelSwitch
 
                 var concatinatedGuiName = string.Join("+", resourcesWithMass.Select(r => r.info.displayName).ToArray());
 
-                Debug.LogWarning("[IFS] - Constructing new tank definition for " + concatinatedGuiName);
+                Debug.LogWarning("[IFS]: Constructing new tank definition for " + part.name + " with name " + concatinatedGuiName);
 
                 var ifsResources = resourcesWithMass.Select(r => new IFSresource(r.resourceName)
                 {
@@ -840,7 +868,7 @@ namespace InterstellarFuelSwitch
             // otherwise select first tank
             if (selectedTank == null)
             {
-                Debug.Log("[IFS] - Defaulting selected tank to first tank in collection" );
+                Debug.Log("[IFS]: Defaulting selected tank to first tank in collection" );
                 selectedTank = _modularTankList[0];
             }
         }
@@ -1209,7 +1237,7 @@ namespace InterstellarFuelSwitch
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogWarning("[IFS] - " + part.name + " error parsing resourceTankAmountArray amount " + tankCounter + "/" + amountCounter +
+                            Debug.LogWarning("[IFS]: " + part.name + " error parsing resourceTankAmountArray amount " + tankCounter + "/" + amountCounter +
                                       ": '" + resourceTankAbsoluteAmountArray[tankCounter] + "': '" + resourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
 
@@ -1220,7 +1248,7 @@ namespace InterstellarFuelSwitch
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogWarning("[IFS] - " + part.name + " error parsing initialResourceList amount " + tankCounter + "/" + amountCounter +
+                            Debug.LogWarning("[IFS]: " + part.name + " error parsing initialResourceList amount " + tankCounter + "/" + amountCounter +
                                       ": '" + initialResourceList[tankCounter] + "': '" + initialResourceAmountArray[amountCounter].Trim() + "' with error: " + exception.Message);
                         }
                     }
@@ -1290,6 +1318,8 @@ namespace InterstellarFuelSwitch
                     // ensure there is always a gui name
                     if (string.IsNullOrEmpty(modularTank.GuiName))
                     {
+                        Debug.Log("[IFS]: " + part.name + " modularTank.GuiName is null");
+
                         var names = modularTank.Resources.Select(m => m.name);
                         modularTank.GuiName = String.Empty;
                         foreach (var name in names)
@@ -1314,7 +1344,7 @@ namespace InterstellarFuelSwitch
                 {
                     foreach (var config in _modularTankList)
                     {
-                        string description = "Composition:" + config.Composition + " GuiName:" + config.GuiName + " SwitchName: " + config.SwitchName + " Resources: ";
+                        string description =  "[IFS]: " + part.name + " Composition :" + config.Composition + " GuiName:" + config.GuiName + " SwitchName: " + config.SwitchName + " Resources: ";
                         description += string.Join(",", config.Resources.Select(m => m.name).ToArray());
                         Debug.Log(description);
                     }
@@ -1322,7 +1352,7 @@ namespace InterstellarFuelSwitch
             }
             catch (Exception e)
             {
-                Debug.LogError("[IFS] - SetupTankList Error: " + e.Message);
+                Debug.LogError("[IFS]: SetupTankList Error: " + e.Message);
                 throw;
             }
         }
@@ -1478,6 +1508,52 @@ namespace InterstellarFuelSwitch
                     var technodename = technode.GetValue("id");
                     _researchedTechs.Add(technodename);
                 }
+            }
+        }
+
+        public void OnGUI()
+        {
+            if (this.vessel == FlightGlobals.ActiveVessel && render_window)
+                windowPosition = GUILayout.Window(_windowID, windowPosition, Window, "Switch Tank Content");
+        }
+
+        private void Window(int windowID)
+        {
+            try
+            {
+                windowPositionX = windowPosition.x;
+                windowPositionY = windowPosition.y;
+
+                if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
+                    render_window = false;
+
+                GUILayout.BeginVertical();
+
+                foreach (var tank in _modularTankList)
+                {
+                    if (tank.hasTech)
+                    {
+                        GUILayout.BeginHorizontal();
+                        if (GUILayout.Button(tank.GuiName, GUILayout.ExpandWidth(true)))
+                        {
+                            selectedTankSetup = _modularTankList.IndexOf(tank);
+                            AssignResourcesToPart(true, true);
+                            if (_fuelTankSetupControl != null)
+                                _fuelTankSetupControl.SwitchToFuelTankSetup(tank.SwitchName);
+                        }
+
+                        GUILayout.EndHorizontal();
+                    }
+                }
+
+                GUILayout.EndVertical();
+                GUI.DragWindow();
+
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI]: InterstellarFuelSwitch Window(" + windowID + "): " + e.Message);
+                throw;
             }
         }
     }

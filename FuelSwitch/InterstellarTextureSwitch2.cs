@@ -9,7 +9,7 @@ using UnityEngine;
 namespace InterstellarFuelSwitch
 {
     [KSPModule("#LOC_IFS_TextureSwitch_moduleName")]
-    public class InterstellarTextureSwitch2 : PartModule
+    public class InterstellarTextureSwitch2 : PartModule, IHaveFuelTankSetup
     {
         [KSPField]
         public string moduleID = "0";
@@ -141,6 +141,37 @@ namespace InterstellarFuelSwitch
             }
 
             UseTextureAll(calledByPlayer);
+        }
+
+        public void SwitchToFuelTankSetup(string fuelTankSetup)
+        {
+            var index = textureDisplayList.IndexOf(fuelTankSetup);
+
+            if (index < 0 && string.IsNullOrEmpty(fuelTankSetup))
+            {
+                for (int i = 0 ; i < textureDisplayList.Count ; i++)
+                {
+                    if (textureDisplayList[i].Contains(fuelTankSetup))
+                    {
+                        index = i;
+                        break;
+                    }
+                    else if (fuelTankSetup.Contains(textureDisplayList[i]))
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+
+            if (index >= 0)
+            {
+                Debug.Log("[IFS] - SwitchToFuelTankSetup found " + fuelTankSetup);
+                selectedTexture = index;
+                UseTextureAll(true);
+            }
+            else
+                Debug.LogWarning("[IFS] - SwitchToFuelTankSetup is missing " + fuelTankSetup);
         }
 
         [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 5f, guiActive = false, guiActiveEditor = false, guiName = "Repaint")]
@@ -408,13 +439,12 @@ namespace InterstellarFuelSwitch
                 }
                 else
                 {
-                    var matchingObject = fuelSwitch.FindMatchingConfig();
+                    var matchingObject = fuelSwitch.FindMatchingConfig(this);
                     if (matchingObject >= 0)
                         selectedTexture = matchingObject;
                 }
             }
             initialized = true;
-
         }
     }
 }

@@ -7,6 +7,11 @@ using UnityEngine;
 
 namespace InterstellarFuelSwitch
 {
+    public interface IHaveFuelTankSetup
+    {
+        void SwitchToFuelTankSetup(string fuelTankSetup);
+    }
+
     class meshConfiguration
     {
         public List<Transform> objectTransforms;
@@ -17,7 +22,7 @@ namespace InterstellarFuelSwitch
     }
 
     [KSPModule("#LOC_IFS_MeshSwitch_moduleName")]
-    public class InterstellarMeshSwitch : PartModule 
+    public class InterstellarMeshSwitch : PartModule, IHaveFuelTankSetup
     {
         [KSPField]
         public string moduleID = "0";
@@ -232,6 +237,44 @@ namespace InterstellarFuelSwitch
             SwitchToObject(selectedObject, true);
         }
 
+        public void SwitchToFuelTankSetup(string fuelTankSetup)
+        {
+            var configuration = meshConfigurationList.FirstOrDefault(m => m.fuelTankSetup == fuelTankSetup);
+            
+            if (configuration != null)
+                Debug.Log("[IFS]: SwitchToFuelTankSetup fuelTankSetup matches " + fuelTankSetup);
+
+            if (configuration == null)
+            {
+                configuration = meshConfigurationList.FirstOrDefault(m => m.indexName == fuelTankSetup);
+                if (configuration != null)
+                    Debug.Log("[IFS]: SwitchToFuelTankSetup indexName matches " + fuelTankSetup);
+            }
+
+            if (configuration == null)
+            {
+                configuration = meshConfigurationList.FirstOrDefault(m => m.objectDisplay == fuelTankSetup);
+                if (configuration != null)
+                    Debug.Log("[IFS]: SwitchToFuelTankSetup objectDisplay matches " + fuelTankSetup);
+            }
+
+            if (configuration == null)
+            {
+                configuration = meshConfigurationList.FirstOrDefault(m => m.tankSwitchName == fuelTankSetup);
+                if (configuration != null)
+                    Debug.Log("[IFS]: SwitchToFuelTankSetup tankSwitchName matches " + fuelTankSetup);
+            }
+
+            if (configuration != null)
+            {
+                //Debug.Log("[IFS]: SwitchToFuelTankSetup found " + fuelTankSetup);
+                selectedObject = meshConfigurationList.IndexOf(configuration);
+                SwitchToObject(selectedObject, true);
+            }
+            else
+                Debug.LogWarning("[IFS]: SwitchToFuelTankSetup is missing " + fuelTankSetup);
+        }
+
         public void InitializeData(bool forced = false)
         {
             try
@@ -290,7 +333,7 @@ namespace InterstellarFuelSwitch
                         useFuelSwitchModule = false;
                     else 
                     {
-                        var matchingObject = fuelSwitch.FindMatchingConfig();
+                        var matchingObject = fuelSwitch.FindMatchingConfig(this);
 
                         if (HighLogic.LoadedSceneIsFlight || matchingObject >= 0)
                         {

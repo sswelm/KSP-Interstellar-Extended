@@ -199,7 +199,7 @@ namespace FNPlugin.Power
             }
             else
             {
-                Debug.LogError("[KSPI] - Resource = " + resourceName + " doesn't have variable buffer config!");
+                Debug.LogError("[KSPI]: Resource = " + resourceName + " doesn't have variable buffer config!");
             }
         }
 

@@ -427,7 +427,7 @@ namespace PhotonSail
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI] - FNGenerator.OnRescale " + e.Message);
+                Debug.LogError("[KSPI]: FNGenerator.OnRescale " + e.Message);
             }
         }
 

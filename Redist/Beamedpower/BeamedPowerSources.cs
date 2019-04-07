@@ -30,7 +30,7 @@ namespace FNPlugin.Beamedpower
         {
             DontDestroyOnLoad(this.gameObject);
             instance = this;
-            Debug.Log("[KSPI] - MicrowaveSources initialized");
+            Debug.Log("[KSPI]: MicrowaveSources initialized");
         }
 
         int counter = -1;
@@ -55,7 +55,7 @@ namespace FNPlugin.Beamedpower
                     {
                         globalTransmitters.Remove(vessel);
                         globalRelays.Remove(vessel);
-                        Debug.Log("[KSPI] - Unregisted Transmitter for vessel " + vessel.name + " " + vessel.id + " because is was destroyed!");
+                        Debug.Log("[KSPI]: Unregisted Transmitter for vessel " + vessel.name + " " + vessel.id + " because is was destroyed!");
                     }
                     continue;
                 }
@@ -76,7 +76,7 @@ namespace FNPlugin.Beamedpower
                         {
                             if (!globalTransmitters.ContainsKey(vessel))
                             {
-                                Debug.Log("[KSPI] - Added unloaded Transmitter for vessel " + vessel.name);
+                                Debug.Log("[KSPI]: Added unloaded Transmitter for vessel " + vessel.name);
                             }
                             globalTransmitters[vessel] = trans_pers;
                         }
@@ -85,11 +85,11 @@ namespace FNPlugin.Beamedpower
                             if (globalTransmitters.Remove(vessel))
                             {
                                 if (!trans_pers.IsActive && !hasAnyPower)
-                                    Debug.Log("[KSPI] - Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active and has no power!");
+                                    Debug.Log("[KSPI]: Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active and has no power!");
                                 else if (!trans_pers.IsActive)
-                                    Debug.Log("[KSPI] - Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active!");
+                                    Debug.Log("[KSPI]: Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is not active!");
                                 else if (!hasAnyPower)
-                                    Debug.Log("[KSPI] - Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is has no power");
+                                    Debug.Log("[KSPI]: Unregisted unloaded Transmitter for vessel " + vessel.name + " " + vessel.id + " because transmitter is has no power");
                             }
                         }
                     }
@@ -120,7 +120,7 @@ namespace FNPlugin.Beamedpower
                         {
                             if (!globalTransmitters.ContainsKey(vessel))
                             {
-                                Debug.Log("[KSPI] - Added loaded Transmitter for vessel " + vessel.name + " " + vessel.id);
+                                Debug.Log("[KSPI]: Added loaded Transmitter for vessel " + vessel.name + " " + vessel.id);
                             }
                             globalTransmitters[vessel] = transmitterPower;
                         }
