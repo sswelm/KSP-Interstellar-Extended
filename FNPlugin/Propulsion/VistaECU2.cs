@@ -2,6 +2,9 @@
 
 namespace FNPlugin
 {
+	class ZPinchFusionEngine : VistaECU2 { }
+
+
     class VistaECU2 : FusionECU2, IUpgradeableModule
     {
         const float maxMin = defaultMinIsp / defaultMaxIsp;
