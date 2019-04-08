@@ -72,7 +72,7 @@ namespace InterstellarFuelSwitch
         [KSPField(isPersistant = true)]
         public double initialMassMultiplier = 1;
         [KSPField(isPersistant = true)]
-        public float windowPositionX = 1000;
+        public float windowPositionX = 1200;
         [KSPField(isPersistant = true)]
         public float windowPositionY = 150;
 

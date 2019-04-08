@@ -542,7 +542,6 @@ namespace FNPlugin.Wasteheat
             convectedThermalPower = 0;
             CurrentRadiatorTemperature = 0;
             radiator_deploy_delay = 0;
-            explode_counter = 0;
 
             DetermineGenerationType();
 

@@ -98,8 +98,6 @@ namespace FNPlugin
         protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
         protected abstract FloatCurve BaseFloatCurve { get; set; }
 
-
-
         // protected
         protected bool hasrequiredupgrade = false;
         protected bool radhazard = false;
@@ -547,7 +545,6 @@ namespace FNPlugin
 
                 // Update FuelFlow
                 var maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
-
 
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.maxThrust = (float)maximumThrust;

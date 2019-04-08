@@ -621,9 +621,12 @@ namespace FNPlugin
                         {
                             if (akMaxAmount > 0)
                             {
-                                //Debug.Log("[KSPI]: Resource: " + akConfig.Fuels[I] + " is empty, but that is ok");
-                                result = false;
-                                I = akConfig.Fuels.Length;
+                                if (akResource.name != "IntakeAtm")
+                                {
+                                    //Debug.Log("[KSPI]: Resource: " + akConfig.Fuels[I] + " is empty, but that is ok");
+                                    result = false;
+                                    I = akConfig.Fuels.Length;
+                                }
                             }
                             else
                             {
