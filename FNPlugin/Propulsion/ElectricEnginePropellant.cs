@@ -23,9 +23,9 @@ namespace FNPlugin
         protected double decomposedIspMult;
         protected double thrustMultiplierCold;
         protected Propellant propellant;
-        protected String propellantname;
-        protected String propellantguiname;
-        protected String effectname;
+        protected string propellantname;
+        protected string propellantguiname;
+        protected string effectname;
         protected double wasteheatMultiplier;
         protected string techRquirement;
         protected PartResourceDefinition resourceDefinition;

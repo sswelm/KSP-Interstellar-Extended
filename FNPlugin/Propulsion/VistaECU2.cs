@@ -34,15 +34,15 @@ namespace FNPlugin
 
         protected override FloatCurve BaseFloatCurve
         {
-            get
-            {                
-                return atmophereCurve ?? curEngineT.atmosphereCurve;
-            }
-            set
-            {
-                    atmophereCurve = value;
-            }
+            get { return atmophereCurve ?? curEngineT.atmosphereCurve; }
+            set { atmophereCurve = value; }
         }
+
+        protected override bool ShowIspThrottle 
+        { 
+            get { return Fields["localIsp"].guiActive; } 
+            set { Fields["localIsp"].guiActive = value; } 
+        } 
 
         protected override float InitialGearRatio {get { return initialGearRatio; }}
         protected override float SelectedIsp { get { return localIsp; } set { if (value > 0) { localIsp = value; } } }
@@ -52,5 +52,7 @@ namespace FNPlugin
         protected override float MaxSteps { get { return defaultMaxSteps; } }
         protected override float MaxThrustEfficiencyByIspPower { get { return maxThrustEfficiencyByIspPower; } }
         protected override float NeutronAbsorptionFractionAtMinIsp { get { return neutronAbsorptionFractionAtMinIsp; } }
+
+
     }
 }

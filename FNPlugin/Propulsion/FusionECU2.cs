@@ -97,6 +97,7 @@ namespace FNPlugin
         protected abstract float MaxThrustEfficiencyByIspPower { get; }
         protected abstract float NeutronAbsorptionFractionAtMinIsp { get; }
         protected abstract FloatCurve BaseFloatCurve { get; set; }
+        protected abstract bool ShowIspThrottle { get; set; } 
 
         // protected
         protected bool hasrequiredupgrade = false;
@@ -474,7 +475,6 @@ namespace FNPlugin
                 MinIsp = origIsp;
         }
 
-
         public override void OnFixedUpdate()
         {
             temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
@@ -502,6 +502,8 @@ namespace FNPlugin
             KillKerbalsWithRadiation(throttle);
 
             hasIspThrottling = HasIspThrottling();
+
+            ShowIspThrottle = hasIspThrottling;
 
             if (throttle > 0 )
             {

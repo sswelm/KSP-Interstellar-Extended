@@ -97,8 +97,10 @@ namespace FNPlugin
 
         public bool hasMultipleConfigurations = false;
 
-        private IList<FuelConfiguration> _activeConfigurations;
-        private FuelConfiguration _currentActiveConfiguration;
+        protected IList<FuelConfiguration> _activeConfigurations;
+        protected FuelConfiguration _currentActiveConfiguration;
+        protected List<FuelConfiguration> _fuelConfigurationWithEffect;
+
         private UIPartActionWindow tweakableUI;
         private UI_ChooseOption chooseOptionEditor;
         private UI_ChooseOption chooseOptionFlight;
@@ -196,6 +198,13 @@ namespace FNPlugin
             _currentActiveConfiguration = _activeConfigurations[selectedFuel];
         }
 
+        public void FixedUpdate()
+        {
+            if (_fuelConfigurationWithEffect != null)
+                _fuelConfigurationWithEffect.ForEach(prop => part.Effect(prop.effectname, 0, -1));
+            if (_currentActiveConfiguration != null && !string.IsNullOrEmpty(_currentActiveConfiguration.effectname))
+                part.Effect(_currentActiveConfiguration.effectname, curEngineT.currentThrottle, -1);
+        }
 
         private void InitializeHideFuels()
         {
@@ -219,9 +228,9 @@ namespace FNPlugin
             }
         }
 
-        private IList<FuelConfiguration> fuelConfigurations;
+        private List<FuelConfiguration> fuelConfigurations;
 
-        public IList<FuelConfiguration> FuelConfigurations
+        public List<FuelConfiguration> FuelConfigurations
         {
             get
             {
@@ -500,6 +509,9 @@ namespace FNPlugin
 
                 InitializeGUI();
 
+                _fuelConfigurationWithEffect = FuelConfigurations.Where(m => !string.IsNullOrEmpty(m.effectname)).ToList();
+                _fuelConfigurationWithEffect.ForEach(prop => part.Effect(prop.effectname, 0, -1));
+
                 if (state.ToString().Contains(StartState.Editor.ToString()))
                 {
                     Debug.Log("[KSPI]: Editor");
@@ -677,6 +689,9 @@ namespace FNPlugin
         public string ignoreForIsp = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Ignore Thrust")]
         public string ignoreForThrustCurve = "";
+
+        [KSPField(isPersistant = false)]
+        public string effectname; 
 
         [KSPField(isPersistant = true)]
         public double Scale = 1;
