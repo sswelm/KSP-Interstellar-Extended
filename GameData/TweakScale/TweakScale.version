@@ -1,33 +1,18 @@
 {
-     "NAME":"TweakScale",
-     "URL":"https://github.com/pellinor0/TweakScale/blob/master/GameData/TweakScale/TweakScale.version",
-     "DOWNLOAD":"http://spacedock.info/mod/127/TweakScale/",
-     "GITHUB":{
-         "USERNAME":"Pellinor",
-         "REPOSITORY":"TweakScale",
-         "ALLOW_PRE_RELEASE":false,
-     },
-     "VERSION":{
-         "MAJOR":2,
-         "MINOR":3,
-         "PATCH":12,
-         "BUILD":0
-     },
-     "KSP_VERSION":{
-         "MAJOR":1,
-         "MINOR":4,
-         "PATCH":2
-     },
-     "KSP_VERSION_MIN":
-     {
-        "MAJOR":1,
-        "MINOR":4,
-        "PATCH":0
-     },
-     "KSP_VERSION_MAX":
-     {
-        "MAJOR":1,
-        "MINOR":4,
-        "PATCH":99
-     }
+	"NAME"		: "TweakScale",
+	"URL"		: "https://github.com/net-lisias-ksp/TweakScale/blob/master/TweakScale.version",
+	"DOWNLOAD"	: "https://github.com/net-lisias-ksp/TweakScale/releases",
+	"CHANGE_LOG"	: "https://raw.githubusercontent.com/net-lisias-ksp/TweakScale/CHANGE_LOG.md",
+	"CHANGE_LOG_URL": "https://raw.githubusercontent.com/net-lisias-ksp/TweakScale/CHANGES.md",
+	"VERSION":{
+		"MAJOR":2,
+		"MINOR":4,
+		"PATCH":1,
+		"BUILD":0
+		},
+	"KSP_VERSION_MIN":{
+		"MAJOR":1,
+		"MINOR":4,
+		"PATCH":1
+		}
 }
