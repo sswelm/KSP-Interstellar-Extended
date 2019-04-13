@@ -691,8 +691,7 @@ namespace FNPlugin
         public string ignoreForThrustCurve = "";
 
         [KSPField(isPersistant = false)]
-        public string effectname; 
-
+        public string effectname = null;
         [KSPField(isPersistant = true)]
         public double Scale = 1;
         [KSPField(isPersistant = true)]

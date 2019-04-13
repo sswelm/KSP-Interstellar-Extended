@@ -21,15 +21,15 @@ namespace FNPlugin
         public string temperatureStr = "";
 
         [KSPField(guiActiveEditor = true)]
-        public double powerRequirement = 625;
+        public double powerRequirement = 0;
         [KSPField( guiActiveEditor = true)]
-        public double powerRequirementUpgraded1 = 1000;
+        public double powerRequirementUpgraded1 = 0;
         [KSPField(guiActiveEditor = true)]
-        public double powerRequirementUpgraded2 = 1500;
+        public double powerRequirementUpgraded2 = 0;
         [KSPField(guiActiveEditor = true)]
-        public double powerRequirementUpgraded3 = 2000;
+        public double powerRequirementUpgraded3 = 0;
         [KSPField(guiActiveEditor = true)]
-        public double powerRequirementUpgraded4 = 2500;
+        public double powerRequirementUpgraded4 = 0;
 
         [KSPField(isPersistant = false)]
         public bool selectableIsp = false;
