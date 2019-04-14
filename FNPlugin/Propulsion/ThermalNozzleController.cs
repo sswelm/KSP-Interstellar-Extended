@@ -350,6 +350,8 @@ namespace FNPlugin
         public float effectRatio;
         [KSPField]
         double received_megajoules_ratio;
+        [KSPField(guiName = "Electricaly Powered", guiUnits = "%", guiFormat = "F3")]
+        double received_megajoules_percentage;
         [KSPField]
         int pre_coolers_active;
         [KSPField]
@@ -663,6 +665,8 @@ namespace FNPlugin
 
                 if (requiredMegajouleRatio == 0)
                     received_megajoules_ratio = 1;
+
+                Fields["received_megajoules_percentage"].guiActive = requiredMegajouleRatio > 0;
 
                 UpdateRadiusModifier();
 
@@ -1581,6 +1585,8 @@ namespace FNPlugin
                     var requested_megajoules = (availableThermalPower + availableChargedPower) * requiredMegajouleRatio * AttachedReactor.MagneticNozzlePowerMult;
                     var received_megajoules = consumeFNResourcePerSecond(requested_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
                     received_megajoules_ratio = requested_megajoules > 0 ? received_megajoules / requested_megajoules : 0;
+
+                    received_megajoules_percentage = received_megajoules_ratio * 100;
                 }
                 else
                     received_megajoules_ratio = 1;
