@@ -33,6 +33,7 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public string selectedTankName = "";
 
+        // None Persistant VAB
         [KSPField(guiActiveEditor = true, guiName = "upgrade tech 1")]
         public string upgradeTechReq1;
         [KSPField(guiActiveEditor = true, guiName = "upgrade tech 2")]
@@ -42,7 +43,11 @@ namespace FNPlugin
         [KSPField(guiActiveEditor = true, guiName = "upgrade tech 4")]
         public string upgradeTechReq4;
 
-        // None Persistant 
+        // Gui
+        [KSPField(guiActive = true, guiName = "Thrust Power", guiUnits = " GW", guiFormat = "F3")]
+        public double thrustPower;
+        
+        // Settings
         [KSPField]
         public float minThrottleRatioMk1 = 0.2f;
         [KSPField]
@@ -482,6 +487,9 @@ namespace FNPlugin
         public override void OnUpdate()
         {
             UpdateActiveConfiguration();
+
+            if (curEngineT != null)
+                thrustPower = curEngineT.finalThrust * curEngineT.realIsp * Constants.GameConstants.STANDARD_GRAVITY / 2e6;
 
             base.OnUpdate();
         }
