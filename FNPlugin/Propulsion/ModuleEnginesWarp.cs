@@ -66,6 +66,16 @@ namespace FNPlugin
         private double masslessFuelPercentage3;
         private double masslessFuelPercentage4;
 
+        double fuelRequestAmount1 = 0;
+        double fuelRequestAmount2 = 0;
+        double fuelRequestAmount3 = 0;
+        double fuelRequestAmount4 = 0;
+
+        double consumedPropellant1;
+        double consumedPropellant2;
+        double consumedPropellant3;
+        double consumedPropellant4;
+
         PartResourceDefinition propellantResourceDefinition1;
         PartResourceDefinition propellantResourceDefinition2;
         PartResourceDefinition propellantResourceDefinition3;
@@ -173,16 +183,16 @@ namespace FNPlugin
 
         private double CollectFuel(double demandMass, ResourceFlowMode fuelMode = ResourceFlowMode.STACK_PRIORITY_SEARCH)
         {
+            fuelRequestAmount1 = 0;
+            fuelRequestAmount2 = 0;
+            fuelRequestAmount3 = 0;
+            fuelRequestAmount4 = 0;
+
             if (CheatOptions.InfinitePropellant)
                 return 1;
 
             if (demandMass == 0 || double.IsNaN(demandMass) || double.IsInfinity(demandMass))
                 return 0;
-
-            double fuelRequestAmount1 = 0;
-            double fuelRequestAmount2 = 0;
-            double fuelRequestAmount3 = 0;
-            double fuelRequestAmount4 = 0;
 
             var propellantWithMassNeededInLiter = demandMass / averageDensityInTonPerLiter;
             var overalAmountNeeded = propellantWithMassNeededInLiter / massPropellantRatio;
@@ -215,25 +225,30 @@ namespace FNPlugin
             if (availableRatio < 1e-6)
                 return 0;
 
+            consumedPropellant1 = 0;
+            consumedPropellant2 = 0;
+            consumedPropellant3 = 0;
+            consumedPropellant4 = 0;
+
             double recievedRatio = 1;
             if (fuelRequestAmount1 > 0 && !double.IsNaN(fuelRequestAmount1) && !double.IsInfinity(fuelRequestAmount1))
             {
-                var consumePropellant1 = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, fuelMode);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount1 > 0 ? consumePropellant1 / fuelRequestAmount1 : 0);
+                consumedPropellant1 = part.RequestResource(propellantResourceDefinition1.id, fuelRequestAmount1 * availableRatio, fuelMode);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount1 > 0 ? consumedPropellant1 / fuelRequestAmount1 : 0);
             }
             if (fuelRequestAmount2 > 0 && !double.IsNaN(fuelRequestAmount2) && !double.IsInfinity(fuelRequestAmount2))
             {
-                var consumedPropellant2 = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, fuelMode);
+                consumedPropellant2 = part.RequestResource(propellantResourceDefinition2.id, fuelRequestAmount2 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount2 > 0 ? consumedPropellant2 / fuelRequestAmount2 : 0);
             }
             if (fuelRequestAmount3 > 0 && !double.IsNaN(fuelRequestAmount3) && !double.IsInfinity(fuelRequestAmount3))
             {
-                var consumedpropellant3 = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, fuelMode);
-                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount3 > 0 ? consumedpropellant3 / fuelRequestAmount3 : 0);
+                consumedPropellant3 = part.RequestResource(propellantResourceDefinition3.id, fuelRequestAmount3 * availableRatio, fuelMode);
+                recievedRatio = Math.Min(recievedRatio, fuelRequestAmount3 > 0 ? consumedPropellant3 / fuelRequestAmount3 : 0);
             }
             if (fuelRequestAmount4 > 0 && !double.IsNaN(fuelRequestAmount4) && !double.IsInfinity(fuelRequestAmount4))
             {
-                var consumedPropellant4 = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, fuelMode);
+                consumedPropellant4 = part.RequestResource(propellantResourceDefinition4.id, fuelRequestAmount4 * availableRatio, fuelMode);
                 recievedRatio = Math.Min(recievedRatio, fuelRequestAmount4 > 0 ? consumedPropellant4 / fuelRequestAmount4 : 0);
             }
 

@@ -310,32 +310,28 @@ namespace FNPlugin
         {
             if (curEngineWarp != null)
             {
+                Debug.Log("[KSPI]: UpdateEngineWarp with fuels " + string.Join(", ", CurrentActiveConfiguration.Fuels) 
+                    + " with ratios " + string.Join(", ", CurrentActiveConfiguration.Ratios.Select(m => m.ToString("F3")).ToArray()));
+
                 var ratios = CurrentActiveConfiguration.Ratios;
                 var fuels = CurrentActiveConfiguration.Fuels;
 
                 var fuelCount = fuels.Count();
 
-                if (fuelCount > 0)
-                {
-                    curEngineWarp.propellant1 = fuels[0];
-                    curEngineWarp.ratio1 = (double)(decimal)ratios[0];
-                }
-                if (fuelCount > 1)
-                {
-                    curEngineWarp.propellant2 = fuels[1];
-                    curEngineWarp.ratio2 = (double)(decimal)ratios[1];
-                }
-                if (fuelCount > 2)
-                {
-                    curEngineWarp.propellant3 = fuels[2];
-                    curEngineWarp.ratio3 = (double)(decimal)ratios[2];
-                }
-                if (fuelCount > 3)
-                {
-                    curEngineWarp.propellant4 = fuels[3];
-                    curEngineWarp.ratio4 = (double)(decimal)ratios[3];
-                }
+                curEngineWarp.propellant1 = fuelCount > 0 ? fuels[0] : null;
+                curEngineWarp.ratio1 = fuelCount > 0 ? (double)(decimal)ratios[0] : 0;
+
+                curEngineWarp.propellant2 = fuelCount > 1 ? fuels[1] : null;
+                curEngineWarp.ratio2 = fuelCount > 1 ? (double)(decimal)ratios[1] : 0;
+
+                curEngineWarp.propellant3 = fuelCount > 2 ? fuels[2] : null;
+                curEngineWarp.ratio3 = fuelCount > 2 ? (double)(decimal)ratios[2] : 0;
+
+                curEngineWarp.propellant4 = fuelCount > 3 ? fuels[3] : null;
+                curEngineWarp.ratio4 = fuelCount > 3 ? (double)(decimal)ratios[3] : 0;
             }
+            else
+                Debug.Log("[KSPI]: UpdateEngineWarpFuels skipped");
         }
 
         //private void UpdateResources()
@@ -397,7 +393,7 @@ namespace FNPlugin
 
         private ConfigNode LoadPropellant(string akName, float akRatio)
         {
-            Debug.Log("[KSPI]: Name: " + akName);
+            Debug.Log("[KSPI]: LoadPropellant: " + akName);
             //    Debug.Log("Ratio: "+ akRatio);
 
             ConfigNode PropellantNode = new ConfigNode().AddNode("PROPELLANT");
