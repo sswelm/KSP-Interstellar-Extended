@@ -256,7 +256,7 @@ namespace FNPlugin
             UpdateFromGUI(field, oldFieldValueObj);
             selectedTank = selectedFuel;
             selectedTankName = FuelConfigurations[selectedFuel].ConfigName;
-            UpdateResources();           
+            //UpdateResources();           
         }
 
         private void UpdateFlightGUI(BaseField field, object oldFieldValueObj)
@@ -338,62 +338,62 @@ namespace FNPlugin
             }
         }
 
-        private void UpdateResources()
-        {
-            if (!resourceSwitching)
-                return;
+        //private void UpdateResources()
+        //{
+        //	if (!resourceSwitching)
+        //		return;
 
-            Debug.Log("[KSPI]: Update Resources");
+        //	Debug.Log("[KSPI]: Update Resources");
 
-            ConfigNode akResources = new ConfigNode();
-            FuelConfiguration akConfig = new FuelConfiguration();
+        //	ConfigNode akResources = new ConfigNode();
+        //	FuelConfiguration akConfig = new FuelConfiguration();
 
-            if (selectedTankName == "")
-                selectedTankName = FuelConfigurations[selectedTank].ConfigName;
-            else if (FuelConfigurations[selectedTank].ConfigName == selectedTankName)
-                akConfig = FuelConfigurations[selectedTank];
-            else
-            {
-                selectedTank = FuelConfigurations.IndexOf(FuelConfigurations.FirstOrDefault(g => g.ConfigName == selectedTankName));
-                akConfig = FuelConfigurations[selectedTank];
-            }
+        //	if (selectedTankName == "")
+        //		selectedTankName = FuelConfigurations[selectedTank].ConfigName;
+        //	else if (FuelConfigurations[selectedTank].ConfigName == selectedTankName)
+        //		akConfig = FuelConfigurations[selectedTank];
+        //	else
+        //	{
+        //		selectedTank = FuelConfigurations.IndexOf(FuelConfigurations.FirstOrDefault(g => g.ConfigName == selectedTankName));
+        //		akConfig = FuelConfigurations[selectedTank];
+        //	}
 
-            int I = 0;
-            int N = 0;
+        //	int I = 0;
+        //	int N = 0;
 
-            while (I < part.Resources.Count)
-            {
-                part.Resources.Remove(part.Resources[I]);
-                I++;
-            }
+        //	while (I < part.Resources.Count)
+        //	{
+        //		part.Resources.Remove(part.Resources[I]);
+        //		I++;
+        //	}
 
-            part.Resources.Clear();
+        //	part.Resources.Clear();
 
-            I = 0;
-            N = 0;
-            while (I < akConfig.Fuels.Length)
-            {
-                Debug.Log("[KSPI]: Resource: " + akConfig.Fuels[I] + " has a " + akConfig.MaxAmount[I] + " tank.");
-                if (akConfig.MaxAmount[I] > 0)
-                {
-                    Debug.Log("[KSPI]: Loaded Resource: " + akConfig.Fuels[I]);
-                    part.AddResource(LoadResource(akConfig.Fuels[I], akConfig.Amount[I], akConfig.MaxAmount[I]));
-                }
-                else N++;
-                I++;
-            }
+        //	I = 0;
+        //	N = 0;
+        //	while (I < akConfig.Fuels.Length)
+        //	{
+        //		Debug.Log("[KSPI]: Resource: " + akConfig.Fuels[I] + " has a " + akConfig.MaxAmount[I] + " tank.");
+        //		if (akConfig.MaxAmount[I] > 0)
+        //		{
+        //			Debug.Log("[KSPI]: Loaded Resource: " + akConfig.Fuels[I]);
+        //			part.AddResource(LoadResource(akConfig.Fuels[I], akConfig.Amount[I], akConfig.MaxAmount[I]));
+        //		}
+        //		else N++;
+        //		I++;
+        //	}
 
-            if (N + 1 >= akConfig.Fuels.Length) 
-                Fields["selectedFuel"].guiActive = false;
+        //	if (N + 1 >= akConfig.Fuels.Length) 
+        //		Fields["selectedFuel"].guiActive = false;
 
-            Debug.Log("[KSPI]: New Fuels: " + akConfig.Fuels.Length);
-            if (tweakableUI == null)
-                tweakableUI = part.FindActionWindow();
-            if (tweakableUI != null)
-                tweakableUI.displayDirty = true;
+        //	Debug.Log("[KSPI]: New Fuels: " + akConfig.Fuels.Length);
+        //	if (tweakableUI == null)
+        //		tweakableUI = part.FindActionWindow();
+        //	if (tweakableUI != null)
+        //		tweakableUI.displayDirty = true;
 
-            Debug.Log("[KSPI]: Resources Updated");
-        }    
+        //	Debug.Log("[KSPI]: Resources Updated");
+        //}    
 
         private ConfigNode LoadPropellant(string akName, float akRatio)
         {
@@ -520,34 +520,34 @@ namespace FNPlugin
                 _fuelConfigurationWithEffect = FuelConfigurations.Where(m => !string.IsNullOrEmpty(m.effectname)).ToList();
                 _fuelConfigurationWithEffect.ForEach(prop => part.Effect(prop.effectname, 0, -1));
 
-                if (state.ToString().Contains(StartState.Editor.ToString()))
+                if (state == StartState.Editor)
                 {
                     Debug.Log("[KSPI]: Editor");
                     hideEmpty = false;
                     selectedTank = selectedFuel;
                     selectedTankName = FuelConfigurations[selectedFuel].ConfigName;
-                    UpdateResources();
-                    Debug.Log("[KSPI]: OnStart calls UpdateFuel");
-                    UpdateFuel(true);
+                    //UpdateResources();
                 }
                 else
                 {
                     hideEmpty = true;
-                    if (state.ToString().Contains(StartState.PreLaunch.ToString())) // startstate normally == prelaunch,landed
+                    if (state == StartState.PreLaunch) // startstate normally == prelaunch,landed
                     {
                         Debug.Log("[KSPI]: PreLaunch");
                         hideEmpty = true;
-                        UpdateResources();
+                        //UpdateResources();
                         //UpdateusefulConfigurations();
                         InitializeFuelSelector();
-                        Debug.Log("[KSPI]: OnStart calls UpdateFuel");
-                        UpdateFuel();
                     }
                     else
                     {
                         Debug.Log("[KSPI]: No PreLaunch");
                     }
                 }
+
+				Debug.Log("[KSPI]: OnStart calls UpdateFuel");
+				UpdateFuel();
+
                 Events["ShowFuels"].active = hideEmpty;
                 Events["HideFuels"].active = !hideEmpty;
             }
