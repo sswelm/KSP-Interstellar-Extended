@@ -30,8 +30,15 @@
     <string name="exemptModuleType3">MuMechToggle</string>
     <string name="exemptModuleType4">ModuleKerbetrotterHitch</string>
     <string name="exemptModuleType5">KASModuleWinch</string>
-	<string name="exemptModuleType6">ModuleGrappleNode</string>
-    <string name="exemptModuleType7">ModuleDockRotate</string>?
+    <string name="exemptModuleType6">ModuleGrappleNode</string>
+    <string name="exemptModuleType7">ModuleDockRotate</string>
+    <string name="exemptModuleType8">ModuleNodeRotate</string>
+
+    <!-- As requested by Critter79606
+	 https://forum.kerbalspaceprogram.com/index.php?/topic/50911-13-kerbal-joint-reinforcement-v333-72417/&do=findComment&comment=3497716
+    -->
+    <string name="exemptModuleType9">ModuleConstructionKit</string>
+    <string name="exemptModuleType10">DockedKitContainer</string>
 
     <string name="decouplerStiffeningExtensionType0">ModuleEngines</string>
     <string name="decouplerStiffeningExtensionType1">ModuleEnginesFX</string>
