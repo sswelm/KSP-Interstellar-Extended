@@ -66,13 +66,9 @@ namespace FNPlugin
         private double masslessFuelPercentage3;
         private double masslessFuelPercentage4;
 
-        [KSPField(guiActive = true)]
         public double fuelRequestAmount1 = 0;
-        [KSPField(guiActive = true)]
         public double fuelRequestAmount2 = 0;
-        [KSPField(guiActive = true)]
         public double fuelRequestAmount3 = 0;
-        [KSPField(guiActive = true)]
         public double fuelRequestAmount4 = 0;
 
         double consumedPropellant1;
