@@ -94,6 +94,9 @@ namespace FNPlugin
         [KSPField]
         public float upgradeCost = 100;
 
+        [KSPField(guiActive = false)]
+        public double rateMultplier = 1;
+
         [KSPField]
         public float throttle;
 
@@ -308,30 +311,41 @@ namespace FNPlugin
 
         private void UpdateEngineWarpFuels()
         {
-            if (curEngineWarp != null)
+            if (curEngineWarp != null && CurrentActiveConfiguration != null)
             {
-                Debug.Log("[KSPI]: UpdateEngineWarp with fuels " + string.Join(", ", CurrentActiveConfiguration.Fuels) 
-                    + " with ratios " + string.Join(", ", CurrentActiveConfiguration.Ratios.Select(m => m.ToString("F3")).ToArray()));
+                //Debug.Log("[KSPI]: UpdateEngineWarp with fuels " + string.Join(", ", CurrentActiveConfiguration.Fuels) 
+                //    + " with ratios " + string.Join(", ", CurrentActiveConfiguration.Ratios.Select(m => m.ToString("F3")).ToArray()));
 
+                var typeMasks = CurrentActiveConfiguration.TypeMasks;
                 var ratios = CurrentActiveConfiguration.Ratios;
                 var fuels = CurrentActiveConfiguration.Fuels;
 
+                var ratiosCount = fuels.Count();
                 var fuelCount = fuels.Count();
+                var typeMasksCount = typeMasks.Count();
 
                 curEngineWarp.propellant1 = fuelCount > 0 ? fuels[0] : null;
-                curEngineWarp.ratio1 = fuelCount > 0 ? (double)(decimal)ratios[0] : 0;
+                curEngineWarp.ratio1 = ratiosCount > 0 ? (double)(decimal)ratios[0] : 0;
+                if (typeMasksCount > 0 && typeMasks[0] == 1)
+                    curEngineWarp.ratio1 *= rateMultplier;                
 
                 curEngineWarp.propellant2 = fuelCount > 1 ? fuels[1] : null;
-                curEngineWarp.ratio2 = fuelCount > 1 ? (double)(decimal)ratios[1] : 0;
+                curEngineWarp.ratio2 = ratiosCount > 1 ? (double)(decimal)ratios[1] : 0;
+                if (typeMasksCount > 1 && typeMasks[1] == 1)
+                    curEngineWarp.ratio2 *= rateMultplier;
 
                 curEngineWarp.propellant3 = fuelCount > 2 ? fuels[2] : null;
-                curEngineWarp.ratio3 = fuelCount > 2 ? (double)(decimal)ratios[2] : 0;
+                curEngineWarp.ratio3 = ratiosCount > 2 ? (double)(decimal)ratios[2] : 0;
+                if (typeMasksCount > 2 && typeMasks[2] == 1)
+                    curEngineWarp.ratio3 *= rateMultplier;
 
                 curEngineWarp.propellant4 = fuelCount > 3 ? fuels[3] : null;
-                curEngineWarp.ratio4 = fuelCount > 3 ? (double)(decimal)ratios[3] : 0;
+                curEngineWarp.ratio4 = ratiosCount > 3 ? (double)(decimal)ratios[3] : 0;
+                if (typeMasksCount > 3 && typeMasks[3] == 1)
+                    curEngineWarp.ratio4 *= rateMultplier;
             }
-            else
-                Debug.Log("[KSPI]: UpdateEngineWarpFuels skipped");
+            //else
+            //    Debug.Log("[KSPI]: UpdateEngineWarpFuels skipped");
         }
 
         //private void UpdateResources()
@@ -485,7 +499,11 @@ namespace FNPlugin
             UpdateActiveConfiguration();
 
             if (curEngineT != null)
+            {
                 thrustPower = curEngineT.finalThrust * curEngineT.realIsp * Constants.GameConstants.STANDARD_GRAVITY / 2e6;
+                UpdateEngineWarpFuels();
+            }
+
 
             base.OnUpdate();
         }
@@ -677,6 +695,8 @@ namespace FNPlugin
         public string ratios = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Amount")]
         public string amount = "";
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = true, guiName = "TypeMasks")]
+        public string typeMasks = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Amount")]
         public string maxAmount = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust Mult")]
@@ -700,6 +720,7 @@ namespace FNPlugin
         public double Scale = 1;
         [KSPField(isPersistant = true)]
         private string akConfigName = "";
+
         [KSPField(isPersistant = true)]
         private string strAmount="";
         [KSPField(isPersistant = true)]
@@ -707,6 +728,8 @@ namespace FNPlugin
 
         private float[] akAmount = new float[0];
         private float[] akMaxAmount = new float[0];
+        private int[] akTypeMask = new int[0];
+
         private string[] akFuels = new string[0];
         private bool[] akIgnoreIsp = new bool[0];
         private bool[] akIgnoreThrust = new bool[0];
@@ -759,7 +782,16 @@ namespace FNPlugin
                     akMaxAmount = StringToFloatArray(StrMaxAmount);
                 return VolumeTweaked(akMaxAmount);
             }
+        }
 
+        public int[] TypeMasks
+        {
+            get
+            {
+                if (akTypeMask.Length == 0)
+                    akTypeMask = StringToIntArray(typeMasks);
+                return akTypeMask;
+            }
         }
 
         private string StrMaxAmount
@@ -775,7 +807,8 @@ namespace FNPlugin
         {
             get
             {
-                if (strAmount == "") strAmount = amount;
+                if (strAmount == "") 
+                    strAmount = amount;
                 return strAmount;
             }
         }
@@ -828,6 +861,34 @@ namespace FNPlugin
                 I++;
             }
             return akBoolList.ToArray();
+        }
+
+        private Int32[] StringToIntArray(string akString)
+        {
+            if (string.IsNullOrEmpty(akString))
+            {
+                Debug.LogError("[KSPI]: StringToIntArray is called with empty ");
+                return new int[0];
+            }
+
+            try
+            {
+
+                List<int> akInt = new List<int>();
+                string[] arString = Regex.Replace(akString, " ", "").Split(',');
+                int I = 0;
+                while (I < arString.Length)
+                {
+                    akInt.Add(Convert.ToInt32(arString[I]));
+                    I++;
+                }
+                return akInt.ToArray();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI]: Exception durring StringToIntArray: " + akString);
+                throw (e);
+            }
         }
 
         private float[] StringToFloatArray(string akString)

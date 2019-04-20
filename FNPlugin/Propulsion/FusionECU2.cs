@@ -87,6 +87,9 @@ namespace FNPlugin
         [KSPField]
         protected float curveMaxISP; // ToDo: make sure it is properly initialized after  comming from assembly 
 
+        //[KSPField(guiActive = true)]
+        //public int updatedRatios;
+
         // abstracts
         protected abstract float InitialGearRatio { get; }
         protected abstract float SelectedIsp { get; set; }
@@ -102,8 +105,8 @@ namespace FNPlugin
         // protected
         protected bool hasrequiredupgrade = false;
         protected bool radhazard = false;
-        protected double standard_megajoule_rate = 0;
-        protected double standard_deuterium_rate = 0;
+        //protected double standard_megajoule_rate = 0;
+        //protected double standard_deuterium_rate = 0;
         protected double standard_tritium_rate = 0;
         protected string FuelConfigName = "Fusion Type";
         protected ResourceBuffers resourceBuffers;
@@ -314,8 +317,9 @@ namespace FNPlugin
 
             Debug.Log("[KSPI]: Fusion Gui Updated");
             BaseFloatCurve = CurrentActiveConfiguration.atmosphereCurve;
-            standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
-            standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
+            //standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
+            //standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
+
             curveMaxISP = GetMaxKey(BaseFloatCurve);
             FcSetup();
             Debug.Log("[KSPI]: Curve Max ISP:" + curveMaxISP);
@@ -348,8 +352,8 @@ namespace FNPlugin
                 curveMaxISP = GetMaxKey(BaseFloatCurve);
                 if (hasMultipleConfigurations) FcSetup();
 
-                standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
-                standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
+                //standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
+                //standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
 
                 DetermineTechLevel();
 
@@ -531,15 +535,17 @@ namespace FNPlugin
                     supplyFNResourcePerSecond(laserWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
-                
-                var rateMultplier = hasIspThrottling ? MinIsp / SelectedIsp : 1;
+
+                rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
                 neutronbsorbionBonus = hasIspThrottling ? 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp))) : 0.5;
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;
                 supplyFNResourcePerSecond(absorbedWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // change ratio propellants Hydrogen/Fusion
-                SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)(standard_deuterium_rate / rateMultplier));
-                SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)(standard_tritium_rate / rateMultplier));
+                //SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)(standard_deuterium_rate * rateMultplier));
+                //SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)(standard_tritium_rate * rateMultplier));
+
+                SetRatios();
 
                 currentIsp = hasIspThrottling ? SelectedIsp : MinIsp;
                 UpdateAtmosphereCurve(currentIsp);
@@ -565,12 +571,14 @@ namespace FNPlugin
 
                 UpdateAtmosphereCurve(currentIsp);
                 curEngineT.maxThrust = (float)maximumThrust;
-                var rateMultplier = hasIspThrottling ? MinIsp / SelectedIsp : 1;
+                rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
 
                 var maxFuelFlow = maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
-                SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)(standard_deuterium_rate / rateMultplier));
-                SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)(standard_tritium_rate / rateMultplier));
+                //SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)(standard_deuterium_rate * rateMultplier));
+                //SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)(standard_tritium_rate * rateMultplier));
+
+                SetRatios();
             }
 
             coldBathTemp = FNRadiator.getAverageRadiatorTemperatureForVessel(vessel);
@@ -578,6 +586,22 @@ namespace FNPlugin
             radiatorPerformance = Math.Max(1 - (coldBathTemp / maxTempatureRadiators), 0.000001);
             partEmissiveConstant = part.emissiveConstant;
             base.OnFixedUpdate();
+        }
+
+        private void SetRatios()
+        {
+            var typeMaskCount = CurrentActiveConfiguration.TypeMasks.Count();
+
+            //updatedRatios = 0;
+
+            for (int i = 0; i < CurrentActiveConfiguration.Fuels.Count(); i++)
+            {
+                if (i < typeMaskCount && (CurrentActiveConfiguration.TypeMasks[i] & 1) == 1)
+                {
+                    //updatedRatios++;
+                    SetRatio(CurrentActiveConfiguration.Fuels[i], (float)(CurrentActiveConfiguration.Ratios[i] * rateMultplier));
+                }
+            }
         }
 
         private void KillKerbalsWithRadiation(float radiationRatio)
