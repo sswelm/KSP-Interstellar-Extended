@@ -14,6 +14,9 @@ namespace FNPlugin.Resources
 
     static class KopernicusHelper
     {
+        static List<StarLight> stars;
+        static Dictionary<CelestialBody, StarLight> starsByBody;
+
         /// <summary>
         /// Retrieves list of Starlight data
         /// </summary>
@@ -27,6 +30,16 @@ namespace FNPlugin.Resources
             }
         }
 
+        static public Dictionary<CelestialBody, StarLight> StarsByBody
+        {
+            get
+            {
+                if (starsByBody == null)
+                    starsByBody = Stars.ToDictionary(m => m.star);
+                return starsByBody;
+            }
+        }
+
         public static bool IsStar(CelestialBody body)
         {
             return GetLuminocity(body) > 0;
@@ -34,20 +47,13 @@ namespace FNPlugin.Resources
 
         public static double GetLuminocity(CelestialBody body)
         {
-            if (stars == null )
-                stars = ExtractStarData(moduleName);
-            if (starsByBody == null)
-                starsByBody = stars.ToDictionary(m => m.star);
-
             StarLight starlight;
-            if (starsByBody.TryGetValue(body, out starlight))
+            if (StarsByBody.TryGetValue(body, out starlight))
                 return starlight.relativeLuminocity;
             else
                 return 0;
-        }
-
-        static List<StarLight> stars;
-        static Dictionary<CelestialBody, StarLight> starsByBody;
+        }       
+        
 
         const string moduleName = "KSPI";
         const double kerbinAU = 13599840256;

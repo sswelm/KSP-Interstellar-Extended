@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using FNPlugin.Resources;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -385,6 +386,8 @@ namespace FNPlugin
                 vessel.GoOffRails();
 
             if (warpInitialMainBody == null || vessel.mainBody == warpInitialMainBody) return;
+
+            if (KopernicusHelper.IsStar(part.vessel.mainBody)) return;
 
             Develocitize();
         }
@@ -934,7 +937,7 @@ namespace FNPlugin
                     predictedExitOrbit.UpdateFromStateVectors(currentOrbit.pos, newDirection, vessel.orbit.referenceBody, universalTime);
 
                     // then calculated predicted gravity breaking
-                    if (warpInitialMainBody != null && vessel.mainBody != warpInitialMainBody)
+                    if (warpInitialMainBody != null && vessel.mainBody != warpInitialMainBody && !KopernicusHelper.IsStar(part.vessel.mainBody))
                     {
                         Vector3d retrogradeNormalizedVelocity = newDirection.normalized * -multiplier;
                         Vector3d velocityToCancel = predictedExitOrbit.getOrbitalVelocityAtUT(universalTime) * gravityDragRatio;
