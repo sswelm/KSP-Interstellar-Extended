@@ -73,6 +73,8 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Turning"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
         public bool allowWarpTurning = true;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Warp UI"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
+        public bool showWindow;
 
         //GUI
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpdriveType")]
@@ -140,7 +142,7 @@ namespace FNPlugin
 
         private bool vesselWasInOuterspace;
         private bool hasrequiredupgrade;
-        private bool render_window;
+        
 
         private Rect windowPosition;
         private AnimationState[] animationState;
@@ -176,12 +178,6 @@ namespace FNPlugin
         private CelestialBody warpInitialMainBody;
         private ModuleReactionWheel moduleReactionWheel;
         private ResourceBuffers resourceBuffers;
-
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpControlWindow", active = true, guiActiveUnfocused = true, unfocusedRange = 5f, guiActiveUncommand = true)]
-        public void ToggleWarpControlWindow()
-        {
-            render_window = !render_window;
-        }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_startChargingDrive", active = true)]
         public void StartCharging()
@@ -336,8 +332,8 @@ namespace FNPlugin
             heading_act = active_part_heading * PluginHelper.SpeedOfLight * newWarpSpeed;
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
-            // prevent g-force effects
-            part.vessel.IgnoreGForces(1);
+            // prevent g-force effects for current and next frame
+            part.vessel.IgnoreGForces(2);
 
             if (!this.vessel.packed)
                 vessel.GoOnRails();
@@ -368,19 +364,18 @@ namespace FNPlugin
             // Disable sound
             warp_sound.Stop();
 
-            Vector3d heading = heading_act;
-            heading.x = -heading.x;
-            heading.y = -heading.y;
-            heading.z = -heading.z;
+            Vector3d reverse_heading = heading_act;
+            reverse_heading.x = -reverse_heading.x;
+            reverse_heading.y = -reverse_heading.y;
+            reverse_heading.z = -reverse_heading.z;
 
-            // prevent g-force effects
-            part.vessel.IgnoreGForces(1);
+            // prevent g-force effects for current and next frame
+            part.vessel.IgnoreGForces(2);
 
             if (!this.vessel.packed)
                 vessel.GoOnRails();
 
-            var newHeading = vessel.orbit.vel + heading;
-            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, newHeading, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_heading, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
             if (!this.vessel.packed)
                 vessel.GoOffRails();
@@ -498,13 +493,6 @@ namespace FNPlugin
                 ToggleWarpSpeedUp();
             else if (selected_factor > minimum_selected_factor)
                 ToggleWarpSpeedDown();
-        }
-
-        [KSPAction("#LOC_KSPIE_AlcubierreDrive_warpControlWindow")]
-        public void ToggleWarpControlWindowAction(KSPActionParam param)
-        {
-            Debug.Log("[KSPI]: Toggled Warp Control Window");
-            ToggleWarpControlWindow();
         }
 
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_startChargingDrive")]
@@ -649,7 +637,8 @@ namespace FNPlugin
                 Events["ToggleWarpSpeedUp"].active = !IsSlave;
                 Events["ToggleWarpSpeedDown"].active = !IsSlave;
                 Events["ReduceWarpPower"].active = !IsSlave;
-                Events["ToggleWarpControlWindow"].active = !IsSlave;
+
+                Fields["showWindow"].guiActive = !IsSlave;
                 Fields["warpEngineThrottle"].guiActive = !IsSlave;
                 Fields["maximumAllowedWarpThrotle"].guiActive = !IsSlave;
                 Fields["warpToMassRatio"].guiActive = !IsSlave;
@@ -802,6 +791,12 @@ namespace FNPlugin
 
             warpdriveType = originalName;
 
+        }
+
+        public void VesselChangedSOI()
+        {
+            if (!IsSlave)
+                part.vessel.IgnoreGForces(2);
         }
 
         public void Update()
@@ -1032,6 +1027,19 @@ namespace FNPlugin
 
             if (IsCharging)
             {
+                var availablePower = CheatOptions.InfiniteElectricity
+                    ? currentPowerRequirementForWarp
+                    : getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                if (availablePower < minPowerRequirementForLightSpeed)
+                {
+                    var message = "Maximum power supply of " + availablePower.ToString("0") + " MW is insufficient power, you need at at least " + minPowerRequirementForLightSpeed.ToString("0") + " MW of Power to jump to Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass.";
+                    Debug.Log("[KSPI]: " + message);
+                    ScreenMessages.PostScreenMessage(message, 5);
+                    StopCharging();
+                    return;
+                }
+
                 var maxPowerRequired = (maxExoticMatter - currentExoticMatter) / 0.001;
 
                 var powerDraw = CheatOptions.InfiniteElectricity
@@ -1117,6 +1125,9 @@ namespace FNPlugin
         {
             if (!IsEnabled || exotic_power_required <= 0) return;
 
+            if (!allowWarpTurning)
+                part.vessel.IgnoreGForces(1);
+
             var newLightSpeed = _engineThrotle[selected_factor];
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(newLightSpeed);
@@ -1148,7 +1159,7 @@ namespace FNPlugin
             {
                 if (vesselWasInOuterspace)
                 {
-                    var message = vessel.mainBody.atmosphere
+                    var message = vessel.mainBody.atmosphere && vessel.altitude < (vessel.mainBody.atmosphereDepth + 10000)
                         ? "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToAtmosphere"
                         : "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToSurface";
 
@@ -1178,6 +1189,15 @@ namespace FNPlugin
 
             if (!CheatOptions.InfiniteElectricity && hasPowerShortage)
             {
+                if (availablePower < minPowerRequirementForLightSpeed)
+                {
+                    var message = "Maximum power supply of " + availablePower.ToString("0") + " MW is insufficient power, you need at at least " + minPowerRequirementForLightSpeed.ToString("0") + " MW of Power to maintain Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass.";
+                    Debug.Log("[KSPI]: " + message);
+                    ScreenMessages.PostScreenMessage(message, 5);
+                    DeactivateWarpDrive();
+                    return;
+                }
+
                 if (selected_factor == minimumPowerAllowedFactor || selected_factor == minimum_selected_factor ||
                     (newLightSpeed < 1 && warpEngineThrottle >= maximumAllowedWarpThrotle && powerReturned < 0.99 * currentPowerRequirementForWarp))
                 {
@@ -1215,21 +1235,19 @@ namespace FNPlugin
 
             var previousRotation = vessel.transform.rotation;
 
-            // prevent g-force effects for next frame
-            part.vessel.IgnoreGForces(1);
+            // prevent g-force effects for current and next frame
+            part.vessel.IgnoreGForces(2);
 
             if (!vessel.packed)
                 vessel.GoOnRails();
 
-            var newVelocity = vessel.orbit.vel + reverseHeading + heading_act;
-
-            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, newVelocity, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverseHeading + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
             if (!vessel.packed)
                 vessel.GoOffRails();
 
             // only rotate durring normal time
-            if (!vessel.packed)
+            if (!vessel.packed && allowWarpTurning)
                 vessel.SetRotation(previousRotation);
         }
 
@@ -1301,7 +1319,7 @@ namespace FNPlugin
         // ReSharper disable once UnusedMember.Global
         public void OnGUI()
         {
-            if (this.vessel == FlightGlobals.ActiveVessel && render_window)
+            if (this.vessel == FlightGlobals.ActiveVessel && showWindow)
                 windowPosition = GUILayout.Window(windowID, windowPosition, Window, Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpControlWindow"));
         }
 
@@ -1324,7 +1342,7 @@ namespace FNPlugin
                 InitializeStyles();
 
                 if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
-                    render_window = false;
+                    showWindow = false;
 
                 GUILayout.BeginVertical();
 
@@ -1369,15 +1387,17 @@ namespace FNPlugin
                     ToggleWarpSpeedUp10();
                 GUILayout.EndHorizontal();
 
+                if (!IsEnabled && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_activateWarpDrive"), GUILayout.ExpandWidth(true)))
+                    ActivateWarpDrive();
+
+                if (IsEnabled && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_deactivateWarpDrive"), GUILayout.ExpandWidth(true)))
+                    DeactivateWarpDrive();
+
                 if (!IsEnabled && !IsCharging && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_startChargingDrive"), GUILayout.ExpandWidth(true)))
                     StartCharging();
 
                 if (!IsEnabled && IsCharging && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_stopChargingDrive"), GUILayout.ExpandWidth(true)))
                     StopCharging();
-                if (!IsEnabled && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_activateWarpDrive"), GUILayout.ExpandWidth(true)))
-                    ActivateWarpDrive();
-                if (IsEnabled && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_deactivateWarpDrive"), GUILayout.ExpandWidth(true)))
-                    DeactivateWarpDrive();
 
                 GUILayout.EndVertical();
                 GUI.DragWindow();
