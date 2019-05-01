@@ -48,12 +48,12 @@ namespace FNPlugin
         public string upgradeTechReq = "";
         [KSPField]
         public double powerRequirementMultiplier = 1;
-        [KSPField]
-        public float reactionWheelStrength = 100;
+        //[KSPField]
+        //public float reactionWheelStrength = 100;
         [KSPField]
         public long maxPowerTimeout = 50;
         [KSPField]
-        public long headingChangedTimeout = 50;
+        public long headingChangedTimeout = 25;
         [KSPField] 
         public float warpPowerMultTech0 = 10;
         [KSPField]
@@ -71,8 +71,8 @@ namespace FNPlugin
         [KSPField]
         public double exotic_power_required = 1000;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Turning"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
-        public bool allowWarpTurning = true;
+        //[KSPField(isPersistant = true, guiActive = true, guiName = "Warp Turning"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
+        //public bool allowWarpTurning = true;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Warp UI"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
         public bool showWindow;
 
@@ -178,6 +178,9 @@ namespace FNPlugin
         private CelestialBody warpInitialMainBody;
         private ModuleReactionWheel moduleReactionWheel;
         private ResourceBuffers resourceBuffers;
+
+        private Texture2D warpWhiteFlash;
+        private Texture2D warpRedFlash;
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_startChargingDrive", active = true)]
         public void StartCharging()
@@ -333,7 +336,7 @@ namespace FNPlugin
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
             // prevent g-force effects for current and next frame
-            part.vessel.IgnoreGForces(2);
+            //part.vessel.IgnoreGForces(2);
 
             if (!this.vessel.packed)
                 vessel.GoOnRails();
@@ -370,7 +373,7 @@ namespace FNPlugin
             reverse_heading.z = -reverse_heading.z;
 
             // prevent g-force effects for current and next frame
-            part.vessel.IgnoreGForces(2);
+            //part.vessel.IgnoreGForces(2);
 
             if (!this.vessel.packed)
                 vessel.GoOnRails();
@@ -708,40 +711,45 @@ namespace FNPlugin
                 warp_effect1_renderer.material.shader = Shader.Find("Unlit/Transparent");
                 warp_effect2_renderer.material.shader = Shader.Find("Unlit/Transparent");
 
-                warp_textures = new Texture[33];
+                warpWhiteFlash = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp10", false);
+                warpRedFlash = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warpr10", false);
+
+                warp_textures = new Texture[32];
 
                 const string warpTecturePath = "WarpPlugin/ParticleFX/warp";
-                for (var i = 0; i < 11; i++)
+                for (var i = 0; i < 16; i++)
                 {
-                    warp_textures[i] = GameDatabase.Instance.GetTexture((i > 0)
+                    warp_textures[i] = GameDatabase.Instance.GetTexture(i > 0
                         ? warpTecturePath + (i + 1)
                         : warpTecturePath, false);
                 }
 
-                warp_textures[11] = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warp10", false);
-                for (var i = 12; i < 33; i++)
+                //warp_textures[11] = warpWhiteFlash;
+                for (var i = 16; i < 32; i++)
                 {
-                    var j = i > 17 ? 34 - i : i;
-                    warp_textures[i] = GameDatabase.Instance.GetTexture(j > 1 ?
-                        warpTecturePath + (j + 1) : warpTecturePath, false);
+                    var j = 31 - i;
+                    warp_textures[i] = GameDatabase.Instance.GetTexture(j > 0
+                      ? warpTecturePath + (j + 1)
+                      : warpTecturePath, false);
                 }
 
-                warp_textures2 = new Texture[33];
+                warp_textures2 = new Texture[32];
 
                 const string warprTecturePath = "WarpPlugin/ParticleFX/warpr";
-                for (var i = 0; i < 11; i++)
+                for (var i = 0; i < 16; i++)
                 {
-                    warp_textures2[i] = GameDatabase.Instance.GetTexture((i > 0)
+                    warp_textures2[i] = GameDatabase.Instance.GetTexture(i > 0
                         ? warprTecturePath + (i + 1)
                         : warprTecturePath, false);
                 }
 
-                warp_textures2[11] = GameDatabase.Instance.GetTexture("WarpPlugin/ParticleFX/warpr10", false);
-                for (var i = 12; i < 33; i++)
+                //warp_textures2[11] = warpRedFlash;
+                for (var i = 16; i < 32; i++)
                 {
-                    var j = i > 17 ? 34 - i : i;
-                    warp_textures2[i] = GameDatabase.Instance.GetTexture(j > 1 ?
-                        warprTecturePath + (j + 1) : warprTecturePath, false);
+                    var j = 31 - i;
+                    warp_textures2[i] = GameDatabase.Instance.GetTexture(j > 0
+                        ? warprTecturePath + (j + 1)
+                        : warprTecturePath, false);
                 }
 
                 warp_effect1_renderer.material.color = new Color(Color.cyan.r, Color.cyan.g, Color.cyan.b, 0.5f);
@@ -796,7 +804,10 @@ namespace FNPlugin
         public void VesselChangedSOI()
         {
             if (!IsSlave)
-                part.vessel.IgnoreGForces(2);
+            {
+                Debug.Log("[KSPI]: AlcubierreDrive Vessel Changed SOI");
+                //part.vessel.IgnoreGForces(1);
+            }
         }
 
         public void Update()
@@ -820,11 +831,15 @@ namespace FNPlugin
             Fields["exitSpeed"].guiActive = IsEnabled;
             Fields["driveStatus"].guiActive = !IsSlave && IsCharging;
 
-            if (moduleReactionWheel != null)
+            if (!IsSlave)
             {
-                moduleReactionWheel.PitchTorque = IsEnabled ? (float)(reactionWheelStrength * warpToMassRatio) : reactionWheelStrength;
-                moduleReactionWheel.YawTorque = IsEnabled ? (float)(reactionWheelStrength * warpToMassRatio) : reactionWheelStrength;
-                moduleReactionWheel.RollTorque = IsEnabled ? (float)(reactionWheelStrength * warpToMassRatio) : reactionWheelStrength;
+                var vesselMass = vessel.GetTotalMass();
+                if (moduleReactionWheel != null)
+                {
+                    moduleReactionWheel.PitchTorque = IsEnabled ? vesselMass * 10 : 0;
+                    moduleReactionWheel.YawTorque = IsEnabled ? vesselMass * 10 : 0;
+                    moduleReactionWheel.RollTorque = IsEnabled ? 0 : 0;
+                }
             }
 
             if (ResearchAndDevelopment.Instance != null)
@@ -920,6 +935,9 @@ namespace FNPlugin
 
             if (IsEnabled)
             {
+                // disable any geeforce effects durring warp
+                part.vessel.IgnoreGForces(1);
+
                 var reverseHeadingWarp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
                 var newDirection = currentOrbitalVelocity + reverseHeadingWarp;
@@ -976,7 +994,7 @@ namespace FNPlugin
             warp_effect2.transform.rotation = part.transform.rotation;
 
             warp_effect1_renderer.material.mainTexture = warp_textures[((int)tex_count) % warp_textures.Length];
-            warp_effect2_renderer.material.mainTexture = warp_textures2[((int)tex_count + 8) % warp_textures.Length];
+            warp_effect2_renderer.material.mainTexture = warp_textures2[((int)tex_count + 8) % warp_textures2.Length];
 
             warpEngineThrottle = _engineThrotle[selected_factor];
 
@@ -1125,9 +1143,6 @@ namespace FNPlugin
         {
             if (!IsEnabled || exotic_power_required <= 0) return;
 
-            if (!allowWarpTurning)
-                part.vessel.IgnoreGForces(1);
-
             var newLightSpeed = _engineThrotle[selected_factor];
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(newLightSpeed);
@@ -1180,7 +1195,7 @@ namespace FNPlugin
 
             // determine if we need to change speed and heading
             var hasPowerShortage = insufficientPowerTimeout < 0;
-            var hasHeadingChanged = allowWarpTurning && magnitudeDiff > 0.001 && counterCurrent > counterPreviousChange + headingChangedTimeout;
+            var hasHeadingChanged = magnitudeDiff > 0.001 && counterCurrent > counterPreviousChange + headingChangedTimeout; //&& allowWarpTurning;
             var hasWarpFactorChange = Math.Abs(existing_warp_speed - newLightSpeed) > float.Epsilon;
             var hasGavityPullInbalance = maximumWarpSpeedFactor < selected_factor;
 
@@ -1233,13 +1248,16 @@ namespace FNPlugin
 
             active_part_heading = newPartHeading;
 
-            var previousRotation = vessel.transform.rotation;
+            //var previousRotation = vessel.transform.rotation;
 
             // prevent g-force effects for current and next frame
-            part.vessel.IgnoreGForces(2);
+            //part.vessel.IgnoreGForces(2);
 
             if (!vessel.packed)
                 vessel.GoOnRails();
+
+            // make jump visible in warp trail
+            tex_count = +8;
 
             vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverseHeading + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
@@ -1247,8 +1265,8 @@ namespace FNPlugin
                 vessel.GoOffRails();
 
             // only rotate durring normal time
-            if (!vessel.packed && allowWarpTurning)
-                vessel.SetRotation(previousRotation);
+            //if (!vessel.packed)
+            //    vessel.SetRotation(previousRotation);
         }
 
         private void Develocitize()
