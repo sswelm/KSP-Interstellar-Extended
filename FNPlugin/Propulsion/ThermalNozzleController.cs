@@ -1191,54 +1191,57 @@ namespace FNPlugin
             }
             else
             {
-                if (overrideVelocityCurve)
+                if (overrideVelocityCurve && jetPerformanceProfile == 0)
                 {
-                    if (jetPerformanceProfile == 0)
-                    {
-                        velCurve.Add(0, 0.05f + _jetTechBonusPercentage / 2);
-                        velCurve.Add(2.5f - _jetTechBonusCurveChange, 1);
-                        velCurve.Add(5f + _jetTechBonusCurveChange, 1);
-                        velCurve.Add(50, 0 + _jetTechBonusPercentage);
-                    }
-                    else if (jetPerformanceProfile == 1)
-                    {
-                        velCurve.Add(0f, 0.50f + _jetTechBonusPercentage);
-                        velCurve.Add(1f, 1.00f);
-                        velCurve.Add(2f, 0.75f + _jetTechBonusPercentage);
-                        velCurve.Add(3f, 0.50f + _jetTechBonusPercentage);
-                        velCurve.Add(4f, 0.25f + _jetTechBonusPercentage);
-                        velCurve.Add(5f, 0.00f + _jetTechBonusPercentage);
-                        velCurve.Add(6f, 0.00f);
-                    }
+                    velCurve.Add(0,  0.05f + _jetTechBonusPercentage / 2);
+                    velCurve.Add(2.5f - _jetTechBonusCurveChange, 1);
+                    velCurve.Add(5 + _jetTechBonusCurveChange * 2, 1);
+                    velCurve.Add(10, 0 + _jetTechBonusPercentage);
+                    velCurve.Add(20, 0);
+                }
+                else if (overrideVelocityCurve && jetPerformanceProfile == 1)
+                {
+                    velCurve.Add(0, 0.50f + _jetTechBonusPercentage);
+                    velCurve.Add(1, 1.00f);
+                    velCurve.Add(2, 0.75f + _jetTechBonusPercentage);
+                    velCurve.Add(3, 0.50f + _jetTechBonusPercentage);
+                    velCurve.Add(4, 0.25f + _jetTechBonusPercentage);
+                    velCurve.Add(5, 0.00f + _jetTechBonusPercentage);
+                    velCurve.Add(7, 0.00f);
                 }
                 else
                     velCurve = originalVelocityCurve;
 
-                if (overrideAtmosphereCurve)
+                if (overrideAtmosphereCurve && jetPerformanceProfile == 0)
                 {
-                    if (jetPerformanceProfile == 0)
-                    {
-                        atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, (float)PluginHelper.MaxThermalNozzleIsp));
-                        atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-                        atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-                        atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4f / 5f, (float)PluginHelper.MaxThermalNozzleIsp));
-                    }
-                    else if (jetPerformanceProfile == 1)
-                    {
-                        atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, (float)PluginHelper.MaxThermalNozzleIsp));
-                        atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-                        atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-                        atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, (float)PluginHelper.MaxThermalNozzleIsp));
-                    }
+                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4f / 5f, PluginHelper.MaxThermalNozzleIsp));
+                }
+                else if (overrideAtmosphereCurve && jetPerformanceProfile == 1)
+                {
+                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
                 }
                 else
                     atmosphereIspCurve = originalAtmosphereCurve;
 
-                if (overrideAtmCurve)
+                if (overrideAtmCurve && jetPerformanceProfile == 0)
                 {
                     atmCurve.Add(0, 0);
-                    atmCurve.Add(0.045f, 0.25f);
-                    atmCurve.Add(0.16f, 0.55f);
+                    atmCurve.Add(0.04f, 0.5f);
+                    atmCurve.Add(0.16f, 0.75f);
+                    atmCurve.Add(0.5f, 0.9f);
+                    atmCurve.Add(1f, 1f);
+                }
+                else if (overrideAtmCurve && jetPerformanceProfile == 1)
+                {
+                    atmCurve.Add(0, 0);
+                    atmCurve.Add(0.04f, 0.25f);
+                    atmCurve.Add(0.16f, 0.5f);
                     atmCurve.Add(0.5f, 0.8f);
                     atmCurve.Add(1f, 1f);
                 }

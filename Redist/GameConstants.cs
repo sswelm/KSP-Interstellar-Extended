@@ -50,7 +50,7 @@
         public const double IspCoreTemperatureMultiplier = 22.371670613;
         public const double BaseThrustPowerMultiplier = 2000;
         public const double HighCoreTempThrustMultiplier = 1600;
-        public const double MaxThermalNozzleIsp = 2997.13;
+        public const float MaxThermalNozzleIsp = 2997.13f;
         public const double EngineHeatProduction = 1000;
         public const double AirflowHeatMultiplier = 1;
 

@@ -255,8 +255,8 @@ namespace FNPlugin
         private static double _ispElectroPropellantModifierBase = 0;
         public static double IspElectroPropellantModifierBase { get { return _ispElectroPropellantModifierBase; } }
 
-        private static double _maxThermalNozzleIsp = GameConstants.MaxThermalNozzleIsp;
-        public static double MaxThermalNozzleIsp { get { return _maxThermalNozzleIsp; } }
+        private static float _maxThermalNozzleIsp = GameConstants.MaxThermalNozzleIsp;
+        public static float MaxThermalNozzleIsp { get { return _maxThermalNozzleIsp; } }
 
         private static double _airflowHeatMult = GameConstants.AirflowHeatMultiplier;
         public static double AirflowHeatMult { get { return _airflowHeatMult; } }
@@ -874,7 +874,7 @@ namespace FNPlugin
 
                     if (plugin_settings.HasValue("MaxThermalNozzleIsp"))
                     {
-                        PluginHelper._maxThermalNozzleIsp = double.Parse(plugin_settings.GetValue("MaxThermalNozzleIsp"));
+                        PluginHelper._maxThermalNozzleIsp = float.Parse(plugin_settings.GetValue("MaxThermalNozzleIsp"));
                         Debug.Log("[KSPI] Maximum Thermal Nozzle Isp set to: " + PluginHelper.MaxThermalNozzleIsp.ToString("0.0"));
                     }
 
