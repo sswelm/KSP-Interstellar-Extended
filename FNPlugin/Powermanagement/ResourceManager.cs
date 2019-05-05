@@ -94,7 +94,10 @@ namespace FNPlugin
         double charge_resource_demand = 0;
         double total_power_distributed = 0;
         double internl_power_extract_fixed = 0;
-        double resource_bar_ratio_begin = 0;	
+        double resource_bar_ratio_begin = 0;
+
+        double current_requested_amount = 0;
+        double current_consumed_amount = 0;
 
         int flow_type = 0;
         List<KeyValuePair<IResourceSuppliable, PowerDistribution>> power_draw_list_archive;
@@ -125,7 +128,27 @@ namespace FNPlugin
         GUIStyle green_label;
         GUIStyle red_label;
         GUIStyle left_aligned_label;
-        GUIStyle right_aligned_label;        
+        GUIStyle right_aligned_label;   
+    
+        public double CurrentRemainingRequestedAmount
+        {
+            get { return Math.Max(0, ResourceSupply - CurrentRequestedAmount); }
+        }
+
+        public double CurrentRemainingConsumedAmount
+        {
+            get { return Math.Max(0, ResourceSupply - CurrentConsumedAmount); }
+        }
+ 
+        public double CurrentRequestedAmount
+        {
+            get { return current_requested_amount; }
+        }
+
+        public double CurrentConsumedAmount
+        {
+            get { return current_consumed_amount; }
+        }
 
         public Rect WindowPosition 
         { 
@@ -223,6 +246,9 @@ namespace FNPlugin
                 return;
             if (double.IsNaN(power_consumed) || double.IsInfinity(power_consumed))
                 return;
+
+            current_requested_amount += power_requested;
+            current_consumed_amount += power_consumed;
 
             PowerDistribution powerDistribution;
             if (!power_consumption.TryGetValue(pm, out powerDistribution))
@@ -529,6 +555,9 @@ namespace FNPlugin
             stored_current_hp_demand = high_priority_resource_demand;
             stored_current_charge_demand = charge_resource_demand;
             stored_total_power_supplied = total_power_distributed;
+
+            current_requested_amount = 0;
+            current_consumed_amount = 0;
 
             current_resource_demand = 0;
             high_priority_resource_demand = 0;

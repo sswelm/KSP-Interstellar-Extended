@@ -77,6 +77,8 @@ namespace FNPlugin
                 var suppliable_modules_prioritized = suppliable_modules.Where(m => m != null).OrderBy(m => m.getSupplyPriority()).ToList();
 
                 suppliable_modules_prioritized.ForEach(s => s.OnFixedUpdateResourceSuppliable(fixedDeltaTime));
+
+                suppliable_modules_prioritized.ForEach(s => s.OnPostResourceSuppliable(fixedDeltaTime));
             }
             catch (Exception e)
             {

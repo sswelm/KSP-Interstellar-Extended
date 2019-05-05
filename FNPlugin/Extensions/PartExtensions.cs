@@ -128,6 +128,16 @@ namespace FNPlugin.Extensions
             return currentAmount;
         }
 
+        public static double GetResourceRatio(this Part part, string name)
+        {
+            var definition = PartResourceLibrary.Instance.GetDefinition(name);
+
+            double currentAmount;
+            double maxAmount;
+            part.GetConnectedResourceTotals(definition.id, out currentAmount, out maxAmount);
+            return maxAmount > 0 ? currentAmount / maxAmount: 0;
+        }
+
         public static double GetResourceMaxAvailable(this Part part, string name)
         {
             var definition = PartResourceLibrary.Instance.GetDefinition(name);

@@ -1,4 +1,5 @@
 ﻿using System;
+using FNPlugin.Extensions;
 
 namespace FNPlugin.Reactors
 {
@@ -36,6 +37,8 @@ namespace FNPlugin.Reactors
         [KSPField]
         public float startupCostGravityMultiplier = 0;
         [KSPField]
+        public float startupCostGravityExponent = 1;
+        [KSPField]
         public float startupMaximumGeforce = 10000;
         [KSPField]
         public float startupMinimumChargePercentage = 0;
@@ -59,6 +62,9 @@ namespace FNPlugin.Reactors
         public string accumulatedChargeStr = String.Empty;
         [KSPField(guiActive = false, guiName = "Fusion Power Requirement", guiFormat = "F2")]
         public double currentLaserPowerRequirements = 0;
+
+        [KSPField(guiActive = false)]
+        public double gravityDivider;
 
         double power_consumed;
         bool fusion_alert;
@@ -148,6 +154,11 @@ namespace FNPlugin.Reactors
             }
         }
 
+        public double GravityDivider
+        {
+            get { return startupCostGravityMultiplier * Math.Pow(FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude, startupCostGravityExponent); }
+        }
+
         public double StartupPower
         {
             get
@@ -155,9 +166,8 @@ namespace FNPlugin.Reactors
                 var startupPower = startupPowerMultiplier * LaserPowerRequirements;
                 if (startupCostGravityMultiplier > 0)
                 {
-                    var gravityFactor = startupCostGravityMultiplier * Math.Sqrt(FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude);
-                    if (gravityFactor > 0)
-                        startupPower = startupPower / gravityFactor;
+                    gravityDivider = GravityDivider;
+                    startupPower = gravityDivider > 0 ? startupPower / gravityDivider : startupPower;
                 }
 
                 return startupPower;
@@ -413,30 +423,49 @@ namespace FNPlugin.Reactors
             var availableStablePower = getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
             var minimumChargingPower = startupMinimumChargePercentage * RawPowerOutput;
+            if (startupCostGravityMultiplier > 0)
+            {
+                gravityDivider = GravityDivider;
+                minimumChargingPower = gravityDivider > 0 ? minimumChargingPower / gravityDivider : minimumChargingPower;
+            }
 
             if (availableStablePower < minimumChargingPower)
             {
-                ScreenMessages.PostScreenMessage("You need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor", 5f, ScreenMessageStyle.LOWER_CENTER);
+                if (startupCostGravityMultiplier > 0)
+                    ScreenMessages.PostScreenMessage("Curent you need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor. Move closer to gravity well to reduce amount needed", 5f, ScreenMessageStyle.UPPER_CENTER);
+                else
+                    ScreenMessages.PostScreenMessage("You need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor", 5f, ScreenMessageStyle.UPPER_CENTER);
             }
             else
             {
-                var primaryPowerRequest = Math.Min(neededPower, availableStablePower);
+                var megaJouleRatio = usePowerManagerForPrimaryInputPower 
+                    ? getResourceBarRatio(primaryInputResource)
+                    : part.GetResourceRatio(primaryInputResource);
+
+                var primaryPowerRequest = Math.Min(neededPower, availableStablePower * megaJouleRatio);
 
                 // verify we amount of power collected exceeds treshhold
                 var returnedPrimaryPower = CheatOptions.InfiniteElectricity
                     ? neededPower
                     : usePowerManagerForPrimaryInputPower
-                        ? consumeFNResource(primaryPowerRequest, primaryInputResource)
-                        : part.RequestResource(primaryInputResource, primaryPowerRequest);
+                        ? consumeFNResourcePerSecond(primaryPowerRequest, primaryInputResource)
+                        : part.RequestResource(primaryInputResource, primaryPowerRequest * timeWarpFixedDeltaTime);
 
                 if (maintenancePowerWasteheatRatio > 0)
                     supplyFNResourceFixed(maintenancePowerWasteheatRatio * returnedPrimaryPower, ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                var powerPerSecond = returnedPrimaryPower / timeWarpFixedDeltaTime;
+                var powerPerSecond = usePowerManagerForPrimaryInputPower ? returnedPrimaryPower : returnedPrimaryPower / timeWarpFixedDeltaTime;
 
-                if (powerPerSecond > minimumChargingPower)
+                if (powerPerSecond >= minimumChargingPower)
                 {
-                    accumulatedElectricChargeInMW += returnedPrimaryPower;
+                    accumulatedElectricChargeInMW += returnedPrimaryPower * timeWarpFixedDeltaTime;
+                }
+                else
+                {
+                    if (startupCostGravityMultiplier > 0)
+                        ScreenMessages.PostScreenMessage("Curent you need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor. Move closer to gravity well to reduce amount needed", 5f, ScreenMessageStyle.UPPER_CENTER);
+                    else
+                        ScreenMessages.PostScreenMessage("You need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor", 5f, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
 

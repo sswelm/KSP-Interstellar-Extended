@@ -27,6 +27,9 @@ namespace FNPlugin
         public double powerThrustMultiplier = 1;
         [KSPField]
         public float wasteHeatMultiplier = 1;
+
+        [KSPField(guiName = "CP max fraction usage", guiFormat = "F3")]
+        private double _chargedParticleMaximumPercentageUsage;
         [KSPField(guiName = "Max CP Power", guiUnits = " MW", guiFormat = "F3")]
         private double _max_charged_particles_power;
         [KSPField(guiName = "Requested Particles", guiUnits = " MW")]
@@ -39,7 +42,7 @@ namespace FNPlugin
         private double _recievedElectricPower;
         [KSPField(guiName = "Thrust", guiUnits = " kN")]
         private double _engineMaxThrust;
-        [KSPField(guiActive = true, guiName = "Calculated", guiUnits = " kg/s")]
+        [KSPField(guiName = "Calculated", guiUnits = " kg/s")]
         private double calculatedConsumptionPerSecond;
 
         [KSPField(guiName = "Throtle Exponent")]
@@ -79,7 +82,7 @@ namespace FNPlugin
 
         public bool RequiresThermalHeat { get { return false; } }
 
-        public float CurrentThrottle {  get { return _attached_engine.currentThrottle > 0 ? 1 : 0; } }
+        public float CurrentThrottle { get { return _attached_engine.currentThrottle > 0 ? (maximum_isp == minimum_isp ? _attached_engine.currentThrottle : 1) : 0; } }
 
         public bool RequiresChargedPower { get { return true; } }
 
@@ -259,7 +262,9 @@ namespace FNPlugin
             if (_attached_engine == null)
                 return;
 
-            if (_attached_reactor != null && _attached_reactor.ChargedParticlePropulsionEfficiency > 0)
+            _chargedParticleMaximumPercentageUsage = _attached_reactor != null ? _attached_reactor.ChargedParticlePropulsionEfficiency : 0;
+
+            if (_chargedParticleMaximumPercentageUsage > 0)
             {
                 if (_attached_reactor.Part != this.part)
                 {
@@ -267,12 +272,14 @@ namespace FNPlugin
                     resourceBuffers.UpdateBuffers();
                 }
 
-                _max_charged_particles_power = _attached_reactor.MaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
+                var currentMaximumPower = maximum_isp == minimum_isp ? _attached_reactor.MaximumChargedPower * _attached_engine.currentThrottle : _attached_reactor.MaximumChargedPower;
+
+                _max_charged_particles_power = currentMaximumPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = _attached_engine.isOperational && _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0;
                 _charged_particles_received = consumeFNResourcePerSecond(_charged_particles_requested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                 // convert reactor product into propellants when possible
-                var chargedParticleRatio = _attached_reactor.MaximumChargedPower > 0 ? _charged_particles_received / _attached_reactor.MaximumChargedPower : 0;
+                var chargedParticleRatio = currentMaximumPower > 0 ? _charged_particles_received / currentMaximumPower : 0;
 
                 // update Isp
                 var currentIsp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
@@ -331,27 +338,25 @@ namespace FNPlugin
                 megajoulesRatio = (double.IsNaN(megajoulesRatio) || double.IsInfinity(megajoulesRatio)) ? 0 : megajoulesRatio;
                 var scaledPowerFactor = Math.Pow(megajoulesRatio, 0.5);
 
-                double atmoIspFactor = 1;
+                double effectiveThrustRatio = 1;
 
                 _engineMaxThrust = 0;
                 if (_max_charged_particles_power > 0)
                 {
-                    var enginethrust_from_recieved_particles = powerThrustModifier * _charged_particles_received * scaledPowerFactor / currentIsp / GameConstants.STANDARD_GRAVITY;
+                    var max_thrust = powerThrustModifier * _charged_particles_received * scaledPowerFactor / currentIsp / GameConstants.STANDARD_GRAVITY;
 
-                    var effective_thrust = Math.Max(enginethrust_from_recieved_particles - (radius * radius * vessel.atmDensity * 100), 0);
+                    var effective_thrust = Math.Max(max_thrust - (radius * radius * vessel.atmDensity * 100), 0);
 
-                    var max_theoretical_thrust = powerThrustModifier * _max_charged_particles_power / currentIsp / GameConstants.STANDARD_GRAVITY;
-
-                    atmoIspFactor = max_theoretical_thrust > 0 ? effective_thrust / max_theoretical_thrust : 0;
+                    effectiveThrustRatio = max_thrust > 0 ? effective_thrust / max_thrust : 0;
 
                     _engineMaxThrust = _attached_engine.currentThrottle > 0
                         ? Math.Max(effective_thrust, 0.000000001)
-                        : Math.Max(max_theoretical_thrust, 0.000000001);
+                        : Math.Max(max_thrust, 0.000000001);
                 }
 
                 // set isp
                 FloatCurve newAtmosphereCurve = new FloatCurve();
-                newAtmosphereCurve.Add(0, (float)(currentIsp * scaledPowerFactor * atmoIspFactor), 0, 0);
+                newAtmosphereCurve.Add(0, (float)(currentIsp * scaledPowerFactor * effectiveThrustRatio), 0, 0);
                 _attached_engine.atmosphereCurve = newAtmosphereCurve;
 
                 var max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && currentIsp > 0
@@ -369,7 +374,7 @@ namespace FNPlugin
                     _attached_engine.status = "offline";
                 else if (megajoulesRatio < 0.75 && _requestedElectricPower > 0)
                     _attached_engine.status = "Insufficient Electricity";
-                else if (atmoIspFactor < 0.01)
+                else if (effectiveThrustRatio < 0.01 && vessel.atmDensity > 0)
                     _attached_engine.status = "Too dense atmospherere";
             } 
             else 

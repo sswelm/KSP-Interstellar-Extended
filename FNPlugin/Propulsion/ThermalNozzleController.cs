@@ -101,7 +101,7 @@ namespace FNPlugin
         [KSPField]
         public double skinMaxTemp = 2750;
         [KSPField]
-        public double maxThermalNozzleIsp = GameConstants.MaxThermalNozzleIsp;
+        public float maxThermalNozzleIsp = 0;
         [KSPField]
         public double skinInternalConductionMult = 1;
         [KSPField]
@@ -271,8 +271,14 @@ namespace FNPlugin
         protected double calculatedMaxThrust;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
         protected double max_fuel_flow_rate = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Mass Flow")]
+
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Current Mass Flow")]
         protected double currentMassFlow;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Is Open CycleCooler")]
+        protected bool isOpenCycleCooler;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Fuel Flow ForCooling")]
+        protected double fuelFlowForCooling;
+
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
@@ -587,6 +593,10 @@ namespace FNPlugin
             Debug.Log("[KSPI]: ThermalNozzleController - start");
 
             _flameoutText = Localizer.Format("#autoLOC_219016");
+
+            // use default when maxThermalNozzleIsp is not configured
+            if (maxThermalNozzleIsp == 0)
+                maxThermalNozzleIsp = PluginHelper.MaxThermalNozzleIsp;
 
             ScaleParameters();
 
@@ -1214,17 +1224,17 @@ namespace FNPlugin
 
                 if (overrideAtmosphereCurve && jetPerformanceProfile == 0)
                 {
-                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4f / 5f, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, maxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4f / 5f, maxThermalNozzleIsp));
                 }
                 else if (overrideAtmosphereCurve && jetPerformanceProfile == 1)
                 {
-                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, PluginHelper.MaxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, maxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
                 }
                 else
                     atmosphereIspCurve = originalAtmosphereCurve;
@@ -1462,7 +1472,7 @@ namespace FNPlugin
 
                     calculatedMaxThrust *= _thrustPropellantMultiplier * sootModifier;
 
-                    var effectiveIsp = isJet ? Math.Min(current_isp, PluginHelper.MaxThermalNozzleIsp) : current_isp;
+                    var effectiveIsp = isJet ? Math.Min(current_isp, maxThermalNozzleIsp) : current_isp;
 
                     var newIsp = new FloatCurve();
                     newIsp.Add(0, (float)effectiveIsp, 0, 0);
@@ -1766,14 +1776,30 @@ namespace FNPlugin
                 if (double.IsNaN(airflowHeatModifier) || double.IsInfinity(airflowHeatModifier))
                     airflowHeatModifier = 0;
 
+                maxFuelFlowOnEngine = myAttachedEngine.maxFuelFlow;
+                maxThrustOnEngine = myAttachedEngine.maxThrust;
+                realIspEngine = myAttachedEngine.realIsp;
+
                 currentMassFlow = (double)(decimal)myAttachedEngine.fuelFlowGui * (double)(decimal)myAttachedEngine.mixtureDensity;
 
+                isOpenCycleCooler = (!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature;
+
                 // act as open cycle cooler
-                if ((!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature)
+                if (isOpenCycleCooler)
                 {
                     var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                    fuelFlowForCooling = currentMassFlow;
 
-                    consumeFNResourcePerSecond(20 * wasteheatRatio * currentMassFlow, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    if (isJet)
+                    {
+                        double totalAmount;
+                        double totalMaxAmount;
+                        int intakeAirId = PartResourceLibrary.Instance.GetDefinition("IntakeAir").id;
+                        part.GetConnectedResourceTotals(intakeAirId, out totalAmount, out totalMaxAmount);
+                        fuelFlowForCooling = maxFuelFlowOnEngine * (totalMaxAmount > 0 ? totalAmount / totalMaxAmount: 0);
+                    }
+
+                    consumeFNResourcePerSecond(20 * wasteheatRatio * fuelFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // give back propellant
@@ -1783,10 +1809,6 @@ namespace FNPlugin
                     var resource = PartResourceLibrary.Instance.GetDefinition(list_of_propellants.First().name);
                     AttachedReactor.UseProductForPropulsion(powerFraction, currentMassFlow, resource);
                 }
-
-                maxFuelFlowOnEngine = myAttachedEngine.maxFuelFlow;
-                maxThrustOnEngine = myAttachedEngine.maxThrust;
-                realIspEngine = myAttachedEngine.realIsp;
 
                 if (controlHeatProduction)
                 {

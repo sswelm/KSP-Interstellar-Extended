@@ -66,22 +66,40 @@ namespace FNPlugin
             return power_taken_fixed;
         }
 
-        public double consumeFNResourcePerSecond(double power_requested_per_second, String resourcename, ResourceManager manager = null)
+        public double consumeRemainingResourcePerSecond(double power_requested_per_second, String resourcename, ResourceManager manager = null)
         {
-            power_requested_per_second = Math.Max(power_requested_per_second, 0);
-
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
             if (manager == null)
                 return 0;
-
             if (!fnresource_supplied.ContainsKey(resourcename))
                 fnresource_supplied.Add(resourcename, 0);
 
-            var power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, fnresource_supplied[resourcename]), 0);
-            fnresource_supplied[resourcename] -= (double)power_taken_per_second;
+            power_requested_per_second = Math.Max(power_requested_per_second, 0);
 
-            manager.powerDrawPerSecond(this, (double)power_requested_per_second, (double)power_taken_per_second);
+            double power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, fnresource_supplied[resourcename]), 0);
+            fnresource_supplied[resourcename] -= power_taken_per_second;
+
+            manager.powerDrawPerSecond(this, power_taken_per_second, power_taken_per_second);
+
+            return power_taken_per_second;
+        }
+
+        public double consumeFNResourcePerSecond(double power_requested_per_second, String resourcename, ResourceManager manager = null)
+        {
+            if (manager == null)
+                manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+            if (!fnresource_supplied.ContainsKey(resourcename))
+                fnresource_supplied.Add(resourcename, 0);
+
+            power_requested_per_second = Math.Max(power_requested_per_second, 0);
+
+            double power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, fnresource_supplied[resourcename]), 0);
+            fnresource_supplied[resourcename] -= power_taken_per_second;
+
+            manager.powerDrawPerSecond(this, power_requested_per_second, power_taken_per_second);
 
             return power_taken_per_second;
         }
@@ -117,7 +135,7 @@ namespace FNPlugin
                 var fixedPowerShortage = powerShortage * timeWarpFixedDeltaTime;
 
                 if (currentAmount - fixedPowerShortage > currentCapacity * limitBarRatio)
-                    power_taken_per_second += (part.RequestResource(resourcename, (double)fixedPowerShortage) / timeWarpFixedDeltaTime);
+                    power_taken_per_second += (part.RequestResource(resourcename, fixedPowerShortage) / timeWarpFixedDeltaTime);
             }
 
             manager.powerDrawPerSecond(this, requestedPowerPerSecond, power_taken_per_second);
@@ -182,7 +200,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyPerSecondWithMaxAndEfficiency(this, Math.Max(supply, 0), Math.Max(maxsupply, 0), efficiencyRatio);
+            return manager.powerSupplyPerSecondWithMaxAndEfficiency(this, Math.Max(supply, 0), Math.Max(maxsupply, 0), efficiencyRatio);
         }
 
         public double supplyFNResourcePerSecondWithMax(double supply, double maxsupply, String resourcename)
@@ -197,7 +215,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyPerSecondWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
+            return manager.powerSupplyPerSecondWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
         }
 
         public double supplyManagedFNResourcePerSecond(double supply, String resourcename)
@@ -212,7 +230,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.managedPowerSupplyPerSecond(this, Math.Max(supply, 0));
+            return manager.managedPowerSupplyPerSecond(this, Math.Max(supply, 0));
         }
 
         public double getNeededPowerSupplyPerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ResourceManager manager = null)
@@ -231,7 +249,7 @@ namespace FNPlugin
                 return 0;
             }
 
-            return (double)manager.getNeededPowerSupplyPerSecondWithMinimumRatio(Math.Max(supply, 0), Math.Max(ratio_min, 0));
+            return manager.getNeededPowerSupplyPerSecondWithMinimumRatio(Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
         public double supplyManagedFNResourcePerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ResourceManager manager = null)
@@ -247,7 +265,7 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
+            return manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
 
         public double managedProvidedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
@@ -265,7 +283,7 @@ namespace FNPlugin
 
             var result = manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
 
-            return (double)result.currentSupply;
+            return result.currentSupply;
         }
 
         public PowerGenerated managedPowerSupplyPerSecondMinimumRatio(double requested_power, double maximum_power, double ratio_min, String resourcename, ResourceManager manager = null)
@@ -737,6 +755,11 @@ namespace FNPlugin
         }
 
         public virtual void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
+        {
+
+        }
+
+        public virtual void OnPostResourceSuppliable(double fixedDeltaTime)
         {
 
         }
