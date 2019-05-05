@@ -271,14 +271,14 @@ namespace FNPlugin
         protected double calculatedMaxThrust;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
         protected double max_fuel_flow_rate = 0;
-
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Current Mass Flow")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Mass Flow", guiFormat = "F5")]
         protected double currentMassFlow;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Is Open CycleCooler")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Is Open CycleCooler", guiFormat = "F5")]
         protected bool isOpenCycleCooler;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Fuel Flow ForCooling")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Fuel Flow ForCooling", guiFormat = "F5")]
         protected double fuelFlowForCooling;
-
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Air Cooling", guiFormat = "F5")]
+        protected double airFlowForCooling;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
@@ -1438,6 +1438,16 @@ namespace FNPlugin
                     ScreenMessages.PostScreenMessage("Engine Shutdown: fuel missing", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
 
+                isOpenCycleCooler = (!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature;
+
+                // when in jet mode apply extra cooling from intake air
+                if (isOpenCycleCooler && isJet && part.atmDensity > 0)
+                {
+                    var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                    airFlowForCooling = max_fuel_flow_rate * part.GetResourceRatio("IntakeAir");
+                    consumeFNResourcePerSecond(40 * Math.Pow(wasteheatRatio, 2) * airFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
+                }
+
                 // flameout when reactor cannot produce power
                 myAttachedEngine.flameoutBar = AttachedReactor.CanProducePower ? 0 : float.MaxValue;
 
@@ -1782,24 +1792,12 @@ namespace FNPlugin
 
                 currentMassFlow = (double)(decimal)myAttachedEngine.fuelFlowGui * (double)(decimal)myAttachedEngine.mixtureDensity;
 
-                isOpenCycleCooler = (!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature;
-
                 // act as open cycle cooler
                 if (isOpenCycleCooler)
                 {
                     var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
                     fuelFlowForCooling = currentMassFlow;
-
-                    if (isJet)
-                    {
-                        double totalAmount;
-                        double totalMaxAmount;
-                        int intakeAirId = PartResourceLibrary.Instance.GetDefinition("IntakeAir").id;
-                        part.GetConnectedResourceTotals(intakeAirId, out totalAmount, out totalMaxAmount);
-                        fuelFlowForCooling = maxFuelFlowOnEngine * (totalMaxAmount > 0 ? totalAmount / totalMaxAmount: 0);
-                    }
-
-                    consumeFNResourcePerSecond(20 * wasteheatRatio * fuelFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(40 * Math.Pow(wasteheatRatio, 2) * fuelFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // give back propellant
