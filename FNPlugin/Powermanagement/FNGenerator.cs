@@ -283,10 +283,6 @@ namespace FNPlugin
         [KSPField]
         public double maxElectricdtps;
         [KSPField]
-        public double projectedMaximumPower;
-        [KSPField]
-        public double maxPowerFromProducedHeat;
-        [KSPField]
         public bool shouldUseChargedPower;
         [KSPField]
         public double _totalEff;
@@ -1067,9 +1063,7 @@ namespace FNPlugin
                     {
                         electricdtps = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
                         effectiveMaxThermalPowerRatio = applies_balance ? (1 - attachedPowerSource.ChargedPowerRatio) : 1;
-                        projectedMaximumPower = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEff * CapacityRatio;
-                        maxPowerFromProducedHeat = attachedPowerSource.ProducedThermalHeat * _totalEff;
-                        maxElectricdtps = Math.Max(maxPowerFromProducedHeat, projectedMaximumPower);
+                        maxElectricdtps = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEff * CapacityRatio;
                     }
                     else
                     {
