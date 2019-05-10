@@ -916,10 +916,6 @@ namespace FNPlugin
             deployableSolarPanel = part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (deployableSolarPanel != null)
             {
-                _solarFlowRateResource = new ModuleResource();
-                _solarFlowRateResource.name = deployableSolarPanel.resourceName;
-                resHandler.inputResources.Add(_solarFlowRateResource);
-
                 deployableSolarPanel.Events["Extend"].guiActive = false;
             }
 

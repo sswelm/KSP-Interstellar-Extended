@@ -38,7 +38,6 @@ namespace FNPlugin
         MicrowavePowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
         ResourceBuffers _resourceBuffers;
-        ModuleResource _solarFlowRateResource;
         ResourceType outputType = 0;
         List<StarLight> stars;        
       
@@ -61,10 +60,6 @@ namespace FNPlugin
 
             _solarPanel = (ModuleDeployableSolarPanel)this.part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (_solarPanel == null) return;
-
-            _solarFlowRateResource = new ModuleResource();
-            _solarFlowRateResource.name = _solarPanel.resourceName;
-            resHandler.inputResources.Add(_solarFlowRateResource);
 
             part.force_activate();
 
@@ -143,7 +138,7 @@ namespace FNPlugin
                 _resourceBuffers.UpdateBuffers();
 
             // extract power otherwise we end up with double power
-            _solarFlowRateResource.rate = solar_rate;
+            part.RequestResource(_solarPanel.resourceName, solar_rate * fixedDeltaTime);
 
             // provide power to supply manager
             solar_supply = outputType == ResourceType.megajoule ? solar_rate : solar_rate * 0.001;
