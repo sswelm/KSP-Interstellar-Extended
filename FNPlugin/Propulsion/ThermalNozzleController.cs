@@ -143,6 +143,8 @@ namespace FNPlugin
         [KSPField]
         public double baseMaxIsp;
         [KSPField]
+        public double wasteHeatBufferMassMult = 2.0e+5;
+        [KSPField]
         public double wasteHeatBufferMult = 1;
         [KSPField]
         public bool allowUseOfThermalPower = true;
@@ -626,7 +628,7 @@ namespace FNPlugin
                 Debug.Log("[KSPI]: ThermalNozzleController - calculate WasteHeat Capacity");
 
                 resourceBuffers = new ResourceBuffers();
-                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5 * wasteHeatBufferMult, true));
+                resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
 

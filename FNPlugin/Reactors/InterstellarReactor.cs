@@ -357,6 +357,8 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double wasteHeatMultiplier = 1;
         [KSPField]
+        public double wasteHeatBufferMassMult = 2.0e+5;
+        [KSPField]
         public double wasteHeatBufferMult = 1;
         [KSPField]
         public double hotBathTemperature = 0;
@@ -1306,7 +1308,7 @@ namespace FNPlugin.Reactors
             this.resources_to_supply = resources_to_supply;
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5 * wasteHeatBufferMult, true));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedPowerBufferMult));
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
