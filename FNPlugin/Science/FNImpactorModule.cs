@@ -15,29 +15,38 @@ namespace FNPlugin
             // Register collision handler with GameEvents.onCollision
             GameEvents.onCollision.Add(this.onVesselAboutToBeDestroyed);
             GameEvents.onCrash.Add(this.onVesselAboutToBeDestroyed);
-            Debug.Log("[KSP] - FNImpactorModule listening for collisions.");
+            Debug.Log("[KSPI]: FNImpactorModule listening for collisions.");
         }
 
         public void onVesselAboutToBeDestroyed(EventReport report) 
         {
             Debug.Log("[KSPI]: Handling Impactor");
 
-            ConfigNode config;
-            ConfigNode science_node;
+            // Do nothing if we don't have a origin.  This seems improbable, but who knows.
+            if (report == null)
+            {
+                Debug.Log("[KSPI]: Impactor: Ignored because the report is undefined.");
+                return;
+            }
 
-            Vessel vessel = report.origin.vessel;
-            //float vesselMass;
-            int science_experiment_number = 0;
-
-            string vessel_impact_node_string = string.Concat("IMPACT_", vessel.id.ToString());
-            string vessel_seismic_node_string = string.Concat("SEISMIC_SCIENCE_", vessel.mainBody.name.ToUpper());
+            // Do nothing if we don't have a origin.  This seems improbable, but who knows.
+            if (report.origin == null)
+            {
+                Debug.Log("[KSPI]: Impactor: Ignored because the origin is undefined.");
+                return;
+            }
 
             // Do nothing if we don't have a vessel.  This seems improbable, but who knows.
-            if (vessel == null) 
+            if (report.origin.vessel == null)
             {
                 Debug.Log("[KSPI]: Impactor: Ignored because the vessel is undefined.");
                 return;
             }
+
+            Vessel vessel = report.origin.vessel;
+            int science_experiment_number = 0;
+            string vessel_impact_node_string = string.Concat("IMPACT_", vessel.id.ToString());
+            string vessel_seismic_node_string = string.Concat("SEISMIC_SCIENCE_", vessel.mainBody.name.ToUpper());
 
             // Do nothing if we have recorded an impact less than 10 physics updates ago.  This probably means this call
             // is a duplicate of a previous call.
@@ -91,7 +100,8 @@ namespace FNPlugin
                 return;
             }
 
-            config = PluginHelper.getPluginSaveFile();
+            ConfigNode science_node;
+            ConfigNode config = PluginHelper.getPluginSaveFile();
             if (config.HasNode(vessel_seismic_node_string)) 
             {
                 science_node = config.GetNode(vessel_seismic_node_string);
@@ -105,6 +115,7 @@ namespace FNPlugin
             } 
             else 
             {
+                Debug.Log("[KSPI]: Impactor: Created sysmic impact data node");
                 science_node = config.AddNode(vessel_seismic_node_string);
                 science_node.AddValue("name", "interstellarseismicarchive");
             }
@@ -116,7 +127,7 @@ namespace FNPlugin
 
             foreach (Vessel conf_vess in FlightGlobals.Vessels) 
             {
-                String vessel_probe_node_string = string.Concat("VESSEL_SEISMIC_PROBE_", conf_vess.id.ToString());
+                string vessel_probe_node_string = string.Concat("VESSEL_SEISMIC_PROBE_", conf_vess.id.ToString());
 
                 if (config.HasNode(vessel_probe_node_string)) 
                 {
@@ -158,7 +169,6 @@ namespace FNPlugin
             distribution_factor = Math.Min(distribution_factor, 3.5); // no more than 3.5x boost to science by using multiple detectors
             if (distribution_factor > 0 && !double.IsInfinity(distribution_factor) && !double.IsNaN(distribution_factor)) 
             {
-
                 ScreenMessages.PostScreenMessage("Impact Recorded, science report can now be accessed from one of your accelerometers deployed on this body.", 5f, ScreenMessageStyle.UPPER_CENTER);
                 this.lastImpactTime = Planetarium.GetUniversalTime();
                 Debug.Log("[KSPI]: Impactor: Impact registered!");
