@@ -24,10 +24,17 @@ namespace InterstellarFuelSwitch
 
             if (resource != null && resource.maxAmount > 0)
             {
-                var ratio = resource.amount / resource.maxAmount;
-                resource.maxAmount = bufferSize * (double)(decimal)TimeWarp.fixedDeltaTime * 50;
-                resource.amount = resource.maxAmount * ratio;
+                var ratio = Math.Min(1, resource.amount / resource.maxAmount);
+                var newMaxAmount = bufferSize * (double)(decimal)TimeWarp.fixedDeltaTime * 50;
+                resource.maxAmount = IsValidNumber(newMaxAmount) ? newMaxAmount : resource.maxAmount;
+                var newAmount = resource.maxAmount * ratio;
+                resource.amount = IsValidNumber(newAmount) ? newAmount : resource.amount;
             }
+        }
+
+        private bool IsValidNumber(double number)
+        {
+            return !double.IsNaN(number) && !double.IsInfinity(number);
         }
     }
 }
