@@ -1208,7 +1208,7 @@ namespace FNPlugin
                     velCurve.Add(0,  0.05f + _jetTechBonusPercentage / 2);
                     velCurve.Add(2.5f - _jetTechBonusCurveChange, 1);
                     velCurve.Add(5 + _jetTechBonusCurveChange * 2, 1);
-                    velCurve.Add(10, 0 + _jetTechBonusPercentage);
+                    velCurve.Add(14, 0 + _jetTechBonusPercentage);
                     velCurve.Add(20, 0);
                 }
                 else if (overrideVelocityCurve && jetPerformanceProfile == 1)
@@ -1229,7 +1229,7 @@ namespace FNPlugin
                     atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, maxThermalNozzleIsp));
                     atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
                     atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP * 4f / 5f, maxThermalNozzleIsp));
+                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
                 }
                 else if (overrideAtmosphereCurve && jetPerformanceProfile == 1)
                 {
