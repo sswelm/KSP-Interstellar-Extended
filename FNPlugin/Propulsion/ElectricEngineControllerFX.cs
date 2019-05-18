@@ -13,7 +13,6 @@ namespace FNPlugin
     [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
     class ElectrostaticEngineControllerFX : ElectricEngineControllerFX { }
 
-
     [KSPModule("#LOC_KSPIE_ElectricEngine_partModuleName")]
     class ElectricEngineControllerFX : ResourceSuppliableModule, IUpgradeableModule, IRescalable<ElectricEngineControllerFX>, IPartMassModifier
     {
@@ -116,10 +115,6 @@ namespace FNPlugin
         public double scaledMaxPower = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineMass", guiUnits = " t")]
         public float partMass = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "expected mass", guiUnits = " t")]
-        public double expectedMass = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "desired mass", guiUnits = " t")]
-        public double desiredMass = 0;
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_engineType")]
         public string engineTypeStr = "";
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_activePropellantName")]
@@ -132,7 +127,7 @@ namespace FNPlugin
         public string efficiencyStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_overheatEfficiency")]
         public string thermalEfficiency = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_heatProduction")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_heatProduction")]
         public string heatProductionStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_upgradeCost")]
         public string upgradeCostStr = "";
@@ -145,24 +140,12 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
         public double lightSpeedRatio;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
-        public double timeDilation;
+        public double timeDilation;      
 
-        // privates
-        const double OneThird = 1d / 3d;
-
-        double _currentPropellantEfficiency;
-        double _speedOfLight;
-        double _modifiedEngineBaseIsp;
-        double _electrical_share_f;
-
-        double _electrical_consumption_f;
-        double _heat_production_f;
-        double _modifiedCurrentPropellantIspMultiplier;
-        double _maxIsp;
-        double _effectiveIsp;
-        double _ispPersistent;
-        int vesselChangedSIOCountdown;
-
+        [KSPField(guiActive = false)]
+        public double expectedMass = 0;
+        [KSPField(guiActive = false)]
+        public double desiredMass = 0;
         [KSPField(guiActive = false)]
         protected double currentPowerForEngine;
         [KSPField(guiActive = false)]
@@ -215,14 +198,28 @@ namespace FNPlugin
         [KSPField]
         public double maxPower = 1000;
 
+        // privates
+        const double OneThird = 1d / 3d;
+
         int _rep;
         int _initializationCountdown;
+        int _vesselChangedSIOCountdown;
         int _numberOfAvailableUpgradeTechs;
 
         bool _hasrequiredupgrade;
         bool _hasGearTechnology;
         bool _warpToReal;
         bool _isFullyStarted;
+
+        double _speedOfLight;
+        double _modifiedEngineBaseIsp;
+        double _electrical_share_f;
+        double _electrical_consumption_f;
+        double _heat_production_f;
+        double _modifiedCurrentPropellantIspMultiplier;
+        double _maxIsp;
+        double _effectiveIsp;
+        double _ispPersistent;
 
         ResourceBuffers resourceBuffers;
         FloatCurve _ispFloatCurve;
@@ -329,23 +326,25 @@ namespace FNPlugin
             {
                 var atmDensity = HighLogic.LoadedSceneIsFlight ? vessel.atmDensity : 0;
 
+                double efficiency;
+
                 if (type == (int)ElectricEngineType.ARCJET)
-                    _currentPropellantEfficiency = 0.87 * Current_propellant.Efficiency;
+                    efficiency = 0.87 * Current_propellant.Efficiency;
                 else if (type == (int)ElectricEngineType.VASIMR)
-                    _currentPropellantEfficiency =  Math.Max(1 - atmDensity, 0.00001) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency));
+                    efficiency =  Math.Max(1 - atmDensity, 0.00001) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency));
                 else
-                    _currentPropellantEfficiency = Current_propellant.Efficiency;
+                    efficiency = Current_propellant.Efficiency;
 
                 if (Current_propellant.IsInfinite)
-                    _currentPropellantEfficiency += lightSpeedRatio;
+                    efficiency += lightSpeedRatio;
 
-                return _currentPropellantEfficiency;
+                return efficiency;
             }
         }
 
         public void VesselChangedSOI()
         {
-            vesselChangedSIOCountdown = 10;
+            _vesselChangedSIOCountdown = 10;
         }
 
         // Events
@@ -682,8 +681,8 @@ namespace FNPlugin
             if (_initializationCountdown > 0)
                 _initializationCountdown--;
 
-            if (vesselChangedSIOCountdown > 0)
-                vesselChangedSIOCountdown--;
+            if (_vesselChangedSIOCountdown > 0)
+                _vesselChangedSIOCountdown--;
 
             if (!HighLogic.LoadedSceneIsFlight) return;
 
@@ -857,7 +856,7 @@ namespace FNPlugin
                 var requestedDirection = vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde ? vessel.obt_velocity.normalized : vessel.obt_velocity.normalized * -1;
                 var vesselDirection = vessel.transform.up.normalized;
 
-                if (vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.9)
+                if (_vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.9)
                 {
                     var rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
                     vessel.transform.Rotate(rotation.eulerAngles, Space.World);
