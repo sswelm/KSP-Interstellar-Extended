@@ -61,6 +61,8 @@ namespace FNPlugin
 
         // Settings
         [KSPField]
+        public bool isHighPower = false;
+        [KSPField]
         public bool isMHD = false;
         [KSPField]
         public bool isLimitedByMinThrotle = false;

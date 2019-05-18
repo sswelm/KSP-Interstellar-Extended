@@ -39,6 +39,9 @@ namespace FNPlugin
         public string upgradeTechReq = "";
         [KSPField]
         public string gearsTechReq = "";
+
+        [KSPField]
+        public double powerReqMultWithoutReactor = 0; 
         [KSPField]
         public double powerReqMult = 1; 
         [KSPField]
@@ -52,7 +55,11 @@ namespace FNPlugin
         [KSPField]
         public double exitArea = 0;
         [KSPField]
-        public double powerThrustMultiplier = 1.0;
+        public double powerThrustMultiplier = 1;
+
+        [KSPField]
+        public double powerThrustMultiplierWithoutReactors = 0;
+
         [KSPField]
         public float upgradeCost = 0;
         [KSPField]
@@ -421,6 +428,19 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            if (vessel.FindPartModulesImplementing<FNGenerator>().Where(m => m.isHighPower).Any() == false)
+            {
+                if (powerThrustMultiplier == 1 && powerThrustMultiplierWithoutReactors > 0)
+                {
+                    powerThrustMultiplier = powerThrustMultiplierWithoutReactors;
+                }
+
+                if (powerReqMult == 1 && powerReqMultWithoutReactor > 0)
+                {
+                    powerReqMult = powerReqMultWithoutReactor;
+                }
+            }
+
             ScaleParameters();
 
             _initializationCountdown = 10;
@@ -988,31 +1008,31 @@ namespace FNPlugin
             var props = ElectricEnginePropellant.GetPropellantsEngineForType(type);
             var returnStr = Localizer.Format("#LOC_KSPIE_ElectricEngine_maxPowerConsumption") + " : " + maxPower.ToString("F3") + " MW\n";
             var thrustPerMw = (2e6 * powerThrustMultiplier) / GameConstants.STANDARD_GRAVITY / (baseISP * PluginHelper.ElectricEngineIspMult) / 1000.0;
-            props.ForEach(prop =>
-            {
-                var ispPropellantModifier = (this.type == (int)ElectricEngineType.VASIMR ? prop.DecomposedIspMult : prop.IspMultiplier);
-                var ispProp = _modifiedEngineBaseIsp * ispPropellantModifier;
+            //props.ForEach(prop =>
+            //{
+            //    var ispPropellantModifier = (this.type == (int)ElectricEngineType.VASIMR ? prop.DecomposedIspMult : prop.IspMultiplier);
+            //    var ispProp = _modifiedEngineBaseIsp * ispPropellantModifier;
 
-                double efficiency;
+            //    double efficiency;
 
-                switch (type)
-                {
-                    case (int)ElectricEngineType.ARCJET:
-                        efficiency = 0.87 * prop.Efficiency;
-                        break;
-                    case (int)ElectricEngineType.VASIMR:
-                        efficiency = baseEfficency + 0.5 * variableEfficency;
-                        break;
-                    default:
-                        efficiency = prop.Efficiency;
-                        break;
-                }
+            //    switch (type)
+            //    {
+            //        case (int)ElectricEngineType.ARCJET:
+            //            efficiency = 0.87 * prop.Efficiency;
+            //            break;
+            //        case (int)ElectricEngineType.VASIMR:
+            //            efficiency = baseEfficency + 0.5 * variableEfficency;
+            //            break;
+            //        default:
+            //            efficiency = prop.Efficiency;
+            //            break;
+            //    }
 
-                var thrustProp = thrustPerMw / ispPropellantModifier * efficiency * (type == (int)ElectricEngineType.ARCJET ? prop.ThrustMultiplier : 1);
-                returnStr = returnStr + "---" + prop.PropellantGUIName + "---\n" + Localizer.Format("#LOC_KSPIE_ElectricEngine_thrust") 
-                    + ": " + thrustProp.ToString("0.000") + " " + Localizer.Format("#LOC_KSPIE_ElectricEngine_kiloNewtonPerMegaWatt") + "\n" + Localizer.Format("#LOC_KSPIE_ElectricEngine_efficiency") 
-                    + " : " + (efficiency * 100.0).ToString("0.00") + "%\n" + Localizer.Format("#LOC_KSPIE_ElectricEngine_specificImpulse") + ": " + ispProp.ToString("0.00") + "s\n";
-            });
+            //    var thrustProp = thrustPerMw / ispPropellantModifier * efficiency * (type == (int)ElectricEngineType.ARCJET ? prop.ThrustMultiplier : 1);
+            //    returnStr = returnStr + "---" + prop.PropellantGUIName + "---\n" + Localizer.Format("#LOC_KSPIE_ElectricEngine_thrust") 
+            //        + ": " + thrustProp.ToString("0.000") + " " + Localizer.Format("#LOC_KSPIE_ElectricEngine_kiloNewtonPerMegaWatt") + "\n" + Localizer.Format("#LOC_KSPIE_ElectricEngine_efficiency") 
+            //        + " : " + (efficiency * 100.0).ToString("0.00") + "%\n" + Localizer.Format("#LOC_KSPIE_ElectricEngine_specificImpulse") + ": " + ispProp.ToString("0.00") + "s\n";
+            //});
             return returnStr;
         }
 
