@@ -126,7 +126,7 @@ namespace FNPlugin
         public string propNameStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_powerShare")]
         public string electricalPowerShareStr = "";
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_powerRequested", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_powerRequested", guiFormat = "F3", guiUnits = " MW")]
         public double power_request;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_propellantEfficiency")]
         public string efficiencyStr = "";
@@ -197,9 +197,9 @@ namespace FNPlugin
         protected double currentThrustInSpace;
         [KSPField(guiActive = true, guiName = "Max Thrust in Space", guiFormat = "F6", guiUnits = " kN")]
         protected double simulatedThrustInSpace;
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Max Thrust from Power", guiFormat = "F6", guiUnits = " kN")]
-        protected double maxThrustFromPower = 0.001;
 
+        [KSPField]
+        protected double maxThrustFromPower = 0.001;
         [KSPField]
         protected double effectPower = 0;
         [KSPField]
@@ -712,8 +712,7 @@ namespace FNPlugin
 
              var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            maxThrustFromPower = EvaluateMaxThrust(availablePower * _electrical_share_f);
-            _attachedEngine.maxThrust = (float)Math.Max(maxThrustFromPower, 0.001);
+             maxThrustFromPower = EvaluateMaxThrust(availablePower * _electrical_share_f);
 
             var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
             var effectiveResourceThrotling = megaJoulesBarRatio > OneThird ? 1 : megaJoulesBarRatio * 3;
@@ -757,6 +756,8 @@ namespace FNPlugin
 
             currentThrustInSpace = _effectiveIsp <= 0 ? 0 : effectiveRecievedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
             simulatedThrustInSpace = _effectiveIsp <= 0 ? 0 :effectiveSimulatedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
+
+            _attachedEngine.maxThrust = (float)Math.Max(simulatedThrustInSpace, 0.001);
 
             _currentSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : currentThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
             _simulatedSpaceFuelFlowRate = _maxIsp <= 0 ? 0 : simulatedThrustInSpace / _maxIsp / GameConstants.STANDARD_GRAVITY;
