@@ -34,8 +34,11 @@ namespace FNPlugin
         public double animationStarted = 0;
         [KSPField(isPersistant = true)]
         public bool exhaustAllowed = true;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Isp Throtle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0f)]
+
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Isp Throttle"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0)]
         public float ispThrottle = 0;
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Fuel Flow Throttle"), UI_FloatRange(stepIncrement = 10, maxValue = 1000, minValue = 100)]
+        public float fuelflowThrottle = 100;
 
         [KSPField(guiActive = false, guiName = "Distance to Homeworld")]
         public double distanceToSurfaceHomeworld;
@@ -44,6 +47,14 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "Current Exhaust Angle")]
         public double currentExhaustAngle;
 
+        [KSPField]
+        public double fuelflowMultplier;
+        [KSPField]
+        public double exhaustModifier;
+
+
+        [KSPField]
+        public float fuelflowThrottleMaxValue = 100;
         [KSPField]
         public bool canUsePureChargedPower = false;
         [KSPField]
@@ -342,7 +353,7 @@ namespace FNPlugin
         [KSPField]
         public double minimumThrust = 0.000001;
         [KSPField]
-        public bool showIspThrotle;
+        public bool showIspThrotle = false;
         [KSPField]
         public double powerHeatModifier;
         [KSPField]
@@ -676,6 +687,20 @@ namespace FNPlugin
 
                 maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
 
+                var fuelflowThrottleField = Fields["fuelflowThrottle"];
+                fuelflowThrottleField.guiActiveEditor = fuelflowThrottleMaxValue > 100;
+                fuelflowThrottleField.guiActive = fuelflowThrottleMaxValue > 100;
+
+                var fuelflowThrottleFloatRangeEditor = fuelflowThrottleField.uiControlEditor as UI_FloatRange;
+                var fuelflowThrottleFloatRangeFlight = fuelflowThrottleField.uiControlFlight as UI_FloatRange;
+
+                fuelflowThrottleFloatRangeEditor.maxValue = fuelflowThrottleMaxValue;
+                fuelflowThrottleFloatRangeFlight.maxValue = fuelflowThrottleMaxValue;
+
+                var ispThrottleField = Fields["ispThrottle"];
+                ispThrottleField.guiActiveEditor = showIspThrotle;
+                ispThrottleField.guiActive = showIspThrotle;
+
                 if (state == StartState.Editor)
                 {
                     part.OnEditorAttach += OnEditorAttach;
@@ -833,18 +858,19 @@ namespace FNPlugin
                 {
                     this.showIspThrotle = this.isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
 
-                    if (!showIspThrotle)
-                    {
-                        if (!this.isPlasmaNozzle)
-                            Debug.LogWarning("[KSPI]: ThermalNozzleController - isPlasmaNozzle is false ");
-                        if (AttachedReactor.ChargedParticlePropulsionEfficiency <= 0)
-                            Debug.LogWarning("[KSPI]: ThermalNozzleController - ChargedParticlePropulsionEfficiency is " + AttachedReactor.ChargedParticlePropulsionEfficiency);
-                        if (AttachedReactor.ChargedPowerRatio <= 0)
-                            Debug.LogWarning("[KSPI]: ThermalNozzleController - ChargedPowerRatio is " + AttachedReactor.ChargedPowerRatio);
-                    }
+                    //if (!showIspThrotle)
+                    //{
+                    //    if (!this.isPlasmaNozzle)
+                    //        Debug.LogWarning("[KSPI]: ThermalNozzleController - isPlasmaNozzle is false ");
+                    //    if (AttachedReactor.ChargedParticlePropulsionEfficiency <= 0)
+                    //        Debug.LogWarning("[KSPI]: ThermalNozzleController - ChargedParticlePropulsionEfficiency is " + AttachedReactor.ChargedParticlePropulsionEfficiency);
+                    //    if (AttachedReactor.ChargedPowerRatio <= 0)
+                    //        Debug.LogWarning("[KSPI]: ThermalNozzleController - ChargedPowerRatio is " + AttachedReactor.ChargedPowerRatio);
+                    //}
 
-                    Fields["ispThrottle"].guiActiveEditor = showIspThrotle;
-                    Fields["ispThrottle"].guiActive = showIspThrotle;
+                    var ispThrottleField = Fields["ispThrottle"];
+                    ispThrottleField.guiActiveEditor = showIspThrotle;
+                    ispThrottleField.guiActive = showIspThrotle;
                 }
 
                 Debug.Log("[KSPI]: ThermalNozzleController - BreadthFirstSearchForThermalSource- Found thermal searchResult with distance " + partDistance);
@@ -1899,15 +1925,16 @@ namespace FNPlugin
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX)
                 {
                     var maxEngineFuelFlow = myAttachedEngine.maxThrust > minimumThrust ? myAttachedEngine.maxThrust / myAttachedEngine.realIsp / GameConstants.STANDARD_GRAVITY : 0;
+
                     if (!String.IsNullOrEmpty(_powerEffectNameParticleFX))
                     {
-                        powerEffectRatio = maxEngineFuelFlow > 0 ? (float)Math.Min(myAttachedEngine.currentThrottle, currentMassFlow / maxEngineFuelFlow) : 0;
+                        powerEffectRatio = maxEngineFuelFlow > 0 ? (float)(exhaustModifier * Math.Min(myAttachedEngine.currentThrottle, currentMassFlow / maxEngineFuelFlow)) : 0;
                         part.Effect(_powerEffectNameParticleFX, powerEffectRatio, -1);
                     }
 
                     if (!String.IsNullOrEmpty(_runningEffectNameParticleFX))
                     {
-                        runningEffectRatio = maxEngineFuelFlow > 0 ? (float)Math.Min(myAttachedEngine.requestedThrottle, currentMassFlow / maxEngineFuelFlow) : 0;
+                        runningEffectRatio = maxEngineFuelFlow > 0 ? (float)(exhaustModifier * Math.Min(myAttachedEngine.requestedThrottle, currentMassFlow / maxEngineFuelFlow)) : 0;
                         part.Effect(_runningEffectNameParticleFX, powerEffectRatio, -1);
                     }
                 }
@@ -2009,7 +2036,13 @@ namespace FNPlugin
                     _maxISP = _maxISP + Math.Pow((double)(decimal)ispThrottle / 100, 2) * plasmaAfterburnerRange * baseMaxIsp;
             }
 
-            _maxISP *= _ispPropellantMultiplier;
+            fuelflowMultplier = (((Math.Min(Math.Max(100, fuelflowThrottleMaxValue * (double)(decimal)_ispPropellantMultiplier), fuelflowThrottle))) / 100);
+
+            var ispFlowMultiplier = _ispPropellantMultiplier * (1 / fuelflowMultplier);
+
+            _maxISP *= ispFlowMultiplier;
+
+            exhaustModifier = Math.Min(fuelflowThrottleMaxValue, (1 / ispFlowMultiplier) * 100) / fuelflowThrottleMaxValue;
         }
 
         public override string GetInfo()
