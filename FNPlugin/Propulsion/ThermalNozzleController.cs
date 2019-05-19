@@ -138,6 +138,19 @@ namespace FNPlugin
         public string EffectNameNonLFO = String.Empty;
         [KSPField]
         public string EffectNameLithium = String.Empty;
+
+
+        [KSPField]
+        public string runningEffectNameLFO = String.Empty;
+        [KSPField]
+        public string runningEffectNameNonLFO = String.Empty;
+
+        [KSPField]
+        public string powerEffectNameLFO = String.Empty;
+        [KSPField]
+        public string powerEffectNameNonLFO = String.Empty;
+
+
         [KSPField]
         public bool showPartTemperature = true;
         [KSPField]
@@ -327,6 +340,8 @@ namespace FNPlugin
         public double maximumChargedPower;
 
         [KSPField]
+        public double minimumThrust = 0.000001;
+        [KSPField]
         public bool showIspThrotle;
         [KSPField]
         public double powerHeatModifier;
@@ -355,7 +370,9 @@ namespace FNPlugin
         [KSPField]
         public float requestedThrottle;
         [KSPField]
-        public float effectRatio;
+        public float powerEffectRatio;
+        [KSPField]
+        public float runningEffectRatio;
         [KSPField]
         double received_megajoules_ratio;
         [KSPField(guiName = "Electricaly Powered", guiUnits = "%", guiFormat = "F3")]
@@ -384,7 +401,8 @@ namespace FNPlugin
 
         //Internal
         protected string _flameoutText;
-        protected string _particleFXName;
+        protected string _powerEffectNameParticleFX;
+        protected string _runningEffectNameParticleFX;
         protected string _fuelTechRequirement;
         
         protected double _heatDecompositionFraction;
@@ -746,14 +764,49 @@ namespace FNPlugin
                 if (!String.IsNullOrEmpty(EffectNameLithium))
                     part.Effect(EffectNameLithium, 0, -1);
 
+                if (!String.IsNullOrEmpty(runningEffectNameNonLFO))
+                    part.Effect(runningEffectNameNonLFO, 0, -1);
+                if (!String.IsNullOrEmpty(runningEffectNameLFO))
+                    part.Effect(runningEffectNameLFO, 0, -1);
+
+                if (!String.IsNullOrEmpty(powerEffectNameNonLFO))
+                    part.Effect(powerEffectNameNonLFO, 0, -1);
+                if (!String.IsNullOrEmpty(powerEffectNameLFO))
+                    part.Effect(powerEffectNameLFO, 0, -1);
+
                 if (_currentpropellant_is_jet && !String.IsNullOrEmpty(EffectNameJet))
-                    _particleFXName = EffectNameJet;
-                else if (_propellantIsLFO && !String.IsNullOrEmpty(EffectNameLFO))
-                    _particleFXName = EffectNameLFO;
-                else if (_isNeutronAbsorber && !String.IsNullOrEmpty(EffectNameLithium))
-                    _particleFXName = EffectNameLithium;
-                else if (!String.IsNullOrEmpty(EffectNameNonLFO))
-                    _particleFXName = EffectNameNonLFO;
+                    _powerEffectNameParticleFX = EffectNameJet;
+                else if (_propellantIsLFO)
+                {
+                    if (!String.IsNullOrEmpty(powerEffectNameLFO))
+                        _powerEffectNameParticleFX = powerEffectNameLFO;
+                    else  if (!String.IsNullOrEmpty(EffectNameLFO))
+                        _powerEffectNameParticleFX = EffectNameLFO;
+
+                    if (!String.IsNullOrEmpty(runningEffectNameLFO))
+                        _runningEffectNameParticleFX = runningEffectNameLFO;
+                }
+
+                else if (_isNeutronAbsorber)
+                {
+                    if (!String.IsNullOrEmpty(EffectNameLithium))
+                        _powerEffectNameParticleFX = EffectNameLithium;
+                    else if (!String.IsNullOrEmpty(EffectNameLFO))
+                        _powerEffectNameParticleFX = EffectNameLFO;
+                }
+                else
+                {
+                    if (!String.IsNullOrEmpty(powerEffectNameNonLFO))
+                        _powerEffectNameParticleFX = powerEffectNameNonLFO;
+                    else if (!String.IsNullOrEmpty(EffectNameNonLFO))
+                        _powerEffectNameParticleFX = EffectNameNonLFO;
+
+                    if (!String.IsNullOrEmpty(runningEffectNameNonLFO))
+                        _runningEffectNameParticleFX = runningEffectNameNonLFO;
+                }
+
+
+                
             }
         }
 
@@ -1297,7 +1350,7 @@ namespace FNPlugin
                 final_max_thrust_in_space = base_max_thrust;
 
                 myAttachedEngine.maxFuelFlow = (float)Math.Max(base_max_thrust / (GameConstants.STANDARD_GRAVITY * _maxISP), 1e-10);
-                myAttachedEngine.maxThrust = (float)Math.Max(base_max_thrust, 0.000001);
+                myAttachedEngine.maxThrust = (float)Math.Max(base_max_thrust, minimumThrust);
 
                 var max_thrust_in_current_atmosphere = max_thrust_in_space;
 
@@ -1306,7 +1359,7 @@ namespace FNPlugin
                 // update engine thrust/ISP for thermal noozle
                 if (!_currentpropellant_is_jet)
                 {
-                    max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold, 0.000001);
+                    max_thrust_in_current_atmosphere = Math.Max(max_thrust_in_space - pressureThreshold, minimumThrust);
 
                     var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(max_thrust_in_current_atmosphere / max_thrust_in_space, 0.01) : 0.01;
                     _minISP = _maxISP * thrustAtmosphereRatio;
@@ -1321,7 +1374,7 @@ namespace FNPlugin
             }
             else
             {
-                atmospherecurve.Add(0, 0.000001f, 0, 0);
+                atmospherecurve.Add(0, (float)minimumThrust, 0, 0);
                 myAttachedEngine.atmosphereCurve = atmospherecurve;
             }
         }
@@ -1478,7 +1531,7 @@ namespace FNPlugin
 
                     current_isp = _maxISP * thrustAtmosphereRatio;
 
-                    calculatedMaxThrust = Math.Max((calculatedMaxThrust - pressureThreshold), 0.000001);
+                    calculatedMaxThrust = Math.Max((calculatedMaxThrust - pressureThreshold), minimumThrust);
 
                     var sootModifier = CheatOptions.UnbreakableJoints ? 1 : sootHeatDivider > 0 ? 1 - (sootAccumulationPercentage / sootThrustDivider) : 1;
 
@@ -1504,9 +1557,9 @@ namespace FNPlugin
                     }
 
                     // prevent too low number of maxthrust 
-                    if (calculatedMaxThrust <= 0.000001)
+                    if (calculatedMaxThrust <= minimumThrust)
                     {
-                        calculatedMaxThrust = 0.000001;
+                        calculatedMaxThrust = minimumThrust;
                         max_fuel_flow_rate = 0;
                     }
 
@@ -1523,10 +1576,15 @@ namespace FNPlugin
                     // set heat production to 1 to prevent heat spike at activation
                     myAttachedEngine.heatProduction = 1;
 
-                    if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
+                    if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX)
                     {
-                        effectRatio = 0;
-                        part.Effect(_particleFXName, effectRatio, -1);
+                        powerEffectRatio = 0;
+                        runningEffectRatio = 0;
+
+                        if (!String.IsNullOrEmpty(_powerEffectNameParticleFX))
+                            part.Effect(_powerEffectNameParticleFX, powerEffectRatio, -1);
+                        if (!String.IsNullOrEmpty(_runningEffectNameParticleFX))
+                            part.Effect(_runningEffectNameParticleFX, runningEffectRatio, -1);
                     }
                 }
             }
@@ -1567,12 +1625,26 @@ namespace FNPlugin
 
                 _currentAnimatioRatio += increase;
 
-                if (pulseDuration > 0 && !String.IsNullOrEmpty(_particleFXName) && myAttachedEngine is ModuleEnginesFX)
+                if (pulseDuration > 0 && myAttachedEngine is ModuleEnginesFX)
                 {
-                    if (increase > 0 && calculatedMaxThrust > 0 && myAttachedEngine.currentThrottle > 0 && _currentAnimatioRatio < pulseDuration)
-                        part.Effect(_particleFXName, 1 - _currentAnimatioRatio / pulseDuration, -1);
-                    else
-                        part.Effect(_particleFXName, 0, -1);
+                    if (!String.IsNullOrEmpty(_powerEffectNameParticleFX))
+                    {
+                        powerEffectRatio = increase > 0 && calculatedMaxThrust > 0 && myAttachedEngine.currentThrottle > 0 && _currentAnimatioRatio < pulseDuration 
+                            ? 1 - _currentAnimatioRatio / pulseDuration 
+                            : 0;
+
+                        part.Effect(_powerEffectNameParticleFX, powerEffectRatio, -1);
+                    }
+
+                    if (!String.IsNullOrEmpty(_runningEffectNameParticleFX))
+                    {
+                        runningEffectRatio = increase > 0 && calculatedMaxThrust > 0 && myAttachedEngine.currentThrottle > 0 && _currentAnimatioRatio < pulseDuration 
+                            ? 1 - _currentAnimatioRatio / pulseDuration 
+                            : 0;
+
+                        part.Effect(_runningEffectNameParticleFX, runningEffectRatio, -1);
+                    }
+                    
                 }
 
                 if (pulseDuration > 0 && calculatedMaxThrust > 0 && increase > 0 && myAttachedEngine.currentThrottle > 0 && _currentAnimatioRatio < pulseDuration)
@@ -1673,7 +1745,7 @@ namespace FNPlugin
 
                     expectedMaxThrust = thrustPerMegaJoule * AttachedReactor.MaximumPower;
 
-                    final_max_thrust_in_space = Math.Max(thrustPerMegaJoule * AttachedReactor.RawMaximumPower, 0.000001);
+                    final_max_thrust_in_space = Math.Max(thrustPerMegaJoule * AttachedReactor.RawMaximumPower, minimumThrust);
 
                     myAttachedEngine.maxThrust = (float)final_max_thrust_in_space;
 
@@ -1756,9 +1828,9 @@ namespace FNPlugin
                     }
                 }
 
-                if (calculatedMaxThrust <= 0.000001 || double.IsNaN(calculatedMaxThrust) || double.IsInfinity(calculatedMaxThrust))
+                if (calculatedMaxThrust <= minimumThrust || double.IsNaN(calculatedMaxThrust) || double.IsInfinity(calculatedMaxThrust))
                 {
-                    calculatedMaxThrust = 0.000001;
+                    calculatedMaxThrust = minimumThrust;
                     max_fuel_flow_rate = 1e-10;
                 }
 
@@ -1824,11 +1896,20 @@ namespace FNPlugin
                     myAttachedEngine.heatProduction = (float)engineHeatProduction;
                 }
 
-                if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX && !String.IsNullOrEmpty(_particleFXName))
+                if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX)
                 {
-                    var maxEngineFuelFlow = myAttachedEngine.maxThrust > 0 ?   myAttachedEngine.maxThrust / myAttachedEngine.realIsp / GameConstants.STANDARD_GRAVITY : 0;
-                    effectRatio = maxEngineFuelFlow > 0 ? (float)Math.Min(1, currentMassFlow / maxEngineFuelFlow) : 0;
-                    part.Effect(_particleFXName, effectRatio, -1);
+                    var maxEngineFuelFlow = myAttachedEngine.maxThrust > minimumThrust ? myAttachedEngine.maxThrust / myAttachedEngine.realIsp / GameConstants.STANDARD_GRAVITY : 0;
+                    if (!String.IsNullOrEmpty(_powerEffectNameParticleFX))
+                    {
+                        powerEffectRatio = maxEngineFuelFlow > 0 ? (float)Math.Min(myAttachedEngine.currentThrottle, currentMassFlow / maxEngineFuelFlow) : 0;
+                        part.Effect(_powerEffectNameParticleFX, powerEffectRatio, -1);
+                    }
+
+                    if (!String.IsNullOrEmpty(_runningEffectNameParticleFX))
+                    {
+                        runningEffectRatio = maxEngineFuelFlow > 0 ? (float)Math.Min(myAttachedEngine.requestedThrottle, currentMassFlow / maxEngineFuelFlow) : 0;
+                        part.Effect(_runningEffectNameParticleFX, powerEffectRatio, -1);
+                    }
                 }
             }
             catch (Exception e)
@@ -2013,7 +2094,7 @@ namespace FNPlugin
 
                 var max_thrust_in_space = GetPowerThrustModifier() * GetHeatThrustModifier() * AttachedReactor.MaximumPower / _maxISP / GameConstants.STANDARD_GRAVITY * heatExchangerThrustDivisor;
 
-                final_max_thrust_in_space = Math.Max(max_thrust_in_space * _thrustPropellantMultiplier, 0.000001);
+                final_max_thrust_in_space = Math.Max(max_thrust_in_space * _thrustPropellantMultiplier, minimumThrust);
 
                 myAttachedEngine.maxThrust = (float)final_max_thrust_in_space;
 
@@ -2023,7 +2104,7 @@ namespace FNPlugin
 
                 maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
 
-                var maxSurfaceThrust = Math.Max(max_thrust_in_space - (maxPressureThresholdAtKerbinSurface), 0.000001);
+                var maxSurfaceThrust = Math.Max(max_thrust_in_space - (maxPressureThresholdAtKerbinSurface), minimumThrust);
 
                 var maxSurfaceISP = _maxISP * (maxSurfaceThrust / max_thrust_in_space) * heatExchangerThrustDivisor;
 
