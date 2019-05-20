@@ -444,11 +444,7 @@ namespace FNPlugin
                     }
                 }
 
-                Debug.Log("[KSPI]: Start ElectricEngineControllerFX ScaleParameters");
-
                 ScaleParameters();
-
-                _initializationCountdown = 10;
 
                 // initialise resources
                 this.resources_to_supply = new[] { ResourceManager.FNRESOURCE_WASTEHEAT };
@@ -458,6 +454,7 @@ namespace FNPlugin
                 DetermineTechLevel();
                 powerCapacityModifier = PowerCapacityModifier;
 
+                _initializationCountdown = 10;
                 _ispFloatCurve = new FloatCurve();
                 _ispFloatCurve.Add(0, (float)baseISP);
                 _speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
