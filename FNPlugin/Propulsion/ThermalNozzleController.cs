@@ -53,8 +53,12 @@ namespace FNPlugin
         public double exhaustModifier;
 
 
+
+        
         [KSPField]
-        public float fuelflowThrottleMaxValue = 100;
+        public double minimumBaseIsp = 0;
+
+
         [KSPField]
         public bool canUsePureChargedPower = false;
         [KSPField]
@@ -417,6 +421,7 @@ namespace FNPlugin
         protected string _fuelTechRequirement;
         
         protected double _heatDecompositionFraction;
+        protected double _fuelflowThrottleMaxValue = 100;
 
         protected float _fuelCoolingFactor = 1;
         protected float _fuelToxicity;
@@ -436,6 +441,11 @@ namespace FNPlugin
         protected bool _hasrequiredupgrade = false;
         protected bool _hasSetupPropellant = false;
         protected bool _currentpropellant_is_jet = false;
+
+        protected BaseField fuelflowThrottleField;
+
+        protected UI_FloatRange fuelflowThrottleFloatRangeEditor;
+        protected UI_FloatRange fuelflowThrottleFloatRangeFlight;
 
         protected FloatCurve originalAtmCurve;
         protected FloatCurve originalAtmosphereCurve;
@@ -678,24 +688,22 @@ namespace FNPlugin
                     _originalEngineDecelerationSpeed = myAttachedEngine.engineDecelerationSpeed;
                 }
                 else
-                {
                     Debug.LogError("[KSPI]: ThermalNozzleController - failed to find engine!");
-                }
 
                 // find attached thermal source
                 ConnectToThermalSource();
 
                 maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
 
-                var fuelflowThrottleField = Fields["fuelflowThrottle"];
-                fuelflowThrottleField.guiActiveEditor = fuelflowThrottleMaxValue > 100;
-                fuelflowThrottleField.guiActive = fuelflowThrottleMaxValue > 100;
+                fuelflowThrottleField = Fields["fuelflowThrottle"];
 
-                var fuelflowThrottleFloatRangeEditor = fuelflowThrottleField.uiControlEditor as UI_FloatRange;
-                var fuelflowThrottleFloatRangeFlight = fuelflowThrottleField.uiControlFlight as UI_FloatRange;
-
-                fuelflowThrottleFloatRangeEditor.maxValue = fuelflowThrottleMaxValue;
-                fuelflowThrottleFloatRangeFlight.maxValue = fuelflowThrottleMaxValue;
+                if (fuelflowThrottleField != null)
+                {
+                    fuelflowThrottleFloatRangeEditor = fuelflowThrottleField.uiControlEditor as UI_FloatRange;
+                    fuelflowThrottleFloatRangeFlight = fuelflowThrottleField.uiControlFlight as UI_FloatRange;
+                }
+                else
+                    Debug.LogError("[KSPI]: ThermalNozzleController - failed to find fuelflowThrottle field");
 
                 var ispThrottleField = Fields["ispThrottle"];
                 ispThrottleField.guiActiveEditor = showIspThrotle;
@@ -2016,6 +2024,19 @@ namespace FNPlugin
             if (baseMaxIsp > maxThermalNozzleIsp && !isPlasmaNozzle)
                 baseMaxIsp = maxThermalNozzleIsp;
 
+            _fuelflowThrottleMaxValue = minimumBaseIsp > 0 ? 100 * Math.Max(1, baseMaxIsp / Math.Min(baseMaxIsp, minimumBaseIsp)) : 100;
+
+            if (fuelflowThrottleField != null)
+            {
+                fuelflowThrottleField.guiActiveEditor = minimumBaseIsp > 0;
+                fuelflowThrottleField.guiActive = minimumBaseIsp > 0;
+            }
+
+            if (fuelflowThrottleFloatRangeEditor != null)
+                fuelflowThrottleFloatRangeEditor.maxValue = (float)_fuelflowThrottleMaxValue;
+            if (fuelflowThrottleFloatRangeFlight != null)
+                fuelflowThrottleFloatRangeFlight.maxValue = (float)_fuelflowThrottleMaxValue;
+
             if (UseThermalPowerOnly)
             {
                 _maxISP = isPlasmaNozzle 
@@ -2036,13 +2057,15 @@ namespace FNPlugin
                     _maxISP = _maxISP + Math.Pow((double)(decimal)ispThrottle / 100, 2) * plasmaAfterburnerRange * baseMaxIsp;
             }
 
-            fuelflowMultplier = (((Math.Min(Math.Max(100, fuelflowThrottleMaxValue * (double)(decimal)_ispPropellantMultiplier), fuelflowThrottle))) / 100);
+            var maxFlowMultiplier = Math.Min(minimumBaseIsp, baseMaxIsp / minimumBaseIsp);
+
+            fuelflowMultplier = (((Math.Min(Math.Max(100, _fuelflowThrottleMaxValue * (double)(decimal)_ispPropellantMultiplier), fuelflowThrottle))) / 100);
 
             var ispFlowMultiplier = _ispPropellantMultiplier * (1 / fuelflowMultplier);
 
             _maxISP *= ispFlowMultiplier;
 
-            exhaustModifier = Math.Min(fuelflowThrottleMaxValue, (1 / ispFlowMultiplier) * 100) / fuelflowThrottleMaxValue;
+            exhaustModifier = Math.Min(_fuelflowThrottleMaxValue, (1 / ispFlowMultiplier) * 100) / _fuelflowThrottleMaxValue;
         }
 
         public override string GetInfo()
