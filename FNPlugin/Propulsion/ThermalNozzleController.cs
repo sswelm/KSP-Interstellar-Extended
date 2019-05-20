@@ -2059,7 +2059,9 @@ namespace FNPlugin
 
             var maxFlowMultiplier = Math.Min(minimumBaseIsp, baseMaxIsp / minimumBaseIsp);
 
-            fuelflowMultplier = (((Math.Min(Math.Max(100, _fuelflowThrottleMaxValue * (double)(decimal)_ispPropellantMultiplier), fuelflowThrottle))) / 100);
+            var effectiveFuelflowThrottle = Math.Min(_fuelflowThrottleMaxValue, (double)(decimal)fuelflowThrottle);
+
+            fuelflowMultplier = Math.Min(Math.Max(100, _fuelflowThrottleMaxValue * _ispPropellantMultiplier), effectiveFuelflowThrottle) / 100;
 
             var ispFlowMultiplier = _ispPropellantMultiplier * (1 / fuelflowMultplier);
 
