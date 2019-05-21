@@ -71,10 +71,13 @@ namespace FNPlugin
         [KSPField]
         public double exotic_power_required = 1000;
 
-        //[KSPField(isPersistant = true, guiActive = true, guiName = "Warp Turning"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
-        //public bool allowWarpTurning = true;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Warp UI"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
-        public bool showWindow;
+
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
+        public bool showWindow = false;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Rotation Stability"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
+        public bool useRotationStability = false;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Turning"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
+        public bool allowWarpTurning = true;
 
         //GUI
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpdriveType")]
@@ -373,7 +376,7 @@ namespace FNPlugin
             reverse_heading.z = -reverse_heading.z;
 
             // prevent g-force effects for current and next frame
-            //part.vessel.IgnoreGForces(2);
+            part.vessel.IgnoreGForces(2);
 
             if (!this.vessel.packed)
                 vessel.GoOnRails();
@@ -938,6 +941,10 @@ namespace FNPlugin
                 // disable any geeforce effects durring warp
                 part.vessel.IgnoreGForces(1);
 
+                // prevent turning durring warp
+                if (!allowWarpTurning)
+                    OrbitPhysicsManager.HoldVesselUnpack();
+
                 var reverseHeadingWarp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
                 var newDirection = currentOrbitalVelocity + reverseHeadingWarp;
@@ -1195,7 +1202,7 @@ namespace FNPlugin
 
             // determine if we need to change speed and heading
             var hasPowerShortage = insufficientPowerTimeout < 0;
-            var hasHeadingChanged = magnitudeDiff > 0.001 && counterCurrent > counterPreviousChange + headingChangedTimeout; //&& allowWarpTurning;
+            var hasHeadingChanged = magnitudeDiff > 0.002 && counterCurrent > counterPreviousChange + headingChangedTimeout && allowWarpTurning;
             var hasWarpFactorChange = Math.Abs(existing_warp_speed - newLightSpeed) > float.Epsilon;
             var hasGavityPullInbalance = maximumWarpSpeedFactor < selected_factor;
 
@@ -1248,7 +1255,7 @@ namespace FNPlugin
 
             active_part_heading = newPartHeading;
 
-            //var previousRotation = vessel.transform.rotation;
+            var previousRotation = vessel.transform.rotation;
 
             // prevent g-force effects for current and next frame
             //part.vessel.IgnoreGForces(2);
@@ -1265,8 +1272,8 @@ namespace FNPlugin
                 vessel.GoOffRails();
 
             // only rotate durring normal time
-            //if (!vessel.packed)
-            //    vessel.SetRotation(previousRotation);
+            if (useRotationStability && !vessel.packed)
+                vessel.SetRotation(previousRotation);
         }
 
         private void Develocitize()
