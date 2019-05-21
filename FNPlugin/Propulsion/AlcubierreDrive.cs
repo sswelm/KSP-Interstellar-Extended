@@ -48,12 +48,8 @@ namespace FNPlugin
         public string upgradeTechReq = "";
         [KSPField]
         public double powerRequirementMultiplier = 1;
-        //[KSPField]
-        //public float reactionWheelStrength = 100;
         [KSPField]
         public long maxPowerTimeout = 50;
-        [KSPField]
-        public long headingChangedTimeout = 25;
         [KSPField] 
         public float warpPowerMultTech0 = 10;
         [KSPField]
@@ -70,14 +66,16 @@ namespace FNPlugin
         public double magnitudeDiff;
         [KSPField]
         public double exotic_power_required = 1000;
+        [KSPField]
+        public bool useRotateStability = true;
+        [KSPField]
+        public bool allowWarpTurning = true;
 
+        //[KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Warp Frames Update", guiUnits = "%"), UI_FloatRange(minValue = 1, maxValue = 100, stepIncrement = 1)]
+        public float headingChangedTimeout = 25;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
-        public bool showWindow = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Rotation Stability"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
-        public bool useRotationStability = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Turning"), UI_Toggle(disabledText = "Off", enabledText = "On", affectSymCounterparts = UI_Scene.All)]
-        public bool allowWarpTurning = true;
+        public bool showWindow = false;     
 
         //GUI
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpdriveType")]
@@ -841,7 +839,7 @@ namespace FNPlugin
                 {
                     moduleReactionWheel.PitchTorque = IsEnabled ? vesselMass * 10 : 0;
                     moduleReactionWheel.YawTorque = IsEnabled ? vesselMass * 10 : 0;
-                    moduleReactionWheel.RollTorque = IsEnabled ? 0 : 0;
+                    moduleReactionWheel.RollTorque = IsEnabled ? vesselMass * 10 : 0;
                 }
             }
 
@@ -928,7 +926,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            counterCurrent++;
+            
 
             if (initiateWarpTimeout > 0)
                 InitiateWarp();
@@ -938,12 +936,14 @@ namespace FNPlugin
 
             if (IsEnabled)
             {
+                counterCurrent++;
+
                 // disable any geeforce effects durring warp
                 part.vessel.IgnoreGForces(1);
 
                 // prevent turning durring warp
-                if (!allowWarpTurning)
-                    OrbitPhysicsManager.HoldVesselUnpack();
+                //if (!allowWarpTurning)
+                //    OrbitPhysicsManager.HoldVesselUnpack();
 
                 var reverseHeadingWarp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
@@ -1202,7 +1202,7 @@ namespace FNPlugin
 
             // determine if we need to change speed and heading
             var hasPowerShortage = insufficientPowerTimeout < 0;
-            var hasHeadingChanged = magnitudeDiff > 0.002 && counterCurrent > counterPreviousChange + headingChangedTimeout && allowWarpTurning;
+            var hasHeadingChanged = magnitudeDiff > 0.001 && counterCurrent > counterPreviousChange + headingChangedTimeout && allowWarpTurning;
             var hasWarpFactorChange = Math.Abs(existing_warp_speed - newLightSpeed) > float.Epsilon;
             var hasGavityPullInbalance = maximumWarpSpeedFactor < selected_factor;
 
@@ -1260,6 +1260,9 @@ namespace FNPlugin
             // prevent g-force effects for current and next frame
             //part.vessel.IgnoreGForces(2);
 
+            if (!vessel.packed && useRotateStability)
+                OrbitPhysicsManager.HoldVesselUnpack();
+
             if (!vessel.packed)
                 vessel.GoOnRails();
 
@@ -1272,8 +1275,8 @@ namespace FNPlugin
                 vessel.GoOffRails();
 
             // only rotate durring normal time
-            if (useRotationStability && !vessel.packed)
-                vessel.SetRotation(previousRotation);
+            //if (useRotateStability && !vessel.packed)
+            //    vessel.SetRotation(previousRotation);
         }
 
         private void Develocitize()
