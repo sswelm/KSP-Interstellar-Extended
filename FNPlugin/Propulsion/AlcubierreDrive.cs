@@ -75,7 +75,9 @@ namespace FNPlugin
         public float headingChangedTimeout = 25;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
-        public bool showWindow = false;     
+        public bool showWindow = false;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Match Exit To Destination"), UI_Toggle(disabledText = "False", enabledText = "True", affectSymCounterparts = UI_Scene.All)]
+        public bool mathExitToDestinationSpeed = true;     
 
         //GUI
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpdriveType")]
@@ -368,10 +370,10 @@ namespace FNPlugin
             // Disable sound
             warp_sound.Stop();
 
-            Vector3d reverse_heading = heading_act;
-            reverse_heading.x = -reverse_heading.x;
-            reverse_heading.y = -reverse_heading.y;
-            reverse_heading.z = -reverse_heading.z;
+            Vector3d reverse_warp_heading = heading_act;
+            reverse_warp_heading.x = -reverse_warp_heading.x;
+            reverse_warp_heading.y = -reverse_warp_heading.y;
+            reverse_warp_heading.z = -reverse_warp_heading.z;
 
             // prevent g-force effects for current and next frame
             part.vessel.IgnoreGForces(2);
@@ -379,7 +381,27 @@ namespace FNPlugin
             if (!this.vessel.packed)
                 vessel.GoOnRails();
 
-            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_heading, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+            Vector3d adjustment_to_target_body_vector = new Vector3d(0, 0, 0);
+
+            if (mathExitToDestinationSpeed && vessel.mainBody != warpInitialMainBody)
+            {
+                if (warpInitialMainBody.orbit != null)
+                    Debug.Log("[KSPI]: Init body has no orbit vel");
+                else
+                    Debug.Log("[KSPI]: Init body has orbit vel " + warpInitialMainBody.orbit.vel.x + " " + warpInitialMainBody.orbit.vel.y + " " + warpInitialMainBody.orbit.vel.z);
+
+                Vector3d reverse_initial_departure_velocity = warpInitialMainBody.orbit != null 
+                    ? warpInitialMainBody.orbit.vel
+                    : vessel.orbit.vel;
+
+                reverse_initial_departure_velocity.x = -reverse_initial_departure_velocity.x;
+                reverse_initial_departure_velocity.y = -reverse_initial_departure_velocity.y; 
+                reverse_initial_departure_velocity.z = -reverse_initial_departure_velocity.z;
+
+                adjustment_to_target_body_vector += reverse_initial_departure_velocity + vessel.mainBody.orbit.vel;
+            }
+
+            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_warp_heading + adjustment_to_target_body_vector, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
             if (!this.vessel.packed)
                 vessel.GoOffRails();
@@ -388,7 +410,8 @@ namespace FNPlugin
 
             if (KopernicusHelper.IsStar(part.vessel.mainBody)) return;
 
-            Develocitize();
+            if (!mathExitToDestinationSpeed)
+               Develocitize();
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed", active = true)]
