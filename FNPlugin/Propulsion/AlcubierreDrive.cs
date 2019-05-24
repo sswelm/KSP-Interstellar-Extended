@@ -443,7 +443,7 @@ namespace FNPlugin
 
             if (KopernicusHelper.IsStar(part.vessel.mainBody)) return;
 
-			if (!mathExitToDestinationSpeed && vessel.mainBody != warpInitialMainBody)
+            if (!mathExitToDestinationSpeed && vessel.mainBody != warpInitialMainBody)
                Develocitize();
         }
 
@@ -1235,11 +1235,15 @@ namespace FNPlugin
                 insufficientPowerTimeout = 10;
 
             var minimumAltitudeDistance = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * newLightSpeed;
-            if (vessel.altitude < (vessel.mainBody.atmosphere ? vessel.mainBody.atmosphereDepth + minimumAltitudeDistance : minimumAltitudeDistance))
+
+            CelestialBody closestBody;
+            var closestDistanceToBody = DistanceToClosestBody(vessel, out closestBody);
+
+            if (closestDistanceToBody < (closestBody.atmosphere ? closestBody.atmosphereDepth + minimumAltitudeDistance : minimumAltitudeDistance))
             {
                 if (vesselWasInOuterspace)
                 {
-                    var message = vessel.mainBody.atmosphere && vessel.altitude < (vessel.mainBody.atmosphereDepth + 10000)
+                    var message = closestBody.atmosphere && closestDistanceToBody < (closestBody.atmosphereDepth + 10000)
                         ? "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToAtmosphere"
                         : "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToSurface";
 
@@ -1514,6 +1518,52 @@ namespace FNPlugin
                     font = PluginHelper.MainFont
                 };
             }
+        }
+
+        private static double DistanceToClosestBody(Vessel vessel, out CelestialBody closestBody)
+        {
+            var minimumDistance = vessel.altitude;
+            closestBody = vessel.mainBody;
+
+            if (vessel.orbit.closestEncounterBody != null)
+            {
+                var celestrialBody = vessel.orbit.closestEncounterBody;
+                var toBody = vessel.CoMD - celestrialBody.position;
+                var distanceToSurfaceBody = toBody.magnitude - celestrialBody.Radius;
+
+                if (distanceToSurfaceBody < minimumDistance)
+                {
+                    minimumDistance = distanceToSurfaceBody;
+                    closestBody = celestrialBody;
+                }
+            }
+
+            if (vessel.mainBody.orbit != null && vessel.mainBody.orbit.referenceBody != null)
+            {
+                var celestrialBody = vessel.mainBody.orbit.referenceBody;
+                var toBody = vessel.CoMD - celestrialBody.position;
+                var distanceToSurfaceBody = toBody.magnitude - celestrialBody.Radius;
+
+                if (distanceToSurfaceBody < minimumDistance)
+                {
+                    minimumDistance = distanceToSurfaceBody;
+                    closestBody = celestrialBody;
+                }
+            }
+
+            foreach (var celestrialBody in vessel.mainBody.orbitingBodies)
+            {
+                var toBody = vessel.CoMD - celestrialBody.position;
+                var distanceToSurfaceBody = toBody.magnitude - celestrialBody.Radius;
+
+                if (distanceToSurfaceBody < minimumDistance)
+                {
+                    minimumDistance = distanceToSurfaceBody;
+                    closestBody = celestrialBody;
+                }
+            }
+
+            return minimumDistance;
         }
 
     }
