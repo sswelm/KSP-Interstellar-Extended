@@ -187,7 +187,6 @@ namespace FNPlugin.Wasteheat
         private Shader kspShader;
         private Renderer renderer;
         private Animation deployAnimation;
-        private Color emissiveColor;
         private AnimationState anim;
         private Renderer[] renderArray;
         private AnimationState[] heatStates;
@@ -1078,7 +1077,7 @@ namespace FNPlugin.Wasteheat
             {
                 SetHeatAnimationRatio(colorRatio.Sqrt());
             }
-            else if (!string.IsNullOrEmpty(colorHeat))
+            else if (!string.IsNullOrEmpty(colorHeat) && colorRatioExponent != 0)
             {
                 if (renderArray == null)
                     return;
@@ -1096,7 +1095,7 @@ namespace FNPlugin.Wasteheat
 
                 var effectiveColorRatio = Mathf.Pow(colorRatio, colorRatioExponent);
 
-                emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, effectiveColorRatio);
+                var emissiveColor = new Color(colorRatioRed, colorRatioGreen, colorRatioBlue, effectiveColorRatio);
 
                 for (var i = 0; i < renderArray.Count(); i++)
                 {

@@ -428,33 +428,33 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            if (vessel.FindPartModulesImplementing<FNGenerator>().Where(m => m.isHighPower).Any() == false)
-            {
-                if (powerThrustMultiplier == 1 && powerThrustMultiplierWithoutReactors > 0)
-                {
-                    powerThrustMultiplier = powerThrustMultiplierWithoutReactors;
-                }
-
-                if (powerReqMult == 1 && powerReqMultWithoutReactor > 0)
-                {
-                    powerReqMult = powerReqMultWithoutReactor;
-                }
-            }
-
-            ScaleParameters();
-
-            _initializationCountdown = 10;
-            Debug.Log("[KSPI]: Start Initializing ElectricEngineControllerFX");
             try
             {
+                Debug.Log("[KSPI]: Start ElectricEngineControllerFX");
+
+                if (state != StartState.Editor)
+                {
+                    if (vessel.FindPartModulesImplementing<FNGenerator>().Where(m => m.isHighPower).Any() == false)
+                    {
+                        if (powerThrustMultiplier == 1 && powerThrustMultiplierWithoutReactors > 0)
+                            powerThrustMultiplier = powerThrustMultiplierWithoutReactors;
+
+                        if (powerReqMult == 1 && powerReqMultWithoutReactor > 0)
+                            powerReqMult = powerReqMultWithoutReactor;
+                    }
+                }
+
+                ScaleParameters();
+
                 // initialise resources
-                this.resources_to_supply = new [] { ResourceManager.FNRESOURCE_WASTEHEAT };
+                this.resources_to_supply = new[] { ResourceManager.FNRESOURCE_WASTEHEAT };
                 base.OnStart(state);
 
                 AttachToEngine();
                 DetermineTechLevel();
                 powerCapacityModifier = PowerCapacityModifier;
 
+                _initializationCountdown = 10;
                 _ispFloatCurve = new FloatCurve();
                 _ispFloatCurve.Add(0, (float)baseISP);
                 _speedOfLight = GameConstants.speedOfLight * PluginHelper.SpeedOfLightMult;
