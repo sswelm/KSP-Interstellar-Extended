@@ -387,24 +387,22 @@ namespace FNPlugin
             if (!this.vessel.packed)
                 vessel.GoOnRails();
 
-            Vector3d adjustment_to_target_body_vector = new Vector3d(0, 0, 0);
-
-            if (mathExitToDestinationSpeed)
+            if (mathExitToDestinationSpeed && departureVelocity != null)
             {
                 Debug.Log("[KSPI]: vessel departure velocity " + departureVelocity.x + " " + departureVelocity.y + " " + departureVelocity.z);
                 Vector3d reverse_initial_departure_velocity = new Vector3d(-departureVelocity.x, -departureVelocity.y, -departureVelocity.z);
 
                 // remove vessel departure speed in world
-                adjustment_to_target_body_vector += reverse_initial_departure_velocity;
+                reverse_warp_heading += reverse_initial_departure_velocity;
 
                 // add celestrial body orbit speed to match speed in world
                 if (vessel.mainBody.orbit != null)
-                    adjustment_to_target_body_vector += vessel.mainBody.orbit.GetFrameVel();
+                    reverse_warp_heading += vessel.mainBody.orbit.GetFrameVel();
             }
 
             var universalTime = Planetarium.GetUniversalTime();
 
-            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_warp_heading + adjustment_to_target_body_vector, vessel.orbit.referenceBody, universalTime);
+            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_warp_heading, vessel.orbit.referenceBody, universalTime);
 
             // disables physics and puts the ship into a propagated orbit , is this still needed?
             if (!this.vessel.packed)
@@ -1200,9 +1198,9 @@ namespace FNPlugin
         {
             if (!IsEnabled || exotic_power_required <= 0) return;
 
-            var newLightSpeed = _engineThrotle[selected_factor];
+            var selectedLightSpeed = _engineThrotle[selected_factor];
 
-            currentPowerRequirementForWarp = GetPowerRequirementForWarp(newLightSpeed);
+            currentPowerRequirementForWarp = GetPowerRequirementForWarp(selectedLightSpeed);
 
             var availablePower = CheatOptions.InfiniteElectricity 
                 ? currentPowerRequirementForWarp
@@ -1226,7 +1224,7 @@ namespace FNPlugin
             else
                 insufficientPowerTimeout = 10;
 
-            var minimumAltitudeDistance = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * newLightSpeed;
+            var minimumAltitudeDistance = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * selectedLightSpeed;
 
             if (distanceToClosestBody < (closestBody.atmosphere ? closestBody.atmosphereDepth + minimumAltitudeDistance : minimumAltitudeDistance))
             {
@@ -1255,7 +1253,7 @@ namespace FNPlugin
             // determine if we need to change speed and heading
             var hasPowerShortage = insufficientPowerTimeout < 0;
             var hasHeadingChanged = magnitudeDiff > 0.001 && counterCurrent > counterPreviousChange + headingChangedTimeout && allowWarpTurning;
-            var hasWarpFactorChange = Math.Abs(existing_warp_speed - newLightSpeed) > float.Epsilon;
+            var hasWarpFactorChange = Math.Abs(existing_warp_speed - selectedLightSpeed) > float.Epsilon;
             var hasGavityPullInbalance = maximumWarpSpeedFactor < selected_factor;
 
             if (hasGavityPullInbalance)
@@ -1273,7 +1271,7 @@ namespace FNPlugin
                 }
 
                 if (selected_factor == minimumPowerAllowedFactor || selected_factor == minimum_selected_factor ||
-                    (newLightSpeed < 1 && warpEngineThrottle >= maximumAllowedWarpThrotle && powerReturned < 0.99 * currentPowerRequirementForWarp))
+                    (selectedLightSpeed < 1 && warpEngineThrottle >= maximumAllowedWarpThrotle && powerReturned < 0.99 * currentPowerRequirementForWarp))
                 {
                     string message;
                     if (powerReturned < 0.99 * currentPowerRequirementForWarp)
@@ -1297,7 +1295,7 @@ namespace FNPlugin
             if (hasHeadingChanged)
                 counterPreviousChange = counterCurrent;
 
-            newLightSpeed = _engineThrotle[selected_factor];
+            var newLightSpeed = _engineThrotle[selected_factor];
             existing_warp_speed = newLightSpeed;
 
             var reverseHeading = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
