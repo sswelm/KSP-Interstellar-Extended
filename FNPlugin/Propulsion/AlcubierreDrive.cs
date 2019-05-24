@@ -1295,12 +1295,11 @@ namespace FNPlugin
             if (hasHeadingChanged)
                 counterPreviousChange = counterCurrent;
 
-            var newLightSpeed = _engineThrotle[selected_factor];
-            existing_warp_speed = newLightSpeed;
+            existing_warp_speed = _engineThrotle[selected_factor];
 
             var reverseHeading = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
 
-            heading_act = newPartHeading * PluginHelper.SpeedOfLight * newLightSpeed;
+            heading_act = newPartHeading * PluginHelper.SpeedOfLight * existing_warp_speed;
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
             active_part_heading = newPartHeading;
@@ -1310,6 +1309,7 @@ namespace FNPlugin
             if (!vessel.packed && useRotateStability)
                 OrbitPhysicsManager.HoldVesselUnpack();
 
+            // puts the ship back into a simulated orbit and reenables physics, is this still needed?
             if (!vessel.packed)
                 vessel.GoOnRails();
 
@@ -1318,6 +1318,7 @@ namespace FNPlugin
 
             vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverseHeading + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
+            // disables physics and puts the ship into a propagated orbit , is this still needed?
             if (!vessel.packed)
                 vessel.GoOffRails();
         }
