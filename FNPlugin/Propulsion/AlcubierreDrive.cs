@@ -131,6 +131,8 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_status")]
         public string driveStatus;
 
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Distance to closest body", guiFormat = "F0", guiUnits = " m")]
+        private double distanceToClosestBody;
 
         private readonly double[] _engineThrotle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
 
@@ -179,6 +181,7 @@ namespace FNPlugin
         private Orbit predictedExitOrbit;
         private PartResourceDefinition exoticResourceDefinition;
         private CelestialBody warpInitialMainBody;
+        private CelestialBody closestBody;
         private Orbit departureOrbit;
         private Vector3d departureVelocity;
         private ModuleReactionWheel moduleReactionWheel;
@@ -946,13 +949,15 @@ namespace FNPlugin
 
             warpEngineThrottle = _engineThrotle[selected_factor];
 
+            distanceToClosestBody = DistanceToClosestBody(vessel, out closestBody);
+
             gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
             gravityAtSeaLevel = vessel.mainBody.GeeASL * GameConstants.STANDARD_GRAVITY;
             gravityRatio = gravityAtSeaLevel > 0 ? Math.Min(1, gravityPull / gravityAtSeaLevel) : 0;
             gravityDragRatio = Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Sqrt(gravityAtSeaLevel)));
             gravityDragPercentage = (1 - gravityDragRatio) * 100;
             maximumWarpForGravityPull = gravityPull > 0 ? 1 / gravityPull : 0;
-            maximumWarpForAltitude = Math.Abs(vessel.altitude / PluginHelper.SpeedOfLight) * 25;
+            maximumWarpForAltitude = Math.Abs(distanceToClosestBody / PluginHelper.SpeedOfLight) * 25;
             maximumWarpWeighted = (gravityRatio * maximumWarpForGravityPull) + ((1 - gravityRatio) * maximumWarpForAltitude);
             maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpWeighted);
             maximumAllowedWarpThrotle = _engineThrotle[maximumWarpSpeedFactor];
@@ -969,7 +974,7 @@ namespace FNPlugin
             }
 
             minPowerRequirementForLightSpeed = GetPowerRequirementForWarp(1);
-            powerRequirementForMaximumAllowedLightSpeed = GetPowerRequirementForWarp(_engineThrotle[maximumWarpSpeedFactor]);
+            powerRequirementForMaximumAllowedLightSpeed = GetPowerRequirementForWarp(maximumAllowedWarpThrotle);
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(_engineThrotle[selected_factor]);
 
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
@@ -984,7 +989,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            
+            distanceToClosestBody = DistanceToClosestBody(vessel, out closestBody);
 
             if (initiateWarpTimeout > 0)
                 InitiateWarp();
@@ -1236,14 +1241,11 @@ namespace FNPlugin
 
             var minimumAltitudeDistance = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * newLightSpeed;
 
-            CelestialBody closestBody;
-            var closestDistanceToBody = DistanceToClosestBody(vessel, out closestBody);
-
-            if (closestDistanceToBody < (closestBody.atmosphere ? closestBody.atmosphereDepth + minimumAltitudeDistance : minimumAltitudeDistance))
+            if (distanceToClosestBody < (closestBody.atmosphere ? closestBody.atmosphereDepth + minimumAltitudeDistance : minimumAltitudeDistance))
             {
                 if (vesselWasInOuterspace)
                 {
-                    var message = closestBody.atmosphere && closestDistanceToBody < (closestBody.atmosphereDepth + 10000)
+                    var message = closestBody.atmosphere && distanceToClosestBody < (closestBody.atmosphereDepth + 10000)
                         ? "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToAtmosphere"
                         : "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToSurface";
 
