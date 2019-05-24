@@ -946,7 +946,7 @@ namespace FNPlugin
             gravityDragRatio = Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Sqrt(gravityAtSeaLevel)));
             gravityDragPercentage = (1 - gravityDragRatio) * 100;
             maximumWarpForGravityPull = gravityPull > 0 ? 1 / gravityPull : 0;
-            maximumWarpForAltitude = Math.Abs(distanceToClosestBody / PluginHelper.SpeedOfLight) * 25;
+            maximumWarpForAltitude = Math.Pow(Math.Abs(distanceToClosestBody / PluginHelper.SpeedOfLight) * 20, 1.5) / 20;
             maximumWarpWeighted = (gravityRatio * maximumWarpForGravityPull) + ((1 - gravityRatio) * maximumWarpForAltitude);
             maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpWeighted);
             maximumAllowedWarpThrotle = _engineThrotle[maximumWarpSpeedFactor];
@@ -1216,13 +1216,6 @@ namespace FNPlugin
                 ProduceWasteheat(powerReturned);
             }
 
-            // detect power shortage
-            if (currentPowerRequirementForWarp > availablePower)
-                insufficientPowerTimeout = -1;
-            else if (powerReturned < 0.99 * currentPowerRequirementForWarp)
-                insufficientPowerTimeout--;
-            else
-                insufficientPowerTimeout = 10;
 
             var minimumAltitudeDistance = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * selectedLightSpeed;
 
@@ -1244,6 +1237,14 @@ namespace FNPlugin
             else
                 vesselWasInOuterspace = true;
 
+            // detect power shortage
+            if (currentPowerRequirementForWarp > availablePower)
+                insufficientPowerTimeout = -1;
+            else if (powerReturned < 0.99 * currentPowerRequirementForWarp)
+                insufficientPowerTimeout--;
+            else
+                insufficientPowerTimeout = 10;
+
             // retreive vessel heading
             var newPartHeading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
 
@@ -1252,7 +1253,7 @@ namespace FNPlugin
 
             // determine if we need to change speed and heading
             var hasPowerShortage = insufficientPowerTimeout < 0;
-            var hasHeadingChanged = magnitudeDiff > 0.001 && counterCurrent > counterPreviousChange + headingChangedTimeout && allowWarpTurning;
+            var hasHeadingChanged = magnitudeDiff > 0.0001 && counterCurrent > counterPreviousChange + headingChangedTimeout && allowWarpTurning;
             var hasWarpFactorChange = Math.Abs(existing_warp_speed - selectedLightSpeed) > float.Epsilon;
             var hasGavityPullInbalance = maximumWarpSpeedFactor < selected_factor;
 
@@ -1290,7 +1291,10 @@ namespace FNPlugin
                 ReduceWarpPower();
             }
 
-            if (!hasWarpFactorChange && !hasPowerShortage && !hasHeadingChanged && !hasGavityPullInbalance) return;
+            if (!hasWarpFactorChange && !hasPowerShortage && !hasHeadingChanged && !hasGavityPullInbalance)
+            {
+                return;
+            }
 
             if (hasHeadingChanged)
                 counterPreviousChange = counterCurrent;
@@ -1434,9 +1438,11 @@ namespace FNPlugin
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentWarpExitEccentricity"), exitEccentricity.ToString("0.000"), bold_black_style, text_black_style);
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentWarpExitMeanAnomaly"), exitMeanAnomaly.ToString("0.000") + "\xB0", bold_black_style, text_black_style);
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentWarpExitBurnToCircularize"), exitBurnCircularize.ToString("0.000") + " m/s", bold_black_style, text_black_style);
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_status"), driveStatus, bold_black_style, text_black_style);
 
-                PrintToGUILayout("Distance to closest body", (distanceToClosestBody * 0.001).ToString("0.00") + " km" , bold_black_style, text_black_style);
+                PrintToGUILayout("Maximum Warp For Altitude", (maximumWarpForAltitude).ToString("0.000"), bold_black_style, text_black_style);
+                PrintToGUILayout("Distance to closest body", (distanceToClosestBody * 0.001).ToString("0.000") + " km" , bold_black_style, text_black_style);
+
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_status"), driveStatus, bold_black_style, text_black_style);
 
                 var speedText = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_speed");
 
