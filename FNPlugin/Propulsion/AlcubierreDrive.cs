@@ -1437,6 +1437,8 @@ namespace FNPlugin
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentWarpExitBurnToCircularize"), exitBurnCircularize.ToString("0.000") + " m/s", bold_black_style, text_black_style);
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_status"), driveStatus, bold_black_style, text_black_style);
 
+                PrintToGUILayout("Distance to closest body", (distanceToClosestBody * 0.001).ToString("0.00") + " km" , bold_black_style, text_black_style);
+
                 var speedText = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_speed");
 
                 GUILayout.BeginHorizontal();
