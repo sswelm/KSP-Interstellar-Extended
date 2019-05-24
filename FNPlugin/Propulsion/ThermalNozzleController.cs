@@ -2063,11 +2063,13 @@ namespace FNPlugin
 
             fuelflowMultplier = Math.Min(Math.Max(100, _fuelflowThrottleMaxValue * _ispPropellantMultiplier), effectiveFuelflowThrottle) / 100;
 
-            var ispFlowMultiplier = _ispPropellantMultiplier * (1 / fuelflowMultplier);
+            var fueFlowDivider = fuelflowMultplier > 0 ? 1 / fuelflowMultplier : 0;
+
+            var ispFlowMultiplier = _ispPropellantMultiplier * fueFlowDivider;
 
             _maxISP *= ispFlowMultiplier;
 
-            exhaustModifier = Math.Min(_fuelflowThrottleMaxValue, (1 / ispFlowMultiplier) * 100) / _fuelflowThrottleMaxValue;
+            exhaustModifier = Math.Min(_fuelflowThrottleMaxValue, fueFlowDivider * 100) / _fuelflowThrottleMaxValue;
         }
 
         public override string GetInfo()
