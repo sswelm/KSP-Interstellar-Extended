@@ -406,15 +406,15 @@ namespace FNPlugin
                     adjustment_to_target_body_vector += vessel.mainBody.orbit.GetFrameVel();
             }
 
-            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_warp_heading + adjustment_to_target_body_vector, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+            var universalTime = Planetarium.GetUniversalTime();
+
+            vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_warp_heading + adjustment_to_target_body_vector, vessel.orbit.referenceBody, universalTime);
 
             if (!this.vessel.packed)
                 vessel.GoOffRails();
 
             if (getIntoOrbit)
             {
-                var universalTime = Planetarium.GetUniversalTime();
-
                 var timeAtApoapis = vessel.orbit.timeToAp + universalTime;
                 Debug.Log("[KSPI]: timeAtApoapis: " + timeAtApoapis);
                 var velocityVectorAtApoapsis = vessel.orbit.getOrbitalVelocityAtUT(timeAtApoapis);
@@ -429,7 +429,7 @@ namespace FNPlugin
                 do 
                 {
                     Debug.Log("[KSPI]: circulizationVector velocity " + circulizationVector.x + " " + circulizationVector.y + " " + circulizationVector.z);
-                    vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + circulizationVector, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+                    vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + circulizationVector, vessel.orbit.referenceBody, universalTime);
 
                     circulizationVector += circulizationVector;
 
@@ -441,7 +441,7 @@ namespace FNPlugin
 
             if (KopernicusHelper.IsStar(part.vessel.mainBody)) return;
 
-            if (!mathExitToDestinationSpeed)
+            if (!getIntoOrbit)
                Develocitize();
         }
 
