@@ -76,7 +76,7 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
         public bool showWindow = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Match Exit To Destination"), UI_Toggle(disabledText = "False", enabledText = "True", affectSymCounterparts = UI_Scene.All)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Circularize On Exit"), UI_Toggle(disabledText = "False", enabledText = "True", affectSymCounterparts = UI_Scene.All)]
         public bool mathExitToDestinationSpeed = true;     
 
         //GUI
@@ -179,6 +179,8 @@ namespace FNPlugin
         private Orbit predictedExitOrbit;
         private PartResourceDefinition exoticResourceDefinition;
         private CelestialBody warpInitialMainBody;
+        private Orbit departureOrbit;
+        private Vector3d departureVelocity;
         private ModuleReactionWheel moduleReactionWheel;
         private ResourceBuffers resourceBuffers;
 
@@ -323,7 +325,8 @@ namespace FNPlugin
             }
 
             initiateWarpTimeout = 0; // stop initiating to warp
-            vesselWasInOuterspace = (this.vessel.altitude > this.vessel.mainBody.atmosphereDepth * 10);
+
+            vesselWasInOuterspace = false;
  
             // consume all exotic matter to create warp field
             part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
@@ -332,6 +335,8 @@ namespace FNPlugin
             warp_sound.loop = true;
 
             warpInitialMainBody = vessel.mainBody;
+            departureOrbit = new Orbit(vessel.orbit);
+            departureVelocity = vessel.orbit.GetFrameVel();
 
             active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
 
@@ -383,28 +388,54 @@ namespace FNPlugin
 
             Vector3d adjustment_to_target_body_vector = new Vector3d(0, 0, 0);
 
-            if (mathExitToDestinationSpeed && vessel.mainBody != warpInitialMainBody)
-            {
-                if (warpInitialMainBody.orbit != null)
-                    Debug.Log("[KSPI]: Init body has no orbit vel");
-                else
-                    Debug.Log("[KSPI]: Init body has orbit vel " + warpInitialMainBody.orbit.vel.x + " " + warpInitialMainBody.orbit.vel.y + " " + warpInitialMainBody.orbit.vel.z);
+            bool getIntoOrbit = mathExitToDestinationSpeed && vessel.mainBody != warpInitialMainBody;
 
-                Vector3d reverse_initial_departure_velocity = warpInitialMainBody.orbit != null 
-                    ? warpInitialMainBody.orbit.vel
-                    : vessel.orbit.vel;
+            if (getIntoOrbit)
+            {
+                Debug.Log("[KSPI]: vessel departure velocity " + departureVelocity.x + " " + departureVelocity.y + " " + departureVelocity.z);
+
+                Vector3d reverse_initial_departure_velocity = departureVelocity;
 
                 reverse_initial_departure_velocity.x = -reverse_initial_departure_velocity.x;
                 reverse_initial_departure_velocity.y = -reverse_initial_departure_velocity.y; 
                 reverse_initial_departure_velocity.z = -reverse_initial_departure_velocity.z;
 
-                adjustment_to_target_body_vector += reverse_initial_departure_velocity + vessel.mainBody.orbit.vel;
+                adjustment_to_target_body_vector += reverse_initial_departure_velocity;
+
+                if (vessel.mainBody.orbit != null)
+                    adjustment_to_target_body_vector += vessel.mainBody.orbit.GetFrameVel();
             }
 
             vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_warp_heading + adjustment_to_target_body_vector, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
             if (!this.vessel.packed)
                 vessel.GoOffRails();
+
+            if (getIntoOrbit)
+            {
+                var universalTime = Planetarium.GetUniversalTime();
+
+                var timeAtApoapis = vessel.orbit.timeToAp + universalTime;
+                Debug.Log("[KSPI]: timeAtApoapis: " + timeAtApoapis);
+                var velocityVectorAtApoapsis = vessel.orbit.getOrbitalVelocityAtUT(timeAtApoapis);
+                Debug.Log("[KSPI]: circulizationVector velocity " + velocityVectorAtApoapsis.x + " " + velocityVectorAtApoapsis.y + " " + velocityVectorAtApoapsis.z);
+                var circularOrbitSpeed = CircularOrbitSpeed(vessel.mainBody, vessel.orbit.ApR);
+                Debug.Log("[KSPI]: circularOrbitSpeed: " + circularOrbitSpeed);
+                var horizontalVelocityVectorAtApoapsis = new Vector3d(velocityVectorAtApoapsis.x, velocityVectorAtApoapsis.y, 0);
+                Debug.Log("[KSPI]: horizontal Velocity At Apoapsis: " + horizontalVelocityVectorAtApoapsis.magnitude);
+                var circulizationVector = horizontalVelocityVectorAtApoapsis.normalized * (circularOrbitSpeed - horizontalVelocityVectorAtApoapsis.magnitude);
+
+                // Extremely small velocities cause the game to mess up very badly, so try something small and increase...
+                do 
+                {
+                    Debug.Log("[KSPI]: circulizationVector velocity " + circulizationVector.x + " " + circulizationVector.y + " " + circulizationVector.z);
+                    vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + circulizationVector, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
+
+                    circulizationVector += circulizationVector;
+
+                } while (double.IsNaN(vessel.orbit.getOrbitalVelocityAtUT(universalTime).magnitude));
+            }
+
 
             if (warpInitialMainBody == null || vessel.mainBody == warpInitialMainBody) return;
 
@@ -413,6 +444,8 @@ namespace FNPlugin
             if (!mathExitToDestinationSpeed)
                Develocitize();
         }
+
+
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_increaseWarpSpeed", active = true)]
         public void ToggleWarpSpeedUp()
@@ -1211,6 +1244,7 @@ namespace FNPlugin
                     Debug.Log("[KSPI]: " + Localizer.Format(message));
                     ScreenMessages.PostScreenMessage(message, 5);
                     DeactivateWarpDrive();
+                    vesselWasInOuterspace = false;
                     return;
                 }
             }
