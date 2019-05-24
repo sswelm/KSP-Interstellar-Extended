@@ -383,25 +383,26 @@ namespace FNPlugin
             // prevent g-force effects for current and next frame
             part.vessel.IgnoreGForces(2);
 
+            // puts the ship back into a simulated orbit and reenables physics, is this still needed?
             if (!this.vessel.packed)
                 vessel.GoOnRails();
 
             Vector3d adjustment_to_target_body_vector = new Vector3d(0, 0, 0);
 
-            bool getIntoOrbit = mathExitToDestinationSpeed && vessel.mainBody != warpInitialMainBody;
-
-            if (getIntoOrbit)
+            if (mathExitToDestinationSpeed)
             {
                 Debug.Log("[KSPI]: vessel departure velocity " + departureVelocity.x + " " + departureVelocity.y + " " + departureVelocity.z);
 
+                // reverse departure velocity
                 Vector3d reverse_initial_departure_velocity = departureVelocity;
-
                 reverse_initial_departure_velocity.x = -reverse_initial_departure_velocity.x;
                 reverse_initial_departure_velocity.y = -reverse_initial_departure_velocity.y; 
                 reverse_initial_departure_velocity.z = -reverse_initial_departure_velocity.z;
 
+                // remove vesel departure speed in world
                 adjustment_to_target_body_vector += reverse_initial_departure_velocity;
 
+                // add celestrial body orbit speed to match speed in world
                 if (vessel.mainBody.orbit != null)
                     adjustment_to_target_body_vector += vessel.mainBody.orbit.GetFrameVel();
             }
@@ -410,10 +411,11 @@ namespace FNPlugin
 
             vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverse_warp_heading + adjustment_to_target_body_vector, vessel.orbit.referenceBody, universalTime);
 
+            // disables physics and puts the ship into a propagated orbit , is this still needed?
             if (!this.vessel.packed)
                 vessel.GoOffRails();
 
-            if (getIntoOrbit)
+            if (mathExitToDestinationSpeed)
             {
                 var timeAtApoapis = vessel.orbit.timeToAp + universalTime;
                 Debug.Log("[KSPI]: timeAtApoapis: " + timeAtApoapis);
@@ -441,7 +443,7 @@ namespace FNPlugin
 
             if (KopernicusHelper.IsStar(part.vessel.mainBody)) return;
 
-            if (!getIntoOrbit)
+			if (!getIntoOrbit && vessel.mainBody != warpInitialMainBody)
                Develocitize();
         }
 
