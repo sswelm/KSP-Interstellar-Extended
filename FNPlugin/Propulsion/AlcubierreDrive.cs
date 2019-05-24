@@ -378,10 +378,7 @@ namespace FNPlugin
             // Disable sound
             warp_sound.Stop();
 
-            Vector3d reverse_warp_heading = heading_act;
-            reverse_warp_heading.x = -reverse_warp_heading.x;
-            reverse_warp_heading.y = -reverse_warp_heading.y;
-            reverse_warp_heading.z = -reverse_warp_heading.z;
+            Vector3d reverse_warp_heading =  new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
 
             // prevent g-force effects for current and next frame
             part.vessel.IgnoreGForces(2);
@@ -395,14 +392,9 @@ namespace FNPlugin
             if (mathExitToDestinationSpeed)
             {
                 Debug.Log("[KSPI]: vessel departure velocity " + departureVelocity.x + " " + departureVelocity.y + " " + departureVelocity.z);
+                Vector3d reverse_initial_departure_velocity = new Vector3d(-departureVelocity.x, -departureVelocity.y, -departureVelocity.z);
 
-                // reverse departure velocity
-                Vector3d reverse_initial_departure_velocity = departureVelocity;
-                reverse_initial_departure_velocity.x = -reverse_initial_departure_velocity.x;
-                reverse_initial_departure_velocity.y = -reverse_initial_departure_velocity.y; 
-                reverse_initial_departure_velocity.z = -reverse_initial_departure_velocity.z;
-
-                // remove vesel departure speed in world
+                // remove vessel departure speed in world
                 adjustment_to_target_body_vector += reverse_initial_departure_velocity;
 
                 // add celestrial body orbit speed to match speed in world
@@ -440,7 +432,6 @@ namespace FNPlugin
 
                 } while (double.IsNaN(vessel.orbit.getOrbitalVelocityAtUT(universalTime).magnitude));
             }
-
 
             if (warpInitialMainBody == null || vessel.mainBody == warpInitialMainBody) return;
 
@@ -1004,10 +995,6 @@ namespace FNPlugin
                 // disable any geeforce effects durring warp
                 part.vessel.IgnoreGForces(1);
 
-                // prevent turning durring warp
-                //if (!allowWarpTurning)
-                //    OrbitPhysicsManager.HoldVesselUnpack();
-
                 var reverseHeadingWarp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
                 var newDirection = currentOrbitalVelocity + reverseHeadingWarp;
@@ -1032,8 +1019,8 @@ namespace FNPlugin
                 } while (double.IsNaN(predictedExitOrbit.getOrbitalVelocityAtUT(universalTime).magnitude));
 
                 // update expected exit orbit data
-                exitPeriapsis = predictedExitOrbit.PeA / 1000;
-                exitApoapsis = predictedExitOrbit.ApA / 1000;
+                exitPeriapsis = predictedExitOrbit.PeA * 0.001;
+                exitApoapsis = predictedExitOrbit.ApA * 0.001;
                 exitSpeed = predictedExitOrbit.getOrbitalVelocityAtUT(universalTime).magnitude;
                 exitEccentricity = predictedExitOrbit.eccentricity * 180 / Math.PI;
                 exitMeanAnomaly = predictedExitOrbit.meanAnomaly;
@@ -1041,8 +1028,8 @@ namespace FNPlugin
             }
             else
             {
-                exitPeriapsis = currentOrbit.PeA / 1000;
-                exitApoapsis = currentOrbit.ApA / 1000;
+                exitPeriapsis = currentOrbit.PeA * 0.001;
+                exitApoapsis = currentOrbit.ApA * 0.001;
                 exitSpeed = currentOrbit.getOrbitalVelocityAtUT(universalTime).magnitude;
                 exitEccentricity = currentOrbit.eccentricity;
                 exitMeanAnomaly = currentOrbit.meanAnomaly * 180 / Math.PI;
@@ -1322,9 +1309,6 @@ namespace FNPlugin
 
             var previousRotation = vessel.transform.rotation;
 
-            // prevent g-force effects for current and next frame
-            //part.vessel.IgnoreGForces(2);
-
             if (!vessel.packed && useRotateStability)
                 OrbitPhysicsManager.HoldVesselUnpack();
 
@@ -1338,10 +1322,6 @@ namespace FNPlugin
 
             if (!vessel.packed)
                 vessel.GoOffRails();
-
-            // only rotate durring normal time
-            //if (useRotateStability && !vessel.packed)
-            //    vessel.SetRotation(previousRotation);
         }
 
         private void Develocitize()
