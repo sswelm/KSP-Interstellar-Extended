@@ -443,7 +443,7 @@ namespace FNPlugin
 
             if (KopernicusHelper.IsStar(part.vessel.mainBody)) return;
 
-			if (!getIntoOrbit && vessel.mainBody != warpInitialMainBody)
+			if (!mathExitToDestinationSpeed && vessel.mainBody != warpInitialMainBody)
                Develocitize();
         }
 
