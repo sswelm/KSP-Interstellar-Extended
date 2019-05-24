@@ -1258,14 +1258,14 @@ namespace FNPlugin
         {
             // recaculate ISP based on power and core temp available
             FloatCurve atmCurve = new FloatCurve();
-            FloatCurve atmosphereIspCurve = new FloatCurve();
+            FloatCurve atmosphereCurve = new FloatCurve();
             FloatCurve velCurve = new FloatCurve();
 
             UpdateMaxIsp();
 
             if (!_currentpropellant_is_jet)
             {
-                atmosphereIspCurve.Add(0, (float)(_maxISP * atmosphere_isp_efficiency), 0, 0);
+                atmosphereCurve.Add(0, (float)(_maxISP * atmosphere_isp_efficiency), 0, 0);
 
                 myAttachedEngine.useAtmCurve = false;
                 myAttachedEngine.useVelCurve = false;
@@ -1313,20 +1313,20 @@ namespace FNPlugin
 
                 if (overrideAtmosphereCurve && jetPerformanceProfile == 0)
                 {
-                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, maxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, maxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.15f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.3f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereCurve.Add(1, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
                 }
                 else if (overrideAtmosphereCurve && jetPerformanceProfile == 1)
                 {
-                    atmosphereIspCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, maxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.15f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(0.3f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
-                    atmosphereIspCurve.Add(1, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereCurve.Add(0, Mathf.Min((float)_maxISP * 5f / 4f, maxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.15f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereCurve.Add(0.3f, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
+                    atmosphereCurve.Add(1, Mathf.Min((float)_maxISP, maxThermalNozzleIsp));
                 }
                 else
-                    atmosphereIspCurve = originalAtmosphereCurve;
+                    atmosphereCurve = originalAtmosphereCurve;
 
                 if (overrideAtmCurve && jetPerformanceProfile == 0)
                 {
@@ -1358,7 +1358,7 @@ namespace FNPlugin
             }
 
 
-            myAttachedEngine.atmosphereCurve = atmosphereIspCurve;
+            myAttachedEngine.atmosphereCurve = atmosphereCurve;
         }
 
         public double GetNozzleFlowRate()
