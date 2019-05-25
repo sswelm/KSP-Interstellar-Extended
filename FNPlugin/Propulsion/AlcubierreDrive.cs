@@ -76,8 +76,10 @@ namespace FNPlugin
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
         public bool showWindow = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Circularize On Exit"), UI_Toggle(disabledText = "False", enabledText = "True", affectSymCounterparts = UI_Scene.All)]
-        public bool mathExitToDestinationSpeed = true;     
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Auto Rendevous/Circularize"), UI_Toggle(disabledText = "False", enabledText = "True", affectSymCounterparts = UI_Scene.All)]
+        public bool matchExitToDestinationSpeed = true;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Safety Distance Percentage", guiUnits = "%"), UI_FloatRange(minValue = 0, maxValue = 200, stepIncrement = 1)]
+        public float highSpaceSafetyDistancePercentage = 20;
 
         //GUI
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpdriveType")]
@@ -131,8 +133,25 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_status")]
         public string driveStatus;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Distance to closest body", guiFormat = "F0", guiUnits = " m")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Cos Angle To Closest Body", guiFormat = "F3")]
+        private double cosineAngleToClosestBody;
+
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Distance to closest body", guiFormat = "F0", guiUnits = " m")]
         private double distanceToClosestBody;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Name of closest body")]
+        string closestCelestrialBodyName;
+
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "allowed warp distance per frame", guiFormat = "F3")]
+        private double allowedWarpDistancePerFrame;
+
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "maximum Warp Speed", guiFormat = "F3")]
+        private double maximumWarpSpeed;
+
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "safety distance", guiFormat = "F3", guiUnits = " m")]
+        private double safetyDistance;
+
+
+        
 
         private readonly double[] _engineThrotle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
 
@@ -181,7 +200,7 @@ namespace FNPlugin
         private Orbit predictedExitOrbit;
         private PartResourceDefinition exoticResourceDefinition;
         private CelestialBody warpInitialMainBody;
-        private CelestialBody closestBody;
+        private CelestialBody closestCelestrialBody;
         private Orbit departureOrbit;
         private Vector3d departureVelocity;
         private ModuleReactionWheel moduleReactionWheel;
@@ -290,12 +309,27 @@ namespace FNPlugin
         private void InitiateWarp()
         {
             Debug.Log("[KSPI]: InitiateWarp started");
+
             if (maximumWarpSpeedFactor < selected_factor)
                 selected_factor = minimumPowerAllowedFactor;
 
-            var newWarpSpeed = _engineThrotle[selected_factor];
+            var selectedWarpSpeed = _engineThrotle[selected_factor];
 
-            currentPowerRequirementForWarp = GetPowerRequirementForWarp(newWarpSpeed);
+            // verify if we are not warping into main body
+            var cosineAngleToMainBody = Vector3d.Dot(part.transform.up.normalized, (vessel.CoMD - vessel.mainBody.position).normalized);
+            allowedWarpDistancePerFrame = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * selectedWarpSpeed * Math.Abs(Math.Min(0, cosineAngleToMainBody));
+            safetyDistance = highSpaceSafetyDistancePercentage * 0.01 * vessel.mainBody.scienceValues.spaceAltitudeThreshold;
+
+            if (vessel.altitude < ((vessel.mainBody.atmosphere ? vessel.mainBody.atmosphereDepth : 0) + allowedWarpDistancePerFrame + safetyDistance))
+            {
+                var message = "Warp initiation aborted, cannot warp into " + vessel.mainBody.name;
+                Debug.Log("[KSPI]: " + message);
+                ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                initiateWarpTimeout = 0;
+                return;
+            }            
+
+            currentPowerRequirementForWarp = GetPowerRequirementForWarp(selectedWarpSpeed);
 
             var powerReturned = CheatOptions.InfiniteElectricity 
                 ? currentPowerRequirementForWarp
@@ -311,8 +345,8 @@ namespace FNPlugin
                     {
                         Debug.Log("[KSPI]: call ReduceWarpPower");
                         ReduceWarpPower();
-                        newWarpSpeed = _engineThrotle[selected_factor];
-                        currentPowerRequirementForWarp = GetPowerRequirementForWarp(newWarpSpeed);
+                        selectedWarpSpeed = _engineThrotle[selected_factor];
+                        currentPowerRequirementForWarp = GetPowerRequirementForWarp(selectedWarpSpeed);
                         if (powerReturned >= currentPowerRequirementForWarp)
                             return;
                     }
@@ -343,7 +377,7 @@ namespace FNPlugin
 
             active_part_heading = new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y);
 
-            heading_act = active_part_heading * PluginHelper.SpeedOfLight * newWarpSpeed;
+            heading_act = active_part_heading * PluginHelper.SpeedOfLight * selectedWarpSpeed;
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
             // prevent g-force effects for current and next frame
@@ -359,7 +393,7 @@ namespace FNPlugin
             
             IsEnabled = true;
 
-            existing_warp_speed = newWarpSpeed;
+            existing_warp_speed = selectedWarpSpeed;
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_deactivateWarpDrive", active = false)]
@@ -387,7 +421,7 @@ namespace FNPlugin
             if (!this.vessel.packed)
                 vessel.GoOnRails();
 
-            if (mathExitToDestinationSpeed && departureVelocity != null)
+            if (matchExitToDestinationSpeed && departureVelocity != null)
             {
                 Debug.Log("[KSPI]: vessel departure velocity " + departureVelocity.x + " " + departureVelocity.y + " " + departureVelocity.z);
                 Vector3d reverse_initial_departure_velocity = new Vector3d(-departureVelocity.x, -departureVelocity.y, -departureVelocity.z);
@@ -408,34 +442,50 @@ namespace FNPlugin
             if (!this.vessel.packed)
                 vessel.GoOffRails();
 
-            if (mathExitToDestinationSpeed)
+            if (matchExitToDestinationSpeed)
             {
-                var timeAtApoapis = vessel.orbit.timeToAp + universalTime;
-                Debug.Log("[KSPI]: timeAtApoapis: " + timeAtApoapis);
-                var velocityVectorAtApoapsis = vessel.orbit.getOrbitalVelocityAtUT(timeAtApoapis);
-                Debug.Log("[KSPI]: circulizationVector velocity " + velocityVectorAtApoapsis.x + " " + velocityVectorAtApoapsis.y + " " + velocityVectorAtApoapsis.z);
-                var circularOrbitSpeed = CircularOrbitSpeed(vessel.mainBody, vessel.orbit.ApR);
-                Debug.Log("[KSPI]: circularOrbitSpeed: " + circularOrbitSpeed);
-                var horizontalVelocityVectorAtApoapsis = new Vector3d(velocityVectorAtApoapsis.x, velocityVectorAtApoapsis.y, 0);
-                Debug.Log("[KSPI]: horizontal Velocity At Apoapsis: " + horizontalVelocityVectorAtApoapsis.magnitude);
-                var circulizationVector = horizontalVelocityVectorAtApoapsis.normalized * (circularOrbitSpeed - horizontalVelocityVectorAtApoapsis.magnitude);
+                Vector3d circulizationVector;
 
+                var vesselTarget = FlightGlobals.fetch.VesselTarget;
+                if (vesselTarget != null)
+                {
+                    var exitVelocityVector = vessel.orbit.vel;
+                    //Debug.Log("[KSPI]: exit velocity " + exitVelocityVector.x + " " + exitVelocityVector.y + " " + exitVelocityVector.z);
+                    var reverseExitVelocityVector = new Vector3d(-exitVelocityVector.x, -exitVelocityVector.y, -exitVelocityVector.z);
+                    var targetOrbitVector = vesselTarget.GetOrbit().getOrbitalVelocityAtUT(universalTime);
+                    circulizationVector = new Vector3d(targetOrbitVector.x, targetOrbitVector.y, targetOrbitVector.z) + reverseExitVelocityVector;
+                }
+                else
+                {
+                    var timeAtApoapis = vessel.orbit.timeToAp + universalTime;
+                    //Debug.Log("[KSPI]: timeAtApoapis: " + timeAtApoapis);
+                    var velocityVectorAtApoapsis = vessel.orbit.getOrbitalVelocityAtUT(timeAtApoapis);
+                    //Debug.Log("[KSPI]: circulizationVector velocity " + velocityVectorAtApoapsis.x + " " + velocityVectorAtApoapsis.y + " " + velocityVectorAtApoapsis.z);
+                    var circularOrbitSpeed = CircularOrbitSpeed(vessel.mainBody, vessel.orbit.ApR);
+                    //Debug.Log("[KSPI]: circularOrbitSpeed: " + circularOrbitSpeed);
+                    var horizontalVelocityVectorAtApoapsis = new Vector3d(velocityVectorAtApoapsis.x, velocityVectorAtApoapsis.y, 0);
+                    //Debug.Log("[KSPI]: horizontal Velocity At Apoapsis: " + horizontalVelocityVectorAtApoapsis.magnitude);
+                    circulizationVector = horizontalVelocityVectorAtApoapsis.normalized * (circularOrbitSpeed - horizontalVelocityVectorAtApoapsis.magnitude);
+                }
+
+                Debug.Log("[KSPI]: circulizationVector velocity " + circulizationVector.x + " " + circulizationVector.y + " " + circulizationVector.z);
+
+
+                long multiplier = 1;
                 // Extremely small velocities cause the game to mess up very badly, so try something small and increase...
                 do 
                 {
-                    Debug.Log("[KSPI]: circulizationVector velocity " + circulizationVector.x + " " + circulizationVector.y + " " + circulizationVector.z);
                     vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + circulizationVector, vessel.orbit.referenceBody, universalTime);
+                    circulizationVector *= ++multiplier;
 
-                    circulizationVector += circulizationVector;
-
-                } while (double.IsNaN(vessel.orbit.getOrbitalVelocityAtUT(universalTime).magnitude));
+                } while (multiplier < 10000 && double.IsNaN(vessel.orbit.getOrbitalVelocityAtUT(universalTime).magnitude));
             }
 
             if (warpInitialMainBody == null || vessel.mainBody == warpInitialMainBody) return;
 
             if (KopernicusHelper.IsStar(part.vessel.mainBody)) return;
 
-            if (!mathExitToDestinationSpeed && vessel.mainBody != warpInitialMainBody)
+            if (!matchExitToDestinationSpeed && vessel.mainBody != warpInitialMainBody)
                Develocitize();
         }
 
@@ -887,9 +937,9 @@ namespace FNPlugin
                 var vesselMass = vessel.GetTotalMass();
                 if (moduleReactionWheel != null)
                 {
-                    moduleReactionWheel.PitchTorque = IsEnabled ? vesselMass * 10 : 0;
-                    moduleReactionWheel.YawTorque = IsEnabled ? vesselMass * 10 : 0;
-                    moduleReactionWheel.RollTorque = IsEnabled ? vesselMass * 10 : 0;
+                    moduleReactionWheel.PitchTorque = IsEnabled ? vesselMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0) : 0;
+                    moduleReactionWheel.YawTorque = IsEnabled ? vesselMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0) : 0;
+                    moduleReactionWheel.RollTorque = IsEnabled ? vesselMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0) : 0;
                 }
             }
 
@@ -938,17 +988,24 @@ namespace FNPlugin
 
             warpEngineThrottle = _engineThrotle[selected_factor];
 
-            distanceToClosestBody = DistanceToClosestBody(vessel, out closestBody);
+            distanceToClosestBody = DistanceToClosestBody(vessel, out closestCelestrialBody);
+
+            closestCelestrialBodyName = closestCelestrialBody.name;
 
             gravityPull = FlightGlobals.getGeeForceAtPosition(vessel.GetWorldPos3D()).magnitude;
-            gravityAtSeaLevel = vessel.mainBody.GeeASL * GameConstants.STANDARD_GRAVITY;
+            gravityAtSeaLevel = closestCelestrialBody.GeeASL * GameConstants.STANDARD_GRAVITY;
             gravityRatio = gravityAtSeaLevel > 0 ? Math.Min(1, gravityPull / gravityAtSeaLevel) : 0;
             gravityDragRatio = Math.Pow(Math.Min(1, 1 - gravityRatio), Math.Max(1, Math.Sqrt(gravityAtSeaLevel)));
             gravityDragPercentage = (1 - gravityDragRatio) * 100;
+
             maximumWarpForGravityPull = gravityPull > 0 ? 1 / gravityPull : 0;
-            maximumWarpForAltitude = Math.Pow(Math.Abs(distanceToClosestBody / PluginHelper.SpeedOfLight) * 20, 1.5) / 20;
+            var toClosestBody = vessel.CoMD - closestCelestrialBody.position;
+
+            cosineAngleToClosestBody =  Vector3d.Dot(part.transform.up.normalized, toClosestBody.normalized);
+            maximumWarpForAltitude = 0.1 * (1 + 0.5 * cosineAngleToClosestBody) * distanceToClosestBody / PluginHelper.SpeedOfLight / TimeWarp.fixedDeltaTime;
             maximumWarpWeighted = (gravityRatio * maximumWarpForGravityPull) + ((1 - gravityRatio) * maximumWarpForAltitude);
-            maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpWeighted);
+            maximumWarpSpeed = Math.Min(maximumWarpWeighted, maximumWarpForAltitude);
+            maximumWarpSpeedFactor = GetMaximumFactor(maximumWarpSpeed);
             maximumAllowedWarpThrotle = _engineThrotle[maximumWarpSpeedFactor];
             minimumPowerAllowedFactor = maximumWarpSpeedFactor > minimum_selected_factor ? maximumWarpSpeedFactor : minimum_selected_factor;
 
@@ -978,7 +1035,7 @@ namespace FNPlugin
 
         public override void OnFixedUpdate()
         {
-            distanceToClosestBody = DistanceToClosestBody(vessel, out closestBody);
+            distanceToClosestBody = DistanceToClosestBody(vessel, out closestCelestrialBody);
 
             if (initiateWarpTimeout > 0)
                 InitiateWarp();
@@ -1014,7 +1071,7 @@ namespace FNPlugin
                     }
 
                     multiplier += 1;
-                } while (double.IsNaN(predictedExitOrbit.getOrbitalVelocityAtUT(universalTime).magnitude));
+                } while (multiplier < 10000 && double.IsNaN(predictedExitOrbit.getOrbitalVelocityAtUT(universalTime).magnitude));
 
                 // update expected exit orbit data
                 exitPeriapsis = predictedExitOrbit.PeA * 0.001;
@@ -1216,14 +1273,15 @@ namespace FNPlugin
                 ProduceWasteheat(powerReturned);
             }
 
+            allowedWarpDistancePerFrame = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * selectedLightSpeed * Math.Abs(Math.Min(0, cosineAngleToClosestBody));
 
-            var minimumAltitudeDistance = PluginHelper.SpeedOfLight * TimeWarp.fixedDeltaTime * selectedLightSpeed;
+            safetyDistance = FlightGlobals.fetch.VesselTarget == null ? highSpaceSafetyDistancePercentage * 0.01 * closestCelestrialBody.scienceValues.spaceAltitudeThreshold : 0;
 
-            if (distanceToClosestBody < (closestBody.atmosphere ? closestBody.atmosphereDepth + minimumAltitudeDistance : minimumAltitudeDistance))
+            if (distanceToClosestBody < ((closestCelestrialBody.atmosphere ? closestCelestrialBody.atmosphereDepth : 0) + allowedWarpDistancePerFrame + safetyDistance))
             {
                 if (vesselWasInOuterspace)
                 {
-                    var message = closestBody.atmosphere && distanceToClosestBody < (closestBody.atmosphereDepth + 10000)
+                    var message = closestCelestrialBody.atmosphere && distanceToClosestBody < (closestCelestrialBody.atmosphereDepth + 10000)
                         ? "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToAtmosphere"
                         : "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToSurface";
 
@@ -1318,7 +1376,7 @@ namespace FNPlugin
                 vessel.GoOnRails();
 
             // make jump visible in warp trail
-            tex_count = +8;
+            //tex_count = +8;
 
             vessel.orbit.UpdateFromStateVectors(vessel.orbit.pos, vessel.orbit.vel + reverseHeading + heading_act, vessel.orbit.referenceBody, Planetarium.GetUniversalTime());
 
@@ -1352,7 +1410,7 @@ namespace FNPlugin
                 newOribit.UpdateFromStateVectors(currentOrbit.pos, retrogradeNormalizedVelocity - velocityToCancel, currentOrbit.referenceBody, universalTime);
 
                 multiplier += 1;
-            } while (double.IsNaN(newOribit.getOrbitalVelocityAtUT(universalTime).magnitude));
+            } while (multiplier < 10000 && double.IsNaN(newOribit.getOrbitalVelocityAtUT(universalTime).magnitude));
 
             vessel.Landed = false;
             vessel.Splashed = false;
@@ -1399,7 +1457,7 @@ namespace FNPlugin
                 windowPosition = GUILayout.Window(windowID, windowPosition, Window, Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpControlWindow"));
         }
 
-        private void PrintToGUILayout(string label, string value, GUIStyle boldStyle, GUIStyle textStyle, int witdhLabel = 130, int witdhValue = 130)
+        private void PrintToGUILayout(string label, string value, GUIStyle boldStyle, GUIStyle textStyle, int witdhLabel = 170, int witdhValue = 130)
         {
             GUILayout.BeginHorizontal();
             GUILayout.Label(label, boldStyle, GUILayout.Width(witdhLabel));
@@ -1441,27 +1499,30 @@ namespace FNPlugin
 
                 PrintToGUILayout("Maximum Warp For Altitude", (maximumWarpForAltitude).ToString("0.000"), bold_black_style, text_black_style);
                 PrintToGUILayout("Distance to closest body", (distanceToClosestBody * 0.001).ToString("0.000") + " km" , bold_black_style, text_black_style);
+                PrintToGUILayout("Closest body", closestCelestrialBodyName, bold_black_style, text_black_style);
 
-                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_status"), driveStatus, bold_black_style, text_black_style);
+                PrintToGUILayout("Cosine To Closest Body", cosineAngleToClosestBody.ToString("0.000"), bold_black_style, text_black_style);
+
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_status"), driveStatus, bold_black_style, text_black_style);                
 
                 var speedText = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_speed");
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("(-) " + speedText, GUILayout.MinWidth(130)))
+                if (GUILayout.Button("(-) " + speedText, GUILayout.MinWidth(170)))
                     ToggleWarpSpeedDown();
                 if (GUILayout.Button("(+) " + speedText, GUILayout.MinWidth(130)))
                     ToggleWarpSpeedUp();
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("(-) " + speedText + " x3", GUILayout.MinWidth(130)))
+                if (GUILayout.Button("(-) " + speedText + " x3", GUILayout.MinWidth(170)))
                     ToggleWarpSpeedDown3();
                 if (GUILayout.Button("(+) " + speedText + " x3", GUILayout.MinWidth(130)))
                     ToggleWarpSpeedUp3();
                 GUILayout.EndHorizontal(); 
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("(-) " + speedText + " x10", GUILayout.MinWidth(130)))
+                if (GUILayout.Button("(-) " + speedText + " x10", GUILayout.MinWidth(170)))
                     ToggleWarpSpeedDown10();
                 if (GUILayout.Button("(+) " + speedText + " x10", GUILayout.MinWidth(130)))
                     ToggleWarpSpeedUp10();
@@ -1514,6 +1575,17 @@ namespace FNPlugin
             var minimumDistance = vessel.altitude;
             closestBody = vessel.mainBody;
 
+            var vesselTarget = FlightGlobals.fetch.VesselTarget;
+            if (vesselTarget != null)
+            {
+                var transform = vesselTarget.GetTransform();
+                var toTarget = vessel.CoMD - transform.position;
+                var distanceToTarget = toTarget.magnitude;
+
+                if (distanceToTarget < minimumDistance)
+                    minimumDistance = distanceToTarget;
+            }
+
             if (vessel.orbit.closestEncounterBody != null)
             {
                 var celestrialBody = vessel.orbit.closestEncounterBody;
@@ -1538,18 +1610,42 @@ namespace FNPlugin
                     minimumDistance = distanceToSurfaceBody;
                     closestBody = celestrialBody;
                 }
+
+                foreach (var moon in celestrialBody.orbitingBodies)
+                {
+                    var toMoon = vessel.CoMD - moon.position;
+                    var distanceToSurfaceMoon = toMoon.magnitude - moon.Radius;
+
+                    if (distanceToSurfaceMoon < minimumDistance)
+                    {
+                        minimumDistance = distanceToSurfaceMoon;
+                        closestBody = moon;
+                    }
+                }
             }
 
-            foreach (var celestrialBody in vessel.mainBody.orbitingBodies)
+            foreach (var planet in vessel.mainBody.orbitingBodies)
             {
-                var toBody = vessel.CoMD - celestrialBody.position;
-                var distanceToSurfaceBody = toBody.magnitude - celestrialBody.Radius;
+                var toPlanet = vessel.CoMD - planet.position;
+                var distanceToSurfacePlanet = toPlanet.magnitude - planet.Radius;
 
-                if (distanceToSurfaceBody < minimumDistance)
+                if (distanceToSurfacePlanet < minimumDistance)
                 {
-                    minimumDistance = distanceToSurfaceBody;
-                    closestBody = celestrialBody;
+                    minimumDistance = distanceToSurfacePlanet;
+                    closestBody = planet;
                 }
+
+                 foreach (var moon in planet.orbitingBodies)
+                 {
+                     var toMoon = vessel.CoMD - moon.position;
+                     var distanceToSurfaceMoon = toMoon.magnitude - moon.Radius;
+
+                     if (distanceToSurfaceMoon < minimumDistance)
+                     {
+                         minimumDistance = distanceToSurfaceMoon;
+                         closestBody = moon;
+                     }
+                 }
             }
 
             return minimumDistance;
