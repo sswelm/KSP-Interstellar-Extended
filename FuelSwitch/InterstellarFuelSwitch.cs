@@ -222,7 +222,7 @@ namespace InterstellarFuelSwitch
         Rect windowPosition;
 
         bool _initialized;
-
+        bool closeAterSwitch;
 
         int _numberOfAvailableTanks;
         int _windowID;
@@ -559,6 +559,13 @@ namespace InterstellarFuelSwitch
                 Debug.LogError("[IFS]: InitializeData Error: " + e.Message);
                 throw;
             }
+        }
+
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Switch Tank")]
+        public void switchTankEvent()
+        {
+            closeAterSwitch = true;
+            render_window = true;
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = false, guiName = "#LOC_IFS_FuelSwitch_nextTankSetupText")]
@@ -1525,7 +1532,10 @@ namespace InterstellarFuelSwitch
                 windowPositionY = windowPosition.y;
 
                 if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
+                {
+                    closeAterSwitch = false;
                     render_window = false;
+                }
 
                 GUILayout.BeginVertical();
 
@@ -1540,6 +1550,11 @@ namespace InterstellarFuelSwitch
                             AssignResourcesToPart(true, true);
                             if (_fuelTankSetupControl != null)
                                 _fuelTankSetupControl.SwitchToFuelTankSetup(tank.SwitchName);
+                            if (closeAterSwitch)
+                            {
+                                closeAterSwitch = false;
+                                render_window = false;
+                            }
                         }
 
                         GUILayout.EndHorizontal();
