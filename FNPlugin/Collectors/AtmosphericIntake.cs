@@ -9,7 +9,8 @@ namespace FNPlugin
         // persistents
         [KSPField(isPersistant = true, guiName = "Air / sec", guiActiveEditor = false, guiActive = true, guiFormat = "F5")]
         public double finalAir;
-        [KSPField(isPersistant = false, guiActive = false)]
+
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Atmospheric Intake"), UI_Toggle(disabledText = "Closed", enabledText = "Open", affectSymCounterparts = UI_Scene.None)] // Mass Ratio
         public bool intakeOpen;
 
         [KSPField]
@@ -24,11 +25,11 @@ namespace FNPlugin
         public float intakeAngle = 0;
         [KSPField(guiName = "Area", guiActiveEditor = true, guiActive = false, guiFormat = "F3")]
         public double area = 0.01;
-        [KSPField]
+        [KSPField( guiActive = false, guiActiveEditor = true)]
         public string intakeTransformName;
-        [KSPField(guiName = "maxIntakeSpeed", guiActive = false, guiActiveEditor = false)]
+        [KSPField(guiName = "maxIntakeSpeed", guiActive = false, guiActiveEditor = true)]
         public double maxIntakeSpeed = 100;
-        [KSPField(guiName = "unitScalar", guiActive = false, guiActiveEditor = false)]
+        [KSPField(guiName = "unitScalar", guiActive = false, guiActiveEditor = true)]
         public double unitScalar = 0.2;
         [KSPField(guiName = "storesResource", guiActive = false, guiActiveEditor = true)]
         public bool storesResource = false;
@@ -58,7 +59,7 @@ namespace FNPlugin
         // property getter for the sake of seawater extractor
         public bool IntakeEnabled
         {
-          get { return this.part.FindModuleImplementing<ModuleResourceIntake>().intakeEnabled; }
+            get { return _moduleResourceIntake != null ? _moduleResourceIntake.intakeEnabled : intakeOpen; }
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -67,7 +68,17 @@ namespace FNPlugin
 
             _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
 
-            if (_moduleResourceIntake == null) return;
+            if (_moduleResourceIntake == null)
+            {
+                UnityEngine.Debug.LogWarning("[KSPI]: ModuleResourceIntake is missing on " + part.partInfo.title);
+                //return;
+            }
+            else
+            {
+                area = _moduleResourceIntake.area;
+                intakeTransformName = _moduleResourceIntake.intakeTransformName;
+                unitScalar = _moduleResourceIntake.unitScalar;
+            }
 
             bool hasJetUpgradeTech0 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
             bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
@@ -76,10 +87,6 @@ namespace FNPlugin
 
             var jetTechBonus = Convert.ToInt32(hasJetUpgradeTech0) + 1.2f * Convert.ToInt32(hasJetUpgradeTech1) + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3);
             jetTechBonusPercentage = 10 * (1 + (jetTechBonus / 10.736f));
-
-            area = _moduleResourceIntake.area;
-            intakeTransformName = _moduleResourceIntake.intakeTransformName;
-            unitScalar = _moduleResourceIntake.unitScalar;
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed));
@@ -111,23 +118,32 @@ namespace FNPlugin
 
         public void IntakeThatAir()
         {
-            if (_moduleResourceIntake == null) return;
+            //if (_moduleResourceIntake == null) return;
+
+            UpdateAtmosphereBuffer();
 
             // do not return anything when intakes are closed
-            if (_moduleResourceIntake != null && !_moduleResourceIntake.intakeEnabled)
+            if (_moduleResourceIntake != null)
             {
-                airSpeed = 0;
-                airThisUpdate = 0;
-                finalAir = 0;
-                intakeExposure = 0;
-                airFlow = 0;
-                intakeOpen = false;
-                UpdateAtmosphereBuffer();
+                if (!_moduleResourceIntake.intakeEnabled)
+                {
+                    ResetVariables();
+
+                    intakeOpen = false;
+
+                    return;
+                }
+                else
+                {
+                    intakeOpen = true;
+                }
+            }
+            else if (intakeOpen == false)
+            {
+                ResetVariables();
+
                 return;
             }
-
-            intakeOpen = true;
-            UpdateAtmosphereBuffer();
 
             var vesselFlyingVector = vessel.altitude < part.vessel.mainBody.atmosphereDepth * 0.5 
                 ? vessel.GetSrfVelocity() 
@@ -178,6 +194,15 @@ namespace FNPlugin
             }
 
 
+        }
+
+        private void ResetVariables()
+        {
+            airSpeed = 0;
+            airThisUpdate = 0;
+            finalAir = 0;
+            intakeExposure = 0;
+            airFlow = 0;
         }
     }
 }
