@@ -13,8 +13,8 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Atmospheric Intake"), UI_Toggle(disabledText = "Closed", enabledText = "Open", affectSymCounterparts = UI_Scene.None)] // Mass Ratio
         public bool intakeOpen;
 
-        [KSPField]
-        protected double _intake_speed;
+        [KSPField (guiActive = false, guiActiveEditor = true)]
+        public double intakeSpeed;
         [KSPField(guiName = "Atmosphere Flow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]
         public double airFlow;
         [KSPField(guiName = "Atmosphere Speed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]
@@ -23,15 +23,13 @@ namespace FNPlugin
         public double airThisUpdate;
         [KSPField(guiName = "Intake Angle",  guiActive = true, guiFormat = "F3")]
         public float intakeAngle = 0;
-        [KSPField(guiName = "Area", guiActiveEditor = true, guiActive = false, guiFormat = "F3")]
+        [KSPField(guiName = "Area", guiActiveEditor = true, guiActive = false, guiFormat = "F4")]
         public double area = 0.01;
         [KSPField( guiActive = false, guiActiveEditor = true)]
-        public string intakeTransformName;
-        [KSPField(guiName = "maxIntakeSpeed", guiActive = false, guiActiveEditor = true)]
-        public double maxIntakeSpeed = 100;
+        public string intakeTransformName = "";
         [KSPField(guiName = "unitScalar", guiActive = false, guiActiveEditor = true)]
         public double unitScalar = 0.2;
-        [KSPField(guiName = "storesResource", guiActive = false, guiActiveEditor = true)]
+        [KSPField(guiName = "storesResource", guiActive = true, guiActiveEditor = false)]
         public bool storesResource = false;
         [KSPField(guiName = "Intake Exposure", guiActive = true, guiActiveEditor = false, guiFormat = "F1")]
         public double intakeExposure = 0;
@@ -59,7 +57,7 @@ namespace FNPlugin
         // property getter for the sake of seawater extractor
         public bool IntakeEnabled
         {
-            get { return _moduleResourceIntake != null ? _moduleResourceIntake.intakeEnabled : intakeOpen; }
+            get { return intakeOpen && (_moduleResourceIntake != null ? _moduleResourceIntake.intakeEnabled : true); }
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -69,16 +67,16 @@ namespace FNPlugin
             _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
 
             if (_moduleResourceIntake == null)
-            {
                 UnityEngine.Debug.LogWarning("[KSPI]: ModuleResourceIntake is missing on " + part.partInfo.title);
-                //return;
-            }
-            else
-            {
-                area = _moduleResourceIntake.area;
-                intakeTransformName = _moduleResourceIntake.intakeTransformName;
-                unitScalar = _moduleResourceIntake.unitScalar;
-            }
+
+            var field = Fields["intakeOpen"];
+            var flightToggle = field.uiControlFlight as UI_Toggle;
+            var editorToggle = field.uiControlEditor as UI_Toggle;
+
+            flightToggle.onFieldChanged = IntakeOpenChanged;
+            editorToggle.onFieldChanged = IntakeOpenChanged;
+
+            UpdateResourceIntakeConfiguration();
 
             bool hasJetUpgradeTech0 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
             bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
@@ -89,11 +87,27 @@ namespace FNPlugin
             jetTechBonusPercentage = 10 * (1 + (jetTechBonus / 10.736f));
 
             resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * jetTechBonusPercentage * maxIntakeSpeed));
+            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere, 300, area * unitScalar * jetTechBonusPercentage * intakeSpeed));
             resourceBuffers.Init(this.part);
 
             _resourceAtmosphere = PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.IntakeAtmosphere);
-            _intake_speed = maxIntakeSpeed;
+        }
+
+        private void IntakeOpenChanged(BaseField field, object oldFieldValueObj)
+        {
+            if (_moduleResourceIntake != null)
+                _moduleResourceIntake.intakeEnabled = intakeOpen;
+        }
+
+        private void UpdateResourceIntakeConfiguration()
+        {
+            if (_moduleResourceIntake == null)
+                return;
+
+            area = _moduleResourceIntake.area;
+            intakeTransformName = _moduleResourceIntake.intakeTransformName;
+            unitScalar = _moduleResourceIntake.unitScalar;
+            intakeSpeed = _moduleResourceIntake.intakeSpeed;
         }
 
         public void FixedUpdate()
@@ -141,7 +155,6 @@ namespace FNPlugin
             else if (intakeOpen == false)
             {
                 ResetVariables();
-
                 return;
             }
 
@@ -154,8 +167,8 @@ namespace FNPlugin
                 : vessel.speed;
 
             intakeAngle = Mathf.Clamp(Vector3.Dot(vesselFlyingVector.normalized, part.transform.up.normalized), 0, 1);
-            airSpeed = intakeAngle * vesselSpeed + _intake_speed;
-            intakeExposure = (airSpeed * unitScalar) + _intake_speed;
+            airSpeed = intakeAngle * vesselSpeed + intakeSpeed;
+            intakeExposure = (airSpeed * unitScalar) + intakeSpeed;
             intakeExposure *= area * unitScalar * jetTechBonusPercentage;
             airFlow = vessel.atmDensity * intakeExposure / _resourceAtmosphere.density;
             airThisUpdate = airFlow * TimeWarp.fixedDeltaTime;
@@ -189,11 +202,7 @@ namespace FNPlugin
                 _intake_atmosphere_resource.amount = airThisUpdate;
             }
             else
-            {
                 part.RequestResource(_resourceAtmosphere.id, -airThisUpdate, ResourceFlowMode.STAGE_PRIORITY_FLOW_BALANCE); // create the resource, finally
-            }
-
-
         }
 
         private void ResetVariables()
