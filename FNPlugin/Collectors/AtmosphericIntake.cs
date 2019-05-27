@@ -145,6 +145,8 @@ namespace FNPlugin
 
                     intakeOpen = false;
 
+                    UpdateAtnosphereAmount();
+
                     return;
                 }
                 else
@@ -155,6 +157,8 @@ namespace FNPlugin
             else if (intakeOpen == false)
             {
                 ResetVariables();
+
+                UpdateAtnosphereAmount();
                 return;
             }
 
@@ -191,6 +195,11 @@ namespace FNPlugin
             else
                 startupCount++;
 
+            UpdateAtnosphereAmount();
+        }
+
+        private void UpdateAtnosphereAmount()
+        {
             if (!storesResource)
             {
                 var _intake_atmosphere_resource = part.Resources[InterstellarResourcesConfiguration.Instance.IntakeAtmosphere];
