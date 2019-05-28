@@ -51,14 +51,9 @@ namespace FNPlugin
         public double fuelflowMultplier;
         [KSPField]
         public double exhaustModifier;
-
-
-
         
         [KSPField]
         public double minimumBaseIsp = 0;
-
-
         [KSPField]
         public bool canUsePureChargedPower = false;
         [KSPField]
@@ -311,7 +306,7 @@ namespace FNPlugin
         protected double airFlowForCooling;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Isp", guiFormat = "F3")]
         protected double current_isp = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "MaxPressureThresshold")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Max Pressure Thresshold @ 1 atm", guiFormat = "F3", guiUnits = " kN")]
         protected double maxPressureThresholdAtKerbinSurface;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Thermal Ratio")]
         protected double thermalResourceRatio;
@@ -457,12 +452,15 @@ namespace FNPlugin
         protected ModuleEnginesWarp timewarpEngine;
         protected ModuleEngines myAttachedEngine;
         protected Guid id = Guid.NewGuid();
-        protected ConfigNode[] propellantsConfignodes;
+        protected ConfigNode[] fuelConfignodes;
 
         protected List<Propellant> list_of_propellants = new List<Propellant>();
         protected List<FNModulePreecooler> _vesselPrecoolers;
         protected List<ModuleResourceIntake> _vesselResourceIntakes;
         protected List<IFNEngineNoozle> _vesselThermalNozzles;
+
+        protected List<ThermalEngineFuel> _allThermalEngineFuels;
+        protected List<ThermalEngineFuel> _compatibleThermalEngineFuels;
 
         private IFNPowerSource _myAttachedReactor;
         public IFNPowerSource AttachedReactor
@@ -520,7 +518,7 @@ namespace FNPlugin
         public void NextPropellant()
         {
             fuel_mode++;
-            if (fuel_mode >= propellantsConfignodes.Length)
+            if (fuel_mode >= fuelConfignodes.Length)
                 fuel_mode = 0;
 
             SetupPropellants(true);
@@ -531,7 +529,7 @@ namespace FNPlugin
         {
             fuel_mode--;
             if (fuel_mode < 0)
-                fuel_mode = propellantsConfignodes.Length - 1;
+                fuel_mode = fuelConfignodes.Length - 1;
 
             SetupPropellants(false);
         }
@@ -601,14 +599,14 @@ namespace FNPlugin
             isupgraded = true;
 
             if (isJet)
-                propellantsConfignodes = getPropellantsHybrid();
+                fuelConfignodes = getPropellantsHybrid();
             else
-                propellantsConfignodes = getPropellants(isJet);
+                fuelConfignodes = getPropellants(isJet);
         }
 
         public ConfigNode[] getPropellants()
         {
-            return propellantsConfignodes;
+            return fuelConfignodes;
         }
 
         public void OnEditorAttach()
@@ -617,7 +615,11 @@ namespace FNPlugin
 
             if (AttachedReactor == null) return;
 
-            EstimateEditorPerformance();
+            try { LoadFuelModes(); }
+            catch (Exception e) { Debug.LogError("[KSPI]: OnEditorAttach Exception in LoadFuelModes" + e.Message); }
+
+            try { EstimateEditorPerformance(); }
+            catch (Exception e) { Debug.LogError("[KSPI]: OnEditorAttach Exception in EstimateEditorPerformance" + e.Message); }
         }
 
         public void OnEditorDetach()
@@ -631,7 +633,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            Debug.Log("[KSPI]: ThermalNozzleController - start");
+            //Debug.Log("[KSPI]: ThermalNozzleController - start");
 
             _flameoutText = Localizer.Format("#autoLOC_219016");
 
@@ -655,7 +657,7 @@ namespace FNPlugin
                 part.skinThermalMassModifier = skinThermalMassModifier;
                 part.skinInternalConductionMult = skinInternalConductionMult;
 
-                Debug.Log("[KSPI]: ThermalNozzleController - setup animation");
+                //Debug.Log("[KSPI]: ThermalNozzleController - setup animation");
 
                 if (!String.IsNullOrEmpty(deployAnimationName))
                     deployAnim = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
@@ -664,14 +666,14 @@ namespace FNPlugin
                 if (!String.IsNullOrEmpty(emiAnimationName))
                     emiAnimationState = PluginHelper.SetUpAnimation(emiAnimationName, this.part);
 
-                Debug.Log("[KSPI]: ThermalNozzleController - calculate WasteHeat Capacity");
+                //Debug.Log("[KSPI]: ThermalNozzleController - calculate WasteHeat Capacity");
 
                 resourceBuffers = new ResourceBuffers();
                 resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
 
-                Debug.Log("[KSPI]: ThermalNozzleController - find module implementing <ModuleEngines>");
+                //Debug.Log("[KSPI]: ThermalNozzleController - find module implementing <ModuleEngines>");
 
                 myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
                 timewarpEngine = this.part.FindModuleImplementing<ModuleEnginesWarp>();
@@ -714,14 +716,21 @@ namespace FNPlugin
                     part.OnEditorAttach += OnEditorAttach;
                     part.OnEditorDetach += OnEditorDetach;
 
-                    propellantsConfignodes = getPropellants(isJet);
+                    fuelConfignodes = getPropellants(isJet);
                     if (this.HasTechsRequiredToUpgrade())
                     {
                         isupgraded = true;
                         upgradePartModule();
                     }
-                    SetupPropellants();
-                    EstimateEditorPerformance();
+
+                    try { LoadFuelModes(); }
+                    catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in LoadFuelModes" + e.Message); }
+
+                    try { SetupPropellants(); }
+                    catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in SetupPropellants" + e.Message); }
+
+                    try { EstimateEditorPerformance(); }
+                    catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in EstimateEditorPerformance" + e.Message); }
 
                     return;
                 }
@@ -749,7 +758,7 @@ namespace FNPlugin
                         _hasrequiredupgrade = true;
 
                     // if not, use basic propellants
-                    propellantsConfignodes = getPropellants(isJet);
+                    fuelConfignodes = getPropellants(isJet);
                 }
 
                 bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
@@ -774,14 +783,11 @@ namespace FNPlugin
                 Debug.LogError("[KSPI]: OnStart Exception in ThermalNozzleController.OnStart: " + e.Message);
             }
 
-            try
-            {
-                SetupPropellants();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[KSPI]: OnStart Exception in SetupPropellants" + e.Message);
-            }
+            try { LoadFuelModes(); }
+            catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in LoadFuelModes" + e.Message); }
+
+            try { SetupPropellants(); }
+            catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in SetupPropellant" + e.Message); }
         }
 
         private void ConfigEffects()
@@ -1010,7 +1016,61 @@ namespace FNPlugin
         public override void OnActive()
         {
             base.OnActive();
+
+            try { LoadFuelModes(); }
+            catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in LoadFuelModes" + e.Message); }
+
             SetupPropellants(true, true);
+        }
+
+        public void LoadFuelModes()
+        {
+            _allThermalEngineFuels = fuelConfignodes.Select(node => new ThermalEngineFuel(node, fuelConfignodes.IndexOf(node))).ToList();
+
+            Debug.Log("[KSPI]: ThermalNozzleController - Indexed " + _allThermalEngineFuels.Count + " fuelmodes");
+
+            // quit if we do not have access to reactor
+            if (AttachedReactor == null)
+            {
+                Debug.LogWarning("[KSPI]: ThermalNozzleController - Skiped filtering on compatible fuelmodes, no reactor avaialble");
+                return;
+            }
+
+            _compatibleThermalEngineFuels = _allThermalEngineFuels.Where(fuel =>
+
+                    PluginHelper.HasTechRequirementOrEmpty(fuel.FuelTechRequirement) &&
+
+                    (fuel.FuelRequiresUpgrade == false || (_fuelRequiresUpgrade && isupgraded)) &&
+                    (fuel.IsLFO == false || (fuel.IsLFO && PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))) &&
+                    (fuel.FuelCoolingFactor >= AttachedReactor.MinCoolingFactor) &&
+                    ((fuel.AtomType & AttachedReactor.SupportedPropellantAtoms) == fuel.AtomType) &&
+                    ((fuel.AtomType & this.supportedPropellantAtoms) == fuel.AtomType) &&
+                    ((fuel.PropType & AttachedReactor.SupportedPropellantTypes) == fuel.PropType) &&
+                    ((fuel.PropType & this.supportedPropellantTypes) == fuel.PropType)
+
+                ).ToList();
+
+            Debug.Log("[KSPI]: ThermalNozzleController - Found " + _compatibleThermalEngineFuels.Count + " compatible fuelmodes");
+
+            var concatednated = string.Join("", _compatibleThermalEngineFuels.Select(m => m.Fuelmode).ToArray());            
+
+            var nextPropellantEvent = Events["NextPropellant"];
+            if (nextPropellantEvent != null)
+            {
+                nextPropellantEvent.guiActive = _compatibleThermalEngineFuels.Count > 1;
+                nextPropellantEvent.guiActiveEditor = _compatibleThermalEngineFuels.Count > 1;
+            }
+            else
+                Debug.LogError("[KSPI]: ThermalNozzleController - Failed to find NextPropellant event");
+
+            var prevPropellantEvent = Events["PreviousPropellant"];
+            if (prevPropellantEvent != null)
+            {
+                prevPropellantEvent.guiActive = _compatibleThermalEngineFuels.Count > 1;
+                prevPropellantEvent.guiActiveEditor = _compatibleThermalEngineFuels.Count > 1;
+            }
+            else
+                Debug.LogWarning("[KSPI]: ThermalNozzleController - Failed to find PreviousPropellant event");
         }
 
         public void SetupPropellants(bool forward = true, bool notifySwitching = false)
@@ -1020,7 +1080,7 @@ namespace FNPlugin
 
             try
             {
-                var chosenpropellant = propellantsConfignodes[fuel_mode];
+                var chosenpropellant = fuelConfignodes[fuel_mode];
 
                 UpdatePropellantModeBehavior(chosenpropellant);
                 ConfigNode[] propellantNodes = chosenpropellant.GetNodes("PROPELLANT");
@@ -1046,9 +1106,9 @@ namespace FNPlugin
                     || (_fuelRequiresUpgrade && !isupgraded)
                     || (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
                     || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
-                    || ((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType)
+                    || ((_atomType & AttachedReactor.SupportedPropellantAtoms) != _atomType)
                     || ((_atomType & this.supportedPropellantAtoms) != _atomType)
-                    || ((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType)
+                    || ((_propType & AttachedReactor.SupportedPropellantTypes) != _propType)
                     || ((_propType & this.supportedPropellantTypes) != _propType)
                     )
                 {
@@ -1083,7 +1143,7 @@ namespace FNPlugin
                 // update the engine with the new propellants
                 if (canLoadPropellant)
                 {
-                    Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant chosenpropellant " + fuel_mode + " / " + propellantsConfignodes.Count());
+                    Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant chosenpropellant " + fuel_mode + " / " + fuelConfignodes.Count());
 
                     myAttachedEngine.Shutdown();
 
@@ -1143,11 +1203,13 @@ namespace FNPlugin
                         next_propellant = true;
 
                     // do the switch if needed
-                    if (next_propellant && (switches <= propellantsConfignodes.Length || fuel_mode != 0))
+                    if (next_propellant && (switches <= fuelConfignodes.Length || fuel_mode != 0))
                     {// always shows the first fuel mode when all fuel mods are tested at least once
                         ++switches;
                         if (notifySwitching)
+                        {
                             ScreenMessages.PostScreenMessage("Switching Propellant, missing resource " + missingResources, 5.0f, ScreenMessageStyle.LOWER_CENTER);
+                        }
 
                         if (forward)
                             NextPropellant();
@@ -1162,17 +1224,17 @@ namespace FNPlugin
                     UnityEngine.Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant " + list_of_propellants[0].name);
 
                     // Still ignore propellants that don't exist or we cannot use due to the limitations of the engine
-                    if (!canLoadPropellant && (switches <= propellantsConfignodes.Length || fuel_mode != 0))
+                    if (!canLoadPropellant && (switches <= fuelConfignodes.Length || fuel_mode != 0))
                     {
-                        if (((_atomType & this.supportedPropellantAtoms) != _atomType))
-                            UnityEngine.Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant nozzle atom " + this.supportedPropellantAtoms + " != " + _atomType);
-                        if (((_propType & this.supportedPropellantTypes) != _propType))
-                            UnityEngine.Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant nozzle type " + this.supportedPropellantTypes + " != " + _propType);
+                        //if (((_atomType & this.supportedPropellantAtoms) != _atomType))
+                        //    UnityEngine.Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant nozzle atom " + this.supportedPropellantAtoms + " != " + _atomType);
+                        //if (((_propType & this.supportedPropellantTypes) != _propType))
+                        //    UnityEngine.Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant nozzle type " + this.supportedPropellantTypes + " != " + _propType);
 
-                        if (((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType))
-                            UnityEngine.Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant reactor atom " + _myAttachedReactor.SupportedPropellantAtoms + " != " + _atomType);
-                        if (((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType))
-                            UnityEngine.Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant reactor type " + _myAttachedReactor.SupportedPropellantTypes + " != " + _propType);
+                        //if (((_atomType & _myAttachedReactor.SupportedPropellantAtoms) != _atomType))
+                        //    UnityEngine.Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant reactor atom " + _myAttachedReactor.SupportedPropellantAtoms + " != " + _atomType);
+                        //if (((_propType & _myAttachedReactor.SupportedPropellantTypes) != _propType))
+                        //    UnityEngine.Debug.Log("[KSPI]: ThermalNozzleController - Setup propellant reactor type " + _myAttachedReactor.SupportedPropellantTypes + " != " + _propType);
 
                         next_propellant = true;
                     }
@@ -2094,7 +2156,7 @@ namespace FNPlugin
 
         public static ConfigNode[] getPropellants(bool isJet)
         {
-            Debug.Log("[KSPI]: ThermalNozzleController - getPropellants");
+            //Debug.Log("[KSPI]: ThermalNozzleController - getPropellants");
 
             ConfigNode[] propellantlist = isJet
                 ? GameDatabase.Instance.GetConfigNodes("ATMOSPHERIC_NTR_PROPELLANT")

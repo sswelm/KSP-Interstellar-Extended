@@ -67,6 +67,7 @@
     <Compile Include="HideHiddenPartsFilter.cs" />
     <Compile Include="Powermanagement\IFNPowerSource.cs" />
     <Compile Include="Propulsion\IEngineNoozle.cs" />
+    <Compile Include="Propulsion\ThermalEngineFuel.cs" />
     <Compile Include="RDColoredUpgradeIcon.cs" />
     <Compile Include="Resources\CrustalResource.cs" />
     <Compile Include="Resources\CrustalResourceHandler.cs" />
@@ -97,7 +98,6 @@
     <Compile Include="Propulsion\ModuleEnginesWarp.cs" />
     <Compile Include="Depricated\FNModuleRCSFX.cs" />
     <Compile Include="Depricated\FNRCSSounds.cs" />
-    <Compile Include="Propulsion\ThermalEnginePropellant.cs" />
     <Compile Include="Propulsion\ThermalPowerTransport.cs" />
     <Compile Include="Propulsion\VistaECU2.cs" />
     <Compile Include="Propulsion\VistaEngineControllerAdvanced.cs" />
