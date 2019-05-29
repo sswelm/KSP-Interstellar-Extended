@@ -77,10 +77,10 @@ namespace FNPlugin
         public bool showWindow = false;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Auto Rendevous/Circularize"), UI_Toggle(disabledText = "False", enabledText = "True", affectSymCounterparts = UI_Scene.All)]
         public bool matchExitToDestinationSpeed = true;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Auto Maximize Warp Speed"), UI_Toggle(disabledText = "Disabled", enabledText = "Enabled", affectSymCounterparts = UI_Scene.All)]
+        public bool maximizeWarpSpeed = false;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Safety Distance", guiUnits = " Km"), UI_FloatRange(minValue = 0, maxValue = 200, stepIncrement = 1)]
         public float spaceSafetyDistance = 20;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Maximize Warp Speed"), UI_Toggle(disabledText = "Disabled", enabledText = "Enabled", affectSymCounterparts = UI_Scene.All)]
-        public bool maximizeWarpSpeed = false;
 
         //GUI
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpdriveType")]
@@ -117,8 +117,13 @@ namespace FNPlugin
         public double minPowerRequirementForLightSpeed;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentPowerReqForWarp", guiUnits = " MW", guiFormat = "F4")]
         public double currentPowerRequirementForWarp;
+
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_powerReqForMaxAllowedSpeed", guiUnits = " MW", guiFormat = "F4")]
         public double powerRequirementForMaximumAllowedLightSpeed;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Power Requirement For Slowed SubLightSpeed", guiUnits = " MW", guiFormat = "F4")]
+        public double powerRequirementForSlowedSubLightSpeed;
+
+
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentWarpExitSpeed", guiUnits = " m/s", guiFormat = "F3")]
         public double exitSpeed;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentWarpExitApoapsis", guiUnits = " km", guiFormat = "F3")]
@@ -133,26 +138,22 @@ namespace FNPlugin
         public double exitBurnCircularize;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_status")]
         public string driveStatus;
-
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Cos Angle To Closest Body", guiFormat = "F3")]
         private double cosineAngleToClosestBody;
-
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Distance to closest body", guiFormat = "F0", guiUnits = " m")]
         private double distanceToClosestBody;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Name of closest body")]
         string closestCelestrialBodyName;
-
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "allowed warp distance per frame", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max distance per frame", guiFormat = "F3")]
         private double allowedWarpDistancePerFrame;
-
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "maximum Warp Speed", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Maximum Warp Speed", guiFormat = "F3")]
         private double maximumWarpSpeed;
-
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "safety distance", guiFormat = "F3", guiUnits = " m")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Safety distance", guiFormat = "F3", guiUnits = " m")]
         private double safetyDistance;
-
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "dropout Distance", guiFormat = "F3", guiUnits = " m")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Dropout Distance", guiFormat = "F3", guiUnits = " m")]
         private double dropoutDistance;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Available Power for Warp", guiFormat = "F3", guiUnits = "MJ")]
+        private double availablePower;
 
         private readonly double[] _engineThrotle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
 
@@ -163,7 +164,6 @@ namespace FNPlugin
         private AudioSource warp_sound;
 
         private double tex_count;
-        private float warp_size = 50000;
 
         private bool vesselWasInOuterspace;
         private bool hasrequiredupgrade;
@@ -177,6 +177,7 @@ namespace FNPlugin
 
         private float windowPositionX = 200;
         private float windowPositionY = 100;
+        private float warp_size = 50000;
 
         private GUIStyle bold_black_style;
         private GUIStyle text_black_style;
@@ -186,9 +187,8 @@ namespace FNPlugin
         private int minimum_selected_factor;
         private int maximumWarpSpeedFactor;
         private int minimumPowerAllowedFactor;
+
         private long insufficientPowerTimeout = 10;
-
-
         private long initiateWarpTimeout;
         private long counterCurrent;
         private long counterPreviousChange;
@@ -258,7 +258,8 @@ namespace FNPlugin
                 return;
             }
 
-            if (part.vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(part.vessel.mainBody) && part.vessel.mainBody.flightGlobalsIndex != 0)
+            //if (part.vessel.altitude <= PluginHelper.getMaxAtmosphericAltitude(part.vessel.mainBody) && part.vessel.mainBody.flightGlobalsIndex != 0)
+            if (!CheatOptions.IgnoreMaxTemperature && vessel.atmDensity > 0)
             {
                 var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_cannotActivateWarpdriveWithinAtmosphere");
                 Debug.Log("[KSPI]: " + message);
@@ -270,7 +271,7 @@ namespace FNPlugin
             double totalExoticMatterAvailable;
             part.GetConnectedResourceTotals(exoticResourceDefinition.id, out exoticMatterAvailable, out totalExoticMatterAvailable);
 
-            if (exoticMatterAvailable < exotic_power_required)
+            if (!CheatOptions.InfinitePropellant && exoticMatterAvailable < exotic_power_required)
             {
                 string message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpdriveIsNotFullyChargedForWarp");
                 Debug.Log("[KSPI]: " + message);
@@ -384,9 +385,6 @@ namespace FNPlugin
 
             heading_act = active_part_heading * PluginHelper.SpeedOfLight * selectedWarpSpeed;
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
-
-            // prevent g-force effects for current and next frame
-            //part.vessel.IgnoreGForces(2);
 
             if (!this.vessel.packed)
                 vessel.GoOnRails();
@@ -1025,26 +1023,25 @@ namespace FNPlugin
             }
 
             minPowerRequirementForLightSpeed = GetPowerRequirementForWarp(1);
+            powerRequirementForSlowedSubLightSpeed = GetPowerRequirementForWarp(_engineThrotle.First());
             powerRequirementForMaximumAllowedLightSpeed = GetPowerRequirementForWarp(maximumAllowedWarpThrotle);
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(_engineThrotle[selected_factor]);
 
-            // Speedup to maximum speed when possible and requested
-            if (maximizeWarpSpeed && maximumWarpSpeedFactor > selected_factor)
-            {
-                var availablePower = CheatOptions.InfiniteElectricity 
-                    ? currentPowerRequirementForWarp
-                    : getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            //// Speedup to maximum speed when possible and requested
+            //if (maximizeWarpSpeed && maximumWarpSpeedFactor > selected_factor)
+            //{
+            //	var availablePower = CheatOptions.InfiniteElectricity 
+            //		? currentPowerRequirementForWarp
+            //		: getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                // retreive vessel heading
-                magnitudeDiff = (active_part_heading - new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y)).magnitude;
+            //	// retreive vessel heading
+            //	magnitudeDiff = (active_part_heading - new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y)).magnitude;
 
-                if (magnitudeDiff < 0.0001 && availablePower > powerRequirementForMaximumAllowedLightSpeed)
-                {
-                    selected_factor = maximumWarpSpeedFactor;
-                    currentPowerRequirementForWarp = powerRequirementForMaximumAllowedLightSpeed;
-                    warpEngineThrottle = maximumAllowedWarpThrotle;
-                }
-            }
+            //	if (magnitudeDiff < 0.0001 && availablePower > powerRequirementForMaximumAllowedLightSpeed)
+            //	{
+            //		MaximizeWarpSpeed();
+            //	}
+            //}
 
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             resourceBuffers.UpdateBuffers();
@@ -1054,6 +1051,26 @@ namespace FNPlugin
 
             resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
             resourceBuffers.UpdateBuffers();
+        }
+
+        private void MaximizeWarpSpeed()
+        {
+            if (availablePower < powerRequirementForMaximumAllowedLightSpeed)
+                return;
+
+            selected_factor = maximumWarpSpeedFactor;
+            currentPowerRequirementForWarp = powerRequirementForMaximumAllowedLightSpeed;
+            warpEngineThrottle = maximumAllowedWarpThrotle;
+        }
+
+        private void MinimizeWarpSpeed()
+        {
+            if (availablePower < powerRequirementForSlowedSubLightSpeed)
+                return;
+
+            selected_factor = 0;
+            currentPowerRequirementForWarp = powerRequirementForSlowedSubLightSpeed;
+            warpEngineThrottle = _engineThrotle.First();
         }
 
         public override void OnFixedUpdate()
@@ -1180,7 +1197,7 @@ namespace FNPlugin
 
             if (IsCharging)
             {
-                var availablePower = CheatOptions.InfiniteElectricity
+                availablePower = CheatOptions.InfiniteElectricity
                     ? currentPowerRequirementForWarp
                     : getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
@@ -1282,7 +1299,7 @@ namespace FNPlugin
 
             currentPowerRequirementForWarp = GetPowerRequirementForWarp(selectedLightSpeed);
 
-            var availablePower = CheatOptions.InfiniteElectricity 
+            availablePower = CheatOptions.InfiniteElectricity 
                 ? currentPowerRequirementForWarp
                 : getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
@@ -1306,7 +1323,7 @@ namespace FNPlugin
 
             dropoutDistance = minimumSpaceAltitude + allowedWarpDistancePerFrame + safetyDistance;
 
-            if (distanceToClosestBody <= dropoutDistance)
+            if ((!CheatOptions.IgnoreMaxTemperature && vessel.atmDensity > 0) ||   distanceToClosestBody <= dropoutDistance)
             {
                 if (vesselWasInOuterspace)
                 {
@@ -1345,11 +1362,9 @@ namespace FNPlugin
             var hasHeadingChanged = magnitudeDiff > 0.0001 && counterCurrent > counterPreviousChange + headingChangedTimeout && allowWarpTurning;
 
             // Speedup to maximum speed when possible and requested
-            if (maximizeWarpSpeed && magnitudeDiff <= 0.0001 && maximumWarpSpeedFactor > selected_factor && availablePower > powerRequirementForMaximumAllowedLightSpeed)
+            if (maximizeWarpSpeed && magnitudeDiff <= 0.0001 && maximumWarpSpeedFactor > selected_factor)
             {
-                selected_factor = maximumWarpSpeedFactor;
-                currentPowerRequirementForWarp = powerRequirementForMaximumAllowedLightSpeed;
-                warpEngineThrottle = maximumAllowedWarpThrotle;
+                MaximizeWarpSpeed();
             }
 
             var hasWarpFactorChange = Math.Abs(existing_warp_speed - selectedLightSpeed) > float.Epsilon;
@@ -1566,6 +1581,14 @@ namespace FNPlugin
                     ToggleWarpSpeedDown10();
                 if (GUILayout.Button("(+) " + speedText + " x10", GUILayout.MinWidth(130)))
                     ToggleWarpSpeedUp10();
+                GUILayout.EndHorizontal();
+
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("(-) " + speedText + " MIN", GUILayout.MinWidth(170)))
+                    MaximizeWarpSpeed();
+                if (GUILayout.Button("(+) " + speedText + " MAX", GUILayout.MinWidth(130)))
+                    MinimizeWarpSpeed();
                 GUILayout.EndHorizontal();
 
                 if (!IsEnabled && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_activateWarpDrive"), GUILayout.ExpandWidth(true)))
