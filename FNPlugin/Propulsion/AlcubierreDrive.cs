@@ -1055,22 +1055,38 @@ namespace FNPlugin
 
         private void MaximizeWarpSpeed()
         {
-            if (availablePower < powerRequirementForMaximumAllowedLightSpeed)
-                return;
+            foreach (var lightspeedFraction in _engineThrotle.Reverse())
+            {
+                if (lightspeedFraction > maximumAllowedWarpThrotle)
+                    continue;
 
-            selected_factor = maximumWarpSpeedFactor;
-            currentPowerRequirementForWarp = powerRequirementForMaximumAllowedLightSpeed;
-            warpEngineThrottle = maximumAllowedWarpThrotle;
+                var requiredPower = GetPowerRequirementForWarp(lightspeedFraction);
+                if (availablePower > requiredPower)
+                {
+                    selected_factor = _engineThrotle.IndexOf(lightspeedFraction);
+                    currentPowerRequirementForWarp = requiredPower;
+                    warpEngineThrottle = lightspeedFraction;
+
+                    break;
+                }
+            }
         }
 
         private void MinimizeWarpSpeed()
         {
-            if (availablePower < powerRequirementForSlowedSubLightSpeed)
-                return;
+            foreach (var lightspeedFraction in _engineThrotle)
+            {
+                var requiredPower = GetPowerRequirementForWarp(lightspeedFraction);
 
-            selected_factor = 0;
-            currentPowerRequirementForWarp = powerRequirementForSlowedSubLightSpeed;
-            warpEngineThrottle = _engineThrotle.First();
+                if (availablePower > requiredPower)
+                {
+                    selected_factor = _engineThrotle.IndexOf(lightspeedFraction);
+                    currentPowerRequirementForWarp = requiredPower;
+                    warpEngineThrottle = lightspeedFraction;
+
+                    break;
+                }
+            }
         }
 
         public override void OnFixedUpdate()
@@ -1583,12 +1599,11 @@ namespace FNPlugin
                     ToggleWarpSpeedUp10();
                 GUILayout.EndHorizontal();
 
-
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button("(-) " + speedText + " MIN", GUILayout.MinWidth(170)))
-                    MaximizeWarpSpeed();
-                if (GUILayout.Button("(+) " + speedText + " MAX", GUILayout.MinWidth(130)))
                     MinimizeWarpSpeed();
+                if (GUILayout.Button("(+) " + speedText + " MAX", GUILayout.MinWidth(130)))
+                    MaximizeWarpSpeed ();
                 GUILayout.EndHorizontal();
 
                 if (!IsEnabled && GUILayout.Button(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_activateWarpDrive"), GUILayout.ExpandWidth(true)))
