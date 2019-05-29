@@ -1037,7 +1037,7 @@ namespace FNPlugin
             //	// retreive vessel heading
             //	magnitudeDiff = (active_part_heading - new Vector3d(part.transform.up.x, part.transform.up.z, part.transform.up.y)).magnitude;
 
-            //	if (magnitudeDiff < 0.0001 && availablePower > powerRequirementForMaximumAllowedLightSpeed)
+            //	if (magnitudeDiff < 0.0001)
             //	{
             //		MaximizeWarpSpeed();
             //	}
@@ -1053,39 +1053,54 @@ namespace FNPlugin
             resourceBuffers.UpdateBuffers();
         }
 
+
+        private double GetHighestThrotleForAvailablePower()
+        {
+            foreach (var lightspeedFraction in _engineThrotle.Where(s => s <= maximumAllowedWarpThrotle && s > 1).Reverse())
+            {
+                var requiredPower = GetPowerRequirementForWarp(lightspeedFraction);
+
+                if (availablePower > requiredPower)
+                    return lightspeedFraction;
+            }
+
+            return 1;
+        }
+
         private void MaximizeWarpSpeed()
         {
-            foreach (var lightspeedFraction in _engineThrotle.Reverse())
+            var fastestLightspeed = GetHighestThrotleForAvailablePower();
+
+            if (fastestLightspeed > warpEngineThrottle)
             {
-                if (lightspeedFraction > maximumAllowedWarpThrotle)
-                    continue;
-
-                var requiredPower = GetPowerRequirementForWarp(lightspeedFraction);
-                if (availablePower > requiredPower)
-                {
-                    selected_factor = _engineThrotle.IndexOf(lightspeedFraction);
-                    currentPowerRequirementForWarp = requiredPower;
-                    warpEngineThrottle = lightspeedFraction;
-
-                    break;
-                }
+                selected_factor = _engineThrotle.IndexOf(fastestLightspeed);
+                currentPowerRequirementForWarp = GetPowerRequirementForWarp(fastestLightspeed);
+                warpEngineThrottle = fastestLightspeed;
             }
+        }
+
+        private double GetLowestThrotleForAvailablePower()
+        {
+            foreach (var lightspeedFraction in _engineThrotle.Where(s => s < 1))
+            {
+                var requiredPower = GetPowerRequirementForWarp(lightspeedFraction);
+
+                if (availablePower > requiredPower)
+                    return lightspeedFraction;
+            }
+
+            return 1;
         }
 
         private void MinimizeWarpSpeed()
         {
-            foreach (var lightspeedFraction in _engineThrotle)
+            var slowerstSublightspeed = GetLowestThrotleForAvailablePower();
+
+            if (slowerstSublightspeed < warpEngineThrottle)
             {
-                var requiredPower = GetPowerRequirementForWarp(lightspeedFraction);
-
-                if (availablePower > requiredPower)
-                {
-                    selected_factor = _engineThrotle.IndexOf(lightspeedFraction);
-                    currentPowerRequirementForWarp = requiredPower;
-                    warpEngineThrottle = lightspeedFraction;
-
-                    break;
-                }
+                selected_factor = _engineThrotle.IndexOf(slowerstSublightspeed);
+                currentPowerRequirementForWarp = GetPowerRequirementForWarp(slowerstSublightspeed);
+                warpEngineThrottle = slowerstSublightspeed;
             }
         }
 
@@ -1579,30 +1594,30 @@ namespace FNPlugin
                 var speedText = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_speed");
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("(-) " + speedText, GUILayout.MinWidth(170)))
+                if (GUILayout.Button("(-) " + speedText, GUILayout.MinWidth(150)))
                     ToggleWarpSpeedDown();
-                if (GUILayout.Button("(+) " + speedText, GUILayout.MinWidth(130)))
+                if (GUILayout.Button("(+) " + speedText, GUILayout.MinWidth(150)))
                     ToggleWarpSpeedUp();
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("(-) " + speedText + " x3", GUILayout.MinWidth(170)))
+                if (GUILayout.Button("(-) " + speedText + " x3", GUILayout.MinWidth(150)))
                     ToggleWarpSpeedDown3();
-                if (GUILayout.Button("(+) " + speedText + " x3", GUILayout.MinWidth(130)))
+                if (GUILayout.Button("(+) " + speedText + " x3", GUILayout.MinWidth(150)))
                     ToggleWarpSpeedUp3();
                 GUILayout.EndHorizontal(); 
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("(-) " + speedText + " x10", GUILayout.MinWidth(170)))
+                if (GUILayout.Button("(-) " + speedText + " x10", GUILayout.MinWidth(150)))
                     ToggleWarpSpeedDown10();
-                if (GUILayout.Button("(+) " + speedText + " x10", GUILayout.MinWidth(130)))
+                if (GUILayout.Button("(+) " + speedText + " x10", GUILayout.MinWidth(150)))
                     ToggleWarpSpeedUp10();
                 GUILayout.EndHorizontal();
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("(-) " + speedText + " MIN", GUILayout.MinWidth(170)))
+                if (GUILayout.Button("(-) " + speedText + " MIN", GUILayout.MinWidth(150)))
                     MinimizeWarpSpeed();
-                if (GUILayout.Button("(+) " + speedText + " MAX", GUILayout.MinWidth(130)))
+                if (GUILayout.Button("(+) " + speedText + " MAX", GUILayout.MinWidth(150)))
                     MaximizeWarpSpeed ();
                 GUILayout.EndHorizontal();
 
