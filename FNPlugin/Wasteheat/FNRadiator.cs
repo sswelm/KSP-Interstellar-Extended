@@ -9,6 +9,9 @@ using UnityEngine;
 namespace FNPlugin.Wasteheat 
 {
     [KSPModule("Radiator")]
+    class IntegratedRadiator : FNRadiator { }
+
+    [KSPModule("Radiator")]
     class StackFNRadiator : FNRadiator { }
 
     [KSPModule("Radiator")]
@@ -125,10 +128,8 @@ namespace FNPlugin.Wasteheat
         public double radiator_temperature_temp_val;
         [KSPField]
         public double instantaneous_rad_temp;
-        [KSPField(guiName = "Max Energy Transfer", guiActive = true, guiFormat = "P2")]
+        [KSPField(guiName = "Dynamic Pressure Stress", guiActive = true, guiFormat = "P2")]
         public double dynamicPressureStress;
-        //[KSPField(guiName = "WasteHeat Ratio")]
-        //public double wasteheatRatio;
         [KSPField(guiName = "Max Energy Transfer", guiFormat = "F2")]
         private double _maxEnergyTransfer;
         [KSPField(guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
@@ -680,11 +681,19 @@ namespace FNPlugin.Wasteheat
 
             if (keepMaxPartTempEqualToMaxRadiatorTemp)
             {
-                part.skinTemperature = Math.Min(part.skinTemperature, maxCurrentRadiatorTemperature * 0.99);
-                part.temperature = Math.Min(part.temperature, maxCurrentRadiatorTemperature * 0.99);
+                var partSkinTemperature = Math.Min(part.skinTemperature, maxCurrentRadiatorTemperature * 0.99);
+                if (double.IsNaN(partSkinTemperature) == false)
+                    part.skinTemperature = partSkinTemperature;
 
-                part.skinMaxTemp = maxCurrentRadiatorTemperature;
-                part.maxTemp = maxCurrentRadiatorTemperature;
+                var partTemperature = Math.Min(part.temperature, maxCurrentRadiatorTemperature * 0.99);
+                if (double.IsNaN(partTemperature) == false)
+                    part.temperature = partTemperature;
+
+                if (double.IsNaN(maxCurrentRadiatorTemperature) == false)
+                {
+                    part.skinMaxTemp = maxCurrentRadiatorTemperature;
+                    part.maxTemp = maxCurrentRadiatorTemperature;
+                }
             }
 
             if (maintainResourceBuffers)
@@ -744,7 +753,7 @@ namespace FNPlugin.Wasteheat
 
             UpdateMaxCurrentTemperature();
 
-            if (keepMaxPartTempEqualToMaxRadiatorTemp)
+            if (keepMaxPartTempEqualToMaxRadiatorTemp && double.IsNaN(maxCurrentRadiatorTemperature) == false)
             {
                 part.skinMaxTemp = maxCurrentRadiatorTemperature;
                 part.maxTemp = maxCurrentRadiatorTemperature;
@@ -809,7 +818,7 @@ namespace FNPlugin.Wasteheat
                     oxidationModifier = 1 + ratio * 0.1;
                 }
                 else
-                    oxidationModifier = Approximate.FourthRoot((float)(combinedPresure / 101.325));
+                    oxidationModifier = Math.Pow(combinedPresure / 101.325, 0.25);
 
                 spaceRadiatorBonus = maxSpaceTempBonus * (1 - (oxidationModifier));
 
