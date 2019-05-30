@@ -1019,7 +1019,11 @@ namespace FNPlugin
             if (totalWarpPower != 0 && vesselTotalMass != 0)
             {
                 warpToMassRatio = totalWarpPower / vesselTotalMass;
-                exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required * vesselTotalMass * powerRequirementMultiplier) / warpToMassRatio;
+                //exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required * vesselTotalMass * powerRequirementMultiplier) / warpToMassRatio;
+                exotic_power_required = 1000 * part.mass;
+
+                var exoticMattersurce = part.Resources["ExoticMatter"];
+                exoticMattersurce.maxAmount = exotic_power_required;
             }
 
             minPowerRequirementForLightSpeed = GetPowerRequirementForWarp(1);
@@ -1049,8 +1053,8 @@ namespace FNPlugin
             // calculate Exotic Matter Capacity
             if (double.IsNaN(exotic_power_required) || double.IsInfinity(exotic_power_required) || !(exotic_power_required > 0)) return;
 
-            resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
-            resourceBuffers.UpdateBuffers();
+            //resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ExoticMatter, exotic_power_required);
+            //resourceBuffers.UpdateBuffers();
         }
 
 
@@ -1255,6 +1259,8 @@ namespace FNPlugin
                     ? powerDraw
                     : consumeFNResourcePerSecond(effectiveResourceThrotling * powerDraw, ResourceManager.FNRESOURCE_MEGAJOULES);
 
+                powerReturned /= powerRequirementMultiplier;
+
                 if (powerReturned < 0.99 * minPowerRequirementForLightSpeed)
                     insufficientPowerTimeout--;
                 else
@@ -1272,7 +1278,7 @@ namespace FNPlugin
 
                 if (currentExoticMatter < exotic_power_required)
                 {
-                    part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -powerReturned * 0.001 * TimeWarp.fixedDeltaTime);
+                    part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -powerReturned * 0.001 * TimeWarp.fixedDeltaTime / powerRequirementMultiplier);
                 }
 
                 ProduceWasteheat(powerReturned);
@@ -1340,7 +1346,7 @@ namespace FNPlugin
                 powerReturned = currentPowerRequirementForWarp;
             else
             {
-                powerReturned = consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceManager.FNRESOURCE_MEGAJOULES);
+                powerReturned = consumeFNResourcePerSecond(currentPowerRequirementForWarp, ResourceManager.FNRESOURCE_MEGAJOULES) ;
                 ProduceWasteheat(powerReturned);
             }
 
