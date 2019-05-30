@@ -1259,8 +1259,6 @@ namespace FNPlugin
                     ? powerDraw
                     : consumeFNResourcePerSecond(effectiveResourceThrotling * powerDraw, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                powerReturned /= powerRequirementMultiplier;
-
                 if (powerReturned < 0.99 * minPowerRequirementForLightSpeed)
                     insufficientPowerTimeout--;
                 else
