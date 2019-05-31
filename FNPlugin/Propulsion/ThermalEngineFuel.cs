@@ -1,10 +1,15 @@
-﻿namespace FNPlugin.Propulsion
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace FNPlugin.Propulsion
 {
     public class ThermalEngineFuel
     {
         private int _index;
         
-        private string _fuelmode;
+        private string _guiName;
 
         private bool _isLFO;
         private bool _is_jet;
@@ -26,11 +31,15 @@
         private double _fuelCoolingFactor;
         private bool _fuelRequiresUpgrade;
 
+        private Part _part;
+
+        private List<Propellant> list_of_propellants = new List<Propellant>();
+
         public string FuelTechRequirement { get { return _fuelTechRequirement; } }
         public double FuelCoolingFactor { get { return _fuelCoolingFactor; } }
         public bool FuelRequiresUpgrade { get { return _fuelRequiresUpgrade; } }
         public int Index { get { return _index; } }
-        public string Fuelmode { get {return _fuelmode;}}
+        public string GuiName { get {return _guiName;}}
         public double PropellantSootFactorFullThrotle { get { return _propellantSootFactorFullThrotle; } }
         public double PropellantSootFactorMinThrotle { get { return _propellantSootFactorMinThrotle; } }
         public double PropellantSootFactorEquilibrium { get { return _propellantSootFactorEquilibrium; } }
@@ -47,9 +56,11 @@
         public double IspPropellantMultiplier { get { return _ispPropellantMultiplier; } }
         public double ThrustPropellantMultiplier { get { return _thrustPropellantMultiplier; } }
 
-        public ThermalEngineFuel(ConfigNode node, int index)
+        public ThermalEngineFuel(ConfigNode node, int index, Part part)
         {
-            _fuelmode = node.GetValue("guiName");
+            _part = part;
+            _index = index;
+            _guiName = node.GetValue("guiName");
             _isLFO = node.HasValue("isLFO") ? bool.Parse(node.GetValue("isLFO")) : false;
             _is_jet = node.HasValue("isJet") ? bool.Parse(node.GetValue("isJet")) : false;
 
@@ -69,7 +80,32 @@
             _propType = node.HasValue("propType") ? int.Parse(node.GetValue("propType")) : 1;
             _ispPropellantMultiplier = node.HasValue("ispMultiplier") ? double.Parse(node.GetValue("ispMultiplier")) : 1;
             _thrustPropellantMultiplier = node.HasValue("thrustMultiplier") ? double.Parse(node.GetValue("thrustMultiplier")) : 1;
+
+            ConfigNode[] propellantNodes = node.GetNodes("PROPELLANT");
+
+            foreach (ConfigNode propNode in propellantNodes)
+            {
+                var curprop = new ExtendedPropellant();
+                curprop.Load(propNode);
+
+                list_of_propellants.Add(curprop);
+            }
         }
+
+        public bool hasAnyStorage()
+        {
+            foreach (var extendedPropellant in list_of_propellants)
+            {
+                double amount;
+                double maxAmount;
+                _part.GetConnectedResourceTotals(extendedPropellant.id, extendedPropellant.GetFlowMode(), out amount, out maxAmount);
+
+                if (maxAmount <= 0)
+                    return false;
+            }
+
+            return true;
+        }        
 
     }
 }

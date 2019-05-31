@@ -35,6 +35,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool exhaustAllowed = true;
 
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Propelant Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.None)]
+        public bool render_window = false;
+
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Isp Throttle"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0)]
         public float ispThrottle = 0;
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Fuel Flow Throttle"), UI_FloatRange(stepIncrement = 10, maxValue = 1000, minValue = 100)]
@@ -159,6 +162,13 @@ namespace FNPlugin
         public string powerEffectNameLFO = String.Empty;
         [KSPField]
         public string powerEffectNameNonLFO = String.Empty;
+
+        [KSPField(isPersistant = true)]
+        public float windowPositionX = 1000;
+        [KSPField(isPersistant = true)]
+        public float windowPositionY = 200;
+        [KSPField]
+        public float windowWidth = 200;
 
 
         [KSPField]
@@ -430,6 +440,7 @@ namespace FNPlugin
         protected float _jetTechBonusCurveChange;
 
         protected int partDistance = 0;
+        protected int _windowID;
 
         protected bool _fuelRequiresUpgrade = false;
         protected bool _engineWasInactivePreviousFrame = false;
@@ -461,6 +472,11 @@ namespace FNPlugin
 
         protected List<ThermalEngineFuel> _allThermalEngineFuels;
         protected List<ThermalEngineFuel> _compatibleThermalEngineFuels;
+
+        //protected GUIStyle blackGuiStyle;
+        //protected GUIStyle grayGuiStyle;
+
+        protected Rect windowPosition;
 
         private IFNPowerSource _myAttachedReactor;
         public IFNPowerSource AttachedReactor
@@ -634,6 +650,15 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             //Debug.Log("[KSPI]: ThermalNozzleController - start");
+
+            //blackGuiStyle = new GUIStyle(GUI.skin.button);
+            //blackGuiStyle.normal.textColor = Color.black;
+
+            //grayGuiStyle = new GUIStyle(GUI.skin.button);
+            //grayGuiStyle.normal.textColor = Color.gray;
+
+            _windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
+            windowPosition = new Rect(windowPositionX, windowPositionY, windowWidth, 10);
 
             _flameoutText = Localizer.Format("#autoLOC_219016");
 
@@ -1025,7 +1050,7 @@ namespace FNPlugin
 
         public void LoadFuelModes()
         {
-            _allThermalEngineFuels = fuelConfignodes.Select(node => new ThermalEngineFuel(node, fuelConfignodes.IndexOf(node))).ToList();
+            _allThermalEngineFuels = fuelConfignodes.Select(node => new ThermalEngineFuel(node, fuelConfignodes.IndexOf(node), this.part)).ToList();
 
             Debug.Log("[KSPI]: ThermalNozzleController - Indexed " + _allThermalEngineFuels.Count + " fuelmodes");
 
@@ -1052,7 +1077,7 @@ namespace FNPlugin
 
             Debug.Log("[KSPI]: ThermalNozzleController - Found " + _compatibleThermalEngineFuels.Count + " compatible fuelmodes");
 
-            var concatednated = string.Join("", _compatibleThermalEngineFuels.Select(m => m.Fuelmode).ToArray());            
+            var concatednated = string.Join("", _compatibleThermalEngineFuels.Select(m => m.GuiName).ToArray());            
 
             var nextPropellantEvent = Events["NextPropellant"];
             if (nextPropellantEvent != null)
@@ -1354,7 +1379,7 @@ namespace FNPlugin
             {
                 if (overrideVelocityCurve && jetPerformanceProfile == 0)
                 {
-                    velCurve.Add(0,  0.05f + _jetTechBonusPercentage / 2);
+                    velCurve.Add(0,  0.05f + _jetTechBonusPercentage / 4);
                     velCurve.Add(2.5f - _jetTechBonusCurveChange, 1);
                     velCurve.Add(5 + _jetTechBonusCurveChange * 2, 1);
                     velCurve.Add(14, 0 + _jetTechBonusPercentage);
@@ -2299,6 +2324,50 @@ namespace FNPlugin
                 displayName += " " + partNrInList;
 
             return displayName;
+        }
+
+        public void OnGUI()
+        {
+            if (this.vessel == FlightGlobals.ActiveVessel && render_window)
+                windowPosition = GUILayout.Window(_windowID, windowPosition, Window, "Switch Propellant Mode");
+        }
+
+        private void Window(int windowID)
+        {
+            try
+            {
+                windowPositionX = windowPosition.x;
+                windowPositionY = windowPosition.y;
+
+                if (GUI.Button(new Rect(windowPosition.width - 20, 2, 18, 18), "x"))
+                {
+                    render_window = false;
+                }
+
+                GUILayout.BeginVertical();
+
+                foreach (var fuel in _compatibleThermalEngineFuels)
+                {
+                    if (HighLogic.LoadedSceneIsEditor || fuel.hasAnyStorage())
+                    {
+                        GUILayout.BeginHorizontal();
+                        if (GUILayout.Button(fuel.GuiName, GUILayout.ExpandWidth(true)))
+                        {
+                            fuel_mode = fuel.Index;
+                            SetupPropellants(true);
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+                }
+
+                GUILayout.EndVertical();
+                GUI.DragWindow();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI]: ThermalNozzleController Window(" + windowID + "): " + e.Message);
+                throw;
+            }
         }
     }
 }

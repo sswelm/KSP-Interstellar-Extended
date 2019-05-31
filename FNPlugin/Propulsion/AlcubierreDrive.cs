@@ -726,9 +726,7 @@ namespace FNPlugin
 
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 2.0e+5, true));
-            //resourceBuffers.AddConfiguration(new ResourceBuffers.VariableConfig(InterstellarResourcesConfiguration.Instance.ExoticMatter));
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            //resourceBuffers.UpdateVariable(InterstellarResourcesConfiguration.Instance.ExoticMatter, 0.001);
             resourceBuffers.Init(this.part);
 
             try

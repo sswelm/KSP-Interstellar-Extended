@@ -355,6 +355,8 @@ namespace FNPlugin
                 }
                 else
                 {
+                    PersistHeading();
+
                     _thrustPersistent = 0;
                     requestedFlow = 0;
                     demandMass = 0;
@@ -384,7 +386,7 @@ namespace FNPlugin
 
                 if (vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.9)
                 {
-                    var rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
+                    Quaternion rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
                     vessel.transform.Rotate(rotation.eulerAngles, Space.World);
                     vessel.SetRotation(vessel.transform.rotation);
                 }
@@ -398,6 +400,7 @@ namespace FNPlugin
                     return false;
                 }
             }
+
             return true;
         }
 
