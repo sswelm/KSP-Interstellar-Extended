@@ -2329,7 +2329,7 @@ namespace FNPlugin
         public void OnGUI()
         {
             if (this.vessel == FlightGlobals.ActiveVessel && render_window)
-                windowPosition = GUILayout.Window(_windowID, windowPosition, Window, "Switch Propellant Mode");
+                windowPosition = GUILayout.Window(_windowID, windowPosition, Window, part.partInfo.title);
         }
 
         private void Window(int windowID)
