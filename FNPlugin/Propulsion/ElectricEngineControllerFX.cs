@@ -109,6 +109,9 @@ namespace FNPlugin
         [KSPField]
         public string Mk7Tech = "";
 
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Max stored MJ usage", guiUnits = " %"), UI_FloatRange(minValue = 0, maxValue = 100, stepIncrement = 0.5f)]
+        public float maxMegaJouleUsagePercentage = 0;
+
         // GUI
         [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
@@ -729,12 +732,18 @@ namespace FNPlugin
 
             modifiedMaxThrottlePower = maxEffectivePower * ModifiedThrotte;
 
-             var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-
-             maxThrustFromPower = EvaluateMaxThrust(availablePower * _electrical_share_f);
-
+            // calculate available power from power supply and stored power
+            var maxMegaJouleUsageRatio = maxMegaJouleUsagePercentage * 0.01;
             var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-            var effectiveResourceThrotling = megaJoulesBarRatio > OneThird ? 1 : megaJoulesBarRatio * 3;
+            var megajouleRatioAvailable = Math.Max(0, maxMegaJouleUsageRatio - (1 - megaJoulesBarRatio));
+            var availablePowerFromStoredMegaJoules = megajouleRatioAvailable * part.GetResourceMaxAvailable(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) + availablePowerFromStoredMegaJoules;
+
+            maxThrustFromPower = EvaluateMaxThrust(availablePower * _electrical_share_f);
+
+            var weightedMaxMegaJouleUsageRatio = Math.Min(1 - maxMegaJouleUsageRatio, 0.5);
+
+            var effectiveResourceThrotling = megaJoulesBarRatio >= weightedMaxMegaJouleUsageRatio ? 1 : Math.Min(1, megaJoulesBarRatio * (1 / weightedMaxMegaJouleUsageRatio));
 
             var rawPowerForEngine = effectiveResourceThrotling * maxThrustFromPower * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
 
@@ -745,7 +754,7 @@ namespace FNPlugin
                 ? modifiedMaxThrottlePower 
                 : currentPropellantEfficiency <= 0 
                     ? 0 
-                    : Math.Min(currentPowerForEngine / currentPropellantEfficiency, modifiedMaxThrottlePower);            
+                    : Math.Min(currentPowerForEngine / currentPropellantEfficiency, modifiedMaxThrottlePower);
 
             actualPowerReceived = CheatOptions.InfiniteElectricity 
                 ? power_request

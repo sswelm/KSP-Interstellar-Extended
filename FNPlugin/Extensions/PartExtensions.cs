@@ -118,7 +118,7 @@ namespace FNPlugin.Extensions
 
             if (definition == null)
             {
-                Debug.LogError("[KSPI]: PartResourceDefinition definition is NULL");
+                Debug.LogError("[KSPI]: PartResourceDefinition definition for " + name + " not found");
                 return 0;
             }
 
@@ -131,6 +131,12 @@ namespace FNPlugin.Extensions
         public static double GetResourceRatio(this Part part, string name)
         {
             var definition = PartResourceLibrary.Instance.GetDefinition(name);
+
+            if (definition == null)
+            {
+                Debug.LogError("[KSPI]: PartResourceDefinition definition is NULL");
+                return 0;
+            }
 
             double currentAmount;
             double maxAmount;
