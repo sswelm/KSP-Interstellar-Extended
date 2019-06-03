@@ -11,7 +11,7 @@ namespace FNPlugin
         public double finalAir;
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Atmospheric Intake"), UI_Toggle(disabledText = "Closed", enabledText = "Open", affectSymCounterparts = UI_Scene.None)] // Mass Ratio
-        public bool intakeOpen;
+        public bool intakeOpen = true;
 
         [KSPField (guiActive = false, guiActiveEditor = true)]
         public double intakeSpeed;
