@@ -1588,8 +1588,8 @@ namespace FNPlugin
 
                 bool canUseChargedPower = this.allowUseOfChargedPower && AttachedReactor.ChargedPowerRatio > 0;
 
-                effectiveThermalSupply = !UseChargedPowerOnly ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
-                effectiveChargedSupply = canUseChargedPower ? getAvailableResourceSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
+                effectiveThermalSupply = !UseChargedPowerOnly ? getAvailableStableSupply(ResourceManager.FNRESOURCE_THERMALPOWER) : 0;
+                effectiveChargedSupply = canUseChargedPower ? getAvailableStableSupply(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
 
                 maximumPowerUsageForPropulsionRatio = UsePlasmaPower
                     ? AttachedReactor.PlasmaPropulsionEfficiency

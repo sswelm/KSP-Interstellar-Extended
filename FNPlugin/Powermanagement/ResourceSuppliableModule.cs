@@ -347,7 +347,7 @@ namespace FNPlugin
             return (double)manager.CurrentHighPriorityResourceDemand;
         }
 
-        public double getAvailableResourceSupply(String resourcename)
+        public double getAvailableStableSupply(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename)) 
             {
@@ -360,6 +360,21 @@ namespace FNPlugin
                 return 0;
 
             return (double)Math.Max(manager.StableResourceSupply - manager.CurrentHighPriorityResourceDemand, 0);
+        }
+
+        public double getAvailableResourceSupply(String resourcename)
+        {
+            if (String.IsNullOrEmpty(resourcename))
+            {
+                Debug.Log("[KSPI]: getAvailableResourceSupply illegal values.");
+                return 0;
+            }
+
+            ResourceManager manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            return (double)Math.Max(manager.ResourceSupply - manager.CurrentHighPriorityResourceDemand, 0);
         }
 
         public double getResourceSupply(String resourcename)

@@ -784,7 +784,7 @@ namespace FNPlugin
                     var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.18 && resourceDefinition.id == megajouleResourceDefinition.id)
+                    if (resourceDefinition.id == megajouleResourceDefinition.id && supplyEfficiencyRatio > 0 && supplyEfficiencyRatio < 0.18)
                         power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.16;
 
                     if (!double.IsNaN(power) && !double.IsInfinity(power))

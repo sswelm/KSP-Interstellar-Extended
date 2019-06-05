@@ -1215,7 +1215,7 @@ namespace FNPlugin
             {
                 availablePower = CheatOptions.InfiniteElectricity
                     ? currentPowerRequirementForWarp
-                    : getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    : getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 if (availablePower < minPowerRequirementForLightSpeed)
                 {
@@ -1317,7 +1317,7 @@ namespace FNPlugin
 
             availablePower = CheatOptions.InfiniteElectricity 
                 ? currentPowerRequirementForWarp
-                : getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                : getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
             double powerReturned;
 

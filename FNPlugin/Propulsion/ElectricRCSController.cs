@@ -366,7 +366,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
                     if (currentThrust > 0)
                     {

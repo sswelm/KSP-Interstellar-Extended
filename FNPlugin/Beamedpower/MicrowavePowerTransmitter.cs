@@ -590,7 +590,7 @@ namespace FNPlugin.Beamedpower
                 }
                 else
                 {
-                    var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES); 
+                    var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES); 
                     var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
 
                     var effectiveResourceThrotling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
