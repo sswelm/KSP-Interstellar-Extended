@@ -1,5 +1,6 @@
 ﻿using FNPlugin.Power;
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin  
@@ -64,10 +65,10 @@ namespace FNPlugin
         {
             if (state == StartState.Editor) return; // don't do any of this stuff in editor
 
-            _moduleResourceIntake = this.part.FindModuleImplementing<ModuleResourceIntake>();
+            _moduleResourceIntake = this.part.FindModulesImplementing<ModuleResourceIntake>().FirstOrDefault(m => m.resourceName == InterstellarResourcesConfiguration._INTAKE_AIR);
 
             if (_moduleResourceIntake == null)
-                UnityEngine.Debug.LogWarning("[KSPI]: ModuleResourceIntake is missing on " + part.partInfo.title);
+                UnityEngine.Debug.LogWarning("[KSPI]: ModuleResourceIntake with IntakeAir is missing on " + part.partInfo.title);
 
             var field = Fields["intakeOpen"];
             var flightToggle = field.uiControlFlight as UI_Toggle;
@@ -96,7 +97,12 @@ namespace FNPlugin
         private void IntakeOpenChanged(BaseField field, object oldFieldValueObj)
         {
             if (_moduleResourceIntake != null)
-                _moduleResourceIntake.intakeEnabled = intakeOpen;
+            {
+                if (intakeOpen)
+                    _moduleResourceIntake.Activate();
+                else
+                    _moduleResourceIntake.Deactivate();
+            }
         }
 
         private void UpdateResourceIntakeConfiguration()
