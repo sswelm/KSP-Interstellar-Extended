@@ -7,7 +7,7 @@ namespace FNPlugin.Refinery
     {
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool isActive = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_powerPecentage"), UI_FloatRange(stepIncrement = 1f / 3f, maxValue = 100, minValue = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_powerPecentage"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
         public float powerPercentage = 100;
 
         [KSPField]
@@ -24,7 +24,7 @@ namespace FNPlugin.Refinery
         public double productionRate;
         [KSPField]
         public double efficiencyMultiplier = 10;
-        [KSPField]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Maximum Power capacity", guiUnits = " MW")]
         public double powerCapacity = 1000;
         [KSPField]
         public string resourceName = "Positrons";
@@ -92,15 +92,15 @@ namespace FNPlugin.Refinery
             var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
             var effectiveResourceThrotling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
 
-            var energy_requested_in_megajoules = Math.Min(powerCapacity, effectiveResourceThrotling * availablePower * powerPercentage / 100d);
+            var energy_requested_in_megajoules_per_second = Math.Min(powerCapacity, effectiveResourceThrotling * availablePower * (double)(decimal)powerPercentage * 0.01);
 
-            var energy_provided_in_megajoules = CheatOptions.InfiniteElectricity
-                ? energy_requested_in_megajoules
-                : consumeFNResourcePerSecond(energy_requested_in_megajoules, ResourceManager.FNRESOURCE_MEGAJOULES);
+            var energy_provided_in_megajoules_per_second = CheatOptions.InfiniteElectricity
+                ? energy_requested_in_megajoules_per_second
+                : consumeFNResourcePerSecond(energy_requested_in_megajoules_per_second, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            electrical_power_ratio = energy_requested_in_megajoules > 0 ? energy_provided_in_megajoules / energy_requested_in_megajoules : 0;
+            electrical_power_ratio = energy_requested_in_megajoules_per_second > 0 ? energy_provided_in_megajoules_per_second / energy_requested_in_megajoules_per_second : 0;
 
-            _generator.Produce(energy_provided_in_megajoules);
+            _generator.Produce(energy_provided_in_megajoules_per_second * (double)(decimal)TimeWarp.fixedDeltaTime);
 
             productionRate = _generator.ProductionRate;
         }
