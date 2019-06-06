@@ -24,20 +24,21 @@ namespace FNPlugin.Propulsion
         private double _maxDecompositionTemp;
         private double _decompositionEnergy;
         private double _baseIspMultiplier;
-        private double _fuelToxicity;
+        private double _toxicity;
+        private double _minimumCoreTemp;
         private double _ispPropellantMultiplier;
         private double _thrustPropellantMultiplier;
-        private string _fuelTechRequirement;
-        private double _fuelCoolingFactor;
-        private bool _fuelRequiresUpgrade;
+        private string _techRequirement;
+        private double _coolingFactor;
+        private bool _requiresUpgrade;
 
         private Part _part;
 
         private List<Propellant> list_of_propellants = new List<Propellant>();
 
-        public string FuelTechRequirement { get { return _fuelTechRequirement; } }
-        public double FuelCoolingFactor { get { return _fuelCoolingFactor; } }
-        public bool FuelRequiresUpgrade { get { return _fuelRequiresUpgrade; } }
+        public string TechRequirement { get { return _techRequirement; } }
+        public double CoolingFactor { get { return _coolingFactor; } }
+        public bool RequiresUpgrade { get { return _requiresUpgrade; } }
         public int Index { get { return _index; } }
         public string GuiName { get {return _guiName;}}
         public double PropellantSootFactorFullThrotle { get { return _propellantSootFactorFullThrotle; } }
@@ -47,7 +48,8 @@ namespace FNPlugin.Propulsion
         public double MaxDecompositionTemp { get { return _maxDecompositionTemp; } }
         public double DecompositionEnergy { get { return _decompositionEnergy; } }
         public double BaseIspMultiplier { get { return _baseIspMultiplier; } }
-        public double FuelToxicity { get { return _fuelToxicity; } }
+        public double Toxicity { get { return _toxicity; } }
+        public double MinimumCoreTemp { get { return _minimumCoreTemp; } }
         public bool IsLFO { get { return _isLFO; } }
         public bool IsJet { get { return _is_jet; } }
         public int AtomType { get { return _atomType; } }
@@ -71,11 +73,12 @@ namespace FNPlugin.Propulsion
             _maxDecompositionTemp = node.HasValue("MaxDecompositionTemp") ? double.Parse(node.GetValue("MaxDecompositionTemp")) : 0;
             _decompositionEnergy = node.HasValue("DecompositionEnergy") ? double.Parse(node.GetValue("DecompositionEnergy")) : 0;
             _baseIspMultiplier = node.HasValue("BaseIspMultiplier") ? double.Parse(node.GetValue("BaseIspMultiplier")) : 0;
-            _fuelTechRequirement = node.HasValue("TechRequirement") ? node.GetValue("TechRequirement") : string.Empty;
-            _fuelCoolingFactor = node.HasValue("coolingFactor") ? float.Parse(node.GetValue("coolingFactor")) : 1;
-            _fuelToxicity = node.HasValue("Toxicity") ? double.Parse(node.GetValue("Toxicity")) : 0;
+            _techRequirement = node.HasValue("TechRequirement") ? node.GetValue("TechRequirement") : string.Empty;
+            _coolingFactor = node.HasValue("coolingFactor") ? float.Parse(node.GetValue("coolingFactor")) : 1;
+            _toxicity = node.HasValue("Toxicity") ? double.Parse(node.GetValue("Toxicity")) : 0;
+            _minimumCoreTemp = node.HasValue("minimumCoreTemp") ? float.Parse(node.GetValue("minimumCoreTemp")) : 0;
 
-            _fuelRequiresUpgrade = node.HasValue("RequiresUpgrade") ? bool.Parse(node.GetValue("RequiresUpgrade")) : false;
+            _requiresUpgrade = node.HasValue("RequiresUpgrade") ? bool.Parse(node.GetValue("RequiresUpgrade")) : false;
             _atomType = node.HasValue("atomType") ? int.Parse(node.GetValue("atomType")) : 1;
             _propType = node.HasValue("propType") ? int.Parse(node.GetValue("propType")) : 1;
             _ispPropellantMultiplier = node.HasValue("ispMultiplier") ? double.Parse(node.GetValue("ispMultiplier")) : 1;

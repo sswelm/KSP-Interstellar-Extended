@@ -430,6 +430,7 @@ namespace FNPlugin
 
         protected float _fuelCoolingFactor = 1;
         protected float _fuelToxicity;
+        protected float _fuelMinimumCoreTemp;
         protected float _currentAnimatioRatio;
         protected float _minDecompositionTemp;
         protected float _maxDecompositionTemp;
@@ -1063,11 +1064,12 @@ namespace FNPlugin
 
             _compatibleThermalEngineFuels = _allThermalEngineFuels.Where(fuel =>
 
-                    PluginHelper.HasTechRequirementOrEmpty(fuel.FuelTechRequirement) &&
+                    PluginHelper.HasTechRequirementOrEmpty(fuel.TechRequirement) &&
 
-                    (fuel.FuelRequiresUpgrade == false || (_fuelRequiresUpgrade && isupgraded)) &&
+                    (fuel.RequiresUpgrade == false || (_fuelRequiresUpgrade && isupgraded)) &&
                     (fuel.IsLFO == false || (fuel.IsLFO && PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))) &&
-                    (fuel.FuelCoolingFactor >= AttachedReactor.MinCoolingFactor) &&
+                    (fuel.CoolingFactor >= AttachedReactor.MinCoolingFactor) &&
+                    (fuel.MinimumCoreTemp <= AttachedReactor.CoreTemperature) &&
                     ((fuel.AtomType & AttachedReactor.SupportedPropellantAtoms) == fuel.AtomType) &&
                     ((fuel.AtomType & this.supportedPropellantAtoms) == fuel.AtomType) &&
                     ((fuel.PropType & AttachedReactor.SupportedPropellantTypes) == fuel.PropType) &&
@@ -1129,6 +1131,7 @@ namespace FNPlugin
                          list_of_propellants.Any(m => PartResourceLibrary.Instance.GetDefinition(m.name) == null) 
                     || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                     || (_fuelRequiresUpgrade && !isupgraded)
+                    || (_fuelMinimumCoreTemp > AttachedReactor.CoreTemperature)
                     || (_fuelCoolingFactor < AttachedReactor.MinCoolingFactor)
                     || (_propellantIsLFO && !PluginHelper.HasTechRequirementAndNotEmpty(afterburnerTechReq))
                     || ((_atomType & AttachedReactor.SupportedPropellantAtoms) != _atomType)
@@ -1300,6 +1303,7 @@ namespace FNPlugin
             _fuelTechRequirement = chosenpropellant.HasValue("TechRequirement") ? chosenpropellant.GetValue("TechRequirement") : String.Empty;
             _fuelCoolingFactor = chosenpropellant.HasValue("coolingFactor") ? float.Parse(chosenpropellant.GetValue("coolingFactor")) : 1;
             _fuelToxicity = chosenpropellant.HasValue("Toxicity") ? float.Parse(chosenpropellant.GetValue("Toxicity")) : 0;
+            _fuelMinimumCoreTemp = chosenpropellant.HasValue("minimumCoreTemp") ? float.Parse(chosenpropellant.GetValue("minimumCoreTemp")) : 0;
             
             _fuelRequiresUpgrade = chosenpropellant.HasValue("RequiresUpgrade") ? Boolean.Parse(chosenpropellant.GetValue("RequiresUpgrade")) : false;
             _atomType = chosenpropellant.HasValue("atomType") ? int.Parse(chosenpropellant.GetValue("atomType")) : 1;
