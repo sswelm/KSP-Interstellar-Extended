@@ -451,8 +451,8 @@ namespace FNPlugin.Reactors
                         ? consumeFNResourcePerSecond(primaryPowerRequest, primaryInputResource)
                         : part.RequestResource(primaryInputResource, primaryPowerRequest * timeWarpFixedDeltaTime);
 
-                if (maintenancePowerWasteheatRatio > 0)
-                    supplyFNResourceFixed(maintenancePowerWasteheatRatio * returnedPrimaryPower, ResourceManager.FNRESOURCE_WASTEHEAT);
+                //if (maintenancePowerWasteheatRatio > 0)
+                //    supplyFNResourceFixed(maintenancePowerWasteheatRatio * returnedPrimaryPower, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 var powerPerSecond = usePowerManagerForPrimaryInputPower ? returnedPrimaryPower : returnedPrimaryPower / timeWarpFixedDeltaTime;
 
