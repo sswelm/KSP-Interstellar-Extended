@@ -217,7 +217,6 @@ namespace InterstellarFuelSwitch
         List<IFSmodularTank> _modularTankList = new List<IFSmodularTank>();
         InterstellarTextureSwitch2 textureSwitch;
         IFSmodularTank selectedTank;
-        UIPartActionWindow tweakableUI;
         HashSet<string> activeResourceList = new HashSet<string>();
         Rect windowPosition;
 
@@ -649,12 +648,6 @@ namespace InterstellarFuelSwitch
                         symSwitch.AssignResourcesToPart(calledByPlayer, false);
                     }
                 }
-
-                if (tweakableUI == null)
-                    tweakableUI = part.FindActionWindow();
-
-                if (tweakableUI != null)
-                    tweakableUI.displayDirty = true;
             }
             catch (Exception e)
             {
