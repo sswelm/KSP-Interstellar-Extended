@@ -2270,7 +2270,6 @@ namespace FNPlugin
             }
         }
 
-
         private double storedFractionThermalReciever;
         private double GetHeatExchangerThrustDivisor()
         {
@@ -2282,25 +2281,9 @@ namespace FNPlugin
 
             var fractionalReactorRadius = Math.Sqrt(AttachedReactor.Radius * AttachedReactor.Radius * storedFractionThermalReciever);
 
-            // scale down thrust if it's attached to the wrong sized reactor
-            double heat_exchanger_thrust_divisor = scaledRadius > fractionalReactorRadius
-                ? fractionalReactorRadius * fractionalReactorRadius / scaledRadius / scaledRadius
-                : normalizeFraction(scaledRadius / fractionalReactorRadius, 1);
-
-            if (!_currentpropellant_is_jet)
-            {
-                for (int i = 0; i < partDistance; i++)
-                {
-                    heat_exchanger_thrust_divisor *= AttachedReactor.ThermalTransportationEfficiency;
-                }
-            }
-
-            return heat_exchanger_thrust_divisor;
-        }
-
-        private double normalizeFraction(double variable, double normalizer)
-        {
-            return (normalizer + variable) / (1 + normalizer);
+            // scale down thrust if it's attached to a larger sized reactor
+            return scaledRadius >= fractionalReactorRadius ? 1
+                : fractionalReactorRadius * fractionalReactorRadius / scaledRadius / scaledRadius;
         }
 
         private static ConfigNode[] getPropellantsHybrid()
