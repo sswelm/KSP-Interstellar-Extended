@@ -27,6 +27,16 @@ namespace FNPlugin
         public double powerThrustMultiplier = 1;
         [KSPField]
         public float wasteHeatMultiplier = 1;
+        [KSPField]
+        public bool maintainsPropellantBuffer = true;
+        [KSPField]
+        public double minimumPropellantBuffer = 0.001;
+        [KSPField]
+        public string propellantBufferResourceName = "LqdHydrogen";
+        [KSPField]
+        public string runningEffectName = String.Empty;
+        [KSPField]
+        public string powerEffectName = String.Empty;
 
         [KSPField(guiName = "CP max fraction usage", guiFormat = "F3")]
         private double _chargedParticleMaximumPercentageUsage;
@@ -42,7 +52,7 @@ namespace FNPlugin
         private double _recievedElectricPower;
         [KSPField(guiName = "Thrust", guiUnits = " kN")]
         private double _engineMaxThrust;
-        [KSPField(guiName = "Calculated", guiUnits = " kg/s")]
+        [KSPField(guiName = "Consumption", guiUnits = " kg/s")]
         private double calculatedConsumptionPerSecond;
 
         [KSPField(guiName = "Throtle Exponent")]
@@ -62,8 +72,10 @@ namespace FNPlugin
         UI_FloatRange simulatedThrottleFloatRange;
         ModuleEnginesFX _attached_engine;
         ModuleEnginesWarp _attached_warpable_engine;
-        IChargedParticleSource _attached_reactor;
         ResourceBuffers resourceBuffers;
+        PartResourceDefinition propellantBufferResourceDefinition;
+
+        IChargedParticleSource _attached_reactor;
 
         int _attached_reactor_distance;
         double exchanger_thrust_divisor;
@@ -88,6 +100,9 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            if (maintainsPropellantBuffer)
+                propellantBufferResourceDefinition = PartResourceLibrary.Instance.GetDefinition(propellantBufferResourceName);
+
             resourceBuffers = new ResourceBuffers();
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, 1.0e+6, true));
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
@@ -110,16 +125,43 @@ namespace FNPlugin
             simulatedThrottleFloatRange = Fields["simulatedThrottle"].uiControlEditor as UI_FloatRange;
             simulatedThrottleFloatRange.onFieldChanged += UpdateFromGUI;  
  
-            Fields["partMass"].guiActiveEditor = showPartMass;
-
             if (_attached_reactor == null)
             {
-                Debug.Log("[KSPI]: InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
+                Debug.LogWarning("[KSPI]: InterstellarMagneticNozzleControllerFX.OnStart no IChargedParticleSource found for MagneticNozzle!");
                 return;
             }
-            exchanger_thrust_divisor = radius > _attached_reactor.Radius
-                ? _attached_reactor.Radius * _attached_reactor.Radius / radius / radius
-                : radius * radius / _attached_reactor.Radius / _attached_reactor.Radius;
+            exchanger_thrust_divisor = radius >= _attached_reactor.Radius ? 1 : radius * radius / _attached_reactor.Radius / _attached_reactor.Radius;
+
+            InitializesPropellantBuffer();
+
+            if (_attached_engine != null && _attached_engine is ModuleEnginesFX)
+            {
+                if (!String.IsNullOrEmpty(runningEffectName))
+                    part.Effect(runningEffectName, 0, -1);
+                if (!String.IsNullOrEmpty(powerEffectName))
+                    part.Effect(powerEffectName, 0, -1);
+            }
+
+            Fields["partMass"].guiActiveEditor = showPartMass;
+            Fields["partMass"].guiActive = showPartMass;
+        }
+
+        private void InitializesPropellantBuffer()
+        {
+            if (maintainsPropellantBuffer && string.IsNullOrEmpty(propellantBufferResourceName) == false && part.Resources[propellantBufferResourceName] == null)
+            {
+                Debug.Log("[KSPI]: Added " + propellantBufferResourceName + " buffer to MagneticNozzle");
+                var newResourceNode = new ConfigNode("RESOURCE");
+                newResourceNode.AddValue("name", propellantBufferResourceName);
+                newResourceNode.AddValue("maxAmount", minimumPropellantBuffer);
+                newResourceNode.AddValue("amount", minimumPropellantBuffer);
+
+                part.AddResource(newResourceNode);
+            }
+
+            var bufferResource = part.Resources[propellantBufferResourceName];
+            if (maintainsPropellantBuffer && bufferResource != null)
+                bufferResource.amount = bufferResource.maxAmount;
         }
 
         /// <summary>
@@ -247,6 +289,8 @@ namespace FNPlugin
 
         public virtual void Update()
         {
+            partMass = part.mass;
+
             if (HighLogic.LoadedSceneIsFlight)
                 UpdateEngineStats(false); 
             else
@@ -286,7 +330,10 @@ namespace FNPlugin
 
                 var powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * powerThrustMultiplier;
                 var max_engine_thrust_at_max_isp = powerThrustModifier * _charged_particles_received / maximum_isp / GameConstants.STANDARD_GRAVITY;
+                
                 var calculatedConsumptionInTon = max_engine_thrust_at_max_isp / maximum_isp / GameConstants.STANDARD_GRAVITY;
+
+                UpdatePropellantBuffer(calculatedConsumptionInTon);
 
                 // generate addition propellant from reactor fuel consumption
                 _attached_reactor.UseProductForPropulsion(chargedParticleRatio, calculatedConsumptionInTon);
@@ -370,7 +417,7 @@ namespace FNPlugin
                 // This whole thing may be inefficient, but it should clear up some confusion for people.
                 if (_attached_engine.getFlameoutState) return;
 
-                if (_attached_engine.currentThrottle < 0.99)
+                if (_attached_engine.currentThrottle < 0.01)
                     _attached_engine.status = "offline";
                 else if (megajoulesRatio < 0.75 && _requestedElectricPower > 0)
                     _attached_engine.status = "Insufficient Electricity";
@@ -385,6 +432,38 @@ namespace FNPlugin
                 _charged_particles_received = 0;
                 _engineMaxThrust = 0;
             }
+
+            if (!string.IsNullOrEmpty(runningEffectName))
+            {
+                var runningEffectRatio = _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
+                part.Effect(runningEffectName, runningEffectRatio, -1);
+            }
+            if (!string.IsNullOrEmpty(powerEffectName))
+            {
+                var powerEffectRatio = _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
+                part.Effect(powerEffectName, powerEffectRatio, -1);
+            }
+        }
+
+        public void UpdatePropellantBuffer(double calculatedConsumptionInTon)
+        {
+            if (propellantBufferResourceDefinition == null)
+                return;
+
+            PartResource propellantPartResource = part.Resources[propellantBufferResourceName];
+
+            if (propellantPartResource == null || propellantBufferResourceDefinition.density == 0)
+                return;
+
+            var newMaxAmount = Math.Max(minimumPropellantBuffer, 2 * TimeWarp.fixedDeltaTime * calculatedConsumptionInTon / propellantBufferResourceDefinition.density);
+
+            var storageShortage = Math.Max(0, propellantPartResource.amount - newMaxAmount);
+
+            propellantPartResource.maxAmount = newMaxAmount;
+            propellantPartResource.amount = Math.Min(newMaxAmount, propellantPartResource.amount);
+
+            if (storageShortage > 0)
+                part.RequestResource(propellantBufferResourceName, -storageShortage);
         }
 
         public override string GetInfo() 
