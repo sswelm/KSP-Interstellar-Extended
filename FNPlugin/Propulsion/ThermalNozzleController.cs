@@ -1383,7 +1383,7 @@ namespace FNPlugin
             {
                 if (overrideVelocityCurve && jetPerformanceProfile == 0)
                 {
-                    velCurve.Add(0,  0.05f + _jetTechBonusPercentage / 4);
+                    velCurve.Add(0,  0.02f + _jetTechBonusPercentage / 10);
                     velCurve.Add(2.5f - _jetTechBonusCurveChange, 1);
                     velCurve.Add(5 + _jetTechBonusCurveChange * 2, 1);
                     velCurve.Add(14, 0 + _jetTechBonusPercentage);
