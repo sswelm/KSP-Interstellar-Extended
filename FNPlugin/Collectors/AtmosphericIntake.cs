@@ -15,7 +15,7 @@ namespace FNPlugin
         public bool intakeOpen = true;
 
         [KSPField (guiActive = false, guiActiveEditor = true)]
-        public double intakeSpeed;
+        public double intakeSpeed = 10;
         [KSPField(guiName = "Atmosphere Flow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]
         public double airFlow;
         [KSPField(guiName = "Atmosphere Speed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]
