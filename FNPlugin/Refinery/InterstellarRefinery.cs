@@ -354,11 +354,11 @@ namespace FNPlugin.Refinery
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Current Activity", _bold_label, GUILayout.Width(RefineryActivityBase.labelWidth));
-                GUILayout.Label(_current_activity.ActivityName, _value_label, GUILayout.Width(RefineryActivityBase.valueWidth));
+                GUILayout.Label(_current_activity.ActivityName, _value_label, GUILayout.Width(RefineryActivityBase.valueWidth * 2));
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Status", _bold_label, GUILayout.Width(RefineryActivityBase.labelWidth));
-                GUILayout.Label(_current_activity.Status, _value_label, GUILayout.Width(RefineryActivityBase.valueWidth));
+                GUILayout.Label(_current_activity.Status, _value_label, GUILayout.Width(RefineryActivityBase.valueWidth * 2));
                 GUILayout.EndHorizontal();
 
                 // allow current activity to show feedback
