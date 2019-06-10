@@ -54,7 +54,6 @@ namespace FNPlugin
         private double _engineMaxThrust;
         [KSPField(guiName = "Consumption", guiUnits = " kg/s")]
         private double calculatedConsumptionPerSecond;
-
         [KSPField(guiName = "Throtle Exponent")]
         protected double throtleExponent = 1;
         [KSPField(guiName = "Maximum ChargedPower", guiUnits = " MW", guiFormat = "F1")]
@@ -67,12 +66,19 @@ namespace FNPlugin
         protected double maximum_isp;
         [KSPField(guiName = "Power Ratio")]
         protected double megajoulesRatio;
-        [KSPField(guiActive = true, guiName = "Engine Isp")]
+        [KSPField(guiName = "Engine Isp")]
         protected double engineIsp;
-        [KSPField(guiActive = true, guiName = "Engine Fuel Flow")]
+        [KSPField(guiName = "Engine Fuel Flow")]
+
         protected float engineFuelFlow;
-        [KSPField(guiActive = true)]
+        [KSPField(guiActive = false)]
         protected double chargedParticleRatio;
+        [KSPField(guiActive = false)]
+        protected double max_theoretical_thrust;
+        [KSPField(guiActive = false)]
+        protected double max_theoratical_fuel_flow_rate;
+        [KSPField(guiActive = false)]
+        protected double currentIsp;
 
         //Internal
         UI_FloatRange simulatedThrottleFloatRange;
@@ -322,14 +328,15 @@ namespace FNPlugin
                     resourceBuffers.UpdateBuffers();
                 }
 
-                var currentMaximumChargedPower = maximum_isp == minimum_isp ? _attached_reactor.MaximumChargedPower * _attached_engine.currentThrottle : _attached_reactor.MaximumChargedPower;
+                maximumChargedPower = _attached_reactor.MaximumChargedPower;
+                var currentMaximumChargedPower = maximum_isp == minimum_isp ? maximumChargedPower * _attached_engine.currentThrottle : maximumChargedPower;
 
                 _max_charged_particles_power = currentMaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = _attached_engine.isOperational && _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0;
                 _charged_particles_received = consumeFNResourcePerSecond(_charged_particles_requested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                 // update Isp
-                var currentIsp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
+                currentIsp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
 
                 var powerThrustModifier = GameConstants.BaseThrustPowerMultiplier * powerThrustMultiplier;
                 var max_engine_thrust_at_max_isp = powerThrustModifier * _charged_particles_received / maximum_isp / GameConstants.STANDARD_GRAVITY;
@@ -401,8 +408,8 @@ namespace FNPlugin
                     effectiveThrustRatio = max_thrust > 0 ? effective_thrust / max_thrust : 0;
 
                     _engineMaxThrust = _attached_engine.currentThrottle > 0
-                        ? Math.Max(effective_thrust, 0.000000001)
-                        : Math.Max(max_thrust, 0.000000001);
+                        ? Math.Max(effective_thrust, 1e-9)
+                        : Math.Max(max_thrust, 1e-9);
                 }
 
                 // set isp
@@ -411,12 +418,15 @@ namespace FNPlugin
                 newAtmosphereCurve.Add(0, (float)engineIsp, 0, 0);
                 _attached_engine.atmosphereCurve = newAtmosphereCurve;
 
-                var max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && currentIsp > 0
+                var max_effective_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && currentIsp > 0
                     ? _engineMaxThrust / currentIsp / GameConstants.STANDARD_GRAVITY / (_attached_engine.currentThrottle > 0 ? _attached_engine.currentThrottle : 1)
                     : 0;
 
+                max_theoretical_thrust = powerThrustModifier * maximumChargedPower * _chargedParticleMaximumPercentageUsage / currentIsp / GameConstants.STANDARD_GRAVITY;
+                max_theoratical_fuel_flow_rate = max_theoretical_thrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+
                 // set maximum flow
-                engineFuelFlow = Math.Max((float)max_fuel_flow_rate, 0.0000000001f);
+                engineFuelFlow = _attached_engine.currentThrottle > 0 ? Math.Max((float)max_effective_fuel_flow_rate, 1e-9f) : (float)max_theoratical_fuel_flow_rate;
 
                 _attached_engine.maxFuelFlow = engineFuelFlow;
                 _attached_engine.useThrustCurve = false;
