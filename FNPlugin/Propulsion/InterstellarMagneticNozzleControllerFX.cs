@@ -67,6 +67,12 @@ namespace FNPlugin
         protected double maximum_isp;
         [KSPField(guiName = "Power Ratio")]
         protected double megajoulesRatio;
+        [KSPField(guiActive = true, guiName = "Engine Isp")]
+        protected double engineIsp;
+        [KSPField(guiActive = true, guiName = "Engine Fuel Flow")]
+        protected float engineFuelFlow;
+        [KSPField(guiActive = true)]
+        protected double chargedParticleRatio;
 
         //Internal
         UI_FloatRange simulatedThrottleFloatRange;
@@ -316,14 +322,11 @@ namespace FNPlugin
                     resourceBuffers.UpdateBuffers();
                 }
 
-                var currentMaximumPower = maximum_isp == minimum_isp ? _attached_reactor.MaximumChargedPower * _attached_engine.currentThrottle : _attached_reactor.MaximumChargedPower;
+                var currentMaximumChargedPower = maximum_isp == minimum_isp ? _attached_reactor.MaximumChargedPower * _attached_engine.currentThrottle : _attached_reactor.MaximumChargedPower;
 
-                _max_charged_particles_power = currentMaximumPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
+                _max_charged_particles_power = currentMaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = _attached_engine.isOperational && _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0;
                 _charged_particles_received = consumeFNResourcePerSecond(_charged_particles_requested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
-
-                // convert reactor product into propellants when possible
-                var chargedParticleRatio = currentMaximumPower > 0 ? _charged_particles_received / currentMaximumPower : 0;
 
                 // update Isp
                 var currentIsp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
@@ -335,7 +338,8 @@ namespace FNPlugin
 
                 UpdatePropellantBuffer(calculatedConsumptionInTon);
 
-                // generate addition propellant from reactor fuel consumption
+                // convert reactor product into propellants when possible and generate addition propellant from reactor fuel consumption
+                chargedParticleRatio = currentMaximumChargedPower > 0 ? _charged_particles_received / currentMaximumChargedPower : 0;
                 _attached_reactor.UseProductForPropulsion(chargedParticleRatio, calculatedConsumptionInTon);
 
                 calculatedConsumptionPerSecond = calculatedConsumptionInTon * 1000;
@@ -403,7 +407,8 @@ namespace FNPlugin
 
                 // set isp
                 FloatCurve newAtmosphereCurve = new FloatCurve();
-                newAtmosphereCurve.Add(0, (float)(currentIsp * scaledPowerFactor * effectiveThrustRatio), 0, 0);
+                engineIsp = _attached_engine.currentThrottle > 0 ? (currentIsp * scaledPowerFactor * effectiveThrustRatio) : currentIsp;
+                newAtmosphereCurve.Add(0, (float)engineIsp, 0, 0);
                 _attached_engine.atmosphereCurve = newAtmosphereCurve;
 
                 var max_fuel_flow_rate = !double.IsInfinity(_engineMaxThrust) && !double.IsNaN(_engineMaxThrust) && currentIsp > 0
@@ -411,7 +416,9 @@ namespace FNPlugin
                     : 0;
 
                 // set maximum flow
-                _attached_engine.maxFuelFlow = Math.Max((float)max_fuel_flow_rate, 0.0000000001f);
+                engineFuelFlow = Math.Max((float)max_fuel_flow_rate, 0.0000000001f);
+
+                _attached_engine.maxFuelFlow = engineFuelFlow;
                 _attached_engine.useThrustCurve = false;
 
                 // This whole thing may be inefficient, but it should clear up some confusion for people.
@@ -435,12 +442,12 @@ namespace FNPlugin
 
             if (!string.IsNullOrEmpty(runningEffectName))
             {
-                var runningEffectRatio = _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
+                var runningEffectRatio = _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
                 part.Effect(runningEffectName, runningEffectRatio, -1);
             }
             if (!string.IsNullOrEmpty(powerEffectName))
             {
-                var powerEffectRatio = _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
+                var powerEffectRatio = _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
                 part.Effect(powerEffectName, powerEffectRatio, -1);
             }
         }

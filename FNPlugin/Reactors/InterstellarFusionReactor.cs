@@ -98,7 +98,7 @@ namespace FNPlugin.Reactors
 
         public override double MagneticNozzlePowerMult { get { return magneticNozzlePowerMult; } }
 
-        public override bool IsFuelNeutronRich { get { return !CurrentFuelMode.Aneutronic; } }
+        public override bool IsFuelNeutronRich { get { return !CurrentFuelMode.Aneutronic && CurrentFuelMode.NeutronsRatio > 0; } }
 
         public double PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
 

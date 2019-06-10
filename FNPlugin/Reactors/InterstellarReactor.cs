@@ -2553,7 +2553,9 @@ namespace FNPlugin.Reactors
                 GUILayout.Label(TypeName, bold_style, GUILayout.ExpandWidth(true));
                 GUILayout.EndHorizontal();
 
-                PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000000") + "%", bold_style, text_style);
+                if (IsFuelNeutronRich)
+                    PrintToGUILayout("Reactor Embrittlement", (100 * (1 - ReactorEmbrittlemenConditionRatio)).ToString("0.000000") + "%", bold_style, text_style);
+
                 PrintToGUILayout("Geeforce overload ", (100 * (1 - geeForceModifier)).ToString("0.000000") + "%", bold_style, text_style);
                 PrintToGUILayout("Overheating ", (100 * (1 - overheatModifier)).ToString("0.000000") + "%", bold_style, text_style);
 

@@ -420,7 +420,7 @@ namespace FNPlugin.Reactors
             if (neededPower <= 0)
                 return;
 
-            var availableStablePower = getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var availableStablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
             var minimumChargingPower = startupMinimumChargePercentage * RawPowerOutput;
             if (startupCostGravityMultiplier > 0)
@@ -432,7 +432,7 @@ namespace FNPlugin.Reactors
             if (availableStablePower < minimumChargingPower)
             {
                 if (startupCostGravityMultiplier > 0)
-                    ScreenMessages.PostScreenMessage("Curent you need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor. Move closer to gravity well to reduce amount needed", 5f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage("Curent you need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor. Move closer to gravity well to reduce amount needed", 1f, ScreenMessageStyle.UPPER_CENTER);
                 else
                     ScreenMessages.PostScreenMessage("You need at least " + minimumChargingPower.ToString("F0") + " MW to charge the reactor", 5f, ScreenMessageStyle.UPPER_CENTER);
             }
