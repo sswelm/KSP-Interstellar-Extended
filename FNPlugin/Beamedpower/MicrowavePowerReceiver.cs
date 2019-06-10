@@ -190,6 +190,8 @@ namespace FNPlugin
         public int connectParentdepth = 2;
         [KSPField]
         public int connectSurfacedepth = 2;
+        [KSPField]
+        public bool maintainResourceBuffers = true;
 
         //GUI
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
@@ -253,7 +255,6 @@ namespace FNPlugin
         protected BaseField _minimumWavelengthField;
         protected BaseField _solarFacingFactorField;
         protected BaseField _solarFluxField;
-        protected BaseField _radiusField;
         protected BaseField _coreTempereratureField;
         protected BaseField _field_kerbalism_output;
 
@@ -285,7 +286,6 @@ namespace FNPlugin
         protected PowerStates _powerState;
 
         protected ResourceBuffers _resourceBuffers;
-        protected ModuleResource _solarFlowRateResource;
 
         protected List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
 
@@ -859,8 +859,6 @@ namespace FNPlugin
             _activateReceiverBaseEvent = Events["ActivateReceiver"];
             _disableReceiverBaseEvent = Events["DisableReceiver"];
 
-            //_radiusField = Fields["radius"];
-
             coreTempererature = CoreTemperature.ToString("0.0") + " K";
             _coreTempereratureField = Fields["coreTempererature"];
 
@@ -872,15 +870,11 @@ namespace FNPlugin
 
             if (IsThermalSource && !isThermalReceiverSlave)
             {
-                //_radiusField.guiActive = true;
-                //_radiusField.guiActiveEditor = true;
                 _coreTempereratureField.guiActive = true;
                 _coreTempereratureField.guiActiveEditor = true;
             }
             else
             {
-                //_radiusField.guiActive = false;
-                //_radiusField.guiActiveEditor = false;
                 _coreTempereratureField.guiActive = false;
                 _coreTempereratureField.guiActiveEditor = false;
             }
@@ -974,16 +968,19 @@ namespace FNPlugin
                     ((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
             }
 
-            _resourceBuffers = new ResourceBuffers();
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER));
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
-            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
-            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
-            _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
-            _resourceBuffers.Init(this.part);
+            if (maintainResourceBuffers)
+            {
+                _resourceBuffers = new ResourceBuffers();
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+                _resourceBuffers.Init(this.part);
+            }
 
             // look for any transmitter partmodule
             part_transmitter = part.FindModuleImplementing<MicrowavePowerTransmitter>();
@@ -1033,11 +1030,15 @@ namespace FNPlugin
             {
                 powerDownFraction = 1;
                 _powerState = PowerStates.PowerOnline;
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-                _resourceBuffers.UpdateBuffers();
+
+                if (maintainResourceBuffers)
+                {
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                    _resourceBuffers.UpdateBuffers();
+                }
             }
             catch (Exception e)
             {
@@ -1055,11 +1056,14 @@ namespace FNPlugin
                 if (powerDownFraction <= 0)
                     _powerState = PowerStates.PowerOffline;
 
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower * powerDownFraction);
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower * powerDownFraction);
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-                _resourceBuffers.UpdateBuffers();
+                if (maintainResourceBuffers)
+                {
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, StableMaximumReactorPower * powerDownFraction);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, StableMaximumReactorPower * powerDownFraction);
+                    _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, StableMaximumReactorPower * powerDownFraction);
+                    _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+                    _resourceBuffers.UpdateBuffers();
+                }
             }
         }
 
@@ -1143,8 +1147,6 @@ namespace FNPlugin
                 _beamedpowerField = Fields["beamedpower"];
                 _solarFluxField = Fields["solarFlux"];
                 _diameterField = Fields["diameter"];
-                //toteffField = Fields["toteff"];
-                
 
                 var bandWidthNameField = Fields["bandWidthName"];
                 bandWidthNameField.guiActiveEditor = !canSwitchBandwidthInEditor;
@@ -1325,7 +1327,7 @@ namespace FNPlugin
             var isNotRelayingOrTransmitting = !linkedForRelay && !transmitterOn;
 
             _beamedpowerField.guiActive = isNotRelayingOrTransmitting;
-            _linkedForRelayField.guiActive = isNotRelayingOrTransmitting;
+            _linkedForRelayField.guiActive = canLinkup && isNotRelayingOrTransmitting;
 
             _slavesAmountField.guiActive = thermalMode;
             _ThermalPowerField.guiActive = isThermalReceiverSlave || thermalMode;
