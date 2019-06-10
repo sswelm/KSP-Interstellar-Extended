@@ -240,19 +240,19 @@ namespace FNPlugin.Refinery
             _argon_resource_name = InterstellarResourcesConfiguration._LIQUID_ARGON;
             _chlorine_resource_name = InterstellarResourcesConfiguration._CHLORINE;
             _dioxide_resource_name = InterstellarResourcesConfiguration._LIQUID_CO2;
-            _monoxide_resource_name = InterstellarResourcesConfiguration._LIQUID_CO;
-            _helium3_resource_name = InterstellarResourcesConfiguration._LIQUID_HELIUM_3;
-            _helium4_resource_name = InterstellarResourcesConfiguration._LIQUID_HELIUM_4;
-            _hydrogen_resource_name = InterstellarResourcesConfiguration._LIQUID_HYDROGEN;
+            _monoxide_resource_name = InterstellarResourcesConfiguration._CARBONMONOXIDE_LIQUID;
+            _helium3_resource_name = InterstellarResourcesConfiguration._HELIUM3_LIQUID;
+            _helium4_resource_name = InterstellarResourcesConfiguration._HELIUM4_LIQUID;
+            _hydrogen_resource_name = InterstellarResourcesConfiguration._HYDROGEN_LIQUID;
             _methane_resource_name = InterstellarResourcesConfiguration._LIQUID_METHANE;
-            _neon_resource_name = InterstellarResourcesConfiguration._LIQUID_NEON;
-            _nitrogen_resource_name = InterstellarResourcesConfiguration._LIQUID_NITROGEN;
+            _neon_resource_name = InterstellarResourcesConfiguration._NEON_LIQUID;
+            _nitrogen_resource_name = InterstellarResourcesConfiguration._NITROGEN_LIQUID;
             _nitrogen15_resource_name = InterstellarResourcesConfiguration._LIQUID_NITROGEN_15;
             _oxygen_resource_name = InterstellarResourcesConfiguration._LIQUID_OXYGEN;
             _water_resource_name = InterstellarResourcesConfiguration._LIQUID_WATER;
             _heavywater_resource_name = InterstellarResourcesConfiguration._LIQUID_HEAVYWATER;
             _xenon_resource_name = InterstellarResourcesConfiguration._LIQUID_XENON;
-            _deuterium_resource_name = InterstellarResourcesConfiguration._LIQUID_DEUTERIUM;
+            _deuterium_resource_name = InterstellarResourcesConfiguration._DEUTERIUM_LIQUID;
             _krypton_resource_name = InterstellarResourcesConfiguration._LIQUID_KRYPTON;
 
             _sodium_resource_name = InterstellarResourcesConfiguration.Instance.Sodium;

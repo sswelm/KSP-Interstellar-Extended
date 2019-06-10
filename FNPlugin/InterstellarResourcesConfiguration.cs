@@ -22,23 +22,33 @@ namespace FNPlugin
         public const String _LITHIUM6 = "Lithium6";
         public const String _PLUTONIUM_238 = "Plutonium-238";
         public const String _ALUMINA = "Alumina";
-        public const String _LIQUID_DEUTERIUM = "LqdDeuterium";
+
+        public const String _DEUTERIUM_LIQUID = "LqdDeuterium";
         public const String _DEUTERIUM_GAS = "Deuterium";
         public const String _INTAKE_LIQUID = "IntakeLqd";
         public const String _ELECTRIC_CHARGE = "ElectricCharge";
         public const String _LIQUID_AMMONIA = "LqdAmmonia";
         public const String _LIQUID_ARGON = "LqdArgon";
         public const String _LIQUID_CO2 = "LqdCO2";
-        public const String _LIQUID_CO = "LqdCO";
+
+        public const String _CARBONMONOXIDE_LIQUID = "LqdCO";
+        public const String _CARBONMONOXIDE_GAS = "CarbonMonoxide";
+
         public const String _CHLORINE = "Chlorine";
-        public const String _LIQUID_HELIUM_4 = "LqdHelium";
-        public const String _HELIUM_4_GAS = "Helium";
-        public const String _LIQUID_HELIUM_3 = "LqdHe3";
-        public const String _HELIUM3_GAS = "Helium3";
-        public const String _LIQUID_HYDROGEN = "LqdHydrogen";
         public const String _LIQUID_METHANE = "LqdMethane";
-        public const String _LIQUID_NEON = "LqdNeon";
-        public const String _LIQUID_NITROGEN = "LqdNitrogen";
+
+        public const String _HELIUM4_LIQUID = "LqdHelium";
+        public const String _HELIUM4_GAS = "Helium";
+        public const String _HELIUM3_LIQUID = "LqdHe3";
+        public const String _HELIUM3_GAS = "Helium3";
+        public const String _HYDROGEN_LIQUID = "LqdHydrogen";
+        public const String _HYDROGEN_GAS = "Hydrogen";
+        public const String _NEON_LIQUID = "LqdNeon";
+        public const String _NEON_GAS = "NeonGas";
+
+        public const String _NITROGEN_LIQUID = "LqdNitrogen";
+        public const String _NITROGEN_GAS = "Nitrogen";
+
         public const String _LIQUID_NITROGEN_15 = "LqdNitrogen15";
         public const String _LIQUID_OXYGEN = "LqdOxygen";
         public const String _OXYGEN_GAS = "Oxygen";
@@ -57,18 +67,18 @@ namespace FNPlugin
         private String _ammonia = _LIQUID_AMMONIA;
         private String _argon = _LIQUID_ARGON;
         private String _carbonDioxide = _LIQUID_CO2;
-        private String _carbonMoxoxide = _LIQUID_CO;
+        private String _carbonMoxoxide = _CARBONMONOXIDE_LIQUID;
         private String _fluorineGas = "Fluorine";
-        private String _helium4_gas = _HELIUM_4_GAS;
-        private String _liquid_helium4 = _LIQUID_HELIUM_4;
+        private String _helium4_gas = _HELIUM4_GAS;
+        private String _liquid_helium4 = _HELIUM4_LIQUID;
         private String _helium3_gas = _HELIUM3_GAS;
-        private String _liquid_helium3 = _LIQUID_HELIUM_3;
+        private String _liquid_helium3 = _HELIUM3_LIQUID;
         private String _sodium = "Sodium";
-        private String _hydrogen = _LIQUID_HYDROGEN;
+        private String _hydrogen = _HYDROGEN_LIQUID;
         private String _hydrogen_peroxide = "HTP";
         private String _hydrazine = "Hydrazine";
         private String _methane = _LIQUID_METHANE;
-        private String _nitrogen = _LIQUID_NITROGEN;
+        private String _nitrogen = _NITROGEN_LIQUID;
         private String _nitrogen15 = _LIQUID_NITROGEN_15;
         private String _lqdOxygen = _LIQUID_OXYGEN;
         private String _oxygen_gas = _OXYGEN_GAS;
@@ -77,7 +87,7 @@ namespace FNPlugin
         private String _tritium = _LIQUID_TRITIUM;
         private String _tritium_gas = _TRITIUM_GAS;
         private String _solarWind = "SolarWind";
-        private String _neon_gas = _LIQUID_NEON;
+        private String _neon_gas = _NEON_LIQUID;
         private String _regolith = "Regolith";
         private String _xenongas = _XENON_GAS;
         private String _xenon = _LIQUID_XENON;
@@ -93,7 +103,7 @@ namespace FNPlugin
         public String CarbonDioxide { get { return _carbonDioxide; } }
         public String CarbonMoxoxide { get { return _carbonMoxoxide; } }
         public String DepletedFuel { get { return _DEPLETED_FUEL; } }
-        public String LqdDeuterium { get { return _LIQUID_DEUTERIUM; } }
+        public String LqdDeuterium { get { return _DEUTERIUM_LIQUID; } }
         public String DeuteriumGas { get { return _DEUTERIUM_GAS; } }
         public String ExoticMatter { get { return _EXOTIC_MATTER; } }
         public String ElectricCharge { get { return _ELECTRIC_CHARGE; } }
