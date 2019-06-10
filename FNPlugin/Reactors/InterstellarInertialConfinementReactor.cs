@@ -453,10 +453,11 @@ namespace FNPlugin.Reactors
 
                 var powerPerSecond = usePowerManagerForPrimaryInputPower ? returnedPrimaryPower : returnedPrimaryPower / timeWarpFixedDeltaTime;
 
+                if (!CheatOptions.IgnoreMaxTemperature && maintenancePowerWasteheatRatio > 0)
+                    supplyFNResourcePerSecond(0.05 * powerPerSecond, ResourceManager.FNRESOURCE_WASTEHEAT);
+
                 if (powerPerSecond >= minimumChargingPower)
-                {
                     accumulatedElectricChargeInMW += returnedPrimaryPower * timeWarpFixedDeltaTime;
-                }
                 else
                 {
                     if (startupCostGravityMultiplier > 0)
