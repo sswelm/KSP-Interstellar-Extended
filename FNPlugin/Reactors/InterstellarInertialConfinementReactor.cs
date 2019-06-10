@@ -420,7 +420,7 @@ namespace FNPlugin.Reactors
             if (neededPower <= 0)
                 return;
 
-            var availableStablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            var availableStablePower = getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
             var minimumChargingPower = startupMinimumChargePercentage * RawPowerOutput;
             if (startupCostGravityMultiplier > 0)
@@ -450,9 +450,6 @@ namespace FNPlugin.Reactors
                     : usePowerManagerForPrimaryInputPower
                         ? consumeFNResourcePerSecond(primaryPowerRequest, primaryInputResource)
                         : part.RequestResource(primaryInputResource, primaryPowerRequest * timeWarpFixedDeltaTime);
-
-                //if (maintenancePowerWasteheatRatio > 0)
-                //    supplyFNResourceFixed(maintenancePowerWasteheatRatio * returnedPrimaryPower, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 var powerPerSecond = usePowerManagerForPrimaryInputPower ? returnedPrimaryPower : returnedPrimaryPower / timeWarpFixedDeltaTime;
 
