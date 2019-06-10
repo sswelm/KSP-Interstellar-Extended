@@ -203,7 +203,7 @@ namespace FNPlugin.Refinery
             _storedNeonMass = partsThatContainNeonLiquid.Sum(r => r.amount) * _neon_liquid_density + partsThatContainNeonGas.Sum(r => r.amount) * _neon_gas_density;
 
             // determine how much spare room there is in the vessel's resource tanks (for the resources this is going to produce)
-            _spareRoomHydrogenMass = _maxCapacityHydrogenMass - _storedSolarWindMass;
+            _spareRoomHydrogenMass = _maxCapacityHydrogenMass - _storedHydrogenMass;
             _spareRoomDeuteriumMass = _maxCapacityDeuteriumMass - _storedDeuteriumMass;
             _spareRoomHelium3Mass = _maxCapacityHelium3Mass - _storedHelium3Mass;
             _spareRoomHelium4Mass = _maxCapacityHelium4Mass - _storedHelium4Mass;
@@ -405,7 +405,7 @@ namespace FNPlugin.Refinery
                 _status = "Processing of Solar Wind Particles Ongoing";
             else if (CurrentPower <= 0.01*PowerRequirements)
                 _status = "Insufficient Power";
-            else if (_maxCapacitySolarWindMass <= float.MinValue)
+            else if (_storedSolarWindMass <= float.Epsilon)
                 _status = "No Solar Wind Particles Available";
             else
                 _status = "Insufficient Storage, try allowing overflow";
