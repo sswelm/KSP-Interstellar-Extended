@@ -26,8 +26,8 @@ namespace FNPlugin
         public double science_to_add;
         [KSPField(isPersistant = true)]
         public bool coreInit = false;
-        [KSPField]
-        public double alternatorPower = 0.001;
+        //[KSPField]
+        //public double alternatorPower = 0.001;
         [KSPField]
         public string upgradeTechReq = null;
         [KSPField]
@@ -205,9 +205,9 @@ namespace FNPlugin
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            supplyFNResourcePerSecondWithMax(alternatorPower, alternatorPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+            //supplyFNResourcePerSecondWithMax(alternatorPower, alternatorPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            part.temperature = part.temperature + (TimeWarp.fixedDeltaTime * 1000 * alternatorPower / (part.thermalMass * 0.8));
+            //part.temperature = part.temperature + (TimeWarp.fixedDeltaTime * 1000 * alternatorPower / (part.thermalMass * 0.8));
         }
 
         protected override bool generateScienceData()
