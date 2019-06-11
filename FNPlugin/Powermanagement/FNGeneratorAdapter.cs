@@ -26,7 +26,7 @@ namespace FNPlugin
             {
                 if (state == StartState.Editor) return;
 
-				var modules = part.FindModulesImplementing<ModuleGenerator>();
+                var modules = part.FindModulesImplementing<ModuleGenerator>();
 
                 moduleGenerator = modules.Count > index ? modules[index] : null;
 
@@ -41,11 +41,14 @@ namespace FNPlugin
                 outputType = ResourceType.other;
                 foreach (ModuleResource moduleResource in moduleGenerator.resHandler.outputResources)
                 {
+					moduleResource.
+
+
                     // assuming only one of those two is present
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                     {
                         outputType = ResourceType.megajoule;
-                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
+                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, moduleResource.rate * 2));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -57,7 +60,7 @@ namespace FNPlugin
                     if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                     {
                         outputType = ResourceType.electricCharge;
-                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
+                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, moduleResource.rate * 2));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
