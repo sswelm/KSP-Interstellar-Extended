@@ -9,8 +9,10 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Generator current power", guiUnits = " MW", guiFormat = "F5")]
         public double megaJouleGeneratorPowerSupply;
-        [KSPField()]
+        [KSPField]
         public int index = 0;
+		[KSPField]
+		public bool maintainsBuffer = true;
         
         private ModuleGenerator moduleGenerator;
 
@@ -37,18 +39,19 @@ namespace FNPlugin
                 base.OnStart(state);
 
 
-                resourceBuffers = new ResourceBuffers();
+				if (maintainsBuffer)
+					resourceBuffers = new ResourceBuffers();
+
                 outputType = ResourceType.other;
                 foreach (ModuleResource moduleResource in moduleGenerator.resHandler.outputResources)
                 {
-					moduleResource.
-
-
                     // assuming only one of those two is present
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                     {
                         outputType = ResourceType.megajoule;
-                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, moduleResource.rate * 2));
+
+						if (maintainsBuffer)
+							resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, moduleResource.rate * 2));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -60,7 +63,9 @@ namespace FNPlugin
                     if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                     {
                         outputType = ResourceType.electricCharge;
-                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, moduleResource.rate * 2));
+
+						if (maintainsBuffer)
+							resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, moduleResource.rate * 2));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -70,7 +75,9 @@ namespace FNPlugin
                         break;
                     }
                 }
-                resourceBuffers.Init(this.part);
+
+				if (maintainsBuffer)
+					resourceBuffers.Init(this.part);
             }
             catch (Exception e)
             {
@@ -140,7 +147,8 @@ namespace FNPlugin
 
                 double generatorSupply = outputType == ResourceType.megajoule ? generatorRate : generatorRate / 1000;
 
-                resourceBuffers.UpdateBuffers();
+				if (maintainsBuffer)
+					resourceBuffers.UpdateBuffers();
 
                 megaJouleGeneratorPowerSupply = supplyFNResourcePerSecondWithMax(generatorSupply, generatorSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
             }
