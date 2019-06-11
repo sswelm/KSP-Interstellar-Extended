@@ -9,8 +9,8 @@ namespace FNPlugin
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Generator current power", guiUnits = " MW", guiFormat = "F5")]
         public double megaJouleGeneratorPowerSupply;
-		[KSPField()]
-		public int index = 0;
+        [KSPField()]
+        public int index = 0;
         
         private ModuleGenerator moduleGenerator;
 
@@ -26,7 +26,7 @@ namespace FNPlugin
             {
                 if (state == StartState.Editor) return;
 
-				var modules = part.FindModulesImplementing<ModuleGenerator>()
+				var modules = part.FindModulesImplementing<ModuleGenerator>();
 
                 moduleGenerator = modules.Count > index ? modules[index] : null;
 
