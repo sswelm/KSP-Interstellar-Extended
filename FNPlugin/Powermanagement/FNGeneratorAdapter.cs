@@ -8,7 +8,9 @@ namespace FNPlugin
     class FNGeneratorAdapter : ResourceSuppliableModule
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Generator current power", guiUnits = " MW", guiFormat = "F5")]
-        public double megaJouleGeneratorPowerSupply; 
+        public double megaJouleGeneratorPowerSupply;
+		[KSPField()]
+		public int index = 0;
         
         private ModuleGenerator moduleGenerator;
 
@@ -24,7 +26,9 @@ namespace FNPlugin
             {
                 if (state == StartState.Editor) return;
 
-                moduleGenerator = part.FindModuleImplementing<ModuleGenerator>();
+				var modules = part.FindModulesImplementing<ModuleGenerator>()
+
+                moduleGenerator = modules.Count > index ? modules[index] : null;
 
                 if (moduleGenerator == null) return;
 
