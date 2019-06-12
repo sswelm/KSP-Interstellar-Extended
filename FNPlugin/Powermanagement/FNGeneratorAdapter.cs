@@ -83,7 +83,7 @@ namespace FNPlugin
                         outputType = ResourceType.megajoule;
 
 						if (maintainsBuffer)
-                            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES, moduleResource.rate));
+                            resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -97,7 +97,7 @@ namespace FNPlugin
                         outputType = ResourceType.electricCharge;
 
 						if (maintainsBuffer)
-                            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, moduleResource.rate));
+							resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
