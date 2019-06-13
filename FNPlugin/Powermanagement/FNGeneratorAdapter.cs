@@ -25,8 +25,8 @@ namespace FNPlugin
         public bool showPowerOuput = true;
         [KSPField]
         public int index = 0;
-		[KSPField]
-		public bool maintainsBuffer = true;
+        [KSPField]
+        public bool maintainsBuffer = true;
 
         
         private ModuleGenerator moduleGenerator;
@@ -57,8 +57,8 @@ namespace FNPlugin
                 this.resources_to_supply = resources_to_supply;
                 base.OnStart(state);
 
-				if (maintainsBuffer)
-					resourceBuffers = new ResourceBuffers();
+                if (maintainsBuffer)
+                    resourceBuffers = new ResourceBuffers();
 
                 outputType = ResourceType.other;
                 inputType = ResourceType.other;
@@ -79,25 +79,14 @@ namespace FNPlugin
                 {
                     // assuming only one of those two is present
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
-                    {
                         outputType = ResourceType.megajoule;
-
-						if (maintainsBuffer)
-                            resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
-
-                        mockInputResource = new ModuleResource();
-                        mockInputResource.name = moduleResource.name;
-                        mockInputResource.id = moduleResource.name.GetHashCode();
-                        moduleGenerator.resHandler.inputResources.Add(mockInputResource);
-                        moduleOutputResource = moduleResource;
-                        break;
-                    }
-                    if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
-                    {
+                    else if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                         outputType = ResourceType.electricCharge;
 
-						if (maintainsBuffer)
-							resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
+                    if (outputType != ResourceType.other)
+                    {
+                        if (maintainsBuffer)
+                            resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(moduleResource.name, 50));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -108,8 +97,8 @@ namespace FNPlugin
                     }
                 }
 
-				if (maintainsBuffer)
-					resourceBuffers.Init(this.part);
+                if (maintainsBuffer)
+                    resourceBuffers.Init(this.part);
 
                 Fields["powerGeneratorPowerInput"].guiName = Fields["powerGeneratorPowerInput"].guiName + " " + (index + 1);
                 Fields["powerGeneratorPowerOutput"].guiName = Fields["powerGeneratorPowerOutput"].guiName + " " + (index + 1);
