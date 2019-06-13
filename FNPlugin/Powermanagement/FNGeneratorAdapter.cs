@@ -27,19 +27,22 @@ namespace FNPlugin
         public int index = 0;
         [KSPField]
         public bool maintainsBuffer = true;
-
         
-        private ModuleGenerator moduleGenerator;
-
-        private ResourceType outputType = 0;
-        private ResourceType inputType = 0;
-
-        private bool active = false;
+        private ModuleGenerator moduleGenerator;       
         private ResourceBuffers resourceBuffers;
-        private ModuleResource mockInputResource;
-        
+        private ModuleResource mockInputResource;        
         private ModuleResource moduleInputResource;
         private ModuleResource moduleOutputResource;
+
+        private BaseField efficiencyField;
+        private BaseField displayStatusField;
+        private BaseField powerGeneratorPowerInputField;
+        private BaseField powerGeneratorPowerOutputField;
+        
+        private ResourceType outputType = 0;
+        private ResourceType inputType = 0;		
+
+        private bool active = false;
 
         public override void OnStart(StartState state)
         {
@@ -63,16 +66,23 @@ namespace FNPlugin
                 outputType = ResourceType.other;
                 inputType = ResourceType.other;
 
-                moduleInputResource = moduleGenerator.resHandler.inputResources.FirstOrDefault();
-                if (moduleInputResource != null)
+                foreach (ModuleResource moduleResource in moduleGenerator.resHandler.inputResources)
                 {
-                    if (moduleInputResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
+                    if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                         inputType = ResourceType.megajoule;
-                    else if (moduleInputResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+                    else if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                         inputType = ResourceType.electricCharge;
 
-                    if (inputRate != 0)
-                        moduleInputResource.rate = inputRate;
+
+                    if (inputType != ResourceType.other)
+                    {
+                        moduleInputResource = moduleResource;
+
+                        if (inputRate != 0)
+                            moduleInputResource.rate = inputRate;
+
+                        break;
+                    }
                 }
 
                 foreach (ModuleResource moduleResource in moduleGenerator.resHandler.outputResources)
@@ -100,8 +110,17 @@ namespace FNPlugin
                 if (maintainsBuffer)
                     resourceBuffers.Init(this.part);
 
-                Fields["powerGeneratorPowerInput"].guiName = Fields["powerGeneratorPowerInput"].guiName + " " + (index + 1);
-                Fields["powerGeneratorPowerOutput"].guiName = Fields["powerGeneratorPowerOutput"].guiName + " " + (index + 1);
+                efficiencyField = moduleGenerator.Fields["efficiency"];
+                displayStatusField = moduleGenerator.Fields["displayStatus"];
+
+                powerGeneratorPowerInputField = Fields["powerGeneratorPowerInput"];
+                powerGeneratorPowerOutputField = Fields["powerGeneratorPowerOutput"];
+
+                if (index > 1)
+                {
+                    powerGeneratorPowerInputField.guiName = powerGeneratorPowerInputField.guiName + " " + (index + 1);
+                    powerGeneratorPowerOutputField.guiActive = powerGeneratorPowerOutputField.guiName + " " + (index + 1);
+                }
             }
             catch (Exception e)
             {
@@ -118,11 +137,11 @@ namespace FNPlugin
             if (moduleGenerator == null)
                 return;
 
-            moduleGenerator.Fields["efficiency"].guiActive = showEfficiency;
-            moduleGenerator.Fields["displayStatus"].guiActive = showDisplayStatus;
+            efficiencyField.guiActive = showEfficiency;
+            displayStatusField.guiActive = showDisplayStatus;
 
-            this.Fields["powerGeneratorPowerInput"].guiActive = moduleInputResource != null &&  showPowerInput;
-            this.Fields["powerGeneratorPowerOutput"].guiActive = moduleOutputResource != null && showPowerOuput;
+            powerGeneratorPowerInputField.guiActive = moduleInputResource != null && showPowerInput;
+            powerGeneratorPowerOutputField.guiActive = moduleOutputResource != null && showPowerOuput;
         }
 
         public override void OnFixedUpdate()
@@ -157,7 +176,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.OnFixedUpdate " + e.Message);
+                Debug.LogError("[KSPI]: Exception in FNGeneratorAdapter.FixedUpdate " + e.Message);
                 throw;
             }
         }
@@ -170,7 +189,7 @@ namespace FNPlugin
 
         public override int getPowerPriority()
         {
-            return 1;
+            return 1;	// because power production is unconditional
         }
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
@@ -190,22 +209,21 @@ namespace FNPlugin
                 if (maintainsBuffer)
                     resourceBuffers.UpdateBuffers();
 
-                if (moduleOutputResource != null)
-                {
-                    double generatorOutputRate = moduleOutputResource.rate;
-                    mockInputResource.rate = generatorOutputRate;
-
-                    double generatorSupply = outputType == ResourceType.megajoule ? generatorOutputRate : generatorOutputRate / 1000;
-
-                    powerGeneratorPowerOutput = supplyFNResourcePerSecondWithMax(generatorSupply, generatorSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
-                }
-
                 if (moduleInputResource != null)
                 {
                     double generatorInputRate = moduleInputResource.rate;
                     powerGeneratorPowerInput = inputType == ResourceType.megajoule ? generatorInputRate : generatorInputRate / 1000;
                 }
 
+                if (moduleOutputResource != null)
+                {
+                    double generatorOutputRate = moduleOutputResource.rate;
+                    mockInputResource.rate = generatorOutputRate;		// Perhaps this should be modifed when disabled
+
+                    double generatorSupply = outputType == ResourceType.megajoule ? generatorOutputRate : generatorOutputRate / 1000;
+
+                    powerGeneratorPowerOutput = supplyFNResourcePerSecondWithMax(generatorSupply, generatorSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
+                }
             }
             catch (Exception e)
             {
