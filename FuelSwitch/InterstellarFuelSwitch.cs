@@ -815,12 +815,28 @@ namespace InterstellarFuelSwitch
 
                 UpdateCost();
 
+                UpdatePartActionWindow();
+
                 return newResources;
             }
             catch (Exception e)
             {
                 Debug.LogError("[IFS]: SetupTankInPart Error: " + e.Message);
                 throw;
+            }
+        }
+
+        private void UpdatePartActionWindow()
+        {
+            var window = FindObjectsOfType<UIPartActionWindow>().FirstOrDefault(w => w.part == part);
+            if (window != null)
+            {
+                foreach (UIPartActionWindow actionwindow in FindObjectsOfType<UIPartActionWindow>())
+                {
+                    if (window.part != part) continue;
+                    actionwindow.ClearList();
+                    actionwindow.displayDirty = true;
+                }
             }
         }
 
