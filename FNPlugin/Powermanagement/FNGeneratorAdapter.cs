@@ -31,6 +31,8 @@ namespace FNPlugin
         [KSPField]
         public bool showPowerOuput = true;
         [KSPField]
+        public bool offlineProcessing = false;
+        [KSPField]
         public int index = 0;
         [KSPField]
         public bool maintainsBuffer = true;
@@ -109,7 +111,7 @@ namespace FNPlugin
                     }
                 }
 
-                if (moduleInputResource != null &&  last_active_time > 0 && powerGeneratorPowerInput > 0)
+                if (offlineProcessing && moduleInputResource != null && last_active_time > 0 && powerGeneratorPowerInput > 0)
                 {
                     var timePassedSinceLastProcessing = Planetarium.GetUniversalTime() - last_active_time;
 
