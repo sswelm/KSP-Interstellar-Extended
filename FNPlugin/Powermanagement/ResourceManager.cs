@@ -608,7 +608,17 @@ namespace FNPlugin
                     var power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
                     if (power_supplied > 0)
                     {
-                        var fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)-power_supplied) / 1000;
+                        double fixed_provided_electric_charge_in_MW;
+
+                        var electricChargeResource = my_part.Resources[STOCK_RESOURCE_ELECTRICCHARGE];
+
+                        if (electricChargeResource != null && electricChargeResource.amount + power_supplied + 0.1 > electricChargeResource.maxAmount)
+                        {
+                            electricChargeResource.amount = electricChargeResource.amount + power_supplied + 0.1;                           
+                            fixed_provided_electric_charge_in_MW = -power_supplied / 1000;
+                        }
+                        else
+                            fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)-power_supplied) / 1000;
                         var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW / timeWarpFixedDeltaTime;
                         total_power_distributed += -provided_electric_charge_per_second;
                         currentPowerSupply += provided_electric_charge_per_second;
