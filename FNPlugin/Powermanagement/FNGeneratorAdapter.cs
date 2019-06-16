@@ -38,7 +38,9 @@ namespace FNPlugin
                 this.resources_to_supply = resources_to_supply;
                 base.OnStart(state);
 
-                resourceBuffers = new ResourceBuffers();
+                if (maintainsBuffer)
+                    resourceBuffers = new ResourceBuffers();
+
                 outputType = ResourceType.other;
                 foreach (ModuleResource moduleResource in moduleGenerator.resHandler.outputResources)
                 {
@@ -46,7 +48,9 @@ namespace FNPlugin
                     if (moduleResource.name == ResourceManager.FNRESOURCE_MEGAJOULES)
                     {
                         outputType = ResourceType.megajoule;
-                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
+
+                        if (maintainsBuffer)
+                            resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.FNRESOURCE_MEGAJOULES, 50));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -58,7 +62,9 @@ namespace FNPlugin
                     if (moduleResource.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                     {
                         outputType = ResourceType.electricCharge;
-                        resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
+
+                        if (maintainsBuffer)
+                            resourceBuffers.AddConfiguration(new ResourceBuffers.MaxAmountConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 50));
 
                         mockInputResource = new ModuleResource();
                         mockInputResource.name = moduleResource.name;
@@ -68,7 +74,8 @@ namespace FNPlugin
                         break;
                     }
                 }
-                resourceBuffers.Init(this.part);
+                if (maintainsBuffer)
+                    resourceBuffers.Init(this.part);
             }
             catch (Exception e)
             {
