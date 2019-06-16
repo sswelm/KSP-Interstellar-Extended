@@ -65,6 +65,7 @@
     <Compile Include="Extensions\Approximate.cs" />
     <Compile Include="Extensions\Decimal.cs" />
     <Compile Include="HideHiddenPartsFilter.cs" />
+    <Compile Include="Powermanagement\FNGeneratorAdapterVariable.cs" />
     <Compile Include="Powermanagement\IFNPowerSource.cs" />
     <Compile Include="Propulsion\IEngineNoozle.cs" />
     <Compile Include="Propulsion\ThermalEngineFuel.cs" />

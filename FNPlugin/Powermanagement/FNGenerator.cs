@@ -1189,7 +1189,7 @@ namespace FNPlugin
             if (isLimitedByMinThrotle)
                 return attachedPowerSource.MinimumPower;
 
-            currentUnfilledResourceDemand = GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES);
+            currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
 
             spareResourceCapacity = getSpareResourceCapacity(ResourceManager.FNRESOURCE_MEGAJOULES);
             maxStableMegaWattPower = MaxStableMegaWattPower;
