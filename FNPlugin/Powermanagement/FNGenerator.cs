@@ -929,7 +929,7 @@ namespace FNPlugin
                             ? attachedPowerSource.PlasmaEnergyEfficiency
                             : attachedPowerSource.ThermalEnergyEfficiency;
 
-                stableMaximumReactorPower = attachedPowerSource.StableMaximumReactorPower;
+                stableMaximumReactorPower = isLimitedByMinThrotle ? attachedPowerSource.MinimumPower : attachedPowerSource.StableMaximumReactorPower;
 
                 return stableMaximumReactorPower * attachedPowerSource.PowerRatio * maxPowerUsageRatio * maxEfficiency * CapacityRatio;
             }
@@ -1187,6 +1187,7 @@ namespace FNPlugin
                     electricdtps = 0;
                     maxElectricdtps = 0;
                     generatorInit = true;
+                    supplyManagedFNResourcePerSecond(0, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                     if (moduleGenerator != null && moduleGenerator.generatorIsActive == true)
                         moduleGenerator.Shutdown();
