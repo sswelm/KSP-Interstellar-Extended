@@ -67,6 +67,7 @@ namespace FNPlugin
         private BaseField displayStatusField;
         private BaseField powerGeneratorPowerInputField;
         private BaseField powerGeneratorPowerOutputField;
+        private BaseField moduleGeneratorEfficienctBaseField;
         
         private ResourceType outputType = 0;
         private ResourceType inputType = 0;
@@ -167,6 +168,13 @@ namespace FNPlugin
                             moduleOutputResource.rate = outputRate;
 
                         initialOutputAmount = moduleOutputResource.rate;
+
+                        moduleGeneratorEfficienctBaseField = moduleGenerator.Fields["efficiency"];
+                        if (moduleGeneratorEfficienctBaseField != null)
+                        {
+                            moduleGeneratorEfficienctBaseField.guiActive = false;
+                            moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
+                        }  
 
                         break;
                     }

@@ -290,6 +290,14 @@ namespace FNPlugin
         public double _totalEff;
         [KSPField]
         public double capacityRatio;
+        [KSPField]
+        public double initialGeneratorPowerEC;
+        [KSPField]
+        public double maximumGeneratorPowerMJ;
+        [KSPField]
+        public double currentPowerForGeneratorMJ;
+        [KSPField]
+        public double maximumGeneratorPowerEC;
 
         // Internal
         protected double outputPower;
@@ -303,11 +311,19 @@ namespace FNPlugin
         protected int shutdown_counter = 0;
         protected int startcount = 0;
 
-        protected PowerStates _powerState;
-        protected Animation anim;
-        protected Queue<double> averageRadiatorTemperatureQueue = new Queue<double>();
-        protected IFNPowerSource attachedPowerSource;
-        protected ResourceBuffers resourceBuffers;
+        private PowerStates _powerState;
+        private IFNPowerSource attachedPowerSource;
+
+        private Animation anim;
+        private Queue<double> averageRadiatorTemperatureQueue = new Queue<double>();
+
+        private ResourceBuffers resourceBuffers;
+        private ModuleGenerator moduleGenerator;
+        private ModuleResource mockInputResource;
+        private ModuleResource outputModuleResource;
+        private BaseEvent moduleGeneratorShutdownBaseEvent;
+        private BaseEvent moduleGeneratorActivateBaseEvent;
+        private BaseField moduleGeneratorEfficienctBaseField;
 
         public String UpgradeTechnology { get { return upgradeTechReq; } }
 
@@ -359,6 +375,7 @@ namespace FNPlugin
                 Debug.Log("FNGenerator.OnRescale called with " + factor.absolute.linear);
                 storedMassMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, 3);
                 initialMass = (double)(decimal)part.prefabMass * storedMassMultiplier;
+                UpdateModuleGeneratorOutput();
             }
             catch (Exception e)
             {
@@ -446,6 +463,8 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
+            ConnectToModuleGenerator();
+
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_CHARGED_PARTICLES };
             this.resources_to_supply = resources_to_supply;
 
@@ -471,7 +490,7 @@ namespace FNPlugin
             Fields["powerCapacity"].guiActiveEditor = !isLimitedByMinThrotle;
             Fields["partMass"].guiActive = Fields["partMass"].guiActiveEditor = calculatedMass;
             Fields["powerPercentage"].guiActive = Fields["powerPercentage"].guiActiveEditor = showSpecialisedUI;
-            Fields["radius"].guiActiveEditor = showSpecialisedUI;
+            Fields["radius"].guiActiveEditor = showSpecialisedUI;            
 
             if (state == StartState.Editor)
             {
@@ -530,6 +549,53 @@ namespace FNPlugin
             FindAndAttachToPowerSource();
 
             UpdateHeatExchangedThrustDivisor();
+        }
+
+        private void ConnectToModuleGenerator()
+        {
+            moduleGenerator = part.FindModuleImplementing<ModuleGenerator>();
+            if (moduleGenerator != null)
+            {
+                outputModuleResource = moduleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
+
+                if (outputModuleResource != null)
+                {
+                    moduleGeneratorShutdownBaseEvent = moduleGenerator.Events["Shutdown"];
+                    if (moduleGeneratorShutdownBaseEvent != null)
+                    {
+                        moduleGeneratorShutdownBaseEvent.guiActive = false;
+                        moduleGeneratorShutdownBaseEvent.guiActiveEditor = false;
+                    }
+
+                    moduleGeneratorActivateBaseEvent = moduleGenerator.Events["Activate"];
+                    if (moduleGeneratorActivateBaseEvent != null)
+                    {
+                        moduleGeneratorActivateBaseEvent.guiActive = false;
+                        moduleGeneratorActivateBaseEvent.guiActiveEditor = false;
+                    }
+
+                    moduleGeneratorEfficienctBaseField = moduleGenerator.Fields["efficiency"];
+                    if (moduleGeneratorEfficienctBaseField != null)
+                    {
+                        moduleGeneratorEfficienctBaseField.guiActive = false;
+                        moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
+                    }                    
+
+                    initialGeneratorPowerEC = outputModuleResource.rate;
+
+                    if (maximumGeneratorPowerEC > 0)
+                        outputModuleResource.rate = maximumGeneratorPowerEC;
+
+                    maximumGeneratorPowerEC = outputModuleResource.rate;
+                    maximumGeneratorPowerMJ = maximumGeneratorPowerEC / 1000;
+
+                    mockInputResource = new ModuleResource();
+                    mockInputResource.name = outputModuleResource.name;
+                    mockInputResource.id = outputModuleResource.name.GetHashCode();
+
+                    moduleGenerator.resHandler.inputResources.Add(mockInputResource);
+                }
+            }
         }
 
         private void InitializeEfficiency()
@@ -673,6 +739,23 @@ namespace FNPlugin
                 attachedPowerSource.ConnectedThermalElectricGenerator = this;
 
             UpdateTargetMass();
+
+            UpdateModuleGeneratorOutput();
+        }
+
+        private void UpdateModuleGeneratorOutput()
+        {
+            if (attachedPowerSource == null || outputModuleResource == null)
+                return;
+
+            var maximumPower = isLimitedByMinThrotle ? attachedPowerSource.MinimumPower : attachedPowerSource.MaximumPower;
+
+            if (chargedParticleMode)
+                maximumGeneratorPowerMJ = maximumPower * maxEfficiency;
+            else
+                maximumGeneratorPowerMJ = maximumPower * maxEfficiency * 0.6;
+
+            outputModuleResource.rate = maximumGeneratorPowerMJ * 1000;
         }
 
         private PowerSourceSearchResult FindThermalPowerSource()
@@ -820,6 +903,12 @@ namespace FNPlugin
             }
             else
                 OutputPower = "Generator Offline";
+
+            if (moduleGeneratorEfficienctBaseField != null)
+            {
+                moduleGeneratorEfficienctBaseField.guiActive = false;
+                moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
+            }  
         }
 
         #region obsolete exposed public getters
@@ -953,7 +1042,16 @@ namespace FNPlugin
                         electricdtps = 0;
                         maxElectricdtps = 0;
                         PowerDown();
+
+                        if (moduleGenerator != null && moduleGenerator.generatorIsActive == true)
+                            moduleGenerator.Shutdown();
+
                         return;
+                    }
+
+                    if (moduleGenerator != null && moduleGenerator.generatorIsActive == false)
+                    {
+                        moduleGenerator.Activate();
                     }
 
                     powerDownFraction = 1;
@@ -1073,6 +1171,13 @@ namespace FNPlugin
                         maxElectricdtps = maxChargedPower * _totalEff;
                     }
 
+                    if (outputModuleResource != null)
+                    {
+                        currentPowerForGeneratorMJ = Math.Min(maximumGeneratorPowerMJ, electricdtps);
+                        outputModuleResource.rate = currentPowerForGeneratorMJ * 1000;
+                        mockInputResource.rate = outputModuleResource.rate;
+                    }
+
                     outputPower = isLimitedByMinThrotle 
                         ? -supplyManagedFNResourcePerSecond(electricdtps, ResourceManager.FNRESOURCE_MEGAJOULES)
                         : -supplyFNResourcePerSecondWithMaxAndEfficiency(electricdtps, maxElectricdtps, hotColdBathRatio, ResourceManager.FNRESOURCE_MEGAJOULES);
@@ -1082,6 +1187,9 @@ namespace FNPlugin
                     electricdtps = 0;
                     maxElectricdtps = 0;
                     generatorInit = true;
+
+                    if (moduleGenerator != null && moduleGenerator.generatorIsActive == true)
+                        moduleGenerator.Shutdown();
 
                     if (IsEnabled && !vessel.packed)
                     {
