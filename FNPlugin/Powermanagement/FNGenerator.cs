@@ -229,7 +229,6 @@ namespace FNPlugin
         [KSPField]
         public double post_received_power_per_second;
 
-
         [KSPField]
         public double spareResourceCapacity;
         [KSPField]

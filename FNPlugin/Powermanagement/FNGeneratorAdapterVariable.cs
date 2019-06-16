@@ -74,8 +74,6 @@ namespace FNPlugin
 
         private double generatorInputRate;
 
-
-
         private bool active = false;
 
         public override void OnStart(StartState state)
