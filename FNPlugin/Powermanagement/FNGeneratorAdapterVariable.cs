@@ -3,6 +3,9 @@ using System;
 using System.Linq;
 using UnityEngine;
 
+using System.Collections;
+using System.Collections.Generic;
+
 namespace FNPlugin
 {
     [KSPModule("Generator Adapter")]
@@ -76,11 +79,17 @@ namespace FNPlugin
 
         private bool active = false;
 
+        //private AvailablePart availablePart;
+        //private Part prefab_available_part;
+        //private FNGeneratorAdapterVariable prefab_generator_module;
+
         public override void OnStart(StartState state)
         {
             try
             {
                 if (state == StartState.Editor) return;
+
+                //InitializePartModule();
 
                 var modules = part.FindModulesImplementing<ModuleGenerator>();
 
@@ -200,25 +209,51 @@ namespace FNPlugin
             }
         }
 
-        [KSPEvent(guiActive = true, guiName = "Save InputOutput", active = true)]
-        public void SaveCurrentInputOutput()
-        {
-            moduleGenerator.Shutdown();
+        //private void InitializePartModule()
+        //{
+        //    if (PartLoader.LoadedPartsList == null)
+        //    {
+        //        Debug.LogError("[KSPI]: FNGeneratorAdapter: PartLoader.LoadedPartsList == null");
+        //        return;
+        //    }
+        //    List<AvailablePart> available_parts = PartLoader.LoadedPartsList;
+        //    Debug.Log("[KSPI]: FNGeneratorAdapter: available_parts " + available_parts.Count);
+        //    availablePart = available_parts.FirstOrDefault(m => m.name == "CDTcore");
 
-            var newResourcesConfigNode = new ConfigNode();
+        //    if (availablePart == null)
+        //    {
+        //        Debug.LogError("[KSPI]: FNGeneratorAdapter: Failed to find available part");
+        //        return;
+        //    }
+        //    prefab_available_part = availablePart.partPrefab;
+        //    if (prefab_available_part == null)
+        //    {
+        //        Debug.LogError("[KSPI]: FNGeneratorAdapter: partPrefab = null");
+        //        return;
+        //    }
+        //    prefab_generator_module = prefab_available_part.Modules.GetModule<FNGeneratorAdapterVariable>();
+        //    if (prefab_generator_module == null)
+        //    {
+        //        Debug.LogError("[KSPI]: FNGeneratorAdapter: prefab_generator = null");
+        //        return;
+        //    }
+        //    Debug.Log("[KSPI]: FNGeneratorAdapter: prefab_generator_module found");
+        //}
 
-            var inputConfigNode = newResourcesConfigNode.AddNode("INPUT_RESOURCE");
-            inputConfigNode.AddValue("name", "Megajoules");
-            inputConfigNode.AddValue("ratio", generatorInputRate);
-
-            var outConfigNode = newResourcesConfigNode.AddNode("OUTPUT_RESOURCE");
-            inputConfigNode.AddValue("name", "Megajoules");
-            inputConfigNode.AddValue("ratio", generatorOutputRateInElectricCharge);
-
-            moduleGenerator.Load(newResourcesConfigNode);
-
-            moduleGenerator.Activate();
-        }
+        //[KSPEvent(guiActive = true, guiName = "Save InputOutput", active = true)]
+        //public void SaveCurrentInputOutput()
+        //{
+        //    moduleGenerator.Shutdown();
+        //    var newResourcesConfigNode = new ConfigNode();
+        //    var inputConfigNode = newResourcesConfigNode.AddNode("INPUT_RESOURCE");
+        //    inputConfigNode.AddValue("name", "Megajoules");
+        //    inputConfigNode.AddValue("ratio", generatorInputRate);
+        //    var outConfigNode = newResourcesConfigNode.AddNode("OUTPUT_RESOURCE");
+        //    inputConfigNode.AddValue("name", "Megajoules");
+        //    inputConfigNode.AddValue("ratio", generatorOutputRateInElectricCharge);
+        //    prefab_generator_module.Load(newResourcesConfigNode);
+        //    moduleGenerator.Activate();
+        //}
 
         /// <summary>
         /// Is called by KSP while the part is active
