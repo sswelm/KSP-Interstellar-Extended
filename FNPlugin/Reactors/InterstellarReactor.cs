@@ -828,15 +828,7 @@ namespace FNPlugin.Reactors
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType)
         {
-            //shouldApplyBalance = isConnectedToThermalGenerator && generatorType == ElectricGeneratorType.thermal && storedIsThermalEnergyGeneratorEfficiency > 0 && storedIsChargedEnergyGeneratorEfficiency > 0;
-
-            shouldApplyBalance = isConnectedToThermalGenerator && (isConnectedToChargedGenerator || (plasmaThrottleRatio <= ThermalPowerRatio && chargedThrottleRatio <= ThermalPowerRatio));
-
-            //var noChargedPowerNeededForPropulsion = connectedEngines != null && 
-            //    (connectedEngines.Where(m => m.RequiresPlasmaHeat).Max(e => e.CurrentThrottle) == 0 &&
-            //    connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle) == 0);
-            //shouldApplyBalance = isConnectedToThermalGenerator && (isConnectedToChargedGenerator || noChargedPowerNeededForPropulsion);
-
+            shouldApplyBalance = isConnectedToThermalGenerator && isConnectedToChargedGenerator;
             return shouldApplyBalance;
         }
 
