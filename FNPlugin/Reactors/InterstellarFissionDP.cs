@@ -3,7 +3,7 @@
 namespace FNPlugin.Reactors
 {
     [KSPModule("Fission Fragment Reactor")]
-    class InterstellarFissionDP : InterstellarFissionPB, IChargedParticleSource
+    class InterstellarFissionDP : InterstellarFissionPB, IFNChargedParticleSource
     {
         [KSPField]
         public double magneticNozzlePowerMult = 1;

@@ -15,10 +15,12 @@ namespace FNPlugin
         public float simulatedThrottle = 0.5f;
         [KSPField(isPersistant = true)]
         double powerBufferStore;
+        [KSPField(isPersistant = true)]
+        public bool exhaustAllowed = true;
 
         // Non Persistant fields
         [KSPField(guiActiveEditor = true, guiUnits = "m")]
-        public float radius = 2.5f;
+        public double radius = 2.5;
         [KSPField(guiActiveEditor = true, guiUnits = " t")]
         public float partMass = 1;
         [KSPField]
@@ -86,14 +88,27 @@ namespace FNPlugin
         ModuleEnginesWarp _attached_warpable_engine;
         ResourceBuffers resourceBuffers;
         PartResourceDefinition propellantBufferResourceDefinition;
+        Guid id = Guid.NewGuid();
 
-        IChargedParticleSource _attached_reactor;
+        IFNChargedParticleSource _attached_reactor;
 
         int _attached_reactor_distance;
         double exchanger_thrust_divisor;
         double _previous_charged_particles_received;
         double max_power_multiplier;
         double powerBufferMax;
+
+        public IFNChargedParticleSource AttachedReactor
+        {
+            get { return _attached_reactor; }
+            private set
+            {
+                _attached_reactor = value;
+                if (_attached_reactor == null)
+                    return;
+                _attached_reactor.AttachThermalReciever(id, radius);
+            }
+        }
 
         public double GetNozzleFlowRate()
         {
@@ -206,7 +221,7 @@ namespace FNPlugin
         private void ConnectToReactor()
         {
             // first try to look in part
-            _attached_reactor = this.part.FindModuleImplementing<IChargedParticleSource>();
+            _attached_reactor = this.part.FindModuleImplementing<IFNChargedParticleSource>();
 
             // try to find nearest
             if (_attached_reactor == null)
@@ -216,11 +231,11 @@ namespace FNPlugin
                 _attached_reactor.ConnectWithEngine(this);
         }
 
-        private IChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)
+        private IFNChargedParticleSource BreadthFirstSearchForChargedParticleSource(int stackdepth, int parentdepth)
         {
             for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
             {
-                IChargedParticleSource particleSource = FindChargedParticleSource(part, currentDepth, parentdepth);
+                IFNChargedParticleSource particleSource = FindChargedParticleSource(part, currentDepth, parentdepth);
 
                 if (particleSource != null)
                 {
@@ -231,17 +246,17 @@ namespace FNPlugin
             return null;
         }
 
-        private IChargedParticleSource FindChargedParticleSource(Part currentpart, int stackdepth, int parentdepth)
+        private IFNChargedParticleSource FindChargedParticleSource(Part currentpart, int stackdepth, int parentdepth)
         {
             if (currentpart == null)
                 return null;
 
             if (stackdepth == 0)
-                return currentpart.FindModulesImplementing<IChargedParticleSource>().FirstOrDefault();
+                return currentpart.FindModulesImplementing<IFNChargedParticleSource>().FirstOrDefault();
 
             foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null))
             {
-                IChargedParticleSource particleSource = FindChargedParticleSource(attachNodes.attachedPart, (stackdepth - 1), parentdepth);
+                IFNChargedParticleSource particleSource = FindChargedParticleSource(attachNodes.attachedPart, (stackdepth - 1), parentdepth);
 
                 if (particleSource != null)
                     return particleSource;
@@ -249,7 +264,7 @@ namespace FNPlugin
 
             if (parentdepth > 0)
             {
-                IChargedParticleSource particleSource = FindChargedParticleSource(currentpart.parent, (stackdepth - 1), (parentdepth - 1));
+                IFNChargedParticleSource particleSource = FindChargedParticleSource(currentpart.parent, (stackdepth - 1), (parentdepth - 1));
 
                 if (particleSource != null)
                     return particleSource;
@@ -318,6 +333,20 @@ namespace FNPlugin
             if (_attached_engine == null)
                 return;
 
+            if (_attached_engine.currentThrottle > 0 && !exhaustAllowed)
+            {
+                string message = AttachedReactor.MayExhaustInLowSpaceHomeworld
+                    ? "Engine halted - Radioactive exhaust not allowed towards or inside homeworld atmosphere"
+                    : "Engine halted - Radioactive exhaust not allowed towards or near homeworld atmosphere";
+
+                ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                vessel.ctrlState.mainThrottle = 0;
+
+                // Return to realtime
+                if (vessel.packed)
+                    TimeWarp.SetRate(0, true);
+            }
+
             _chargedParticleMaximumPercentageUsage = _attached_reactor != null ? _attached_reactor.ChargedParticlePropulsionEfficiency : 0;
 
             if (_chargedParticleMaximumPercentageUsage > 0)
@@ -328,11 +357,11 @@ namespace FNPlugin
                     resourceBuffers.UpdateBuffers();
                 }
 
-                maximumChargedPower = _attached_reactor.MaximumChargedPower;
+                maximumChargedPower =  _attached_reactor.MaximumChargedPower;
                 var currentMaximumChargedPower = maximum_isp == minimum_isp ? maximumChargedPower * _attached_engine.currentThrottle : maximumChargedPower;
 
                 _max_charged_particles_power = currentMaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
-                _charged_particles_requested = _attached_engine.isOperational && _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0;
+                _charged_particles_requested = exhaustAllowed && _attached_engine.isOperational && _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0;
                 _charged_particles_received = consumeFNResourcePerSecond(_charged_particles_requested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
 
                 // update Isp
@@ -452,14 +481,23 @@ namespace FNPlugin
 
             if (!string.IsNullOrEmpty(runningEffectName))
             {
-                var runningEffectRatio = _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
+                var runningEffectRatio = exhaustAllowed && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
                 part.Effect(runningEffectName, runningEffectRatio, -1);
             }
             if (!string.IsNullOrEmpty(powerEffectName))
             {
-                var powerEffectRatio = _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
+                var powerEffectRatio = exhaustAllowed && _attached_engine.isOperational && _chargedParticleMaximumPercentageUsage > 0 ? _attached_engine.currentThrottle : 0;
                 part.Effect(powerEffectName, powerEffectRatio, -1);
             }
+        }
+
+        // Note: does not seem to be called while in vab mode
+        public override void OnUpdate()
+        {
+            if (_attached_engine == null)
+                return;
+
+            exhaustAllowed = AllowedExhaust();
         }
 
         public void UpdatePropellantBuffer(double calculatedConsumptionInTon)
@@ -491,6 +529,50 @@ namespace FNPlugin
         public override string getResourceManagerDisplayName()
         {
             return part.partInfo.title;
+        }
+
+        private bool AllowedExhaust()
+        {
+            var homeworld = FlightGlobals.GetHomeBody();
+            var toHomeworld = vessel.CoMD - homeworld.position;
+            var distanceToSurfaceHomeworld = toHomeworld.magnitude - homeworld.Radius;
+            var cosineAngle = Vector3d.Dot(part.transform.up.normalized, toHomeworld.normalized);
+            var currentExhaustAngle = Math.Acos(cosineAngle) * (180 / Math.PI);
+
+            if (double.IsNaN(currentExhaustAngle) || double.IsInfinity(currentExhaustAngle))
+                currentExhaustAngle = cosineAngle > 0 ? 180 : 0;
+
+            if (AttachedReactor == null)
+                return false;
+
+            double allowedExhaustAngle;
+            if (AttachedReactor.MayExhaustInAtmosphereHomeworld)
+            {
+                allowedExhaustAngle = 180;
+                return true;
+            }
+
+            var minAltitude = AttachedReactor.MayExhaustInLowSpaceHomeworld ? homeworld.atmosphereDepth : homeworld.scienceValues.spaceAltitudeThreshold;
+
+            if (distanceToSurfaceHomeworld < minAltitude)
+                return false;
+
+            if (AttachedReactor.MayExhaustInLowSpaceHomeworld && distanceToSurfaceHomeworld > 10 * homeworld.Radius)
+                return true;
+
+            if (!AttachedReactor.MayExhaustInLowSpaceHomeworld && distanceToSurfaceHomeworld > 20 * homeworld.Radius)
+                return true;
+
+            var radiusDividedByAltitude = (homeworld.Radius + minAltitude) / toHomeworld.magnitude;
+
+            var coneAngle = 45 * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude * radiusDividedByAltitude;
+
+            allowedExhaustAngle = coneAngle + Math.Tanh(radiusDividedByAltitude) * (180 / Math.PI);
+
+            if (allowedExhaustAngle < 3)
+                return true;
+
+            return currentExhaustAngle > allowedExhaustAngle;
         }
     }
 }

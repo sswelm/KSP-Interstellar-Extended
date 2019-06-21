@@ -43,13 +43,6 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Fuel Flow Throttle"), UI_FloatRange(stepIncrement = 10, maxValue = 1000, minValue = 100)]
         public float fuelflowThrottle = 100;
 
-        [KSPField(guiActive = false, guiName = "Distance to Homeworld")]
-        public double distanceToSurfaceHomeworld;
-        [KSPField(guiActive = false, guiName = "Allowed Exhaust Angle")]
-        public double allowedExhaustAngle;
-        [KSPField(guiActive = false, guiName = "Current Exhaust Angle")]
-        public double currentExhaustAngle;
-
         [KSPField]
         public double fuelflowMultplier;
         [KSPField]
@@ -1001,15 +994,17 @@ namespace FNPlugin
         {
             var homeworld = FlightGlobals.GetHomeBody();
             var toHomeworld = vessel.CoMD - homeworld.position;
-            distanceToSurfaceHomeworld = toHomeworld.magnitude - homeworld.Radius;
+            var distanceToSurfaceHomeworld = toHomeworld.magnitude - homeworld.Radius;
             var cosineAngle = Vector3d.Dot(part.transform.up.normalized, toHomeworld.normalized);
-            currentExhaustAngle = Math.Acos(cosineAngle) * (180 / Math.PI);
+            var currentExhaustAngle = Math.Acos(cosineAngle) * (180 / Math.PI);
+
             if (double.IsNaN(currentExhaustAngle) || double.IsInfinity(currentExhaustAngle))
                 currentExhaustAngle = cosineAngle > 0 ? 180 : 0;
 
             if (AttachedReactor == null)
                 return false;
 
+            double allowedExhaustAngle;
             if (AttachedReactor.MayExhaustInAtmosphereHomeworld)
             {
                 allowedExhaustAngle = 180;

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FNPlugin.Reactors
 {
-    abstract class InterstellarFusionReactor : InterstellarReactor, IChargedParticleSource
+    abstract class InterstellarFusionReactor : InterstellarReactor, IFNChargedParticleSource
     {
         [KSPField(isPersistant = true)]
         public int fuel_mode;

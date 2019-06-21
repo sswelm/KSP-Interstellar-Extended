@@ -4,7 +4,7 @@ using FNPlugin.Redist;
 namespace FNPlugin.Reactors
 {
     [KSPModule("Antimatter Reactor")]
-    class FNAntimatterReactor : InterstellarReactor, IChargedParticleSource
+    class FNAntimatterReactor : InterstellarReactor, IFNChargedParticleSource
     {
         [KSPField]
         public double magneticNozzlePowerMult = 0.1;
