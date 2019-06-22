@@ -1,15 +1,15 @@
 {
   "NAME"     : "Kerbal Joint Reinforcement",
   "DOWNLOAD" : "https://github.com/KSP-RO/Kerbal-Joint-Reinforcement-Continued/releases",
-  "URL"      : "https://raw.githubusercontent.com/KSP-RO/Kerbal-Joint-Reinforcement/master/GameData/KerbalJointReinforcement/KerbalJointReinforcement.version",
+  "URL"      : "https://raw.githubusercontent.com/KSP-RO/Kerbal-Joint-Reinforcement-Continued/master/GameData/KerbalJointReinforcement/KerbalJointReinforcement.version",
   "GITHUB" : {
       "USERNAME"   : "KSP-RO",
-      "REPOSITORY" : "Kerbal-Joint-Reinforcement"
+      "REPOSITORY" : "Kerbal-Joint-Reinforcement-Continued"
   },
   "VERSION" : {
     "MAJOR" : 3,
     "MINOR" : 4,
-    "PATCH" : 0
+    "PATCH" : 1
   },
   "KSP_VERSION_MIN" : {
     "MAJOR" : 1,
