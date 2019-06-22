@@ -29,7 +29,7 @@ namespace FNPlugin.Beamedpower
         private static double ComputeDistanceFacingEfficiency(double spotSizeDiameter, double facingFactor, double diameter, double facingEfficiencyExponent = 1, double spotsizeNormalizationExponent = 1)
         {
             if (spotSizeDiameter <= 0
-                || Double.IsPositiveInfinity(spotSizeDiameter)
+                || Double.IsInfinity(spotSizeDiameter)
                 || Double.IsNaN(spotSizeDiameter)
                 || facingFactor <= 0
                 || diameter <= 0)
@@ -53,8 +53,8 @@ namespace FNPlugin.Beamedpower
         {
             double facingFactor;
 
-            var directionVector = (transmitPosition - receiver.Vessel.GetVesselPos()).normalized;
-            var receiverTransform = receiver.Part.transform;
+            Vector3d directionVector = (transmitPosition - receiver.Vessel.GetVesselPos()).normalized;
+            Transform receiverTransform = receiver.Part.transform;
 
             switch (receiver.ReceiverType)
             {
@@ -141,12 +141,8 @@ namespace FNPlugin.Beamedpower
             double atmosphericDistance;
             if (recieverVessel.mainBody == transmitterVessel.mainBody)
             {
-                var recieverAltitudeModifier = atmosphereDepthInMeter > 0 && recieverVessel.altitude > atmosphereDepthInMeter
-                    ? atmosphereDepthInMeter / recieverVessel.altitude
-                    : 1;
-                var transmitterAltitudeModifier = atmosphereDepthInMeter > 0 && transmitterVessel.altitude > atmosphereDepthInMeter
-                    ? atmosphereDepthInMeter / transmitterVessel.altitude
-                    : 1;
+                double recieverAltitudeModifier = atmosphereDepthInMeter > 0 && recieverVessel.altitude > atmosphereDepthInMeter ? atmosphereDepthInMeter / recieverVessel.altitude : 1;
+                double transmitterAltitudeModifier = atmosphereDepthInMeter > 0 && transmitterVessel.altitude > atmosphereDepthInMeter ? atmosphereDepthInMeter / transmitterVessel.altitude : 1;
                 atmosphericDistance = transmitterAltitudeModifier * recieverAltitudeModifier * distanceInMeter;
             }
             else
@@ -184,14 +180,14 @@ namespace FNPlugin.Beamedpower
                 //ignore if no power or transmitter is on the same vessel
                 if (transmitter.Vessel == receiver.Vessel)
                 {
-                    //Debug.Log("[KSPI] - Transmitter vessel is equal to receiver vessel");
+                    //Debug.Log("[KSPI] : Transmitter vessel is equal to receiver vessel");
                     continue;
                 }
 
                 //first check for direct connection from current vessel to transmitters, will always be optimal
                 if (!transmitter.HasPower)
                 {
-                    //Debug.Log("[KSPI] - Transmitter vessel has no power available");
+                    //Debug.Log("[KSPI] : Transmitter vessel has no power available");
                     continue;
                 }
 
@@ -247,7 +243,7 @@ namespace FNPlugin.Beamedpower
 
                 if (receiver.Vessel.HasLineOfSightWith(relay.Vessel))
                 {
-                    var facingFactor = ComputeFacingFactor(relay.Vessel, receiver);
+                    double facingFactor = ComputeFacingFactor(relay.Vessel, receiver);
                     if (facingFactor <= 0)
                         continue;
 
@@ -369,14 +365,14 @@ namespace FNPlugin.Beamedpower
 
                         for (var r = 0; r < relaysToCheck.Count; r++)
                         {
-                            var nextRelay = relaysToCheck[r];
+                            VesselRelayPersistence nextRelay = relaysToCheck[r];
                             if (nextRelay == relayPersistance) continue;
 
                             double distanceToNextRelay = relayToRelayDistances[relayEntry.Value, r];
                             if (distanceToNextRelay <= 0) continue;
 
                             var possibleWavelengths = new List<MicrowaveRoute>();
-                            var relayToNextRelayDistance = relayRoute.Distance + distanceToNextRelay;
+                            double relayToNextRelayDistance = relayRoute.Distance + distanceToNextRelay;
 
                             foreach (var transmitterWavelenghtData in relayPersistance.SupportedTransmitWavelengths)
                             {
@@ -390,7 +386,7 @@ namespace FNPlugin.Beamedpower
                                 possibleWavelengths.Add(new MicrowaveRoute(efficiencyForRoute, relayToNextRelayDistance, relayRouteFacingFactor, spotsize, transmitterWavelenghtData, relayPersistance));
                             }
 
-                            var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
+                            MicrowaveRoute mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
 
                             if (mostEfficientWavelength != null)
                             {
@@ -431,8 +427,8 @@ namespace FNPlugin.Beamedpower
 
             foreach (var transmitterEntry in transmitterRouteDictionary)
             {
-                var vesselPersistance = transmitterEntry.Key;
-                var microwaveRoute = transmitterEntry.Value;
+                VesselMicrowavePersistence vesselPersistance = transmitterEntry.Key;
+                MicrowaveRoute microwaveRoute = transmitterEntry.Value;
 
                 var relays = new Stack<VesselRelayPersistence>();//Last in, first out so relay visible from receiver will always be first
                 VesselRelayPersistence relay = microwaveRoute.PreviousRelay;
