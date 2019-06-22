@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,7 +9,7 @@ namespace FNPlugin.Beamedpower
 {
     public static class InterstellarBeamedPowerHelper
     {
-        private static double ComputeSpotSize(WaveLengthData waveLengthData, double distanceToSpot, double transmitterAperture, double apertureMultiplier = 1)
+        private static double ComputeSpotSize(WaveLengthData waveLengthData, double distanceToSpot, double transmitterAperture, Vessel receivingVessel, Vessel sendingVessel, double apertureMultiplier = 1)
         {
             if (transmitterAperture == 0)
                 transmitterAperture = 1;
@@ -40,13 +40,13 @@ namespace FNPlugin.Beamedpower
             return effectiveDistanceFacingEfficiency;
         }
 
-        private static double ComputeFacingFactorSafe(Vector3d transmitPosition, IBeamedPowerReceiver receiver)
+        private static double ComputeFacingFactor(Vessel transmitterVessel, IBeamedPowerReceiver receiver)
         {
             // return if no recieval is possible
             if (receiver.HighSpeedAtmosphereFactor == 0 && !receiver.CanBeActiveInAtmosphere)
                 return 0;
 
-            return ComputeFacingFactor(transmitPosition, receiver);
+            return ComputeFacingFactor(transmitterVessel.GetVesselPos(), receiver);
         }
 
         private static double ComputeFacingFactor(Vector3d transmitPosition, IBeamedPowerReceiver receiver)
@@ -184,37 +184,34 @@ namespace FNPlugin.Beamedpower
                 //ignore if no power or transmitter is on the same vessel
                 if (transmitter.Vessel == receiver.Vessel)
                 {
-                    //Debug.Log("[KSPI]: Transmitter vessel is equal to receiver vessel");
+                    //Debug.Log("[KSPI] - Transmitter vessel is equal to receiver vessel");
                     continue;
                 }
 
                 //first check for direct connection from current vessel to transmitters, will always be optimal
                 if (!transmitter.HasPower)
                 {
-                    //Debug.Log("[KSPI]: Transmitter vessel has no power available");
+                    //Debug.Log("[KSPI] - Transmitter vessel has no power available");
                     continue;
                 }
 
-                var receiverPosition = receiver.Vessel.GetVesselPos();
-                var transmitterPosition = transmitter.Vessel.GetVesselPos();
-                var distanceInMeter = Vector3d.Distance(receiverPosition, transmitterPosition);
-
-                if (HasLineOfSightWith(distanceInMeter, receiverPosition, transmitterPosition))
+                if (receiver.Vessel.HasLineOfSightWith(transmitter.Vessel))
                 {
-                    double facingFactor = ComputeFacingFactorSafe(transmitterPosition, receiver);
+                    double facingFactor = ComputeFacingFactor(transmitter.Vessel, receiver);
                     if (facingFactor <= 0)
                         continue;
 
                     var possibleWavelengths = new List<MicrowaveRoute>();
+                    double distanceInMeter = ComputeDistance(receiver.Vessel, transmitter.Vessel);
 
-                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitterPosition) * 0.01;
+                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.GetVesselPos()) * 0.01;
 
                     foreach (WaveLengthData wavelenghtData in transmitter.SupportedTransmitWavelengths)
                     {
                         if (wavelenghtData.wavelength.NotWithin(receiver.MaximumWavelength, receiver.MinimumWavelength))
                             continue;
 
-                        var spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture, receiver.ApertureMultiplier);
+                        var spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture, receiver.Vessel, transmitter.Vessel, receiver.ApertureMultiplier);
 
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, receiver.Diameter, receiver.FacingEfficiencyExponent, receiver.SpotsizeNormalizationExponent);
 
@@ -248,17 +245,14 @@ namespace FNPlugin.Beamedpower
             {
                 if (!relay.IsActive) continue;
 
-                var receiverPosition = receiver.Vessel.GetVesselPos();
-                var relayPosition = receiver.Vessel.GetVesselPos();
-                var distanceInMeter = Vector3d.Distance(receiverPosition, relayPosition);
-
-                if (HasLineOfSightWith(distanceInMeter, receiverPosition, relayPosition))
+                if (receiver.Vessel.HasLineOfSightWith(relay.Vessel))
                 {
-                    var facingFactor = ComputeFacingFactorSafe(relayPosition, receiver);
+                    var facingFactor = ComputeFacingFactor(relay.Vessel, receiver);
                     if (facingFactor <= 0)
                         continue;
 
-                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relayPosition) * 0.01;
+                    double distanceInMeter = ComputeDistance(receiver.Vessel, relay.Vessel);
+                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.GetVesselPos()) * 0.01;
 
                     var possibleWavelengths = new List<MicrowaveRoute>();
 
@@ -267,7 +261,7 @@ namespace FNPlugin.Beamedpower
                         if (wavelenghtData.maxWavelength < receiver.MinimumWavelength || wavelenghtData.minWavelength > receiver.MaximumWavelength)
                             continue;
 
-                        double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, relay.Aperture);
+                        double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, relay.Aperture, receiver.Vessel, relay.Vessel);
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, receiver.Diameter, receiver.FacingEfficiencyExponent, receiver.SpotsizeNormalizationExponent);
 
                         double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, receiver.Vessel, relay.Vessel);
@@ -342,7 +336,7 @@ namespace FNPlugin.Beamedpower
                                 if (transmitterWavelenghtData.wavelength.NotWithin(relayPersistance.MaximumRelayWavelenght, relayPersistance.MinimumRelayWavelenght))
                                     continue;
 
-                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceInMeter, transmitterToCheck.Aperture);
+                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceInMeter, transmitterToCheck.Aperture, relayPersistance.Vessel, transmitterToCheck.Vessel);
                                 double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
 
                                 double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, relayAtmosphericPresure, transmitterWavelenghtData.atmosphericAbsorption, distanceInMeter, transmitterToCheck.Vessel, relayPersistance.Vessel);
@@ -389,7 +383,7 @@ namespace FNPlugin.Beamedpower
                                 if (transmitterWavelenghtData.maxWavelength < relayPersistance.MaximumRelayWavelenght || transmitterWavelenghtData.minWavelength > relayPersistance.MinimumRelayWavelenght)
                                     continue;
 
-                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, relayPersistance.Aperture);
+                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, relayPersistance.Aperture, nextRelay.Vessel, relayPersistance.Vessel);
                                 double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
                                 double efficiencyForRoute = efficiencyByThisRelay * relayRoute.Efficiency;
 
@@ -452,38 +446,6 @@ namespace FNPlugin.Beamedpower
             }
 
             return resultDictionary;
-        }
-
-
-        /// <summary>Tests whether two vessels have line of sight to each other</summary>
-        /// <returns><c>true</c> if a straight line from a to b is not blocked by any celestial body; 
-        /// otherwise, <c>false</c>.</returns>
-        public static bool HasLineOfSightWith(double distanceInMeter, Vector3d vesselA, Vector3d vesselB, double freeDistance = 2500, double min_height = double.NaN)
-        {
-            if (freeDistance > 0 && distanceInMeter < freeDistance)           // if both vessels are within active view
-                return true;
-
-            foreach (CelestialBody referenceBody in FlightGlobals.Bodies)
-            {
-                Vector3d bodyFromA = referenceBody.position - vesselA;
-                Vector3d bFromA = vesselB - vesselA;
-
-                // Is body at least roughly between satA and satB?
-                if (Vector3d.Dot(bodyFromA, bFromA) <= 0) continue;
-
-                Vector3d bFromANorm = bFromA.normalized;
-
-                if (Vector3d.Dot(bodyFromA, bFromANorm) >= bFromA.magnitude) continue;
-
-                // Above conditions guarantee that Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm 
-                // lies between the origin and bFromA
-                Vector3d lateralOffset = bodyFromA - Vector3d.Dot(bodyFromA, bFromANorm) * bFromANorm;
-
-                var effective_minimum_height = double.IsNaN(min_height) ? (referenceBody.atmosphere ? 5 : -500) : min_height;
-
-                if (lateralOffset.magnitude < referenceBody.Radius - effective_minimum_height) return false;
-            }
-            return true;
         }
     }
 }
