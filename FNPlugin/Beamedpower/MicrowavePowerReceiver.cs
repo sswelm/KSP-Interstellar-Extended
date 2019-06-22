@@ -301,7 +301,7 @@ namespace FNPlugin
         protected GUIStyle text_black_style;
 
         private const int labelWidth = 200;
-        private const int wideLabelWidth = 275;
+        private const int wideLabelWidth = 250;
         private const int valueWidthWide = 100;
         private const int ValueWidthNormal = 65;
         private const int ValueWidthShort = 30;
@@ -1452,11 +1452,13 @@ namespace FNPlugin
 
             GUILayout.BeginVertical();
 
-            PrintToGUILayout("Type", part.partInfo.title, bold_black_style, text_black_style, 200, 400);
+            PrintToGUILayout("Receiver Type", part.partInfo.title, bold_black_style, text_black_style, 200, 400);
+            PrintToGUILayout("Receiver Diameter", diameter.ToString("0.0000"), bold_black_style, text_black_style, 200, 400);
+            PrintToGUILayout("Receiver Location", part.vessel.mainBody.name + " @ " + DistanceToText(part.vessel.altitude), bold_black_style, text_black_style, 200, 400);
             PrintToGUILayout("Power Capacity Efficiency", (powerCapacityEfficiency * 100).ToString("0.0") + "%", bold_black_style, text_black_style, 200, 400);
-            PrintToGUILayout("Total Current Beamed Power", total_beamed_power.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
-            PrintToGUILayout("Total Maximum Beamed Power", total_beamed_power_max.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
-            PrintToGUILayout("Total Wasteheat Production", total_beamed_wasteheat.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200);
+            PrintToGUILayout("Total Current Beamed Power", total_beamed_power.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200, 400);
+            PrintToGUILayout("Total Maximum Beamed Power", total_beamed_power_max.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200, 400);
+            PrintToGUILayout("Total Wasteheat Production", total_beamed_wasteheat.ToString("0.0000") + " MW", bold_black_style, text_black_style, 200, 400);
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Transmitter", bold_black_style, GUILayout.Width(labelWidth));
@@ -1502,24 +1504,26 @@ namespace FNPlugin
 
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Transmitter", bold_black_style, GUILayout.Width(labelWidth));
-                GUILayout.Label("Relay Nr", bold_black_style, GUILayout.Width(ValueWidthShort));
-                GUILayout.Label("Relay Name", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Relay Nr", bold_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label("Relay Name", bold_black_style, GUILayout.Width(wideLabelWidth));
                 GUILayout.Label("Relay Location", bold_black_style, GUILayout.Width(labelWidth));
-                GUILayout.Label("Max Capacity", bold_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label("Max Capacity", bold_black_style, GUILayout.Width(valueWidthWide));
+                GUILayout.Label("Aperture", bold_black_style, GUILayout.Width(labelWidth));
                 GUILayout.EndHorizontal();
 
                 foreach (ReceivedPowerData receivedPowerData in received_power.Values)
                 {
                     for (int r = 0; r < receivedPowerData.Relays.Count; r++)
                     {
-                        var vesselPersistance = receivedPowerData.Relays[r];
+                        VesselRelayPersistence vesselPersistance = receivedPowerData.Relays[r];
 
-                        GUILayout.BeginHorizontal();
-                        GUILayout.Label(r.ToString(), text_black_style, GUILayout.Width(ValueWidthShort));
+                        GUILayout.BeginHorizontal();                        
                         GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, text_black_style, GUILayout.Width(labelWidth));
+                        GUILayout.Label(r.ToString(), text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistance.Vessel.name, text_black_style, GUILayout.Width(wideLabelWidth));
                         GUILayout.Label(vesselPersistance.Vessel.mainBody.name + " @ " + DistanceToText(vesselPersistance.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
-                        GUILayout.Label(PowerToText(vesselPersistance.PowerCapacity * powerMult), GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(PowerToText(vesselPersistance.PowerCapacity * powerMult), GUILayout.Width(valueWidthWide));
+                        GUILayout.Label(PowerToText(vesselPersistance.Aperture), GUILayout.Width(labelWidth));                        
                         GUILayout.EndHorizontal();
                     }
                 }
