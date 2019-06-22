@@ -9,7 +9,7 @@ namespace FNPlugin.Beamedpower
 {
     public static class InterstellarBeamedPowerHelper
     {
-        private static double ComputeSpotSize(WaveLengthData waveLengthData, double distanceToSpot, double transmitterAperture, Vessel receivingVessel, Vessel sendingVessel, double apertureMultiplier = 1)
+        private static double ComputeSpotSize(WaveLengthData waveLengthData, double distanceToSpot, double transmitterAperture, double apertureMultiplier = 1)
         {
             if (transmitterAperture == 0)
                 transmitterAperture = 1;
@@ -211,7 +211,7 @@ namespace FNPlugin.Beamedpower
                         if (wavelenghtData.wavelength.NotWithin(receiver.MaximumWavelength, receiver.MinimumWavelength))
                             continue;
 
-                        var spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture, receiver.Vessel, transmitter.Vessel, receiver.ApertureMultiplier);
+                        var spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, transmitter.Aperture, receiver.ApertureMultiplier);
 
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, receiver.Diameter, receiver.FacingEfficiencyExponent, receiver.SpotsizeNormalizationExponent);
 
@@ -261,7 +261,7 @@ namespace FNPlugin.Beamedpower
                         if (wavelenghtData.maxWavelength < receiver.MinimumWavelength || wavelenghtData.minWavelength > receiver.MaximumWavelength)
                             continue;
 
-                        double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, relay.Aperture, receiver.Vessel, relay.Vessel);
+                        double spotsize = ComputeSpotSize(wavelenghtData, distanceInMeter, relay.Aperture);
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, receiver.Diameter, receiver.FacingEfficiencyExponent, receiver.SpotsizeNormalizationExponent);
 
                         double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, receiver.Vessel, relay.Vessel);
@@ -336,7 +336,7 @@ namespace FNPlugin.Beamedpower
                                 if (transmitterWavelenghtData.wavelength.NotWithin(relayPersistance.MaximumRelayWavelenght, relayPersistance.MinimumRelayWavelenght))
                                     continue;
 
-                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceInMeter, transmitterToCheck.Aperture, relayPersistance.Vessel, transmitterToCheck.Vessel);
+                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceInMeter, transmitterToCheck.Aperture);
                                 double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
 
                                 double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, relayAtmosphericPresure, transmitterWavelenghtData.atmosphericAbsorption, distanceInMeter, transmitterToCheck.Vessel, relayPersistance.Vessel);
@@ -383,7 +383,7 @@ namespace FNPlugin.Beamedpower
                                 if (transmitterWavelenghtData.maxWavelength < relayPersistance.MaximumRelayWavelenght || transmitterWavelenghtData.minWavelength > relayPersistance.MinimumRelayWavelenght)
                                     continue;
 
-                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, relayPersistance.Aperture, nextRelay.Vessel, relayPersistance.Vessel);
+                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, relayPersistance.Aperture);
                                 double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
                                 double efficiencyForRoute = efficiencyByThisRelay * relayRoute.Efficiency;
 
