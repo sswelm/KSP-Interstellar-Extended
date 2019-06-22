@@ -139,6 +139,7 @@
     <Compile Include="Propulsion\ElectricEngineControllerFX.cs" />
     <Compile Include="Propulsion\ElectricEnginePropellant.cs" />
     <Compile Include="Propulsion\ElectricRCSController.cs" />
+    <Compile Include="Storage\FNAnimate.cs" />
     <Compile Include="Toolbar\FlightUIStarter.cs" />
     <Compile Include="Science\FNImpactorModule.cs" />
     <Compile Include="Science\FNLCMassSpectrometer.cs" />
