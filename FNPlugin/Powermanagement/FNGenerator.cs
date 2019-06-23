@@ -219,7 +219,7 @@ namespace FNPlugin
         public double maximumElectricPower;
         [KSPField]
         public double stableMaximumReactorPower;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double megawattBufferAmount;
         [KSPField]
         public double heat_exchanger_thrust_divisor;
@@ -242,7 +242,7 @@ namespace FNPlugin
         public double postEffectiveInputPowerPerSecond;
         [KSPField]
         public double powerBufferBonus;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double minimumBufferSize = 0;
         [KSPField]
         public double stablePowerForBuffer;

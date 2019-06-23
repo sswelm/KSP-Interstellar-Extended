@@ -1998,7 +1998,6 @@ namespace FNPlugin
                 // give back propellant
                 if (UseChargedPowerOnly && list_of_propellants.Count == 1)
                 {
-                    //AttachedReactor.UseProductForPropulsion(powerFraction, currentEngineFuelFlow, list_of_propellants.First().getPartResourceDefinition());
                     var resource = PartResourceLibrary.Instance.GetDefinition(list_of_propellants.First().name);
                     AttachedReactor.UseProductForPropulsion(powerFraction, currentMassFlow, resource);
                 }

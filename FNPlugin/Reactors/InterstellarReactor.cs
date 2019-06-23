@@ -334,7 +334,7 @@ namespace FNPlugin.Reactors
         public string shutdownAnimationName = "";
         [KSPField]
         public double reactorSpeedMult = 1;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double powerRatio;
         [KSPField]
         public string upgradedName = "";
@@ -537,6 +537,7 @@ namespace FNPlugin.Reactors
         protected ModuleAnimateGeneric shutdownAnimation;
         protected ModuleAnimateGeneric loopingAnimation;
 
+        FNHabitat habitat;
         Rect windowPosition;
         ReactorFuelType current_fuel_mode;
         PartResourceDefinition lithium6_def;
@@ -558,7 +559,6 @@ namespace FNPlugin.Reactors
 
         double consumedFuelTotalFixed;
         double consumedFuelTotalPerSecond;
-        double requestedPropellantMassPerSecond;
         double connectedRecieversSum;
 
         double tritiumBreedingMassAdjustment;
@@ -674,22 +674,7 @@ namespace FNPlugin.Reactors
 
         public void UseProductForPropulsion(double ratio, double propellantMassPerSecond)
         {
-            if (ratio <= 0) return;
-
-            foreach (var product in reactorProduction)
-            {
-                if (product.mass <= 0) continue;
-
-                var effectiveMass = ratio * product.mass;
-
-                // remove product from store
-                var fuelAmount = product.fuelmode.DensityInTon > 0 ? (effectiveMass / product.fuelmode.DensityInTon) : 0;
-                if (fuelAmount == 0) continue;
-
-                part.RequestResource(product.fuelmode.ResourceName, fuelAmount);
-            }
-
-            requestedPropellantMassPerSecond = propellantMassPerSecond;
+            UseProductForPropulsion(ratio, propellantMassPerSecond, hydrogenDefinition);
         }
 
         public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource)
@@ -1134,9 +1119,6 @@ namespace FNPlugin.Reactors
             {
                 if (IsNuclear) return;
 
-                Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated");
-                this.part.force_activate();
-
                 stored_fuel_ratio = 1;
                 IsEnabled = true;
             }
@@ -1151,6 +1133,17 @@ namespace FNPlugin.Reactors
         [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_activateReactor", active = false)]
         public void ActivateReactor()
         {
+            Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated by user");
+            this.part.force_activate();
+
+            if (habitat != null && !habitat.isDeployed)
+            {
+                string message = "Activation was canceled because " + part.name + " is not deployed";
+                ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
+                Debug.LogWarning("[KSPI]: " + message);
+                return;
+            }
+
             StartReactor();
         }
 
@@ -1368,11 +1361,14 @@ namespace FNPlugin.Reactors
             if (!String.IsNullOrEmpty(shutdownAnimationName))
                 shutdownAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == shutdownAnimationName);
 
+
+            habitat = part.FindModuleImplementing<FNHabitat>();
+
             // only force activate if Enabled and not with a engine model
             var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
             if (IsEnabled && myAttachedEngine == null)
             {
-                Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated");
+                Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated by system");
                 this.part.force_activate();
                 Fields["currentMass"].guiActiveEditor = true;
                 Fields["radius"].guiActiveEditor = true;
@@ -1803,12 +1799,6 @@ namespace FNPlugin.Reactors
                 if (!CheatOptions.InfinitePropellant)
                 {
                     consumedFuelTotalFixed = 0;
-
-                    if (requestedPropellantMassPerSecond > 0)
-                    {
-                        var resultFixed = part.RequestResource(hydrogenDefinition.name, -requestedPropellantMassPerSecond * timeWarpFixedDeltaTime / ((double)(decimal)hydrogenDefinition.density), ResourceFlowMode.ALL_VESSEL);
-                        requestedPropellantMassPerSecond = 0;
-                    }
 
                     for (var i = 0; i < current_fuel_variant.ReactorFuels.Count; i++)
                     {

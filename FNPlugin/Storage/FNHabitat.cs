@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin
@@ -18,6 +19,12 @@ namespace FNPlugin
                 _Modules = part.FindModulesImplementing<IAnimatedModule>();
             }
         }
+
+        [KSPField]
+        public string comfortBonus;
+
+        [KSPField]
+        public float secondaryAnimationSpeed = 1;
 
         [KSPField]
         public string startEventGUIName = "";
@@ -67,12 +74,14 @@ namespace FNPlugin
         [KSPField]
         public string ReplacementResource = "Construction";
 
+        PartModule comfortModule;
+        BaseField comfortBonusField;
+
         [KSPAction("Deploy Module")]
         public void DeployAction(KSPActionParam param)
         {
             DeployModule();
         }
-
 
         [KSPAction("Retract Module")]
         public void RetractAction(KSPActionParam param)
@@ -80,6 +89,11 @@ namespace FNPlugin
             RetractModule();
         }
 
+        [KSPAction("Reverse Module")]
+        public void ReversetAction(KSPActionParam param)
+        {
+            ReverseSecondary();
+        }
 
         [KSPAction("Toggle Module")]
         public void ToggleAction(KSPActionParam param)
@@ -148,6 +162,7 @@ namespace FNPlugin
                     ToggleEvent("RetractModule", true);
                     CheckDeployConditions();
                     isDeployed = true;
+                    UpdateComfort();
                     EnableModules();
                     SetControlSurface(true);
                 }
@@ -326,6 +341,17 @@ namespace FNPlugin
         //    }
         //}
 
+        [KSPEvent(guiName = "Reverse", guiActive = true, externalToEVAOnly = true, guiActiveEditor = false, active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        public void ReverseSecondary()
+        {
+            if (isDeployed && secondaryAnimationName != "")
+            {
+                secondaryAnimationSpeed = -secondaryAnimationSpeed;
+                SecondaryAnimation.Stop();
+                SecondaryAnimation[secondaryAnimationName].speed = secondaryAnimationSpeed;
+                SecondaryAnimation.Play(secondaryAnimationName);
+            }
+        }
 
         [KSPEvent(guiName = "Retract", guiActive = true, externalToEVAOnly = true, guiActiveEditor = false,
             active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
@@ -336,6 +362,7 @@ namespace FNPlugin
                 if (CheckRetractConditions())
                 {
                     isDeployed = false;
+                    UpdateComfort();
                     ReverseDeployAnimation();
                     ToggleEvent("DeployModule", true);
                     ToggleEvent("RetractModule", false);
@@ -449,10 +476,40 @@ namespace FNPlugin
                 }
                 CheckAnimationState();
                 UpdatemenuNames();
+
+                InitializeComfort();
             }
             catch (Exception ex)
             {
                 print("ERROR IN USI Animation Initialize - " + ex.Message);
+            }
+        }
+
+        private void InitializeComfort()
+        {
+            if (HighLogic.LoadedSceneIsFlight && string.IsNullOrEmpty(comfortBonus))
+            {
+                foreach (PartModule module in part.Modules)
+                {
+                    if (module.moduleName == "Comfort")
+                    {
+                        comfortBonusField = module.Fields["bonus"];
+                        if (comfortBonusField != null)
+                        {
+                            comfortModule = module;
+                            comfortBonusField.SetValue(isDeployed ? comfortBonus : "", module);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void UpdateComfort()
+        {
+            if (comfortBonusField != null)
+            {
+                comfortBonusField.SetValue(isDeployed ? comfortBonus : "", comfortModule);
             }
         }
 
@@ -533,6 +590,7 @@ namespace FNPlugin
             {
                 //We got them in here somehow....
                 isDeployed = true;
+                UpdateComfort();
             }
             if (isDeployed)
             {
@@ -612,7 +670,7 @@ namespace FNPlugin
                 {
                     if (!SecondaryAnimation.isPlaying && !DeployAnimation.isPlaying)
                     {
-                        SecondaryAnimation[secondaryAnimationName].speed = 1;
+                        SecondaryAnimation[secondaryAnimationName].speed = secondaryAnimationSpeed;
                         SecondaryAnimation.Play(secondaryAnimationName);
                     }
                 }

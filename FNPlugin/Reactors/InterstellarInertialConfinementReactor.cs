@@ -3,6 +3,9 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin.Reactors
 {
+    [KSPModule("Particle Accelerator")]
+    class FNParticleAccelerator : InterstellarInertialConfinementReactor { }
+
     [KSPModule("Quantum Singularity Reactor")]
     class QuantumSingularityReactor : InterstellarInertialConfinementReactor { }
 
