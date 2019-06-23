@@ -248,7 +248,7 @@ namespace FNPlugin
         public double stablePowerForBuffer;
         [KSPField]
         public double maxStableMegaWattPower;
-        [KSPField(guiActive = true, guiName = "Applies balancing")]
+        [KSPField(guiName = "Applies balancing")]
         public bool applies_balance;
         [KSPField]
         public double thermalPowerCurrentlyNeededForElectricity;

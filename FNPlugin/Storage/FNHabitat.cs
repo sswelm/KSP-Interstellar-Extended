@@ -44,7 +44,7 @@ namespace FNPlugin
         [KSPField]
         public string secondaryAnimationName = "";
 
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         public bool isDeployed = false;
 
         [KSPField(isPersistant = true, guiName = "Deployed", guiFormat = "P2")]
@@ -487,7 +487,7 @@ namespace FNPlugin
 
         private void InitializeComfort()
         {
-            if (HighLogic.LoadedSceneIsFlight && string.IsNullOrEmpty(comfortBonus))
+            if (HighLogic.LoadedSceneIsFlight && string.IsNullOrEmpty(comfortBonus) == false)
             {
                 foreach (PartModule module in part.Modules)
                 {
@@ -497,6 +497,7 @@ namespace FNPlugin
                         if (comfortBonusField != null)
                         {
                             comfortModule = module;
+
                             comfortBonusField.SetValue(isDeployed ? comfortBonus : "", module);
                         }
                         break;
