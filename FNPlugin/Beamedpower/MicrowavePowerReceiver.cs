@@ -1503,7 +1503,7 @@ namespace FNPlugin
                 PrintToGUILayout("Relays", "", bold_black_style, text_black_style, 200);
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Transmitter", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Transmitter", bold_black_style, GUILayout.Width(wideLabelWidth));
                 GUILayout.Label("Relay Nr", bold_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label("Relay Name", bold_black_style, GUILayout.Width(wideLabelWidth));
                 GUILayout.Label("Relay Location", bold_black_style, GUILayout.Width(labelWidth));
@@ -1517,8 +1517,8 @@ namespace FNPlugin
                     {
                         VesselRelayPersistence vesselPersistance = receivedPowerData.Relays[r];
 
-                        GUILayout.BeginHorizontal();                        
-                        GUILayout.Label(receivedPowerData.Transmitter.Vessel.name, text_black_style, GUILayout.Width(labelWidth));
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label(r == 0 ? receivedPowerData.Transmitter.Vessel.name : "", text_black_style, GUILayout.Width(wideLabelWidth));
                         GUILayout.Label(r.ToString(), text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistance.Vessel.name, text_black_style, GUILayout.Width(wideLabelWidth));
                         GUILayout.Label(vesselPersistance.Vessel.mainBody.name + " @ " + DistanceToText(vesselPersistance.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));

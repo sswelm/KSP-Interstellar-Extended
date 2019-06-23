@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using TweakScale;
 using UnityEngine;
+using FNPlugin.Reactors;
 
 namespace FNPlugin
 {
@@ -218,7 +219,7 @@ namespace FNPlugin
         public double maximumElectricPower;
         [KSPField]
         public double stableMaximumReactorPower;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double megawattBufferAmount;
         [KSPField]
         public double heat_exchanger_thrust_divisor;
@@ -241,6 +242,8 @@ namespace FNPlugin
         public double postEffectiveInputPowerPerSecond;
         [KSPField]
         public double powerBufferBonus;
+        [KSPField(guiActive = true)]
+        public double minimumBufferSize = 0;
         [KSPField]
         public double stablePowerForBuffer;
         [KSPField]
@@ -514,7 +517,7 @@ namespace FNPlugin
                 hasrequiredupgrade = true;
 
             // only force activate if no certain partmodules are not present and not limited by minimum throtle
-            if (!isLimitedByMinThrotle && part.FindModuleImplementing<MicrowavePowerReceiver>() == null)
+            if (!isLimitedByMinThrotle && part.FindModuleImplementing<MicrowavePowerReceiver>() == null && part.FindModuleImplementing<InterstellarReactor>() == null)
             {
                 Debug.Log("[KSPI]: Generator on " + part.name + " was Force Activated");
                 part.force_activate();
@@ -1282,10 +1285,11 @@ namespace FNPlugin
 
                 powerBufferBonus = attachedPowerSource.PowerBufferBonus;
 
-                megawattBufferAmount = (powerBufferBonus + 1) * stablePowerForBuffer;
+                megawattBufferAmount = (minimumBufferSize * 50) + (powerBufferBonus + 1) * stablePowerForBuffer;
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
                 resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
             }
+
             resourceBuffers.UpdateBuffers();
         }
 
@@ -1333,18 +1337,25 @@ namespace FNPlugin
 
         private void PowerDown()
         {
-            if (_powerState == PowerStates.PowerOffline) return;
+            if (_powerState != PowerStates.PowerOffline)
+            {
 
-            if (powerDownFraction > 0)
-                powerDownFraction -= 0.01;
+                if (powerDownFraction > 0)
+                    powerDownFraction -= 0.01;
 
-            if (powerDownFraction <= 0)
-                _powerState = PowerStates.PowerOffline;
+                if (powerDownFraction <= 0)
+                    _powerState = PowerStates.PowerOffline;
 
-            megawattBufferAmount = (attachedPowerSource.PowerBufferBonus + 1) * maxStableMegaWattPower;
+                megawattBufferAmount = (minimumBufferSize * 50) + (attachedPowerSource.PowerBufferBonus + 1) * maxStableMegaWattPower * powerDownFraction;
+            }
+            else
+            {
+                megawattBufferAmount = (minimumBufferSize * 50);
+            }
+            
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount * powerDownFraction);
-            resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount * powerDownFraction);
+            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, megawattBufferAmount);
+            resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, megawattBufferAmount);
             resourceBuffers.UpdateBuffers();
         }
 

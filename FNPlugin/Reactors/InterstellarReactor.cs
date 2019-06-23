@@ -1127,10 +1127,15 @@ namespace FNPlugin.Reactors
         public virtual void StartReactor()
         {
             if (HighLogic.LoadedSceneIsEditor)
+            {
                 startDisabled = false;
+            }
             else
             {
                 if (IsNuclear) return;
+
+                Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated");
+                this.part.force_activate();
 
                 stored_fuel_ratio = 1;
                 IsEnabled = true;
@@ -1363,11 +1368,11 @@ namespace FNPlugin.Reactors
             if (!String.IsNullOrEmpty(shutdownAnimationName))
                 shutdownAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == shutdownAnimationName);
 
-            // only force activate if not with a engine model
+            // only force activate if Enabled and not with a engine model
             var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
-            if (myAttachedEngine == null)
+            if (IsEnabled && myAttachedEngine == null)
             {
-                Debug.Log("[KSPI]: Force activate called on " + part.name);
+                Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated");
                 this.part.force_activate();
                 Fields["currentMass"].guiActiveEditor = true;
                 Fields["radius"].guiActiveEditor = true;
