@@ -425,10 +425,7 @@ namespace FNPlugin
 
         public static bool hasTech(string techid)
         {
-            if (String.IsNullOrEmpty(techid))
-                return false;
-
-            if (techid == "none")
+            if (String.IsNullOrEmpty(techid) || techid == "none")
                 return false;
 
             if (ResearchAndDevelopment.Instance == null)
@@ -446,7 +443,7 @@ namespace FNPlugin
             }
             else
             {
-                UnityEngine.Debug.Log("[KSPI]: did not find techid " + techid);
+                UnityEngine.Debug.LogWarning("[KSPI]: did not find techid " + techid + " in techtree");
                 return false;
             }
         }
