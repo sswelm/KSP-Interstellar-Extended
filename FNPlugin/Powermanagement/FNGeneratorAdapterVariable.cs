@@ -22,7 +22,7 @@ namespace FNPlugin
         public double initialMaxBufferSize;
         [KSPField(isPersistant = true)]
         private double initialInputAmount;
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         private double initialOutputAmount;
 
         [KSPField]
@@ -193,6 +193,9 @@ namespace FNPlugin
                 efficiencyField = moduleGenerator.Fields["efficiency"];
                 displayStatusField = moduleGenerator.Fields["displayStatus"];
 
+                efficiencyField.guiActive = showEfficiency;
+                displayStatusField.guiActive = showDisplayStatus;
+
                 powerGeneratorPowerInputField = Fields["powerGeneratorPowerInput"];
                 powerGeneratorPowerOutputField = Fields["powerGeneratorPowerOutput"];
 
@@ -262,9 +265,6 @@ namespace FNPlugin
         {
             if (moduleGenerator == null)
                 return;
-
-            efficiencyField.guiActive = showEfficiency;
-            displayStatusField.guiActive = showDisplayStatus;
 
             powerGeneratorPowerInputField.guiActive = moduleInputResource != null && showPowerInput;
             powerGeneratorPowerOutputField.guiActive = moduleOutputResource != null && showPowerOuput;
