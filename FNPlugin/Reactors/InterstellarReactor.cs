@@ -334,7 +334,7 @@ namespace FNPlugin.Reactors
         public string shutdownAnimationName = "";
         [KSPField]
         public double reactorSpeedMult = 1;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double powerRatio;
         [KSPField]
         public string upgradedName = "";
@@ -1718,9 +1718,9 @@ namespace FNPlugin.Reactors
                     ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
              
-                thermalThrottleRatio = connectedEngines.Any(m => m.RequiresThermalHeat) ? connectedEngines.Where(m => m.RequiresThermalHeat).Max(e => e.CurrentThrottle) : 0;
-                plasmaThrottleRatio = connectedEngines.Any(m => m.RequiresPlasmaHeat) ? connectedEngines.Where(m => m.RequiresPlasmaHeat).Max(e => e.CurrentThrottle) : 0;
-                chargedThrottleRatio = connectedEngines.Any(m => m.RequiresChargedPower) ? connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
+                thermalThrottleRatio = connectedEngines.Any(m => m.RequiresThermalHeat) ? Math.Min(1, connectedEngines.Where(m => m.RequiresThermalHeat).Sum(e => e.CurrentThrottle)) : 0;
+                plasmaThrottleRatio = connectedEngines.Any(m => m.RequiresPlasmaHeat) ? Math.Min(1, connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.CurrentThrottle)) : 0;
+                chargedThrottleRatio = connectedEngines.Any(m => m.RequiresChargedPower) ? Math.Min(1, connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle)) : 0;
 
                 thermal_propulsion_ratio = thermalPropulsionEfficiency * thermalThrottleRatio;
                 plasma_propulsion_ratio = plasmaPropulsionEfficiency * plasmaThrottleRatio;
