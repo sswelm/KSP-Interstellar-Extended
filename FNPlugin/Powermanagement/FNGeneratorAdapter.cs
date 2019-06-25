@@ -14,6 +14,11 @@ namespace FNPlugin
         [KSPField]
         public bool maintainsBuffer = true;
 
+        [KSPField]
+        public bool showDisplayStatus = true;
+        [KSPField]
+        public bool showEfficiency = true;
+
         private ModuleGenerator moduleGenerator;
 
         private ResourceType outputType = 0;
@@ -21,6 +26,8 @@ namespace FNPlugin
         private ResourceBuffers resourceBuffers;
         private ModuleResource mockInputResource;
         private ModuleResource moduleOutputResource;
+        private BaseField efficiencyField;
+        private BaseField displayStatusField;
 
         public override void OnStart(StartState state)
         {
@@ -76,6 +83,12 @@ namespace FNPlugin
                 }
                 if (maintainsBuffer)
                     resourceBuffers.Init(this.part);
+
+                efficiencyField = moduleGenerator.Fields["efficiency"];
+                displayStatusField = moduleGenerator.Fields["displayStatus"];
+
+                efficiencyField.guiActive = showEfficiency;
+                displayStatusField.guiActive = showDisplayStatus;
             }
             catch (Exception e)
             {
