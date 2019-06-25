@@ -30,9 +30,6 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = false)]
         public double coreTemperatureWasteheatMultiplier = 1.25;
 
-        private double optimalTempDifference;
-
-
         [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
         public void ManualRestart()
         {
@@ -58,7 +55,7 @@ namespace FNPlugin.Reactors
             get
             {
                 return reactorType == 4 || heatThrottling
-                    ? Math.Pow((ZeroPowerTemp - CoreTemperature) / optimalTempDifference, thermalRatioEfficiencyModifier)
+                    ? Math.Pow((ZeroPowerTemp - CoreTemperature) / OptimalTempDifference, thermalRatioEfficiencyModifier)
                     : 1;
             }
         }
@@ -66,6 +63,8 @@ namespace FNPlugin.Reactors
         private double OptimalTemp { get { return base.CoreTemperature; } }
 
         private double ZeroPowerTemp { get { return base.CoreTemperature * 1.25f; } }
+
+        private double OptimalTempDifference { get { return ZeroPowerTemp - OptimalTemp; } }
 
         public override bool IsNuclear { get { return true; } }
 
@@ -77,7 +76,7 @@ namespace FNPlugin.Reactors
                 {
                     resourceBarRatio = CheatOptions.IgnoreMaxTemperature ? 0 : getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    var temperatureIncrease = Math.Max(Math.Pow(resourceBarRatio, coreTemperatureWasteheatPower) + coreTemperatureWasteheatModifier, 0) * coreTemperatureWasteheatMultiplier * optimalTempDifference;
+                    var temperatureIncrease = Math.Max(Math.Pow(resourceBarRatio, coreTemperatureWasteheatPower) + coreTemperatureWasteheatModifier, 0) * coreTemperatureWasteheatMultiplier * OptimalTempDifference;
 
                     return Math.Min(Math.Max(OptimalTemp + temperatureIncrease, OptimalTemp), ZeroPowerTemp);
                 }
@@ -90,8 +89,6 @@ namespace FNPlugin.Reactors
             base.OnStart(state);
 
             overheatPercentage = (1 - ThermalRatioEfficiency) * 100;
-
-            optimalTempDifference = ZeroPowerTemp - OptimalTemp;
         }
 
 
