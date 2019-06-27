@@ -21,28 +21,37 @@ namespace FNPlugin
         }
 
         [KSPField]
-        public string comfortBonus;
+        public string deployedComfortBonus = "";
+        [KSPField]
+        public string undeployedComfortBonus = "";
+        [KSPField]
+        public double deployedHabitatVolume = 30;
+        [KSPField]
+        public double undeployedHabitatVolume = 10;
+        [KSPField]
+        public double deployedHabitatSurface = 60;
+        [KSPField]
+        public double undeployedHabitatSurface = 20;
 
         [KSPField]
         public float secondaryAnimationSpeed = 1;
 
         [KSPField]
         public string startEventGUIName = "";
-
         [KSPField]
         public string endEventGUIName = "";
-
         [KSPField]
         public string actionGUIName = "";
 
         [KSPField]
-        public int CrewCapacity = 0;
+        public int undeployedCrewCapacity = 0;
+        [KSPField]
+        public int deployedCrewCapacity = 0;
 
         [KSPField]
         public string deployAnimationName = "Deploy";
-
         [KSPField]
-        public string secondaryAnimationName = "";
+        public string secondaryAnimationName = "Rotate";
 
         [KSPField(isPersistant = true)]
         public bool isDeployed = false;
@@ -58,7 +67,6 @@ namespace FNPlugin
 
         [KSPField]
         public int PrimaryLayer = 2;
-
         [KSPField]
         public int SecondaryLayer = 3;
 
@@ -76,6 +84,11 @@ namespace FNPlugin
 
         PartModule comfortModule;
         BaseField comfortBonusField;
+
+        PartModule habitatModule;
+        BaseField habitatStateField;
+        BaseField habitatVolumeField;
+        BaseField habitatSurfaceField;
 
         [KSPAction("Deploy Module")]
         public void DeployAction(KSPActionParam param)
@@ -146,8 +159,7 @@ namespace FNPlugin
             }
         }
 
-        [KSPEvent(guiName = "Deploy", guiActive = true, externalToEVAOnly = true, guiActiveEditor = true, active = true,
-            guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        [KSPEvent(guiName = "Deploy", guiActive = true, externalToEVAOnly = true, guiActiveEditor = true, active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void DeployModule()
         {
             if (!isDeployed)
@@ -162,7 +174,8 @@ namespace FNPlugin
                     ToggleEvent("RetractModule", true);
                     CheckDeployConditions();
                     isDeployed = true;
-                    UpdateComfort();
+                    UpdateKerbalismComfort();
+                    UpdateKerbalismHabitat();
                     EnableModules();
                     SetControlSurface(true);
                 }
@@ -188,22 +201,23 @@ namespace FNPlugin
 
                 if (inflatedMultiplier > 0)
                     ExpandResourceCapacity();
-                if (CrewCapacity > 0)
+
+                if (deployedCrewCapacity > 0)
                 {
-                    part.CrewCapacity = CrewCapacity;
-                    if (CrewCapacity > 0)
+                    part.CrewCapacity = deployedCrewCapacity;
+                    if (part.CrewCapacity > 0)
                     {
                         part.CheckTransferDialog();
                         MonoUtilities.RefreshContextWindows(part);
                     }
                 }
-                var mods = part.FindModulesImplementing<ModuleResourceConverter>();
-                var count = mods.Count;
-                for (int i = 0; i < count; ++i)
-                {
-                    var m = mods[i];
-                    m.EnableModule();
-                }
+                //var mods = part.FindModulesImplementing<ModuleResourceConverter>();
+                //var count = mods.Count;
+                //for (int i = 0; i < count; ++i)
+                //{
+                //    var m = mods[i];
+                //    m.EnableModule();
+                //}
                 MonoUtilities.RefreshContextWindows(part);
             }
             return true;
@@ -362,7 +376,8 @@ namespace FNPlugin
                 if (CheckRetractConditions())
                 {
                     isDeployed = false;
-                    UpdateComfort();
+                    UpdateKerbalismComfort();
+                    UpdateKerbalismHabitat();
                     ReverseDeployAnimation();
                     ToggleEvent("DeployModule", true);
                     ToggleEvent("RetractModule", false);
@@ -477,7 +492,8 @@ namespace FNPlugin
                 CheckAnimationState();
                 UpdatemenuNames();
 
-                InitializeComfort();
+                InitializeKerbalismComfort();
+                InitializeKerbalismHabitat();
             }
             catch (Exception ex)
             {
@@ -485,33 +501,89 @@ namespace FNPlugin
             }
         }
 
-        private void InitializeComfort()
+        private void InitializeKerbalismComfort()
         {
-            if (HighLogic.LoadedSceneIsFlight && string.IsNullOrEmpty(comfortBonus) == false)
-            {
-                foreach (PartModule module in part.Modules)
-                {
-                    if (module.moduleName == "Comfort")
-                    {
-                        comfortBonusField = module.Fields["bonus"];
-                        if (comfortBonusField != null)
-                        {
-                            comfortModule = module;
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
 
-                            comfortBonusField.SetValue(isDeployed ? comfortBonus : "", module);
-                        }
-                        break;
-                    }
+            bool found = false;
+
+            foreach (PartModule module in part.Modules)
+            {
+                if (module.moduleName == "Comfort")
+                {
+                    comfortModule = module;
+
+                    comfortBonusField = module.Fields["bonus"];
+                    if (comfortBonusField != null)
+                        comfortBonusField.SetValue(isDeployed ? deployedComfortBonus : undeployedComfortBonus, comfortModule);
+
+                    found = true;
+                    break;
                 }
             }
+
+            if (found)
+                UnityEngine.Debug.Log("[KSPI]: Found Comfort");
+            else
+                UnityEngine.Debug.Log("[KSPI]: No Comfort Found");
         }
 
-        private void UpdateComfort()
+        private void UpdateKerbalismComfort()
         {
+            if (comfortModule == null)
+                return;
+
             if (comfortBonusField != null)
+                comfortBonusField.SetValue(isDeployed ? deployedComfortBonus : undeployedComfortBonus, comfortModule);
+        }
+
+        private void InitializeKerbalismHabitat()
+        {
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
+
+            bool found = false;
+
+            foreach (PartModule module in part.Modules)
             {
-                comfortBonusField.SetValue(isDeployed ? comfortBonus : "", comfortModule);
+                if (module.moduleName == "Habitat")
+                {
+                    habitatModule = module;
+
+                    habitatStateField = module.Fields["state"];
+                    if (habitatStateField != null)
+                        habitatStateField.SetValue(isDeployed ? "enabled" : "disabled", habitatModule);
+
+                    habitatVolumeField = module.Fields["volume"];
+                    if (habitatVolumeField != null)
+                        habitatVolumeField.SetValue(isDeployed ? deployedHabitatVolume : undeployedHabitatVolume, habitatModule);
+
+                    habitatSurfaceField = module.Fields["surface"];
+                    if (habitatSurfaceField != null)
+                        habitatSurfaceField.SetValue(isDeployed ? deployedHabitatSurface : undeployedHabitatSurface, habitatModule);
+
+                    found = true;
+                    break;
+                }
             }
+
+            if (found)
+                UnityEngine.Debug.Log("[KSPI]: Found Emitter");
+            else
+                UnityEngine.Debug.Log("[KSPI]: No Emitter Found");
+        }
+
+        private void UpdateKerbalismHabitat()
+        {
+            if (habitatModule == null)
+                return;
+
+            if (habitatVolumeField != null)
+                habitatVolumeField.SetValue(isDeployed ? deployedHabitatVolume : undeployedHabitatVolume, habitatModule);
+
+            if (habitatSurfaceField != null)
+                habitatSurfaceField.SetValue(isDeployed ? deployedHabitatSurface : undeployedHabitatSurface, habitatModule);
         }
 
         private void UpdatemenuNames()
@@ -538,6 +610,7 @@ namespace FNPlugin
                 Events["DeployModule"].externalToEVAOnly = true;
                 Events["DeployModule"].unfocusedRange = 10f;
                 Events["DeployModule"].guiActive = false;
+
                 Events["RetractModule"].guiActive = false;
                 Events["RetractModule"].guiActiveUnfocused = true;
                 Events["RetractModule"].externalToEVAOnly = true;
@@ -548,7 +621,6 @@ namespace FNPlugin
                 Actions["ToggleAction"].active = false;
             }
         }
-
 
         private void DisableModules()
         {
@@ -587,12 +659,14 @@ namespace FNPlugin
 
         private void CheckAnimationState()
         {
-            if (part.protoModuleCrew.Count > 0 && inflatable)
+            if (part.protoModuleCrew.Count > undeployedCrewCapacity && inflatable)
             {
                 //We got them in here somehow....
                 isDeployed = true;
-                UpdateComfort();
+                UpdateKerbalismComfort();
+                UpdateKerbalismHabitat();
             }
+
             if (isDeployed)
             {
                 ToggleEvent("DeployModule", false);

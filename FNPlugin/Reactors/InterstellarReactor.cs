@@ -512,10 +512,9 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
         public double overheatModifier = 1;     
 
-        [KSPField]
-        public bool isConnectedToThermalGenerator;
-        [KSPField]
-        public bool isConnectedToChargedGenerator;
+        [KSPField]public bool isConnectedToThermalGenerator;
+        [KSPField]public bool isConnectedToChargedGenerator;
+        [KSPField]public double maxRadiation = 0.01;
 
         // shared variabels
         protected bool decay_ongoing = false;
@@ -545,6 +544,8 @@ namespace FNPlugin.Reactors
         PartResourceDefinition helium_def;
         PartResourceDefinition hydrogenDefinition;
         ResourceBuffers resourceBuffers;
+        PartModule emitterModule;
+        BaseField emitterRadiationField;
 
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
@@ -1268,6 +1269,8 @@ namespace FNPlugin.Reactors
         {
             UpdateReactorCharacteristics();
 
+            InitializeKerbalismEmitter();
+
             hydrogenDefinition = PartResourceLibrary.Instance.GetDefinition("LqdHydrogen");
 
             windowPosition = new Rect(windowPositionX, windowPositionY, 300, 100);
@@ -1568,6 +1571,8 @@ namespace FNPlugin.Reactors
         public virtual void Update()
         {
             DeterminePowerOutput();
+
+            UpdateKerbalismEmitter();
 
             currentMass = part.mass;
             currentRawPowerOutput = RawPowerOutput;
@@ -2500,6 +2505,43 @@ namespace FNPlugin.Reactors
                 return part.GetResourceMaxAvailable(product.Definition);
             else
                 return part.FindMaxAmountOfAvailableFuel(product.ResourceName, 4);
+        }
+
+        private void InitializeKerbalismEmitter()
+        {
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
+
+            bool found = false;
+
+            foreach (PartModule module in part.Modules)
+            {
+                if (module.moduleName == "Emitter")
+                {
+                    emitterModule = module;
+
+                    emitterRadiationField = module.Fields["radiation"];
+                    if (emitterRadiationField != null)
+                        emitterRadiationField.SetValue(maxRadiation * ongoing_consumption_rate, emitterModule);
+
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+                UnityEngine.Debug.Log("[KSPI]: Found Emitter");
+            else
+                UnityEngine.Debug.Log("[KSPI]: No Emitter Found");
+        }
+
+        private void UpdateKerbalismEmitter()
+        {
+            if (emitterModule == null)
+                return;
+
+            if (emitterRadiationField != null)
+                emitterRadiationField.SetValue(maxRadiation * ongoing_consumption_rate, emitterModule);
         }
 
         public void OnGUI()
