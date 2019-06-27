@@ -19,7 +19,7 @@ namespace FNPlugin
         // Persistent True
         [KSPField(isPersistant = true)]
         public double storedAbsoluteFactor = 1;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = true)]
         public double storedFractionThermalReciever = 1;
 
         [KSPField(isPersistant = true)]
@@ -257,7 +257,7 @@ namespace FNPlugin
         public double engineHeatProduction;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max FuelFlow On Engine")]
         public float maxFuelFlowOnEngine;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Thrust On Engine")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Thrust On Engine", guiUnits = " kN")]
         public float maxThrustOnEngine;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Effective Isp On Engine")]
         public float realIspEngine;
@@ -355,7 +355,7 @@ namespace FNPlugin
         public double heatThrustModifier;
         [KSPField(guiActive = false, guiActiveEditor = true, guiFormat = "F3", guiName = "Heat Thrust Modifier")]
         public double powerThrustModifier;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Effective Thrust Fraction")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Effective Thrust Fraction")]
         public double effectiveThrustFraction = 1;
 
         [KSPField]
