@@ -32,6 +32,8 @@ namespace FNPlugin.Reactors
         public float powerPercentage = 100;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Forced Minimum Throtle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
         public float forcedMinimumThrottle = 0;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_reactorControlWindow"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.None)]
+        public bool render_window = false;
 
         // Persistent True
         [KSPField(isPersistant = true)]
@@ -510,11 +512,15 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Buoyancy Fraction", guiFormat = "F4")]
         public double geeForceModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
-        public double overheatModifier = 1;     
+        public double overheatModifier = 1;
+        [KSPField(guiActive = true, guiName = "Distance Radiation Modifier", guiFormat = "F4")]
+        public double emitterDistanceModifier;
+        [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F4")]
+        public double averageCrewDistanceToEmitter;
 
         [KSPField]public bool isConnectedToThermalGenerator;
         [KSPField]public bool isConnectedToChargedGenerator;
-        [KSPField]public double maxRadiation = 0.01;
+        [KSPField]public double maxRadiation = 0.011;
 
         // shared variabels
         protected bool decay_ongoing = false;
@@ -586,7 +592,6 @@ namespace FNPlugin.Reactors
         bool? hasBimodelUpgradeTechReq;
         
         bool isFixedUpdatedCalled;
-        bool render_window = false;
 
         public ReactorFuelType CurrentFuelMode
         {
@@ -1123,12 +1128,6 @@ namespace FNPlugin.Reactors
                 stored_fuel_ratio = 1;
                 IsEnabled = true;
             }
-        }
-
-        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_Reactor_reactorControlWindow", active = true, guiActiveUnfocused = true, unfocusedRange = 5f, guiActiveUncommand = true)]
-        public void ToggleReactorControlWindow()
-        {
-            render_window = !render_window;
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_activateReactor", active = false)]
@@ -2540,8 +2539,31 @@ namespace FNPlugin.Reactors
             if (emitterModule == null)
                 return;
 
-            if (emitterRadiationField != null)
-                emitterRadiationField.SetValue(maxRadiation * ongoing_consumption_rate, emitterModule);
+            if (emitterRadiationField == null)
+                return;
+
+            var reactorPosition = part.transform.position;
+
+            double totalDistancePart = 0;
+            int totalCrew = 0;
+
+            foreach (Part partWithCrew in vessel.parts.Where(m => m.protoModuleCrew.Count > 0))
+            {
+                var crewedPartLoation = partWithCrew.transform.position;
+
+                var distanceToPart = (reactorPosition - crewedPartLoation).magnitude;
+
+                totalDistancePart += distanceToPart * partWithCrew.protoModuleCrew.Count / radius ;
+
+                totalCrew += partWithCrew.protoModuleCrew.Count;
+            }
+
+            averageCrewDistanceToEmitter = totalCrew > 0 ? Math.Max(1, totalDistancePart / totalCrew) : 1;
+
+            emitterDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
+
+            emitterRadiationField.SetValue(maxRadiation * ongoing_consumption_rate * emitterDistanceModifier, emitterModule);
+
         }
 
         public void OnGUI()
