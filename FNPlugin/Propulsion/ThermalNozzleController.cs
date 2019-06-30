@@ -45,11 +45,17 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Fuel Flow Throttle"), UI_FloatRange(stepIncrement = 10, maxValue = 1000, minValue = 100)]
         public float fuelflowThrottle = 100;
 
-        [KSPField]
+        [KSPField(guiActive = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
+        protected double max_fuel_flow_rate = 0;
+        [KSPField(guiActive = false, guiName = "Max FuelFlow on engine", guiFormat = "F5")]
+        public float maxFuelFlowOnEngine;
+        [KSPField(guiActive = false, guiName = "Fuelflow Multplier on engine", guiFormat = "F5")]
         public double fuelflowMultplier;
+        [KSPField(guiActive = false, guiName = "Fuelflow Throtle modifier", guiFormat = "F5")]
+        public double fuelflow_throtle_modifier = 1;
+
         [KSPField]
-        public double exhaustModifier;
-        
+        public double exhaustModifier;        
         [KSPField]
         public double minimumBaseIsp = 0;
         [KSPField]
@@ -255,8 +261,7 @@ namespace FNPlugin
         public double spaceHeatProduction = 100;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max FuelFlow On Engine")]
-        public float maxFuelFlowOnEngine;
+
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Thrust On Engine", guiUnits = " kN")]
         public float maxThrustOnEngine;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Effective Isp On Engine")]
@@ -297,8 +302,6 @@ namespace FNPlugin
         protected double _minISP;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Calculated Thrust", guiFormat = "F3", guiUnits = " kN")]
         protected double calculatedMaxThrust;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Fuel Flow", guiFormat = "F5")]
-        protected double max_fuel_flow_rate = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Current Mass Flow", guiFormat = "F5")]
         protected double currentMassFlow;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Is Open CycleCooler", guiFormat = "F5")]
@@ -596,7 +599,7 @@ namespace FNPlugin
             get
             {
                 if (myAttachedEngine != null && myAttachedEngine.isOperational && exhaustAllowed)
-                    return (float)(adjustedThrottle * received_megajoules_ratio * effectiveThrustFraction);
+                    return (float)(adjustedThrottle * received_megajoules_ratio * effectiveThrustFraction * fuelflow_throtle_modifier);
                 else
                     return 0;
             }
@@ -875,8 +878,6 @@ namespace FNPlugin
                         _runningEffectNameParticleFX = runningEffectNameNonLFO;
                 }
 
-
-                
             }
         }
 
@@ -902,16 +903,6 @@ namespace FNPlugin
                 if (AttachedReactor != null)
                 {
                     this.showIspThrotle = this.isPlasmaNozzle && AttachedReactor.ChargedParticlePropulsionEfficiency > 0 && AttachedReactor.ChargedPowerRatio > 0;
-
-                    //if (!showIspThrotle)
-                    //{
-                    //    if (!this.isPlasmaNozzle)
-                    //        Debug.LogWarning("[KSPI]: ThermalNozzleController - isPlasmaNozzle is false ");
-                    //    if (AttachedReactor.ChargedParticlePropulsionEfficiency <= 0)
-                    //        Debug.LogWarning("[KSPI]: ThermalNozzleController - ChargedParticlePropulsionEfficiency is " + AttachedReactor.ChargedParticlePropulsionEfficiency);
-                    //    if (AttachedReactor.ChargedPowerRatio <= 0)
-                    //        Debug.LogWarning("[KSPI]: ThermalNozzleController - ChargedPowerRatio is " + AttachedReactor.ChargedPowerRatio);
-                    //}
 
                     var ispThrottleField = Fields["ispThrottle"];
                     ispThrottleField.guiActiveEditor = showIspThrotle;
@@ -959,6 +950,8 @@ namespace FNPlugin
                     return;
 
                 exhaustAllowed = AllowedExhaust();
+
+                fuelflowMultplier = myAttachedEngine.flowMultiplier;
 
                 // only allow shutdown when engine throttle is down
                 myAttachedEngine.Events["Shutdown"].active = myAttachedEngine.currentThrottle == 0 && myAttachedEngine.getIgnitionState;
@@ -1875,7 +1868,7 @@ namespace FNPlugin
 
                     expectedMaxThrust = thrustPerMegaJoule * AttachedReactor.MaximumPower * effectiveThrustFraction;
 
-                    final_max_thrust_in_space = Math.Max(thrustPerMegaJoule * AttachedReactor.RawMaximumPower, minimumThrust);
+                    final_max_thrust_in_space = Math.Max(thrustPerMegaJoule * AttachedReactor.RawMaximumPower * effectiveThrustFraction, minimumThrust);
 
                     myAttachedEngine.maxThrust = (float)final_max_thrust_in_space;
 
@@ -1963,6 +1956,8 @@ namespace FNPlugin
                     calculatedMaxThrust = minimumThrust;
                     max_fuel_flow_rate = 1e-10;
                 }
+
+                fuelflow_throtle_modifier = _currentpropellant_is_jet && calculatedMaxThrust > 0 && final_max_thrust_in_space > 0 ? calculatedMaxThrust / final_max_thrust_in_space : 1;
 
                 // set engines maximum fuel flow
                 if (IsPositiveValidNumber(max_fuel_flow_rate) && IsPositiveValidNumber(adjustedFuelFlowMult) && IsPositiveValidNumber(AttachedReactor.FuelRato))

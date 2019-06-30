@@ -23,10 +23,10 @@ namespace FNPlugin.Extensions
 
         public static PowerSourceSearchResult BreadthFirstSearchForThermalSource(Part currentpart, Func<IFNPowerSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained = false)
         {
-            // first search withouth parent search
+            // first search without parent search
             for (int currentDepth = 0; currentDepth <= stackdepth; currentDepth++)
             {
-                var source = FindThermalSource(currentpart, condition, currentDepth, parentdepth, surfacedepth, skipSelfContained);
+                var source = FindThermalSource(null, currentpart, condition, currentDepth, parentdepth, surfacedepth, skipSelfContained);
 
                 if (source != null)
                     return source;
@@ -35,7 +35,7 @@ namespace FNPlugin.Extensions
             return null;
         }
 
-        public static PowerSourceSearchResult FindThermalSource(Part currentpart, Func<IFNPowerSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained)
+        public static PowerSourceSearchResult FindThermalSource(Part previousPart, Part currentpart, Func<IFNPowerSource, bool> condition, int stackdepth, int parentdepth, int surfacedepth, bool skipSelfContained)
         {
             if (stackdepth <= 0)
             {
@@ -57,30 +57,39 @@ namespace FNPlugin.Extensions
                 ? thermalcostModifier.thermalCost 
                 : 1;
 
-            // first look at stack attached parts
-            foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null && (atn.nodeType == AttachNode.NodeType.Stack || atn.nodeType == AttachNode.NodeType.Dock)))
+            // first look at docked parts
+            foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null && atn.attachedPart != previousPart && atn.nodeType == AttachNode.NodeType.Dock))
             {
-                var source = FindThermalSource(attachNodes.attachedPart, condition, (stackdepth - 1), parentdepth, surfacedepth, skipSelfContained);
+                var source = FindThermalSource(currentpart, attachNodes.attachedPart, condition, (stackdepth - 1), parentdepth, surfacedepth, skipSelfContained);
 
                 if (source != null)
                     return source.IncreaseCost(stackDepthCost);
             }
 
-            // then optionaly look at parent parts
-            if (parentdepth > 0 && currentpart.parent != null)
+            // then look at stack attached parts
+            foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null && atn.attachedPart != previousPart && atn.nodeType == AttachNode.NodeType.Stack))
             {
-                var source = FindThermalSource(currentpart.parent, condition, (stackdepth - 1), (parentdepth - 1), surfacedepth, skipSelfContained);
+                var source = FindThermalSource(currentpart, attachNodes.attachedPart, condition, (stackdepth - 1), parentdepth, surfacedepth, skipSelfContained);
 
                 if (source != null)
                     return source.IncreaseCost(stackDepthCost);
             }
 
-            // then optionaly look at surface attached parts
+            // then look at parent parts
+            if (parentdepth > 0 && currentpart.parent != null && currentpart.parent != previousPart)
+            {
+                var source = FindThermalSource(currentpart, currentpart.parent, condition, (stackdepth - 1), (parentdepth - 1), surfacedepth, skipSelfContained);
+
+                if (source != null)
+                    return source.IncreaseCost(stackDepthCost);
+            }
+
+            // then look at surface attached parts
             if (surfacedepth > 0)
             {
-                foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null && atn.nodeType == AttachNode.NodeType.Surface))
+                foreach (var attachNodes in currentpart.attachNodes.Where(atn => atn.attachedPart != null && atn.attachedPart != previousPart && atn.nodeType == AttachNode.NodeType.Surface))
                 {
-                    var source = FindThermalSource(attachNodes.attachedPart, condition, (stackdepth - 1), parentdepth, (surfacedepth - 1), skipSelfContained);
+                    var source = FindThermalSource(currentpart, attachNodes.attachedPart, condition, (stackdepth - 1), parentdepth, (surfacedepth - 1), skipSelfContained);
 
                     if (source != null)
                         return source.IncreaseCost(stackDepthCost);

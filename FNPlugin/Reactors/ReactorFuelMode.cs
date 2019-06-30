@@ -124,6 +124,7 @@ namespace FNPlugin.Reactors
         protected float _charged_power_ratio;
         protected double _mev_per_charged_product;
         protected float _neutrons_ratio;
+        protected float _tritium_breed_multiplier;
         protected double _fuel_efficency_multiplier;
         protected bool _requires_lab;
         protected bool _requires_upgrade;
@@ -161,6 +162,7 @@ namespace FNPlugin.Reactors
 
             _mev_per_charged_product = node.HasValue("MeVPerChargedProduct") ? Double.Parse(node.GetValue("MeVPerChargedProduct")) : 0;
             _neutrons_ratio = node.HasValue("NeutronsRatio") ? Single.Parse(node.GetValue("NeutronsRatio")) : 1;
+            _tritium_breed_multiplier = node.HasValue("TritiumBreedMultiplier") ? Single.Parse(node.GetValue("TritiumBreedMultiplier")) : 1; 
             _fuel_efficency_multiplier = node.HasValue("FuelEfficiencyMultiplier") ? Double.Parse(node.GetValue("FuelEfficiencyMultiplier")) : 1;
 
             _requires_lab = node.HasValue("RequiresLab") ? Boolean.Parse(node.GetValue("RequiresLab")) : false;
@@ -226,7 +228,7 @@ namespace FNPlugin.Reactors
 
         public float NeutronsRatio { get { return _neutrons_ratio; } }
 
-        public float TritiumBreedModifier { get { return _neutrons_ratio; } }
+        public float TritiumBreedModifier { get { return _tritium_breed_multiplier; } }    // calcula
 
         public double FuelEfficencyMultiplier { get { return _fuel_efficency_multiplier; } }
 

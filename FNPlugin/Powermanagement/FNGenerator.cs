@@ -763,10 +763,9 @@ namespace FNPlugin
         private PowerSourceSearchResult FindThermalPowerSource()
         {
             var searchResult =
-                PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part,
-                    p => p.IsThermalSource
-                        && p.ConnectedThermalElectricGenerator == null
-                        && p.ThermalEnergyEfficiency > 0, 3, 3, 3, true);
+                PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part, 
+                    p => p.IsThermalSource && p.ConnectedThermalElectricGenerator == null && p.ThermalEnergyEfficiency > 0, 
+                    3, 3, 3, true);
             return searchResult;
         }
 
@@ -774,9 +773,8 @@ namespace FNPlugin
         {
             var searchResult =
                 PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part,
-                     p => p.IsThermalSource
-                         && p.ConnectedChargedParticleElectricGenerator == null
-                         && p.PlasmaEnergyEfficiency > 0, 3, 3, 3, true);
+                     p => p.IsThermalSource && p.ConnectedChargedParticleElectricGenerator == null && p.PlasmaEnergyEfficiency > 0, 
+                     3, 3, 3, true);
             return searchResult;
         }
 
@@ -784,9 +782,8 @@ namespace FNPlugin
         {
             var searchResult =
                 PowerSourceSearchResult.BreadthFirstSearchForThermalSource(part,
-                     p => p.IsThermalSource
-                         && p.ConnectedChargedParticleElectricGenerator == null
-                         && p.ChargedParticleEnergyEfficiency > 0, 3, 3, 3, true);
+                     p => p.IsThermalSource && p.ConnectedChargedParticleElectricGenerator == null && p.ChargedParticleEnergyEfficiency > 0, 
+                     3, 3, 3, true);
             return searchResult;
         }
 

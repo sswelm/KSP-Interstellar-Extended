@@ -101,6 +101,9 @@ namespace FNPlugin.Reactors
         public double charged_propulsion_ratio;
 
         [KSPField(isPersistant = true)]
+        public double propulsion_request_ratio_sum;
+
+        [KSPField(isPersistant = true)]
         public double maximum_thermal_request_ratio;
         [KSPField(isPersistant = true)]
         public double maximum_charged_request_ratio;
@@ -256,6 +259,13 @@ namespace FNPlugin.Reactors
         public double powerOutputMk7;
 
         // Settings
+        [KSPField]
+        public double highExhaustRadiationMult = 16;
+        [KSPField]
+        public double lowExhaustRadiationMult = 4;
+        [KSPField]
+        public double atmosphereRadiationMult = 10000;
+
         [KSPField]
         public bool showEngineConnectionInfo = true;
         [KSPField]
@@ -518,6 +528,11 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F4")]
         public double averageCrewDistanceToEmitter;
 
+        [KSPField]public double neutronScatterRadiation;
+        [KSPField]public double exhaustRadiationRate;
+        [KSPField]public double reactorRadiationRate;
+        [KSPField]public double emitterRadiationRate;
+        [KSPField]public double lithiumNeutronAbsorbtion = 1;
         [KSPField]public bool isConnectedToThermalGenerator;
         [KSPField]public bool isConnectedToChargedGenerator;
         [KSPField]public double maxRadiation = 0.011;
@@ -1743,6 +1758,8 @@ namespace FNPlugin.Reactors
                 var plasma_generator_ratio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
                 var charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
 
+                propulsion_request_ratio_sum = Math.Min(1, thermal_propulsion_ratio + plasma_propulsion_ratio + charged_propulsion_ratio);
+
                 maximum_thermal_request_ratio = Math.Min(thermal_propulsion_ratio + plasma_propulsion_ratio + thermal_generator_ratio + plasma_generator_ratio, 1);
                 maximum_charged_request_ratio = Math.Min(charged_propulsion_ratio + charged_generator_ratio, 1);
 
@@ -2026,15 +2043,16 @@ namespace FNPlugin.Reactors
 
             var ratioLithium6 = totalAmountLithium > 0 ? totalAmountLithium / totalMaxAmountLithium : 0;
 
-            if (!breedtritium || neutronPowerReceivedEachSecond <= 0 || fixedDeltaTime <= 0)
+            lithiumNeutronAbsorbtion =  Math.Max(0.01, Math.Sqrt(ratioLithium6) - 0.0001);
+
+            if (!breedtritium || neutronPowerReceivedEachSecond <= 0 || fixedDeltaTime <= 0 || lithiumNeutronAbsorbtion <= 0.01)
             {
                 tritium_produced_per_second = 0;
                 helium_produced_per_second = 0;
                 return;
             }
-
             // calculate current maximum litlium consumption
-            var breedRate = CurrentFuelMode.TritiumBreedModifier * staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * Math.Sqrt(ratioLithium6);
+            var breedRate = CurrentFuelMode.TritiumBreedModifier * CurrentFuelMode.NeutronsRatio * staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * lithiumNeutronAbsorbtion;
             var lithRate = breedRate / lithium6_density;
 
             // get spare room tritium
@@ -2300,7 +2318,6 @@ namespace FNPlugin.Reactors
 
             // breed tritium
             BreedTritium(ongoing_total_power_generated * ThermalPowerRatio, deltaTimeDiff);
-
         }
 
         protected bool ReactorIsOverheating()
@@ -2574,7 +2591,22 @@ namespace FNPlugin.Reactors
 
             emitterDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
 
-            emitterRadiationField.SetValue(maxRadiation * ongoing_consumption_rate * emitterDistanceModifier, emitterModule);
+            reactorRadiationRate = maxRadiation * ongoing_consumption_rate * emitterDistanceModifier;
+            exhaustRadiationRate = (maxRadiation * propulsion_request_ratio_sum * emitterDistanceModifier * (mayExhaustInLowSpaceHomeworld ? 0 : highExhaustRadiationMult))
+                                + (maxRadiation * propulsion_request_ratio_sum * emitterDistanceModifier * (mayExhaustInAtmosphereHomeworld ? 0 : highExhaustRadiationMult));
+
+            emitterRadiationRate = 0;
+            emitterRadiationRate += reactorRadiationRate;
+            emitterRadiationRate += exhaustRadiationRate;
+
+            neutronScatterRadiation = IsFuelNeutronRich ? emitterRadiationRate * part.atmDensity * CurrentFuelMode.NeutronsRatio * atmosphereRadiationMult * Math.Max(0, 1 - lithiumNeutronAbsorbtion) : 0;
+
+            emitterRadiationRate += neutronScatterRadiation;
+
+            if (double.IsInfinity(emitterRadiationRate) == false && double.IsNaN(emitterRadiationRate) == false)
+                emitterRadiationField.SetValue(emitterRadiationRate, emitterModule);
+            else
+                Debug.LogError("[KSPI]: InterstellarReactor emitterRadiationRate = " + emitterRadiationRate);
         }
 
         public void OnGUI()
