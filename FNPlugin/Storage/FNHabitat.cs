@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
-using System.Linq;
 using UnityEngine;
 
 namespace FNPlugin
@@ -32,6 +31,11 @@ namespace FNPlugin
         public double deployedHabitatSurface = 60;
         [KSPField]
         public double undeployedHabitatSurface = 20;
+
+        [KSPField(guiActiveEditor = true, guiActive = true)]
+        public double currentHabitatVolume;
+        [KSPField(guiActiveEditor = true, guiActive = true)]
+        public double currentHabitatSurface;
 
         [KSPField]
         public float secondaryAnimationSpeed = 1;
@@ -86,7 +90,6 @@ namespace FNPlugin
         BaseField comfortBonusField;
 
         PartModule habitatModule;
-        BaseField habitatStateField;
         BaseField habitatVolumeField;
         BaseField habitatSurfaceField;
 
@@ -480,6 +483,10 @@ namespace FNPlugin
         {
             try
             {
+
+                InitializeKerbalismComfort();
+                InitializeKerbalismHabitat();
+
                 _hasBeenInitialized = true;
                 FindModules();
                 SetupResourceCosts();
@@ -491,21 +498,15 @@ namespace FNPlugin
                 }
                 CheckAnimationState();
                 UpdatemenuNames();
-
-                InitializeKerbalismComfort();
-                InitializeKerbalismHabitat();
             }
             catch (Exception ex)
             {
-                print("ERROR IN USI Animation Initialize - " + ex.Message);
+                print("ERROR IN Animation Initialize - " + ex.Message);
             }
         }
 
         private void InitializeKerbalismComfort()
         {
-            if (HighLogic.LoadedSceneIsFlight == false)
-                return;
-
             bool found = false;
 
             foreach (PartModule module in part.Modules)
@@ -540,9 +541,6 @@ namespace FNPlugin
 
         private void InitializeKerbalismHabitat()
         {
-            if (HighLogic.LoadedSceneIsFlight == false)
-                return;
-
             bool found = false;
 
             foreach (PartModule module in part.Modules)
@@ -550,10 +548,7 @@ namespace FNPlugin
                 if (module.moduleName == "Habitat")
                 {
                     habitatModule = module;
-
-                    habitatStateField = module.Fields["state"];
-                    if (habitatStateField != null)
-                        habitatStateField.SetValue(isDeployed ? "enabled" : "disabled", habitatModule);
+                    found = true;
 
                     habitatVolumeField = module.Fields["volume"];
                     if (habitatVolumeField != null)
@@ -563,7 +558,6 @@ namespace FNPlugin
                     if (habitatSurfaceField != null)
                         habitatSurfaceField.SetValue(isDeployed ? deployedHabitatSurface : undeployedHabitatSurface, habitatModule);
 
-                    found = true;
                     break;
                 }
             }
@@ -751,7 +745,7 @@ namespace FNPlugin
                 }
                 catch (Exception ex)
                 {
-                    print("Error in OnUpdate - USI Animation - " + ex.Message);
+                    print("Error in FixedUpdate - " + ex.Message);
                 }
             }
         }
@@ -825,7 +819,6 @@ namespace FNPlugin
                 return;
             }
 
-
             anim[deployAnimationName].speed = 0f;
             anim[deployAnimationName].enabled = true;
             anim[deployAnimationName].weight = 1f;
@@ -838,6 +831,28 @@ namespace FNPlugin
                 case "B":
                     anim[deployAnimationName].normalizedTime = 0f;
                     break;
+            }
+        }
+
+        public void Update()
+        {
+            if (HighLogic.LoadedSceneIsFlight)
+                return;
+
+            UpdateKerbalismHabitat();
+
+            RetrieveHabitatData();
+        }
+
+        private void RetrieveHabitatData()
+        {
+            if (habitatModule != null)
+            {
+                if (habitatVolumeField != null)
+                    currentHabitatVolume = (double)habitatVolumeField.GetValue(habitatModule);
+
+                if (habitatSurfaceField != null)
+                    currentHabitatSurface = (double)habitatSurfaceField.GetValue(habitatModule);
             }
         }
     }

@@ -150,7 +150,7 @@ namespace FNPlugin
         /// </summary>
         [KSPField]
         public double rawPowerToMassDivider = 1000;
-        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_Generator_maxUsageRatio")]
+        [KSPField( guiName = "#LOC_KSPIE_Generator_maxUsageRatio")]
         public double powerUsageEfficiency;
         [KSPField]
         public double massModifier = 1;

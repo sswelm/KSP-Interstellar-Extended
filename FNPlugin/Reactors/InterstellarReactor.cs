@@ -1316,10 +1316,20 @@ namespace FNPlugin.Reactors
             SetDefaultFuelMode();
             UpdateFuelMode();
 
+            var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
+            var myGenerator = this.part.FindModuleImplementing<FNGenerator>();
+
             if (state == StartState.Editor)
             {
                 maximumThermalPowerEffective = MaximumThermalPower;
                 coretempStr = CoreTemperature.ToString("0") + " K";
+
+                var displayPartData = myGenerator == null && myGenerator == null;
+
+                Fields["radius"].guiActiveEditor = displayPartData;
+                Fields["connectedRecieversStr"].guiActiveEditor = displayPartData;
+                Fields["currentMass"].guiActiveEditor = displayPartData;
+
                 return;
             }
 
@@ -1367,14 +1377,13 @@ namespace FNPlugin.Reactors
             habitat = part.FindModuleImplementing<FNHabitat>();
 
             // only force activate if Enabled and not with a engine model
-            var myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
+
+
             if (IsEnabled && myAttachedEngine == null)
             {
                 Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated by system");
                 this.part.force_activate();
-                Fields["currentMass"].guiActiveEditor = true;
-                Fields["radius"].guiActiveEditor = true;
-                Fields["connectedRecieversStr"].guiActiveEditor = true;
+                
                 Fields["heatTransportationEfficiency"].guiActiveEditor = true;
             }
             else
@@ -2542,16 +2551,19 @@ namespace FNPlugin.Reactors
             if (emitterRadiationField == null)
                 return;
 
-            var reactorPosition = part.transform.position;
+            if (vessel.GetCrewCount() == 0)
+                return;
+
+            Vector3 reactorPosition = part.transform.position;
 
             double totalDistancePart = 0;
             int totalCrew = 0;
 
             foreach (Part partWithCrew in vessel.parts.Where(m => m.protoModuleCrew.Count > 0))
             {
-                var crewedPartLoation = partWithCrew.transform.position;
+                Vector3 crewedPartLoation = partWithCrew.transform.position;
 
-                var distanceToPart = (reactorPosition - crewedPartLoation).magnitude;
+                double distanceToPart = (reactorPosition - crewedPartLoation).magnitude;
 
                 totalDistancePart += distanceToPart * partWithCrew.protoModuleCrew.Count / radius ;
 
@@ -2563,7 +2575,6 @@ namespace FNPlugin.Reactors
             emitterDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
 
             emitterRadiationField.SetValue(maxRadiation * ongoing_consumption_rate * emitterDistanceModifier, emitterModule);
-
         }
 
         public void OnGUI()
