@@ -260,11 +260,11 @@ namespace FNPlugin.Reactors
 
         // Settings
         [KSPField]
-        public double highExhaustRadiationMult = 16;
+        public double neutronsExhaustRadiationMult = 16;
         [KSPField]
-        public double lowExhaustRadiationMult = 4;
+        public double gammaRayExhaustRadiationMult = 4;
         [KSPField]
-        public double atmosphereRadiationMult = 10000;
+        public double neutronScatteringRadiationMult = 10000;
 
         [KSPField]
         public bool showEngineConnectionInfo = true;
@@ -523,19 +523,27 @@ namespace FNPlugin.Reactors
         public double geeForceModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
         public double overheatModifier = 1;
-        [KSPField(guiActive = true, guiName = "Distance Radiation Modifier", guiFormat = "F4")]
-        public double emitterDistanceModifier;
-        [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F4")]
+        [KSPField(guiActive = true, guiName = "Distance Radiation Modifier", guiFormat = "F5")]
+        public double averageDistanceModifier;
+        [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F5")]
         public double averageCrewDistanceToEmitter;
+        [KSPField(guiActive = true, guiName = "Average Crew Shield Ratio", guiFormat = "F5")]
+        public double averageCrewShieldingRatio;
+        [KSPField(guiActive = true, guiName = "Average GammaRays Attenuation", guiFormat = "F5")]
+        public double averageGammaAttenuation;
+        [KSPField(guiActive = true, guiName = "Average Neutron Attenuation", guiFormat = "F5")]
+        public double averageNeutronAttenuation;
+        [KSPField(guiActive = true, guiName = "Emitter Radiation Rate")]
+        public double emitterRadiationRate;
 
         [KSPField]public double neutronScatterRadiation;
         [KSPField]public double exhaustRadiationRate;
         [KSPField]public double reactorRadiationRate;
-        [KSPField]public double emitterRadiationRate;
+        
         [KSPField]public double lithiumNeutronAbsorbtion = 1;
         [KSPField]public bool isConnectedToThermalGenerator;
         [KSPField]public bool isConnectedToChargedGenerator;
-        [KSPField]public double maxRadiation = 0.011;
+        [KSPField]public double maxRadiation = 0.02;
 
         // shared variabels
         protected bool decay_ongoing = false;
@@ -2574,6 +2582,7 @@ namespace FNPlugin.Reactors
             Vector3 reactorPosition = part.transform.position;
 
             double totalDistancePart = 0;
+            double totalShielding = 0;
             int totalCrew = 0;
 
             foreach (Part partWithCrew in vessel.parts.Where(m => m.protoModuleCrew.Count > 0))
@@ -2584,22 +2593,36 @@ namespace FNPlugin.Reactors
 
                 totalDistancePart += distanceToPart * partWithCrew.protoModuleCrew.Count / radius ;
 
+                var shielding = partWithCrew.Resources["Shielding"];
+
+                if (shielding != null && shielding.amount > 0)
+                {
+                    totalShielding += shielding.amount / shielding.maxAmount;
+                }
+
                 totalCrew += partWithCrew.protoModuleCrew.Count;
             }
 
-            averageCrewDistanceToEmitter = totalCrew > 0 ? Math.Max(1, totalDistancePart / totalCrew) : 1;
+            averageCrewDistanceToEmitter = Math.Max(1, totalDistancePart / totalCrew);
+            averageCrewShieldingRatio = 20 * Math.Max(0, totalShielding / totalCrew);
 
-            emitterDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
+            averageGammaAttenuation = Math.Pow(1 - 0.9, averageCrewShieldingRatio / 5);
+            averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewShieldingRatio / 6.8);
 
-            reactorRadiationRate = maxRadiation * ongoing_consumption_rate * emitterDistanceModifier;
-            exhaustRadiationRate = (maxRadiation * propulsion_request_ratio_sum * emitterDistanceModifier * (mayExhaustInLowSpaceHomeworld ? 0 : highExhaustRadiationMult))
-                                + (maxRadiation * propulsion_request_ratio_sum * emitterDistanceModifier * (mayExhaustInAtmosphereHomeworld ? 0 : highExhaustRadiationMult));
+            averageDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
+
+            var averageDistanceGammaRayShieldingAttenuation = averageDistanceModifier * averageGammaAttenuation;
+            var averageDistanceNeutronShieldingAttenuation = averageDistanceModifier * averageNeutronAttenuation;
+
+            reactorRadiationRate = maxRadiation * ongoing_consumption_rate * averageDistanceGammaRayShieldingAttenuation;
+            exhaustRadiationRate = (maxRadiation * propulsion_request_ratio_sum * averageDistanceNeutronShieldingAttenuation * (mayExhaustInLowSpaceHomeworld ? 0 : neutronsExhaustRadiationMult))
+                                + (maxRadiation * propulsion_request_ratio_sum * averageDistanceGammaRayShieldingAttenuation * (mayExhaustInAtmosphereHomeworld ? 0 : gammaRayExhaustRadiationMult));
 
             emitterRadiationRate = 0;
             emitterRadiationRate += reactorRadiationRate;
             emitterRadiationRate += exhaustRadiationRate;
 
-            neutronScatterRadiation = IsFuelNeutronRich ? emitterRadiationRate * part.atmDensity * CurrentFuelMode.NeutronsRatio * atmosphereRadiationMult * Math.Max(0, 1 - lithiumNeutronAbsorbtion) : 0;
+            neutronScatterRadiation = IsFuelNeutronRich ? maxRadiation * ongoing_consumption_rate * averageDistanceNeutronShieldingAttenuation * part.atmDensity * CurrentFuelMode.NeutronsRatio * neutronScatteringRadiationMult * Math.Max(0, 1 - lithiumNeutronAbsorbtion) : 0;
 
             emitterRadiationRate += neutronScatterRadiation;
 
