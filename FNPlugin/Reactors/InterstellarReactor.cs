@@ -528,7 +528,7 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F5")]
         public double averageCrewDistanceToEmitter;
         [KSPField(guiActive = true, guiName = "Average Crew Shield Ratio", guiFormat = "F5")]
-        public double averageCrewShieldingRatio;
+        public double averageCrewShieldingProtection;
         [KSPField(guiActive = true, guiName = "Average GammaRays Attenuation", guiFormat = "F5")]
         public double averageGammaAttenuation;
         [KSPField(guiActive = true, guiName = "Average Neutron Attenuation", guiFormat = "F5")]
@@ -536,9 +536,11 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = true, guiName = "Emitter Radiation Rate")]
         public double emitterRadiationRate;
 
-        [KSPField]public double neutronScatterRadiation;
-        [KSPField]public double exhaustRadiationRate;
-        [KSPField]public double reactorRadiationRate;
+        [KSPField]public double reactorCoreNeutronRadiation;
+        [KSPField]public double reactorCoreGammaRadiation;
+        [KSPField]public double lostFissionFuelRadiation;
+        [KSPField]public double fissionExhaustRadiation;
+        [KSPField]public double fissionFragmentRadiation;
         
         [KSPField]public double lithiumNeutronAbsorbtion = 1;
         [KSPField]public bool isConnectedToThermalGenerator;
@@ -1694,32 +1696,7 @@ namespace FNPlugin.Reactors
 
                 max_power_to_supply = Math.Max(maximumPower * timeWarpFixedDeltaTime, 0);
 
-                if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
-                {
-                    averageGeeforce.Enqueue(vessel.geeForce);
-                    if (averageGeeforce.Count > 10)
-                        averageGeeforce.Dequeue();
-
-                    currentGeeForce = vessel.geeForce > 0 && averageGeeforce.Any() ? averageGeeforce.Average() : 0;
-
-                    if (vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING)
-                    {
-                        var engines = vessel.FindPartModulesImplementing<ModuleEngines>();
-                        if (engines.Any())
-                        {
-                            var totalThrust = engines.Sum(m => ((double)(decimal)m.realIsp) * ((double)(decimal)m.requestedMassFlow) * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
-                            currentGeeForce = Math.Max(currentGeeForce, totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY);
-                        }
-                    }
-
-                    var geeforce = double.IsNaN(currentGeeForce) || double.IsInfinity(currentGeeForce) ? 0 : currentGeeForce;
-
-                    var scaledGeeforce = Math.Pow(Math.Max(geeforce - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
-
-                    geeForceModifier = Math.Min(Math.Max(1 - scaledGeeforce, minGeeForceModifier), 1);
-                }
-                else
-                    geeForceModifier = 1;
+                UpdateGeeforceModfier();
 
                 if (hasOverheatEffects && !CheatOptions.IgnoreMaxTemperature)
                 {
@@ -1892,6 +1869,36 @@ namespace FNPlugin.Reactors
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, 0);
             resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, 0);
             resourceBuffers.UpdateBuffers();
+        }
+
+        private void UpdateGeeforceModfier()
+        {
+            if (hasBuoyancyEffects && !CheatOptions.UnbreakableJoints)
+            {
+                averageGeeforce.Enqueue(vessel.geeForce);
+                if (averageGeeforce.Count > 10)
+                    averageGeeforce.Dequeue();
+
+                currentGeeForce = vessel.geeForce > 0 && averageGeeforce.Any() ? averageGeeforce.Average() : 0;
+
+                if (vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING)
+                {
+                    var engines = vessel.FindPartModulesImplementing<ModuleEngines>();
+                    if (engines.Any())
+                    {
+                        var totalThrust = engines.Sum(m => ((double)(decimal)m.realIsp) * ((double)(decimal)m.requestedMassFlow) * GameConstants.STANDARD_GRAVITY * Vector3d.Dot(m.part.transform.up, vessel.transform.up));
+                        currentGeeForce = Math.Max(currentGeeForce, totalThrust / vessel.totalMass / GameConstants.STANDARD_GRAVITY);
+                    }
+                }
+
+                var geeforce = double.IsNaN(currentGeeForce) || double.IsInfinity(currentGeeForce) ? 0 : currentGeeForce;
+
+                var scaledGeeforce = Math.Pow(Math.Max(geeforce - geeForceTreshHold, 0) * geeForceMultiplier, geeForceExponent);
+
+                geeForceModifier = Math.Min(Math.Max(1 - scaledGeeforce, minGeeForceModifier), 1);
+            }
+            else
+                geeForceModifier = 1;
         }
 
         private void UpdateEmbrittlement(double thermal_plasma_ratio)
@@ -2587,44 +2594,46 @@ namespace FNPlugin.Reactors
 
             foreach (Part partWithCrew in vessel.parts.Where(m => m.protoModuleCrew.Count > 0))
             {
-                Vector3 crewedPartLoation = partWithCrew.transform.position;
-
-                double distanceToPart = (reactorPosition - crewedPartLoation).magnitude;
+                double distanceToPart = (reactorPosition - partWithCrew.transform.position).magnitude;
 
                 totalDistancePart += distanceToPart * partWithCrew.protoModuleCrew.Count / radius ;
 
                 var shielding = partWithCrew.Resources["Shielding"];
 
                 if (shielding != null && shielding.amount > 0)
-                {
                     totalShielding += shielding.amount / shielding.maxAmount;
-                }
 
                 totalCrew += partWithCrew.protoModuleCrew.Count;
             }
 
             averageCrewDistanceToEmitter = Math.Max(1, totalDistancePart / totalCrew);
-            averageCrewShieldingRatio = 20 * Math.Max(0, totalShielding / totalCrew);
+            averageCrewShieldingProtection = 20 * Math.Max(0, totalShielding / totalCrew);
 
-            averageGammaAttenuation = Math.Pow(1 - 0.9, averageCrewShieldingRatio / 5);
-            averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewShieldingRatio / 6.8);
+            averageGammaAttenuation = Math.Pow(1 - 0.9, averageCrewShieldingProtection / 5);
+            averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewShieldingProtection / 6.8);
 
             averageDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
 
             var averageDistanceGammaRayShieldingAttenuation = averageDistanceModifier * averageGammaAttenuation;
             var averageDistanceNeutronShieldingAttenuation = averageDistanceModifier * averageNeutronAttenuation;
 
-            reactorRadiationRate = maxRadiation * ongoing_consumption_rate * averageDistanceGammaRayShieldingAttenuation;
-            exhaustRadiationRate = (maxRadiation * propulsion_request_ratio_sum * averageDistanceNeutronShieldingAttenuation * (mayExhaustInLowSpaceHomeworld ? 0 : neutronsExhaustRadiationMult))
-                                + (maxRadiation * propulsion_request_ratio_sum * averageDistanceGammaRayShieldingAttenuation * (mayExhaustInAtmosphereHomeworld ? 0 : gammaRayExhaustRadiationMult));
+            var maxCoreRadiation = maxRadiation * ongoing_consumption_rate;
+
+            reactorCoreGammaRadiation = maxCoreRadiation * averageDistanceGammaRayShieldingAttenuation;
+            reactorCoreNeutronRadiation = maxCoreRadiation * averageDistanceNeutronShieldingAttenuation * part.atmDensity * CurrentFuelMode.NeutronsRatio * neutronScatteringRadiationMult * Math.Max(0, 1 - lithiumNeutronAbsorbtion);
+
+            var maxEngineRadiation = maxRadiation * propulsion_request_ratio_sum;
+
+            lostFissionFuelRadiation = maxEngineRadiation * averageDistanceNeutronShieldingAttenuation * (1 + part.atmDensity) * (1 - geeForceModifier) * neutronsExhaustRadiationMult;
+            fissionExhaustRadiation = maxEngineRadiation * averageDistanceNeutronShieldingAttenuation * (1 + part.atmDensity) * (mayExhaustInLowSpaceHomeworld ? 0 : neutronsExhaustRadiationMult);
+            fissionFragmentRadiation = maxEngineRadiation * averageDistanceGammaRayShieldingAttenuation * (mayExhaustInAtmosphereHomeworld ? 0 : gammaRayExhaustRadiationMult);
 
             emitterRadiationRate = 0;
-            emitterRadiationRate += reactorRadiationRate;
-            emitterRadiationRate += exhaustRadiationRate;
-
-            neutronScatterRadiation = IsFuelNeutronRich ? maxRadiation * ongoing_consumption_rate * averageDistanceNeutronShieldingAttenuation * part.atmDensity * CurrentFuelMode.NeutronsRatio * neutronScatteringRadiationMult * Math.Max(0, 1 - lithiumNeutronAbsorbtion) : 0;
-
-            emitterRadiationRate += neutronScatterRadiation;
+            emitterRadiationRate += reactorCoreGammaRadiation;
+            emitterRadiationRate += reactorCoreNeutronRadiation;
+            emitterRadiationRate += lostFissionFuelRadiation;
+            emitterRadiationRate += fissionExhaustRadiation;
+            emitterRadiationRate += fissionFragmentRadiation;            
 
             if (double.IsInfinity(emitterRadiationRate) == false && double.IsNaN(emitterRadiationRate) == false)
                 emitterRadiationField.SetValue(emitterRadiationRate, emitterModule);
