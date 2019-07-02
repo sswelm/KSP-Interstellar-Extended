@@ -527,8 +527,11 @@ namespace FNPlugin.Reactors
         public double averageDistanceModifier;
         [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F5")]
         public double averageCrewDistanceToEmitter;
-        [KSPField(guiActive = true, guiName = "Average Crew Shield Ratio", guiFormat = "F5")]
+        [KSPField(guiActive = true, guiName = "Average Crew Shield Thickness", guiUnits = " cm", guiFormat = "F5")]
         public double averageCrewShieldingProtection;
+        [KSPField(guiActive = true, guiName = "Average Crew Mass Protection", guiUnits = " g/cm2", guiFormat = "F5")]
+        public double averageCrewMassProtection;
+
         [KSPField(guiActive = true, guiName = "Average GammaRays Attenuation", guiFormat = "F5")]
         public double averageGammaAttenuation;
         [KSPField(guiActive = true, guiName = "Average Neutron Attenuation", guiFormat = "F5")]
@@ -567,7 +570,7 @@ namespace FNPlugin.Reactors
         protected ModuleAnimateGeneric shutdownAnimation;
         protected ModuleAnimateGeneric loopingAnimation;
 
-        FNHabitat habitat;
+        FNHabitat centrifugeHabitat;
         Rect windowPosition;
         ReactorFuelType current_fuel_mode;
         PartResourceDefinition lithium6_def;
@@ -1161,7 +1164,7 @@ namespace FNPlugin.Reactors
             Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated by user");
             this.part.force_activate();
 
-            if (habitat != null && !habitat.isDeployed)
+            if (centrifugeHabitat != null && !centrifugeHabitat.isDeployed)
             {
                 string message = "Activation was canceled because " + part.name + " is not deployed";
                 ScreenMessages.PostScreenMessage(message, 20.0f, ScreenMessageStyle.UPPER_CENTER);
@@ -1399,7 +1402,7 @@ namespace FNPlugin.Reactors
                 shutdownAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == shutdownAnimationName);
 
 
-            habitat = part.FindModuleImplementing<FNHabitat>();
+            centrifugeHabitat = part.FindModuleImplementing<FNHabitat>();
 
             // only force activate if Enabled and not with a engine model
 
@@ -2590,13 +2593,18 @@ namespace FNPlugin.Reactors
 
             double totalDistancePart = 0;
             double totalShielding = 0;
+            double totalResourceMass = 0;
             int totalCrew = 0;
 
             foreach (Part partWithCrew in vessel.parts.Where(m => m.protoModuleCrew.Count > 0))
             {
                 double distanceToPart = (reactorPosition - partWithCrew.transform.position).magnitude;
 
-                totalDistancePart += distanceToPart * partWithCrew.protoModuleCrew.Count / radius ;
+                totalDistancePart += distanceToPart * partWithCrew.protoModuleCrew.Count / radius;
+
+                var habitat = partWithCrew.FindModuleImplementing<FNHabitat>(); // toDo add
+                if (habitat != null)
+                    totalResourceMass = partWithCrew.resourceMass / habitat.currentHabitatSurface;
 
                 var shielding = partWithCrew.Resources["Shielding"];
 
@@ -2608,6 +2616,7 @@ namespace FNPlugin.Reactors
 
             averageCrewDistanceToEmitter = Math.Max(1, totalDistancePart / totalCrew);
             averageCrewShieldingProtection = 20 * Math.Max(0, totalShielding / totalCrew);
+            averageCrewMassProtection = Math.Max(0, totalResourceMass / totalCrew);
 
             averageGammaAttenuation = Math.Pow(1 - 0.9, averageCrewShieldingProtection / 5);
             averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewShieldingProtection / 6.8);
