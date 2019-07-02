@@ -141,6 +141,7 @@
     <Compile Include="Propulsion\ElectricEnginePropellant.cs" />
     <Compile Include="Propulsion\ElectricRCSController.cs" />
     <Compile Include="Storage\FNHabitat.cs" />
+    <Compile Include="Storage\FNModuleAnimater.cs" />
     <Compile Include="Storage\KerbalismHabitatController.cs" />
     <Compile Include="Toolbar\FlightUIStarter.cs" />
     <Compile Include="Science\FNImpactorModule.cs" />
