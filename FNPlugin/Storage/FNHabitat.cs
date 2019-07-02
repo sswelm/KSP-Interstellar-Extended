@@ -563,9 +563,9 @@ namespace FNPlugin
             }
 
             if (found)
-                UnityEngine.Debug.Log("[KSPI]: Found Emitter");
+                UnityEngine.Debug.Log("[KSPI]: Found Habitat PartModule on " + part.partInfo.title);
             else
-                UnityEngine.Debug.Log("[KSPI]: No Emitter Found");
+                UnityEngine.Debug.LogWarning("[KSPI]: No Habitat PartModule found on " + part.partInfo.title);
         }
 
         private void UpdateKerbalismHabitat()

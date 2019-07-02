@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using FNPlugin.Power;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
+using FNPlugin.Storage;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Text;
 using TweakScale;
 using UnityEngine;
+
 
 namespace FNPlugin.Reactors
 {
@@ -527,13 +529,15 @@ namespace FNPlugin.Reactors
         public double averageDistanceModifier;
         [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F5")]
         public double averageCrewDistanceToEmitter;
-        [KSPField(guiActive = true, guiName = "Average Crew Shield Thickness", guiUnits = " cm", guiFormat = "F5")]
-        public double averageCrewShieldingProtection;
+        [KSPField(guiActive = true, guiName = "Average Shield Thickness", guiUnits = " cm", guiFormat = "F5")]
+        public double averageCrewLeadShieldingThickness;
         [KSPField(guiActive = true, guiName = "Average Crew Mass Protection", guiUnits = " g/cm2", guiFormat = "F5")]
         public double averageCrewMassProtection;
+        [KSPField(guiActive = true, guiName = "Average Lead Equivalant Thickness", guiUnits = " cm", guiFormat = "F5")]
+        public double averageCrewLeadEquivalantThickness;
 
         [KSPField(guiActive = true, guiName = "Average GammaRays Attenuation", guiFormat = "F5")]
-        public double averageGammaAttenuation;
+        public double averageLeadGammaAttenuation;
         [KSPField(guiActive = true, guiName = "Average Neutron Attenuation", guiFormat = "F5")]
         public double averageNeutronAttenuation;
         [KSPField(guiActive = true, guiName = "Emitter Radiation Rate")]
@@ -2586,44 +2590,50 @@ namespace FNPlugin.Reactors
             if (emitterRadiationField == null)
                 return;
 
-            if (vessel.GetCrewCount() == 0)
+            int totalCrew = vessel.GetCrewCount();
+            if (totalCrew == 0)
                 return;
-
-            Vector3 reactorPosition = part.transform.position;
 
             double totalDistancePart = 0;
             double totalShielding = 0;
-            double totalResourceMass = 0;
-            int totalCrew = 0;
+            double totalCrewMassShielding = 0;
+
+            Vector3 reactorPosition = part.transform.position;
 
             foreach (Part partWithCrew in vessel.parts.Where(m => m.protoModuleCrew.Count > 0))
             {
+                int partCrewCount = partWithCrew.protoModuleCrew.Count;
+
                 double distanceToPart = (reactorPosition - partWithCrew.transform.position).magnitude;
 
-                totalDistancePart += distanceToPart * partWithCrew.protoModuleCrew.Count / radius;
+                totalDistancePart += distanceToPart * partCrewCount / radius;
 
-                var habitat = partWithCrew.FindModuleImplementing<FNHabitat>(); // toDo add
+                var habitat = partWithCrew.FindModuleImplementing<KerbalismHabitatController>();
                 if (habitat != null)
-                    totalResourceMass = partWithCrew.resourceMass / habitat.currentHabitatSurface;
+                {
+                    var habitatSurface = habitat.Surface;
+                    if (habitatSurface > 0)
+                        totalCrewMassShielding = (partWithCrew.resourceMass / habitatSurface) * partCrewCount;
+                }
 
                 var shielding = partWithCrew.Resources["Shielding"];
 
                 if (shielding != null && shielding.amount > 0)
-                    totalShielding += shielding.amount / shielding.maxAmount;
-
-                totalCrew += partWithCrew.protoModuleCrew.Count;
+                    totalShielding += (shielding.amount / shielding.maxAmount) * partCrewCount;
             }
 
+            averageCrewMassProtection = Math.Max(0, totalCrewMassShielding / totalCrew);
             averageCrewDistanceToEmitter = Math.Max(1, totalDistancePart / totalCrew);
-            averageCrewShieldingProtection = 20 * Math.Max(0, totalShielding / totalCrew);
-            averageCrewMassProtection = Math.Max(0, totalResourceMass / totalCrew);
 
-            averageGammaAttenuation = Math.Pow(1 - 0.9, averageCrewShieldingProtection / 5);
-            averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewShieldingProtection / 6.8);
+            averageCrewLeadShieldingThickness = 20 * Math.Max(0, totalShielding / totalCrew);
+            averageCrewLeadEquivalantThickness = 20 * (averageCrewMassProtection / 0.2268);
+
+            averageLeadGammaAttenuation = Math.Pow(1 - 0.9, averageCrewLeadShieldingThickness / 5);
+            averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewLeadShieldingThickness / 6.8);
 
             averageDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
 
-            var averageDistanceGammaRayShieldingAttenuation = averageDistanceModifier * averageGammaAttenuation;
+            var averageDistanceGammaRayShieldingAttenuation = averageDistanceModifier * averageLeadGammaAttenuation;
             var averageDistanceNeutronShieldingAttenuation = averageDistanceModifier * averageNeutronAttenuation;
 
             var maxCoreRadiation = maxRadiation * ongoing_consumption_rate;
