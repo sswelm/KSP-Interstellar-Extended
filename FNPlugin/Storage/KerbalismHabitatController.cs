@@ -5,6 +5,7 @@ using System.Text;
 
 namespace FNPlugin.Storage
 {
+    [KSPModule("Kerbalism Habitat Controller")]
 	class KerbalismHabitatController : PartModule
 	{
 		PartModule habitatModule;
@@ -63,6 +64,7 @@ namespace FNPlugin.Storage
 
 		public override void OnStart(StartState state)
 		{
+            UnityEngine.Debug.Log("[KSPI]: KerbalismHabitatController start on " + part.partInfo.title);
 			InitializeKerbalismHabitat();
 		}
 

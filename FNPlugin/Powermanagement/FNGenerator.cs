@@ -60,6 +60,13 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
 
+        [KSPField]
+        public float powerCapacityMaxValue = 100;
+        [KSPField]
+        public float powerCapacityMinValue = 0.5f;
+        [KSPField]
+        public float powerCapacityStepIncrement = 0.5f;
+
         // Settings
         [KSPField]
         public bool isHighPower = false;
@@ -489,7 +496,21 @@ namespace FNPlugin
                 targetMass = prefabMass;
 
             InitializeEfficiency();
-            Fields["powerCapacity"].guiActiveEditor = !isLimitedByMinThrotle;
+
+            var powerCapacityField = Fields["powerCapacity"];
+            powerCapacityField.guiActiveEditor = !isLimitedByMinThrotle;
+
+            var powerCapacityFloatRange = powerCapacityField.uiControlEditor as UI_FloatRange;
+            powerCapacityFloatRange.maxValue = powerCapacityMaxValue;
+            powerCapacityFloatRange.minValue = powerCapacityMinValue;
+            powerCapacityFloatRange.stepIncrement = powerCapacityStepIncrement;
+
+            if (state  == StartState.Editor)
+            {
+                powerCapacity = Math.Max(powerCapacityMinValue, powerCapacity);
+                powerCapacity = Math.Min(powerCapacityMaxValue, powerCapacity);
+            }
+
             Fields["partMass"].guiActive = Fields["partMass"].guiActiveEditor = calculatedMass;
             Fields["powerPercentage"].guiActive = Fields["powerPercentage"].guiActiveEditor = showSpecialisedUI;
             Fields["radius"].guiActiveEditor = showSpecialisedUI;            
