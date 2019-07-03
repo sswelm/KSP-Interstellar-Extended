@@ -12,6 +12,8 @@ namespace FNPlugin
         [KSPField]
         public string animationName = string.Empty;
         [KSPField]
+        public int layer = 1;
+        [KSPField]
         public string guiEnableName = string.Empty;
         [KSPField]
         public string guiDisableName = string.Empty;
@@ -29,6 +31,8 @@ namespace FNPlugin
         public bool activeEditor = true;
         [KSPField]
         public bool activeFlight = true;
+        [KSPField]
+        public bool externalToEVAOnly = true;
         [KSPField]
         public bool activeUnfocused = true;
         [KSPField]
@@ -119,7 +123,7 @@ namespace FNPlugin
                 state.normalizedSpeed = 0;
                 state.enabled = false;
                 state.wrapMode = WrapMode.Clamp;
-                state.layer = 1;
+                state.layer = layer;
                 animation.Play(this.animationName);
             }
             this.initiated = true;
@@ -216,6 +220,7 @@ namespace FNPlugin
             toggle.guiActiveEditor = this.activeEditor;
             toggle.guiActive = this.activeFlight;
             toggle.guiActiveUnfocused = this.activeUnfocused;
+            toggle.externalToEVAOnly = this.externalToEVAOnly;
             toggle.unfocusedRange = this.unfocusedRange;
             SetName();
 
