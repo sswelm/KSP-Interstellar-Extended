@@ -11,10 +11,12 @@ namespace FNPlugin
     {
         public static int versionMajor;
         public static int versionMinor;
-        public static int versionRevision;
+        public static int versionMajorRevision;
+        public static int versionMinorRevision;
 
         static Assembly KerbalismAssembly;
         static Type Sim;
+        static MethodInfo VesselTemperature;
 
         static Kerbalism()
         {
@@ -30,23 +32,41 @@ namespace FNPlugin
 
                     KerbalismAssembly = loadedAssembly.assembly;
 
-                    versionMajor = loadedAssembly.versionMajor;
-                    versionMinor = loadedAssembly.versionMinor;
-                    versionRevision = loadedAssembly.versionRevision;
+                    AssemblyName assemblyName = KerbalismAssembly.GetName();
+
+                    versionMajor = assemblyName.Version.Major;
+                    versionMinor = assemblyName.Version.Minor;
+                    versionMajorRevision = assemblyName.Version.MajorRevision;
+                    versionMinorRevision = assemblyName.Version.MinorRevision;
 
                     try
                     {
                         Sim = KerbalismAssembly.GetType("KERBALISM.Sim");
-                        if (Sim != null)
-                            Debug.Log("[KSPI]: Found Sim");
                     }
                     catch (Exception e)
                     {
                         Debug.LogException(e);
                     }
-                    //RegisterSensor = SCANUtils.GetMethod("registerSensorExternal");
-                    //UnregisterSensor = SCANUtils.GetMethod("unregisterSensorExternal");
-                    //GetCoverage = SCANUtils.GetMethod("GetCoverage");
+
+                    if (Sim != null)
+                    {
+						Debug.Log("[KSPI]: Found KERBALISM.Sim");
+                        try
+                        {
+                            VesselTemperature = Sim.GetMethod("Temperature");
+                            if (VesselTemperature != null)
+								Debug.Log("[KSPI]: Found KERBALISM.Sim.Temperature Method");
+                            else
+								Debug.LogError("[KSPI]: Failed to find KERBALISM.Sim.Temperature Method");
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogException(e);
+                        }
+                    }
+                    else
+						Debug.LogError("[KSPI]: Failed to find KERBALISM.Sim");
+
                     break;
                 }
             }

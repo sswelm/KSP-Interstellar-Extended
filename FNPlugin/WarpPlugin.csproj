@@ -65,7 +65,7 @@
     <Compile Include="Extensions\Approximate.cs" />
     <Compile Include="Extensions\Decimal.cs" />
     <Compile Include="HideHiddenPartsFilter.cs" />
-    <Compile Include="Kerbalism.cs" />
+    <Compile Include="External\Kerbalism.cs" />
     <Compile Include="Powermanagement\FNGeneratorAdapterVariable.cs" />
     <Compile Include="Powermanagement\IFNChargedParticleSource.cs" />
     <Compile Include="Powermanagement\IFNPowerSource.cs" />
