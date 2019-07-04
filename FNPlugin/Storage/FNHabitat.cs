@@ -19,17 +19,24 @@ namespace FNPlugin
             }
         }
 
+        [KSPField(isPersistant = true)]
+        public double food = -1;
+        [KSPField(isPersistant = true)]
+        public double water = -1;
+        [KSPField(isPersistant = true)]
+        public double oxygen = -1;
+
         [KSPField]
         public string deployedComfortBonus = "";
         [KSPField]
         public string undeployedComfortBonus = "";
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public double deployedHabitatVolume = 30;
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public double undeployedHabitatVolume = 10;
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public double deployedHabitatSurface = 60;
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public double undeployedHabitatSurface = 20;
 
         [KSPField(guiActiveEditor = true, guiActive = true)]
@@ -566,6 +573,30 @@ namespace FNPlugin
                 UnityEngine.Debug.Log("[KSPI]: Found Habitat PartModule on " + part.partInfo.title);
             else
                 UnityEngine.Debug.LogWarning("[KSPI]: No Habitat PartModule found on " + part.partInfo.title);
+
+            var foodPartResource = part.Resources["Food"];
+            if (foodPartResource != null && food >= 0)
+            {
+                var ratio = foodPartResource.amount / foodPartResource.maxAmount;
+                foodPartResource.maxAmount = food;
+                foodPartResource.amount = ratio * foodPartResource.maxAmount;
+            }
+
+            var waterPartResource = part.Resources["Water"];
+            if (waterPartResource != null && water >= 0)
+            {
+                var ratio = waterPartResource.amount / waterPartResource.maxAmount;
+                waterPartResource.maxAmount = water;
+                waterPartResource.amount = water * waterPartResource.maxAmount;
+            }
+
+            var oxygenPartResource = part.Resources["Oxygen"];
+            if (oxygenPartResource != null && oxygen >= 0)
+            {
+                var ratio = oxygenPartResource.amount / oxygenPartResource.maxAmount;
+                oxygenPartResource.maxAmount = oxygen;
+                oxygenPartResource.amount = ratio * oxygenPartResource.maxAmount;
+            }
         }
 
         private void UpdateKerbalismHabitat()

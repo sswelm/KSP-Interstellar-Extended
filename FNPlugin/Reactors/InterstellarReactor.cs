@@ -266,7 +266,7 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double gammaRayExhaustRadiationMult = 4;
         [KSPField]
-        public double neutronScatteringRadiationMult = 10000;
+        public double neutronScatteringRadiationMult = 20;
 
         [KSPField]
         public bool showEngineConnectionInfo = true;
@@ -525,23 +525,22 @@ namespace FNPlugin.Reactors
         public double geeForceModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
         public double overheatModifier = 1;
-        [KSPField(guiActive = true, guiName = "Distance Radiation Modifier", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiName = "Distance Radiation Modifier", guiFormat = "F5")]
         public double averageDistanceModifier;
         [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F5")]
         public double averageCrewDistanceToEmitter;
-        [KSPField(guiActive = true, guiName = "Average Shield Thickness", guiUnits = " cm", guiFormat = "F5")]
-        public double averageCrewLeadShieldingThickness;
-        [KSPField(guiActive = true, guiName = "Average Crew Mass Protection", guiUnits = " g/cm2", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiName = "Average Crew Mass Protection", guiUnits = " g/cm2", guiFormat = "F5")]
         public double averageCrewMassProtection;
-        [KSPField(guiActive = true, guiName = "Average Lead Equivalant Thickness", guiUnits = " cm", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiName = "Average Lead Equivalant Thickness", guiUnits = " cm", guiFormat = "F5")]
         public double averageCrewLeadEquivalantThickness;
-
-        [KSPField(guiActive = true, guiName = "Average GammaRays Attenuation", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiName = "Average GammaRays Attenuation", guiFormat = "F5")]
         public double averageLeadGammaAttenuation;
-        [KSPField(guiActive = true, guiName = "Average Neutron Attenuation", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiName = "Average Neutron Attenuation", guiFormat = "F5")]
         public double averageNeutronAttenuation;
-        [KSPField(guiActive = true, guiName = "Emitter Radiation Rate")]
+        [KSPField(guiActive = false, guiName = "Emitter Radiation Rate")]
         public double emitterRadiationRate;
+        [KSPField(guiActive = false, guiName = "Gamma Transparency")]
+        public double gammaTransparency;
 
         [KSPField]public double reactorCoreNeutronRadiation;
         [KSPField]public double reactorCoreGammaRadiation;
@@ -2595,7 +2594,6 @@ namespace FNPlugin.Reactors
                 return;
 
             double totalDistancePart = 0;
-            double totalShielding = 0;
             double totalCrewMassShielding = 0;
 
             Vector3 reactorPosition = part.transform.position;
@@ -2615,21 +2613,16 @@ namespace FNPlugin.Reactors
                     if (habitatSurface > 0)
                         totalCrewMassShielding = (partWithCrew.resourceMass / habitatSurface) * partCrewCount;
                 }
-
-                var shielding = partWithCrew.Resources["Shielding"];
-
-                if (shielding != null && shielding.amount > 0)
-                    totalShielding += (shielding.amount / shielding.maxAmount) * partCrewCount;
             }
 
             averageCrewMassProtection = Math.Max(0, totalCrewMassShielding / totalCrew);
             averageCrewDistanceToEmitter = Math.Max(1, totalDistancePart / totalCrew);
-
-            averageCrewLeadShieldingThickness = 20 * Math.Max(0, totalShielding / totalCrew);
             averageCrewLeadEquivalantThickness = 20 * (averageCrewMassProtection / 0.2268);
 
-            averageLeadGammaAttenuation = Math.Pow(1 - 0.9, averageCrewLeadShieldingThickness / 5);
-            averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewLeadShieldingThickness / 6.8);
+            averageLeadGammaAttenuation = Math.Pow(1 - 0.9, averageCrewLeadEquivalantThickness / 5);
+            averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewLeadEquivalantThickness / 6.8);
+
+            gammaTransparency = Kerbalism.GammaTransparency(vessel.mainBody, vessel.altitude);
 
             averageDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
 
@@ -2652,7 +2645,9 @@ namespace FNPlugin.Reactors
             emitterRadiationRate += reactorCoreNeutronRadiation;
             emitterRadiationRate += lostFissionFuelRadiation;
             emitterRadiationRate += fissionExhaustRadiation;
-            emitterRadiationRate += fissionFragmentRadiation;            
+            emitterRadiationRate += fissionFragmentRadiation;
+
+            emitterRadiationRate = gammaTransparency > 0 ? emitterRadiationRate / gammaTransparency : 0;
 
             if (double.IsInfinity(emitterRadiationRate) == false && double.IsNaN(emitterRadiationRate) == false)
                 emitterRadiationField.SetValue(emitterRadiationRate, emitterModule);

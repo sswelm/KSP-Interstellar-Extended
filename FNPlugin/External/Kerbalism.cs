@@ -71,5 +71,34 @@ namespace FNPlugin
                 }
             }
         }
+
+        // return proportion of ionizing radiation not blocked by atmosphere
+        public static double GammaTransparency(CelestialBody body, double altitude)
+        {
+            // deal with underwater & fp precision issues
+            altitude = Math.Abs(altitude);
+
+            // get pressure
+            double static_pressure = body.GetPressure(altitude);
+            if (static_pressure > 0.0)
+            {
+                // get density
+                double density = body.GetDensity(static_pressure, body.GetTemperature(altitude));
+
+                // math, you know
+                double Ra = body.Radius + altitude;
+                double Ya = body.atmosphereDepth - altitude;
+                double path = Math.Sqrt(Ra * Ra + 2.0 * Ra * Ya + Ya * Ya) - Ra;
+                double factor = body.GetSolarPowerFactor(density) * Ya / path;
+
+                // poor man atmosphere composition contribution
+                if (body.atmosphereContainsOxygen || body.ocean)
+                {
+                    factor = 1.0 - Math.Pow(1.0 - factor, 0.015);
+                }
+                return factor;
+            }
+            return 1.0;
+        }
     }
 }
