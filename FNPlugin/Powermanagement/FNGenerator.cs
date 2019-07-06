@@ -538,7 +538,7 @@ namespace FNPlugin
                 hasrequiredupgrade = true;
 
             // only force activate if no certain partmodules are not present and not limited by minimum throtle
-            if (!isLimitedByMinThrotle && part.FindModuleImplementing<MicrowavePowerReceiver>() == null && part.FindModuleImplementing<InterstellarReactor>() == null)
+            if (!isLimitedByMinThrotle && part.FindModuleImplementing<BeamedPowerReceiver>() == null && part.FindModuleImplementing<InterstellarReactor>() == null)
             {
                 Debug.Log("[KSPI]: Generator on " + part.name + " was Force Activated");
                 part.force_activate();

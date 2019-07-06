@@ -150,7 +150,7 @@ namespace FNPlugin
             // verify that an electric or Thermal engine is available with high enough ISP 
             var highIspEngine = part.vessel.parts.Find(p =>
                 p.FindModulesImplementing<ElectricEngineControllerFX>().Any(e => e.baseISP > 4200) ||
-                p.FindModulesImplementing<ThermalNozzleController>().Any(e => e.AttachedReactor.CoreTemperature > 40000));
+                p.FindModulesImplementing<ThermalEngineController>().Any(e => e.AttachedReactor.CoreTemperature > 40000));
             if (highIspEngine == null)
             {
                 ScreenMessages.PostScreenMessage("No engine available, with high enough Isp and propelant switch ability to compensate for atmospheric drag", 10, ScreenMessageStyle.LOWER_CENTER);

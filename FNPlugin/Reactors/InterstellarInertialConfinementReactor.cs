@@ -9,8 +9,11 @@ namespace FNPlugin.Reactors
     [KSPModule("Quantum Singularity Reactor")]
     class QuantumSingularityReactor : InterstellarInertialConfinementReactor { }
 
-    [KSPModule("Confinement Fusion Engine")]
+    [KSPModule("Confinement Fusion Reactor")]
     class IntegratedInertialConfinementReactor : InterstellarInertialConfinementReactor {}
+
+    [KSPModule("Confinement Fusion Engine")]
+    class IntegratedInertialConfinementEngine : InterstellarInertialConfinementReactor { }
 
     [KSPModule("Confinement Fusion Reactor")]
     class InertialConfinementReactor : InterstellarInertialConfinementReactor { }

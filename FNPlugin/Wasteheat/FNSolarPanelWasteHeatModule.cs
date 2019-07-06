@@ -35,7 +35,7 @@ namespace FNPlugin
         [KSPField(guiActive = false)]
         public double sunAOA;
 
-        MicrowavePowerReceiver _microwavePowerReceiver;
+        BeamedPowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
         ResourceBuffers _resourceBuffers;
         ResourceType outputType = 0;
@@ -56,7 +56,7 @@ namespace FNPlugin
             if (astronomicalUnit == 0)
                 astronomicalUnit = FlightGlobals.GetHomeBody().orbit.semiMajorAxis;
 
-            _microwavePowerReceiver = part.FindModuleImplementing<MicrowavePowerReceiver>();
+            _microwavePowerReceiver = part.FindModuleImplementing<BeamedPowerReceiver>();
 
             _solarPanel = (ModuleDeployableSolarPanel)this.part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (_solarPanel == null) return;

@@ -143,6 +143,7 @@
     <Compile Include="Propulsion\ElectricRCSController.cs" />
     <Compile Include="Storage\FNHabitat.cs" />
     <Compile Include="Storage\FNModuleAnimater.cs" />
+    <Compile Include="Storage\FNRadioActiveStorage.cs" />
     <Compile Include="Storage\KerbalismHabitatController.cs" />
     <Compile Include="Toolbar\FlightUIStarter.cs" />
     <Compile Include="Science\FNImpactorModule.cs" />
@@ -163,7 +164,7 @@
     <Compile Include="Reactors\InterstellarReactor.cs" />
     <Compile Include="Reactors\InterstellarTokomakFusionReator.cs" />
     <Compile Include="Collectors\ISRUScoop.cs" />
-    <Compile Include="Beamedpower\MicrowavePowerReceiver.cs" />
+    <Compile Include="Beamedpower\BeamedPowerReceiver.cs" />
     <Compile Include="Beamedpower\MicrowavePowerTransmitter.cs" />
     <Compile Include="Science\ModableExperimentResultDialogPage.cs" />
     <Compile Include="Science\ModuleModableScienceGenerator.cs" />

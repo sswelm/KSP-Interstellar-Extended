@@ -13,14 +13,66 @@ using UnityEngine;
 
 namespace FNPlugin
 {
-    class SolarBeamedPowerReceiverDish : MicrowavePowerReceiver { } // receives less of a power cpacity nerve in NF mode
+    [KSPModule("Solar Power Receiver Dish")]
+    class SolarBeamedPowerReceiverDish : SolarBeamedPowerReceiver { } // receives less of a power capacity nerve in NF mode
 
-    class SolarBeamedPowerReceiver : MicrowavePowerReceiver {} // receives less of a power cpacity nerve in NF mode
+    [KSPModule("Solar Power Receiver")]
+    class SolarBeamedPowerReceiver : BeamedPowerReceiver {} // receives less of a power cpacity nerve in NF mode
 
-    class MicrowavePowerReceiverDish: MicrowavePowerReceiver  {} // tweakscales with exponent 2.25
+    //---------------------------------------------------------
+
+    [KSPModule("Microwave Power Receiver Dish")]
+    class MicrowavePowerReceiverDish : MicrowavePowerReceiver { }
+
+    [KSPModule("Microwave Power Receiver Panel")]
+    class MicrowavePowerReceiverPanel : MicrowavePowerReceiver { } 
+
+    [KSPModule("Microwave Power Receiver")]
+    class MicrowavePowerReceiver : BeamedPowerReceiver { }
+
+    //---------------------------------------------------
+
+    [KSPModule("Photovoltaic Power Receiver Dish")]
+    class PhotovoltaicPowerReceiverDish : PhotovoltaicPowerReceiver { }
+
+    [KSPModule("Photovoltaic Power Receiver Dish")]
+    class PhotovoltaicPowerReceiverPanel : PhotovoltaicPowerReceiver { }
+
+    [KSPModule("Photovoltaic Power Receiver")]
+    class PhotovoltaicPowerReceiver : BeamedPowerReceiver { }
+
+    //---------------------------------------------------
+
+    [KSPModule("Rectenna Power Receiver Dish")]
+    class RectennaPowerReceiverDish : RectennaPowerReceiver { }
+
+    [KSPModule("Rectenna Power Receiver Dish")]
+    class RectennaPowerReceiverPanel : RectennaPowerReceiver { }
+
+    [KSPModule("Rectenna Power Receiver")]
+    class RectennaPowerReceiver : BeamedPowerReceiver { }
+
+    //---------------------------------------------------
+
+    [KSPModule("Thermal Power Panel Receiver Panel")]
+    class ThermalPowerReceiverPanel : ThermalPowerReceiver { }
+
+    [KSPModule("Thermal Power Panel Receiver Dish")]
+    class ThermalPowerReceiverDish : ThermalPowerReceiver { }
+
+    [KSPModule("Thermal Power Receiver")]
+    class ThermalPowerReceiver : BeamedPowerReceiver { }
+
+    //------------------------------------------------------
+
+    [KSPModule("Beamed Power Receiver Panel")]
+    class BeamedPowerReceiverPanel : BeamedPowerReceiver { }
+
+    [KSPModule("Beamed Power Receiver Dish")]
+    class BeamedPowerReceiverDish : BeamedPowerReceiver { }
 
     [KSPModule("Beamed Power Receiver")]
-    class MicrowavePowerReceiver : ResourceSuppliableModule, IFNPowerSource, IElectricPowerGeneratorSource, IBeamedPowerReceiver // tweakscales with exponent 2.5
+    class BeamedPowerReceiver : ResourceSuppliableModule, IFNPowerSource, IElectricPowerGeneratorSource, IBeamedPowerReceiver // tweakscales with exponent 2.5
     {
         //Persistent True
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Bandwidth")]
@@ -291,7 +343,7 @@ namespace FNPlugin
 
         protected Dictionary<Vessel, ReceivedPowerData> received_power = new Dictionary<Vessel, ReceivedPowerData>();
 
-        protected List<MicrowavePowerReceiver> thermalReceiverSlaves = new List<MicrowavePowerReceiver>();
+        protected List<BeamedPowerReceiver> thermalReceiverSlaves = new List<BeamedPowerReceiver>();
 
         // reference types
         protected Dictionary<Guid, double> connectedRecievers = new Dictionary<Guid, double>();
@@ -456,7 +508,7 @@ namespace FNPlugin
             }
         }
 
-        public void RegisterAsSlave(MicrowavePowerReceiver receiver)
+        public void RegisterAsSlave(BeamedPowerReceiver receiver)
         {
             thermalReceiverSlaves.Add(receiver);
         }
@@ -570,7 +622,7 @@ namespace FNPlugin
         protected Animation animation;
         protected Animation animT;
 
-        protected MicrowavePowerTransmitter part_transmitter;
+        protected BeamedPowerTransmitter part_transmitter;
         protected ModuleAnimateGeneric genericAnimation;
 
         protected CelestialBody localStar;
@@ -960,12 +1012,12 @@ namespace FNPlugin
 
             if (isThermalReceiverSlave)
             {
-                var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is MicrowavePowerReceiver && (MicrowavePowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
+                var result = PowerSourceSearchResult.BreadthFirstSearchForThermalSource(this.part, (s) => s is BeamedPowerReceiver && (BeamedPowerReceiver)s != this, connectStackdepth, connectParentdepth, connectSurfacedepth, true);
 
                 if (result == null || result.Source == null)
                     UnityEngine.Debug.LogWarning("[KSPI]: MicrowavePowerReceiver - BreadthFirstSearchForThermalSource-Failed to find thermal receiver");
                 else
-                    ((MicrowavePowerReceiver)(result.Source)).RegisterAsSlave(this);
+                    ((BeamedPowerReceiver)(result.Source)).RegisterAsSlave(this);
             }
 
             if (maintainResourceBuffers)
@@ -983,7 +1035,7 @@ namespace FNPlugin
             }
 
             // look for any transmitter partmodule
-            part_transmitter = part.FindModuleImplementing<MicrowavePowerTransmitter>();
+            part_transmitter = part.FindModuleImplementing<BeamedPowerTransmitter>();
             if (part_transmitter != null)
             {
                 has_transmitter = true;
@@ -2027,8 +2079,8 @@ namespace FNPlugin
             double enumerated_power = 0;
             foreach (Vessel vess in FlightGlobals.Vessels)
             {
-                List<MicrowavePowerReceiver> receivers = vess.FindPartModulesImplementing<MicrowavePowerReceiver>();
-                foreach (MicrowavePowerReceiver receiver in receivers)
+                List<BeamedPowerReceiver> receivers = vess.FindPartModulesImplementing<BeamedPowerReceiver>();
+                foreach (BeamedPowerReceiver receiver in receivers)
                 {
                     enumerated_power += receiver.getPowerFromSatellite(vmp);
                 }

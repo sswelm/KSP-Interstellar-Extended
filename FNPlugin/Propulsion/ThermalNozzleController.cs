@@ -12,9 +12,17 @@ using KSP.Localization;
 
 namespace FNPlugin
 {
-    class ThermalAerospikeController : ThermalNozzleController { }
+    [KSPModule("Thermal Aerospike")]
+    class ThermalAerospikeController : ThermalEngineController { }
 
-    class ThermalNozzleController : ResourceSuppliableModule, IFNEngineNoozle, IUpgradeableModule, IRescalable<ThermalNozzleController>
+    [KSPModule("Thermal Nozzle")]
+    class ThermalNozzleController : ThermalEngineController { }
+
+    [KSPModule("Plasma Nozzle")]
+    class PlasmaNozzleController : ThermalEngineController { }
+
+    [KSPModule("Thermal Engine")]
+    class ThermalEngineController : ResourceSuppliableModule, IFNEngineNoozle, IUpgradeableModule, IRescalable<ThermalEngineController>
     {
         // Persistent True
         [KSPField(isPersistant = true)]

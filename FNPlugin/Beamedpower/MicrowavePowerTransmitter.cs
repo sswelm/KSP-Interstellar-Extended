@@ -9,7 +9,13 @@ using FNPlugin.Extensions;
 
 namespace FNPlugin.Beamedpower
 {
-    class MicrowavePowerTransmitter : ResourceSuppliableModule, IMicrowavePowerTransmitter, IScalarModule
+    class PhasedArrayTransmitter : BeamedPowerTransmitter { }
+
+    class MicrowavePowerTransmitter : BeamedPowerTransmitter { }
+
+    class BeamedPowerLaserTransmitter : BeamedPowerTransmitter { }
+
+    class BeamedPowerTransmitter : ResourceSuppliableModule, IMicrowavePowerTransmitter, IScalarModule
     {
         //Persistent 
         [KSPField(isPersistant = true)]
@@ -118,8 +124,8 @@ namespace FNPlugin.Beamedpower
         //Internal
         protected Animation anim;
         protected List<ISolarPower> solarCells;
-        protected MicrowavePowerReceiver part_receiver;
-        protected List<MicrowavePowerReceiver> vessel_recievers;
+        protected BeamedPowerReceiver part_receiver;
+        protected List<BeamedPowerReceiver> vessel_recievers;
         protected BeamGenerator activeBeamGenerator;
         protected List<BeamGenerator> beamGenerators;
         protected ModuleAnimateGeneric genericAnimation;  
@@ -233,7 +239,7 @@ namespace FNPlugin.Beamedpower
                 anim.Blend(animName, part.mass);
             }
 
-            vessel_recievers = this.vessel.FindPartModulesImplementing<MicrowavePowerReceiver>().Where(m => m.part != this.part).ToList();
+            vessel_recievers = this.vessel.FindPartModulesImplementing<BeamedPowerReceiver>().Where(m => m.part != this.part).ToList();
 
             UpdateRelayWavelength();
 
@@ -338,8 +344,8 @@ namespace FNPlugin.Beamedpower
 
             solarCells = vessel.FindPartModulesImplementing<ISolarPower>();
 
-            vessel_recievers = this.vessel.FindPartModulesImplementing<MicrowavePowerReceiver>().Where(m => m.part != this.part).ToList();
-            part_receiver = part.FindModulesImplementing<MicrowavePowerReceiver>().FirstOrDefault();
+            vessel_recievers = this.vessel.FindPartModulesImplementing<BeamedPowerReceiver>().Where(m => m.part != this.part).ToList();
+            part_receiver = part.FindModulesImplementing<BeamedPowerReceiver>().FirstOrDefault();
 
             UpdateRelayWavelength();
 
@@ -715,7 +721,7 @@ namespace FNPlugin.Beamedpower
         public static IVesselRelayPersistence getVesselRelayPersistenceForVessel(Vessel vessel)
         {
             // find all active tranmitters configured for relay
-            var relays = vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>().Where(m => m.IsRelay || m.mergingBeams).ToList();
+            var relays = vessel.FindPartModulesImplementing<BeamedPowerTransmitter>().Where(m => m.IsRelay || m.mergingBeams).ToList();
             if (relays.Count == 0)
                 return null;
 
@@ -766,7 +772,7 @@ namespace FNPlugin.Beamedpower
 
         public static IVesselMicrowavePersistence getVesselMicrowavePersistanceForVessel(Vessel vessel)
         {
-            var transmitters = vessel.FindPartModulesImplementing<MicrowavePowerTransmitter>().Where(m => m.IsEnabled).ToList();
+            var transmitters = vessel.FindPartModulesImplementing<BeamedPowerTransmitter>().Where(m => m.IsEnabled).ToList();
             if (transmitters.Count == 0)
                 return null;
 

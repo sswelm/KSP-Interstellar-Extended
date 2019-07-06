@@ -20,10 +20,10 @@ namespace FNPlugin
             //GameEvents.onVesselLoaded.Add(OnVesselLoaded);
             //GameEvents.OnTechnologyResearched.Add(OnTechnologyResearched);
 
-            BeamedPowerSources.getVesselMicrowavePersistanceForProtoVesselCallback = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForProtoVessel;
-            BeamedPowerSources.getVesselRelayPersistanceForProtoVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistanceForProtoVessel;
-            BeamedPowerSources.getVesselMicrowavePersistanceForVesselCallback = MicrowavePowerTransmitter.getVesselMicrowavePersistanceForVessel;
-            BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = MicrowavePowerTransmitter.getVesselRelayPersistenceForVessel;
+            BeamedPowerSources.getVesselMicrowavePersistanceForProtoVesselCallback = BeamedPowerTransmitter.getVesselMicrowavePersistanceForProtoVessel;
+            BeamedPowerSources.getVesselRelayPersistanceForProtoVesselCallback = BeamedPowerTransmitter.getVesselRelayPersistanceForProtoVessel;
+            BeamedPowerSources.getVesselMicrowavePersistanceForVesselCallback = BeamedPowerTransmitter.getVesselMicrowavePersistanceForVessel;
+            BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = BeamedPowerTransmitter.getVesselRelayPersistenceForVessel;
 
             GameEvents.onGameStateSaved.Add(OnGameStateSaved);
             GameEvents.onDockingComplete.Add(OnDockingComplete);
@@ -92,7 +92,7 @@ namespace FNPlugin
             {
                 if (currentvessel.loaded)
                 {
-                    var receivers = currentvessel.FindPartModulesImplementing<MicrowavePowerReceiver>();
+                    var receivers = currentvessel.FindPartModulesImplementing<BeamedPowerReceiver>();
 
                     foreach (var receiver in receivers)
                     {

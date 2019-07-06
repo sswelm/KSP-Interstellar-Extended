@@ -7,6 +7,12 @@ using UnityEngine;
 
 namespace FNPlugin.Microwave
 {
+    [KSPModule("Integrated Beam Generator")]
+    class IntegratedBeamGenerator : BeamGenerator { }
+
+    [KSPModule("Beam Generator Module")]
+    class BeamGeneratorModule : BeamGenerator { }
+
     [KSPModule("Beam Generator")]
     class BeamGenerator : PartModule, IPartMassModifier, IRescalable<BeamGenerator>
     {

@@ -2,6 +2,9 @@
 
 namespace FNPlugin.Reactors
 {
+    [KSPModule("Magnetic Confinement Fusion Engine")]
+    class  InterstellarTokamakFusionEngine : InterstellarTokamakFusionReactor {}
+
     [KSPModule("Magnetic Confinement Fusion Reactor")]
     class InterstellarTokamakFusionReactor : InterstellarFusionReactor
     {
