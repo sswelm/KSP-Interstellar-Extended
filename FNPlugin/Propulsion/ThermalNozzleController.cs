@@ -1392,7 +1392,7 @@ namespace FNPlugin
 
                 var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                var wasteheatModifier = wasteheatRatioDecelerationMult > 0 ? Math.Max ((1 - wasteheatRatio) * wasteheatRatioDecelerationMult,  1) : 1;
+                var wasteheatModifier = wasteheatRatioDecelerationMult > 0 ? Math.Max((1 - wasteheatRatio) * wasteheatRatioDecelerationMult, 1) : 1;
                 
                 finalEngineAccelerationSpeed = (float)Math.Min(engineAccelerationBaseSpeed * AttachedReactor.ReactorSpeedMult, 33);
                 finalEngineDecelerationSpeed = (float)Math.Min(engineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * wasteheatModifier, 33);
@@ -1656,7 +1656,7 @@ namespace FNPlugin
                 {
                     var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
                     airFlowForCooling = max_fuel_flow_rate * part.GetResourceRatio("IntakeAir");
-                    consumeFNResourcePerSecond(40 * Math.Pow(wasteheatRatio, 2) * airFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(40 * wasteheatRatio * wasteheatRatio * airFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // flameout when reactor cannot produce power
@@ -2024,7 +2024,7 @@ namespace FNPlugin
                 {
                     var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
                     fuelFlowForCooling = currentMassFlow;
-                    consumeFNResourcePerSecond(40 * Math.Pow(wasteheatRatio, 2) * fuelFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
+                    consumeFNResourcePerSecond(40 * wasteheatRatio * wasteheatRatio * fuelFlowForCooling, ResourceManager.FNRESOURCE_WASTEHEAT);
                 }
 
                 // give back propellant
