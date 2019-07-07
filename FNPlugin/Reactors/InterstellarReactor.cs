@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using TweakScale;
 using UnityEngine;
+using FNPlugin.External;
 
 
 namespace FNPlugin.Reactors
@@ -525,28 +526,6 @@ namespace FNPlugin.Reactors
         public double geeForceModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
         public double overheatModifier = 1;
-        [KSPField(guiActive = false, guiName = "Distance Radiation Modifier", guiFormat = "F5")]
-        public double averageDistanceModifier;
-        [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F5")]
-        public double averageCrewDistanceToEmitter;
-        [KSPField(guiActive = false, guiName = "Average Crew Mass Protection", guiUnits = " g/cm2", guiFormat = "F5")]
-        public double averageCrewMassProtection;
-        [KSPField(guiActive = false, guiName = "Average Lead Equivalant Thickness", guiUnits = " cm", guiFormat = "F5")]
-        public double averageCrewLeadEquivalantThickness;
-        [KSPField(guiActive = false, guiName = "Average GammaRays Attenuation", guiFormat = "F5")]
-        public double averageLeadGammaAttenuation;
-        [KSPField(guiActive = false, guiName = "Average Neutron Attenuation", guiFormat = "F5")]
-        public double averageNeutronAttenuation;
-        [KSPField(guiActive = false, guiName = "Emitter Radiation Rate")]
-        public double emitterRadiationRate;
-        [KSPField(guiActive = false, guiName = "Gamma Transparency")]
-        public double gammaTransparency;
-
-        [KSPField]public double reactorCoreNeutronRadiation;
-        [KSPField]public double reactorCoreGammaRadiation;
-        [KSPField]public double lostFissionFuelRadiation;
-        [KSPField]public double fissionExhaustRadiation;
-        [KSPField]public double fissionFragmentRadiation;
         
         [KSPField]public double lithiumNeutronAbsorbtion = 1;
         [KSPField]public bool isConnectedToThermalGenerator;
@@ -581,8 +560,7 @@ namespace FNPlugin.Reactors
         PartResourceDefinition helium_def;
         PartResourceDefinition hydrogenDefinition;
         ResourceBuffers resourceBuffers;
-        PartModule emitterModule;
-        BaseField emitterRadiationField;
+        FNEmitterController emitterController;
 
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
         List<IFNEngineNoozle> connectedEngines = new List<IFNEngineNoozle>();
@@ -2555,104 +2533,28 @@ namespace FNPlugin.Reactors
 
         private void InitializeKerbalismEmitter()
         {
-            if (HighLogic.LoadedSceneIsFlight == false)
-                return;
+            emitterController = part.FindModuleImplementing<FNEmitterController>();
 
-            bool found = false;
-
-            foreach (PartModule module in part.Modules)
+            if (emitterController != null)
             {
-                if (module.moduleName == "Emitter")
-                {
-                    emitterModule = module;
-
-                    emitterRadiationField = module.Fields["radiation"];
-                    if (emitterRadiationField != null)
-                        emitterRadiationField.SetValue(maxRadiation * ongoing_consumption_rate, emitterModule);
-
-                    found = true;
-                    break;
-                }
+                emitterController.radius = radius;
+                emitterController.exhaustProducesNeutronRadiation = mayExhaustInLowSpaceHomeworld;
+                emitterController.exhaustProducesGammaRadiation = mayExhaustInAtmosphereHomeworld;
             }
-
-            if (found)
-                UnityEngine.Debug.Log("[KSPI]: Found Emitter");
             else
-                UnityEngine.Debug.Log("[KSPI]: No Emitter Found");
+                UnityEngine.Debug.LogError("[KSPI]: No Emitter Found om " + part.partInfo.title);
         }
 
         private void UpdateKerbalismEmitter()
         {
-            if (emitterModule == null)
+            if (emitterController == null)
                 return;
 
-            if (emitterRadiationField == null)
-                return;
-
-            int totalCrew = vessel.GetCrewCount();
-            if (totalCrew == 0)
-                return;
-
-            double totalDistancePart = 0;
-            double totalCrewMassShielding = 0;
-
-            Vector3 reactorPosition = part.transform.position;
-
-            foreach (Part partWithCrew in vessel.parts.Where(m => m.protoModuleCrew.Count > 0))
-            {
-                int partCrewCount = partWithCrew.protoModuleCrew.Count;
-
-                double distanceToPart = (reactorPosition - partWithCrew.transform.position).magnitude;
-
-                totalDistancePart += distanceToPart * partCrewCount / radius;
-
-                var habitat = partWithCrew.FindModuleImplementing<KerbalismHabitatController>();
-                if (habitat != null)
-                {
-                    var habitatSurface = habitat.Surface;
-                    if (habitatSurface > 0)
-                        totalCrewMassShielding = (partWithCrew.resourceMass / habitatSurface) * partCrewCount;
-                }
-            }
-
-            averageCrewMassProtection = Math.Max(0, totalCrewMassShielding / totalCrew);
-            averageCrewDistanceToEmitter = Math.Max(1, totalDistancePart / totalCrew);
-            averageCrewLeadEquivalantThickness = 20 * (averageCrewMassProtection / 0.2268);
-
-            averageLeadGammaAttenuation = Math.Pow(1 - 0.9, averageCrewLeadEquivalantThickness / 5);
-            averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewLeadEquivalantThickness / 6.8);
-
-            gammaTransparency = Kerbalism.GammaTransparency(vessel.mainBody, vessel.altitude);
-
-            averageDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
-
-            var averageDistanceGammaRayShieldingAttenuation = averageDistanceModifier * averageLeadGammaAttenuation;
-            var averageDistanceNeutronShieldingAttenuation = averageDistanceModifier * averageNeutronAttenuation;
-
-            var maxCoreRadiation = maxRadiation * ongoing_consumption_rate;
-
-            reactorCoreGammaRadiation = maxCoreRadiation * averageDistanceGammaRayShieldingAttenuation;
-            reactorCoreNeutronRadiation = maxCoreRadiation * averageDistanceNeutronShieldingAttenuation * part.atmDensity * CurrentFuelMode.NeutronsRatio * neutronScatteringRadiationMult * Math.Max(0, 1 - lithiumNeutronAbsorbtion);
-
-            var maxEngineRadiation = maxRadiation * propulsion_request_ratio_sum;
-
-            lostFissionFuelRadiation = maxEngineRadiation * averageDistanceNeutronShieldingAttenuation * (1 + part.atmDensity) * (1 - geeForceModifier) * neutronsExhaustRadiationMult;
-            fissionExhaustRadiation = maxEngineRadiation * averageDistanceNeutronShieldingAttenuation * (1 + part.atmDensity) * (mayExhaustInLowSpaceHomeworld ? 0 : neutronsExhaustRadiationMult);
-            fissionFragmentRadiation = maxEngineRadiation * averageDistanceGammaRayShieldingAttenuation * (mayExhaustInAtmosphereHomeworld ? 0 : gammaRayExhaustRadiationMult);
-
-            emitterRadiationRate = 0;
-            emitterRadiationRate += reactorCoreGammaRadiation;
-            emitterRadiationRate += reactorCoreNeutronRadiation;
-            emitterRadiationRate += lostFissionFuelRadiation;
-            emitterRadiationRate += fissionExhaustRadiation;
-            emitterRadiationRate += fissionFragmentRadiation;
-
-            emitterRadiationRate = gammaTransparency > 0 ? emitterRadiationRate / gammaTransparency : 0;
-
-            if (double.IsInfinity(emitterRadiationRate) == false && double.IsNaN(emitterRadiationRate) == false)
-                emitterRadiationField.SetValue(emitterRadiationRate, emitterModule);
-            else
-                Debug.LogError("[KSPI]: InterstellarReactor emitterRadiationRate = " + emitterRadiationRate);
+            emitterController.reactorActivityFraction = ongoing_consumption_rate;
+            emitterController.fuelNeutronsFraction = CurrentFuelMode.NeutronsRatio;
+            emitterController.lithiumNeutronAbsorbtionFraction = lithiumNeutronAbsorbtion;
+            emitterController.exhaustActivityFraction = propulsion_request_ratio_sum;
+            emitterController.radioavtiveFuelLeakFraction = Math.Max(0, 1 - geeForceModifier);
         }
 
         public void OnGUI()

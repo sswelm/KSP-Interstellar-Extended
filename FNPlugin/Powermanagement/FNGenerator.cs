@@ -299,7 +299,7 @@ namespace FNPlugin
         public double _totalEff;
         [KSPField]
         public double capacityRatio;
-        [KSPField]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Offscreen Power Generation", guiUnits = " kW")]
         public double initialGeneratorPowerEC;
         [KSPField]
         public double maximumGeneratorPowerMJ;
@@ -577,6 +577,7 @@ namespace FNPlugin
         private void ConnectToModuleGenerator()
         {
             moduleGenerator = part.FindModuleImplementing<ModuleGenerator>();
+
             if (moduleGenerator != null)
             {
                 outputModuleResource = moduleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
@@ -617,6 +618,7 @@ namespace FNPlugin
                     mockInputResource.id = outputModuleResource.name.GetHashCode();
 
                     moduleGenerator.resHandler.inputResources.Add(mockInputResource);
+
                 }
             }
         }
@@ -1045,6 +1047,8 @@ namespace FNPlugin
             {
                 if (IsEnabled && attachedPowerSource != null && FNRadiator.hasRadiatorsForVessel(vessel))
                 {
+
+
                     applies_balance = attachedPowerSource.ShouldApplyBalance(chargedParticleMode ? ElectricGeneratorType.charged_particle : ElectricGeneratorType.thermal);
 
                     UpdateGeneratorPower();
@@ -1063,16 +1067,11 @@ namespace FNPlugin
                         maxElectricdtps = 0;
                         PowerDown();
 
-                        if (moduleGenerator != null && moduleGenerator.generatorIsActive == true)
-                            moduleGenerator.Shutdown();
-
                         return;
                     }
 
-                    if (moduleGenerator != null && moduleGenerator.generatorIsActive == false)
-                    {
-                        moduleGenerator.Activate();
-                    }
+                    if (moduleGenerator != null)
+                        moduleGenerator.generatorIsActive = maxStableMegaWattPower > 0;
 
                     powerDownFraction = 1;
 

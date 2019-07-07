@@ -269,7 +269,6 @@ namespace FNPlugin
         public double spaceHeatProduction = 100;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
-
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Thrust On Engine", guiUnits = " kN")]
         public float maxThrustOnEngine;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Effective Isp On Engine")]
@@ -368,6 +367,8 @@ namespace FNPlugin
         public double powerThrustModifier;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Effective Thrust Fraction")]
         public double effectiveThrustFraction = 1;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Electricaly Powered", guiUnits = "%", guiFormat = "F3")]
+        public double received_megajoules_percentage;
 
         [KSPField]
         public double minimumThrust = 0.000001;
@@ -405,8 +406,6 @@ namespace FNPlugin
         public float runningEffectRatio;
         [KSPField]
         double received_megajoules_ratio;
-        [KSPField(guiName = "Electricaly Powered", guiUnits = "%", guiFormat = "F3")]
-        double received_megajoules_percentage;
         [KSPField]
         int pre_coolers_active;
         [KSPField]
@@ -663,13 +662,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            //Debug.Log("[KSPI]: ThermalNozzleController - start");
-
-            //blackGuiStyle = new GUIStyle(GUI.skin.button);
-            //blackGuiStyle.normal.textColor = Color.black;
-
-            //grayGuiStyle = new GUIStyle(GUI.skin.button);
-            //grayGuiStyle.normal.textColor = Color.gray;
+            Debug.Log("[KSPI]: ThermalNozzleController - start");
 
             _windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
             windowPosition = new Rect(windowPositionX, windowPositionY, windowWidth, 10);
@@ -680,7 +673,9 @@ namespace FNPlugin
             if (maxThermalNozzleIsp == 0)
                 maxThermalNozzleIsp = PluginHelper.MaxThermalNozzleIsp;
 
-            ScaleParameters();
+           // Debug.Log("[KSPI]: ThermalNozzleController - ScaleParameters");
+
+            ScaleParameters();            
 
             try
             {
@@ -731,10 +726,16 @@ namespace FNPlugin
                 else
                     Debug.LogError("[KSPI]: ThermalNozzleController - failed to find engine!");
 
+                //Debug.Log("[KSPI]: ThermalNozzleController - ConnectToThermalSource");
+
                 // find attached thermal source
                 ConnectToThermalSource();
 
+                //Debug.Log("[KSPI]: ThermalNozzleController - calculate maxPressureThresholdAtKerbinSurface");
+
                 maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
+
+                //Debug.Log("[KSPI]: ThermalNozzleController - set fuelflowThrottleField");
 
                 fuelflowThrottleField = Fields["fuelflowThrottle"];
 
@@ -746,9 +747,16 @@ namespace FNPlugin
                 else
                     Debug.LogError("[KSPI]: ThermalNozzleController - failed to find fuelflowThrottle field");
 
+                //Debug.Log("[KSPI]: ThermalNozzleController - set ispThrottleField");
+
                 var ispThrottleField = Fields["ispThrottle"];
-                ispThrottleField.guiActiveEditor = showIspThrotle;
-                ispThrottleField.guiActive = showIspThrotle;
+                if (ispThrottleField != null)
+                {
+                    ispThrottleField.guiActiveEditor = showIspThrotle;
+                    ispThrottleField.guiActive = showIspThrotle;
+                }
+
+                Debug.Log("[KSPI]: ThermalNozzleController - set Editor");
 
                 if (state == StartState.Editor)
                 {
@@ -780,11 +788,19 @@ namespace FNPlugin
                 if (requiredMegajouleRatio == 0)
                     received_megajoules_ratio = 1;
 
+                //Debug.Log("[KSPI]: ThermalNozzleController - set received_megajoules_percentage");
+
                 Fields["received_megajoules_percentage"].guiActive = requiredMegajouleRatio > 0;
+
+                //Debug.Log("[KSPI]: ThermalNozzleController - UpdateRadiusModifier");
 
                 UpdateRadiusModifier();
 
+                //Debug.Log("[KSPI]: ThermalNozzleController - UpdateIspEngineParams");
+
                 UpdateIspEngineParams();
+
+                //Debug.Log("[KSPI]: ThermalNozzleController - Configure Preecooler ");
 
                 // presearch all avaialble precoolers, intakes and nozzles on the vessel
                 _vesselPrecoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
@@ -803,11 +819,15 @@ namespace FNPlugin
                     fuelConfignodes = getPropellants(isJet);
                 }
 
+                //Debug.Log("[KSPI]: ThermalNozzleController - Find Upgrades");
+
                 bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
                 bool hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
                 bool hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
                 bool hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
                 bool hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
+
+                //Debug.Log("[KSPI]: ThermalNozzleController - Apply Upgrades");
 
                 _jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
                 _jetTechBonusCurveChange = _jetTechBonus / 9.92992f;

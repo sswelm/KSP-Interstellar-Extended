@@ -39,9 +39,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public double undeployedHabitatSurface = 20;
 
-        [KSPField(guiActiveEditor = true, guiActive = true)]
+        [KSPField]
         public double currentHabitatVolume;
-        [KSPField(guiActiveEditor = true, guiActive = true)]
+        [KSPField]
         public double currentHabitatSurface;
 
         [KSPField]
@@ -93,6 +93,9 @@ namespace FNPlugin
         [KSPField]
         public string ReplacementResource = "Construction";
 
+        BaseField currentHabitatVolumeField;
+        BaseField currentHabitatSurfaceField;
+
         PartModule comfortModule;
         BaseField comfortBonusField;
 
@@ -139,6 +142,9 @@ namespace FNPlugin
         public override void OnStart(StartState state)
         {
             Initialize();
+
+            currentHabitatVolumeField = Fields["currentHabitatVolume"];
+            currentHabitatSurfaceField = Fields["currentHabitatSurface"];
         }
 
         public override void OnLoad(ConfigNode node)
@@ -490,7 +496,6 @@ namespace FNPlugin
         {
             try
             {
-
                 InitializeKerbalismComfort();
                 InitializeKerbalismHabitat();
 
@@ -511,6 +516,8 @@ namespace FNPlugin
                 print("ERROR IN Animation Initialize - " + ex.Message);
             }
         }
+
+
 
         private void InitializeKerbalismComfort()
         {
@@ -867,23 +874,38 @@ namespace FNPlugin
 
         public void Update()
         {
-            if (HighLogic.LoadedSceneIsFlight)
-                return;
-
             UpdateKerbalismHabitat();
 
-            RetrieveHabitatData();
+            if (CheatOptions.BiomesVisible)
+            {
+                RetrieveHabitatData();
+            }
+            else
+            {
+                currentHabitatVolumeField.guiActive = false;
+                currentHabitatVolumeField.guiActiveEditor = false;
+                currentHabitatSurfaceField.guiActive = false;
+                currentHabitatSurfaceField.guiActiveEditor = false;
+            }
         }
 
         private void RetrieveHabitatData()
         {
             if (habitatModule != null)
             {
-                if (habitatVolumeField != null)
+                if (currentHabitatVolumeField != null && habitatVolumeField != null)
+                {
+                    currentHabitatVolumeField.guiActive = true;
+                    currentHabitatVolumeField.guiActiveEditor = true;
                     currentHabitatVolume = (double)habitatVolumeField.GetValue(habitatModule);
+                }
 
-                if (habitatSurfaceField != null)
+                if (currentHabitatSurfaceField != null && habitatSurfaceField != null)
+                {
+                    currentHabitatSurfaceField.guiActive = true;
+                    currentHabitatSurfaceField.guiActiveEditor = true;
                     currentHabitatSurface = (double)habitatSurfaceField.GetValue(habitatModule);
+                }
             }
         }
     }
