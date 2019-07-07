@@ -316,12 +316,13 @@ namespace FNPlugin
         public double ThermalEfficiency
         {
             get 
-            { 
-            return HighLogic.LoadedSceneIsFlight 
-                ? CheatOptions.IgnoreMaxTemperature || ignoreWasteheat 
-                    ? 1 
-                    : (1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT)) 
-                : 1; 
+            {
+                if (HighLogic.LoadedSceneIsFlight == false || CheatOptions.IgnoreMaxTemperature || ignoreWasteheat)
+                    return 1;
+
+                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+
+                return 1 - wasteheatRatio * wasteheatRatio; 
             }
         }
 

@@ -464,14 +464,13 @@ namespace FNPlugin
         public double PowerCapacityEfficiency
         {
             get 
-            { 
-                return HighLogic.LoadedSceneIsFlight 
-                    ? isThermalReceiver 
-                        ? 1 
-                        : CheatOptions.IgnoreMaxTemperature 
-                            ? 1 
-                            : (1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT)) 
-                    : 1; 
+            {
+                if (!HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || isThermalReceiver)
+                    return 1;
+
+                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+
+                return 1 - wasteheatRatio * wasteheatRatio;
             }
         }
 
@@ -1620,7 +1619,7 @@ namespace FNPlugin
 
             StoreGeneratorRequests();
 
-            wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : Math.Min(1, getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT));
+            wasteheatRatio = CheatOptions.IgnoreMaxTemperature ? 0 : getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
             CalculateThermalSolarPower();
 
