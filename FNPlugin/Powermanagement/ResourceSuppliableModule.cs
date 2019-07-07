@@ -334,7 +334,7 @@ namespace FNPlugin
 
         public double getCurrentHighPriorityResourceDemand(String resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename)) 
+            if (String.IsNullOrEmpty(resourcename))
             {
                 Debug.Log("[KSPI]: getCurrentHighPriorityResourceDemand illegal values.");
                 return 0;
@@ -349,7 +349,7 @@ namespace FNPlugin
 
         public double getAvailableStableSupply(String resourcename)
         {
-            if (String.IsNullOrEmpty(resourcename)) 
+            if (String.IsNullOrEmpty(resourcename))
             {
                 Debug.Log("[KSPI]: getAvailableResourceSupply illegal values.");
                 return 0;
@@ -360,6 +360,36 @@ namespace FNPlugin
                 return 0;
 
             return (double)Math.Max(manager.StableResourceSupply - manager.CurrentHighPriorityResourceDemand, 0);
+        }
+
+        public double getAvailablePrioritisedStableSupply(String resourcename)
+        {
+            if (String.IsNullOrEmpty(resourcename)) 
+            {
+                Debug.Log("[KSPI]: getAvailableResourceSupply illegal values.");
+                return 0;
+            }
+
+            ResourceManager manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            return (double)Math.Max(manager.StableResourceSupply - manager.GetPriorityResourceSupply(getPowerPriority()), 0);
+        }
+
+        public double getPriorityResourceSupply(String resourcename, int priority)
+        {
+            if (String.IsNullOrEmpty(resourcename))
+            {
+                Debug.Log("[KSPI]: getAvailableResourceSupply illegal values.");
+                return 0;
+            }
+
+            ResourceManager manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            return manager.GetPriorityResourceSupply(priority);
         }
 
         public double getAvailableResourceSupply(String resourcename)

@@ -154,15 +154,21 @@ namespace FNPlugin.Reactors
 
                 if (part.Resources.Contains(InterstellarResourcesConfiguration.Instance.Actinides) && part.Resources[InterstellarResourcesConfiguration.Instance.Actinides] != null)
                 {
+
                     // get total amount of all fuels
                     double fuel_mass = CurrentFuelMode.Variants.Sum(m => m.ReactorFuels.Sum(fuel => GetLocalResourceAmount(fuel) * fuel.DensityInTon));
 
                     double actinide_mass = part.Resources[InterstellarResourcesConfiguration.Instance.Actinides].amount;
+
                     double fuel_actinide_mass_ratio = Math.Min(fuel_mass / (actinide_mass * CurrentFuelMode.NormalisedReactionRate * CurrentFuelMode.NormalisedReactionRate * CurrentFuelMode.NormalisedReactionRate * 2.5), 1.0);
+                    
                     fuel_actinide_mass_ratio = (double.IsInfinity(fuel_actinide_mass_ratio) || double.IsNaN(fuel_actinide_mass_ratio)) ? 1.0 : fuel_actinide_mass_ratio;
+
                     actinidesModifer = Math.Sqrt(fuel_actinide_mass_ratio);
+
                     return base.MaximumThermalPower * actinidesModifer;
                 }
+
                 return base.MaximumThermalPower;
             }
         }
@@ -310,8 +316,14 @@ namespace FNPlugin.Reactors
         }
 
         // This Methods loads the correct fuel mode
-        protected override void SetDefaultFuelMode()
+        public override void SetDefaultFuelMode()
         {
+            if (fuel_modes == null)
+            {
+                Debug.Log("[KSPI]: MSRC SetDefaultFuelMode - load fuel modes");
+                fuel_modes = GetReactorFuelModes();
+            }
+
             CurrentFuelMode = (fuel_mode < fuel_modes.Count) ? fuel_modes[fuel_mode] : fuel_modes.FirstOrDefault();
         }
 

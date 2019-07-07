@@ -268,10 +268,15 @@ namespace FNPlugin.Reactors
             required_reactor_ratio = Math.Max(minReactorRatio, reactor_power_ratio >= reactorRatioThreshold ? reactor_power_ratio : 0);
         }
 
-        protected override void SetDefaultFuelMode()
+        public override void SetDefaultFuelMode()
         {
+            Debug.Log("[KSPI]: FusionReactor SetDefaultFuelMode");
+
             if (fuel_modes == null)
-                return;
+            {
+                Debug.Log("[KSPI]: FusionReactor SetDefaultFuelMode - load fuel modes");
+                fuel_modes = GetReactorFuelModes();
+            }
 
             if (!string.IsNullOrEmpty(fuel_mode_name) && fuel_modes.Any(m => m.ModeGUIName == fuel_mode_name))
             {

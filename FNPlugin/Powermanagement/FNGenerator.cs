@@ -513,7 +513,7 @@ namespace FNPlugin
 
             Fields["partMass"].guiActive = Fields["partMass"].guiActiveEditor = calculatedMass;
             Fields["powerPercentage"].guiActive = Fields["powerPercentage"].guiActiveEditor = showSpecialisedUI;
-            Fields["radius"].guiActiveEditor = showSpecialisedUI;            
+            Fields["radius"].guiActiveEditor = showSpecialisedUI;
 
             if (state == StartState.Editor)
             {
@@ -618,7 +618,6 @@ namespace FNPlugin
                     mockInputResource.id = outputModuleResource.name.GetHashCode();
 
                     moduleGenerator.resHandler.inputResources.Add(mockInputResource);
-
                 }
             }
         }

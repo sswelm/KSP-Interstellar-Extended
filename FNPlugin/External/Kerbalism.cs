@@ -67,9 +67,10 @@ namespace FNPlugin
                     else
 						Debug.LogError("[KSPI]: Failed to find KERBALISM.Sim");
 
-                    break;
+                    return;
                 }
             }
+            Debug.Log("[KSPI]: KERBALISM was not found");
         }
 
         // return proportion of ionizing radiation not blocked by atmosphere

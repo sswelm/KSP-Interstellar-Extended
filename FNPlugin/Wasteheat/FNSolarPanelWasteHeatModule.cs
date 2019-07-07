@@ -20,7 +20,7 @@ namespace FNPlugin
     [KSPModule("Solar Panel Adapter")]
     class FNSolarPanelWasteHeatModule : ResourceSuppliableModule, ISolarPower
     {
-        [KSPField( guiActive = true,  guiName = "Current Solar Power", guiUnits = " MW", guiFormat="F5")]
+        [KSPField( guiActive = true,  guiName = "Current Solar Power", guiUnits = " MW", guiFormat= "F5")]
         public double megaJouleSolarPowerSupply;
         [KSPField(guiActive = true, guiName = "Maximum Solar Power", guiUnits = " MW", guiFormat = "F5")]
         public double solarMaxSupply = 0;
@@ -28,13 +28,25 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "AU", guiFormat = "F0", guiUnits = " m")]
         public double astronomicalUnit;
 
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double solar_supply = 0;
-        [KSPField(guiActive = false)]
-        public double chargeRate;
-        [KSPField(guiActive = false)]
-        public double sunAOA;
+        [KSPField]
+        public float chargeRate;
+        [KSPField]
+        public float efficiencyMult;
+        [KSPField]
+        public double _efficMult;
 
+        [KSPField]
+        public double sunAOA;
+        [KSPField]
+        public double calculatedEfficency;
+        [KSPField]
+        public float flowRate;
+        [KSPField]
+        public double scale = 1;
+
+        ModuleResource mockInputResource;
         BeamedPowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
         ResourceBuffers _resourceBuffers;
@@ -73,6 +85,11 @@ namespace FNPlugin
                 outputType = ResourceType.electricCharge;
             else
                 outputType = ResourceType.other;
+
+            mockInputResource = new ModuleResource();
+            mockInputResource.name = _solarPanel.resourceName;
+            mockInputResource.id = _solarPanel.resourceName.GetHashCode();
+            _solarPanel.resHandler.inputResources.Add(mockInputResource);
 
             // only manager power buffer when microwave receiver is not available
             if (outputType !=  ResourceType.other && _microwavePowerReceiver == null)
@@ -121,24 +138,27 @@ namespace FNPlugin
             if (_solarPanel == null) return;
 
             if (outputType == ResourceType.other) return;
-          
-            chargeRate = (double)(decimal)_solarPanel.chargeRate;
-            sunAOA = 0;
 
-            double efficency = _solarPanel._efficMult > 0 
+            flowRate = _solarPanel.flowRate;
+            chargeRate = _solarPanel.chargeRate;
+            efficiencyMult = _solarPanel.efficiencyMult;
+            _efficMult = _solarPanel._efficMult;
+
+            calculatedEfficency = _solarPanel._efficMult > 0 
                 ? _solarPanel._efficMult
                 : (double)(decimal)_solarPanel.temperatureEfficCurve.Evaluate((Single)part.skinTemperature) * (double)(decimal)_solarPanel.timeEfficCurve.Evaluate((Single)((Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05)) * (double)(decimal)_solarPanel.efficiencyMult;
             
             double maxSupply = 0;
             double solar_rate = 0;
 
-            CalculateSolarFlowRate(efficency, ref maxSupply, ref solar_rate);
+            sunAOA = 0;
+            CalculateSolarFlowRate(calculatedEfficency / scale, ref maxSupply, ref solar_rate);
 
             if (_resourceBuffers != null)
                 _resourceBuffers.UpdateBuffers();
 
             // extract power otherwise we end up with double power
-            part.RequestResource(_solarPanel.resourceName, solar_rate * fixedDeltaTime);
+            mockInputResource.rate = flowRate;
 
             // provide power to supply manager
             solar_supply = outputType == ResourceType.megajoule ? solar_rate : solar_rate * 0.001;

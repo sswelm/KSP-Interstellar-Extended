@@ -604,7 +604,16 @@ namespace FNPlugin.Reactors
 
         public ReactorFuelType CurrentFuelMode
         {
-            get { return current_fuel_mode; }
+            get 
+            {
+                if (current_fuel_mode == null)
+                {
+                    Debug.Log("[KSPI]: CurrentFuelMode setting default fuelmode");
+                    SetDefaultFuelMode();
+                }
+
+                return current_fuel_mode; 
+            }
             set
             {
                 current_fuel_mode = value;
@@ -2372,10 +2381,18 @@ namespace FNPlugin.Reactors
             return !requiresLab || isConnectedToLab && canBeCombinedWithLab;
         }
 
-        protected virtual void SetDefaultFuelMode()
+        public virtual void SetDefaultFuelMode()
         {
-            max_power_to_supply = Math.Max(MaximumPower * TimeWarpFixedDeltaTime, 0);
+            Debug.Log("[KSPI]: Reactor SetDefaultFuelMode");
+            if (fuel_modes == null)
+            {
+                Debug.Log("[KSPI]: SetDefaultFuelMode - load fuel modes");
+                fuel_modes = GetReactorFuelModes();
+            }
+
             CurrentFuelMode = fuel_modes.FirstOrDefault();
+
+            max_power_to_supply = Math.Max(MaximumPower * TimeWarpFixedDeltaTime, 0);
 
             if (CurrentFuelMode == null)
                 print("[KSPI]: Warning : CurrentFuelMode is null");

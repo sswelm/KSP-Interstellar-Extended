@@ -84,6 +84,9 @@ namespace FNPlugin.External
             if (HighLogic.LoadedSceneIsFlight == false)
                 return;
 
+            if (Kerbalism.versionMajor == 0)
+                return;
+
             bool found = false;
 
             foreach (PartModule module in part.Modules)
@@ -104,7 +107,7 @@ namespace FNPlugin.External
             if (found)
                 UnityEngine.Debug.Log("[KSPI]: FNEmitterController Found Emitter");
             else
-                UnityEngine.Debug.LogError("[KSPI]: FNEmitterController failed to find Emitter");
+                UnityEngine.Debug.LogWarning("[KSPI]: FNEmitterController failed to find Emitter");
         }
 
         private void UpdateKerbalismEmitter()

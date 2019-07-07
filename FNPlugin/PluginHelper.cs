@@ -45,8 +45,11 @@ namespace FNPlugin
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
             GameEvents.onVesselSOIChanged.Remove(OmVesselSOIChanged);
 
-			var kerbalismVersionString = Kerbalism.versionMajor + "." + Kerbalism.versionMinor + "." + Kerbalism.versionMajorRevision + "." + Kerbalism.versionMinorRevision;
-			Debug.Log("[KSPI]: Loaded Kerbalism " + kerbalismVersionString);
+            var kerbalismversionstr = string.Format("{0}.{1}.{2}.{3}", Kerbalism.versionMajor, Kerbalism.versionMajorRevision, Kerbalism.versionMinor, Kerbalism.versionMinorRevision);
+
+            if (Kerbalism.versionMajor > 0)
+                Debug.Log("[KSPI]: Loaded Kerbalism " + kerbalismversionstr);
+
             Debug.Log("[KSPI]: GameEventSubscriber Deinitialised");
         }
 

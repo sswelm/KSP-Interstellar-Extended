@@ -41,9 +41,9 @@ namespace FNPlugin
         public string gearsTechReq = "";
 
         [KSPField]
-        public double powerReqMultWithoutReactor = 0; 
+        public double powerReqMultWithoutReactor = 0;
         [KSPField]
-        public double powerReqMult = 1; 
+        public double powerReqMult = 1;
         [KSPField]
         public int type;
         [KSPField]
@@ -109,9 +109,6 @@ namespace FNPlugin
         [KSPField]
         public string Mk7Tech = "";
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Max stored MJ usage", guiUnits = " %"), UI_FloatRange(minValue = 0, maxValue = 100, stepIncrement = 0.5f)]
-        public float maxMegaJouleUsagePercentage = 0;
-
         // GUI
         [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
@@ -150,7 +147,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
         public double lightSpeedRatio;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
-        public double timeDilation;      
+        public double timeDilation;
 
         [KSPField(guiActive = false)]
         public double expectedMass = 0;
@@ -164,7 +161,8 @@ namespace FNPlugin
         protected double effectiveRecievedPower;
         [KSPField(guiActive = false)]
         protected double effectiveSimulatedPower;
-        
+        [KSPField(guiActive = false)]
+        protected double modifiedThrotte;
         [KSPField(guiActive = false)]
         protected double effectivePowerThrustModifier;
         [KSPField(guiActive = false)]
@@ -192,6 +190,10 @@ namespace FNPlugin
         protected double simulatedThrustInSpace;
 
         [KSPField]
+        protected double highPriorityPowerSupply;
+        [KSPField]
+        protected double availablePower;
+        [KSPField]
         protected double maxThrustFromPower = 0.001;
         [KSPField]
         protected double effectPower = 0;
@@ -207,6 +209,8 @@ namespace FNPlugin
         public double massExponent = 3;
         [KSPField]
         public double maxPower = 1000;
+        [KSPField]
+        public double effectiveResourceThrotling;
 
         // privates
         const double OneThird = 1d / 3d;
@@ -239,8 +243,8 @@ namespace FNPlugin
         // Properties
         public string UpgradeTechnology { get { return upgradeTechReq; } }
         public double MaxPower { get { return scaledMaxPower * powerReqMult * powerCapacityModifier; } }
-        public double MaxEffectivePower { get { return ignoreWasteheat ? MaxPower :  MaxPower * CurrentPropellantEfficiency * ThermalEfficiency; } }
-        public bool IsOperational {get { return _attachedEngine != null ? _attachedEngine.isOperational : false; } }
+        public double MaxEffectivePower { get { return ignoreWasteheat ? MaxPower : MaxPower * CurrentPropellantEfficiency * ThermalEfficiency; } }
+        public bool IsOperational { get { return _attachedEngine != null ? _attachedEngine.isOperational : false; } }
 
         public double PowerCapacityModifier
         {
@@ -305,24 +309,24 @@ namespace FNPlugin
 
         public double CurrentIspMultiplier
         {
-            get 
-            { 
-                return type == (int)ElectricEngineType.VASIMR || type == (int)ElectricEngineType.ARCJET 
-                ? Current_propellant.DecomposedIspMult 
-                : Current_propellant.IspMultiplier; 
+            get
+            {
+                return type == (int)ElectricEngineType.VASIMR || type == (int)ElectricEngineType.ARCJET
+                ? Current_propellant.DecomposedIspMult
+                : Current_propellant.IspMultiplier;
             }
         }
 
         public double ThermalEfficiency
         {
-            get 
+            get
             {
-                if (HighLogic.LoadedSceneIsFlight == false || CheatOptions.IgnoreMaxTemperature || ignoreWasteheat)
+                if (HighLogic.LoadedSceneIsFlight || CheatOptions.IgnoreMaxTemperature || ignoreWasteheat)
                     return 1;
 
                 var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                return 1 - wasteheatRatio * wasteheatRatio; 
+                return 1 - wasteheatRatio * wasteheatRatio;
             }
         }
 
@@ -342,7 +346,7 @@ namespace FNPlugin
                 if (type == (int)ElectricEngineType.ARCJET)
                     efficiency = 0.87 * Current_propellant.Efficiency;
                 else if (type == (int)ElectricEngineType.VASIMR)
-                    efficiency =  Math.Max(1 - atmDensity, 0.00001) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency));
+                    efficiency = Math.Max(1 - atmDensity, 0.00001) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency));
                 else
                     efficiency = Current_propellant.Efficiency;
 
@@ -731,42 +735,37 @@ namespace FNPlugin
             var sumOfAllEffectivePower = vessel.FindPartModulesImplementing<ElectricEngineControllerFX>().Where(ee => ee.IsOperational).Sum(ee => ee.MaxEffectivePower);
             _electrical_share_f = sumOfAllEffectivePower > 0 ? maxEffectivePower / sumOfAllEffectivePower : 1;
 
-            modifiedMaxThrottlePower = maxEffectivePower * ModifiedThrotte;
+            modifiedThrotte = ModifiedThrotte;
+            modifiedMaxThrottlePower = maxEffectivePower * modifiedThrotte;
 
-            // calculate available power from power supply and stored power
-            var maxMegaJouleUsageRatio = maxMegaJouleUsagePercentage * 0.01;
-            var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-            var megajouleRatioAvailable = Math.Max(0, maxMegaJouleUsageRatio - (1 - megaJoulesBarRatio));
-            var availablePowerFromStoredMegaJoules = megajouleRatioAvailable * part.GetResourceMaxAvailable(ResourceManager.FNRESOURCE_MEGAJOULES);
-            var availablePower = getAvailableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) + availablePowerFromStoredMegaJoules;
-
+            highPriorityPowerSupply = getPriorityResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES, getPowerPriority());
+            availablePower = getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
             maxThrustFromPower = EvaluateMaxThrust(availablePower * _electrical_share_f);
 
-            var weightedMaxMegaJouleUsageRatio = Math.Min(1 - maxMegaJouleUsageRatio, 0.5);
+            var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+            effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
-            var effectiveResourceThrotling = megaJoulesBarRatio >= weightedMaxMegaJouleUsageRatio ? 1 : Math.Min(1, megaJoulesBarRatio * (1 / weightedMaxMegaJouleUsageRatio));
-
-            var rawPowerForEngine = effectiveResourceThrotling * maxThrustFromPower * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
-
-            currentPowerForEngine = rawPowerForEngine * ModifiedThrotte;
-            availablePowerForEngine = rawPowerForEngine;
+            //rawPowerForEngine = effectiveResourceThrotling * maxThrustFromPower * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
             
-            power_request = CheatOptions.InfiniteElectricity 
-                ? modifiedMaxThrottlePower 
-                : currentPropellantEfficiency <= 0 
-                    ? 0 
-                    : Math.Min(currentPowerForEngine / currentPropellantEfficiency, modifiedMaxThrottlePower);
+            availablePowerForEngine = availablePower * effectiveResourceThrotling * _electrical_share_f;
+            currentPowerForEngine = availablePowerForEngine * modifiedThrotte;
 
-            actualPowerReceived = CheatOptions.InfiniteElectricity 
+            power_request = CheatOptions.InfiniteElectricity
+                ? modifiedMaxThrottlePower
+                : currentPropellantEfficiency <= 0
+                    ? 0
+                    : Math.Min(currentPowerForEngine, modifiedMaxThrottlePower);
+
+            actualPowerReceived = CheatOptions.InfiniteElectricity
                 ? power_request
                 : consumeFNResourcePerSecond(power_request, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            simulatedPowerReceived = Math.Min(availablePowerForEngine / currentPropellantEfficiency, maxEffectivePower);
+            simulatedPowerReceived = Math.Min(availablePowerForEngine, maxEffectivePower);
 
             // produce waste heat
             var heatToProduce = actualPowerReceived * (1 - currentPropellantEfficiency) * Current_propellant.WasteHeatMultiplier;
 
-            _heat_production_f = CheatOptions.IgnoreMaxTemperature 
+            _heat_production_f = CheatOptions.IgnoreMaxTemperature
                 ? heatToProduce
                 : supplyFNResourcePerSecond(heatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
 
@@ -784,7 +783,7 @@ namespace FNPlugin
             effectiveSimulatedPower = effectivePowerThrustModifier * simulatedPowerReceived;
 
             currentThrustInSpace = _effectiveIsp <= 0 ? 0 : effectiveRecievedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
-            simulatedThrustInSpace = _effectiveIsp <= 0 ? 0 :effectiveSimulatedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
+            simulatedThrustInSpace = _effectiveIsp <= 0 ? 0 : effectiveSimulatedPower / _effectiveIsp / GameConstants.STANDARD_GRAVITY;
 
             _attachedEngine.maxThrust = (float)Math.Max(simulatedThrustInSpace, 0.001);
 
@@ -873,7 +872,7 @@ namespace FNPlugin
             {
                 var calculatedConsumptionInTon = this.vessel.packed ? 0 : currentThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
                 vacuumPlasmaResource.maxAmount = Math.Max(0.0000001, calculatedConsumptionInTon * 200 * (double)(decimal)TimeWarp.fixedDeltaTime);
-                part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, - vacuumPlasmaResource.maxAmount);
+                part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
             }
         }
 
@@ -978,7 +977,7 @@ namespace FNPlugin
                 if (IsValidPositiveNumber(requestedAmount))
                     fuelRatio = part.RequestResource(Current_propellant.Propellant.name, requestedAmount) / requestedAmount;
             }
-            else 
+            else
                 fuelRatio = 1;
 
             if (!double.IsNaN(fuelRatio) && !double.IsInfinity(fuelRatio) && fuelRatio > 0)
@@ -1107,7 +1106,7 @@ namespace FNPlugin
         }
 
         private static List<ElectricEnginePropellant> GetAllPropellants()
-        { 
+        {
             var propellantlist = GameDatabase.Instance.GetConfigNodes("ELECTRIC_PROPELLANT");
             List<ElectricEnginePropellant> propellantList;
             if (propellantlist.Length == 0)
