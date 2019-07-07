@@ -65,6 +65,7 @@
     <Compile Include="Collectors\UniversalCrustExtractor.cs" />
     <Compile Include="Extensions\Approximate.cs" />
     <Compile Include="Extensions\Decimal.cs" />
+    <Compile Include="Extensions\DoubleExtensions.cs" />
     <Compile Include="External\FNEmitterController.cs" />
     <Compile Include="HideHiddenPartsFilter.cs" />
     <Compile Include="External\Kerbalism.cs" />

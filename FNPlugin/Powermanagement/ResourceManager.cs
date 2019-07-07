@@ -223,9 +223,9 @@ namespace FNPlugin
 
         public void powerDrawFixed(IResourceSuppliable pm, double power_draw, double power_cosumtion)
         {
-            if (double.IsNaN(power_draw) || double.IsInfinity(power_draw))
+            if (power_draw.IsInfinityOrNaN())
                 return;
-            if (double.IsNaN(power_cosumtion) || double.IsInfinity(power_cosumtion))
+            if (power_cosumtion.IsInfinityOrNaN())
                 return;
 
             var timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
@@ -244,9 +244,9 @@ namespace FNPlugin
 
         public void powerDrawPerSecond(IResourceSuppliable pm, double power_requested, double power_consumed)
         {
-            if (double.IsNaN(power_requested) || double.IsInfinity(power_requested))
+            if (power_requested.IsInfinityOrNaN())
                 return;
-            if (double.IsNaN(power_consumed) || double.IsInfinity(power_consumed))
+            if (power_consumed.IsInfinityOrNaN())
                 return;
 
             current_requested_amount += power_requested;
@@ -264,7 +264,7 @@ namespace FNPlugin
 
         public double powerSupplyFixed(IResourceSupplier pm, double power)
         {
-            if (double.IsNaN(power) || double.IsInfinity(power))
+            if (power.IsInfinityOrNaN())
                 return 0;
 
             var current_power_supply_per_second = power / TimeWarpFixedDeltaTime;
@@ -287,7 +287,7 @@ namespace FNPlugin
 
         public double powerSupplyPerSecond(IResourceSupplier pm, double power)
         {
-            if (double.IsNaN(power) || double.IsInfinity(power))
+            if (power.IsInfinityOrNaN())
                 return 0;
 
             currentPowerSupply += power;
@@ -308,9 +308,9 @@ namespace FNPlugin
 
         public double powerSupplyFixedWithMax(IResourceSupplier pm, double power, double maxpower)
         {
-            if (double.IsNaN(power) || double.IsInfinity(power))
+            if (power.IsInfinityOrNaN())
                 return 0;
-            if (double.IsNaN(maxpower) || double.IsInfinity(maxpower))
+            if (maxpower.IsInfinityOrNaN())
                 return 0;
 
             var timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
@@ -336,11 +336,11 @@ namespace FNPlugin
 
         public double powerSupplyPerSecondWithMaxAndEfficiency(IResourceSupplier pm, double power, double maxpower, double efficiencyRatio)
         {
-            if (double.IsNaN(power) || double.IsInfinity(power))
+            if (power.IsInfinityOrNaN())
                 return 0;
-            if (double.IsNaN(maxpower) || double.IsInfinity(maxpower))
+            if (maxpower.IsInfinityOrNaN())
                 return 0;
-            if (double.IsNaN(efficiencyRatio) || double.IsInfinity(efficiencyRatio))
+            if (efficiencyRatio.IsInfinityOrNaN())
                 return 0;
 
             currentPowerSupply += power;
@@ -361,9 +361,9 @@ namespace FNPlugin
 
         public double powerSupplyPerSecondWithMax(IResourceSupplier pm, double power, double maxpower)
         {
-            if (double.IsNaN(power) || double.IsInfinity(power))
+            if (power.IsInfinityOrNaN())
                 return 0;
-            if (double.IsNaN(maxpower) || double.IsInfinity(maxpower))
+            if (maxpower.IsInfinityOrNaN())
                 return 0;
 
             currentPowerSupply += power;
@@ -423,11 +423,11 @@ namespace FNPlugin
 
         public PowerGenerated managedRequestedPowerSupplyPerSecondMinimumRatio(IResourceSupplier pm, double available_power, double maximum_power, double ratio_min)
         {
-            if (double.IsNaN(available_power) || double.IsInfinity(available_power))
+            if (available_power.IsInfinityOrNaN())
                 return new PowerGenerated();
-            if (double.IsNaN(maximum_power) || double.IsInfinity(maximum_power))
+            if (maximum_power.IsInfinityOrNaN())
                 return new PowerGenerated();
-            if (double.IsNaN(ratio_min) || double.IsInfinity(ratio_min))
+            if (ratio_min.IsInfinityOrNaN())
                 return new PowerGenerated();
 
             var minimum_power_per_second = maximum_power * ratio_min;
@@ -462,9 +462,9 @@ namespace FNPlugin
 
         public double managedPowerSupplyPerSecondWithMinimumRatio(IResourceSupplier pm, double maximum_power, double ratio_min)
         {
-            if (double.IsNaN(maximum_power) || double.IsInfinity(maximum_power))
+            if (maximum_power.IsInfinityOrNaN())
                 return 0;
-            if (double.IsNaN(ratio_min) || double.IsInfinity(ratio_min))
+            if (ratio_min.IsInfinityOrNaN())
                 return 0;
 
             var minimum_power_per_second = maximum_power * ratio_min;
@@ -630,7 +630,7 @@ namespace FNPlugin
                     var power_supplied = Math.Min(currentPowerSupply * 1000 * timeWarpFixedDeltaTime, stock_electric_charge_needed);
                     if (power_supplied > 0)
                     {
-                        var fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)-(power_supplied + 0.01)) / 1000;
+                        var fixed_provided_electric_charge_in_MW = power_supplied.IsInfinityOrNaN() ? 0 : my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)-(power_supplied + 0.01)) / 1000;
                         var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW / timeWarpFixedDeltaTime;
                         total_power_distributed += -provided_electric_charge_per_second;
                         currentPowerSupply += provided_electric_charge_per_second;
@@ -706,7 +706,7 @@ namespace FNPlugin
 
                 my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
 
-                if (!double.IsNaN(amount))
+                if (!amount.IsInfinityOrNaN())
                 {
                     var stock_electric_charge_needed = maxAmount - amount;
 
@@ -721,7 +721,8 @@ namespace FNPlugin
 
                     if (power_supplied > 0)
                     {
-                        var fixed_provided_electric_charge_in_MW = my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -power_supplied) / 1000;
+                        var fixed_provided_electric_charge_in_MW = power_supplied.IsInfinityOrNaN() ? 0 :  my_part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, -power_supplied) / 1000;
+
                         var provided_electric_charge_per_second = fixed_provided_electric_charge_in_MW / timeWarpFixedDeltaTime;
                         total_power_distributed += -provided_electric_charge_per_second;
                         currentPowerSupply += provided_electric_charge_per_second;
@@ -915,13 +916,15 @@ namespace FNPlugin
             else
                 internl_power_extract_fixed = Math.Max(internl_power_extract_fixed, -missingResourceAmount);
 
-            if (!double.IsNaN(internl_power_extract_fixed) && !double.IsInfinity(internl_power_extract_fixed))
+            if (!internl_power_extract_fixed.IsInfinityOrNaN())
+            {
                 my_part.RequestResource(resourceDefinition.id, (double)internl_power_extract_fixed);
+            }
 
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out availableResourceAmount, out maxResouceAmount);
 
-            if (maxResouceAmount > 0 && !double.IsNaN(maxResouceAmount) && !double.IsNaN(availableResourceAmount))
-                resource_bar_ratio_begin = availableResourceAmount / maxResouceAmount;
+            if (!maxResouceAmount.IsInfinityOrNaNorZero() && !availableResourceAmount.IsInfinityOrNaN())
+                resource_bar_ratio_begin =  Math.Max(0, Math.Min(1,  availableResourceAmount / maxResouceAmount));
             else
                 resource_bar_ratio_begin = resourceDefinition.id == wasteheatResourceDefinition.id ? 0.999 : 0;
 
