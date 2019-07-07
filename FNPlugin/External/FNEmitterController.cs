@@ -10,14 +10,14 @@ namespace FNPlugin.External
         // Persistant input
         [KSPField(isPersistant = true)]
         public double reactorActivityFraction;
-        [KSPField(isPersistant = true)]
-        public double fuelNeutronsFraction;
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Fuel Neutrons Fraction")]
+        public double fuelNeutronsFraction = 0.02;
         [KSPField(isPersistant = true)]
         public double lithiumNeutronAbsorbtionFraction;
         [KSPField(isPersistant = true)]
         public double exhaustActivityFraction;
         [KSPField(isPersistant = true)]
-        public double radioavtiveFuelLeakFraction;
+        public double radioactiveFuelLeakFraction;
         [KSPField(isPersistant = true)]
         public bool exhaustProducesNeutronRadiation = false;
         [KSPField(isPersistant = true)]
@@ -27,42 +27,50 @@ namespace FNPlugin.External
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Gamma Radiation")]
         public double maxRadiation = 0.02;
         [KSPField]
-        public double neutronsExhaustRadiationMult = 16;
+        public double neutronsExhaustRadiationMult = 1;
         [KSPField]
-        public double gammaRayExhaustRadiationMult = 4;
+        public double gammaRayExhaustRadiationMult = 0.5;
         [KSPField]
         public double neutronScatteringRadiationMult = 20;
         [KSPField]
         public double radius = 1;
+        [KSPField]
+        public double habitatMassMultiplier = 20;
+        [KSPField]
+        public double reactorMassMultiplier = 10; 
 
         // Gui
         [KSPField(guiActive = false, guiName = "Distance Radiation Modifier", guiFormat = "F5")]
         public double averageDistanceModifier;
         [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F5")]
         public double averageCrewDistanceToEmitter;
-        [KSPField(guiActive = false, guiName = "Average Crew Mass Protection", guiUnits = " g/cm2", guiFormat = "F5")]
+        [KSPField(guiActive = true, guiName = "Average Crew Mass Protection", guiUnits = " g/cm2", guiFormat = "F5")]
         public double averageCrewMassProtection;
-        [KSPField(guiActive = false, guiName = "Average Lead Equivalant Thickness", guiUnits = " cm", guiFormat = "F5")]
-        public double averageCrewLeadEquivalantThickness;
+        [KSPField(guiActive = true, guiName = "Reactor Shadow Mass Protection")]
+        public double reactorShadowShieldMassProtection;
+        [KSPField(guiActive = true, guiName = "Average Habitat Lead Thickness", guiUnits = " cm", guiFormat = "F5")]
+        public double averageHabitatLeadEquivalantThickness;
+        [KSPField(guiActive = true, guiName = "Reactor Shadow Shield Lead Thickness", guiUnits = " cm", guiFormat = "F5")]
+        public double reactorShadowShieldLeadThickness;
         [KSPField(guiActive = false, guiName = "Average GammaRays Attenuation", guiFormat = "F5")]
-        public double averageLeadGammaAttenuation;
+        public double averageHabitatLeadGammaAttenuation;
         [KSPField(guiActive = false, guiName = "Average Neutron Attenuation", guiFormat = "F5")]
-        public double averageNeutronAttenuation;
+        public double averageHabitaNeutronAttenuation;
         [KSPField(guiActive = false, guiName = "Emitter Radiation Rate")]
         public double emitterRadiationRate;
         [KSPField(guiActive = false, guiName = "Gamma Transparency")]
         public double gammaTransparency;
 
         // Output
-        [KSPField]
+        [KSPField(guiActive = true, guiName = "Reactor Core Neutron Radiation")]
         public double reactorCoreNeutronRadiation;
-        [KSPField]
+        [KSPField(guiActive = true, guiName = "Reactor Core Gamma Radiation")]
         public double reactorCoreGammaRadiation;
-        [KSPField]
+        [KSPField(guiActive = true, guiName = "Lost Fission Fuel Radiation")]
         public double lostFissionFuelRadiation;
-        [KSPField]
+        [KSPField(guiActive = true, guiName = "Fission Exhaust Radiation")]
         public double fissionExhaustRadiation;
-        [KSPField]
+        [KSPField(guiActive = true, guiName = "Fission Fragment Radiation")]
         public double fissionFragmentRadiation;
 
         // Privates
@@ -149,17 +157,19 @@ namespace FNPlugin.External
 
             averageCrewMassProtection = Math.Max(0, totalCrewMassShielding / totalCrew);
             averageCrewDistanceToEmitter = Math.Max(1, totalDistancePart / totalCrew);
-            averageCrewLeadEquivalantThickness = 20 * (averageCrewMassProtection / 0.2268);
 
-            averageLeadGammaAttenuation = Math.Pow(1 - 0.9, averageCrewLeadEquivalantThickness / 5);
-            averageNeutronAttenuation = Math.Pow(1 - 0.5, averageCrewLeadEquivalantThickness / 6.8);
+            averageHabitatLeadEquivalantThickness = habitatMassMultiplier * averageCrewMassProtection / 0.2268;
+            reactorShadowShieldLeadThickness = reactorMassMultiplier * reactorShadowShieldMassProtection;
+
+            averageHabitatLeadGammaAttenuation = Math.Pow(1 - 0.9, (averageHabitatLeadEquivalantThickness + reactorShadowShieldLeadThickness) / 5);
+            averageHabitaNeutronAttenuation = Math.Pow(1 - 0.5, averageHabitatLeadEquivalantThickness / 6.8);
 
             gammaTransparency = Kerbalism.GammaTransparency(vessel.mainBody, vessel.altitude);
 
             averageDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
 
-            var averageDistanceGammaRayShieldingAttenuation = averageDistanceModifier * averageLeadGammaAttenuation;
-            var averageDistanceNeutronShieldingAttenuation = averageDistanceModifier * averageNeutronAttenuation;
+            var averageDistanceGammaRayShieldingAttenuation = averageDistanceModifier * averageHabitatLeadGammaAttenuation;
+            var averageDistanceNeutronShieldingAttenuation = averageDistanceModifier * averageHabitaNeutronAttenuation;
 
             var maxCoreRadiation = maxRadiation * reactorActivityFraction;
 
@@ -168,9 +178,9 @@ namespace FNPlugin.External
 
             var maxEngineRadiation = maxRadiation * exhaustActivityFraction;
 
-            lostFissionFuelRadiation = maxEngineRadiation * averageDistanceNeutronShieldingAttenuation * (1 + part.atmDensity) * radioavtiveFuelLeakFraction * neutronsExhaustRadiationMult;
-            fissionExhaustRadiation = maxEngineRadiation * averageDistanceNeutronShieldingAttenuation * (1 + part.atmDensity) * (exhaustProducesNeutronRadiation ? 0 : neutronsExhaustRadiationMult);
-            fissionFragmentRadiation = maxEngineRadiation * averageDistanceGammaRayShieldingAttenuation * (exhaustProducesGammaRadiation ? 0 : gammaRayExhaustRadiationMult);
+            lostFissionFuelRadiation = maxEngineRadiation * averageDistanceNeutronShieldingAttenuation * (1 + part.atmDensity) * radioactiveFuelLeakFraction * neutronsExhaustRadiationMult;
+            fissionExhaustRadiation = maxEngineRadiation * averageDistanceNeutronShieldingAttenuation * (1 + part.atmDensity) * (exhaustProducesNeutronRadiation ? neutronsExhaustRadiationMult : 0);
+            fissionFragmentRadiation = maxEngineRadiation * averageDistanceGammaRayShieldingAttenuation * (exhaustProducesGammaRadiation ? gammaRayExhaustRadiationMult : 0);
 
             emitterRadiationRate = 0;
             emitterRadiationRate += reactorCoreGammaRadiation;

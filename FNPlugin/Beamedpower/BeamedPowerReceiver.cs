@@ -556,7 +556,7 @@ namespace FNPlugin
 
         public IElectricPowerGeneratorSource ConnectedChargedParticleElectricGenerator { get; set; }
 
-        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD, double mass)
         {
             NotifyActiveThermalEnergyGenerator(efficency, power_ratio);
         }
@@ -568,6 +568,8 @@ namespace FNPlugin
         }
 
         public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio) { }
+
+        public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio, double mass) { }
 
         public bool IsThermalSource
         {

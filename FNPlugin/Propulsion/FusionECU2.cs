@@ -1,6 +1,7 @@
 ﻿using FNPlugin.Power;
 using FNPlugin.Constants;
 using FNPlugin.Wasteheat;
+using FNPlugin.External;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -86,9 +87,8 @@ namespace FNPlugin
         public double partEmissiveConstant;
         [KSPField]
         protected float curveMaxISP; // ToDo: make sure it is properly initialized after  comming from assembly 
-
-        //[KSPField(guiActive = true)]
-        //public int updatedRatios;
+        [KSPField]
+        public double radius = 1;
 
         // abstracts
         protected abstract float InitialGearRatio { get; }
@@ -105,11 +105,10 @@ namespace FNPlugin
         // protected
         protected bool hasrequiredupgrade = false;
         protected bool radhazard = false;
-        //protected double standard_megajoule_rate = 0;
-        //protected double standard_deuterium_rate = 0;
         protected double standard_tritium_rate = 0;
         protected string FuelConfigName = "Fusion Type";
         protected ResourceBuffers resourceBuffers;
+        protected FNEmitterController emitterController;
 
         protected double Altitude, lastAltitude;
 
@@ -132,6 +131,29 @@ namespace FNPlugin
         public void upgradePartModule() { }
 
         #endregion
+
+        private void InitializeKerbalismEmitter()
+        {
+            if (!Kerbalism.IsLoaded)
+                return;
+
+            emitterController = part.FindModuleImplementing<FNEmitterController>();
+            
+            if (emitterController == null)
+                UnityEngine.Debug.LogWarning("[KSPI]: No Emitter Found om " + part.partInfo.title);
+        }
+
+        private void UpdateKerbalismEmitter()
+        {
+            if (emitterController == null)
+                return;
+
+            throttle = curEngineT.currentThrottle > MinThrottleRatio ? curEngineT.currentThrottle : 0;
+
+            emitterController.reactorActivityFraction = fusionRatio;
+            emitterController.exhaustActivityFraction = fusionRatio;
+            emitterController.fuelNeutronsFraction = 0.8;
+        }
 
         public double MaximumThrust
         {
@@ -352,8 +374,7 @@ namespace FNPlugin
                 curveMaxISP = GetMaxKey(BaseFloatCurve);
                 if (hasMultipleConfigurations) FcSetup();
 
-                //standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
-                //standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
+                InitializeKerbalismEmitter();
 
                 DetermineTechLevel();
 
@@ -503,7 +524,7 @@ namespace FNPlugin
                     ShutDown("Engine Stall");
             }
 
-            KillKerbalsWithRadiation(throttle);
+            KillKerbalsWithRadiation(fusionRatio);
 
             hasIspThrottling = HasIspThrottling();
 
@@ -525,8 +546,7 @@ namespace FNPlugin
                     ? requestedPowerPerSecond
                     : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                var plasmaRatio = requestedPowerPerSecond > 0 ? recievedPowerPerSecond / requestedPowerPerSecond : 1;
-                fusionRatio = plasmaRatio;
+                fusionRatio = requestedPowerPerSecond > 0 ? recievedPowerPerSecond / requestedPowerPerSecond : 1;
 
                 laserWasteheat = recievedPowerPerSecond * (1 - LaserEfficiency);
 
@@ -557,7 +577,7 @@ namespace FNPlugin
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.maxThrust = (float)maximumThrust;
 
-                if (!curEngineT.getFlameoutState && plasmaRatio < 0.75 && recievedPowerPerSecond > 0)
+                if (!curEngineT.getFlameoutState && fusionRatio < 0.75 && recievedPowerPerSecond > 0)
                     curEngineT.status = "Insufficient Electricity";
             }
             else
@@ -604,8 +624,10 @@ namespace FNPlugin
             }
         }
 
-        private void KillKerbalsWithRadiation(float radiationRatio)
+        private void KillKerbalsWithRadiation(double radiationRatio)
         {
+            UpdateKerbalismEmitter();
+
             if (!radhazard || radiationRatio <= 0.00 || rad_safety_features) return;
 
             //System.Random rand = new System.Random(new System.DateTime().Millisecond);

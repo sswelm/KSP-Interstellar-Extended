@@ -530,7 +530,6 @@ namespace FNPlugin.Reactors
         [KSPField]public double lithiumNeutronAbsorbtion = 1;
         [KSPField]public bool isConnectedToThermalGenerator;
         [KSPField]public bool isConnectedToChargedGenerator;
-        [KSPField]public double maxRadiation = 0.02;
 
         // shared variabels
         protected bool decay_ongoing = false;
@@ -576,6 +575,9 @@ namespace FNPlugin.Reactors
         double consumedFuelTotalFixed;
         double consumedFuelTotalPerSecond;
         double connectedRecieversSum;
+
+        double currentThermalEnergyGeneratorMass;
+        double currentChargedEnergyGeneratorMass;
 
         double tritiumBreedingMassAdjustment;
         double heliumBreedingMassAdjustment;
@@ -804,8 +806,9 @@ namespace FNPlugin.Reactors
         public double EfficencyConnectedChargedEnergyGenerator { get { return storedIsChargedEnergyGeneratorEfficiency; } }
 
 
-        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD)
+        public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD, double mass)
         {
+            currentThermalEnergyGeneratorMass = mass;
             currentThermalEnergyGeneratorIsMHD = isMHD;
 
             if (isMHD)
@@ -830,6 +833,14 @@ namespace FNPlugin.Reactors
 
         public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio)
         {
+            currentIsChargedEnergyGenratorEfficiency = efficency;
+            currentGeneratorChargedEnergyRequestRatio = power_ratio;
+            isConnectedToChargedGenerator = true;
+        }
+
+        public void NotifyActiveChargedEnergyGenerator(double efficency, double power_ratio, double mass) 
+        {
+            currentChargedEnergyGeneratorMass = mass;
             currentIsChargedEnergyGenratorEfficiency = efficency;
             currentGeneratorChargedEnergyRequestRatio = power_ratio;
             isConnectedToChargedGenerator = true;
@@ -2550,16 +2561,19 @@ namespace FNPlugin.Reactors
 
         private void InitializeKerbalismEmitter()
         {
+            if (!Kerbalism.IsLoaded)
+                return;
+
             emitterController = part.FindModuleImplementing<FNEmitterController>();
 
             if (emitterController != null)
             {
                 emitterController.radius = radius;
-                emitterController.exhaustProducesNeutronRadiation = mayExhaustInLowSpaceHomeworld;
-                emitterController.exhaustProducesGammaRadiation = mayExhaustInAtmosphereHomeworld;
+                emitterController.exhaustProducesNeutronRadiation = !mayExhaustInLowSpaceHomeworld;
+                emitterController.exhaustProducesGammaRadiation = !mayExhaustInAtmosphereHomeworld;
             }
             else
-                UnityEngine.Debug.LogError("[KSPI]: No Emitter Found om " + part.partInfo.title);
+                UnityEngine.Debug.LogWarning("[KSPI]: No Emitter Found om " + part.partInfo.title);
         }
 
         private void UpdateKerbalismEmitter()
@@ -2571,7 +2585,11 @@ namespace FNPlugin.Reactors
             emitterController.fuelNeutronsFraction = CurrentFuelMode.NeutronsRatio;
             emitterController.lithiumNeutronAbsorbtionFraction = lithiumNeutronAbsorbtion;
             emitterController.exhaustActivityFraction = propulsion_request_ratio_sum;
-            emitterController.radioavtiveFuelLeakFraction = Math.Max(0, 1 - geeForceModifier);
+            emitterController.radioactiveFuelLeakFraction = Math.Max(0, 1 - geeForceModifier);
+
+            emitterController.reactorShadowShieldMassProtection = isConnectedToThermalGenerator || isConnectedToChargedGenerator
+                ? Math.Max(currentChargedEnergyGeneratorMass, currentThermalEnergyGeneratorMass) / (radius * radius) / (RawMaximumPower * 0.001)
+                : 0;
         }
 
         public void OnGUI()

@@ -73,6 +73,11 @@ namespace FNPlugin
             Debug.Log("[KSPI]: KERBALISM was not found");
         }
 
+        public static bool IsLoaded
+        {
+            get { return versionMajor > 0; }
+        }
+
         // return proportion of ionizing radiation not blocked by atmosphere
         public static double GammaTransparency(CelestialBody body, double altitude)
         {
