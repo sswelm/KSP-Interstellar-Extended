@@ -1409,15 +1409,15 @@ namespace FNPlugin
             }
             else
             {
-                if (overrideVelocityCurve && jetPerformanceProfile == 0)
+                if (overrideVelocityCurve && jetPerformanceProfile == 0)    // Ramjet
                 {
-                    velCurve.Add(0,  0.02f + _jetTechBonusPercentage / 10);
+                    velCurve.Add(0, 0.01f + _jetTechBonusPercentage / 20);
                     velCurve.Add(2.5f - _jetTechBonusCurveChange, 1);
                     velCurve.Add(5 + _jetTechBonusCurveChange * 2, 1);
                     velCurve.Add(14, 0 + _jetTechBonusPercentage);
                     velCurve.Add(20, 0);
                 }
-                else if (overrideVelocityCurve && jetPerformanceProfile == 1)
+                else if (overrideVelocityCurve && jetPerformanceProfile == 1)   // Turbojet
                 {
                     velCurve.Add(0, 0.50f + _jetTechBonusPercentage);
                     velCurve.Add(1, 1.00f);
