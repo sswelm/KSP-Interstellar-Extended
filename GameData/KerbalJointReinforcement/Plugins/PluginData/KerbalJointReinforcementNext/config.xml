@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <bool name="reinforceAttachNodes">1</bool>
+    <bool name="multiPartAttachNodeReinforcement">1</bool>
+    <bool name="reinforceDecouplersFurther">1</bool>
+    <bool name="reinforceLaunchClampsFurther">1</bool>
+    <bool name="useVolumeNotArea">1</bool>
+    <bool name="debug">0</bool>
+
+    <float name="angularDriveSpring">5e12</float>
+    <float name="angularDriveDamper">25</float>
+    <float name="angularMaxForceFactor">-1</float>
+
+    <float name="decouplerAndClampJointStrength">-1</float>
+
+    <float name="breakForceMultiplier">1</float>
+    <float name="breakTorqueMultiplier">1</float>
+    <float name="breakStrengthPerArea">1500</float>
+    <float name="breakTorquePerMOI">6000</float>
+
+    <float name="massForAdjustment">0.01</float>
+    <float name="upperMassForLockedJoint">0</float>
+
+    <string name="decouplerStiffeningExtensionType0">ModuleEngines</string>
+    <string name="decouplerStiffeningExtensionType1">ModuleEnginesFX</string>
+    <string name="decouplerStiffeningExtensionType2">ModuleHybridEngine</string>
+    <string name="decouplerStiffeningExtensionType3">ModuleHybridEngines</string>
+    <string name="decouplerStiffeningExtensionType4">ModuleEngineConfigs</string>
+    <string name="adecouplerStiffeningExtensionType5">ModuleDecouple</string>
+    <string name="adecouplerStiffeningExtensionType6">ModuleAnchoredDecoupler</string>
+    <string name="adecouplerStiffeningExtensionType7">ProceduralFairingBase</string>
+
+    <float name="stiffeningExtensionMassRatioThreshold">5</float>
+</config>
