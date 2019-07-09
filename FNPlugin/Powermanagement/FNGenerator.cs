@@ -1106,7 +1106,7 @@ namespace FNPlugin
                             requestedThermalPower = Math.Min(thermalPowerRequested, maximumThermalPower);
                             thermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
 
-                            attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD, part.mass);
+                            attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD, isLimitedByMinThrotle ? part.mass * 0.05 : part.mass);
                         }
                         else
                             thermalPowerReceived = 0;
@@ -1123,7 +1123,7 @@ namespace FNPlugin
                             var maximumChargedPower = attachedPowerSource.MaximumChargedPower * powerUsageEfficiency * CapacityRatio;
                             var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? thermalPowerRequested / maximumChargedPower : 0);
 
-                            attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, chargedPowerRequestRatio, isMHD, part.mass);
+                            attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, chargedPowerRequestRatio, isMHD, isLimitedByMinThrotle ? part.mass * 0.05 : part.mass);
                         }
                         else if (shouldUseChargedPower && thermalPowerReceived < reactorPowerRequested)
                         {
