@@ -26,6 +26,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public double oxygen = -1;
 
+        [KSPField(isPersistant = true)]
+        public bool nitrogenRefiled = false;
+
         [KSPField]
         public string deployedComfortBonus = "";
         [KSPField]
@@ -603,6 +606,16 @@ namespace FNPlugin
                 var ratio = oxygenPartResource.amount / oxygenPartResource.maxAmount;
                 oxygenPartResource.maxAmount = oxygen;
                 oxygenPartResource.amount = ratio * oxygenPartResource.maxAmount;
+            }
+
+            if (HighLogic.LoadedSceneIsFlight && !nitrogenRefiled)
+            {
+                var nitrogenPartResource = part.Resources["Nitrogen"];
+                if (nitrogenPartResource != null)
+                {
+                    nitrogenPartResource.amount = nitrogenPartResource.maxAmount;
+                    nitrogenRefiled = true;
+                }
             }
         }
 
