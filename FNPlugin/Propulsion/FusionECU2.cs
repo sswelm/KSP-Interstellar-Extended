@@ -148,11 +148,9 @@ namespace FNPlugin
             if (emitterController == null)
                 return;
 
-            throttle = curEngineT.currentThrottle > MinThrottleRatio ? curEngineT.currentThrottle : 0;
-
             emitterController.reactorActivityFraction = fusionRatio;
             emitterController.exhaustActivityFraction = fusionRatio;
-            emitterController.fuelNeutronsFraction = 0.8;
+            emitterController.fuelNeutronsFraction = CurrentActiveConfiguration.neutronRatio;
         }
 
         public double MaximumThrust
@@ -555,15 +553,10 @@ namespace FNPlugin
                     supplyFNResourcePerSecond(laserWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
-
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
                 neutronbsorbionBonus = hasIspThrottling ? 1 - NeutronAbsorptionFractionAtMinIsp * (1 - ((SelectedIsp - MinIsp) / (MaxIsp - MinIsp))) : 0.5;
                 absorbedWasteheat = FusionWasteHeat * wasteHeatMultiplier * fusionRatio * throttle * neutronbsorbionBonus;
                 supplyFNResourcePerSecond(absorbedWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
-
-                // change ratio propellants Hydrogen/Fusion
-                //SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)(standard_deuterium_rate * rateMultplier));
-                //SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)(standard_tritium_rate * rateMultplier));
 
                 SetRatios();
 
@@ -595,8 +588,6 @@ namespace FNPlugin
 
                 var maxFuelFlow = maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
-                //SetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium, (float)(standard_deuterium_rate * rateMultplier));
-                //SetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium, (float)(standard_tritium_rate * rateMultplier));
 
                 SetRatios();
             }

@@ -33,7 +33,9 @@ namespace FNPlugin.External
         [KSPField]
         public double neutronScatteringRadiationMult = 20;
         [KSPField]
-        public double radius = 1;
+        public double diameter = 1;
+        [KSPField]
+        public double height = 0;
         [KSPField]
         public double habitatMassMultiplier = 20;
         [KSPField]
@@ -48,10 +50,16 @@ namespace FNPlugin.External
         public double averageCrewMassProtection;
         [KSPField(guiActive = true, guiName = "Reactor Shadow Mass Protection")]
         public double reactorShadowShieldMassProtection;
+        [KSPField(guiActive = true, guiName = "reactor Lead Shielding Thickness", guiUnits = " cm", guiFormat = "F5")]
+        public double reactorLeadShieldingThickness;
         [KSPField(guiActive = true, guiName = "Average Habitat Lead Thickness", guiUnits = " cm", guiFormat = "F5")]
         public double averageHabitatLeadEquivalantThickness;
         [KSPField(guiActive = true, guiName = "Reactor Shadow Shield Lead Thickness", guiUnits = " cm", guiFormat = "F5")]
         public double reactorShadowShieldLeadThickness;
+        [KSPField(guiActive = false, guiName = "Reactor GammaRays Attenuation", guiFormat = "F5")]
+        public double reactorShieldingGammaAttenuation;
+        [KSPField(guiActive = false, guiName = "Reactor Neutron Attenuation", guiFormat = "F5")]
+        public double reactorShieldingNeutronAttenuation;
         [KSPField(guiActive = false, guiName = "Average GammaRays Attenuation", guiFormat = "F5")]
         public double averageHabitatLeadGammaAttenuation;
         [KSPField(guiActive = false, guiName = "Average Neutron Attenuation", guiFormat = "F5")]
@@ -76,6 +84,7 @@ namespace FNPlugin.External
         // Privates
         PartModule emitterModule;
         BaseField emitterRadiationField;
+        PartResource shieldingPartResource;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -89,14 +98,25 @@ namespace FNPlugin.External
 
         private void InitializeKerbalismEmitter()
         {
-            if (HighLogic.LoadedSceneIsFlight == false)
-                return;
-
             if (Kerbalism.versionMajor == 0)
                 return;
 
-            bool found = false;
+            shieldingPartResource = part.Resources["Shielding"];
+            if (shieldingPartResource != null)
+            {
+                var radius = diameter * 0.5;
+                if (height == 0)
+                    height = diameter;
 
+                var ratio = shieldingPartResource.amount / shieldingPartResource.maxAmount;
+                shieldingPartResource.maxAmount = (2 * Math.PI * radius * radius) + (2 * Math.PI * radius * height);    // 2 π r2 + 2 π r h 
+                shieldingPartResource.amount = shieldingPartResource.maxAmount * ratio;
+            }
+
+            if (HighLogic.LoadedSceneIsFlight == false)
+                return;
+
+            bool found = false;
             foreach (PartModule module in part.Modules)
             {
                 if (module.moduleName == "Emitter")
@@ -144,7 +164,7 @@ namespace FNPlugin.External
 
                 double distanceToPart = (reactorPosition - partWithCrew.transform.position).magnitude;
 
-                totalDistancePart += distanceToPart * partCrewCount / radius;
+                totalDistancePart += distanceToPart * partCrewCount / diameter;
 
                 var habitat = partWithCrew.FindModuleImplementing<KerbalismHabitatController>();
                 if (habitat != null)
@@ -158,8 +178,12 @@ namespace FNPlugin.External
             averageCrewMassProtection = Math.Max(0, totalCrewMassShielding / totalCrew);
             averageCrewDistanceToEmitter = Math.Max(1, totalDistancePart / totalCrew);
 
+            reactorLeadShieldingThickness = shieldingPartResource != null ? (shieldingPartResource.info.density / 0.2268) * 20 * shieldingPartResource.amount / shieldingPartResource.maxAmount : 0;
             averageHabitatLeadEquivalantThickness = habitatMassMultiplier * averageCrewMassProtection / 0.2268;
             reactorShadowShieldLeadThickness = reactorMassMultiplier * reactorShadowShieldMassProtection;
+
+            reactorShieldingGammaAttenuation = Math.Pow(1 - 0.9, reactorLeadShieldingThickness / 5);
+            reactorShieldingNeutronAttenuation = Math.Pow(1 - 0.5, reactorLeadShieldingThickness / 6.8);
 
             averageHabitatLeadGammaAttenuation = Math.Pow(1 - 0.9, (averageHabitatLeadEquivalantThickness + reactorShadowShieldLeadThickness) / 5);
             averageHabitaNeutronAttenuation = Math.Pow(1 - 0.5, averageHabitatLeadEquivalantThickness / 6.8);
@@ -173,8 +197,8 @@ namespace FNPlugin.External
 
             var maxCoreRadiation = maxRadiation * reactorActivityFraction;
 
-            reactorCoreGammaRadiation = maxCoreRadiation * averageDistanceGammaRayShieldingAttenuation;
-            reactorCoreNeutronRadiation = maxCoreRadiation * averageDistanceNeutronShieldingAttenuation * part.atmDensity * fuelNeutronsFraction * neutronScatteringRadiationMult * Math.Max(0, 1 - lithiumNeutronAbsorbtionFraction);
+            reactorCoreGammaRadiation = maxCoreRadiation * averageDistanceGammaRayShieldingAttenuation * reactorShieldingGammaAttenuation;
+            reactorCoreNeutronRadiation = maxCoreRadiation * averageDistanceNeutronShieldingAttenuation * reactorShieldingNeutronAttenuation * part.atmDensity * fuelNeutronsFraction * neutronScatteringRadiationMult * Math.Max(0, 1 - lithiumNeutronAbsorbtionFraction);
 
             var maxEngineRadiation = maxRadiation * exhaustActivityFraction;
 

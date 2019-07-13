@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using UnityEngine;
 using FNPlugin.Constants;
+using FNPlugin.External;
 
 
 namespace FNPlugin
@@ -240,6 +241,8 @@ namespace FNPlugin
         [KSPField]
         public double ispThrottleExponent = 0.5;
         [KSPField]
+        public double fuelNeutronsFraction = 0.005;
+        [KSPField]
         public int powerPriority = 4;
         [KSPField]
         public float upgradeCost = 100;
@@ -282,6 +285,7 @@ namespace FNPlugin
         double fusionFuelFactor2;
         double fusionFuelFactor3;
 
+        FNEmitterController emitterController;
         Stopwatch stopWatch;
         ModuleEngines curEngineT;
         BaseEvent deactivateRadSafetyEvent;
@@ -532,11 +536,34 @@ namespace FNPlugin
                 Fields["guiPowerMk7"].guiActiveEditor = totalNumberOfGenerations > 6;
                 Fields["guiPowerMk8"].guiActiveEditor = totalNumberOfGenerations > 7;
                 Fields["guiPowerMk9"].guiActiveEditor = totalNumberOfGenerations > 8;
+
+                InitializeKerbalismEmitter();
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError("[KSPI]: Error OnStart " + e.Message + " stack " + e.StackTrace);
             }
+        }
+
+        private void InitializeKerbalismEmitter()
+        {
+            if (!Kerbalism.IsLoaded)
+                return;
+
+            emitterController = part.FindModuleImplementing<FNEmitterController>();
+
+            if (emitterController == null)
+                UnityEngine.Debug.LogWarning("[KSPI]: No Emitter Found om " + part.partInfo.title);
+        }
+
+        private void UpdateKerbalismEmitter()
+        {
+            if (emitterController == null)
+                return;
+
+            emitterController.reactorActivityFraction = fusionRatio;
+            emitterController.exhaustActivityFraction = fusionRatio;
+            emitterController.fuelNeutronsFraction = fuelNeutronsFraction;
         }
 
         private void UpdateFuelFactors()
@@ -953,6 +980,8 @@ namespace FNPlugin
                 
                 massFlowRateTonPerHour = massFlowRateKgPerSecond * 3.6;
                 thrustPowerInTeraWatt = effectiveMaxThrustInKiloNewton * 500 * effectiveIsp * GameConstants.STANDARD_GRAVITY * 1e-12;
+
+                UpdateKerbalismEmitter();
 
                 stopWatch.Stop();
             }

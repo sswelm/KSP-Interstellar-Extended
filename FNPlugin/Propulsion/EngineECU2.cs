@@ -703,6 +703,8 @@ namespace FNPlugin
         public float thrustMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Mult")]
         public float powerMult = 1;
+        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Neutron Ratio")]
+        public float neutronRatio = 0.8f;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Wasteheat Mult")]
         public float wasteheatMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Has Isp Throttling")]

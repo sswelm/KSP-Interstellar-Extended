@@ -949,7 +949,7 @@ namespace FNPlugin
 
             if (!internl_power_extract_fixed.IsInfinityOrNaN())
             {
-                my_part.RequestResource(resourceDefinition.id, (double)internl_power_extract_fixed);
+                my_part.RequestResource(resourceDefinition.id, internl_power_extract_fixed);
             }
 
             my_part.GetConnectedResourceTotals(resourceDefinition.id, out availableResourceAmount, out maxResouceAmount);
@@ -957,7 +957,7 @@ namespace FNPlugin
             if (!maxResouceAmount.IsInfinityOrNaNorZero() && !availableResourceAmount.IsInfinityOrNaN())
                 resource_bar_ratio_begin =  Math.Max(0, Math.Min(1,  availableResourceAmount / maxResouceAmount));
             else
-                resource_bar_ratio_begin = resourceDefinition.id == wasteheatResourceDefinition.id ? 0.999 : 0;
+                resource_bar_ratio_begin = 0;
 
             if (resource_name == ResourceManager.FNRESOURCE_WASTEHEAT)
             {
