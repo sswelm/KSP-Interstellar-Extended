@@ -725,9 +725,14 @@ namespace FNPlugin.Reactors
 
         public void ConnectWithEngine(IEngineNoozle engine)
         {
+            Debug.Log("[KSPI]: ConnectWithEngine ");
+
             var fnEngine = engine as IFNEngineNoozle;
             if (fnEngine == null)
+            {
+                Debug.LogError("[KSPI]: engine is not a IFNEngineNoozle");
                 return;
+            }
 
             if (!connectedEngines.Contains(fnEngine))
                 connectedEngines.Add(fnEngine);
@@ -735,9 +740,14 @@ namespace FNPlugin.Reactors
 
         public void DisconnectWithEngine(IEngineNoozle engine)
         {
+            Debug.Log("[KSPI]: DisconnectWithEngine ");
+
             var fnEngine = engine as IFNEngineNoozle;
             if (fnEngine == null)
+            {
+                Debug.LogError("[KSPI]: engine is not a IFNEngineNoozle");
                 return;
+            }
 
             if (connectedEngines.Contains(fnEngine))
                 connectedEngines.Remove(fnEngine);
@@ -1608,7 +1618,6 @@ namespace FNPlugin.Reactors
         public virtual void Update()
         {
             DeterminePowerOutput();
-
             UpdateKerbalismEmitter();
 
             currentMass = part.mass;
@@ -1618,6 +1627,7 @@ namespace FNPlugin.Reactors
 
             if (HighLogic.LoadedSceneIsEditor)
             {
+                UpdateConnectedRecieversStr();
                 reactorSurface = radius * radius;
             }
         }
@@ -2568,7 +2578,7 @@ namespace FNPlugin.Reactors
 
             if (emitterController != null)
             {
-                emitterController.radius = radius;
+                emitterController.diameter = radius;
                 emitterController.exhaustProducesNeutronRadiation = !mayExhaustInLowSpaceHomeworld;
                 emitterController.exhaustProducesGammaRadiation = !mayExhaustInAtmosphereHomeworld;
             }

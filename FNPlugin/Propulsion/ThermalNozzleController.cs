@@ -653,11 +653,28 @@ namespace FNPlugin
 
         public void OnEditorDetach()
         {
-            if (AttachedReactor == null) return;
+            foreach (var symPart in part.symmetryCounterparts)
+            {
+                var symThermalNozzle = symPart.FindModuleImplementing<ThermalEngineController>();
 
-            AttachedReactor.DisconnectWithEngine(this);
+                if (symThermalNozzle != null)
+                {
+                    Debug.Log("[KSPI]: called DetachWithReactor on symmetryCounterpart");
+                    symThermalNozzle.DetachWithReactor();
+                }
+            }
+
+            DetachWithReactor();
+        }
+
+        public void DetachWithReactor()
+        {
+            if (AttachedReactor == null)
+                return;
 
             AttachedReactor.DetachThermalReciever(id);
+
+            AttachedReactor.DisconnectWithEngine(this);
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -672,8 +689,6 @@ namespace FNPlugin
             // use default when maxThermalNozzleIsp is not configured
             if (maxThermalNozzleIsp == 0)
                 maxThermalNozzleIsp = PluginHelper.MaxThermalNozzleIsp;
-
-           // Debug.Log("[KSPI]: ThermalNozzleController - ScaleParameters");
 
             ScaleParameters();            
 
@@ -691,8 +706,6 @@ namespace FNPlugin
                 part.skinThermalMassModifier = skinThermalMassModifier;
                 part.skinInternalConductionMult = skinInternalConductionMult;
 
-                //Debug.Log("[KSPI]: ThermalNozzleController - setup animation");
-
                 if (!String.IsNullOrEmpty(deployAnimationName))
                     deployAnim = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
                 if (!String.IsNullOrEmpty(pulseAnimationName))
@@ -700,14 +713,10 @@ namespace FNPlugin
                 if (!String.IsNullOrEmpty(emiAnimationName))
                     emiAnimationState = PluginHelper.SetUpAnimation(emiAnimationName, this.part);
 
-                //Debug.Log("[KSPI]: ThermalNozzleController - calculate WasteHeat Capacity");
-
                 resourceBuffers = new ResourceBuffers();
                 resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
-
-                //Debug.Log("[KSPI]: ThermalNozzleController - find module implementing <ModuleEngines>");
 
                 myAttachedEngine = this.part.FindModuleImplementing<ModuleEngines>();
                 timewarpEngine = this.part.FindModuleImplementing<ModuleEnginesWarp>();
@@ -726,16 +735,10 @@ namespace FNPlugin
                 else
                     Debug.LogError("[KSPI]: ThermalNozzleController - failed to find engine!");
 
-                //Debug.Log("[KSPI]: ThermalNozzleController - ConnectToThermalSource");
-
                 // find attached thermal source
                 ConnectToThermalSource();
 
-                //Debug.Log("[KSPI]: ThermalNozzleController - calculate maxPressureThresholdAtKerbinSurface");
-
                 maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
-
-                //Debug.Log("[KSPI]: ThermalNozzleController - set fuelflowThrottleField");
 
                 fuelflowThrottleField = Fields["fuelflowThrottle"];
 
@@ -746,8 +749,6 @@ namespace FNPlugin
                 }
                 else
                     Debug.LogError("[KSPI]: ThermalNozzleController - failed to find fuelflowThrottle field");
-
-                //Debug.Log("[KSPI]: ThermalNozzleController - set ispThrottleField");
 
                 var ispThrottleField = Fields["ispThrottle"];
                 if (ispThrottleField != null)
@@ -788,19 +789,11 @@ namespace FNPlugin
                 if (requiredMegajouleRatio == 0)
                     received_megajoules_ratio = 1;
 
-                //Debug.Log("[KSPI]: ThermalNozzleController - set received_megajoules_percentage");
-
                 Fields["received_megajoules_percentage"].guiActive = requiredMegajouleRatio > 0;
-
-                //Debug.Log("[KSPI]: ThermalNozzleController - UpdateRadiusModifier");
 
                 UpdateRadiusModifier();
 
-                //Debug.Log("[KSPI]: ThermalNozzleController - UpdateIspEngineParams");
-
                 UpdateIspEngineParams();
-
-                //Debug.Log("[KSPI]: ThermalNozzleController - Configure Preecooler ");
 
                 // presearch all avaialble precoolers, intakes and nozzles on the vessel
                 _vesselPrecoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
@@ -819,15 +812,11 @@ namespace FNPlugin
                     fuelConfignodes = getPropellants(isJet);
                 }
 
-                //Debug.Log("[KSPI]: ThermalNozzleController - Find Upgrades");
-
                 bool hasJetUpgradeTech1 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech1);
                 bool hasJetUpgradeTech2 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech2);
                 bool hasJetUpgradeTech3 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech3);
                 bool hasJetUpgradeTech4 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech4);
                 bool hasJetUpgradeTech5 = PluginHelper.HasTechRequirementOrEmpty(PluginHelper.JetUpgradeTech5);
-
-                //Debug.Log("[KSPI]: ThermalNozzleController - Apply Upgrades");
 
                 _jetTechBonus = 1 + Convert.ToInt32(hasJetUpgradeTech1) * 1.2f + 1.44f * Convert.ToInt32(hasJetUpgradeTech2) + 1.728f * Convert.ToInt32(hasJetUpgradeTech3) + 2.0736f * Convert.ToInt32(hasJetUpgradeTech4) + 2.48832f * Convert.ToInt32(hasJetUpgradeTech5);
                 _jetTechBonusCurveChange = _jetTechBonus / 9.92992f;
@@ -942,6 +931,16 @@ namespace FNPlugin
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError("[KSPI]: ThermalNozzleController ConnectToThermalSource  " + e.Message);
+            }
+        }
+
+        public virtual void Update()
+        {
+            if (HighLogic.LoadedSceneIsEditor)
+            {
+                EstimateEditorPerformance();
+
+                UpdateRadiusModifier();
             }
         }
 
@@ -1819,8 +1818,6 @@ namespace FNPlugin
             }
         }
 
-
-
         private void GenerateThrustFromReactorHeat()
         {
             try
@@ -2274,13 +2271,12 @@ namespace FNPlugin
                     Debug.LogWarning("[KSPI]: ThermalNozzleController.UpdateRadiusModifier maximumReactorPower == 0");
 
                 heatThrustModifier = GetHeatThrustModifier();
-
                 powerThrustModifier = GetPowerThrustModifier();
 
                 max_thrust_in_space = powerThrustModifier * heatThrustModifier * maximumReactorPower / _maxISP / GameConstants.STANDARD_GRAVITY * effectiveThrustFraction;
-
                 final_max_thrust_in_space = Math.Max(max_thrust_in_space * _thrustPropellantMultiplier, minimumThrust);
 
+                // Set max thrust
                 myAttachedEngine.maxThrust = (float)final_max_thrust_in_space;
 
                 var isp_in_space = _maxISP;
@@ -2290,16 +2286,14 @@ namespace FNPlugin
                 maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
 
                 var maxSurfaceThrust = Math.Max(max_thrust_in_space - (maxPressureThresholdAtKerbinSurface), minimumThrust);
-
                 var maxSurfaceISP = _maxISP * (maxSurfaceThrust / max_thrust_in_space);
-
                 var final_max_surface_thrust = maxSurfaceThrust * _thrustPropellantMultiplier;
 
                 surfacePerformance = final_max_surface_thrust.ToString("0.0") + "kN @ " + maxSurfaceISP.ToString("0.0") + "s";
             }
             else
             {
-                Debug.LogWarning("[KSPI]: ThermalNozzleController.UpdateRadiusModifier _myAttachedReactor == null");
+                //Debug.LogWarning("[KSPI]: ThermalNozzleController.UpdateRadiusModifier _myAttachedReactor == null");
                 Fields["vacuumPerformance"].guiActiveEditor = false;
                 Fields["radiusModifier"].guiActiveEditor = false;
                 Fields["surfacePerformance"].guiActiveEditor = false;
