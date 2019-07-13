@@ -83,7 +83,6 @@ namespace FNPlugin.Wasteheat
         public string originalName = "";
         [KSPField]
         public float upgradeCost = 100;
-
         [KSPField]
         public bool maintainResourceBuffers = true;
         [KSPField]
@@ -94,14 +93,12 @@ namespace FNPlugin.Wasteheat
         public double wasteHeatMultiplier = 1;
         [KSPField]
         public bool keepMaxPartTempEqualToMaxRadiatorTemp = true;
-
         [KSPField]
         public string colorHeat = "_EmissiveColor";
         [KSPField]
         public string emissiveTextureLocation = "";
         [KSPField]
         public string bumpMapTextureLocation = "";
-
         [KSPField(guiActive = false, guiName = "Atmosphere Modifier")]
         public double atmosphere_modifier;
         [KSPField(guiName = "Type")]
@@ -140,7 +137,8 @@ namespace FNPlugin.Wasteheat
         public bool hasSurfaceAreaUpgradeTechReq;
         [KSPField]
         public float atmosphereToleranceModifier = 1;
-
+        [KSPField]
+        public double atmosphericDensity;
         [KSPField(guiActive = false, guiName = "Effective Tempererature")]
         public float displayTemperature;
         [KSPField(guiActive = false, guiName = "Color Ratio")]
@@ -164,7 +162,7 @@ namespace FNPlugin.Wasteheat
         
         private double oxidationModifier;
 
-        public double external_temperature;
+
         public double currentTemperatureDifferenceWithExternal;
         public double maximumTemperatureDifferenceWithExternal;
 
@@ -747,8 +745,6 @@ namespace FNPlugin.Wasteheat
 
             stefanArea = PhysicsGlobals.StefanBoltzmanConstant * effectiveRadiatorArea * 1e-6;
 
-            external_temperature = Math.Max(FlightGlobals.getExternalTemperature(vessel.altitude, vessel.mainBody), PhysicsGlobals.SpaceTemperature);  
-
             oxidationModifier = 0;
 
             UpdateMaxCurrentTemperature();
@@ -759,8 +755,8 @@ namespace FNPlugin.Wasteheat
                 part.maxTemp = maxCurrentRadiatorTemperature;
             }
 
-            currentTemperatureDifferenceWithExternal = maxCurrentRadiatorTemperature - external_temperature;
-            maximumTemperatureDifferenceWithExternal = maxRadiatorTemperature - external_temperature;
+            currentTemperatureDifferenceWithExternal = maxCurrentRadiatorTemperature - vessel.externalTemperature;
+            maximumTemperatureDifferenceWithExternal = maxRadiatorTemperature - vessel.externalTemperature;
 
             thermalPowerConvStrField.guiActive = convectedThermalPower > 0;
 
@@ -863,9 +859,11 @@ namespace FNPlugin.Wasteheat
                 }
 
                 // ToDo replace wasteheatManager.SqrtResourceBarRatioBegin by ResourceBarRatioBegin after generators hotbath takes into account expected temperature
-                radiator_temperature_temp_val = external_temperature + Math.Min(maximumTemperatureDifferenceWithExternal * wasteheatManager.TemperatureRatio, currentTemperatureDifferenceWithExternal);
+                radiator_temperature_temp_val = vessel.externalTemperature + Math.Min(maximumTemperatureDifferenceWithExternal * wasteheatManager.TemperatureRatio, currentTemperatureDifferenceWithExternal);
 
-                var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(external_temperature * Math.Min(1, vessel.atmDensity), PhysicsGlobals.SpaceTemperature), 0);
+                atmosphericDensity = vessel.atmDensity;
+
+                var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(vessel.externalTemperature * Math.Min(1, atmosphericDensity), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
@@ -889,7 +887,7 @@ namespace FNPlugin.Wasteheat
                     if (Double.IsNaN(radiatedThermalPower))
                         Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermalPowerDissipPerSecond + ")");
 
-                    instantaneous_rad_temp = CalculateInstantaniousRadTemp(external_temperature);
+                    instantaneous_rad_temp = CalculateInstantaniousRadTemp(vessel.externalTemperature);
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
 
@@ -898,11 +896,11 @@ namespace FNPlugin.Wasteheat
                 }
                 else
                 {
-                    thermalPowerDissipPerSecond = (double)wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea * 0.5;
+                    thermalPowerDissipPerSecond = wasteheatManager.RadiatorEfficiency * deltaTempToPowerFour * stefanArea * 0.5;
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond, wasteheatManager) : 0;
 
-                    instantaneous_rad_temp = CalculateInstantaniousRadTemp(external_temperature);
+                    instantaneous_rad_temp = CalculateInstantaniousRadTemp(vessel.externalTemperature);
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
                 }
@@ -912,10 +910,10 @@ namespace FNPlugin.Wasteheat
                     atmosphere_modifier = vessel.atmDensity * convectiveBonus + vessel.speed.Sqrt();
 
                     var heatTransferCooficient = 0.0005; // 500W/m2/K
-                    var temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - external_temperature);
+                    var temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - vessel.externalTemperature);
                     var submergedModifier = Math.Max(part.submergedPortion * 10, 1);
 
-                    var convPowerDissip = (double)wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCooficient * submergedModifier;
+                    var convPowerDissip = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCooficient * submergedModifier;
 
                     if (!radiatorIsEnabled)
                         convPowerDissip = convPowerDissip * 0.25;

@@ -584,7 +584,7 @@ namespace FNPlugin.Beamedpower
 
             if (activeBeamGenerator != null && IsEnabled && !relay)
             {
-                double reactorPowerTransmissionRatio = transmitPower / 100d;
+                double powerTransmissionRatio = transmitPower / 100d;
                 double transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100d;
                 double transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100d;
 
@@ -596,12 +596,14 @@ namespace FNPlugin.Beamedpower
                 }
                 else
                 {
-                    var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES); 
-                    var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+ 
+                    var megajoulesRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    var wasteheatRatio = 1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    var effectiveResourceThrotling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
+                    var effectiveResourceThrotling = Math.Min(megajoulesRatio > 0.2 ? 1 : megajoulesRatio * 5, wasteheatRatio > 0.2 ? 1 : wasteheatRatio * 5);
 
-                    requestedPower = Math.Min(power_capacity, effectiveResourceThrotling * availablePower * reactorPowerTransmissionRatio);
+                    requestedPower = Math.Min(Math.Min(power_capacity, availablePower) * powerTransmissionRatio, effectiveResourceThrotling * availablePower);
                 }
 
                 var receivedPower = CheatOptions.InfiniteElectricity

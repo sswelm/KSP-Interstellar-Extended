@@ -327,7 +327,7 @@ namespace FNPlugin
         private Queue<double> averageRadiatorTemperatureQueue = new Queue<double>();
 
         private ResourceBuffers resourceBuffers;
-        private ModuleGenerator moduleGenerator;
+        private ModuleGenerator stockModuleGenerator;
         private ModuleResource mockInputResource;
         private ModuleResource outputModuleResource;
         private BaseEvent moduleGeneratorShutdownBaseEvent;
@@ -576,29 +576,32 @@ namespace FNPlugin
 
         private void ConnectToModuleGenerator()
         {
-            moduleGenerator = part.FindModuleImplementing<ModuleGenerator>();
+            if (maintainsMegaWattPowerBuffer == false)
+                return;
 
-            if (moduleGenerator != null)
+            stockModuleGenerator = part.FindModuleImplementing<ModuleGenerator>();
+
+            if (stockModuleGenerator != null)
             {
-                outputModuleResource = moduleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
+                outputModuleResource = stockModuleGenerator.resHandler.outputResources.FirstOrDefault(m => m.name == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE);
 
                 if (outputModuleResource != null)
                 {
-                    moduleGeneratorShutdownBaseEvent = moduleGenerator.Events["Shutdown"];
+                    moduleGeneratorShutdownBaseEvent = stockModuleGenerator.Events["Shutdown"];
                     if (moduleGeneratorShutdownBaseEvent != null)
                     {
                         moduleGeneratorShutdownBaseEvent.guiActive = false;
                         moduleGeneratorShutdownBaseEvent.guiActiveEditor = false;
                     }
 
-                    moduleGeneratorActivateBaseEvent = moduleGenerator.Events["Activate"];
+                    moduleGeneratorActivateBaseEvent = stockModuleGenerator.Events["Activate"];
                     if (moduleGeneratorActivateBaseEvent != null)
                     {
                         moduleGeneratorActivateBaseEvent.guiActive = false;
                         moduleGeneratorActivateBaseEvent.guiActiveEditor = false;
                     }
 
-                    moduleGeneratorEfficienctBaseField = moduleGenerator.Fields["efficiency"];
+                    moduleGeneratorEfficienctBaseField = stockModuleGenerator.Fields["efficiency"];
                     if (moduleGeneratorEfficienctBaseField != null)
                     {
                         moduleGeneratorEfficienctBaseField.guiActive = false;
@@ -617,7 +620,7 @@ namespace FNPlugin
                     mockInputResource.name = outputModuleResource.name;
                     mockInputResource.id = outputModuleResource.name.GetHashCode();
 
-                    moduleGenerator.resHandler.inputResources.Add(mockInputResource);
+                    stockModuleGenerator.resHandler.inputResources.Add(mockInputResource);
                 }
             }
         }
@@ -1067,8 +1070,8 @@ namespace FNPlugin
                         return;
                     }
 
-                    if (moduleGenerator != null)
-                        moduleGenerator.generatorIsActive = maxStableMegaWattPower > 0;
+                    if (stockModuleGenerator != null)
+                        stockModuleGenerator.generatorIsActive = maxStableMegaWattPower > 0;
 
                     powerDownFraction = 1;
 
@@ -1205,8 +1208,8 @@ namespace FNPlugin
                     generatorInit = true;
                     supplyManagedFNResourcePerSecond(0, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                    if (moduleGenerator != null && moduleGenerator.generatorIsActive == true)
-                        moduleGenerator.Shutdown();
+                    if (stockModuleGenerator != null && stockModuleGenerator.generatorIsActive == true)
+                        stockModuleGenerator.Shutdown();
 
                     if (IsEnabled && !vessel.packed)
                     {
