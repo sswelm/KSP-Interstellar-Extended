@@ -10,7 +10,7 @@ namespace FNPlugin.External
         // Persistant input
         [KSPField(isPersistant = true)]
         public double reactorActivityFraction;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Fuel Neutrons Fraction")]
+        [KSPField(isPersistant = true, guiName = "Fuel Neutrons Fraction")]
         public double fuelNeutronsFraction = 0.02;
         [KSPField(isPersistant = true)]
         public double lithiumNeutronAbsorbtionFraction;
@@ -24,7 +24,7 @@ namespace FNPlugin.External
         public bool exhaustProducesGammaRadiation = false;
 
         //Setting
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Max Gamma Radiation")]
+        [KSPField(guiActiveEditor = true, guiName = "Max Gamma Radiation")]
         public double maxRadiation = 0.02;
         [KSPField]
         public double neutronsExhaustRadiationMult = 1;
@@ -46,15 +46,15 @@ namespace FNPlugin.External
         public double averageDistanceModifier;
         [KSPField(guiActive = false, guiName = "Average Distance To Crew", guiFormat = "F5")]
         public double averageCrewDistanceToEmitter;
-        [KSPField(guiActive = true, guiName = "Average Crew Mass Protection", guiUnits = " g/cm2", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiName = "Average Crew Mass Protection", guiUnits = " g/cm2", guiFormat = "F5")]
         public double averageCrewMassProtection;
-        [KSPField(guiActive = true, guiName = "Reactor Shadow Mass Protection")]
+        [KSPField(guiActive = false, guiName = "Reactor Shadow Mass Protection")]
         public double reactorShadowShieldMassProtection;
-        [KSPField(guiActive = true, guiName = "reactor Lead Shielding Thickness", guiUnits = " cm", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiName = "reactor Lead Shielding Thickness", guiUnits = " cm", guiFormat = "F5")]
         public double reactorLeadShieldingThickness;
-        [KSPField(guiActive = true, guiName = "Average Habitat Lead Thickness", guiUnits = " cm", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiName = "Average Habitat Lead Thickness", guiUnits = " cm", guiFormat = "F5")]
         public double averageHabitatLeadEquivalantThickness;
-        [KSPField(guiActive = true, guiName = "Reactor Shadow Shield Lead Thickness", guiUnits = " cm", guiFormat = "F5")]
+        [KSPField(guiActive = false, guiName = "Reactor Shadow Shield Lead Thickness", guiUnits = " cm", guiFormat = "F5")]
         public double reactorShadowShieldLeadThickness;
         [KSPField(guiActive = false, guiName = "Reactor GammaRays Attenuation", guiFormat = "F5")]
         public double reactorShieldingGammaAttenuation;
@@ -70,15 +70,15 @@ namespace FNPlugin.External
         public double gammaTransparency;
 
         // Output
-        [KSPField(guiActive = true, guiName = "Reactor Core Neutron Radiation")]
+        [KSPField(guiActive = false, guiName = "Reactor Core Neutron Radiation")]
         public double reactorCoreNeutronRadiation;
-        [KSPField(guiActive = true, guiName = "Reactor Core Gamma Radiation")]
+        [KSPField(guiActive = false, guiName = "Reactor Core Gamma Radiation")]
         public double reactorCoreGammaRadiation;
-        [KSPField(guiActive = true, guiName = "Lost Fission Fuel Radiation")]
+        [KSPField(guiActive = false, guiName = "Lost Fission Fuel Radiation")]
         public double lostFissionFuelRadiation;
-        [KSPField(guiActive = true, guiName = "Fission Exhaust Radiation")]
+        [KSPField(guiActive = false, guiName = "Fission Exhaust Radiation")]
         public double fissionExhaustRadiation;
-        [KSPField(guiActive = true, guiName = "Fission Fragment Radiation")]
+        [KSPField(guiActive = false, guiName = "Fission Fragment Radiation")]
         public double fissionFragmentRadiation;
 
         // Privates

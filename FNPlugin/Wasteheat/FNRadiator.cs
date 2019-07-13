@@ -121,7 +121,7 @@ namespace FNPlugin.Wasteheat
         public string thermalPowerConvStr;
         [KSPField(guiName = "Rad Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(guiName = "Radiator Start Temp", guiActive = true)]
+        [KSPField(guiName = "Radiator Start Temp")]
         public double radiator_temperature_temp_val;
         [KSPField]
         public double instantaneous_rad_temp;
@@ -137,15 +137,15 @@ namespace FNPlugin.Wasteheat
         public bool hasSurfaceAreaUpgradeTechReq;
         [KSPField]
         public float atmosphereToleranceModifier = 1;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double atmosphericMultiplier;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double externalTemperature;
-        [KSPField(guiActive = false, guiName = "Effective Tempererature")]
+        [KSPField(guiName = "Effective Tempererature")]
         public float displayTemperature;
-        [KSPField(guiActive = false, guiName = "Color Ratio")]
+        [KSPField(guiName = "Color Ratio")]
         public float colorRatio;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double deltaTemp;
 
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
@@ -755,9 +755,6 @@ namespace FNPlugin.Wasteheat
                 part.maxTemp = maxCurrentRadiatorTemperature;
             }
 
-            //currentTemperatureDifferenceWithExternal = Math.Max(0, maxCurrentRadiatorTemperature - vessel.externalTemperature);
-            //maximumTemperatureDifferenceWithExternal = Math.Max(0, maxRadiatorTemperature - vessel.externalTemperature);
-
             thermalPowerConvStrField.guiActive = convectedThermalPower > 0;
 
             // synchronize states
@@ -1139,6 +1136,4 @@ namespace FNPlugin.Wasteheat
         }
 
     }
-
-
 }
