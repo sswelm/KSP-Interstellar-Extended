@@ -121,7 +121,7 @@ namespace FNPlugin.Wasteheat
         public string thermalPowerConvStr;
         [KSPField(guiName = "Rad Upgrade Cost")]
         public string upgradeCostStr;
-        [KSPField(guiName = "Radiator Start Temp")]
+        [KSPField(guiName = "Radiator Start Temp", guiActive = true)]
         public double radiator_temperature_temp_val;
         [KSPField]
         public double instantaneous_rad_temp;
@@ -137,12 +137,16 @@ namespace FNPlugin.Wasteheat
         public bool hasSurfaceAreaUpgradeTechReq;
         [KSPField]
         public float atmosphereToleranceModifier = 1;
-        [KSPField]
-        public double atmosphericDensity;
+        [KSPField(guiActive = true)]
+        public double atmosphericMultiplier;
+        [KSPField(guiActive = true)]
+        public double externalTemperature;
         [KSPField(guiActive = false, guiName = "Effective Tempererature")]
         public float displayTemperature;
         [KSPField(guiActive = false, guiName = "Color Ratio")]
         public float colorRatio;
+        [KSPField(guiActive = true)]
+        public double deltaTemp;
 
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
@@ -161,10 +165,6 @@ namespace FNPlugin.Wasteheat
         private double convectedThermalPower;
         
         private double oxidationModifier;
-
-
-        public double currentTemperatureDifferenceWithExternal;
-        public double maximumTemperatureDifferenceWithExternal;
 
         private bool active;
         private bool isGraphene;
@@ -755,8 +755,8 @@ namespace FNPlugin.Wasteheat
                 part.maxTemp = maxCurrentRadiatorTemperature;
             }
 
-            currentTemperatureDifferenceWithExternal = maxCurrentRadiatorTemperature - vessel.externalTemperature;
-            maximumTemperatureDifferenceWithExternal = maxRadiatorTemperature - vessel.externalTemperature;
+            //currentTemperatureDifferenceWithExternal = Math.Max(0, maxCurrentRadiatorTemperature - vessel.externalTemperature);
+            //maximumTemperatureDifferenceWithExternal = Math.Max(0, maxRadiatorTemperature - vessel.externalTemperature);
 
             thermalPowerConvStrField.guiActive = convectedThermalPower > 0;
 
@@ -859,11 +859,12 @@ namespace FNPlugin.Wasteheat
                 }
 
                 // ToDo replace wasteheatManager.SqrtResourceBarRatioBegin by ResourceBarRatioBegin after generators hotbath takes into account expected temperature
-                radiator_temperature_temp_val = vessel.externalTemperature + Math.Min(maximumTemperatureDifferenceWithExternal * wasteheatManager.TemperatureRatio, currentTemperatureDifferenceWithExternal);
+                radiator_temperature_temp_val = Math.Min(maxRadiatorTemperature * wasteheatManager.TemperatureRatio, maxCurrentRadiatorTemperature);
 
-                atmosphericDensity = vessel.atmDensity;
+                atmosphericMultiplier = Math.Sqrt(vessel.atmDensity);
+                externalTemperature = vessel.externalTemperature;
 
-                var deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(vessel.externalTemperature * Math.Min(1, atmosphericDensity), PhysicsGlobals.SpaceTemperature), 0);
+                deltaTemp = Math.Max(radiator_temperature_temp_val - Math.Max(externalTemperature * Math.Min(1, atmosphericMultiplier), PhysicsGlobals.SpaceTemperature), 0);
                 var deltaTempToPowerFour = deltaTemp * deltaTemp * deltaTemp * deltaTemp;
 
                 if (radiatorIsEnabled)
@@ -887,7 +888,7 @@ namespace FNPlugin.Wasteheat
                     if (Double.IsNaN(radiatedThermalPower))
                         Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in radiatedThermalPower after call consumeWasteHeat (" + thermalPowerDissipPerSecond + ")");
 
-                    instantaneous_rad_temp = CalculateInstantaniousRadTemp(vessel.externalTemperature);
+                    instantaneous_rad_temp = CalculateInstantaniousRadTemp();
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
 
@@ -900,7 +901,7 @@ namespace FNPlugin.Wasteheat
 
                     radiatedThermalPower = canRadiateHeat ? consumeWasteHeatPerSecond(thermalPowerDissipPerSecond, wasteheatManager) : 0;
 
-                    instantaneous_rad_temp = CalculateInstantaniousRadTemp(vessel.externalTemperature);
+                    instantaneous_rad_temp = CalculateInstantaniousRadTemp();
 
                     CurrentRadiatorTemperature = instantaneous_rad_temp;
                 }
@@ -940,9 +941,9 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-        private double CalculateInstantaniousRadTemp(double externalTemperature)
+        private double CalculateInstantaniousRadTemp()
         {
-            var result = Math.Max(radiator_temperature_temp_val, externalTemperature);
+            var result = Math.Min(maxCurrentRadiatorTemperature, Math.Max(radiator_temperature_temp_val, partTempQueue.Average()));
 
             if (Double.IsNaN(result))
                 Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
