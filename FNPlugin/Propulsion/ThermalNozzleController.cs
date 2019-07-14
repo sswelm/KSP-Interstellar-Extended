@@ -547,7 +547,16 @@ namespace FNPlugin
             if (fuel_mode >= fuelConfignodes.Length)
                 fuel_mode = 0;
 
-            SetupPropellants(true);
+            SetupPropellants(true, false);
+        }
+
+        public void NextPropellantInternal()
+        {
+            fuel_mode++;
+            if (fuel_mode >= fuelConfignodes.Length)
+                fuel_mode = 0;
+
+            SetupPropellants(fuel_mode, true, false);
         }
 
         [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Previous Propellant", active = true)]
@@ -557,7 +566,16 @@ namespace FNPlugin
             if (fuel_mode < 0)
                 fuel_mode = fuelConfignodes.Length - 1;
 
-            SetupPropellants(false);
+            SetupPropellants(false, false);
+        }
+
+        public void PreviousPropellantInternal()
+        {
+            fuel_mode--;
+            if (fuel_mode < 0)
+                fuel_mode = fuelConfignodes.Length - 1;
+
+            SetupPropellants(fuel_mode, false, false);
         }
 
         // Note: we assume OnRescale is called at load and after any time tweakscale changes the size of an part
@@ -1129,8 +1147,26 @@ namespace FNPlugin
 
         public void SetupPropellants(bool forward = true, bool notifySwitching = false)
         {
+            SetupPropellants(fuel_mode, forward, notifySwitching);
+
+            foreach (var symPart in part.symmetryCounterparts)
+            {
+                var symThermalNozzle = symPart.FindModuleImplementing<ThermalEngineController>();
+
+                if (symThermalNozzle != null)
+                {
+                    symThermalNozzle.SetupPropellants(fuel_mode, forward, notifySwitching);
+                }
+            }
+
+        }
+
+        public void SetupPropellants( int newFuelMode,  bool forward = true, bool notifySwitching = false)
+        {
             if (_myAttachedReactor == null)
                 return;
+
+            fuel_mode = newFuelMode;
 
             try
             {
@@ -1155,7 +1191,7 @@ namespace FNPlugin
                 bool canLoadPropellant = true;
 
                 if (
-                         list_of_propellants.Any(m => PartResourceLibrary.Instance.GetDefinition(m.name) == null) 
+                         list_of_propellants.Any(m => PartResourceLibrary.Instance.GetDefinition(m.name) == null)
                     || (!PluginHelper.HasTechRequirementOrEmpty(_fuelTechRequirement))
                     || (_fuelRequiresUpgrade && !isupgraded)
                     || (_fuelMinimumCoreTemp > AttachedReactor.CoreTemperature)
@@ -1180,7 +1216,7 @@ namespace FNPlugin
                         double amount = 0;
                         double maxAmount = 0;
                         if (resourceDefinition != null)
-                            part.GetConnectedResourceTotals(resourceDefinition.id, extendedPropellant.GetFlowMode(),  out amount, out maxAmount);
+                            part.GetConnectedResourceTotals(resourceDefinition.id, extendedPropellant.GetFlowMode(), out amount, out maxAmount);
 
                         if (maxAmount == 0)
                         {
@@ -1267,9 +1303,9 @@ namespace FNPlugin
                         }
 
                         if (forward)
-                            NextPropellant();
+                            NextPropellantInternal();
                         else
-                            PreviousPropellant();
+                            PreviousPropellantInternal();
                     }
                 }
                 else
@@ -1298,9 +1334,9 @@ namespace FNPlugin
                     {
                         ++switches;
                         if (forward)
-                            NextPropellant();
+                            NextPropellantInternal();
                         else
-                            PreviousPropellant();
+                            PreviousPropellantInternal();
                     }
 
                     EstimateEditorPerformance(); // update editor estimates
