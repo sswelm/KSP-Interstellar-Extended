@@ -665,7 +665,7 @@ namespace FNPlugin
             try { EstimateEditorPerformance(); }
             catch (Exception e) { Debug.LogError("[KSPI]: OnEditorAttach Exception in EstimateEditorPerformance" + e.Message); }
 
-            try { SetupPropellants(); }
+            try { SetupPropellants(fuel_mode); }
             catch (Exception e) { Debug.LogError("[KSPI]: OnEditorAttach Exception in SetupPropellants" + e.Message); }
         }
 
@@ -792,7 +792,7 @@ namespace FNPlugin
                     try { LoadFuelModes(); }
                     catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in LoadFuelModes" + e.Message); }
 
-                    try { SetupPropellants(); }
+                    try { SetupPropellants(fuel_mode); }
                     catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in SetupPropellants" + e.Message); }
 
                     try { EstimateEditorPerformance(); }
@@ -855,7 +855,7 @@ namespace FNPlugin
             try { LoadFuelModes(); }
             catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in LoadFuelModes" + e.Message); }
 
-            try { SetupPropellants(); }
+            try { SetupPropellants(fuel_mode); }
             catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in SetupPropellant" + e.Message); }
         }
 
@@ -971,7 +971,7 @@ namespace FNPlugin
                 if (!_hasSetupPropellant)
                 {
                     _hasSetupPropellant = true;
-                    SetupPropellants(true, true);
+                    SetupPropellants(fuel_mode, true, true);
                 }
 
                 temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
