@@ -459,6 +459,10 @@ namespace FNPlugin
         protected bool _currentpropellant_is_jet = false;
 
         protected BaseField fuelflowThrottleField;
+        protected BaseField sootAccumulationPercentageField;
+        protected BaseField upgradeCostStrField;
+
+        protected BaseEvent retrofitEngineEvent;
 
         protected UI_FloatRange fuelflowThrottleFloatRangeEditor;
         protected UI_FloatRange fuelflowThrottleFloatRangeFlight;
@@ -588,7 +592,9 @@ namespace FNPlugin
             ScaleParameters();
 
             // update simulation
+            EstimateEditorPerformance();
             UpdateRadiusModifier();
+            UpdateIspEngineParams();
         }
 
         private void ScaleParameters()
@@ -759,7 +765,6 @@ namespace FNPlugin
                 maxPressureThresholdAtKerbinSurface = scaledExitArea * GameConstants.EarthAtmospherePressureAtSeaLevel;
 
                 fuelflowThrottleField = Fields["fuelflowThrottle"];
-
                 if (fuelflowThrottleField != null)
                 {
                     fuelflowThrottleFloatRangeEditor = fuelflowThrottleField.uiControlEditor as UI_FloatRange;
@@ -808,6 +813,10 @@ namespace FNPlugin
                     received_megajoules_ratio = 1;
 
                 Fields["received_megajoules_percentage"].guiActive = requiredMegajouleRatio > 0;
+
+                sootAccumulationPercentageField = Fields["sootAccumulationPercentage"];
+                upgradeCostStrField = Fields["upgradeCostStr"];
+                retrofitEngineEvent = Events["RetrofitEngine"];
 
                 UpdateRadiusModifier();
 
@@ -952,6 +961,7 @@ namespace FNPlugin
             }
         }
 
+        // Is called in the VAB
         public virtual void Update()
         {
             if (HighLogic.LoadedSceneIsEditor)
@@ -959,6 +969,8 @@ namespace FNPlugin
                 EstimateEditorPerformance();
 
                 UpdateRadiusModifier();
+
+                UpdateIspEngineParams();
             }
         }
 
@@ -976,20 +988,20 @@ namespace FNPlugin
 
                 temperatureStr = part.temperature.ToString("0.00") + "K / " + part.maxTemp.ToString("0.00") + "K";
                 UpdateAtmosphericPresureTreshold();
-
-                Fields["sootAccumulationPercentage"].guiActive = sootAccumulationPercentage > 0;
+                
+                sootAccumulationPercentageField.guiActive = sootAccumulationPercentage > 0;
 
                 thrustIspMultiplier = _ispPropellantMultiplier.ToString("0.0000") + " / " + _thrustPropellantMultiplier.ToString("0.0000");
 
                 if (ResearchAndDevelopment.Instance != null && isJet)
                 {
-                    Events["RetrofitEngine"].active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && _hasrequiredupgrade;
+                    retrofitEngineEvent.active = !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && _hasrequiredupgrade;
                     upgradeCostStr = ResearchAndDevelopment.Instance.Science.ToString("0") + " / " + upgradeCost;
                 }
                 else
-                    Events["RetrofitEngine"].active = false;
+                    retrofitEngineEvent.active = false;
 
-                Fields["upgradeCostStr"].guiActive = !isupgraded && _hasrequiredupgrade && isJet;
+                upgradeCostStrField.guiActive = !isupgraded && _hasrequiredupgrade && isJet;
 
                 if (myAttachedEngine == null)
                     return;
