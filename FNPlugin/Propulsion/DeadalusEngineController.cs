@@ -7,7 +7,7 @@ using System.Text;
 using UnityEngine;
 using FNPlugin.Constants;
 using FNPlugin.External;
-
+using TweakScale;
 
 namespace FNPlugin
 {
@@ -15,9 +15,14 @@ namespace FNPlugin
     class FusionEngineController : DaedalusEngineController { }
 
     [KSPModule("Confinement Fusion Engine")]
-    class DaedalusEngineController : ResourceSuppliableModule, IUpgradeableModule 
+    class DaedalusEngineController : ResourceSuppliableModule, IUpgradeableModule , IRescalable<DaedalusEngineController> 
     {
         // Persistant
+        [KSPField(isPersistant = true)]
+        public double thrustMultiplier = 1;
+        [KSPField(isPersistant = true)]
+        public double ispMultiplier = 1;
+
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
@@ -27,6 +32,16 @@ namespace FNPlugin
         public double massThrustExp = 0;
         [KSPField]
         public double massIspExp = 0;
+
+        [KSPField]
+        public double higherScaleThrustExponent = 3;
+        [KSPField]
+        public double lowerScaleThrustExponent = 4;
+        [KSPField]
+        public double higherScaleIspExponent = 0.25;
+        [KSPField]
+        public double lowerScaleIspExponent = 1;
+
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 1, minValue = 0.005f)]
         public float speedLimit = 1;
@@ -361,7 +376,7 @@ namespace FNPlugin
         {
             get
             {
-                return RawMaximumThrust * Math.Pow(part.mass / partMass, massThrustExp);
+                return RawMaximumThrust * thrustMultiplier * Math.Pow(part.mass / partMass, massThrustExp);
             }
         }
 
@@ -453,7 +468,7 @@ namespace FNPlugin
         {
             get
             {
-                return RawEngineIsp * Math.Pow(part.mass / partMass, massIspExp);
+                return RawEngineIsp * ispMultiplier * Math.Pow(part.mass / partMass, massIspExp);
             }
         }
 
@@ -688,15 +703,15 @@ namespace FNPlugin
 
         private void UpdateThrustGui()
         {
-            guiThrustMk1 = FormatThrustStatistics(maxThrustMk1, thrustIspMk1, EngineGenerationType == GenerationType.Mk1 ? LIGHTBLUE : null);
-            guiThrustMk2 = FormatThrustStatistics(maxThrustMk2, thrustIspMk2, EngineGenerationType == GenerationType.Mk2 ? LIGHTBLUE : null);
-            guiThrustMk3 = FormatThrustStatistics(maxThrustMk3, thrustIspMk3, EngineGenerationType == GenerationType.Mk3 ? LIGHTBLUE : null);
-            guiThrustMk4 = FormatThrustStatistics(maxThrustMk4, thrustIspMk4, EngineGenerationType == GenerationType.Mk4 ? LIGHTBLUE : null);
-            guiThrustMk5 = FormatThrustStatistics(maxThrustMk5, thrustIspMk5, EngineGenerationType == GenerationType.Mk5 ? LIGHTBLUE : null);
-            guiThrustMk6 = FormatThrustStatistics(maxThrustMk6, thrustIspMk6, EngineGenerationType == GenerationType.Mk6 ? LIGHTBLUE : null);
-            guiThrustMk7 = FormatThrustStatistics(maxThrustMk7, thrustIspMk7, EngineGenerationType == GenerationType.Mk7 ? LIGHTBLUE : null);
-            guiThrustMk8 = FormatThrustStatistics(maxThrustMk8, thrustIspMk8, EngineGenerationType == GenerationType.Mk8 ? LIGHTBLUE : null);
-            guiThrustMk9 = FormatThrustStatistics(maxThrustMk9, thrustIspMk9, EngineGenerationType == GenerationType.Mk9 ? LIGHTBLUE : null);
+            guiThrustMk1 = FormatThrustStatistics(maxThrustMk1 * thrustMultiplier, thrustIspMk1 * ispMultiplier, EngineGenerationType == GenerationType.Mk1 ? LIGHTBLUE : null);
+            guiThrustMk2 = FormatThrustStatistics(maxThrustMk2 * thrustMultiplier, thrustIspMk2 * ispMultiplier, EngineGenerationType == GenerationType.Mk2 ? LIGHTBLUE : null);
+            guiThrustMk3 = FormatThrustStatistics(maxThrustMk3 * thrustMultiplier, thrustIspMk3 * ispMultiplier, EngineGenerationType == GenerationType.Mk3 ? LIGHTBLUE : null);
+            guiThrustMk4 = FormatThrustStatistics(maxThrustMk4 * thrustMultiplier, thrustIspMk4 * ispMultiplier, EngineGenerationType == GenerationType.Mk4 ? LIGHTBLUE : null);
+            guiThrustMk5 = FormatThrustStatistics(maxThrustMk5 * thrustMultiplier, thrustIspMk5 * ispMultiplier, EngineGenerationType == GenerationType.Mk5 ? LIGHTBLUE : null);
+            guiThrustMk6 = FormatThrustStatistics(maxThrustMk6 * thrustMultiplier, thrustIspMk6 * ispMultiplier, EngineGenerationType == GenerationType.Mk6 ? LIGHTBLUE : null);
+            guiThrustMk7 = FormatThrustStatistics(maxThrustMk7 * thrustMultiplier, thrustIspMk7 * ispMultiplier, EngineGenerationType == GenerationType.Mk7 ? LIGHTBLUE : null);
+            guiThrustMk8 = FormatThrustStatistics(maxThrustMk8 * thrustMultiplier, thrustIspMk8 * ispMultiplier, EngineGenerationType == GenerationType.Mk8 ? LIGHTBLUE : null);
+            guiThrustMk9 = FormatThrustStatistics(maxThrustMk9 * thrustMultiplier, thrustIspMk9 * ispMultiplier, EngineGenerationType == GenerationType.Mk9 ? LIGHTBLUE : null);
 
             guiPowerMk1 = FormatPowerStatistics(powerRequirementMk1, wasteheatMk1, EngineGenerationType == GenerationType.Mk1 ? LIGHTBLUE : null);
             guiPowerMk2 = FormatPowerStatistics(powerRequirementMk2, wasteheatMk2, EngineGenerationType == GenerationType.Mk2 ? LIGHTBLUE : null);
@@ -727,6 +742,17 @@ namespace FNPlugin
                 return result;
 
             return "<color=" + color + ">" + result + "</color>";
+        }
+
+        // Note: we assume OnRescale is called at load and after any time tweakscale changes the size of an part
+        public void OnRescale(TweakScale.ScalingFactor factor)
+        {
+            UnityEngine.Debug.Log("[KSPI]: DaedalusEngineController OnRescale was called with factor " + factor.absolute.linear);
+
+            var storedAbsoluteFactor = (double)(decimal)factor.absolute.linear;
+
+            thrustMultiplier = storedAbsoluteFactor >= 1 ? Math.Pow(storedAbsoluteFactor, higherScaleThrustExponent) : Math.Pow(storedAbsoluteFactor, lowerScaleThrustExponent);
+            ispMultiplier = storedAbsoluteFactor >= 1 ? Math.Pow(storedAbsoluteFactor, higherScaleIspExponent) : Math.Pow(storedAbsoluteFactor, lowerScaleIspExponent);
         }
 
         public override void OnUpdate()
