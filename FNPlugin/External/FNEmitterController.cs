@@ -124,8 +124,6 @@ namespace FNPlugin.External
                     emitterModule = module;
 
                     emitterRadiationField = module.Fields["radiation"];
-                    if (emitterRadiationField != null)
-                        emitterRadiationField.SetValue(maxRadiation * reactorActivityFraction, emitterModule);
 
                     found = true;
                     break;

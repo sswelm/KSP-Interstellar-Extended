@@ -738,7 +738,11 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state)
         {
-            vesselTotalMass = vessel.totalMass;
+            if (state != StartState.Editor)
+            {
+                vesselTotalMass = vessel.GetTotalMass();
+            }
+
             windowPosition = new Rect(windowPositionX, windowPositionY, 260, 100);
             windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
 
@@ -983,7 +987,7 @@ namespace FNPlugin
             Events["StopCharging"].active = !IsSlave && IsCharging;
             Events["ActivateWarpDrive"].active = !IsSlave && !IsEnabled;
             Events["DeactivateWarpDrive"].active = !IsSlave && IsEnabled;
-            Fields["exitSpeed"].guiActive = IsEnabled;
+            //Fields["exitSpeed"].guiActive = IsEnabled;
             Fields["driveStatus"].guiActive = !IsSlave && IsCharging;
 
             if (!IsSlave)
