@@ -26,8 +26,6 @@ namespace FNPlugin
             Debug.Log("[KSPI]: AssemblyLoader.loadedAssemblies contains " + AssemblyLoader.loadedAssemblies.Count + " assemblies");
             foreach (AssemblyLoader.LoadedAssembly loadedAssembly in AssemblyLoader.loadedAssemblies)
             {
-                //Debug.Log("[KSPI]: current Assembly: " + assemby.name);
-
                 if (loadedAssembly.name.StartsWith("Kerbalism") && loadedAssembly.name.EndsWith("Bootstrap") == false)
                 {
                     Debug.Log("[KSPI]: Found " + loadedAssembly.name + " Assembly");
@@ -43,7 +41,7 @@ namespace FNPlugin
                     versionBuild = assemblyName.Version.Build;
                     versionRevision = assemblyName.Version.Revision;
 
-                    var kerbalismversionstr = string.Format("{0}.{1}.{2}.{3}.{4}.{5}", versionMajor, versionRevision, versionMajorRevision, versionMinor, versionMinorRevision, versionBuild);
+                    var kerbalismversionstr = string.Format("{0}.{1}.{2}.{3}.{4}.{5}", versionMajor, versionMinor, versionRevision, versionBuild, versionMajorRevision, versionMinorRevision);
                     Debug.Log("[KSPI]: Found Kerbalism assemblyName Version " + kerbalismversionstr);
 
                     try { Sim = KerbalismAssembly.GetType("KERBALISM.Sim"); } catch (Exception e) { Debug.LogException(e); }
@@ -80,7 +78,7 @@ namespace FNPlugin
 
         public static bool HasRadiationFixes
         {
-            get { return versionMinor > 0; }
+            get { return versionMajor >= 3 && versionMinor >= 1; }
         }
 
         // return proportion of ionizing radiation not blocked by atmosphere
