@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 using System.Reflection;
+using UnityEngine;
 
 namespace FNPlugin
 {
@@ -13,6 +13,8 @@ namespace FNPlugin
         public static int versionMinor;
         public static int versionMajorRevision;
         public static int versionMinorRevision;
+        public static int versionBuild;
+        public static int versionRevision;
 
         static Assembly KerbalismAssembly;
         static Type Sim;
@@ -38,15 +40,13 @@ namespace FNPlugin
                     versionMinor = assemblyName.Version.Minor;
                     versionMajorRevision = assemblyName.Version.MajorRevision;
                     versionMinorRevision = assemblyName.Version.MinorRevision;
+                    versionBuild = assemblyName.Version.Build;
+                    versionRevision = assemblyName.Version.Revision;
 
-                    try
-                    {
-                        Sim = KerbalismAssembly.GetType("KERBALISM.Sim");
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
+                    var kerbalismversionstr = string.Format("{0}.{1}.{2}.{3}.{4}.{5}", versionMajor, versionRevision, versionMajorRevision, versionMinor, versionMinorRevision, versionBuild);
+                    Debug.Log("[KSPI]: Found Kerbalism assemblyName Version " + kerbalismversionstr);
+
+                    try { Sim = KerbalismAssembly.GetType("KERBALISM.Sim"); } catch (Exception e) { Debug.LogException(e); }
 
                     if (Sim != null)
                     {
@@ -76,6 +76,11 @@ namespace FNPlugin
         public static bool IsLoaded
         {
             get { return versionMajor > 0; }
+        }
+
+        public static bool HasRadiationFixes
+        {
+            get { return versionMinor > 0; }
         }
 
         // return proportion of ionizing radiation not blocked by atmosphere

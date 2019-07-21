@@ -186,7 +186,7 @@ namespace FNPlugin.External
             averageHabitatLeadGammaAttenuation = Math.Pow(1 - 0.9, (averageHabitatLeadEquivalantThickness + reactorShadowShieldLeadThickness) / 5);
             averageHabitaNeutronAttenuation = Math.Pow(1 - 0.5, averageHabitatLeadEquivalantThickness / 6.8);
 
-            gammaTransparency = Kerbalism.GammaTransparency(vessel.mainBody, vessel.altitude);
+            gammaTransparency = Kerbalism.HasRadiationFixes ? 1 : Kerbalism.GammaTransparency(vessel.mainBody, vessel.altitude);
 
             averageDistanceModifier = 1 / (averageCrewDistanceToEmitter * averageCrewDistanceToEmitter);
 
