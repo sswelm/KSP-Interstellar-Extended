@@ -24,8 +24,6 @@ namespace FNPlugin
         public float partMass = 0;
     }
 
-
-
     [KSPModule("Thermal Electric Effect Generator")]
     class ThermalElectricEffectGenerator : FNGenerator {}
 
@@ -1075,6 +1073,9 @@ namespace FNPlugin
 
                     powerDownFraction = 1;
 
+                    var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                    var overheatingModifier = wasteheatRatio < 0.9 ? 1 : (1 - wasteheatRatio) * 10;
+
                     if (!chargedParticleMode) // thermal mode
                     {
                         hotColdBathRatio = Math.Max(Math.Min(1 - coldBathTemp / hotBathTemp, 1), 0);
@@ -1160,8 +1161,8 @@ namespace FNPlugin
 
                         var chargedPowerCurrentlyNeededForElectricity = CalculateElectricalPowerCurrentlyNeeded();
 
-                        requestedChargedPower = Math.Max(0,Math.Min(maxAllowedChargedPower, chargedPowerCurrentlyNeededForElectricity / _totalEff));
-                        requestedPostChargedPower = Math.Max(0, (attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio) - requestedChargedPower); 
+                        requestedChargedPower = overheatingModifier * Math.Max(0, Math.Min(maxAllowedChargedPower, chargedPowerCurrentlyNeededForElectricity / _totalEff));
+                        requestedPostChargedPower = overheatingModifier * Math.Max(0, (attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio) - requestedChargedPower); 
 
                         requested_power_per_second = requestedChargedPower;
 
@@ -1169,7 +1170,7 @@ namespace FNPlugin
                         var chargedPowerRequestRatio = Math.Min(1, maximumChargedPower > 0 ? requestedChargedPower / maximumChargedPower : 0);
                         attachedPowerSource.NotifyActiveChargedEnergyGenerator(_totalEff, chargedPowerRequestRatio, part.mass);
 
-                        chargedPowerReceived  = consumeFNResourcePerSecond(requestedChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                        chargedPowerReceived = consumeFNResourcePerSecond(requestedChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                     }
 
                     received_power_per_second = thermalPowerReceived + chargedPowerReceived;
@@ -1187,7 +1188,7 @@ namespace FNPlugin
                     else
                     {
                         electricdtps = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
-                        maxElectricdtps = maxChargedPower * _totalEff;
+                        maxElectricdtps = overheatingModifier * maxChargedPower * _totalEff;
                     }
 
                     if (outputModuleResource != null)

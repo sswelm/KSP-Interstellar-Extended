@@ -79,14 +79,15 @@ namespace FNPlugin
         public bool matchExitToDestinationSpeed = true;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Auto Maximize Warp Speed"), UI_Toggle(disabledText = "Disabled", enabledText = "Enabled", affectSymCounterparts = UI_Scene.All)]
         public bool maximizeWarpSpeed = false;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Auto Hold Altitude"), UI_Toggle(disabledText = "Disabled", enabledText = "Enabled", affectSymCounterparts = UI_Scene.All)]
+        public bool holdAltitude = false;
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Safety Distance", guiUnits = " Km"), UI_FloatRange(minValue = 0, maxValue = 200, stepIncrement = 1)]
         public float spaceSafetyDistance = 30;
-
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Antigravity Throttle"), UI_FloatRange(minValue = -100, maxValue = 100, stepIncrement = 5)]
-        public float antigravityThrottle = -100;
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Exotic Matter Percentage"), UI_FloatRange(minValue = 0, maxValue = 200, stepIncrement = 5)]
+        public float antigravityPercentage = 0;
 
         //GUI
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpdriveType")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_warpdriveType")]
         public string warpdriveType = "Alcubierre Drive";
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_engineMass", guiUnits = " t")]
         public float partMass = 0;
@@ -154,15 +155,19 @@ namespace FNPlugin
         private double dropoutDistance;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Available Power for Warp", guiFormat = "F3", guiUnits = "MJ")]
         private double availablePower;
-
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Antigravity Factor", guiFormat = "F4")]
-        private double antigravityFactor;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Gravity Acceleration", guiFormat = "F4", guiUnits = " m/s\xB2")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
         private double gravityAcceleration;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Anti Gravity Acceleration", guiFormat = "F4", guiUnits = " m/s\xB2")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Anti Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
         private double antigravityAcceleration;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Vessel Mass", guiFormat = "F4", guiUnits = " t")]
-        private double vesselMass;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Vertical Speed", guiFormat = "F3", guiUnits = " m/s")]
+        private double verticalSpeed;
+
+        private double stablePowerSupply;
+        private double requiredExoticMaintenancePower;
+        private double recievedExoticMaintenancePower;
+        private double exoticMatterMaintenanceRatio;
+        private double exoticMatterProduced;
+        private double responseMultiplier;
 
         private readonly double[] _engineThrotle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
 
@@ -172,7 +177,11 @@ namespace FNPlugin
         private Texture[] warp_textures2;
         private AudioSource warp_sound;
 
-        private double tex_count;
+        double universalTime;
+        double currentExoticMatter;
+        double maxExoticMatter;
+        double exoticMatterRatio;
+        double tex_count;
 
         private bool vesselWasInOuterspace;
         private bool hasrequiredupgrade;
@@ -183,6 +192,8 @@ namespace FNPlugin
         private Vector3d heading_act;
         private Vector3d active_part_heading;
         private List<AlcubierreDrive> alcubierreDrives;
+        private UI_FloatRange antigravityFloatRange;
+        private UI_Toggle holdAltitudeToggle;
 
         private float windowPositionX = 200;
         private float windowPositionY = 100;
@@ -237,6 +248,8 @@ namespace FNPlugin
 
             insufficientPowerTimeout = maxPowerTimeout;
             IsCharging = true;
+            holdAltitude = false;
+            antigravityPercentage = 200;
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_stopChargingDrive", active = false)]
@@ -244,13 +257,8 @@ namespace FNPlugin
         {
             Debug.Log("[KSPI]: Stop Charging button pressed");
             IsCharging = false;
-
-            // flush all exotic matter
-            double exoticMatterAmount;
-            double exoticMatterMaxAmount;
-            part.GetConnectedResourceTotals(exoticResourceDefinition.id, out exoticMatterAmount, out exoticMatterMaxAmount);
-
-            part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, exoticMatterAmount);
+            holdAltitude = false;
+            antigravityPercentage = 0;
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_activateWarpDrive", active = true)]
@@ -300,6 +308,7 @@ namespace FNPlugin
             }
 
             IsCharging = false;
+            antigravityPercentage = 0;
             initiateWarpTimeout = 10;
         }
 
@@ -606,6 +615,20 @@ namespace FNPlugin
                 ToggleWarpSpeedDown();
         }
 
+        [KSPAction("Increase Exotic Matter Percentage")]
+        public void IncreaseAntiGravityAction(KSPActionParam param)
+        {
+            if (antigravityPercentage < 200)
+                antigravityPercentage += 5;
+        }
+
+        [KSPAction("Decrease Exotic Matter Percentage")]
+        public void DecreaseAntiGravityAction(KSPActionParam param)
+        {
+            if (antigravityPercentage > 0)
+                antigravityPercentage -= 5;
+        }
+
         [KSPAction("#LOC_KSPIE_AlcubierreDrive_startChargingDrive")]
         public void StartChargingAction(KSPActionParam param)
         {
@@ -756,6 +779,22 @@ namespace FNPlugin
                 Fields["currentPowerRequirementForWarp"].guiActive = !IsSlave;
                 Fields["totalWarpPower"].guiActive = !IsSlave;
                 Fields["powerRequirementForMaximumAllowedLightSpeed"].guiActive = !IsSlave;
+
+                BaseField holdAltitudeField = Fields["holdAltitude"];
+                if (holdAltitudeField != null)
+                {
+                    holdAltitudeToggle = holdAltitudeField.uiControlFlight as UI_Toggle;
+                    if (holdAltitudeToggle != null)
+                        holdAltitudeToggle.onFieldChanged += holdAltitudeChanged; 
+                }
+
+                BaseField antigravityField = Fields["antigravityPercentage"];
+                if (antigravityField != null)
+                {
+                    antigravityFloatRange = antigravityField.uiControlFlight as UI_FloatRange;
+                    if (antigravityFloatRange != null)
+                    antigravityFloatRange.onFieldChanged += antigravityFloatChanged;  
+                }
 
                 minimum_selected_factor = _engineThrotle.ToList().IndexOf(_engineThrotle.First(w => Math.Abs(w - 1) < float.Epsilon));
                 if (selected_factor == -1)
@@ -908,12 +947,21 @@ namespace FNPlugin
 
         }
 
+        private void antigravityFloatChanged(BaseField field, object oldFieldValueObj)
+        {
+            holdAltitude = false;
+        }
+
+        private void holdAltitudeChanged(BaseField field, object oldFieldValueObj)
+        {
+            antigravityPercentage = (float)((decimal)Math.Round(antigravityPercentage / 5) * 5);
+        }
+
         public void VesselChangedSOI()
         {
             if (!IsSlave)
             {
                 Debug.Log("[KSPI]: AlcubierreDrive Vessel Changed SOI");
-                //part.vessel.IgnoreGForces(1);
             }
         }
 
@@ -940,17 +988,17 @@ namespace FNPlugin
 
             if (!IsSlave)
             {
-                vesselMass = vessel.GetTotalMass();
+                vesselTotalMass = vessel.GetTotalMass();
                 if (moduleReactionWheel != null)
                 {
                     moduleReactionWheel.Fields["authorityLimiter"].guiActive = false;
                     moduleReactionWheel.Fields["actuatorModeCycle"].guiActive = false;
                     moduleReactionWheel.Fields["stateString"].guiActive = false;
-                    moduleReactionWheel.Events["OnToggle"].guiActive = false;                    
+                    moduleReactionWheel.Events["OnToggle"].guiActive = false;
 
-                    moduleReactionWheel.PitchTorque = IsEnabled ? (float)(2 * vesselMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
-                    moduleReactionWheel.YawTorque = IsEnabled ? (float)(2 * vesselMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
-                    moduleReactionWheel.RollTorque = IsEnabled ? (float)(2 * vesselMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                    moduleReactionWheel.PitchTorque = IsEnabled ? (float)(2 * vesselTotalMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                    moduleReactionWheel.YawTorque = IsEnabled ? (float)(2 * vesselTotalMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
+                    moduleReactionWheel.RollTorque = IsEnabled ? (float)(2 * vesselTotalMass * (isupgraded ? warpPowerMultTech1 : warpPowerMultTech0)) : 0;
                 }
             }
 
@@ -1106,7 +1154,7 @@ namespace FNPlugin
                 InitiateWarp();
 
             var currentOrbit = vessel.orbitDriver.orbit;
-            var universalTime = Planetarium.GetUniversalTime();
+            universalTime = Planetarium.GetUniversalTime();
 
             if (IsEnabled)
             {
@@ -1180,24 +1228,6 @@ namespace FNPlugin
             WarpdriveCharging();
 
             UpdateWarpSpeed();
-
-            antigravityFactor = (antigravityThrottle > 0 ? 1 + antigravityThrottle * 0.01 : 1 + antigravityThrottle * 0.01);
-
-            gravityAcceleration = vessel.gravityForPos.magnitude;
-
-            var gravityDirection = vessel.gravityForPos.normalized;
-
-            var antigravityForceVector = vessel.gravityForPos * -antigravityFactor;
-
-            antigravityAcceleration = antigravityForceVector.magnitude;
-
-            if (!double.IsNaN(antigravityForceVector.x) && !double.IsNaN(antigravityForceVector.y) && !double.IsNaN(antigravityForceVector.z))
-            {
-                if (vessel.packed)
-                    vessel.orbit.Perturb(antigravityForceVector * TimeWarp.fixedDeltaTime, universalTime);
-                else
-                    vessel.ChangeWorldVelocity(antigravityForceVector * TimeWarp.fixedDeltaTime);
-            }
         }
 
         private static double DeltaVToCircularize(Orbit orbit)
@@ -1233,62 +1263,87 @@ namespace FNPlugin
 
         private void WarpdriveCharging()
         {
-            double currentExoticMatter;
-            double maxExoticMatter;
-
             part.GetConnectedResourceTotals(exoticResourceDefinition.id, out currentExoticMatter, out maxExoticMatter);
 
-            if (IsCharging)
+            GenerateAntiGravity();
+
+            requiredExoticMaintenancePower = exoticMatterRatio * vesselTotalMass * powerRequirementMultiplier * vessel.gravityForPos.magnitude * 2;
+
+            var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            var washeatModifier = wasteheatRatio < 0.8 ? 1 : (1 - wasteheatRatio) * 5;
+
+            recievedExoticMaintenancePower = CheatOptions.InfiniteElectricity
+                   ? requiredExoticMaintenancePower
+                   : consumeFNResourcePerSecond(washeatModifier * requiredExoticMaintenancePower, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+            exoticMatterMaintenanceRatio = requiredExoticMaintenancePower > 0 ? recievedExoticMaintenancePower / requiredExoticMaintenancePower : 1;
+
+            if (!CheatOptions.IgnoreMaxTemperature)
+                supplyFNResourcePerSecond(recievedExoticMaintenancePower, ResourceManager.FNRESOURCE_WASTEHEAT);
+
+            exoticMatterProduced = (1 - exoticMatterMaintenanceRatio) * -maxExoticMatter;
+
+            if ((IsCharging || antigravityPercentage > 0 || exoticMatterRatio > 0 ) && !IsEnabled)
             {
                 availablePower = CheatOptions.InfiniteElectricity
                     ? currentPowerRequirementForWarp
-                    : getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    : stablePowerSupply;
 
-                if (availablePower < minPowerRequirementForLightSpeed)
+                //if (IsCharging && availablePower < minPowerRequirementForLightSpeed)
+                //{
+                //    var message = "Maximum power supply of " + availablePower.ToString("0") + " MW is insufficient power, you need at at least " + minPowerRequirementForLightSpeed.ToString("0") + " MW of Power to jump to Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass.";
+                //    Debug.Log("[KSPI]: " + message);
+                //    ScreenMessages.PostScreenMessage(message, 5);
+                //    StopCharging();
+                //    return;
+                //}
+
+                var maxChargePowerRequired = (antigravityPercentage * 0.005 * maxExoticMatter - currentExoticMatter) / 0.001;
+
+                if (maxChargePowerRequired < 0)
                 {
-                    var message = "Maximum power supply of " + availablePower.ToString("0") + " MW is insufficient power, you need at at least " + minPowerRequirementForLightSpeed.ToString("0") + " MW of Power to jump to Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass.";
-                    Debug.Log("[KSPI]: " + message);
-                    ScreenMessages.PostScreenMessage(message, 5);
-                    StopCharging();
-                    return;
+                    exoticMatterProduced += maxChargePowerRequired;
                 }
-
-                var maxPowerRequired = (maxExoticMatter - currentExoticMatter) / 0.001;
-
-                var powerDraw = CheatOptions.InfiniteElectricity
-                    ? maxPowerRequired
-                    : Math.Max(minPowerRequirementForLightSpeed, getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES));
-
-                var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-
-                var effectiveResourceThrotling = resourceBarRatio > 1d/3d ? 1 : resourceBarRatio * 3;
-
-                var powerReturned = CheatOptions.InfiniteElectricity 
-                    ? powerDraw
-                    : consumeFNResourcePerSecond(effectiveResourceThrotling * powerDraw, ResourceManager.FNRESOURCE_MEGAJOULES);
-
-                if (powerReturned < 0.99 * minPowerRequirementForLightSpeed)
-                    insufficientPowerTimeout--;
                 else
-                    insufficientPowerTimeout = maxPowerTimeout;
-
-                if (insufficientPowerTimeout < 0)
                 {
-                    insufficientPowerTimeout--;
-                    Debug.Log("[KSPI]: Not enough power to initiate stable warp field");
-                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_notEnoughElectricPowerForWarp"), 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                    StopCharging();
+                    var powerDraw = CheatOptions.InfiniteElectricity
+                        ? maxChargePowerRequired
+                        : Math.Max(minPowerRequirementForLightSpeed, getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES));
 
-                    return;
+                    var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                    var effectiveResourceThrotling = resourceBarRatio > 1d / 3d ? 1 : resourceBarRatio * 3;
+
+                    exoticMatterProduced = CheatOptions.InfiniteElectricity
+                        ? powerDraw
+                        : consumeFNResourcePerSecond(washeatModifier * effectiveResourceThrotling * powerDraw, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                    if (exoticMatterProduced < 0.99 * minPowerRequirementForLightSpeed)
+                        insufficientPowerTimeout--;
+                    else
+                        insufficientPowerTimeout = maxPowerTimeout;
+
+                    if (insufficientPowerTimeout < 0)
+                    {
+                        insufficientPowerTimeout--;
+
+                        var message = washeatModifier < 0.99 ? "Shutdown Alcubierre Drive due to overheating" :  
+                            Localizer.Format("#LOC_KSPIE_AlcubierreDrive_notEnoughElectricPowerForWarp");
+
+                        Debug.Log("[KSPI]: " + message);
+                        ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                        StopCharging();
+
+                        return;
+                    }
                 }
 
-                if (currentExoticMatter < exotic_power_required)
-                {
-                    part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -powerReturned * 0.001 * TimeWarp.fixedDeltaTime / powerRequirementMultiplier);
-                }
-
-                ProduceWasteheat(powerReturned);
+                if (!CheatOptions.IgnoreMaxTemperature)
+                    supplyFNResourcePerSecond(exoticMatterProduced, ResourceManager.FNRESOURCE_WASTEHEAT);
             }
+
+            part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -exoticMatterProduced * 0.001 * TimeWarp.fixedDeltaTime / powerRequirementMultiplier);
 
             if (!IsEnabled)
             {
@@ -1311,6 +1366,35 @@ namespace FNPlugin
 
                 warp_effect2_renderer.enabled = true;
                 warp_effect1_renderer.enabled = true;
+            }
+        }
+
+        private void GenerateAntiGravity()
+        {
+            exoticMatterRatio = maxExoticMatter > 0 ? currentExoticMatter / maxExoticMatter : 0;
+
+            gravityAcceleration = vessel.gravityForPos.magnitude;
+
+            var antigravityForceVector = vessel.gravityForPos * -exoticMatterRatio * 2;
+
+            antigravityAcceleration = antigravityForceVector.magnitude;
+
+            if (!double.IsNaN(antigravityForceVector.x) && !double.IsNaN(antigravityForceVector.y) && !double.IsNaN(antigravityForceVector.z))
+            {
+                if (vessel.packed)
+                    vessel.orbit.Perturb(antigravityForceVector * TimeWarp.fixedDeltaTime, universalTime);
+                else
+                    vessel.ChangeWorldVelocity(antigravityForceVector * TimeWarp.fixedDeltaTime);
+            }
+
+            verticalSpeed = vessel.verticalSpeed;
+
+            stablePowerSupply = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+            if (holdAltitude)
+            {
+                responseMultiplier = 0.005 * stablePowerSupply / maxExoticMatter;
+                antigravityPercentage = Math.Max(0, Math.Min(100 + (float)(gravityAcceleration != 0 ? responseMultiplier * -verticalSpeed / gravityAcceleration / TimeWarp.fixedDeltaTime : 0), 200));
             }
         }
 
@@ -1488,7 +1572,6 @@ namespace FNPlugin
             Debug.Log("[KSPI]: Develocitize");
 
             // This code is inspired quite heavily by HyperEdit's OrbitEditor.cs
-            var universalTime = Planetarium.GetUniversalTime();
             var currentOrbit = vessel.orbitDriver.orbit;
             Vector3d currentOrbitalVelocity = currentOrbit.getOrbitalVelocityAtUT(universalTime);
             Vector3d progradeNormalizedVelocity = currentOrbitalVelocity.normalized;
