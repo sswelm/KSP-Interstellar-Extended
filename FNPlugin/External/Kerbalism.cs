@@ -48,14 +48,14 @@ namespace FNPlugin
 
                     if (Sim != null)
                     {
-						Debug.Log("[KSPI]: Found KERBALISM.Sim");
+                        Debug.Log("[KSPI]: Found KERBALISM.Sim");
                         try
                         {
                             VesselTemperature = Sim.GetMethod("Temperature");
                             if (VesselTemperature != null)
-								Debug.Log("[KSPI]: Found KERBALISM.Sim.Temperature Method");
+                                Debug.Log("[KSPI]: Found KERBALISM.Sim.Temperature Method");
                             else
-								Debug.LogError("[KSPI]: Failed to find KERBALISM.Sim.Temperature Method");
+                                Debug.LogError("[KSPI]: Failed to find KERBALISM.Sim.Temperature Method");
                         }
                         catch (Exception e)
                         {
@@ -63,7 +63,7 @@ namespace FNPlugin
                         }
                     }
                     else
-						Debug.LogError("[KSPI]: Failed to find KERBALISM.Sim");
+                        Debug.LogError("[KSPI]: Failed to find KERBALISM.Sim");
 
                     return;
                 }

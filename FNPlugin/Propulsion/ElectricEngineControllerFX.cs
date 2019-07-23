@@ -190,8 +190,6 @@ namespace FNPlugin
         protected double simulatedThrustInSpace;
 
         [KSPField]
-        protected double highPriorityPowerSupply;
-        [KSPField]
         protected double availablePower;
         [KSPField]
         protected double maxThrustFromPower = 0.001;
@@ -738,15 +736,12 @@ namespace FNPlugin
             modifiedThrotte = ModifiedThrotte;
             modifiedMaxThrottlePower = maxEffectivePower * modifiedThrotte;
 
-            highPriorityPowerSupply = getPriorityResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES, getPowerPriority());
             availablePower = getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
             maxThrustFromPower = EvaluateMaxThrust(availablePower * _electrical_share_f);
 
             var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
             effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
-            //rawPowerForEngine = effectiveResourceThrotling * maxThrustFromPower * CurrentIspMultiplier * _modifiedEngineBaseIsp / GetPowerThrustModifier() * GameConstants.STANDARD_GRAVITY;
-            
             availablePowerForEngine = availablePower * effectiveResourceThrotling * _electrical_share_f;
             currentPowerForEngine = availablePowerForEngine * modifiedThrotte;
 

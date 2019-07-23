@@ -1113,9 +1113,9 @@ namespace FNPlugin
 
             var scaledThrottle = Math.Pow(thrustRatio * throtle, powerThrottleExponent);
 
-            var wasteheatRatio = (double)getResourceBarFraction(ResourceManager.FNRESOURCE_WASTEHEAT);
+            var wasteheatRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-            var wasteheatModifier = wasteheatRatio > 0.9 ? 1 - (wasteheatRatio - 0.9) / 0.1 : 1;
+            var wasteheatModifier = CheatOptions.IgnoreMaxTemperature || wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10;
 
             var requestedPower = scaledThrottle * effectivePowerRequirement;
 
@@ -1123,7 +1123,7 @@ namespace FNPlugin
                 ? requestedPower * wasteheatModifier
                 : consumeFNResourcePerSecond(requestedPower * wasteheatModifier, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            var plasmaRatio = effectivePowerRequirement > 0 ? recievedPower / requestedPower : wasteheatModifier;
+            var plasmaRatio = requestedPower > 0 ? recievedPower / requestedPower : wasteheatModifier;
 
             powerUsage = (recievedPower * 0.001).ToString("0.000") + " GW / " + (requestedPower * 0.001).ToString("0.000") + " GW";
 
