@@ -664,6 +664,7 @@ namespace FNPlugin
 
             var sumPowerProduced = power_produced.Sum(m => m.Value.currentSupply);
 
+            // calculate effeciency ratio to prevent efficienct chooking
             var supplyEfficiencyRatio = power_produced.Count > 0 && sumPowerProduced > 0 ? power_produced.Sum(m => m.Value.efficiencyRatio * (m.Value.currentSupply / sumPowerProduced)) : 0;
 
             power_supply_list_archive = power_produced.OrderByDescending(m => m.Value.maximumSupply).ToList();
@@ -699,6 +700,10 @@ namespace FNPlugin
                 if (resourceSuppliable.getPowerPriority() == 0)
                 {
                     var power = power_kvp.Value.Power_requested;
+
+                    // efficiency throtling
+                    if (supplyEfficiencyRatio < 0.10 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio) / 0.10;
 
                     if (!double.IsNaN(power) && !double.IsInfinity(power))
                     {
@@ -751,7 +756,6 @@ namespace FNPlugin
 
                         currentPowerSupply -= provided_electric_charge_per_second;
                         total_power_distributed += provided_electric_charge_per_second;
-                        //power_distributed[0] += provided_electric_charge_per_second;
                     }
                 }
             }
@@ -766,8 +770,8 @@ namespace FNPlugin
                     var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.14 && resourceDefinition.id == megajouleResourceDefinition.id)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.12;
+                    if (supplyEfficiencyRatio < 0.12 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio) / 0.12;
 
                     if (!double.IsNaN(power) && !double.IsInfinity(power))
                     {
@@ -802,8 +806,8 @@ namespace FNPlugin
                     var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.16 && resourceDefinition.id == megajouleResourceDefinition.id)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.14;
+                    if (supplyEfficiencyRatio < 0.14 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio) / 0.14;
 
                     if (!double.IsNaN(power) && !double.IsInfinity(power))
                         current_resource_demand += power;
@@ -835,8 +839,8 @@ namespace FNPlugin
                     var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (resourceDefinition.id == megajouleResourceDefinition.id && supplyEfficiencyRatio > 0 && supplyEfficiencyRatio < 0.18)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.16;
+                    if (supplyEfficiencyRatio < 0.16 && resourceDefinition.id == megajouleResourceDefinition.id )
+                        power *= Math.Max(0, supplyEfficiencyRatio) / 0.16;
 
                     if (!double.IsNaN(power) && !double.IsInfinity(power))
                         current_resource_demand += power;
@@ -868,8 +872,8 @@ namespace FNPlugin
                     var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.2 && resourceDefinition.id == megajouleResourceDefinition.id)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.18;
+                    if (supplyEfficiencyRatio < 0.18 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio) / 0.18;
 
                     current_resource_demand += power;
 
@@ -900,8 +904,8 @@ namespace FNPlugin
                     var power = power_kvp.Value.Power_requested;
 
                     // efficiency throtling
-                    if (supplyEfficiencyRatio < 0.22 && resourceDefinition.id == megajouleResourceDefinition.id)
-                        power *= Math.Max(0, supplyEfficiencyRatio - 0.02) / 0.2;
+                    if (supplyEfficiencyRatio < 0.2 && resourceDefinition.id == megajouleResourceDefinition.id)
+                        power *= Math.Max(0, supplyEfficiencyRatio) / 0.2;
 
                     current_resource_demand += power;
 
@@ -922,7 +926,7 @@ namespace FNPlugin
                 }
             }
 
-            // substract avaialble resource amount to get delta resource change
+            // substract available resource amount to get delta resource change
             currentPowerSupply -= Math.Max(availableResourceAmount, 0);
             internl_power_extract_fixed = -currentPowerSupply * timeWarpFixedDeltaTime;
 

@@ -940,10 +940,10 @@ namespace FNPlugin.Wasteheat
 
         private double CalculateInstantaniousRadTemp()
         {
-            var result = Math.Min(maxCurrentRadiatorTemperature, Math.Max(radiator_temperature_temp_val, partTempQueue.Average()));
+            var result = Math.Min(maxCurrentRadiatorTemperature, radiator_temperature_temp_val);
 
-            if (Double.IsNaN(result))
-                Debug.LogError("[KSPI]: FNRadiator: FixedUpdate Single.IsNaN detected in instantaneous_rad_temp after reading external temperature");
+            if (result.IsInfinityOrNaN())
+                Debug.LogError("[KSPI]: FNRadiator: FixedUpdate IsNaN or Infinity detected in CalculateInstantaniousRadTemp");
 
             return result;
         }
@@ -1013,7 +1013,7 @@ namespace FNPlugin.Wasteheat
 
         public double GetAverateRadiatorTemperature()
         {
-            return Math.Max(partTempQueue.Count > 0 ? partTempQueue.Average() : part.temperature, radTempQueue.Count > 0 ? radTempQueue.Average() : currentRadTemp);
+            return radTempQueue.Count > 0 ? radTempQueue.Average() : currentRadTemp;
         }
 
         public override string GetInfo()

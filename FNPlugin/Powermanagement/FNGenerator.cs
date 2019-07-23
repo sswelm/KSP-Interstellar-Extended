@@ -1329,25 +1329,6 @@ namespace FNPlugin
 
             possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity / deltaTimeDivider, maxStableMegaWattPower);
 
-            //if (applies_balance)
-            //{
-            //    var chargedPowerPerformance = attachedPowerSource.EfficencyConnectedChargedEnergyGenerator * attachedPowerSource.ChargedPowerRatio;
-            //    var thermalPowerPerformance = attachedPowerSource.EfficencyConnectedThermalEnergyGenerator * (1 - attachedPowerSource.ChargedPowerRatio);
-
-            //    var totalPerformance = chargedPowerPerformance + thermalPowerPerformance;
-
-            //    var balancePerformanceRatio = totalPerformance == 0 ? 0
-            //        : chargedParticleMode
-            //            ? chargedPowerPerformance / totalPerformance
-            //            : thermalPowerPerformance / totalPerformance;
-
-            //    electrical_power_currently_needed = (currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling) * balancePerformanceRatio;
-            //}
-            //else
-            //{
-            //    electrical_power_currently_needed = currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling;
-            //}
-
             electrical_power_currently_needed = currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling;
 
             return electrical_power_currently_needed;

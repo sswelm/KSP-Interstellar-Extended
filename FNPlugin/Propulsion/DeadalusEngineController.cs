@@ -52,6 +52,8 @@ namespace FNPlugin
 
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_powerUsage")]
         public string powerUsage;
+        [KSPField]
+        public double finalRequestedPower;
 
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_FusionEngine_fusionFuel")]
         public string fusionFuel1 = "FusionPellets";
@@ -289,6 +291,8 @@ namespace FNPlugin
         public double fuelRatio;
         [KSPField]
         double averageDensity;
+        [KSPField]
+        float throttle;
 
         bool radhazard;
         bool warpToReal;
@@ -896,7 +900,7 @@ namespace FNPlugin
 
                 UpdateTime();
 
-                var throttle = curEngineT.currentThrottle > 0 ? Mathf.Max(curEngineT.currentThrottle, 0.01f) : 0;
+                throttle = curEngineT.currentThrottle > 0 ? Mathf.Max(curEngineT.currentThrottle, 0.01f) : 0;
 
                 if (throttle > 0)
                 {
@@ -1104,24 +1108,22 @@ namespace FNPlugin
             return recievedRatio;
         }
 
-        private double ProcessPowerAndWasteHeat(float throtle)
+        private double ProcessPowerAndWasteHeat(float requestedThrottle)
         {
             // Calculate Fusion Ratio
             var effectivePowerRequirement = EffectivePowerRequirement;
-            var thrustPercentage = (double)(decimal)curEngineT.thrustPercentage;
-            var thrustRatio = Math.Max(thrustPercentage * 0.01, 0.01);
-
-            var scaledThrottle = Math.Pow(thrustRatio * throtle, powerThrottleExponent);
 
             var wasteheatRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-            var wasteheatModifier = CheatOptions.IgnoreMaxTemperature || wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10;
+            var wasteheatModifier = CheatOptions.IgnoreMaxTemperature || wasteheatRatio < 0.8 ? 1 : (1  - wasteheatRatio) * 5;
 
-            var requestedPower = scaledThrottle * effectivePowerRequirement;
+            var requestedPower = requestedThrottle * effectivePowerRequirement * wasteheatModifier;
+
+            finalRequestedPower = requestedPower * wasteheatModifier;
 
             var recievedPower = CheatOptions.InfiniteElectricity || requestedPower <= 0
-                ? requestedPower * wasteheatModifier
-                : consumeFNResourcePerSecond(requestedPower * wasteheatModifier, ResourceManager.FNRESOURCE_MEGAJOULES);
+                ? finalRequestedPower
+                : consumeFNResourcePerSecond(finalRequestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             var plasmaRatio = requestedPower > 0 ? recievedPower / requestedPower : wasteheatModifier;
 
@@ -1129,7 +1131,7 @@ namespace FNPlugin
 
             // The Aborbed wasteheat from Fusion production and reaction
             if (!CheatOptions.IgnoreMaxTemperature)
-                supplyFNResourcePerSecond(scaledThrottle * FusionWasteHeat * wasteHeatMultiplier * plasmaRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
+                supplyFNResourcePerSecond(requestedThrottle * plasmaRatio * FusionWasteHeat * wasteHeatMultiplier, ResourceManager.FNRESOURCE_WASTEHEAT);
 
             return plasmaRatio;
         }
