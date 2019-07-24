@@ -167,8 +167,8 @@ namespace FNPlugin
         [KSPField]
         public string animGenericName = "";
 
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Receiver Diameter", guiUnits = " m")]
-        public float diameter = 1;
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiActive = false, guiName = "Receiver Diameter", guiFormat = "F3", guiUnits = " m")]
+        public double diameter = 1;
         [KSPField(isPersistant = false)]
         public bool isThermalReceiver = false;
         [KSPField(isPersistant = false)]
