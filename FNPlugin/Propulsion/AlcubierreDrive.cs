@@ -169,6 +169,9 @@ namespace FNPlugin
         private double exoticMatterProduced;
         private double responseMultiplier;
 
+        [KSPField(guiActive = true)]
+        private double orbitMultiplier;
+
         private readonly double[] _engineThrotle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
 
         private GameObject warp_effect;
@@ -1397,8 +1400,9 @@ namespace FNPlugin
 
             if (holdAltitude)
             {
+                orbitMultiplier = vessel.orbit.PeA > vessel.mainBody.atmosphereDepth ? 0 : 1 - Math.Min(1, vessel.horizontalSrfSpeed  /  CircularOrbitSpeed(vessel.mainBody, vessel.mainBody.Radius + vessel.altitude));
                 responseMultiplier = 0.005 * stablePowerSupply / maxExoticMatter;
-                antigravityPercentage = Math.Max(0, Math.Min(100 + (float)(gravityAcceleration != 0 ? responseMultiplier * -verticalSpeed / gravityAcceleration / TimeWarp.fixedDeltaTime : 0), 200));
+                antigravityPercentage = (float)Math.Max(0, Math.Min(100 * orbitMultiplier + (gravityAcceleration != 0 ? responseMultiplier * -verticalSpeed / gravityAcceleration / TimeWarp.fixedDeltaTime : 0), 200));
             }
         }
 
