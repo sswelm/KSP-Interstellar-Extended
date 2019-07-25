@@ -2058,28 +2058,31 @@ namespace FNPlugin.Reactors
 
         private void BreedTritium(double neutronPowerReceivedEachSecond, double fixedDeltaTime)
         {
-            var partResourceLithium6 = part.Resources[InterstellarResourcesConfiguration.Instance.Lithium6];
-            if (partResourceLithium6 != null)
-            {
-                totalAmountLithium = partResourceLithium6.amount;
-                totalMaxAmountLithium = partResourceLithium6.maxAmount;
-            }
-            else
-            {
-                totalAmountLithium = 0;
-                totalMaxAmountLithium = 0;
-            }
+            lithium_consumed_per_second = 0;
+            tritium_produced_per_second = 0;
+            helium_produced_per_second = 0;
+            totalAmountLithium = 0;
+            totalMaxAmountLithium = 0;
 
-            var ratioLithium6 = totalAmountLithium > 0 ? totalAmountLithium / totalMaxAmountLithium : 0;
-
-            lithiumNeutronAbsorbtion =  Math.Max(0.01, Math.Sqrt(ratioLithium6) - 0.0001);
-
-            if (!breedtritium || neutronPowerReceivedEachSecond <= 0 || fixedDeltaTime <= 0 || lithiumNeutronAbsorbtion <= 0.01)
-            {
-                tritium_produced_per_second = 0;
-                helium_produced_per_second = 0;
+            if (breedtritium == false || neutronPowerReceivedEachSecond <= 0 || fixedDeltaTime <= 0)
                 return;
-            }
+
+            // verify if there is any lithium6 present
+            var partResourceLithium6 = part.Resources[InterstellarResourcesConfiguration.Instance.Lithium6];
+            if (partResourceLithium6 == null)
+                return;
+
+            totalAmountLithium = partResourceLithium6.amount;
+            totalMaxAmountLithium = partResourceLithium6.maxAmount;
+
+            if (totalAmountLithium.IsInfinityOrNaNorZero || totalMaxAmountLithium.IsInfinityOrNaNorZero)
+                return;
+
+            lithiumNeutronAbsorbtion = CheatOptions.UnbreakableJoints ? 1 : Math.Max(0.01, Math.Sqrt(totalAmountLithium / totalMaxAmountLithium) - 0.0001);
+
+            if ( lithiumNeutronAbsorbtion <= 0.01)
+                return;
+
             // calculate current maximum litlium consumption
             var breedRate = CurrentFuelMode.TritiumBreedModifier * CurrentFuelMode.NeutronsRatio * staticBreedRate * neutronPowerReceivedEachSecond * fixedDeltaTime * lithiumNeutronAbsorbtion;
             var lithRate = breedRate / lithium6_density;
@@ -2100,7 +2103,7 @@ namespace FNPlugin.Reactors
             // calculate effective lithium used for tritium breeding
             lithium_consumed_per_second = lithUsed / fixedDeltaTime;
 
-            // caculate products
+            // calculate products
             var tritiumProduction = lithUsed * tritiumBreedingMassAdjustment;
             var heliumProduction = lithUsed * heliumBreedingMassAdjustment;
 

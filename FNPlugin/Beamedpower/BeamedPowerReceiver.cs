@@ -136,8 +136,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Solar Electric Efficiency", guiFormat = "F6")]
         public double effectiveSolarThermalElectricEfficiency;
 
-        //[KSPField]
-        //public double photovoltaicSolarSupply;
         [KSPField]
         public int instanceId;
         [KSPField]
@@ -392,18 +390,18 @@ namespace FNPlugin
             received_power.Clear();
         }
 
-		public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource)
-		{
-			// do nothing
-		}
+        public void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource)
+        {
+            // do nothing
+        }
 
         public double FuelRato { get { return 1; } }
 
-		public double MagneticNozzlePowerMult { get { return 1; } }
+        public double MagneticNozzlePowerMult { get { return 1; } }
 
-		public bool MayExhaustInAtmosphereHomeworld { get { return true; } }
+        public bool MayExhaustInAtmosphereHomeworld { get { return true; } }
 
-		public bool MayExhaustInLowSpaceHomeworld { get { return true; } }
+        public bool MayExhaustInLowSpaceHomeworld { get { return true; } }
 
         public double MinThermalNozzleTempRequired { get { return 0; } }
 
