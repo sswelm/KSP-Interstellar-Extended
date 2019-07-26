@@ -2075,7 +2075,7 @@ namespace FNPlugin.Reactors
             totalAmountLithium = partResourceLithium6.amount;
             totalMaxAmountLithium = partResourceLithium6.maxAmount;
 
-            if (totalAmountLithium.IsInfinityOrNaNorZero || totalMaxAmountLithium.IsInfinityOrNaNorZero)
+            if (totalAmountLithium.IsInfinityOrNaNorZero() || totalMaxAmountLithium.IsInfinityOrNaNorZero())
                 return;
 
             lithiumNeutronAbsorbtion = CheatOptions.UnbreakableJoints ? 1 : Math.Max(0.01, Math.Sqrt(totalAmountLithium / totalMaxAmountLithium) - 0.0001);
