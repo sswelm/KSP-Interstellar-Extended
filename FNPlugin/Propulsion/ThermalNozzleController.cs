@@ -80,10 +80,12 @@ namespace FNPlugin
         [KSPField]
         public double wasteheatRatioDecelerationMult = 10;
 
-        [KSPField(guiActive = false)]
+        [KSPField]
         public float finalEngineDecelerationSpeed;
-        [KSPField(guiActive = false)]
+        [KSPField]
         public float finalEngineAccelerationSpeed;
+        [KSPField]
+        public bool useEngineResponseTime;
         [KSPField]
         public bool initialized = false;
         [KSPField]
@@ -1433,17 +1435,19 @@ namespace FNPlugin
             {
                 atmosphereCurve.Add(0, (float)(_maxISP * atmosphere_isp_efficiency), 0, 0);
 
+                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatModifier = wasteheatRatioDecelerationMult > 0 ? Math.Max((1 - wasteheatRatio) * wasteheatRatioDecelerationMult, 1) : 1;
+
+                if (AttachedReactor != null)
+                {
+                    finalEngineAccelerationSpeed = (float)Math.Min(engineAccelerationBaseSpeed * AttachedReactor.ReactorSpeedMult, 33);
+                    finalEngineDecelerationSpeed = (float)Math.Min(engineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * wasteheatModifier, 33);
+                    useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
+                }
+
                 myAttachedEngine.useAtmCurve = false;
                 myAttachedEngine.useVelCurve = false;
-                myAttachedEngine.useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
-
-                var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-
-                var wasteheatModifier = wasteheatRatioDecelerationMult > 0 ? Math.Max((1 - wasteheatRatio) * wasteheatRatioDecelerationMult, 1) : 1;
-                
-                finalEngineAccelerationSpeed = (float)Math.Min(engineAccelerationBaseSpeed * AttachedReactor.ReactorSpeedMult, 33);
-                finalEngineDecelerationSpeed = (float)Math.Min(engineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * wasteheatModifier, 33);
-
+                myAttachedEngine.useEngineResponseTime = useEngineResponseTime;
                 myAttachedEngine.engineAccelerationSpeed = finalEngineAccelerationSpeed;
                 myAttachedEngine.engineDecelerationSpeed = finalEngineDecelerationSpeed;
 
@@ -1458,7 +1462,7 @@ namespace FNPlugin
             {
                 if (overrideVelocityCurve && jetPerformanceProfile == 0)    // Ramjet
                 {
-                    velCurve.Add(0, 0.01f + _jetTechBonusPercentage / 20);
+                    velCurve.Add(0, 0.005f + _jetTechBonusPercentage / 40);
                     velCurve.Add(2.5f - _jetTechBonusCurveChange, 1);
                     velCurve.Add(5 + _jetTechBonusCurveChange * 2, 1);
                     velCurve.Add(14, 0 + _jetTechBonusPercentage);
@@ -1520,7 +1524,11 @@ namespace FNPlugin
 
                 myAttachedEngine.useAtmCurve = true;
                 myAttachedEngine.useVelCurve = true;
-                myAttachedEngine.useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
+
+                if (AttachedReactor != null)
+                    useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
+
+                myAttachedEngine.useEngineResponseTime = useEngineResponseTime;
             }
 
 
@@ -2179,6 +2187,9 @@ namespace FNPlugin
 
         private void UpdateMaxIsp()
         {
+            if (AttachedReactor == null)
+                return;
+
             baseMaxIsp = Math.Sqrt(AttachedReactor.CoreTemperature) * EffectiveCoreTempIspMult;
 
             if (IsPositiveValidNumber(AttachedReactor.FuelRato))
