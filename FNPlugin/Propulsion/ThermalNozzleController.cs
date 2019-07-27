@@ -254,7 +254,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Exponent")]
         public float heatProductionExponent = 7.1f;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Heat Exponent")]
-        public double radiusHeatProductionExponent = 0.3;
+        public double radiusHeatProductionExponent = 0.25;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Radius Heat Multiplier")]
         public double radiusHeatProductionMult = 10;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Heat Production Multiplier")]
@@ -269,7 +269,7 @@ namespace FNPlugin
         public double powerToMass;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Space Heat Production")]
         public double spaceHeatProduction = 100;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Engine Heat Production", guiFormat = "F5")]
         public double engineHeatProduction;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Thrust On Engine", guiUnits = " kN")]
         public float maxThrustOnEngine;
