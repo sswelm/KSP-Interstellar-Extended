@@ -40,8 +40,18 @@ namespace FNPlugin
 
             var items = (List<RDPartListItem>)fieldInfoRDPartList.GetValue(RDController.Instance.partList);
 
-            foreach (RDPartListItem item in items.Where(p => !p.isPart && p.upgrade != null))
+            //if (items == null)
+             //   Debug.LogError("[KSPI]: RDColoredUpgradeIcon fieldInfoRDPartList faild to retrieve partlist ");
+
+            var upgradedTemplateItems = items.Where(p => !p.isPart && p.upgrade != null).ToList();
+
+            //if (upgradedTemplateItems.Count == 0)
+            //    Debug.LogError("[KSPI]: RDColoredUpgradeIcon upgradedTemplateItems is empty ");
+
+            foreach (RDPartListItem item in upgradedTemplateItems)
             {
+                //Debug.Log("[KSPI]: RDColoredUpgradeIcon upgrade name " + item.upgrade.name + " upgrade techRequired: " + item.upgrade.techRequired);
+
                 item.gameObject.GetComponent<UnityEngine.UI.Image>().color = greenColor;
             }
         }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+
 namespace FNPlugin
 {
     [KSPAddon(KSPAddon.Startup.Flight, false)]
@@ -116,6 +117,121 @@ namespace FNPlugin
 
         public static bool using_toolbar = false;
         protected static bool resources_configured = false;
+
+        private static Dictionary<string, RDTech> rdTechByName;
+
+        public static Dictionary<string, RDTech> RDTechByName 
+        {
+            get
+            {
+                if (rdTechByName == null)
+                {
+                    rdTechByName = new Dictionary<string, RDTech>();
+
+                    // catalog part upgrades
+                    ConfigNode[] techtree = GameDatabase.Instance.GetConfigNodes("TechTree");
+                    Debug.Log("[KSPI]: PluginHelper found: " + techtree.Count() + " TechTrees");
+
+                    for (int i = 0; i < techtree.Length; i++)
+                    {
+                        var techtreeConfig = techtree[i];
+
+                        var technodes = techtreeConfig.nodes;
+
+                        Debug.Log("[KSPI]: PluginHelper found: " + technodes.Count + " Technodes");
+                        for (int j = 0; j < technodes.Count; j++)
+                        {
+                            var technode = technodes[j];
+
+                            var tech = new RDTech();
+                            tech.techID = technode.GetValue("id");
+                            tech.title = technode.GetValue("title");
+
+                            Debug.Log("[KSPI]: PluginHelper technode id: " + tech.techID + " title: " + tech.title);
+                            rdTechByName.Add(tech.techID, tech);
+                        }
+                    }
+                }
+                return rdTechByName;
+            }
+        }
+
+        private static Dictionary<string, PartUpgradeHandler.Upgrade> partUpgradeByName;
+
+        public static Dictionary<string, PartUpgradeHandler.Upgrade> PartUpgradeByName 
+        { 
+            get 
+            {
+                if (partUpgradeByName == null)
+                {
+                    partUpgradeByName = new Dictionary<string, PartUpgradeHandler.Upgrade>();
+
+                    // catalog part upgrades
+                    ConfigNode[] partupgradeNodes = GameDatabase.Instance.GetConfigNodes("PARTUPGRADE");
+                    Debug.Log("[KSPI]: PluginHelper found: " + partupgradeNodes.Count() + " Part upgrades");
+
+                    for (int i = 0; i < partupgradeNodes.Length; i++)
+                    {
+                        var partUpgradeConfig = partupgradeNodes[i];
+
+                        var partUpgrade = new PartUpgradeHandler.Upgrade();
+                        partUpgrade.name = partUpgradeConfig.GetValue("name");
+                        partUpgrade.techRequired = partUpgradeConfig.GetValue("techRequired");
+
+                        Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired);
+
+                        partUpgradeByName.Add(partUpgrade.name, partUpgrade);
+                    }
+                }
+
+                return partUpgradeByName;
+            } 
+        }
+
+        private static Dictionary<string, ProtoTechNode> techNodeByName = new Dictionary<string, ProtoTechNode>();
+
+        private static Dictionary<string, string> translationsByName;
+
+        static Dictionary<string, string> TranslationsByName
+        {
+            get
+            {
+                if (translationsByName == null)
+                {
+                    translationsByName = new Dictionary<string, string>();
+
+                    ConfigNode[] localizationConfigNodes = GameDatabase.Instance.GetConfigNodes("Localization");
+                    Debug.Log("[KSPI]: PluginHelper loaded " + localizationConfigNodes.Count() + " Localization files");
+
+                    for (int i = 0; i < localizationConfigNodes.Length; i++)
+                    {
+                        var localizationConfig = localizationConfigNodes[i];
+                        var localization = localizationConfig.nodes;
+
+                        for (int j = 0; j < localization.Count; j++)
+                        {
+                            var node = localization[j];
+
+                            if (node.name == "en-us")
+                            {
+                                var translations = node.values;
+
+                                Debug.Log("[KSPI]: PluginHelper translations: " + translations.Count);
+
+                                for (int k = 0; k < translations.Count; k++)
+                                {
+                                    var translation = translations[k];
+
+                                    translationsByName.Add(translation.name, translation.value);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return translationsByName;
+            }
+        }
         
         static protected bool buttonAdded;
         static protected Texture2D appIcon = null;
@@ -254,8 +370,6 @@ namespace FNPlugin
         public static double PowerConsumptionMultiplier { get { return _powerConsumptionMultiplier; } }
 
         //----------------------------------------------------------------------------------------------
-        //private static double _ispNtrPropellantModifierBase = 0;
-        //public static double IspNtrPropellantModifierBase { get { return _ispNtrPropellantModifierBase; } }
 
         private static double _ispElectroPropellantModifierBase = 0;
         public static double IspElectroPropellantModifierBase { get { return _ispElectroPropellantModifierBase; } }
@@ -385,70 +499,61 @@ namespace FNPlugin
 
         public static Dictionary<string, string> TechTitleById;
 
-        public static string GetTechTitleById(string techId)
+        public static string GetTechTitleById(string id)
         {
-            string result = ResearchAndDevelopment.GetTechnologyTitle(techId);
-
+            string result = ResearchAndDevelopment.GetTechnologyTitle(id);
             if (!String.IsNullOrEmpty(result))
                 return result;
 
-            if (TechTitleById == null && GameDatabase.Instance != null)
+            PartUpgradeHandler.Upgrade partUpgrade;
+            UnityEngine.Debug.Log("[KSPI]: lookup partUpgradeId " + id);
+            if (PartUpgradeByName.TryGetValue(id, out partUpgrade))
             {
-                Debug.Log("[KSPI]: Attempting to read " + WARP_PLUGIN_SETTINGS_FILEPATH);
-                ConfigNode plugin_settings = GameDatabase.Instance.GetConfigNode(WARP_PLUGIN_SETTINGS_FILEPATH);
-                if (plugin_settings != null && plugin_settings.HasValue("TechnodeTitles"))
+                UnityEngine.Debug.Log("[KSPI]: found partUpgradeId " + id + " now looking for " + partUpgrade.techRequired);
+
+                RDTech upgradeTechnode;
+                if (RDTechByName.TryGetValue(partUpgrade.techRequired, out upgradeTechnode))
                 {
-                    string rawstring = plugin_settings.GetValue("TechnodeTitles");
-                    string[] technodes = rawstring.Split(';').Select(sValue => sValue.Trim()).ToArray();
-
-                    if (technodes.Count() > 0)
-                    {
-                        Debug.Log("[KSPI]: found " + technodes.Count()  + " technode titles");
-                        TechTitleById = new Dictionary<string, string>();
-                    }
-
-                    foreach (string keyvalueString in technodes )
-                    {
-                        var keyvaluePair = keyvalueString.Split(',').ToArray();
-                        if (keyvaluePair.Count() >= 1)
-                        {
-                            Debug.Log("[KSPI]: added technode: " + keyvalueString);
-                            TechTitleById.Add(keyvaluePair[0].Trim(), keyvaluePair[1].Trim());
-                        }
-                    }
+                    UnityEngine.Debug.Log("[KSPI]: found partUpgrade techRequired title " + upgradeTechnode.title);
+                    return upgradeTechnode.title;
                 }
+                else
+                    UnityEngine.Debug.LogWarning("[KSPI]: failed to find partUpgrade techRequired title for " + partUpgrade.techRequired);
             }
-            
-            if (TechTitleById != null)
-                TechTitleById.TryGetValue(techId, out result);
-
-            if (!String.IsNullOrEmpty(result))
-                return result;
             else
-                return techId;
+                UnityEngine.Debug.LogWarning("[KSPI]: failed to find partUpgradeId " + id);
+
+            RDTech technode;
+            if (RDTechByName.TryGetValue(id, out technode))
+            {
+                UnityEngine.Debug.Log("[KSPI]: found title for tech " + id );
+                return technode.title;
+            }
+
+            return id;
         }
 
-        public static bool hasTech(string techid)
+        private static bool hasTech(string id)
         {
-            if (String.IsNullOrEmpty(techid) || techid == "none")
+            if (String.IsNullOrEmpty(id) || id == "none")
                 return false;
 
             if (ResearchAndDevelopment.Instance == null)
-                return HasTechFromSaveFile(techid);
+                return HasTechFromSaveFile(id);
 
-            var techstate = ResearchAndDevelopment.Instance.GetTechState(techid);
+            var techstate = ResearchAndDevelopment.Instance.GetTechState(id);
             if (techstate != null)
             {
                 var available = techstate.state == RDTech.State.Available;
                 if (available)
-                    UnityEngine.Debug.Log("[KSPI]: found techid " + techid + " available");
+                    UnityEngine.Debug.Log("[KSPI]: found techid " + id + " available");
                 else
-                    UnityEngine.Debug.Log("[KSPI]: found techid " + techid + " unavailable");
+                    UnityEngine.Debug.Log("[KSPI]: found techid " + id + " unavailable");
                 return available;
             }
             else
             {
-                UnityEngine.Debug.LogWarning("[KSPI]: did not find techid " + techid + " in techtree");
+                UnityEngine.Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
                 return false;
             }
         }
@@ -479,7 +584,7 @@ namespace FNPlugin
             }
         }
 
-        public static bool HasTechFromSaveFile(string techid)
+        private static bool HasTechFromSaveFile(string techid)
         {
             if (researchedTechs == null)
                 LoadSaveFile();
@@ -493,15 +598,28 @@ namespace FNPlugin
             return found;
         }
 
-        public static bool UpgradeAvailable(string techid)
+        public static bool UpgradeAvailable(string id)
         {
-            if (String.IsNullOrEmpty(techid))
+            if (String.IsNullOrEmpty(id))
                 return false;
+
+            if (id == "true" || id == "always")
+                return true;
+
+            if (id == "false" || id == "none")
+                return false;
+
+            PartUpgradeHandler.Upgrade partUpgrade;
+            if (PluginHelper.PartUpgradeByName.TryGetValue(id, out partUpgrade))
+            {
+                UnityEngine.Debug.Log("[KSPI]: found PARTUPGRADE " + id + ", checking techRequired " + partUpgrade.techRequired);
+                id = partUpgrade.techRequired;
+            }
 
             if (HighLogic.CurrentGame != null)
             {
                 if (TechnologyIsInUse)
-                    return hasTech(techid);
+                    return hasTech(id);
                 else
                     return true;
             }
@@ -963,7 +1081,7 @@ namespace FNPlugin
                     if (plugin_settings.HasValue("JetUpgradeTech4"))
                     {
                         PluginHelper.JetUpgradeTech4 = plugin_settings.GetValue("JetUpgradeTech4");
-                        Debug.Log("[KSPI] JetUpgradeTech4 " + PluginHelper.JetUpgradeTech4);
+                        Debug.Log("[KSPI]: JetUpgradeTech4 " + PluginHelper.JetUpgradeTech4);
                     }
                     if (plugin_settings.HasValue("JetUpgradeTech5"))
                     {

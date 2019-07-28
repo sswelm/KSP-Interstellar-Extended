@@ -2,6 +2,8 @@ using FNPlugin.Constants;
 using System;
 using System.Linq;
 using UnityEngine;
+using CommNet;
+
 
 namespace FNPlugin
 {
@@ -177,6 +179,8 @@ namespace FNPlugin
 
                 if (IsPowered)
                 {
+                    HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().requireSignalForControl = false;
+
                     double altitude_multiplier = Math.Max(vessel.altitude / vessel.mainBody.Radius, 1);
 
                     var scienceMultiplier = PluginHelper.getScienceMultiplier(vessel);
@@ -188,6 +192,8 @@ namespace FNPlugin
                 }
                 else
                 {
+                    HighLogic.CurrentGame.Parameters.CustomParams<CommNetParams>().requireSignalForControl = true;
+
                     // return any unused power
                     part.RequestResource(ResourceManager.FNRESOURCE_MEGAJOULES, -power_returned * TimeWarp.fixedDeltaTime);
                 }

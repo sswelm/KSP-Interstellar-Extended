@@ -833,6 +833,7 @@ namespace FNPlugin.Beamedpower
         {
             var transmitter = new VesselMicrowavePersistence(vessel);
             int totalCount = 0;
+
             double totalAperture = 0.0;
             double totalNuclearPower = 0.0;
             double totalSolarPower = 0.0;
@@ -842,7 +843,7 @@ namespace FNPlugin.Beamedpower
             {
                 foreach (var protomodule in protopart.modules)
                 {
-                    if (protomodule.moduleName != "MicrowavePowerTransmitter")
+                    if (protomodule.moduleName != "MicrowavePowerTransmitter" && protomodule.moduleName != "PhasedArrayTransmitter" && protomodule.moduleName != "BeamedPowerLaserTransmitter")
                         continue;
 
                     // filter on active transmitters
@@ -907,6 +908,7 @@ namespace FNPlugin.Beamedpower
         {
             var relayVessel = new VesselRelayPersistence(vessel);
             int totalCount = 0;
+
             double totalAperture = 0;
             double totalPowerCapacity = 0;
             double minimumRelayWavelength = 1;
@@ -916,7 +918,7 @@ namespace FNPlugin.Beamedpower
             {
                 foreach (var protomodule in protopart.modules)
                 {
-                    if (protomodule.moduleName != "MicrowavePowerTransmitter")
+                    if (protomodule.moduleName != "MicrowavePowerTransmitter" && protomodule.moduleName != "PhasedArrayTransmitter" && protomodule.moduleName != "BeamedPowerLaserTransmitter")
                         continue;
 
                     bool inRelayMode = bool.Parse(protomodule.moduleValues.GetValue("relay"));
