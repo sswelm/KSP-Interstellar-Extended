@@ -147,6 +147,14 @@ namespace FNPlugin.Wasteheat
         public float colorRatio;
         [KSPField]
         public double deltaTemp;
+        [KSPField]
+        public double verticalSpeed;
+        [KSPField]
+        public double spaceRadiatorModifier;
+        [KSPField]
+        public double combinedPresure;
+        [KSPField]
+        public double oxidationModifier;
 
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
@@ -162,9 +170,7 @@ namespace FNPlugin.Wasteheat
         private double stefanArea;
         private double thermalPowerDissipPerSecond;
         private double radiatedThermalPower;
-        private double convectedThermalPower;
-        
-        private double oxidationModifier;
+        private double convectedThermalPower;   
 
         private bool active;
         private bool isGraphene;
@@ -788,7 +794,7 @@ namespace FNPlugin.Wasteheat
 
             radiatorTempStr = CurrentRadiatorTemperature.ToString("0.0") + "K / " + maxCurrentRadiatorTemperature.ToString("0.0") + "K";
 
-            partTempStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
+            partTempStr = Math.Max(part.skinTemperature, part.temperature).ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
 
             if (showColorHeat)
                 ApplyColorHeat();
@@ -798,7 +804,7 @@ namespace FNPlugin.Wasteheat
         {
             if (vessel.mainBody.atmosphereContainsOxygen && vessel.staticPressurekPa > 0)
             {
-                var combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2;
+                combinedPresure = vessel.staticPressurekPa + vessel.dynamicPressurekPa * 0.2;
 
                 if (combinedPresure > 101.325)
                 {
@@ -807,21 +813,26 @@ namespace FNPlugin.Wasteheat
                     if (ratio <= 1)
                         ratio *= ratio;
                     else
-                        ratio = ratio.Sqrt();
+                        ratio = Math.Sqrt(ratio);
                     oxidationModifier = 1 + ratio * 0.1;
                 }
                 else
                     oxidationModifier = Math.Pow(combinedPresure / 101.325, 0.25);
 
-                spaceRadiatorBonus = maxSpaceTempBonus * (1 - (oxidationModifier));
+                spaceRadiatorModifier = Math.Max(0.25, Math.Min(0.95, 0.95 + vessel.verticalSpeed * 0.002));
 
-                maxCurrentRadiatorTemperature = Math.Min (maxVacuumTemperature, Math.Max(PhysicsGlobals.SpaceTemperature, maxAtmosphereTemperature + spaceRadiatorBonus));
+                spaceRadiatorBonus = (1 / spaceRadiatorModifier) * maxSpaceTempBonus * (1 - (oxidationModifier));
+
+                maxCurrentRadiatorTemperature = Math.Min(maxVacuumTemperature, Math.Max(PhysicsGlobals.SpaceTemperature, maxAtmosphereTemperature + spaceRadiatorBonus));
             }
             else
             {
+                combinedPresure = 0;
+                spaceRadiatorModifier = 0.95;
                 spaceRadiatorBonus = maxSpaceTempBonus;
                 maxCurrentRadiatorTemperature = maxVacuumTemperature;
             }
+            verticalSpeed = vessel.verticalSpeed;
         }
 
         public override void OnFixedUpdate()
