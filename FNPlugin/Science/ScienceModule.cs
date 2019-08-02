@@ -40,6 +40,39 @@ namespace FNPlugin
         public string antimatterProductionEfficiency;
         //[KSPField(isPersistant = false)]
         //public string beginResearchName = "Begin Scanning";
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Data Processing Multiplier")] 
+        public float dataProcessingMultiplier;
+
+
+        [KSPField(isPersistant = false)]
+        public string Mk2Tech = "longTermScienceTech";
+        [KSPField(isPersistant = false)]
+        public string Mk3Tech = "scientificOutposts";
+        [KSPField(isPersistant = false)]
+        public string Mk4Tech = "highEnergyScience";
+        [KSPField(isPersistant = false)]
+        public string Mk5Tech = "appliedHighEnergyPhysics";
+        [KSPField(isPersistant = false)]
+        public string Mk6Tech = "ultraHighEnergyPhysics";
+        [KSPField(isPersistant = false)]
+        public string Mk7Tech = "extremeHighEnergyPhysics";
+
+
+        [KSPField(isPersistant = false)]
+        public int Mk1ScienceCap = 1000;
+        [KSPField(isPersistant = false)]
+        public int Mk2ScienceCap = 1600;
+        [KSPField(isPersistant = false)]
+        public int Mk3ScienceCap = 2500;
+        [KSPField(isPersistant = false)]
+        public int Mk4ScienceCap = 4000;
+        [KSPField(isPersistant = false)]
+        public int Mk5ScienceCap = 6350;
+        [KSPField(isPersistant = false)]
+        public int Mk6ScienceCap = 10000;
+        [KSPField(isPersistant = false)]
+        public int Mk7ScienceCap = 16000;
+
 
         // persistant false
         [KSPField(isPersistant = false)]
@@ -54,26 +87,28 @@ namespace FNPlugin
         public bool isupgraded = false;
         [KSPField(isPersistant = false)]
         public float powerReqMult = 1;
+        [KSPField(isPersistant = false)] 
+        public float baseDataStorage = 750;
 
+        protected int techLevel;
         protected float megajoules_supplied = 0;
         protected String[] modes = { "Scanning", "Reprocessing", "Producing Antimatter", "Electrolysing", "Centrifuging" };
         protected double science_rate_f;
         protected double reprocessing_rate_f = 0;
         protected float crew_capacity_ratio;
-
-
         protected double antimatter_rate_f = 0;
-
 
         protected float electrolysis_rate_f = 0;
         protected double deut_rate_f = 0;
         protected bool play_down = true;
+        protected bool hasrequiredupgrade = false;
+
         protected Animation anim;
         protected Animation anim2;
         protected NuclearFuelReprocessor reprocessor;
         protected AntimatterGenerator antimatterGenerator;
-        protected bool hasrequiredupgrade = false;
-
+        protected ModuleScienceConverter moduleScienceConverter;
+        protected ModuleScienceLab moduleScienceLab;
         
 
         public bool CanProvideTelescopeControl
@@ -99,6 +134,42 @@ namespace FNPlugin
             play_down = true;
         }
         */
+
+        private void DetermineTechLevel()
+        {
+            techLevel = 1;
+            if (PluginHelper.UpgradeAvailable(Mk2Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk3Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk4Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk5Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk6Tech))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(Mk7Tech))
+                techLevel++;
+        }
+
+        private int GetScienceCap()
+        {
+            if (techLevel == 1)
+                return Mk1ScienceCap;
+            if (techLevel == 2)
+                return Mk2ScienceCap;
+            if (techLevel == 3)
+                return Mk3ScienceCap;
+            if (techLevel == 4)
+                return Mk4ScienceCap;
+            if (techLevel == 5)
+                return Mk5ScienceCap;
+            if (techLevel == 6)
+                return Mk6ScienceCap;
+            if (techLevel == 7)
+                return Mk7ScienceCap;
+            return 0;
+        }
 
         [KSPEvent(guiActive = true, guiName = "Reprocess Nuclear Fuel", active = true)]
         public void ReprocessFuel() 
@@ -191,8 +262,26 @@ namespace FNPlugin
             isupgraded = true;
         }
 
-        public override void OnStart(PartModule.StartState state) 
+        public override void OnStart(PartModule.StartState state)
         {
+            moduleScienceLab = part.FindModuleImplementing<ModuleScienceLab>();
+            moduleScienceConverter = part.FindModuleImplementing<ModuleScienceConverter>();
+
+            if (moduleScienceConverter != null && moduleScienceLab != null)
+            {
+                DetermineTechLevel();
+
+                var scienceCap = GetScienceCap();
+                moduleScienceLab.dataStorage = scienceCap;
+                moduleScienceConverter.scienceCap = scienceCap;
+
+                var deminishingScienceModifier = moduleScienceLab.dataStored >= baseDataStorage ? 1 : moduleScienceLab.dataStored / baseDataStorage; 
+
+                dataProcessingMultiplier = moduleScienceLab.dataStored < float.Epsilon ? 0.5f
+                    : deminishingScienceModifier * (baseDataStorage / moduleScienceLab.dataStorage) * (moduleScienceLab.dataStorage / moduleScienceLab.dataStored) * 0.5f;
+                moduleScienceConverter.dataProcessingMultiplier = dataProcessingMultiplier;
+            }
+
             if (state == StartState.Editor)
             {
                 if (this.HasTechsRequiredToUpgrade())
