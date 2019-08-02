@@ -1,9 +1,9 @@
 ﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using FNPlugin.External;
 using FNPlugin.Power;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
-using FNPlugin.Storage;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text;
 using TweakScale;
 using UnityEngine;
-using FNPlugin.External;
 
 
 namespace FNPlugin.Reactors
@@ -573,7 +572,6 @@ namespace FNPlugin.Reactors
         double lithium6_density;
 
         double consumedFuelTotalFixed;
-        double consumedFuelTotalPerSecond;
         double connectedRecieversSum;
 
         double currentThermalEnergyGeneratorMass;
@@ -596,9 +594,8 @@ namespace FNPlugin.Reactors
         double helium_produced_per_second;
 
         int windowID = 90175467;
-        int deactivate_timer = 0;
+        int deactivate_timer;
 
-        bool currentThermalEnergyGeneratorIsMHD;
         bool hasSpecificFuelModeTechs;
         bool? hasBimodelUpgradeTechReq;
         
@@ -819,7 +816,6 @@ namespace FNPlugin.Reactors
         public void NotifyActiveThermalEnergyGenerator(double efficency, double power_ratio, bool isMHD, double mass)
         {
             currentThermalEnergyGeneratorMass = mass;
-            currentThermalEnergyGeneratorIsMHD = isMHD;
 
             if (isMHD)
             {
@@ -1836,7 +1832,7 @@ namespace FNPlugin.Reactors
                         consumedFuelTotalFixed += consumedMass;
                     }
 
-                    consumedFuelTotalPerSecond = consumedFuelTotalFixed / timeWarpFixedDeltaTime;
+                    var consumedFuelTotalPerSecond = consumedFuelTotalFixed / timeWarpFixedDeltaTime;
 
                     // refresh production list
                     reactorProduction.Clear();
@@ -2141,11 +2137,6 @@ namespace FNPlugin.Reactors
         {
             if (!IsNuclear && !IsEnabled)
                 IsEnabled = true;
-        }
-
-        public bool isVolatileSource()
-        {
-            return false;
         }
 
         public override string GetInfo()
@@ -2509,7 +2500,7 @@ namespace FNPlugin.Reactors
         protected double GetFuelAvailability(PartResourceDefinition definition)
         {
             if (definition == null)
-                UnityEngine.Debug.LogError("[KSPI]: GetFuelAvailability definition null");
+                Debug.LogError("[KSPI]: GetFuelAvailability definition null");
 
             if (definition.resourceTransferMode == ResourceTransferMode.NONE)
             {
@@ -2528,11 +2519,11 @@ namespace FNPlugin.Reactors
         protected double GetProductAvailability(ReactorProduct product)
         {
             if (product == null)
-                UnityEngine.Debug.LogError("[KSPI]: GetFuelAvailability product null");
+                Debug.LogError("[KSPI]: GetFuelAvailability product null");
 
             if (product.Definition == null)
             {
-                UnityEngine.Debug.LogError("[KSPI]: GetFuelAvailability product definition null");
+                Debug.LogError("[KSPI]: GetFuelAvailability product definition null");
                 return 0;
             }
 
@@ -2553,7 +2544,7 @@ namespace FNPlugin.Reactors
         protected double GetMaxProductAvailability(ReactorProduct product)
         {
             if (product == null)
-                UnityEngine.Debug.LogError("[KSPI]: GetFuelAvailability product null");
+                Debug.LogError("[KSPI]: GetFuelAvailability product null");
 
             if (product.Definition == null)
                 return 0;
@@ -2586,7 +2577,7 @@ namespace FNPlugin.Reactors
                 emitterController.exhaustProducesGammaRadiation = !mayExhaustInAtmosphereHomeworld;
             }
             else
-                UnityEngine.Debug.LogWarning("[KSPI]: No Emitter Found om " + part.partInfo.title);
+                Debug.LogWarning("[KSPI]: No Emitter Found om " + part.partInfo.title);
         }
 
         private void UpdateKerbalismEmitter()
