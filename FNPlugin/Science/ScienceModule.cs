@@ -61,17 +61,17 @@ namespace FNPlugin
         [KSPField(isPersistant = false)]
         public int Mk1ScienceCap = 1000;
         [KSPField(isPersistant = false)]
-        public int Mk2ScienceCap = 1500;
+        public int Mk2ScienceCap = 1600;
         [KSPField(isPersistant = false)]
-        public int Mk3ScienceCap = 2250;
+        public int Mk3ScienceCap = 2500;
         [KSPField(isPersistant = false)]
-        public int Mk4ScienceCap = 3375;
+        public int Mk4ScienceCap = 4000;
         [KSPField(isPersistant = false)]
-        public int Mk5ScienceCap = 5062;
+        public int Mk5ScienceCap = 6350;
         [KSPField(isPersistant = false)]
-        public int Mk6ScienceCap = 7594;
+        public int Mk6ScienceCap = 10000;
         [KSPField(isPersistant = false)]
-        public int Mk7ScienceCap = 11390;
+        public int Mk7ScienceCap = 16000;
 
 
         // persistant false
