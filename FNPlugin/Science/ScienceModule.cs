@@ -275,7 +275,7 @@ namespace FNPlugin
                 moduleScienceLab.dataStorage = scienceCap;
                 moduleScienceConverter.scienceCap = scienceCap;
 
-                var deminishingScienceModifier = moduleScienceLab.dataStored >= baseDataStorage ? 1 : moduleScienceLab.dataStored / baseDataStorage; 
+                var deminishingScienceModifier = moduleScienceLab.dataStored >= baseDataStorage ? 1 : moduleScienceLab.dataStored / baseDataStorage;
 
                 dataProcessingMultiplier = moduleScienceLab.dataStored < float.Epsilon ? 0.5f
                     : deminishingScienceModifier * (baseDataStorage / moduleScienceLab.dataStorage) * (moduleScienceLab.dataStorage / moduleScienceLab.dataStored) * 0.5f;
@@ -315,9 +315,6 @@ namespace FNPlugin
             anim2 = part.FindModelAnimators(animName2).FirstOrDefault();
             if (anim != null && anim2 != null) 
             {
-
-                anim[animName1].layer = 1;
-                anim2[animName2].layer = 1;
                 if (IsEnabled) 
                 {
                     //anim [animName1].normalizedTime = 1f;
@@ -378,34 +375,73 @@ namespace FNPlugin
         public override void OnUpdate() 
         {
             base.OnUpdate();
-            //Events["BeginResearch"].active = isupgraded && !IsEnabled;
-            Events["ReprocessFuel"].active = !IsEnabled;
-            Events["ActivateFactory"].active = isupgraded && !IsEnabled;
-            Events["ActivateElectrolysis"].active = false;
-            Events["ActivateCentrifuge"].active = isupgraded && !IsEnabled && vessel.Splashed;
-            Events["StopActivity"].active = isupgraded && IsEnabled;
-            Fields["statusTitle"].guiActive = isupgraded;
 
-            // only show retrofit btoon if we can actualy upgrade
-            Events["RetrofitEngine"].active = ResearchAndDevelopment.Instance == null ? false : !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+            try
+            {
+                //Events["BeginResearch"].active = isupgraded && !IsEnabled;
+                Events["ReprocessFuel"].active = !IsEnabled;
+                Events["ActivateFactory"].active = isupgraded && !IsEnabled;
+                Events["ActivateElectrolysis"].active = false;
+                Events["ActivateCentrifuge"].active = isupgraded && !IsEnabled && vessel.Splashed;
+                Events["StopActivity"].active = isupgraded && IsEnabled;
+                Fields["statusTitle"].guiActive = isupgraded;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI]: ScienceModule OnUpdate 1 " + e.Message);
+            }
+
+            try
+            {
+                // only show retrofit btoon if we can actualy upgrade
+                Events["RetrofitEngine"].active = ResearchAndDevelopment.Instance == null ? false : !isupgraded && ResearchAndDevelopment.Instance.Science >= upgradeCost && hasrequiredupgrade;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[KSPI]: ScienceModule OnUpdate 2 " + e.Message);
+            }
 
             if (IsEnabled) 
             {
-                //anim [animName1].normalizedTime = 1f;
-                statusTitle = modes[active_mode] + "...";
-                /*
-                Fields["scienceRate"].guiActive = false;
-                Fields["collectedScience"].guiActive = false;
-                */
-                Fields["reprocessingRate"].guiActive = false;
-                Fields["antimatterRate"].guiActive = false;
-                Fields["electrolysisRate"].guiActive = false;
-                Fields["centrifugeRate"].guiActive = false;
-                Fields["antimatterProductionEfficiency"].guiActive = false;
-                Fields["powerStr"].guiActive = true;
+                try
+                {
+                    //anim [animName1].normalizedTime = 1f;
+                    statusTitle = modes[active_mode] + "...";
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[KSPI]: ScienceModule OnUpdate 3 " + e.Message);
+                }
+
+                try
+                {
+                    /*
+                    Fields["scienceRate"].guiActive = false;
+                    Fields["collectedScience"].guiActive = false;
+                    */
+                    Fields["reprocessingRate"].guiActive = false;
+                    Fields["antimatterRate"].guiActive = false;
+                    Fields["electrolysisRate"].guiActive = false;
+                    Fields["centrifugeRate"].guiActive = false;
+                    Fields["antimatterProductionEfficiency"].guiActive = false;
+                    Fields["powerStr"].guiActive = true;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[KSPI]: ScienceModule 4 " + e.Message);
+                }
 
                 double currentpowertmp = electrical_power_ratio * PluginHelper.BasePowerConsumption * powerReqMult;
-                powerStr = currentpowertmp.ToString("0.0000") + "MW / " + (powerReqMult * PluginHelper.BasePowerConsumption).ToString("0.0000") + "MW";
+
+                try
+                {
+                    powerStr = currentpowertmp.ToString("0.0000") + "MW / " + (powerReqMult * PluginHelper.BasePowerConsumption).ToString("0.0000") + "MW";
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[KSPI]: ScienceModule 5 " + e.Message);
+                }
+
                 /*
                 if (active_mode == 0) // Research
                 {
@@ -418,27 +454,41 @@ namespace FNPlugin
                 else 
                 */
                 if (active_mode == 1) // Fuel Reprocessing
-                { 
-                    Fields["reprocessingRate"].guiActive = true;
-                    reprocessingRate = reprocessing_rate_f.ToString("0.0") + " Hours Remaining";
+                {
+                    try
+                    {
+                        Fields["reprocessingRate"].guiActive = true;
+                        reprocessingRate = reprocessing_rate_f.ToString("0.0") + " Hours Remaining";
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError("[KSPI]: ScienceModule Fuel Reprocessing " + e.Message);
+                    }
                 }
                 else if (active_mode == 2) // Antimatter
                 {
-                    currentpowertmp = electrical_power_ratio * PluginHelper.BaseAMFPowerConsumption * powerReqMult;
-                    Fields["antimatterRate"].guiActive = true;
-                    Fields["antimatterProductionEfficiency"].guiActive = true;
-                    powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseAMFPowerConsumption).ToString("0.00") + "MW";
-                    antimatterProductionEfficiency = (antimatterGenerator.Efficiency * 100).ToString("0.0000") + "%";
-                    double antimatter_rate_per_day = antimatter_rate_f * PluginHelper.SecondsInDay;
-                    
-                    if (antimatter_rate_per_day > 0.1) 
-                        antimatterRate = (antimatter_rate_per_day).ToString("0.0000") + " mg/day";
-                    else 
+                    try
                     {
-                        if (antimatter_rate_per_day > 0.1e-3) 
-                            antimatterRate = (antimatter_rate_per_day*1e3).ToString("0.0000") + " ug/day";
-                        else 
-                            antimatterRate = (antimatter_rate_per_day*1e6).ToString("0.0000") + " ng/day";
+                        currentpowertmp = electrical_power_ratio * PluginHelper.BaseAMFPowerConsumption * powerReqMult;
+                        Fields["antimatterRate"].guiActive = true;
+                        Fields["antimatterProductionEfficiency"].guiActive = true;
+                        powerStr = currentpowertmp.ToString("0.00") + "MW / " + (powerReqMult * PluginHelper.BaseAMFPowerConsumption).ToString("0.00") + "MW";
+                        antimatterProductionEfficiency = (antimatterGenerator.Efficiency * 100).ToString("0.0000") + "%";
+                        double antimatter_rate_per_day = antimatter_rate_f * PluginHelper.SecondsInDay;
+
+                        if (antimatter_rate_per_day > 0.1)
+                            antimatterRate = (antimatter_rate_per_day).ToString("0.0000") + " mg/day";
+                        else
+                        {
+                            if (antimatter_rate_per_day > 0.1e-3)
+                                antimatterRate = (antimatter_rate_per_day * 1e3).ToString("0.0000") + " ug/day";
+                            else
+                                antimatterRate = (antimatter_rate_per_day * 1e6).ToString("0.0000") + " ng/day";
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError("[KSPI]: ScienceModule Antimatter " + e.Message);
                     }
                 }
                 else if (active_mode == 3) // Electrolysis
@@ -466,28 +516,43 @@ namespace FNPlugin
             {
                 if (play_down) 
                 {
-                    anim[animName1].speed = -1;
-                    anim[animName1].normalizedTime = 1;
-                    anim.Blend(animName1, 2);
-                    anim2[animName2].speed = -1;
-                    anim2[animName2].normalizedTime = 1;
-                    anim2.Blend(animName2, 2);
+                    if (anim != null)
+                    {
+                        anim[animName1].speed = -1;
+                        anim[animName1].normalizedTime = 1;
+                        anim.Blend(animName1, 2);
+                    }
+                    if (anim2 != null)
+                    {
+                        anim2[animName2].speed = -1;
+                        anim2[animName2].normalizedTime = 1;
+                        anim2.Blend(animName2, 2);
+                    }
                     play_down = false;
                 }
 
                 //anim [animName1].normalizedTime = 0;
 
-                /*
-                Fields["scienceRate"].guiActive = false;
-                Fields["collectedScience"].guiActive = false;
-                */
 
-                Fields["reprocessingRate"].guiActive = false;
-                Fields["antimatterRate"].guiActive = false;
-                Fields["powerStr"].guiActive = false;
-                Fields["centrifugeRate"].guiActive = false;
-                Fields["electrolysisRate"].guiActive = false;
-                Fields["antimatterProductionEfficiency"].guiActive = false;
+                try
+                {
+                    /*
+                    Fields["scienceRate"].guiActive = false;
+                    Fields["collectedScience"].guiActive = false;
+                    */
+
+
+                    Fields["reprocessingRate"].guiActive = false;
+                    Fields["antimatterRate"].guiActive = false;
+                    Fields["powerStr"].guiActive = false;
+                    Fields["centrifugeRate"].guiActive = false;
+                    Fields["electrolysisRate"].guiActive = false;
+                    Fields["antimatterProductionEfficiency"].guiActive = false;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[KSPI]: OnUpdate Else " + e.Message);
+                }
 
                 if (crew_capacity_ratio > 0) 
                     statusTitle = "Idle";
