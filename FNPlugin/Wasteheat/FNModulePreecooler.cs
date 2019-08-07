@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -134,14 +133,6 @@ namespace FNPlugin
         public override void OnUpdate()
         {
             statusStr = functional ? "Active." : "Offline.";
-        }
-
-        public int ValidAttachedIntakes
-        {
-            get
-            {
-                return attachedIntake != null ? 1 : Math.Min(radialAttachedIntakes.Count(), 2);
-            }
         }
 
         public void FixedUpdate() // FixedUpdate is also called while not staged
