@@ -62,6 +62,10 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "Fuelflow Throtle modifier", guiFormat = "F5")]
         public double fuelflow_throtle_modifier = 1;
 
+
+        [KSPField]
+        public double missingPrecoolerProportionExponent = 0.5;
+
         [KSPField]
         public double exhaustModifier;        
         [KSPField]
@@ -409,13 +413,11 @@ namespace FNPlugin
         [KSPField]
         double received_megajoules_ratio;
         [KSPField]
-        int pre_coolers_active;
+        double pre_cooler_area;
         [KSPField]
-        int intakes_open;
-        [KSPField]
-        int total_intakes;
-        [KSPField]
-        double proportion;
+        double intakes_open_area;
+        [KSPField(guiActive = true, guiName = "Missing Precooler Ratio")]
+        double missingPrecoolerRatio;
         [KSPField]
         float effectiveJetengineAccelerationSpeed;
         [KSPField]
@@ -426,6 +428,8 @@ namespace FNPlugin
         public int supportedPropellantTypes = 511;
         [KSPField]
         public double minThrottle = 0;
+        [KSPField]
+        public double reactorHeatModifier;
 
         // Constants
         protected const double _hydroloxDecompositionEnergy = 16.2137;
@@ -483,7 +487,7 @@ namespace FNPlugin
 
         protected List<Propellant> list_of_propellants = new List<Propellant>();
         protected List<FNModulePreecooler> _vesselPrecoolers;
-        protected List<ModuleResourceIntake> _vesselResourceIntakes;
+        protected List<AtmosphericIntake> _vesselResourceIntakes;
         protected List<IFNEngineNoozle> _vesselThermalNozzles;
 
         protected List<ThermalEngineFuel> _allThermalEngineFuels;
@@ -826,7 +830,7 @@ namespace FNPlugin
 
                 // presearch all avaialble precoolers, intakes and nozzles on the vessel
                 _vesselPrecoolers = vessel.FindPartModulesImplementing<FNModulePreecooler>();
-                _vesselResourceIntakes = vessel.FindPartModulesImplementing<ModuleResourceIntake>().Where(mre => mre.resourceName == InterstellarResourcesConfiguration.Instance.IntakeAir).ToList();
+                _vesselResourceIntakes = vessel.FindPartModulesImplementing<AtmosphericIntake>();
                 _vesselThermalNozzles = vessel.FindPartModulesImplementing<IFNEngineNoozle>();
 
                 // if we can upgrade, let's do so
@@ -1046,12 +1050,13 @@ namespace FNPlugin
                         myAttachedEngine.Activate();
                     }
                 }
+
+                Fields["airflowHeatModifier"].guiActive = _currentpropellant_is_jet;
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI]: ThermalNozzle OnUpdates " + e.Message);
+                Debug.LogError("[KSPI]: ThermalNozzle OnUpdates " + e.Message);
             }
-
         }
 
         private bool AllowedExhaust()
@@ -1367,8 +1372,8 @@ namespace FNPlugin
         private void UpdatePropellantModeBehavior(ConfigNode chosenpropellant)
         {
             _fuelmode = chosenpropellant.GetValue("guiName");
-            _propellantIsLFO = chosenpropellant.HasValue("isLFO") ? bool.Parse(chosenpropellant.GetValue("isLFO")) : false;
-            _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") ? bool.Parse(chosenpropellant.GetValue("isJet")) : false;
+            _propellantIsLFO = chosenpropellant.HasValue("isLFO") && bool.Parse(chosenpropellant.GetValue("isLFO"));
+            _currentpropellant_is_jet = chosenpropellant.HasValue("isJet") && bool.Parse(chosenpropellant.GetValue("isJet"));
 
             _propellantSootFactorFullThrotle = chosenpropellant.HasValue("maxSootFactor") ? float.Parse(chosenpropellant.GetValue("maxSootFactor")) : 0;
             _propellantSootFactorMinThrotle = chosenpropellant.HasValue("minSootFactor") ? float.Parse(chosenpropellant.GetValue("minSootFactor")) : 0;
@@ -1382,10 +1387,10 @@ namespace FNPlugin
             _fuelToxicity = chosenpropellant.HasValue("Toxicity") ? float.Parse(chosenpropellant.GetValue("Toxicity")) : 0;
             _fuelMinimumCoreTemp = chosenpropellant.HasValue("minimumCoreTemp") ? float.Parse(chosenpropellant.GetValue("minimumCoreTemp")) : 0;
             
-            _fuelRequiresUpgrade = chosenpropellant.HasValue("RequiresUpgrade") ? Boolean.Parse(chosenpropellant.GetValue("RequiresUpgrade")) : false;
+            _fuelRequiresUpgrade = chosenpropellant.HasValue("RequiresUpgrade") && Boolean.Parse(chosenpropellant.GetValue("RequiresUpgrade"));
             _atomType = chosenpropellant.HasValue("atomType") ? int.Parse(chosenpropellant.GetValue("atomType")) : 1;
             _propType = chosenpropellant.HasValue("propType") ? int.Parse(chosenpropellant.GetValue("propType")) : 1;
-            _isNeutronAbsorber = chosenpropellant.HasValue("isNeutronAbsorber") ? bool.Parse(chosenpropellant.GetValue("isNeutronAbsorber")) : false;
+            _isNeutronAbsorber = chosenpropellant.HasValue("isNeutronAbsorber") && bool.Parse(chosenpropellant.GetValue("isNeutronAbsorber"));
 
             if (!UsePlasmaPower && !usePropellantBaseIsp && !_currentpropellant_is_jet && _decompositionEnergy > 0 && _baseIspMultiplier > 0 && _minDecompositionTemp > 0 && _maxDecompositionTemp > 0)
                 UpdateThrustPropellantMultiplier();
@@ -1422,7 +1427,7 @@ namespace FNPlugin
             }
         }
 
-        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1)
+        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1, float performance_multiplier = 1)
         {
             // recaculate ISP based on power and core temp available
             FloatCurve atmCurve = new FloatCurve();
@@ -1501,17 +1506,19 @@ namespace FNPlugin
                 if (overrideAtmCurve && jetPerformanceProfile == 0)
                 {
                     atmCurve.Add(0, 0);
-                    atmCurve.Add(0.04f, 0.5f);
-                    atmCurve.Add(0.16f, 0.75f);
-                    atmCurve.Add(0.5f, 0.9f);
+                    atmCurve.Add(0.01f, Math.Min(1, 0.20f * performance_multiplier));
+                    atmCurve.Add(0.04f, Math.Min(1, 0.50f * performance_multiplier));
+                    atmCurve.Add(0.16f, Math.Min(1, 0.75f * performance_multiplier));
+                    atmCurve.Add(0.50f, Math.Min(1, 0.90f * performance_multiplier));
                     atmCurve.Add(1f, 1f);
                 }
                 else if (overrideAtmCurve && jetPerformanceProfile == 1)
                 {
                     atmCurve.Add(0, 0);
-                    atmCurve.Add(0.04f, 0.25f);
-                    atmCurve.Add(0.16f, 0.5f);
-                    atmCurve.Add(0.5f, 0.8f);
+                    atmCurve.Add(0.01f, Math.Min(1, 0.10f * performance_multiplier));
+                    atmCurve.Add(0.04f, Math.Min(1, 0.25f * performance_multiplier));
+                    atmCurve.Add(0.16f, Math.Min(1, 0.50f * performance_multiplier));
+                    atmCurve.Add(0.50f, Math.Min(1, 0.80f * performance_multiplier));
                     atmCurve.Add(1f, 1f);
                 }
                 else
@@ -1976,7 +1983,7 @@ namespace FNPlugin
 
                     var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(atmosphereThrustEfficiency, 0.01) : 0.01;
                     
-                    UpdateIspEngineParams(thrustAtmosphereRatio);
+                    UpdateIspEngineParams(thrustAtmosphereRatio, 1 + (1 - (float)missingPrecoolerRatio));
                     current_isp = _maxISP * thrustAtmosphereRatio;
                     calculatedMaxThrust = calculatedMaxThrust * atmosphereThrustEfficiency;
                 }
@@ -2047,30 +2054,17 @@ namespace FNPlugin
                     maxFuelFlowOnEngine = 1e-10f;
                 myAttachedEngine.maxFuelFlow = maxFuelFlowOnEngine;
 
-                // Calculate
-                pre_coolers_active = _vesselPrecoolers.Sum(prc => prc.ValidAttachedIntakes);
-                total_intakes = _vesselResourceIntakes.Count();
-                intakes_open = _vesselResourceIntakes.Where(mre => mre.intakeEnabled).Count();
+                CalculateMissingPreCoolerRatio();
 
-                proportion = _currentpropellant_is_jet && intakes_open > 0
-                    ? Math.Pow((double)(intakes_open - pre_coolers_active) / (double)intakes_open, 0.1)
-                    : 0;
-
-                if (double.IsNaN(proportion) || double.IsInfinity(proportion))
-                    proportion = 0;
-
-                airflowHeatModifier = proportion > 0
-                    ? Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20 / GameConstants.atmospheric_non_precooled_limit * proportion), 0)
-                    : 0;
-
+                airflowHeatModifier = missingPrecoolerRatio > 0 ? Math.Max((Math.Sqrt(vessel.srf_velocity.magnitude) * 20 / GameConstants.atmospheric_non_precooled_limit * missingPrecoolerRatio), 0): 0;
                 airflowHeatModifier *= vessel.atmDensity * (vessel.speed / vessel.speedOfSound);
-                if (double.IsNaN(airflowHeatModifier) || double.IsInfinity(airflowHeatModifier))
+
+                if (airflowHeatModifier.IsInfinityOrNaN())
                     airflowHeatModifier = 0;
 
                 maxThrustOnEngine = myAttachedEngine.maxThrust;
                 realIspEngine = myAttachedEngine.realIsp;
-
-                currentMassFlow = (double)(decimal)myAttachedEngine.fuelFlowGui * (double)(decimal)myAttachedEngine.mixtureDensity;
+                currentMassFlow = myAttachedEngine.fuelFlowGui * myAttachedEngine.mixtureDensity;
 
                 // act as open cycle cooler
                 if (isOpenCycleCooler)
@@ -2093,7 +2087,7 @@ namespace FNPlugin
                     powerToMass = part.mass > 0 ? Math.Sqrt(maxThrustOnEngine / part.mass) : 0;
                     radiusHeatModifier = Math.Pow(scaledRadius * radiusHeatProductionMult, radiusHeatProductionExponent);
                     engineHeatProductionMult = AttachedReactor.EngineHeatProductionMult;
-                    var reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
+                    reactorHeatModifier = isPlasmaNozzle ? AttachedReactor.PlasmaHeatProductionMult : AttachedReactor.EngineHeatProductionMult;
 
                     spaceHeatProduction = heatProductionMultiplier * reactorHeatModifier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
                     engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 999999);
@@ -2122,6 +2116,20 @@ namespace FNPlugin
             {
                 Debug.LogError("[KSPI]: Error GenerateThrustFromReactorHeat " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
             }
+        }
+
+        private void CalculateMissingPreCoolerRatio()
+        {
+            pre_cooler_area = _vesselPrecoolers.Where(prc => prc.functional).Sum(prc => prc.area);
+            intakes_open_area = _vesselResourceIntakes.Where(mre => mre.intakeOpen).Sum(mre => mre.area);
+
+            missingPrecoolerRatio = _currentpropellant_is_jet && intakes_open_area > 0
+                ? Math.Min(1,
+                    Math.Max(0, Math.Pow((intakes_open_area - pre_cooler_area)/intakes_open_area, missingPrecoolerProportionExponent)))
+                : 0;
+
+            if (missingPrecoolerRatio.IsInfinityOrNaN())
+                missingPrecoolerRatio = 0;
         }
 
         private bool IsPositiveValidNumber(double vaiable)
