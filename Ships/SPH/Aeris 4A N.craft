@@ -2,7 +2,7 @@ ship = Aeris 4A N
 version = 1.7.3
 description = The Aeris 4A is a spaceplane capable of reaching orbit, if flown correctly.¨¨
 type = SPH
-size = 11.7605619,5.48500919,12.9626017
+size = 11.7162638,5.48500919,12.8509636
 steamPublishedFileId = 0
 persistentId = 3764057225
 rot = 0,0,0,1
@@ -35,8 +35,8 @@ PART
 	sepI = -1
 	attm = 0
 	sameVesselCollision = False
-	modCost = 0
-	modMass = 0
+	modCost = 550
+	modMass = 0.0250000004
 	modSize = 0,0,0
 	link = linearRcs_4294811464
 	link = linearRcs_4294811426
@@ -106,51 +106,6 @@ PART
 				actionGroup = None
 			}
 			Toggle
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleScienceExperiment
-		isEnabled = True
-		Deployed = False
-		Inoperable = False
-		cooldownToGo = 0
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			DeployAction
-			{
-				actionGroup = None
-			}
-			ResetAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleScienceContainer
-		isEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			CollectAllAction
 			{
 				actionGroup = None
 			}
@@ -236,12 +191,9 @@ PART
 	}
 	MODULE
 	{
-		name = TweakScale
+		name = HardDrive
 		isEnabled = True
-		currentScale = 1.25
-		defaultScale = 1.25
-		defaultTransformScale = (0, 0, 0)
-		DryCost = 1240.99902
+		hdId = 0
 		stagingEnabled = True
 		EVENTS
 		{
@@ -255,18 +207,18 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleTripLogger
-		isEnabled = False
+		name = TweakScale
+		isEnabled = True
+		currentScale = 1.25
+		defaultScale = 1.25
+		defaultTransformScale = (0, 0, 0)
+		DryCost = 1240.99731
 		stagingEnabled = True
 		EVENTS
 		{
 		}
 		ACTIONS
 		{
-		}
-		Log
-		{
-			flight = 0
 		}
 		UPGRADESAPPLIED
 		{
@@ -327,13 +279,79 @@ PART
 		isVisible = True
 		flowMode = Both
 	}
+	RESOURCE
+	{
+		name = Atmosphere
+		amount = 1220
+		maxAmount = 1220
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = WasteAtmosphere
+		amount = 0
+		maxAmount = 1220
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = MoistAtmosphere
+		amount = 0
+		maxAmount = 1220
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = Shielding
+		amount = 0
+		maxAmount = 6.0099999999999998
+		flowState = True
+		isTweakable = True
+		hideFlow = False
+		isVisible = True
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = _Scrubber
+		amount = 1.6699999999999999
+		maxAmount = 1.6699999999999999
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = _HumidityController
+		amount = 1.6699999999999999
+		maxAmount = 1.6699999999999999
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
 }
 PART
 {
 	part = linearRcs_4294811464
 	partName = Part
 	persistentId = 56523440
-	pos = -0.285993487,3.00983596,3.90351272
+	pos = -0.285993487,3.00983596,3.90351582
 	attPos = 0,0,0
 	attPos0 = 0,0,0
 	rot = 0.703244328,-0.701664925,-0.0738089383,0.0875563622
@@ -436,7 +454,7 @@ PART
 	part = linearRcs_4294811426
 	partName = Part
 	persistentId = 1745151748
-	pos = 0.258703798,3.00983596,3.90351272
+	pos = 0.258703798,3.00983596,3.90351582
 	attPos = 0,0,0
 	attPos0 = 0,0,0
 	rot = -0.703243971,-0.701665282,-0.0738090277,-0.0875563025
@@ -539,7 +557,7 @@ PART
 	part = SmallGearBay_4294811388
 	partName = Part
 	persistentId = 1046413103
-	pos = -0.01364478,2.44628572,3.43207574
+	pos = -0.01364478,2.44628572,3.43207884
 	attPos = 0,0,0
 	attPos0 = 0,0,0
 	rot = 8.52406572E-08,-0.999993205,0.00374308228,9.22364407E-09
@@ -892,8 +910,8 @@ PART
 	sepI = -1
 	attm = 0
 	sameVesselCollision = False
-	modCost = -4375
-	modMass = -0.577500045
+	modCost = -4275
+	modMass = -0.575500071
 	modSize = 0,0,0
 	link = heatfin2_4293778812
 	link = heatfin2_4294135080
@@ -908,6 +926,32 @@ PART
 	}
 	PARTDATA
 	{
+	}
+	MODULE
+	{
+		name = TSTScienceHardDrive
+		isEnabled = True
+		Capacity = 2560
+		corruption = 0.100000001
+		powerUsage = 1
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ActivateAction
+			{
+				actionGroup = None
+			}
+			expfillActivateAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
 	}
 	MODULE
 	{
@@ -960,25 +1004,6 @@ PART
 				overrideIncremental1 = Pitch, Yaw, Roll, TranslateX, TranslateY, TranslateZ, WheelSteer, WheelThrottle, Custom01, Custom02, Custom03, Custom04
 				overrideIncremental2 = Pitch, Yaw, Roll, TranslateX, TranslateY, TranslateZ, WheelSteer, WheelThrottle, Custom01, Custom02, Custom03, Custom04
 				overrideIncremental3 = Pitch, Yaw, Roll, TranslateX, TranslateY, TranslateZ, WheelSteer, WheelThrottle, Custom01, Custom02, Custom03, Custom04
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleScienceContainer
-		isEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			CollectAllAction
-			{
-				actionGroup = None
 			}
 		}
 		UPGRADESAPPLIED
@@ -1318,25 +1343,6 @@ PART
 		{
 		}
 	}
-	MODULE
-	{
-		name = ModuleTripLogger
-		isEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		Log
-		{
-			flight = 0
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
 	RESOURCE
 	{
 		name = ElectricCharge
@@ -1368,7 +1374,7 @@ PART
 	pos = -0.611532629,3.17003942,2.26297069
 	attPos = 0,0,0
 	attPos0 = -0.597887874,0.00543710357,-0.160203412
-	rot = -0.0308435708,0.706433833,0.706433952,-0.030843541
+	rot = -0.030843569,0.706433773,0.706433892,-0.0308435392
 	attRot = 0,0.173648193,0,0.984807849
 	attRot0 = -2.42143834E-08,0.999048233,8.94069601E-08,-0.0436193831
 	mir = 1,1,1
@@ -1399,7 +1405,7 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleControlSurface
+		name = SyncModuleControlSurface
 		isEnabled = True
 		mirrorDeploy = True
 		usesMirrorDeploy = True
@@ -1548,7 +1554,7 @@ PART
 	pos = 0.584243119,3.17003942,2.26297069
 	attPos = 0,0,0
 	attPos0 = 0.597887874,0.00543710357,-0.160203412
-	rot = -0.70643419,0.0308435094,0.0308435392,-0.706433594
+	rot = -0.706434131,0.0308435075,0.0308435373,-0.706433535
 	attRot = 0,0.173648193,0,0.984807849
 	attRot0 = -3.87430134E-07,0.043619331,2.04890949E-08,-0.999048233
 	mir = 1,1,1
@@ -1579,7 +1585,7 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleControlSurface
+		name = SyncModuleControlSurface
 		isEnabled = True
 		mirrorDeploy = False
 		usesMirrorDeploy = True
@@ -1616,6 +1622,10 @@ PART
 				axisGroup = None
 				axisIncremental = Pitch, Yaw, Roll, TranslateX, TranslateY, TranslateZ, WheelSteer, WheelThrottle, Custom01, Custom02, Custom03, Custom04
 				axisInverted = None
+				overrideIncremental0 = Pitch, Yaw, Roll, TranslateX, TranslateY, TranslateZ, WheelSteer, WheelThrottle, Custom01, Custom02, Custom03, Custom04
+				overrideIncremental1 = Pitch, Yaw, Roll, TranslateX, TranslateY, TranslateZ, WheelSteer, WheelThrottle, Custom01, Custom02, Custom03, Custom04
+				overrideIncremental2 = Pitch, Yaw, Roll, TranslateX, TranslateY, TranslateZ, WheelSteer, WheelThrottle, Custom01, Custom02, Custom03, Custom04
+				overrideIncremental3 = Pitch, Yaw, Roll, TranslateX, TranslateY, TranslateZ, WheelSteer, WheelThrottle, Custom01, Custom02, Custom03, Custom04
 			}
 		}
 		UPGRADESAPPLIED
@@ -1703,7 +1713,7 @@ PART
 		UPGRADESAPPLIED
 		{
 		}
-	}
+	}	
 	RESOURCE
 	{
 		name = WasteHeat
@@ -1721,7 +1731,7 @@ PART
 	part = dockingPortLateral_4294135028
 	partName = Part
 	persistentId = 4195171231
-	pos = -0.01364478,3.00983596,1.58221817
+	pos = -0.01364478,3.00983596,1.58221507
 	attPos = 0,0,0
 	attPos0 = 0,-0.675313056,8.94069316E-08
 	rot = 0.707106829,0,0,0.707106829
@@ -1858,7 +1868,7 @@ PART
 	part = MK1Fuselage_4294134948
 	partName = Part
 	persistentId = 2712543601
-	pos = -0.01364478,3.0098362,0.0693993568
+	pos = -0.01364478,3.0098362,0.069393158
 	attPos = 0,0,0
 	attPos0 = 0,-1.51281333,-1.1920924E-07
 	rot = 0.707106829,0,0,0.707106829
@@ -2013,7 +2023,7 @@ PART
 	part = fuelTank.long_4294134912
 	partName = Part
 	persistentId = 3383361621
-	pos = -0.01364478,3.00983644,-2.74313617
+	pos = -0.01364478,3.00983644,-2.74316764
 	attPos = 0,0,0
 	attPos0 = 0,-2.81250024,0
 	rot = 0.707106829,0,0,0.707106829
@@ -2188,7 +2198,7 @@ PART
 	part = fuelTank_4294134870
 	partName = Part
 	persistentId = 4129744544
-	pos = 1.231884,3.00983548,-4.32710457
+	pos = 1.231884,3.00983548,-4.32714462
 	attPos = 0,0,0
 	attPos0 = 0,0,0
 	rot = -3.09086374E-08,0.707106829,0.707106829,-3.09086303E-08
@@ -2212,11 +2222,11 @@ PART
 	link = SmallGearBay_4294134828
 	link = deltaWing_4294134596
 	link = fuelLine_4294134424
-	link = shockConeIntake_4294134332
 	link = ThermalTurboJetVTOL_4294134284
+	link = radialEngineBody_4290016084
 	sym = fuelTank_4294133974
 	srfN = srfAttach,fuelTank.long_4294134912,Collider
-	attN = top,shockConeIntake_4294134332_0|0.981724977|0_0|1|0_0|0.981724977|0_0|1|0
+	attN = top,radialEngineBody_4290016084_0|0.981724977|0_0|1|0_0|0.981724977|0_0|1|0
 	attN = bottom,ThermalTurboJetVTOL_4294134284_0|-0.912500024|0_0|-1|0_0|-0.912500024|0_0|-1|0
 	EVENTS
 	{
@@ -2365,7 +2375,7 @@ PART
 	part = SmallGearBay_4294134828
 	partName = Part
 	persistentId = 1517178587
-	pos = 1.54262769,2.48037791,-4.11894035
+	pos = 1.54262769,2.48037791,-4.11897278
 	attPos = -0.310742587,0.208144695,-0.529448509
 	attPos0 = 0,0,0
 	rot = -3.27825546E-07,-2.0357021E-08,2.45229842E-07,1.00000012
@@ -2701,10 +2711,10 @@ PART
 	part = deltaWing_4294134596
 	partName = Part
 	persistentId = 1760409016
-	pos = 1.85403371,2.95776725,-5.62846565
-	attPos = -0.622146726,-1.30131805,-0.052067969
+	pos = 1.83188438,3.00983548,-4.3271513
+	attPos = -0.599999964,-6.19888306E-06,-5.24537214E-08
 	attPos0 = 0,0,0
-	rot = -0.022011999,0.713682353,0.699790895,-0.0215835273
+	rot = -0.0220119953,0.713682353,0.699790895,-0.0215835236
 	attRot = 0.699790895,-0.0215834994,-0.0220119692,0.713682294
 	attRot0 = 0,0,0,1
 	mir = 1,1,1
@@ -2726,7 +2736,7 @@ PART
 	link = elevon2_4294134522
 	link = InterstellarRcs5block_4294134488
 	sym = deltaWing_4294133700
-	srfN = srfAttach,fuelTank_4294134870,Collider
+	srfN = srfAttach,fuelTank_4294134870,COL 2
 	EVENTS
 	{
 	}
@@ -2776,10 +2786,10 @@ PART
 	part = StandardCtrlSrf_4294134556
 	partName = Part
 	persistentId = 67883207
-	pos = 4.53379917,3.10228133,-6.72556305
+	pos = 4.51159573,3.15434718,-5.4242487
 	attPos = 0,0,0
 	attPos0 = 0,0,0
-	rot = -0.0220119972,0.713682532,0.699790716,-0.0215835143
+	rot = -0.0220120084,0.713682532,0.699790716,-0.021583518
 	attRot = -2.5121481E-15,-2.5121481E-15,0,1
 	attRot0 = 0,0,0,1
 	mir = 1,1,1
@@ -2810,12 +2820,12 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleControlSurface
+		name = SyncModuleControlSurface
 		isEnabled = True
-		mirrorDeploy = False
+		mirrorDeploy = True
 		usesMirrorDeploy = True
-		ignorePitch = True
-		ignoreYaw = True
+		ignorePitch = False
+		ignoreYaw = False
 		ignoreRoll = False
 		deploy = False
 		deployInvert = False
@@ -2882,10 +2892,10 @@ PART
 	part = elevon2_4294134522
 	partName = Part
 	persistentId = 3356297596
-	pos = 2.744977,2.98258853,-6.72538376
+	pos = 2.72281456,3.03465486,-5.4240694
 	attPos = 0,0,0
 	attPos0 = 0,0,0
-	rot = -0.0220119972,0.713682532,0.699790716,-0.0215835143
+	rot = -0.0220120084,0.713682532,0.699790716,-0.021583518
 	attRot = -0.5,-0.499999911,0.5,-0.499999911
 	attRot0 = 0,0,0,1
 	mir = 1,1,1
@@ -2916,13 +2926,13 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleControlSurface
+		name = SyncModuleControlSurface
 		isEnabled = True
 		mirrorDeploy = False
 		usesMirrorDeploy = True
 		ignorePitch = False
-		ignoreYaw = True
-		ignoreRoll = True
+		ignoreYaw = False
+		ignoreRoll = False
 		deploy = False
 		deployInvert = False
 		partDeployInvert = False
@@ -2988,7 +2998,7 @@ PART
 	part = InterstellarRcs5block_4294134488
 	partName = Part
 	persistentId = 3997311833
-	pos = 5.6540432,3.15776896,-6.62847328
+	pos = 5.63188934,3.20983768,-5.32715702
 	attPos = -0.0607545376,-0.0476500988,-0.0149017088
 	attPos0 = -3.74434209,-0.952838659,-6.85453244E-07
 	rot = 0.68493861,0.728534579,-0.00673174858,0.00715965033
@@ -3108,7 +3118,7 @@ PART
 	part = fuelLine_4294134424
 	partName = CompoundPart
 	persistentId = 2387379029
-	pos = 0.714189172,3.35132384,-4.38915348
+	pos = 0.714189172,3.35132384,-4.38919353
 	attPos = 0,0,0
 	attPos0 = 0.51769191,-0.0620360412,0.341481298
 	rot = -0.683012724,0.18301262,0.183012798,-0.683012724
@@ -3140,9 +3150,9 @@ PART
 	PARTDATA
 	{
 		tgt = 4294134912
-		pos = -0.242811427,-0.0588241257,0.0877074823
-		rot = 0,0.500000536,-4.03171754E-08,0.86602509
-		dir = -0.9170205,-0.222150818,0.331244498
+		pos = -0.242811427,-0.0588355698,0.0877074823
+		rot = 9.23311144E-15,0.500000894,-4.03172109E-08,0.866025686
+		dir = -0.917010128,-0.222200483,0.331239164
 		col = COL4
 	}
 	MODULE
@@ -3178,161 +3188,10 @@ PART
 }
 PART
 {
-	part = shockConeIntake_4294134332
-	partName = Part
-	persistentId = 2420572204
-	pos = 1.231884,3.009835,-2.73640418
-	attPos = 0,0,0
-	attPos0 = -4.05538199E-14,1.59068894,1.89624899E-07
-	rot = 0.707106829,-1.00485924E-14,-5.02429621E-15,0.707106829
-	attRot = 0,0,0,1
-	attRot0 = 7.53644261E-15,-1,0,-4.37113989E-08
-	mir = 1,1,1
-	symMethod = Mirror
-	autostrutMode = Off
-	rigidAttachment = False
-	istg = -1
-	resPri = 0
-	dstg = 0
-	sidx = -1
-	sqor = -1
-	sepI = 0
-	attm = 0
-	sameVesselCollision = False
-	modCost = 0
-	modMass = 0
-	modSize = 0,0,0
-	sym = shockConeIntake_4294133436
-	attN = bottom,fuelTank_4294134870_0|-0.625|0_0|-1|0_0|-0.625|0_0|-1|0
-	EVENTS
-	{
-	}
-	ACTIONS
-	{
-	}
-	PARTDATA
-	{
-	}
-	MODULE
-	{
-		name = ModuleResourceIntake
-		isEnabled = True
-		intakeEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleAnimateHeat
-		isEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleResourceIntake
-		isEnabled = True
-		intakeEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = TweakScale
-		isEnabled = True
-		currentScale = 1.25
-		defaultScale = 1.25
-		defaultTransformScale = (0, 0, 0)
-		DryCost = 3050
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = AtmosphericIntake
-		isEnabled = True
-		finalAir = 0
-		intakeOpen = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	RESOURCE
-	{
-		name = IntakeAir
-		amount = 2
-		maxAmount = 2
-		flowState = True
-		isTweakable = False
-		hideFlow = False
-		isVisible = False
-		flowMode = Both
-	}
-	RESOURCE
-	{
-		name = IntakeAtm
-		amount = 0
-		maxAmount = 1
-		flowState = True
-		isTweakable = False
-		hideFlow = False
-		isVisible = True
-		flowMode = Both
-	}
-}
-PART
-{
 	part = ThermalTurboJetVTOL_4294134284
 	partName = Part
 	persistentId = 784119781
-	pos = 1.231884,3.009835,-5.65212345
+	pos = 1.231884,3.009835,-5.65218544
 	attPos = 0,0,0
 	attPos0 = 5.58084259E-14,-1.32500029,-4.76836931E-07
 	rot = 0.707106888,0,0,0.707106769
@@ -3363,6 +3222,52 @@ PART
 	}
 	PARTDATA
 	{
+	}
+	MODULE
+	{
+		name = ModuleGimbal
+		isEnabled = True
+		gimbalLock = False
+		gimbalLimiter = 100
+		currentShowToggles = False
+		enableYaw = True
+		enablePitch = True
+		enableRoll = True
+		gimbalActive = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+			LockAction
+			{
+				actionGroup = None
+			}
+			FreeAction
+			{
+				actionGroup = None
+			}
+			TogglePitchAction
+			{
+				actionGroup = None
+			}
+			ToggleYawAction
+			{
+				actionGroup = None
+			}
+			ToggleRollAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
 	}
 	MODULE
 	{
@@ -3492,52 +3397,6 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleGimbal
-		isEnabled = True
-		gimbalLock = False
-		gimbalLimiter = 100
-		currentShowToggles = False
-		enableYaw = True
-		enablePitch = True
-		enableRoll = True
-		gimbalActive = False
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleAction
-			{
-				actionGroup = None
-			}
-			LockAction
-			{
-				actionGroup = None
-			}
-			FreeAction
-			{
-				actionGroup = None
-			}
-			TogglePitchAction
-			{
-				actionGroup = None
-			}
-			ToggleYawAction
-			{
-				actionGroup = None
-			}
-			ToggleRollAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
 		name = ModuleSurfaceFX
 		isEnabled = True
 		stagingEnabled = True
@@ -3606,7 +3465,7 @@ PART
 	part = fuelTank_4294133974
 	partName = Part
 	persistentId = 294765224
-	pos = -1.25917399,3.00983548,-4.32710457
+	pos = -1.25917399,3.00983548,-4.32714462
 	attPos = 0,0,0
 	attPos0 = 0,0,0
 	rot = -0.707106829,0,0,-0.707106829
@@ -3630,11 +3489,11 @@ PART
 	link = SmallGearBay_4294133932
 	link = deltaWing_4294133700
 	link = fuelLine_4294133528
-	link = shockConeIntake_4294133436
 	link = ThermalTurboJetVTOL_4294133388
+	link = radialEngineBody_4290018518
 	sym = fuelTank_4294134870
 	srfN = srfAttach,fuelTank.long_4294134912,COL 2
-	attN = top,shockConeIntake_4294133436_0|0.981724977|0_0|1|0_0|0.981724977|0_0|1|0
+	attN = top,radialEngineBody_4290018518_0|0.981724977|0_0|1|0_0|0.981724977|0_0|1|0
 	attN = bottom,ThermalTurboJetVTOL_4294133388_0|-0.912500024|0_0|-1|0_0|-0.912500024|0_0|-1|0
 	EVENTS
 	{
@@ -3783,7 +3642,7 @@ PART
 	part = SmallGearBay_4294133932
 	partName = Part
 	persistentId = 3016849304
-	pos = -1.56991601,2.48037791,-4.1189394
+	pos = -1.56991601,2.48037791,-4.11897182
 	attPos = -0.310743004,0.208146095,0.529448509
 	attPos0 = 0,0,0
 	rot = -3.27825546E-07,2.0357021E-08,-2.45229842E-07,1.00000012
@@ -4119,8 +3978,8 @@ PART
 	part = deltaWing_4294133700
 	partName = Part
 	persistentId = 3169184859
-	pos = -1.88132095,2.95776725,-5.62846184
-	attPos = -0.622147083,-1.30131602,0.0520679206
+	pos = -1.85917401,3.00983548,-4.32714844
+	attPos = -0.600000024,-3.33786011E-06,0
 	attPos0 = 0,0,0
 	rot = 0.699790895,-0.0215834975,-0.0220119692,0.713682353
 	attRot = 0.699790895,-0.0215834994,-0.0220119692,0.713682294
@@ -4194,7 +4053,7 @@ PART
 	part = StandardCtrlSrf_4294133660
 	partName = Part
 	persistentId = 4252724923
-	pos = -4.56103325,3.10227847,-6.72556114
+	pos = -4.53888464,3.15434718,-5.42424583
 	attPos = 0,0,0
 	attPos0 = 0,0,0
 	rot = -0.699790716,0.0215834938,0.0220119804,-0.713682532
@@ -4228,12 +4087,12 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleControlSurface
+		name = SyncModuleControlSurface
 		isEnabled = True
 		mirrorDeploy = False
 		usesMirrorDeploy = True
-		ignorePitch = True
-		ignoreYaw = True
+		ignorePitch = False
+		ignoreYaw = False
 		ignoreRoll = False
 		deploy = False
 		deployInvert = False
@@ -4300,7 +4159,7 @@ PART
 	part = elevon2_4294133626
 	partName = Part
 	persistentId = 3839697420
-	pos = -2.77225065,2.98258662,-6.72537994
+	pos = -2.75010371,3.03465486,-5.42406654
 	attPos = 0,0,0
 	attPos0 = 0,0,0
 	rot = 0.699790716,-0.0215834938,-0.0220119804,0.713682532
@@ -4334,13 +4193,13 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleControlSurface
+		name = SyncModuleControlSurface
 		isEnabled = True
 		mirrorDeploy = True
 		usesMirrorDeploy = True
 		ignorePitch = False
-		ignoreYaw = True
-		ignoreRoll = True
+		ignoreYaw = False
+		ignoreRoll = False
 		deploy = False
 		deployInvert = False
 		partDeployInvert = False
@@ -4406,7 +4265,7 @@ PART
 	part = InterstellarRcs5block_4294133592
 	partName = Part
 	persistentId = 1565623624
-	pos = -5.68132114,3.15776896,-6.62847137
+	pos = -5.65917683,3.20983768,-5.32715416
 	attPos = -0.0607545376,-0.0476472974,0.0149017498
 	attPos0 = -3.74434805,-0.952842414,9.1269591E-08
 	rot = 0.68493855,-0.728534579,0.00673177838,0.00715965033
@@ -4526,7 +4385,7 @@ PART
 	part = fuelLine_4294133528
 	partName = CompoundPart
 	persistentId = 1052067122
-	pos = -0.741481245,3.35132384,-4.38915348
+	pos = -0.741481245,3.35132384,-4.38919353
 	attPos = 0,0,0
 	attPos0 = 0.517691612,-0.0620360412,-0.341481209
 	rot = -0.183012873,0.683012664,0.683012784,-0.183012694
@@ -4558,9 +4417,9 @@ PART
 	PARTDATA
 	{
 		tgt = 4294134912
-		pos = -0.242813513,-0.0588250831,-0.0877082497
-		rot = 0,-0.49999994,-1.01150732E-07,0.866025448
-		dir = -0.91702044,-0.222150773,-0.331244737
+		pos = -0.242813513,-0.0588365272,-0.0877082497
+		rot = -6.5305732E-16,-0.500000298,-1.01150817E-07,0.866026163
+		dir = -0.917009771,-0.222202092,-0.331239074
 		col = COL4
 	}
 	MODULE
@@ -4596,161 +4455,10 @@ PART
 }
 PART
 {
-	part = shockConeIntake_4294133436
-	partName = Part
-	persistentId = 1648608590
-	pos = -1.25917399,3.00983644,-2.73640418
-	attPos = 0,0,0
-	attPos0 = 0,1.59068894,-1.89624899E-07
-	rot = 0.707106888,0,0,0.707106769
-	attRot = 0,0,0,1
-	attRot0 = -8.42937027E-08,0,0,-1
-	mir = 1,1,1
-	symMethod = Mirror
-	autostrutMode = Off
-	rigidAttachment = False
-	istg = -1
-	resPri = 0
-	dstg = 0
-	sidx = -1
-	sqor = -1
-	sepI = 0
-	attm = 0
-	sameVesselCollision = False
-	modCost = 0
-	modMass = 0
-	modSize = 0,0,0
-	sym = shockConeIntake_4294134332
-	attN = bottom,fuelTank_4294133974_0|-0.625|0_0|-1|0_0|-0.625|0_0|-1|0
-	EVENTS
-	{
-	}
-	ACTIONS
-	{
-	}
-	PARTDATA
-	{
-	}
-	MODULE
-	{
-		name = ModuleResourceIntake
-		isEnabled = True
-		intakeEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleAnimateHeat
-		isEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleResourceIntake
-		isEnabled = True
-		intakeEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = TweakScale
-		isEnabled = True
-		currentScale = 1.25
-		defaultScale = 1.25
-		defaultTransformScale = (0, 0, 0)
-		DryCost = 3050
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = AtmosphericIntake
-		isEnabled = True
-		finalAir = 0
-		intakeOpen = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	RESOURCE
-	{
-		name = IntakeAir
-		amount = 2
-		maxAmount = 2
-		flowState = True
-		isTweakable = False
-		hideFlow = False
-		isVisible = False
-		flowMode = Both
-	}
-	RESOURCE
-	{
-		name = IntakeAtm
-		amount = 0
-		maxAmount = 1
-		flowState = True
-		isTweakable = False
-		hideFlow = False
-		isVisible = True
-		flowMode = Both
-	}
-}
-PART
-{
 	part = ThermalTurboJetVTOL_4294133388
 	partName = Part
 	persistentId = 1247563909
-	pos = -1.25917399,3.009835,-5.65212345
+	pos = -1.25917399,3.009835,-5.65218544
 	attPos = 0,0,0
 	attPos0 = 0,-1.32500029,4.76836931E-07
 	rot = 0.707106829,0,0,0.707106829
@@ -4781,6 +4489,52 @@ PART
 	}
 	PARTDATA
 	{
+	}
+	MODULE
+	{
+		name = ModuleGimbal
+		isEnabled = True
+		gimbalLock = False
+		gimbalLimiter = 100
+		currentShowToggles = False
+		enableYaw = True
+		enablePitch = True
+		enableRoll = True
+		gimbalActive = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+			LockAction
+			{
+				actionGroup = None
+			}
+			FreeAction
+			{
+				actionGroup = None
+			}
+			TogglePitchAction
+			{
+				actionGroup = None
+			}
+			ToggleYawAction
+			{
+				actionGroup = None
+			}
+			ToggleRollAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
 	}
 	MODULE
 	{
@@ -4918,52 +4672,6 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleGimbal
-		isEnabled = True
-		gimbalLock = False
-		gimbalLimiter = 100
-		currentShowToggles = False
-		enableYaw = True
-		enablePitch = True
-		enableRoll = True
-		gimbalActive = False
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleAction
-			{
-				actionGroup = None
-			}
-			LockAction
-			{
-				actionGroup = None
-			}
-			FreeAction
-			{
-				actionGroup = None
-			}
-			TogglePitchAction
-			{
-				actionGroup = None
-			}
-			ToggleYawAction
-			{
-				actionGroup = None
-			}
-			ToggleRollAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
 		name = ModuleSurfaceFX
 		isEnabled = True
 		stagingEnabled = True
@@ -5036,10 +4744,10 @@ PART
 	part = structuralWing_4294133078
 	partName = Part
 	persistentId = 3607926476
-	pos = 0.608124316,3.01038766,-1.62619328
-	attPos = 0.621772885,1.11692703,-1.33148106E-07
+	pos = 0.586355269,3.00983644,-0.743169785
+	attPos = 0.600000024,1.99999452,0
 	attPos0 = 0,0,0
-	rot = -0.00495919399,0.71305418,0.701075315,-0.00475888699
+	rot = -0.00495919166,0.71305418,0.701075315,-0.0047588856
 	attRot = -0.701075315,0.00475885579,0.00495916279,-0.71305418
 	attRot0 = 0,0,0,1
 	mir = 1,1,1
@@ -5057,9 +4765,8 @@ PART
 	modCost = 0
 	modMass = 0
 	modSize = 0,0,0
-	link = InterstellarRcs5block_4294133042
 	sym = structuralWing_4294132978
-	srfN = srfAttach,fuelTank.long_4294134912,COL 2
+	srfN = srfAttach,fuelTank.long_4294134912,COL 4
 	EVENTS
 	{
 	}
@@ -5106,131 +4813,11 @@ PART
 }
 PART
 {
-	part = InterstellarRcs5block_4294133042
-	partName = Part
-	persistentId = 1110373596
-	pos = 1.37257779,3.0291574,-1.13853884
-	attPos = -0.0607545376,-0.0476472974,0.0149017498
-	attPos0 = -0.768106818,0.439872801,-1.00582824E-07
-	rot = 0.682022095,0.694232285,0.157834589,0.167260289
-	attRot = -3.17439486E-07,-8.46361647E-09,-9.38624112E-08,-1
-	attRot0 = 0.573634803,-0.413452506,0.573635042,0.413452506
-	mir = 1,1,1
-	symMethod = Mirror
-	autostrutMode = Off
-	rigidAttachment = False
-	istg = -1
-	resPri = 0
-	dstg = 0
-	sidx = -1
-	sqor = -1
-	sepI = 0
-	attm = 1
-	sameVesselCollision = False
-	modCost = 0
-	modMass = 0
-	modSize = 0,0,0
-	sym = InterstellarRcs5block_4294132942
-	srfN = srfAttach,structuralWing_4294133078,COL 4
-	EVENTS
-	{
-	}
-	ACTIONS
-	{
-	}
-	PARTDATA
-	{
-	}
-	MODULE
-	{
-		name = ModuleRCSFX
-		isEnabled = True
-		rcsEnabled = True
-		thrustPercentage = 100
-		currentShowToggles = False
-		enableYaw = True
-		enablePitch = True
-		enableRoll = True
-		enableX = True
-		enableY = True
-		enableZ = True
-		useThrottle = False
-		fullThrust = False
-		stagingEnabled = False
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ElectricRCSController
-		isEnabled = True
-		fuel_mode = 0
-		fuel_mode_name = 
-		storedPower = 0
-		maxStoredPower = 98.099999999999994
-		powerEnabled = True
-		hasSufficientPower = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleNextPropellantAction
-			{
-				actionGroup = None
-			}
-			TogglePreviousPropellantAction
-			{
-				actionGroup = None
-			}
-			TogglePowerAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = TweakScale
-		isEnabled = True
-		currentScale = 0.300000012
-		defaultScale = 0.300000012
-		defaultTransformScale = (0, 0, 0)
-		DryCost = 3400
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-}
-PART
-{
 	part = structuralWing_4294132978
 	partName = Part
 	persistentId = 3032255335
-	pos = -0.635413885,3.01038766,-1.62619233
-	attPos = -0.621772885,1.11692798,-1.33148205E-07
+	pos = -0.613644779,3.00983644,-0.743168592
+	attPos = -0.600000024,1.99999571,0
 	attPos0 = 0,0,0
 	rot = -0.701075315,0.00475885579,0.00495916279,-0.71305418
 	attRot = -0.701075315,0.00475885579,0.00495916279,-0.71305418
@@ -5250,7 +4837,6 @@ PART
 	modCost = 0
 	modMass = 0
 	modSize = 0,0,0
-	link = InterstellarRcs5block_4294132942
 	sym = structuralWing_4294133078
 	srfN = srfAttach,fuelTank.long_4294134912,COL 4
 	EVENTS
@@ -5299,130 +4885,10 @@ PART
 }
 PART
 {
-	part = InterstellarRcs5block_4294132942
-	partName = Part
-	persistentId = 3962499219
-	pos = -1.39986312,3.0291574,-1.13853836
-	attPos = -0.0607545376,-0.0476472974,0.0149017498
-	attPos0 = -0.768107414,0.439871848,1.53668225E-08
-	rot = -0.682021737,0.694232345,0.15783456,-0.167260975
-	attRot = -3.17439486E-07,-8.46361647E-09,-9.38624112E-08,-1
-	attRot0 = 0.371748328,-0.601500809,0.371748298,0.601500809
-	mir = 1,1,1
-	symMethod = Mirror
-	autostrutMode = Off
-	rigidAttachment = False
-	istg = -1
-	resPri = 0
-	dstg = 0
-	sidx = -1
-	sqor = -1
-	sepI = 0
-	attm = 1
-	sameVesselCollision = False
-	modCost = 0
-	modMass = 0
-	modSize = 0,0,0
-	sym = InterstellarRcs5block_4294133042
-	srfN = srfAttach,structuralWing_4294132978,COL 4
-	EVENTS
-	{
-	}
-	ACTIONS
-	{
-	}
-	PARTDATA
-	{
-	}
-	MODULE
-	{
-		name = ModuleRCSFX
-		isEnabled = True
-		rcsEnabled = True
-		thrustPercentage = 100
-		currentShowToggles = False
-		enableYaw = True
-		enablePitch = True
-		enableRoll = True
-		enableX = True
-		enableY = True
-		enableZ = True
-		useThrottle = False
-		fullThrust = False
-		stagingEnabled = False
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ElectricRCSController
-		isEnabled = True
-		fuel_mode = 0
-		fuel_mode_name = 
-		storedPower = 0
-		maxStoredPower = 98.099999999999994
-		powerEnabled = True
-		hasSufficientPower = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleNextPropellantAction
-			{
-				actionGroup = None
-			}
-			TogglePreviousPropellantAction
-			{
-				actionGroup = None
-			}
-			TogglePowerAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = TweakScale
-		isEnabled = True
-		currentScale = 0.300000012
-		defaultScale = 0.300000012
-		defaultTransformScale = (0, 0, 0)
-		DryCost = 3400
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-}
-PART
-{
 	part = CompactFNGenerator_4294132878
 	partName = Part
 	persistentId = 567101106
-	pos = -0.01364478,3.00983691,-4.8182373
+	pos = -0.01364478,3.00983691,-4.81829453
 	attPos = 0,0,0
 	attPos0 = 0,-2.07500196,0
 	rot = 0.707106829,0,0,0.707106829
@@ -5441,7 +4907,7 @@ PART
 	attm = 0
 	sameVesselCollision = False
 	modCost = 0
-	modMass = -0.955319047
+	modMass = -0.977659523
 	modSize = 0,0,0
 	link = KspiPebbleBed_4294132850
 	attN = top,fuelTank.long_4294134912_0|0.1875|0_0|0.25|0_0|0.1875|0_0|0.25|0
@@ -5592,7 +5058,7 @@ PART
 	part = KspiPebbleBed_4294132850
 	partName = Part
 	persistentId = 1539062634
-	pos = -0.01364478,3.00983691,-5.80574226
+	pos = -0.01364478,3.00983691,-5.80579948
 	attPos = 0,0,0
 	attPos0 = 0,-0.987501144,0
 	rot = 0.707106829,0,0,0.707106829
@@ -5610,7 +5076,7 @@ PART
 	sepI = 0
 	attm = 0
 	sameVesselCollision = False
-	modCost = -105879.219
+	modCost = -105142.906
 	modMass = -6.58578634
 	modSize = 0,0,0
 	link = ThermalRamjetNozzleOx_4294132808
@@ -5766,13 +5232,24 @@ PART
 		isVisible = True
 		flowMode = Both
 	}
+	RESOURCE
+	{
+		name = Shielding
+		amount = 0
+		maxAmount = 7.3631077818510775
+		flowState = True
+		isTweakable = True
+		hideFlow = False
+		isVisible = True
+		flowMode = Both
+	}
 }
 PART
 {
 	part = ThermalRamjetNozzleOx_4294132808
 	partName = Part
 	persistentId = 4053382504
-	pos = -0.01364478,3.00983596,-6.63341713
+	pos = -0.01364478,3.00983596,-6.63347435
 	attPos = 0,0,0
 	attPos0 = 0,-0.855310917,0
 	rot = 0.707106829,0,0,0.707106829
@@ -5793,8 +5270,9 @@ PART
 	modCost = -3500
 	modMass = -1.75
 	modSize = 0,0,0
+	link = shockConeIntake_4290543702
 	attN = top,KspiPebbleBed_4294132850_0|0.0553079993|0_0|1|0_0|0.0276539996|0_0|1|0
-	attN = bottom,Null_0_0|-1.19599998|0_0|-1|0_0|-0.59799999|0_0|-1|0
+	attN = bottom,shockConeIntake_4290543702_0|-1.19599998|0_0|-1|0_0|-0.59799999|0_0|-1|0
 	EVENTS
 	{
 	}
@@ -5803,6 +5281,52 @@ PART
 	}
 	PARTDATA
 	{
+	}
+	MODULE
+	{
+		name = ModuleGimbal
+		isEnabled = True
+		gimbalLock = False
+		gimbalLimiter = 100
+		currentShowToggles = False
+		enableYaw = True
+		enablePitch = True
+		enableRoll = True
+		gimbalActive = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+			LockAction
+			{
+				actionGroup = None
+			}
+			FreeAction
+			{
+				actionGroup = None
+			}
+			TogglePitchAction
+			{
+				actionGroup = None
+			}
+			ToggleYawAction
+			{
+				actionGroup = None
+			}
+			ToggleRollAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
 	}
 	MODULE
 	{
@@ -5909,7 +5433,7 @@ PART
 		name = ModuleJettison
 		isEnabled = True
 		activejettisonName = shroud
-		isJettisoned = True
+		isJettisoned = False
 		shroudHideOverride = False
 		stagingEnabled = True
 		EVENTS
@@ -5918,52 +5442,6 @@ PART
 		ACTIONS
 		{
 			JettisonAction
-			{
-				actionGroup = None
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleGimbal
-		isEnabled = True
-		gimbalLock = False
-		gimbalLimiter = 100
-		currentShowToggles = False
-		enableYaw = True
-		enablePitch = True
-		enableRoll = True
-		gimbalActive = False
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ToggleAction
-			{
-				actionGroup = None
-			}
-			LockAction
-			{
-				actionGroup = None
-			}
-			FreeAction
-			{
-				actionGroup = None
-			}
-			TogglePitchAction
-			{
-				actionGroup = None
-			}
-			ToggleYawAction
-			{
-				actionGroup = None
-			}
-			ToggleRollAction
 			{
 				actionGroup = None
 			}
@@ -6023,7 +5501,7 @@ PART
 	part = heatfin2_4294132702
 	partName = Part
 	persistentId = 3907208996
-	pos = -0.0136448331,3.61389518,-5.78943634
+	pos = -0.0136448331,3.61389518,-5.78949356
 	attPos = 0,0,0
 	attPos0 = -5.30853868E-08,0.0163068771,-0.60404706
 	rot = 0.5,0.500000119,0.5,0.500000119
@@ -6056,7 +5534,7 @@ PART
 	}
 	MODULE
 	{
-		name = ModuleControlSurface
+		name = SyncModuleControlSurface
 		isEnabled = True
 		mirrorDeploy = False
 		usesMirrorDeploy = True
@@ -6190,6 +5668,920 @@ PART
 		name = WasteHeat
 		amount = 0
 		maxAmount = 4000
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = True
+		flowMode = Both
+	}
+}
+PART
+{
+	part = radialEngineBody_4290018518
+	partName = Part
+	persistentId = 55452711
+	pos = -1.25917399,3.009835,-2.40792346
+	attPos = 0,0,0
+	attPos0 = 0,1.91922307,0
+	rot = 0.707106829,0,0,0.707106829
+	attRot = 0,0,0,1
+	attRot0 = 0,0,0,-1
+	mir = 1,1,1
+	symMethod = Mirror
+	autostrutMode = Off
+	rigidAttachment = False
+	istg = -1
+	resPri = 0
+	dstg = 0
+	sidx = -1
+	sqor = -1
+	sepI = 0
+	attm = 0
+	sameVesselCollision = False
+	modCost = 0
+	modMass = 0
+	modSize = 0,0,0
+	link = shockConeIntake_4294133436
+	sym = radialEngineBody_4290016084
+	attN = top,shockConeIntake_4294133436_0|0.9375|0_0|1|0_0|0.9375|0_0|1|0
+	attN = bottom,fuelTank_4294133974_0|-0.9375|0_0|-1|0_0|-0.9375|0_0|-1|0
+	EVENTS
+	{
+	}
+	ACTIONS
+	{
+	}
+	PARTDATA
+	{
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleAnimateHeat
+		isEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = TweakScale
+		isEnabled = True
+		currentScale = 1.25
+		defaultScale = 1.25
+		defaultTransformScale = (0, 0, 0)
+		DryCost = 1650
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = AtmosphericIntake
+		isEnabled = True
+		finalAir = 0
+		intakeOpen = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = FNModulePreecooler
+		isEnabled = True
+		functional = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleSabreHeating
+		isEnabled = True
+		IsEnabled = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = FlatFNRadiator
+		isEnabled = True
+		radiatorIsEnabled = False
+		radiatorInit = False
+		isAutomated = True
+		pivotEnabled = True
+		preventShieldedDeploy = True
+		showRetractButton = False
+		showControls = True
+		currentRadTemp = 0
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			DeployRadiatorAction
+			{
+				actionGroup = None
+			}
+			RetractRadiatorAction
+			{
+				actionGroup = None
+			}
+			ToggleRadiatorAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	RESOURCE
+	{
+		name = IntakeAir
+		amount = 5
+		maxAmount = 5
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = IntakeAtm
+		amount = 2
+		maxAmount = 2
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = True
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = WasteHeat
+		amount = 0
+		maxAmount = 1000
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = True
+		flowMode = Both
+	}
+}
+PART
+{
+	part = radialEngineBody_4290016084
+	partName = Part
+	persistentId = 3221530424
+	pos = 1.231884,3.009835,-2.40792346
+	attPos = 0,0,0
+	attPos0 = -2.04553358E-14,1.91922307,-8.94132058E-22
+	rot = 0.707106888,0,0,0.707106769
+	attRot = 0,0,0,1
+	attRot0 = 1.42096596E-15,-1,8.94069672E-08,-4.37114061E-08
+	mir = 1,1,1
+	symMethod = Mirror
+	autostrutMode = Off
+	rigidAttachment = False
+	istg = -1
+	resPri = 0
+	dstg = 0
+	sidx = -1
+	sqor = -1
+	sepI = 0
+	attm = 0
+	sameVesselCollision = False
+	modCost = 0
+	modMass = 0
+	modSize = 0,0,0
+	link = shockConeIntake_4290015892
+	sym = radialEngineBody_4290018518
+	attN = top,shockConeIntake_4290015892_0|0.9375|0_0|1|0_0|0.9375|0_0|1|0
+	attN = bottom,fuelTank_4294134870_0|-0.9375|0_0|-1|0_0|-0.9375|0_0|-1|0
+	EVENTS
+	{
+	}
+	ACTIONS
+	{
+	}
+	PARTDATA
+	{
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleAnimateHeat
+		isEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = TweakScale
+		isEnabled = True
+		currentScale = 1.25
+		defaultScale = 1.25
+		defaultTransformScale = (0, 0, 0)
+		DryCost = 1650
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = AtmosphericIntake
+		isEnabled = True
+		finalAir = 0
+		intakeOpen = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = FNModulePreecooler
+		isEnabled = True
+		functional = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleSabreHeating
+		isEnabled = True
+		IsEnabled = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = FlatFNRadiator
+		isEnabled = True
+		radiatorIsEnabled = False
+		radiatorInit = False
+		isAutomated = True
+		pivotEnabled = True
+		preventShieldedDeploy = True
+		showRetractButton = False
+		showControls = True
+		currentRadTemp = 0
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			DeployRadiatorAction
+			{
+				actionGroup = None
+			}
+			RetractRadiatorAction
+			{
+				actionGroup = None
+			}
+			ToggleRadiatorAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	RESOURCE
+	{
+		name = IntakeAir
+		amount = 5
+		maxAmount = 5
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = IntakeAtm
+		amount = 2
+		maxAmount = 2
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = True
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = WasteHeat
+		amount = 0
+		maxAmount = 1000
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = True
+		flowMode = Both
+	}
+}
+PART
+{
+	part = shockConeIntake_4294133436
+	partName = Part
+	persistentId = 1648608590
+	pos = -1.25917399,3.009835,-0.845421314
+	attPos = 0,0,0
+	attPos0 = 0,1.56249857,0
+	rot = 0.707106829,0,0,0.707106829
+	attRot = 0,0,0,1
+	attRot0 = 0,0,0,1
+	mir = 1,1,1
+	symMethod = Mirror
+	autostrutMode = Off
+	rigidAttachment = False
+	istg = -1
+	resPri = 0
+	dstg = 0
+	sidx = -1
+	sqor = -1
+	sepI = 0
+	attm = 0
+	sameVesselCollision = False
+	modCost = 0
+	modMass = 0
+	modSize = 0,0,0
+	sym = shockConeIntake_4290015892
+	attN = bottom,radialEngineBody_4290018518_0|-0.625|0_0|-1|0_0|-0.625|0_0|-1|0
+	EVENTS
+	{
+	}
+	ACTIONS
+	{
+	}
+	PARTDATA
+	{
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleAnimateHeat
+		isEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = TweakScale
+		isEnabled = True
+		currentScale = 1.25
+		defaultScale = 1.25
+		defaultTransformScale = (0, 0, 0)
+		DryCost = 3050
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = AtmosphericIntake
+		isEnabled = True
+		finalAir = 0
+		intakeOpen = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	RESOURCE
+	{
+		name = IntakeAir
+		amount = 2
+		maxAmount = 2
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = IntakeAtm
+		amount = 0
+		maxAmount = 1
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = True
+		flowMode = Both
+	}
+}
+PART
+{
+	part = shockConeIntake_4290015892
+	partName = Part
+	persistentId = 2922112042
+	pos = 1.231884,3.009835,-0.845421791
+	attPos = 0,0,0
+	attPos0 = -1.01644026E-20,1.56249881,-2.79396573E-07
+	rot = 0.707106888,0,0,0.707106769
+	attRot = 0,0,0,1
+	attRot0 = 0,0,0,1
+	mir = 1,1,1
+	symMethod = Mirror
+	autostrutMode = Off
+	rigidAttachment = False
+	istg = -1
+	resPri = 0
+	dstg = 0
+	sidx = -1
+	sqor = -1
+	sepI = 0
+	attm = 0
+	sameVesselCollision = False
+	modCost = 0
+	modMass = 0
+	modSize = 0,0,0
+	sym = shockConeIntake_4294133436
+	attN = bottom,radialEngineBody_4290016084_0|-0.625|0_0|-1|0_0|-0.625|0_0|-1|0
+	EVENTS
+	{
+	}
+	ACTIONS
+	{
+	}
+	PARTDATA
+	{
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleAnimateHeat
+		isEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = TweakScale
+		isEnabled = True
+		currentScale = 1.25
+		defaultScale = 1.25
+		defaultTransformScale = (0, 0, 0)
+		DryCost = 3050
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = AtmosphericIntake
+		isEnabled = True
+		finalAir = 0
+		intakeOpen = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	RESOURCE
+	{
+		name = IntakeAir
+		amount = 2
+		maxAmount = 2
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = IntakeAtm
+		amount = 0
+		maxAmount = 1
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = True
+		flowMode = Both
+	}
+}
+PART
+{
+	part = shockConeIntake_4290543702
+	partName = Part
+	persistentId = 701144347
+	pos = -0.01364478,3.00983596,-6.63347912
+	attPos = 0,1.2229979,0
+	attPos0 = 0,-1.22300267,0
+	rot = -0.707106829,0,0,0.707106829
+	attRot = -0.999999881,0,0,0
+	attRot0 = -1,0,0,0
+	mir = 1,1,1
+	symMethod = Mirror
+	autostrutMode = Off
+	rigidAttachment = False
+	istg = 0
+	resPri = 0
+	dstg = 0
+	sidx = -1
+	sqor = -1
+	sepI = 0
+	attm = 0
+	sameVesselCollision = False
+	modCost = 0
+	modMass = 0
+	modSize = 0,0,0
+	attN = bottom,ThermalRamjetNozzleOx_4294132808_0|-0.625|0_0|-1|0_0|-0.625|0_0|-1|0
+	EVENTS
+	{
+	}
+	ACTIONS
+	{
+	}
+	PARTDATA
+	{
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleAnimateHeat
+		isEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleResourceIntake
+		isEnabled = True
+		intakeEnabled = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ToggleAction
+			{
+				actionGroup = None
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = TweakScale
+		isEnabled = True
+		currentScale = 1.25
+		defaultScale = 1.25
+		defaultTransformScale = (0, 0, 0)
+		DryCost = 3050
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = AtmosphericIntake
+		isEnabled = True
+		finalAir = 0
+		intakeOpen = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	RESOURCE
+	{
+		name = IntakeAir
+		amount = 2
+		maxAmount = 2
+		flowState = True
+		isTweakable = False
+		hideFlow = False
+		isVisible = False
+		flowMode = Both
+	}
+	RESOURCE
+	{
+		name = IntakeAtm
+		amount = 2
+		maxAmount = 2
 		flowState = True
 		isTweakable = False
 		hideFlow = False

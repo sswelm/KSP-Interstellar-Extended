@@ -10,10 +10,10 @@ namespace FNPlugin
         public bool functional;
 
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Area")]
-        public double area = 0.0075;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Precooler status")]
+        public double area = 0.01;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Precooler status")]
         public string statusStr;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Intake")]
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Intake")]
         public string attachedIntakeName;
 
         AtmosphericIntake attachedIntake;

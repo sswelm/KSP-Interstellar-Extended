@@ -417,7 +417,7 @@ namespace FNPlugin
         [KSPField]
         double intakes_open_area;
         [KSPField(guiActive = true, guiName = "Missing Precooler Ratio")]
-        double missingPrecoolerRatio;
+        public double missingPrecoolerRatio;
         [KSPField]
         float effectiveJetengineAccelerationSpeed;
         [KSPField]

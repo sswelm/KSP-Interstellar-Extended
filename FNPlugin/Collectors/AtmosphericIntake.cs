@@ -30,9 +30,9 @@ namespace FNPlugin
         public string intakeTransformName = "";
         [KSPField(guiName = "unitScalar", guiActive = false, guiActiveEditor = true)]
         public double unitScalar = 0.2;
-        [KSPField(guiName = "storesResource", guiActive = true, guiActiveEditor = false)]
+        [KSPField(guiName = "storesResource", guiActive = false, guiActiveEditor = false)]
         public bool storesResource = false;
-        [KSPField(guiName = "Intake Exposure", guiActive = true, guiActiveEditor = false, guiFormat = "F1")]
+        [KSPField(guiName = "Intake Exposure", guiActive = false, guiActiveEditor = false, guiFormat = "F1")]
         public double intakeExposure = 0;
         [KSPField(guiName = "Trace atmo. density", guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
         public double upperAtmoDensity;
