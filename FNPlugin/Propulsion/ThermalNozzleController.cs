@@ -1471,7 +1471,7 @@ namespace FNPlugin
             {
                 if (overrideVelocityCurve && jetPerformanceProfile == 0)    // Ramjet
                 {
-                    velCurve.Add(0, 0.005f + _jetTechBonusPercentage / 40);
+                    velCurve.Add(0, 0.001f + _jetTechBonusPercentage * 0.01f);
                     velCurve.Add(2.5f - _jetTechBonusCurveChange, 1);
                     velCurve.Add(5 + _jetTechBonusCurveChange * 2, 1);
                     velCurve.Add(14, 0 + _jetTechBonusPercentage);
