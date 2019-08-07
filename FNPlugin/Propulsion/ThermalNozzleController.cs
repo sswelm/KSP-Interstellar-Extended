@@ -1427,7 +1427,7 @@ namespace FNPlugin
             }
         }
 
-        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1, float performance_multiplier = 1)
+        public void UpdateIspEngineParams(double atmosphere_isp_efficiency = 1, float performance_bonus = 0)
         {
             // recaculate ISP based on power and core temp available
             FloatCurve atmCurve = new FloatCurve();
@@ -1506,19 +1506,19 @@ namespace FNPlugin
                 if (overrideAtmCurve && jetPerformanceProfile == 0)
                 {
                     atmCurve.Add(0, 0);
-                    atmCurve.Add(0.01f, Math.Min(1, 0.20f * performance_multiplier));
-                    atmCurve.Add(0.04f, Math.Min(1, 0.50f * performance_multiplier));
-                    atmCurve.Add(0.16f, Math.Min(1, 0.75f * performance_multiplier));
-                    atmCurve.Add(0.50f, Math.Min(1, 0.90f * performance_multiplier));
+                    atmCurve.Add(0.01f, Math.Min(1, 0.20f + 0.20f * performance_bonus));
+					atmCurve.Add(0.04f, Math.Min(1, 0.50f + 0.15f * performance_bonus));
+					atmCurve.Add(0.16f, Math.Min(1, 0.75f + 0.10f * performance_bonus));
+					atmCurve.Add(0.50f, Math.Min(1, 0.90f + 0.05f * performance_bonus));
                     atmCurve.Add(1f, 1f);
                 }
                 else if (overrideAtmCurve && jetPerformanceProfile == 1)
                 {
                     atmCurve.Add(0, 0);
-                    atmCurve.Add(0.01f, Math.Min(1, 0.10f * performance_multiplier));
-                    atmCurve.Add(0.04f, Math.Min(1, 0.25f * performance_multiplier));
-                    atmCurve.Add(0.16f, Math.Min(1, 0.50f * performance_multiplier));
-                    atmCurve.Add(0.50f, Math.Min(1, 0.80f * performance_multiplier));
+					atmCurve.Add(0.01f, Math.Min(1, 0.10f + 0.10f * performance_bonus));
+					atmCurve.Add(0.04f, Math.Min(1, 0.25f + 0.10f * performance_bonus));
+					atmCurve.Add(0.16f, Math.Min(1, 0.50f + 0.10f * performance_bonus));
+					atmCurve.Add(0.50f, Math.Min(1, 0.80f + 0.10f * performance_bonus));
                     atmCurve.Add(1f, 1f);
                 }
                 else
@@ -1983,7 +1983,7 @@ namespace FNPlugin
 
                     var thrustAtmosphereRatio = max_thrust_in_space > 0 ? Math.Max(atmosphereThrustEfficiency, 0.01) : 0.01;
                     
-                    UpdateIspEngineParams(thrustAtmosphereRatio, 1 + (1 - (float)missingPrecoolerRatio));
+                    UpdateIspEngineParams(thrustAtmosphereRatio, 1 - (float)missingPrecoolerRatio);
                     current_isp = _maxISP * thrustAtmosphereRatio;
                     calculatedMaxThrust = calculatedMaxThrust * atmosphereThrustEfficiency;
                 }
