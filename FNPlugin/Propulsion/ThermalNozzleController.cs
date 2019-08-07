@@ -1513,7 +1513,7 @@ namespace FNPlugin
                     atmCurve.Add(0.01f, (float)Math.Min(1, 0.20 + 0.20 * performance_bonus));
                     atmCurve.Add(0.04f, (float)Math.Min(1, 0.50 + 0.15 * performance_bonus));
                     atmCurve.Add(0.16f, (float)Math.Min(1, 0.75 + 0.10 * performance_bonus));
-                    atmCurve.Add(0.50f, (float)Math.Min(1, 0.90 + 0.05 * performance_bonus));
+                    atmCurve.Add(0.64f, (float)Math.Min(1, 0.90 + 0.05 * performance_bonus));
                     atmCurve.Add(1, 1);
                 }
                 else if (overrideAtmCurve && jetPerformanceProfile == 1)
@@ -1522,7 +1522,7 @@ namespace FNPlugin
                     atmCurve.Add(0.01f, (float)Math.Min(1, 0.10 + 0.10 * performance_bonus));
                     atmCurve.Add(0.04f, (float)Math.Min(1, 0.25 + 0.10 * performance_bonus));
                     atmCurve.Add(0.16f, (float)Math.Min(1, 0.50 + 0.10 * performance_bonus));
-                    atmCurve.Add(0.50f, (float)Math.Min(1, 0.80 + 0.10 * performance_bonus));
+                    atmCurve.Add(0.64f, (float)Math.Min(1, 0.80 + 0.10 * performance_bonus));
                     atmCurve.Add(1, 1);
                 }
                 else
