@@ -2401,7 +2401,7 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName()
         {
-            string displayName = part.partInfo.title + " (nozzle)";
+            var displayName = part.partInfo.title + " (nozzle)";
 
             if (similarParts == null)
             {
@@ -2437,16 +2437,15 @@ namespace FNPlugin
 
                 foreach (var fuel in _compatibleThermalEngineFuels)
                 {
-                    if (HighLogic.LoadedSceneIsEditor || fuel.hasAnyStorage())
-                    {
-                        GUILayout.BeginHorizontal();
-                        if (GUILayout.Button(fuel.GuiName, GUILayout.ExpandWidth(true)))
-                        {
-                            fuel_mode = fuel.Index;
-                            SetupPropellants(true);
-                        }
-                        GUILayout.EndHorizontal();
-                    }
+	                if (!HighLogic.LoadedSceneIsEditor && !fuel.hasAnyStorage()) continue;
+
+	                GUILayout.BeginHorizontal();
+	                if (GUILayout.Button(fuel.GuiName, GUILayout.ExpandWidth(true)))
+	                {
+		                fuel_mode = fuel.Index;
+		                SetupPropellants(true);
+	                }
+	                GUILayout.EndHorizontal();
                 }
 
                 GUILayout.EndVertical();

@@ -546,14 +546,14 @@ namespace FNPlugin
             {
                 var available = techstate.state == RDTech.State.Available;
                 if (available)
-                    UnityEngine.Debug.Log("[KSPI]: found techid " + id + " available");
+                    Debug.Log("[KSPI]: found techid " + id + " available");
                 else
-                    UnityEngine.Debug.Log("[KSPI]: found techid " + id + " unavailable");
+                    Debug.Log("[KSPI]: found techid " + id + " unavailable");
                 return available;
             }
             else
             {
-                UnityEngine.Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
+                Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
                 return false;
             }
         }

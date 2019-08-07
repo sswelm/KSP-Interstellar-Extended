@@ -1,13 +1,13 @@
-﻿using FNPlugin.Extensions;
+﻿using FNPlugin.Constants;
+using FNPlugin.Extensions;
+using FNPlugin.External;
 using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using UnityEngine;
-using FNPlugin.Constants;
-using FNPlugin.External;
 using TweakScale;
+using UnityEngine;
 
 namespace FNPlugin
 {
