@@ -201,7 +201,7 @@ namespace FNPlugin.Wasteheat
         private ResourceBuffers resourceBuffers;
 
         private Queue<double> radTempQueue = new Queue<double>(20);
-        private Queue<double> partTempQueue = new Queue<double>(20);
+        private Queue<double> externalTempQueue = new Queue<double>(20);
 
         private static AnimationCurve redTempColorChannel;
         private static AnimationCurve greenTempColorChannel;
@@ -1016,15 +1016,15 @@ namespace FNPlugin.Wasteheat
                 radTempQueue.Enqueue(currentRadTemp);
                 if (radTempQueue.Count > 20)
                     radTempQueue.Dequeue();
-                partTempQueue.Enqueue(part.temperature);
-                if (partTempQueue.Count > 20)
-                    partTempQueue.Dequeue();
+                externalTempQueue.Enqueue(vessel.externalTemperature);
+                if (externalTempQueue.Count > 20)
+                    externalTempQueue.Dequeue();
             }
         }
 
         public double GetAverateRadiatorTemperature()
         {
-            return radTempQueue.Count > 0 ? radTempQueue.Average() : currentRadTemp;
+            return Math.Max(externalTempQueue.Count > 0 ? externalTempQueue.Average() : vessel.externalTemperature, radTempQueue.Count > 0 ? radTempQueue.Average() : currentRadTemp);
         }
 
         public override string GetInfo()
