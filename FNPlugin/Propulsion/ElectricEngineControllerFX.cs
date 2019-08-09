@@ -934,7 +934,7 @@ namespace FNPlugin
                     else
                     {
                         var directionName = Enum.GetName(typeof (VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
-                        var message = "Thrust warp stopped - vessel is not facing " + directionName;
+                        var message = "Persistant Thrust stopped - vessel is not facing " + directionName;
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         Debug.Log("[KSPI]: " + message);
                         TimeWarp.SetRate(0, true);
