@@ -308,7 +308,7 @@ namespace FNPlugin
                 // only persist thrust if non zero throttle or significant thrust
                 if (_throttlePersistent > 0 || _thrustPersistent > 0.0000005)
                 {
-                    if (!PersistHeading())
+                    if (! vessel.PersistHeading())
                         return;
 
                     // determine maximum deltaV durring this frame
@@ -355,7 +355,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    PersistHeading();
+                    vessel.PersistHeading();
 
                     _thrustPersistent = 0;
                     requestedFlow = 0;
@@ -373,35 +373,6 @@ namespace FNPlugin
         private bool IsPositiveValidNumber(double vaiable)
         {
             return !double.IsNaN(vaiable) && !double.IsInfinity(vaiable) && vaiable > 0;
-        }
-
-        private bool PersistHeading()
-        {
-            var canPersistDirection = vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.ORBITING;
-
-            if (canPersistDirection && vessel.ActionGroups[KSPActionGroup.SAS] && (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde || vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Retrograde))
-            {
-                var requestedDirection = vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde ? vessel.obt_velocity.normalized : vessel.obt_velocity.normalized * -1;
-                var vesselDirection = vessel.transform.up.normalized;
-
-                if (vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.9)
-                {
-                    Quaternion rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
-                    vessel.transform.Rotate(rotation.eulerAngles, Space.World);
-                    vessel.SetRotation(vessel.transform.rotation);
-                }
-                else
-                {
-                    var directionName = Enum.GetName(typeof(VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
-                    var message = "Thrust warp stopped - vessel is not facing " + directionName;
-                    ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                    Debug.Log("[KSPI]: " + message);
-                    TimeWarp.SetRate(0, true);
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         // Format thrust into mN, N, kN
