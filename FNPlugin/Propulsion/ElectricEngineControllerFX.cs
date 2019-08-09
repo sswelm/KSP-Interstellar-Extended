@@ -606,6 +606,8 @@ namespace FNPlugin
             // Base class update
             base.OnUpdate();
 
+            //AutopilotTargetDirection
+
             // stop engines and drop out of timewarp when X pressed
             if (vessel.packed && storedThrotle > 0 && Input.GetKeyDown(KeyCode.X))
             {
@@ -874,26 +876,70 @@ namespace FNPlugin
         private bool PersistHeading()
         {
             var canPersistDirection = vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.ORBITING;
+            var sasIsActive = vessel.ActionGroups[KSPActionGroup.SAS];
 
-            if (canPersistDirection && vessel.ActionGroups[KSPActionGroup.SAS] && (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde || vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Retrograde))
+            if (canPersistDirection && sasIsActive)
             {
-                var requestedDirection = vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde ? vessel.obt_velocity.normalized : vessel.obt_velocity.normalized * -1;
-                var vesselDirection = vessel.transform.up.normalized;
+                var requestedDirection = Vector3d.zero;
+                var universalTime = Planetarium.GetUniversalTime();
+                var vesselPosition = vessel.orbit.getPositionAtUT(universalTime);
 
-                if (_vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.9)
+                if (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde)
                 {
-                    var rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
-                    vessel.transform.Rotate(rotation.eulerAngles, Space.World);
-                    vessel.SetRotation(vessel.transform.rotation);
+                    requestedDirection = vessel.obt_velocity.normalized;
                 }
-                else
+                else if (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Retrograde)
                 {
-                    var directionName = Enum.GetName(typeof(VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
-                    var message = "Thrust warp stopped - vessel is not facing " + directionName;
-                    ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                    Debug.Log("[KSPI]: " + message);
-                    TimeWarp.SetRate(0, true);
-                    return false;
+                    requestedDirection = -vessel.obt_velocity.normalized;
+                }
+                else if (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Maneuver)
+                {
+                    requestedDirection = vessel.patchedConicSolver.maneuverNodes.Count > 0 ? vessel.patchedConicSolver.maneuverNodes[0].GetBurnVector(vessel.orbit) : vessel.obt_velocity.normalized;
+                }
+                else if (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Target)
+                {
+                    requestedDirection = (vessel.targetObject.GetOrbit().getPositionAtUT(universalTime) - vesselPosition).normalized;
+                }
+                else if (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.AntiTarget)
+                {
+                    requestedDirection = -(vessel.targetObject.GetOrbit().getPositionAtUT(universalTime) - vesselPosition).normalized;
+                }
+                else if (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Normal)
+                {
+                    requestedDirection = Vector3.Cross(vessel.obt_velocity, (vesselPosition - vessel.mainBody.position)).normalized;
+                }
+                else if (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Antinormal)
+                {
+                    requestedDirection = -Vector3.Cross(vessel.obt_velocity, (vesselPosition - vessel.mainBody.position)).normalized;
+                }
+                else if (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.RadialIn)
+                {
+                    requestedDirection = -Vector3.Cross(vessel.obt_velocity, Vector3.Cross(vessel.obt_velocity, (vesselPosition - vessel.mainBody.position))).normalized;
+                }
+                else if (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.RadialOut)
+                {
+                    requestedDirection = Vector3.Cross(vessel.obt_velocity, Vector3.Cross(vessel.obt_velocity, (vesselPosition - vessel.mainBody.position))).normalized;
+                }
+
+                if (requestedDirection != Vector3d.zero)
+                {
+                    var vesselDirection = vessel.transform.up.normalized;
+
+                    if ((_vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.9))
+                    {
+                        var rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
+                        vessel.transform.Rotate(rotation.eulerAngles, Space.World);
+                        vessel.SetRotation(vessel.transform.rotation);
+                    }
+                    else
+                    {
+                        var directionName = Enum.GetName(typeof (VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
+                        var message = "Thrust warp stopped - vessel is not facing " + directionName;
+                        ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
+                        Debug.Log("[KSPI]: " + message);
+                        TimeWarp.SetRate(0, true);
+                        return false;
+                    }
                 }
             }
             return true;
@@ -932,7 +978,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogError("[KSPI]: Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
+                Debug.LogError("[KSPI]: Error CalculateTimeDialation " + e.Message + " stack " + e.StackTrace);
             }
         }
 
