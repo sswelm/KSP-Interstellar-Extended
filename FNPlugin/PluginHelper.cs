@@ -177,10 +177,17 @@ namespace FNPlugin
                         var partUpgrade = new PartUpgradeHandler.Upgrade();
                         partUpgrade.name = partUpgradeConfig.GetValue("name");
                         partUpgrade.techRequired = partUpgradeConfig.GetValue("techRequired");
+                        partUpgrade.manufacturer = partUpgradeConfig.GetValue("manufacturer");
 
-                        Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired);
-
-                        partUpgradeByName.Add(partUpgrade.name, partUpgrade);
+                        if (partUpgradeByName.ContainsKey(partUpgrade.name))
+                        {
+                            Debug.LogError("[KSPI]: Duplicate error: failed to add PARTUPGRADE" + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                        }
+                        else
+                        {
+                            Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                            partUpgradeByName.Add(partUpgrade.name, partUpgrade);
+                        }
                     }
                 }
 
