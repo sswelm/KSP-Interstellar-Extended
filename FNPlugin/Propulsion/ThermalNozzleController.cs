@@ -2437,15 +2437,15 @@ namespace FNPlugin
 
                 foreach (var fuel in _compatibleThermalEngineFuels)
                 {
-	                if (!HighLogic.LoadedSceneIsEditor && !fuel.hasAnyStorage()) continue;
+                    if (!HighLogic.LoadedSceneIsEditor && !fuel.hasAnyStorage()) continue;
 
-	                GUILayout.BeginHorizontal();
-	                if (GUILayout.Button(fuel.GuiName, GUILayout.ExpandWidth(true)))
-	                {
-		                fuel_mode = fuel.Index;
-		                SetupPropellants(true);
-	                }
-	                GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button(fuel.GuiName, GUILayout.ExpandWidth(true)))
+                    {
+                        fuel_mode = fuel.Index;
+                        SetupPropellants(true);
+                    }
+                    GUILayout.EndHorizontal();
                 }
 
                 GUILayout.EndVertical();

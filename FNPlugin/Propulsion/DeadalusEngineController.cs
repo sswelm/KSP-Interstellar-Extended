@@ -1031,7 +1031,7 @@ namespace FNPlugin
 
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
-            if (!PersistHeading())
+            if (!vessel.PersistHeading())
                 return;
             
             var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
@@ -1181,34 +1181,6 @@ namespace FNPlugin
                 partWithCrewMember.RemoveCrewmember(crewMember);
                 crewMember.Die();
             }
-        }
-
-        private bool PersistHeading()
-        {
-            var canPersistDirection = vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.ORBITING;
-
-            if (canPersistDirection && vessel.ActionGroups[KSPActionGroup.SAS] && (vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde || vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Retrograde))
-            {
-                var requestedDirection = vessel.Autopilot.Mode == VesselAutopilot.AutopilotMode.Prograde ? vessel.obt_velocity.normalized : vessel.obt_velocity.normalized * -1;
-                var vesselDirection = vessel.transform.up.normalized;
-
-                if (vesselChangedSIOCountdown > 0 || Vector3d.Dot(vesselDirection, requestedDirection) > 0.9)
-                {
-                    var rotation = Quaternion.FromToRotation(vesselDirection, requestedDirection);
-                    vessel.transform.Rotate(rotation.eulerAngles, Space.World);
-                    vessel.SetRotation(vessel.transform.rotation);
-                }
-                else
-                {
-                    var directionName = Enum.GetName(typeof(VesselAutopilot.AutopilotMode), vessel.Autopilot.Mode);
-                    var message = "Thrust warp stopped - vessel is not facing " + directionName;
-                    ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
-                    UnityEngine.Debug.Log("[KSPI]: " + message);
-                    TimeWarp.SetRate(0, true);
-                    return false;
-                }
-            }
-            return true;
         }
 
         public override int getPowerPriority() 
