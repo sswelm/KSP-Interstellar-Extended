@@ -858,7 +858,7 @@ namespace FNPlugin.Wasteheat
                 }
 
                 // get resource bar ratio at start of frame
-                ResourceManager wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
+                var wasteheatManager = getManagerForVessel(ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 if (Double.IsNaN(wasteheatManager.TemperatureRatio))
                 {
@@ -1016,15 +1016,15 @@ namespace FNPlugin.Wasteheat
                 radTempQueue.Enqueue(currentRadTemp);
                 if (radTempQueue.Count > 20)
                     radTempQueue.Dequeue();
-                externalTempQueue.Enqueue(vessel.externalTemperature);
+                externalTempQueue.Enqueue(Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature));
                 if (externalTempQueue.Count > 20)
                     externalTempQueue.Dequeue();
             }
         }
 
-        public double GetAverateRadiatorTemperature()
+	    private double GetAverateRadiatorTemperature()
         {
-            return Math.Max(externalTempQueue.Count > 0 ? externalTempQueue.Average() : vessel.externalTemperature, radTempQueue.Count > 0 ? radTempQueue.Average() : currentRadTemp);
+            return Math.Max(externalTempQueue.Count > 0 ? externalTempQueue.Average() : Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature), radTempQueue.Count > 0 ? radTempQueue.Average() : currentRadTemp);
         }
 
         public override string GetInfo()
