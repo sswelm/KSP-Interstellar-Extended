@@ -1460,6 +1460,9 @@ namespace FNPlugin
                 myAttachedEngine.engineAccelerationSpeed = finalEngineAccelerationSpeed;
                 myAttachedEngine.engineDecelerationSpeed = finalEngineDecelerationSpeed;
 
+                myAttachedEngine.exhaustDamage = true;
+                myAttachedEngine.exhaustDamageMaxRange = (float)(_maxISP / 100);
+
                 if (minThrottle > 0)
                 {
                     var multiplier = 0.5f + myAttachedEngine.currentThrottle;
