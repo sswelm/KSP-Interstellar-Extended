@@ -46,19 +46,19 @@ namespace FNPlugin
         [KSPField]
         public double scale = 1;
 
-        ModuleResource mockInputResource;
+        ModuleResource _mockInputResource;
         BeamedPowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
         ResourceBuffers _resourceBuffers;
-        ResourceType outputType = 0;
-        List<StarLight> stars;        
+        ResourceType _outputType = 0;
+        List<StarLight> _stars;        
       
         public double SolarPower
         {
             get { return solar_supply; }
         }
 
-        bool active = false;
+        bool _active = false;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -80,36 +80,38 @@ namespace FNPlugin
             base.OnStart(state);
 
             if (_solarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
-                outputType = ResourceType.megajoule;
+                _outputType = ResourceType.megajoule;
             else if (_solarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
-                outputType = ResourceType.electricCharge;
+                _outputType = ResourceType.electricCharge;
             else
-                outputType = ResourceType.other;
+                _outputType = ResourceType.other;
 
-            mockInputResource = new ModuleResource();
-            mockInputResource.name = _solarPanel.resourceName;
-            mockInputResource.id = _solarPanel.resourceName.GetHashCode();
-            _solarPanel.resHandler.inputResources.Add(mockInputResource);
+            _mockInputResource = new ModuleResource
+            {
+                name = _solarPanel.resourceName,
+                id = _solarPanel.resourceName.GetHashCode()
+            };
+            _solarPanel.resHandler.inputResources.Add(_mockInputResource);
 
             // only manager power buffer when microwave receiver is not available
-            if (outputType !=  ResourceType.other && _microwavePowerReceiver == null)
+            if (_outputType !=  ResourceType.other && _microwavePowerReceiver == null)
             {
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
-                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, (double)(decimal)(outputType == ResourceType.electricCharge ? _solarPanel.chargeRate * 0.001f : _solarPanel.chargeRate));
-                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)(decimal)(outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * 1000));
+                _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, (double)(decimal)(_outputType == ResourceType.electricCharge ? _solarPanel.chargeRate * 0.001f : _solarPanel.chargeRate));
+                _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)(decimal)(_outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * 1000));
                 _resourceBuffers.Init(this.part);
             }
 
-            stars = KopernicusHelper.Stars;
+            _stars = KopernicusHelper.Stars;
         }
 
         public override void OnFixedUpdate()
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
-            active = true;
+            _active = true;
             base.OnFixedUpdate();
         }
 
@@ -118,7 +120,7 @@ namespace FNPlugin
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
 
-            if (!active)
+            if (!_active)
                 base.OnFixedUpdate();
         }
 
@@ -137,7 +139,7 @@ namespace FNPlugin
         {
             if (_solarPanel == null) return;
 
-            if (outputType == ResourceType.other) return;
+            if (_outputType == ResourceType.other) return;
 
             flowRate = _solarPanel.flowRate;
             chargeRate = _solarPanel.chargeRate;
@@ -149,69 +151,68 @@ namespace FNPlugin
                 : (double)(decimal)_solarPanel.temperatureEfficCurve.Evaluate((Single)part.skinTemperature) * (double)(decimal)_solarPanel.timeEfficCurve.Evaluate((Single)((Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05)) * (double)(decimal)_solarPanel.efficiencyMult;
             
             double maxSupply = 0;
-            double solar_rate = 0;
+            double solarRate = 0;
 
             sunAOA = 0;
-            CalculateSolarFlowRate(calculatedEfficency / scale, ref maxSupply, ref solar_rate);
+            CalculateSolarFlowRate(calculatedEfficency / scale, ref maxSupply, ref solarRate);
 
             if (_resourceBuffers != null)
                 _resourceBuffers.UpdateBuffers();
 
             // extract power otherwise we end up with double power
-            mockInputResource.rate = flowRate;
+            _mockInputResource.rate = flowRate;
 
             // provide power to supply manager
-            solar_supply = outputType == ResourceType.megajoule ? solar_rate : solar_rate * 0.001;
-            solarMaxSupply = outputType == ResourceType.megajoule ? maxSupply : maxSupply * 0.001;
+            solar_supply = _outputType == ResourceType.megajoule ? solarRate : solarRate * 0.001;
+            solarMaxSupply = _outputType == ResourceType.megajoule ? maxSupply : maxSupply * 0.001;
 
             megaJouleSolarPowerSupply = supplyFNResourcePerSecondWithMax(solar_supply, solarMaxSupply, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
-        private void CalculateSolarFlowRate(double efficency, ref double maxSupply, ref double solar_rate)
+        private void CalculateSolarFlowRate(double efficency, ref double maxSupply, ref double solarRate)
         {
             if (_solarPanel.deployState != ModuleDeployablePart.DeployState.EXTENDED)
                 return;
 
-            foreach (var star in stars)
+            foreach (var star in _stars)
             {
-                double _distMult = GetSolarDistanceMultiplier(vessel, star.star, astronomicalUnit) * star.relativeLuminocity;
-                double _maxSupply = chargeRate * _distMult * efficency;
+                double distMult = GetSolarDistanceMultiplier(vessel, star.star, astronomicalUnit) * star.relativeLuminocity;
+                double _maxSupply = chargeRate * distMult * efficency;
                 maxSupply += _maxSupply;
 
                 Vector3d trackDirection = (star.star.position - _solarPanel.panelRotationTransform.position).normalized;
 
-                var trackingLOS = GetLineOfSight(_solarPanel, star, trackDirection);
+                bool trackingLos = GetLineOfSight(_solarPanel, star, trackDirection);
 
-                if (trackingLOS)
+                if (!trackingLos) continue;
+
+                double sunAoa;
+
+                if (_solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT)
+                    sunAoa = (double)(decimal)Mathf.Clamp(Vector3.Dot(_solarPanel.trackingDotTransform.forward, trackDirection), 0f, 1f);
+                else if (_solarPanel.panelType != ModuleDeployableSolarPanel.PanelType.CYLINDRICAL)
+                    sunAoa = 0.25;
+                else
                 {
-                    double _sunAOA;
-
-                    if (_solarPanel.panelType == ModuleDeployableSolarPanel.PanelType.FLAT)
-                        _sunAOA = (double)(decimal)Mathf.Clamp(Vector3.Dot(_solarPanel.trackingDotTransform.forward, trackDirection), 0f, 1f);
-                    else if (_solarPanel.panelType != ModuleDeployableSolarPanel.PanelType.CYLINDRICAL)
-                        _sunAOA = 0.25;
+                    Vector3 direction;
+                    if (_solarPanel.alignType == ModuleDeployablePart.PanelAlignType.PIVOT)
+                        direction = _solarPanel.trackingDotTransform.forward;
+                    else if (_solarPanel.alignType != ModuleDeployablePart.PanelAlignType.X)
+                        direction = _solarPanel.alignType != ModuleDeployablePart.PanelAlignType.Y ? part.partTransform.forward : part.partTransform.up;
                     else
-                    {
-                        Vector3 direction;
-                        if (_solarPanel.alignType == ModuleDeployableSolarPanel.PanelAlignType.PIVOT)
-                            direction = _solarPanel.trackingDotTransform.forward;
-                        else if (_solarPanel.alignType != ModuleDeployableSolarPanel.PanelAlignType.X)
-                            direction = _solarPanel.alignType != ModuleDeployablePart.PanelAlignType.Y ? part.partTransform.forward : part.partTransform.up;
-                        else
-                            direction = part.partTransform.right;
+                        direction = part.partTransform.right;
 
-                        _sunAOA = (1d - (double)(decimal)Math.Abs(Vector3.Dot(direction, trackDirection))) * 0.318309873;
-                    }
-
-                    sunAOA += _sunAOA;
-                    solar_rate += _maxSupply * _sunAOA;
+                    sunAoa = (1d - (double)(decimal)Math.Abs(Vector3.Dot(direction, trackDirection))) * 0.318309873;
                 }
+
+                sunAOA += sunAoa;
+                solarRate += _maxSupply * sunAoa;
             }
         }
 
         private static bool GetLineOfSight(ModuleDeployableSolarPanel solarPanel, StarLight star, Vector3d trackDir)
         {
-            CelestialBody old = solarPanel.trackingBody;
+            var old = solarPanel.trackingBody;
             solarPanel.trackingTransformLocal = star.star.transform;
             solarPanel.trackingTransformScaled = star.star.scaledBody.transform;
             string blockingObject = "";
