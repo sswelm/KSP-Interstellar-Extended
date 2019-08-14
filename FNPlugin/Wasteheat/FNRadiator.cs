@@ -1016,9 +1016,13 @@ namespace FNPlugin.Wasteheat
                 radTempQueue.Enqueue(currentRadTemp);
                 if (radTempQueue.Count > 20)
                     radTempQueue.Dequeue();
-                externalTempQueue.Enqueue(Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature));
-                if (externalTempQueue.Count > 20)
-                    externalTempQueue.Dequeue();
+
+                if (vessel.atmDensity > 0)
+                {
+                    externalTempQueue.Enqueue(Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature));
+                    if (externalTempQueue.Count > 20)
+                        externalTempQueue.Dequeue();
+                }
             }
         }
 

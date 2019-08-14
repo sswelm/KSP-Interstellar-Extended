@@ -308,7 +308,8 @@ namespace FNPlugin
                 // only persist thrust if non zero throttle or significant thrust
                 if (_throttlePersistent > 0 || _thrustPersistent > 0.0000005)
                 {
-                    if (! vessel.PersistHeading())
+                    var ratioHeadingVersusRequest = vessel.PersistHeading();
+                    if (ratioHeadingVersusRequest != 0)
                         return;
 
                     // determine maximum deltaV durring this frame
