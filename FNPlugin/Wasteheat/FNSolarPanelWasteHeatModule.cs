@@ -101,7 +101,7 @@ namespace FNPlugin
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_MEGAJOULES, (double)(decimal)(_outputType == ResourceType.electricCharge ? _solarPanel.chargeRate * 0.001f : _solarPanel.chargeRate));
                 _resourceBuffers.UpdateVariable(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, (double)(decimal)(_outputType == ResourceType.electricCharge ? _solarPanel.chargeRate : _solarPanel.chargeRate * 1000));
-                _resourceBuffers.Init(this.part);
+                _resourceBuffers.Init(part);
             }
 
             _stars = KopernicusHelper.Stars;
@@ -210,23 +210,23 @@ namespace FNPlugin
             }
         }
 
-        private static bool GetLineOfSight(ModuleDeployableSolarPanel solarPanel, StarLight star, Vector3d trackDir)
+        private static bool GetLineOfSight(ModuleDeployablePart solarPanel, StarLight star, Vector3d trackDir)
         {
             var old = solarPanel.trackingBody;
             solarPanel.trackingTransformLocal = star.star.transform;
             solarPanel.trackingTransformScaled = star.star.scaledBody.transform;
             string blockingObject = "";
-            var trackingLOS = solarPanel.CalculateTrackingLOS(trackDir, ref blockingObject);
+            var trackingLos = solarPanel.CalculateTrackingLOS(trackDir, ref blockingObject);
             solarPanel.trackingTransformLocal = old.transform;
             solarPanel.trackingTransformScaled = old.scaledBody.transform;
-            return trackingLOS;
+            return trackingLos;
         }
 
         private static double GetSolarDistanceMultiplier(Vessel vessel, CelestialBody star, double astronomicalUnit)
         {
             var distanceToSurfaceStar = (vessel.CoMD - star.position).magnitude - star.Radius;
-            var distanceInAU = distanceToSurfaceStar / astronomicalUnit;
-            return 1d / (distanceInAU * distanceInAU);
+            var distanceInAu = distanceToSurfaceStar / astronomicalUnit;
+            return 1d / (distanceInAu * distanceInAu);
         }      
     }
 }
