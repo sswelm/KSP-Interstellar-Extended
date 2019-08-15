@@ -45,8 +45,10 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)]
         public string fuel_mode_variant = string.Empty;
 
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiName = "Reactor IsEnabled")]
         public bool IsEnabled;
+        [KSPField(isPersistant = true, guiName = "Reactor IsStated")]
+        public bool IsStarted;
         [KSPField(isPersistant = true)]
         public bool isDeployed = false;
         [KSPField(isPersistant = true)]
@@ -141,6 +143,8 @@ namespace FNPlugin.Reactors
 
         [KSPField(guiActive = false, guiName = "Lithium Modifier", guiFormat = "F6")]
         public double lithium_modifier = 1;
+        [KSPField]
+        public double maximumPower;
        
         [KSPField]
         public float minimumPowerPercentage = 10;
@@ -1158,7 +1162,7 @@ namespace FNPlugin.Reactors
             }
             else
             {
-                if (IsNuclear) return;
+                if (IsStarted && IsNuclear) return;
 
                 stored_fuel_ratio = 1;
                 IsEnabled = true;
@@ -1170,6 +1174,9 @@ namespace FNPlugin.Reactors
         {
             Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated by user");
             this.part.force_activate();
+            
+            Events["ActivateReactor"].guiActive = false;
+            Events["ActivateReactor"].active = false;
 
             if (centrifugeHabitat != null && !centrifugeHabitat.isDeployed)
             {
@@ -1180,6 +1187,7 @@ namespace FNPlugin.Reactors
             }
 
             StartReactor();
+            IsStarted = true;
         }
 
         [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_deactivateReactor", active = true)]
@@ -1372,6 +1380,8 @@ namespace FNPlugin.Reactors
             {
                 if (startDisabled)
                 {
+                    Events["ActivateReactor"].guiActive = true;
+                    Events["ActivateReactor"].active = true;
                     last_active_time = Planetarium.GetUniversalTime() - 4d * PluginHelper.SecondsInDay;
                     IsEnabled = false;
                     startDisabled = false;
@@ -1685,13 +1695,19 @@ namespace FNPlugin.Reactors
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {
+            if (!IsEnabled && !IsStarted)
+            {
+                IsStarted = true;
+                IsEnabled = true;
+            }
+
             base.OnFixedUpdate();
 
             StoreGeneratorRequests();
 
             decay_ongoing = false;
 
-            var maximumPower = MaximumPower;
+            maximumPower = MaximumPower;
 
             if (IsEnabled && maximumPower > 0)
             {
@@ -2808,7 +2824,7 @@ namespace FNPlugin.Reactors
                     }
                 }
 
-                if (!IsNuclear)
+                if (!IsStarted || !IsNuclear)
                 {
                     GUILayout.BeginHorizontal();
 

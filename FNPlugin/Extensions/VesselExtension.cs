@@ -5,12 +5,12 @@ namespace FNPlugin.Extensions
 {
     public static class VesselExtension
     {
-        public static bool PersistHeading(this Vessel vessel, bool forceRotation = false)
+        public static double PersistHeading(this Vessel vessel, bool forceRotation = false)
         {
             var canPersistDirection = vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.ORBITING;
             var sasIsActive = vessel.ActionGroups[KSPActionGroup.SAS];
 
-            if (!canPersistDirection || !sasIsActive) return true;
+            if (!canPersistDirection || !sasIsActive) return 1;
 
             var requestedDirection = Vector3d.zero;
             var universalTime = Planetarium.GetUniversalTime();
@@ -25,7 +25,7 @@ namespace FNPlugin.Extensions
                     requestedDirection = -vessel.obt_velocity.normalized;
                     break;
                 case VesselAutopilot.AutopilotMode.Maneuver:
-                    requestedDirection = vessel.patchedConicSolver.maneuverNodes.Count > 0 ? vessel.patchedConicSolver.maneuverNodes[0].GetBurnVector(vessel.orbit) : vessel.obt_velocity.normalized;
+                    requestedDirection = vessel.patchedConicSolver.maneuverNodes.Count > 0 ? vessel.patchedConicSolver.maneuverNodes[0].GetBurnVector(vessel.orbit).normalized : vessel.obt_velocity.normalized;
                     break;
                 case VesselAutopilot.AutopilotMode.Target:
                     requestedDirection = (vessel.targetObject.GetOrbit().getPositionAtUT(universalTime) - vesselPosition).normalized;
@@ -47,12 +47,15 @@ namespace FNPlugin.Extensions
                     break;
             }
 
-            if (requestedDirection == Vector3d.zero) return true;
+            if (requestedDirection == Vector3d.zero) return 1;
 
-            if (forceRotation || Vector3d.Dot(vessel.transform.up.normalized, requestedDirection) > 0.9)
+            var ratioHeadingVersusRequest = Vector3d.Dot(vessel.transform.up.normalized, requestedDirection);
+
+            if (forceRotation || ratioHeadingVersusRequest > 0.995)
             {
                 vessel.transform.Rotate(Quaternion.FromToRotation(vessel.transform.up.normalized, requestedDirection).eulerAngles, Space.World);
                 vessel.SetRotation(vessel.transform.rotation);
+                return 1;
             }
             else
             {
@@ -61,9 +64,9 @@ namespace FNPlugin.Extensions
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);
-                return false;
+
+                return ratioHeadingVersusRequest;
             }
-            return true;
         }
     }
 }

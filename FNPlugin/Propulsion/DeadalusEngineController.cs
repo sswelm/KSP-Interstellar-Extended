@@ -1031,7 +1031,8 @@ namespace FNPlugin
 
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
-            if (!vessel.PersistHeading())
+            var ratioHeadingVersusRequest = vessel.PersistHeading();
+            if (ratioHeadingVersusRequest != 0)
                 return;
             
             var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
