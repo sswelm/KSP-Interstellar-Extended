@@ -147,8 +147,13 @@ namespace FNPlugin
                             tech.techID = technode.GetValue("id");
                             tech.title = technode.GetValue("title");
 
-                            Debug.Log("[KSPI]: PluginHelper technode id: " + tech.techID + " title: " + tech.title);
-                            rdTechByName.Add(tech.techID, tech);
+                            if (rdTechByName.ContainsKey(tech.techID))
+                                Debug.LogError("[KSPI]: Duplicate error: skipped technode id: " + tech.techID + " title: " + tech.title);
+                            else
+                            {
+                                Debug.Log("[KSPI]: PluginHelper technode id: " + tech.techID + " title: " + tech.title);
+                                rdTechByName.Add(tech.techID, tech);
+                            }
                         }
                     }
                 }
@@ -504,7 +509,7 @@ namespace FNPlugin
             return techName != String.Empty && PluginHelper.UpgradeAvailable(techName);
         }
 
-        public static Dictionary<string, string> TechTitleById;
+        //public static Dictionary<string, string> TechTitleById;
 
         public static string GetTechTitleById(string id)
         {
