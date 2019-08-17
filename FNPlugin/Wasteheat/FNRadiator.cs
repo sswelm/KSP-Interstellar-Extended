@@ -1010,12 +1010,13 @@ namespace FNPlugin.Wasteheat
             }
             set
             {
-                if (!double.IsNaN(value) || !double.IsInfinity(value) || value != 0)
+                if (!value.IsInfinityOrNaNorZero())
+                {
                     currentRadTemp = value;
-
-                radTempQueue.Enqueue(currentRadTemp);
-                if (radTempQueue.Count > 20)
-                    radTempQueue.Dequeue();
+                    radTempQueue.Enqueue(currentRadTemp);
+                    if (radTempQueue.Count > 20)
+                        radTempQueue.Dequeue();
+                }
 
                 if (vessel != null && vessel.atmDensity > 0)
                 {
