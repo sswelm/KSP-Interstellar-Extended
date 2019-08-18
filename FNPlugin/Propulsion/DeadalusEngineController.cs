@@ -69,6 +69,9 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double fusionFuelRatio3 = 0;
 
+        [KSPField]
+        public string effectName = String.Empty;
+
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_temperatureStr")]
         public string temperatureStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_speedOfLight", guiUnits = " m/s")]
@@ -88,13 +91,13 @@ namespace FNPlugin
         public double fusionRatio = 0;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_fuelAmountsRatio")]
         public string fuelAmountsRatio;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_thrustPowerInTeraWatt", guiFormat = "F2", guiUnits = " TW")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_thrustPowerInTeraWatt", guiFormat = "F2", guiUnits = " TW")]
         public double thrustPowerInTeraWatt = 0;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_calculatedFuelflow", guiFormat = "F6", guiUnits = " U")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_calculatedFuelflow", guiFormat = "F6", guiUnits = " U")]
         public double calculatedFuelflow = 0;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateKgPerSecond", guiFormat = "F6", guiUnits = " kg/s")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateKgPerSecond", guiFormat = "F6", guiUnits = " kg/s")]
         public double massFlowRateKgPerSecond;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateTonPerHour", guiFormat = "F6", guiUnits = " t/h")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateTonPerHour", guiFormat = "F6", guiUnits = " t/h")]
         public double massFlowRateTonPerHour;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_storedThrotle")]
         public float storedThrotle = 0;
@@ -285,9 +288,9 @@ namespace FNPlugin
         [KSPField]
         public string upgradeTechReq8 = null;
 
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double demandMass;
-        [KSPField]
+        [KSPField(guiActive = true)]
         public double fuelRatio;
         [KSPField]
         double averageDensity;
@@ -300,9 +303,22 @@ namespace FNPlugin
         double percentageFuelRemaining;
         int vesselChangedSIOCountdown;
 
-        double fusionFuelFactor1;
-        double fusionFuelFactor2;
-        double fusionFuelFactor3;
+        [KSPField]
+        public double fusionFuelFactor1;
+        [KSPField]
+        public double fusionFuelFactor2;
+        [KSPField]
+        public double fusionFuelFactor3;
+
+        [KSPField]
+        public double fusionFuelRequestAmount1 = 0.0;
+        [KSPField]
+        public double fusionFuelRequestAmount2 = 0.0;
+        [KSPField]
+        public double fusionFuelRequestAmount3 = 0.0;
+
+        [KSPField]
+        public double timeDilationMaximumThrust;
 
         FNEmitterController emitterController;
         Stopwatch stopWatch;
@@ -863,7 +879,11 @@ namespace FNPlugin
                     return;
 
                 if (!IsEnabled)
+                {
+                    if (!String.IsNullOrEmpty(effectName))
+                        this.part.Effect(effectName, 0, -1);
                     UpdateTime();
+                }
 
                 temperatureStr = part.temperature.ToString("0.0") + "K / " + part.maxTemp.ToString("0.0") + "K";
             }
@@ -900,7 +920,7 @@ namespace FNPlugin
 
                 UpdateTime();
 
-                throttle = curEngineT.currentThrottle > 0 ? Mathf.Max(curEngineT.currentThrottle, 0.01f) : 0;
+                throttle = !curEngineT.getFlameoutState && curEngineT.currentThrottle > 0 ? Mathf.Max(curEngineT.currentThrottle, 0.01f) : 0;
 
                 if (throttle > 0)
                 {
@@ -933,6 +953,9 @@ namespace FNPlugin
                     UpdateAtmosphericCurve(effectiveIsp);
 
                     fusionRatio = ProcessPowerAndWasteHeat(throttle);
+
+                    if (!String.IsNullOrEmpty(effectName))
+                        this.part.Effect(effectName, (float)(throttle * fusionRatio), -1);
 
                     // Update FuelFlow
                     effectiveMaxThrustInKiloNewton = timeDilation * timeDilation * MaximumThrust * fusionRatio;
@@ -989,9 +1012,17 @@ namespace FNPlugin
                         // Return to realtime
                         TimeWarp.SetRate(0, true);
                     }
+
+                    if (!String.IsNullOrEmpty(effectName))
+                        this.part.Effect(effectName, (float)(throttle * fusionRatio), -1);
                 }
                 else
                 {
+                    vessel.PersistHeading();
+
+                    if (!String.IsNullOrEmpty(effectName))
+                        this.part.Effect(effectName, 0, -1);
+
                     powerUsage = "0.000 GW / " + (EffectivePowerRequirement * 0.001).ToString("0.000") + " GW";
 
                     if (!(percentageFuelRemaining > (100 - fuelLimit) || lightSpeedRatio > speedLimit))
@@ -1032,10 +1063,13 @@ namespace FNPlugin
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
             var ratioHeadingVersusRequest = vessel.PersistHeading();
-            if (ratioHeadingVersusRequest != 0)
+            if (ratioHeadingVersusRequest != 1)
+            {
+                UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);
                 return;
+            }
             
-            var timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
+            timeDilationMaximumThrust = timeDilation * timeDilation * MaximumThrust * (maximizeThrust ? 1 : storedThrotle);
 
             var deltaVv = thrustVector.CalculateDeltaVV(vesselMass, modifiedFixedDeltaTime, timeDilationMaximumThrust * fusionRatio, timeDilation * engineIsp, out demandMass);
 
@@ -1064,9 +1098,9 @@ namespace FNPlugin
             if (CheatOptions.InfinitePropellant || demandMass <= 0)
                 return 1;
 
-            var fusionFuelRequestAmount1 = 0.0;
-            var fusionFuelRequestAmount2 = 0.0;
-            var fusionFuelRequestAmount3 = 0.0;
+            fusionFuelRequestAmount1 = 0.0;
+            fusionFuelRequestAmount2 = 0.0;
+            fusionFuelRequestAmount3 = 0.0;
 
             var totalAmount = demandMass / averageDensity;
 

@@ -309,8 +309,11 @@ namespace FNPlugin
                 if (_throttlePersistent > 0 || _thrustPersistent > 0.0000005)
                 {
                     var ratioHeadingVersusRequest = vessel.PersistHeading();
-                    if (ratioHeadingVersusRequest != 0)
+                    if (ratioHeadingVersusRequest != 1)
+                    {
+                        UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);
                         return;
+                    }
 
                     // determine maximum deltaV durring this frame
                     demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;

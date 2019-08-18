@@ -7,10 +7,23 @@ namespace FNPlugin.Extensions
     {
         public static double PersistHeading(this Vessel vessel, bool forceRotation = false)
         {
+            if (!vessel.packed)
+                return 0;
+
             var canPersistDirection = vessel.situation == Vessel.Situations.SUB_ORBITAL || vessel.situation == Vessel.Situations.ESCAPING || vessel.situation == Vessel.Situations.ORBITING;
             var sasIsActive = vessel.ActionGroups[KSPActionGroup.SAS];
 
-            if (!canPersistDirection || !sasIsActive) return 1;
+            if (!canPersistDirection)
+            {
+                UnityEngine.Debug.Log("[KSPI]: " + "ortibit is not suitable for persistant heading ");
+                return 0;
+            }
+
+            if ( !sasIsActive)
+            {
+                UnityEngine.Debug.Log("[KSPI]: " + "SAS is not active ");
+                return 0;
+            }                 
 
             var requestedDirection = Vector3d.zero;
             var universalTime = Planetarium.GetUniversalTime();
