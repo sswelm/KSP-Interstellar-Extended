@@ -152,8 +152,10 @@ namespace FNPlugin
                 _resourceBuffers.UpdateBuffers();
 
             // extract power otherwise we end up with double power
-            if (_outputType != ResourceType.other)
+            if (flowRate > 0)
                 part.RequestResource(_solarPanel.resourceName, flowRate * fixedDeltaTime);
+            else
+                part.RequestResource(_solarPanel.resourceName, solarRate * fixedDeltaTime);
 
             // provide power to supply manager
             solar_supply = _outputType == ResourceType.megajoule ? solarRate : solarRate * 0.001;
