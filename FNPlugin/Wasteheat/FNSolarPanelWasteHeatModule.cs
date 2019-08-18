@@ -46,7 +46,6 @@ namespace FNPlugin
         [KSPField]
         public double scale = 1;
 
-        ModuleResource _mockInputResource;
         BeamedPowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
         ResourceBuffers _resourceBuffers;
@@ -86,14 +85,7 @@ namespace FNPlugin
             else
                 _outputType = ResourceType.other;
 
-            _mockInputResource = new ModuleResource
-            {
-                name = _solarPanel.resourceName,
-                id = _solarPanel.resourceName.GetHashCode()
-            };
-            _solarPanel.resHandler.inputResources.Add(_mockInputResource);
-
-            // only manager power buffer when microwave receiver is not available
+            // only manage power buffer when microwave receiver is not available
             if (_outputType !=  ResourceType.other && _microwavePowerReceiver == null)
             {
                 _resourceBuffers = new ResourceBuffers();
@@ -160,7 +152,8 @@ namespace FNPlugin
                 _resourceBuffers.UpdateBuffers();
 
             // extract power otherwise we end up with double power
-            _mockInputResource.rate = flowRate;
+            if (_outputType != ResourceType.other)
+                part.RequestResource(_solarPanel.resourceName, flowRate * fixedDeltaTime);
 
             // provide power to supply manager
             solar_supply = _outputType == ResourceType.megajoule ? solarRate : solarRate * 0.001;
