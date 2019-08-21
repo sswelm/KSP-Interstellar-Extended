@@ -323,6 +323,8 @@ namespace FNPlugin.Reactors
         [KSPField]
         public double breedDivider = 100000;
         [KSPField]
+        public double maxThermalNozzleIsp = 2997.13f;
+        [KSPField]
         public double effectivePowerMultiplier;
         [KSPField]
         public double bonusBufferFactor = 0.05;
@@ -2299,9 +2301,9 @@ namespace FNPlugin.Reactors
 
         private string ThermalNozzlePerformance(double temperature, double powerInMJ)
         {
-            var isp = Math.Min(Math.Sqrt(temperature) * 21, PluginHelper.MaxThermalNozzleIsp);
+            var isp = Math.Min(Math.Sqrt(temperature) * 21, maxThermalNozzleIsp);
 
-            var exhaustvelocity = isp * 9.81;
+            var exhaustvelocity = isp * 9.80665;
 
             var thrust = powerInMJ * 2000 / exhaustvelocity / powerOutputMultiplier;
 
