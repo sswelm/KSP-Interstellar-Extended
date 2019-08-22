@@ -172,8 +172,8 @@ namespace FNPlugin
             foreach (var star in _stars)
             {
                 double distMult = GetSolarDistanceMultiplier(vessel, star.star, astronomicalUnit) * star.relativeLuminocity;
-                double _maxSupply = chargeRate * distMult * efficency;
-                maxSupply += _maxSupply;
+                double starMaxSupply = chargeRate * distMult * efficency;
+                maxSupply += starMaxSupply;
 
                 Vector3d trackDirection = (star.star.position - _solarPanel.panelRotationTransform.position).normalized;
 
@@ -201,7 +201,7 @@ namespace FNPlugin
                 }
 
                 sunAOA += sunAoa;
-                solarRate += _maxSupply * sunAoa;
+                solarRate += starMaxSupply * sunAoa;
             }
         }
 
