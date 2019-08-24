@@ -110,10 +110,11 @@ namespace FNPlugin
         protected bool radhazard = false;
         protected double standard_tritium_rate = 0;
         protected string FuelConfigName = "Fusion Type";
-        protected ResourceBuffers resourceBuffers;
-        protected FNEmitterController emitterController;
+        protected double Altitude;
+        protected double lastAltitude;
 
-        protected double Altitude, lastAltitude;
+        protected ResourceBuffers resourceBuffers;
+        protected FNEmitterController emitterController;        
 
         [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
         public void DeactivateRadSafety()
@@ -360,6 +361,11 @@ namespace FNPlugin
                 }
 
                 Fields["selectedFuel"].guiName = fuelSwitchName;
+
+                Fields["enginePowerRequirement"].guiActive = powerRequirement > 0;
+                Fields["laserWasteheat"].guiActive = powerRequirement > 0;
+                Fields["absorbedWasteheat"].guiActive = powerRequirement > 0;
+                Fields["fusionRatio"].guiActive = powerRequirement > 0;
                
                 part.maxTemp = maxTemp;
                 part.thermalMass = 1;

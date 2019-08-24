@@ -141,9 +141,9 @@ namespace FNPlugin.Wasteheat
         public double atmosphericMultiplier;
         [KSPField]
         public double externalTemperature;
-        [KSPField(guiName = "Effective Tempererature", guiActive = true)]
+        [KSPField(guiName = "Effective Tempererature")]
         public float displayTemperature;
-        [KSPField(guiName = "Color Ratio", guiActive = true)]
+        [KSPField(guiName = "Color Ratio")]
         public float colorRatio;
         [KSPField]
         public double deltaTemp;
