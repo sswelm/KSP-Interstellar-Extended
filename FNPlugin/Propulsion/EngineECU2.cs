@@ -30,8 +30,7 @@ namespace FNPlugin
         public bool hideEmpty = false;
         [KSPField(isPersistant = true)]
         public int selectedTank = 0;
-
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true)]
+        [KSPField(isPersistant = true)]
         public string selectedTankName = "";
 
         // None Persistant VAB
@@ -72,13 +71,13 @@ namespace FNPlugin
 
         [KSPField(guiActiveEditor = true)]
         public float maxThrust = 150;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public float maxThrustUpgraded1 = 300;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public float maxThrustUpgraded2 = 500;
-        [KSPField( guiActiveEditor = true)]
+        [KSPField]
         public float maxThrustUpgraded3 = 800;
-        [KSPField( guiActiveEditor = true)]
+        [KSPField]
         public float maxThrustUpgraded4 = 1200;
 
         [KSPField]
@@ -97,8 +96,7 @@ namespace FNPlugin
         public float maxTemp = 2500;
         [KSPField]
         public float upgradeCost = 100;
-
-        [KSPField(guiActive = false)]
+        [KSPField]
         public double rateMultplier = 1;
 
         [KSPField]
@@ -113,7 +111,6 @@ namespace FNPlugin
         protected FuelConfiguration _currentActiveConfiguration;
         protected List<FuelConfiguration> _fuelConfigurationWithEffect;
 
-        private UIPartActionWindow tweakableUI;
         private UI_ChooseOption chooseOptionEditor;
         private UI_ChooseOption chooseOptionFlight;
  
@@ -563,26 +560,29 @@ namespace FNPlugin
 
                 InitializeGUI();
 
-                Debug.Log("[KSPI]: OnStart load fuelConfigurationWithEffect");
                 _fuelConfigurationWithEffect = FuelConfigurations.Where(m => !string.IsNullOrEmpty(m.effectname)).ToList();
-                Debug.Log("[KSPI]: OnStart disable fuelConfigurationWithEffect");
                 _fuelConfigurationWithEffect.ForEach(prop => part.Effect(prop.effectname, 0, -1));
 
                 if (state == StartState.Editor)
                 {
-                    Debug.Log("[KSPI]: StartState.Editor");
                     hideEmpty = false;
                     selectedTank = selectedFuel;
                     selectedTankName = FuelConfigurations[selectedFuel].ConfigName;
                 }
 
-				Debug.Log("[KSPI]: OnStart calls UpdateFuel");
 				UpdateFuel();
-
-                Debug.Log("[KSPI]: OnStart set ShowFuels");
                 Events["ShowFuels"].active = hideEmpty;
-                Debug.Log("[KSPI]: OnStart set HideFuels");
                 Events["HideFuels"].active = !hideEmpty;
+
+                Fields["upgradeTechReq1"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq1);
+                Fields["upgradeTechReq2"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq2);
+                Fields["upgradeTechReq3"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq3);
+                Fields["upgradeTechReq4"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq4);
+
+                Fields["maxThrustUpgraded1"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq1);
+                Fields["maxThrustUpgraded2"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq2);
+                Fields["maxThrustUpgraded3"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq3);
+                Fields["maxThrustUpgraded4"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq4);
             }
             catch (Exception e)
             {

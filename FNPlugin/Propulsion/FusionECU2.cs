@@ -23,21 +23,19 @@ namespace FNPlugin
 
         [KSPField]
         public string fuelSwitchName = "Fusion Type";
-
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public double powerRequirement = 0;
-        [KSPField( guiActiveEditor = true)]
+        [KSPField]
         public double powerRequirementUpgraded1 = 0;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public double powerRequirementUpgraded2 = 0;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public double powerRequirementUpgraded3 = 0;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public double powerRequirementUpgraded4 = 0;
 
         [KSPField]
         public bool selectableIsp = false;
-
         [KSPField]
         public double maxAtmosphereDensity = 0.001;
         [KSPField]
@@ -45,15 +43,15 @@ namespace FNPlugin
         [KSPField]
         public double killDivider = 50;
 
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public double fusionWasteHeat = 625;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public double fusionWasteHeatUpgraded1 = 2500;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public double fusionWasteHeatUpgraded2 = 5000;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public double fusionWasteHeatUpgraded3 = 7500;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public double fusionWasteHeatUpgraded4 = 10000;
 
         // Use for SETI Mode
@@ -366,6 +364,18 @@ namespace FNPlugin
                 Fields["laserWasteheat"].guiActive = powerRequirement > 0;
                 Fields["absorbedWasteheat"].guiActive = powerRequirement > 0;
                 Fields["fusionRatio"].guiActive = powerRequirement > 0;
+
+                Fields["powerRequirement"].guiActiveEditor = powerRequirement > 0;
+                Fields["powerRequirementUpgraded1"].guiActiveEditor = powerRequirementUpgraded1 > 0;
+                Fields["powerRequirementUpgraded2"].guiActiveEditor = powerRequirementUpgraded2 > 0;
+                Fields["powerRequirementUpgraded3"].guiActiveEditor = powerRequirementUpgraded3 > 0;
+                Fields["powerRequirementUpgraded4"].guiActiveEditor = powerRequirementUpgraded4 > 0;
+
+                Fields["fusionWasteHeat"].guiActiveEditor = fusionWasteHeat > 0;
+                Fields["fusionWasteHeatUpgraded1"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq1);
+                Fields["fusionWasteHeatUpgraded2"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq2);
+                Fields["fusionWasteHeatUpgraded3"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq3);
+                Fields["fusionWasteHeatUpgraded4"].guiActiveEditor = !String.IsNullOrEmpty(upgradeTechReq4);
                
                 part.maxTemp = maxTemp;
                 part.thermalMass = 1;
@@ -395,6 +405,9 @@ namespace FNPlugin
                     part.emissiveConstant = maxTempatureRadiators > 0 ? 1 - coldBathTemp / maxTempatureRadiators : 0.01;
 
                 base.OnStart(state);
+
+                Fields["localIsp"].guiActive = selectableIsp;
+                Fields["localIsp"].guiActiveEditor = selectableIsp;
             }
             catch (Exception e)
             {
@@ -455,14 +468,14 @@ namespace FNPlugin
                 radhazard = false;
                 radhazardstr = "None.";
             }
+
+            Fields["localIsp"].guiActive = selectableIsp;
+            Fields["localIsp"].guiActiveEditor = selectableIsp;
+
             if (selectableIsp) 
                 FcUpdate();
             else
-            {
-                Fields["localIsp"].guiActive = selectableIsp;
-                Fields["localIsp"].guiActiveEditor = selectableIsp;
                 SelectedIsp = MinIsp;
-            }
 
             base.OnUpdate();
         }
