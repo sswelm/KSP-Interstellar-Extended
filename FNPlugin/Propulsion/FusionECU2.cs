@@ -21,6 +21,9 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
         public string temperatureStr = "";
 
+        [KSPField]
+        public string fuelSwitchName = "Fusion Type";
+
         [KSPField(guiActiveEditor = true)]
         public double powerRequirement = 0;
         [KSPField( guiActiveEditor = true)]
@@ -32,7 +35,7 @@ namespace FNPlugin
         [KSPField(guiActiveEditor = true)]
         public double powerRequirementUpgraded4 = 0;
 
-        [KSPField(isPersistant = false)]
+        [KSPField]
         public bool selectableIsp = false;
 
         [KSPField]
@@ -270,7 +273,7 @@ namespace FNPlugin
 
         private void FcUpdate()
         {
-            if (!vessel.loaded || Altitude == lastAltitude) return;
+            if (!HighLogic.LoadedSceneIsFlight ||  vessel == null || !vessel.loaded || Altitude == lastAltitude) return;
 
             FcSetup();
             lastAltitude = Altitude;
@@ -278,6 +281,9 @@ namespace FNPlugin
 
         private void FcSetup()
         {
+            if (!HighLogic.LoadedSceneIsFlight)
+                return;
+
             try
             {
                 Altitude = vessel.atmDensity;
@@ -321,7 +327,7 @@ namespace FNPlugin
             }
             catch (Exception e)
             {
-                Debug.LogError("[KSPI]: FusionEngine FCUpdate exception: " + e.Message);
+                Debug.LogError("[KSPI]: FusionEngine FcSetup exception: " + e.Message);
             }
         }
 
@@ -333,13 +339,11 @@ namespace FNPlugin
         public override void UpdateFuel(bool isEditor = false)
         {
             base.UpdateFuel(isEditor);
+
             if (isEditor) return;
 
             Debug.Log("[KSPI]: Fusion Gui Updated");
             BaseFloatCurve = CurrentActiveConfiguration.atmosphereCurve;
-            //standard_deuterium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdDeuterium);
-            //standard_tritium_rate = GetRatio(InterstellarResourcesConfiguration.Instance.LqdTritium);
-
             curveMaxISP = GetMaxKey(BaseFloatCurve);
             FcSetup();
             Debug.Log("[KSPI]: Curve Max ISP:" + curveMaxISP);
@@ -355,7 +359,7 @@ namespace FNPlugin
                     SelectedIsp = ((MaxIsp - MinIsp) * Math.Max(0, Math.Min(1, InitialGearRatio))) + MinIsp;
                 }
 
-                Fields["selectedFuel"].guiName = "Fusion Type";
+                Fields["selectedFuel"].guiName = fuelSwitchName;
                
                 part.maxTemp = maxTemp;
                 part.thermalMass = 1;
@@ -445,7 +449,8 @@ namespace FNPlugin
                 radhazard = false;
                 radhazardstr = "None.";
             }
-            if (selectableIsp) FcUpdate();
+            if (selectableIsp) 
+                FcUpdate();
             else
             {
                 Fields["localIsp"].guiActive = selectableIsp;
@@ -603,13 +608,10 @@ namespace FNPlugin
         {
             var typeMaskCount = CurrentActiveConfiguration.TypeMasks.Count();
 
-            //updatedRatios = 0;
-
             for (int i = 0; i < CurrentActiveConfiguration.Fuels.Count(); i++)
             {
                 if (i < typeMaskCount && (CurrentActiveConfiguration.TypeMasks[i] & 1) == 1)
                 {
-                    //updatedRatios++;
                     SetRatio(CurrentActiveConfiguration.Fuels[i], (float)(CurrentActiveConfiguration.Ratios[i] * rateMultplier));
                 }
             }

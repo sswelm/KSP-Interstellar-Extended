@@ -141,9 +141,9 @@ namespace FNPlugin.Wasteheat
         public double atmosphericMultiplier;
         [KSPField]
         public double externalTemperature;
-        [KSPField(guiName = "Effective Tempererature")]
+        [KSPField(guiName = "Effective Tempererature", guiActive = true)]
         public float displayTemperature;
-        [KSPField(guiName = "Color Ratio")]
+        [KSPField(guiName = "Color Ratio", guiActive = true)]
         public float colorRatio;
         [KSPField]
         public double deltaTemp;
@@ -1018,12 +1018,14 @@ namespace FNPlugin.Wasteheat
                         radTempQueue.Dequeue();
                 }
 
+                var currentExternalTemp = PhysicsGlobals.SpaceTemperature;
+
                 if (vessel != null && vessel.atmDensity > 0)
-                {
-                    externalTempQueue.Enqueue(Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature));
-                    if (externalTempQueue.Count > 20)
-                        externalTempQueue.Dequeue();
-                }
+                    currentExternalTemp = vessel.externalTemperature * vessel.atmDensity;
+
+                externalTempQueue.Enqueue(Math.Max(PhysicsGlobals.SpaceTemperature, currentExternalTemp));
+                if (externalTempQueue.Count > 20)
+                    externalTempQueue.Dequeue();
             }
         }
 
