@@ -1,0 +1,75 @@
+[f] Mammoth - (huge 295-315, 4xvector) hydro
+[f] Rhino - (huge 205-340) kero, but real J-2 burn hydrolox
+
+[j] Mainsail - (large 285-310) kero
+[2] Skipper - (large 280-320) kero (+?)
+[2] Poodle - (large 90-350) hydro,meth
+[2] Twin-Boar - (large 280-300) kero
+
+[ ] Dart - (aerospike 290-340) meth
+
+[f] Vector - (med 295-315) hydro,meth
+[j] Thud - (med 275-305) storable
+[2] Terrier - (med 85-345) hydro,meth
+[ ] Reliant - (med 265-310) (meth,)kero
+[j] Swivel - (med 250-320) kero
+[f] Puff - (med 120-250) storable (+mono?)
+
+[f] Twitch - (small 275-290) storable
+[2] Spark - (small 265-320) hydro,meth
+[j] Verner - (tiny, ?) - storable
+
+[1] Ant - (tiny 80-315) - storable (+mono?)
+[f] Spider - (tiny 260-290) - storable (+mono?)
+[ ] RCS-1 - (tiny, ?) - mono (+storable?)
+[ ] RCS-4 - (tiny, ?) - mono, storable
+
+1. written
+2. works
+3. tweaked isp/trust
+4. working effects
+f. part already has ModuleEnginesFX
+j. part uses ModuleEngines, but only one mode
+
+From Mveed:
+-> Jet: (not sure) 
+Wheesley: 
+Whiplash: 
+RAPIER: 
+Juno: 
+Panther: 
+Goliath:
+->Rocket: 
+Ant: MonoGolOx.
+Spider: MonoGolOx.
+Twitch: MonoGolOx, Methalox.
+Spark: MonoGolOx, Methalox.
+Thud: MonoGolOx, Methalox.
+Dart: Hydrolox, Kerolox, Methalox.
+Terrier: Hydrolox, MonoGolOx, Methalox.
+Swivel: Kerolox.
+Reliant: Kerolox.
+Vector: Hydrolox, Kerolox, Methalox.
+Poodle: Hydrolox, Methalox.
+Mammoth: Hydrolox, Kerolox.
+Skipper: Kerolox, Hydrolox.
+Mainsail: Hydrolox, Kerolox.
+Rhino: Hydrolox, Kerolox.
+Twin-Boar: Kerolox, MonoGolOx (for storability).
+RAPIER: Hydrolox, Kerolox.
+Puff: KSPIE Hydrazine, HTP, Hydrogen Peroxide, GolOx, whatever else that’s a catalytic monopropellant (is ran through a heated catalyst).
+-> DLC:
+Skiff: Hydrolox.
+Cheetah: MonoGolOx.
+Wolfhound: MonoGolOx.
+Bobcat: MonoGolOx.
+Mastodon: Kerolox.
+Cub: Kerolox, MonoGolOx.
+Kodiak: Kerolox, MonoGolOx. 
+-> Ion: 
+Dawn: Atmospheric, gases.
+-> RCS: 
+Vernor: MonoGolOx, Hydrolox, Methalox, Kerolox. 
+Linear: All catalytic monopropellants.
+RV-105: All catalytic monopropellants.
+MEM: MonoGolOx, all catalytic monopropellants. The MEM would need only one tank module. If MonoGolOx is the fuel used by the engine and RCS.
