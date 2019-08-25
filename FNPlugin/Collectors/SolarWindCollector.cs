@@ -309,9 +309,10 @@ namespace FNPlugin
             interstellarDustMolesPerCubicMeter = CalculateInterstellarMoleConcentration(vessel, interstellarDensityCubeCm, interstellarDensityFactor);
 
             var maxInterstellarDustMolesPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter;
-            dInterstellarIonsConcentrationPerSquareMeter = maxInterstellarDustMolesPerSquareMeter * (effectiveIonisationFactor + effectiveNonIonisationFactor * interstellarIonRatio);
 
-            //beltRadiationFlux = vessel.mainBody.GetBeltAntiparticles(homeworld, vessel.altitude, vessel.orbit.inclination);
+            var localinterstellarIonRatio = Math.Max(interstellarIonRatio, 1 - helioSphereFactor);
+
+            dInterstellarIonsConcentrationPerSquareMeter = maxInterstellarDustMolesPerSquareMeter * (effectiveIonisationFactor * (1 - localinterstellarIonRatio) + effectiveNonIonisationFactor * localinterstellarIonRatio);
 
             if (vessel.mainBody != localStar)
             {
@@ -550,9 +551,11 @@ namespace FNPlugin
 
         private static double CalculateHelioSphereRatio(Vessel vessel, CelestialBody localStar, CelestialBody homeworld)
         {
+            // when in the SOI of Kerbol that has an infinite SIO
+
             var influenceRatio = vessel.mainBody == localStar
                 ? !double.IsInfinity(vessel.mainBody.sphereOfInfluence) && vessel.mainBody.sphereOfInfluence > 0
-                    ? vessel.altitude/vessel.mainBody.sphereOfInfluence
+                    ? vessel.altitude / vessel.mainBody.sphereOfInfluence
                     : vessel.altitude / (homeworld.orbit.semiMinorAxis * 100)
                 : 0;
             return influenceRatio;

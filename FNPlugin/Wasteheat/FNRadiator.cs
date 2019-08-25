@@ -1021,7 +1021,7 @@ namespace FNPlugin.Wasteheat
                 var currentExternalTemp = PhysicsGlobals.SpaceTemperature;
 
                 if (vessel != null && vessel.atmDensity > 0)
-                    currentExternalTemp = vessel.externalTemperature * vessel.atmDensity;
+                    currentExternalTemp = vessel.externalTemperature * Math.Min(1, vessel.atmDensity);
 
                 externalTempQueue.Enqueue(Math.Max(PhysicsGlobals.SpaceTemperature, currentExternalTemp));
                 if (externalTempQueue.Count > 20)
