@@ -22,7 +22,10 @@
 [1] Ant - (tiny 80-315) - storable (+mono?)
 [f] Spider - (tiny 260-290) - storable (+mono?)
 [ ] RCS-1 - (tiny, ?) - mono (+storable?)
-[ ] RCS-4 - (tiny, ?) - mono, storable
+[1] RCS-4 - (tiny, ?) - mono, storable
+
+[ ] All Jet Engines (x, 3000) patch them to Kerosene
+[ ] All Jet Engines (x, 3000) patch them to Methane
 
 1. written
 2. works
