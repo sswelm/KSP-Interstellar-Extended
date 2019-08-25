@@ -310,9 +310,11 @@ namespace FNPlugin
 
             var maxInterstellarDustMolesPerSquareMeter = vessel.obt_speed * interstellarDustMolesPerCubicMeter;
 
-            var localinterstellarIonRatio = Math.Max(interstellarIonRatio, 1 - helioSphereFactor);
+            var currentInterstellarIonRatio = vessel.mainBody == localStar 
+                ? Math.Max(interstellarIonRatio, 1 - helioSphereFactor * helioSphereFactor) 
+                : interstellarIonRatio;
 
-            dInterstellarIonsConcentrationPerSquareMeter = maxInterstellarDustMolesPerSquareMeter * (effectiveIonisationFactor * (1 - localinterstellarIonRatio) + effectiveNonIonisationFactor * localinterstellarIonRatio);
+            dInterstellarIonsConcentrationPerSquareMeter = maxInterstellarDustMolesPerSquareMeter * (effectiveIonisationFactor * (1 - currentInterstellarIonRatio) + effectiveNonIonisationFactor * currentInterstellarIonRatio);
 
             if (vessel.mainBody != localStar)
             {
