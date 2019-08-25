@@ -1,27 +1,27 @@
-[f] Mammoth - (huge 295-315, 4xvector) hydro
-[f] Rhino - (huge 205-340) kero, but real J-2 burn hydrolox
+[1] Mammoth - (huge 295-315, 4xvector) hydro
+[1] Rhino - (huge 205-340) kero, but real J-2 burn hydrolox
 
-[j] Mainsail - (large 285-310) kero
+[1] Mainsail - (large 285-310) kero
 [2] Skipper - (large 280-320) kero (+?)
 [2] Poodle - (large 90-350) hydro,meth
 [2] Twin-Boar - (large 280-300) kero
 
-[ ] Dart - (aerospike 290-340) meth
+[1] Dart - (aerospike 290-340) meth
 
 [f] Vector - (med 295-315) hydro,meth
-[j] Thud - (med 275-305) storable
+[1] Thud - (med 275-305) storable
 [2] Terrier - (med 85-345) hydro,meth
-[ ] Reliant - (med 265-310) (meth,)kero
-[j] Swivel - (med 250-320) kero
-[f] Puff - (med 120-250) storable (+mono?)
+[1] Reliant - (med 265-310) (meth,)kero
+[1] Swivel - (med 250-320) kero
+[1] Puff - (med 120-250) storable (+mono?)
 
-[f] Twitch - (small 275-290) storable
+[1] Twitch - (small 275-290) storable
 [2] Spark - (small 265-320) hydro,meth
-[j] Verner - (tiny, ?) - storable
+[1] Verner - (tiny, ?) - storable
 
 [1] Ant - (tiny 80-315) - storable (+mono?)
-[f] Spider - (tiny 260-290) - storable (+mono?)
-[ ] RCS-1 - (tiny, ?) - mono (+storable?)
+[1] Spider - (tiny 260-290) - storable (+mono?)
+[1] RCS-1 - (tiny, ?) - mono (+storable?)
 [1] RCS-4 - (tiny, ?) - mono, storable
 
 [ ] All Jet Engines (x, 3000) patch them to Kerosene
