@@ -13,9 +13,9 @@
 [2] Terrier - (med 85-345) hydro,meth
 [2] Reliant - (med 265-310) (meth,)kero
 [2] Swivel - (med 250-320) kero
-[1] Puff - (med 120-250) storable (+mono?)
+[2] Puff - (med 120-250) storable (+mono?)
 
-[2] Twitch - (small 275-290) storable
+[1] Twitch - (small 275-290) storable
 [2] Spark - (small 265-320) hydro,meth
 [2] Verner - (tiny, ?) - storable
 
@@ -33,6 +33,8 @@
 4. working effects
 f. part already has ModuleEnginesFX
 j. part uses ModuleEngines, but only one mode
+
+
 
 From Mveed:
 -> Jet: (not sure) 
