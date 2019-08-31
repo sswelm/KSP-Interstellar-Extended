@@ -1018,7 +1018,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    vessel.PersistHeading();
+                    part.PersistHeading();
 
                     if (!String.IsNullOrEmpty(effectName))
                         this.part.Effect(effectName, 0, -1);
@@ -1062,7 +1062,7 @@ namespace FNPlugin
 
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
-            var ratioHeadingVersusRequest = vessel.PersistHeading();
+            var ratioHeadingVersusRequest = part.PersistHeading();
             if (ratioHeadingVersusRequest != 1)
             {
                 UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);
