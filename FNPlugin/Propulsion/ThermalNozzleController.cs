@@ -1448,7 +1448,7 @@ namespace FNPlugin
                 if (AttachedReactor != null)
                 {
                     finalEngineAccelerationSpeed = (float)Math.Min(engineAccelerationBaseSpeed * AttachedReactor.ReactorSpeedMult, 33);
-                    finalEngineDecelerationSpeed = (float)Math.Min(engineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * wasteheatModifier, 33);
+                    finalEngineDecelerationSpeed = (float)Math.Min(engineDecelerationBaseSpeed * AttachedReactor.ReactorSpeedMult * Math.Max(0.25, wasteheatModifier), 33);
                     useEngineResponseTime = AttachedReactor.ReactorSpeedMult > 0;
                 }
 
