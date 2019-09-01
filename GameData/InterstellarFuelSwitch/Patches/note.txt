@@ -1,0 +1,8 @@
+[x] framework
+[x] liquid resources
+[ ] stock tank defs
+[ ] cargo resources
+[ ] radioactive resources
+[ ] gas resources
+[ ] cryostats
+[ ] methalox ratio
