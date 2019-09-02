@@ -5,9 +5,9 @@ namespace FNPlugin.Extensions
 {
     public static class VesselExtension
     {
-        public static double PersistHeading(this ModuleEngines engine, bool forceRotation = false)
+        public static double PersistHeading(this ModuleEngines engine, bool forceRotation = false, bool canDropOutOfTimeWarp = true)
         {
-            if (engine.getIgnitionState == false || engine.independentThrottlePercentage == 0)
+            if (engine.getIgnitionState == false)
                 return 0;
 
             var vessel = engine.vessel;
@@ -74,6 +74,10 @@ namespace FNPlugin.Extensions
                 vessel.transform.Rotate(Quaternion.FromToRotation(engine.transform.up.normalized, requestedDirection).eulerAngles, Space.World);
                 vessel.SetRotation(vessel.transform.rotation);
                 return 1;
+            }
+            else if (engine.currentThrottle == 0 || canDropOutOfTimeWarp == false)
+            {
+                return ratioHeadingVersusRequest;
             }
             else
             {

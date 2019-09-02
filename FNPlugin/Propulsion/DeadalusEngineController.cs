@@ -296,6 +296,8 @@ namespace FNPlugin
         double averageDensity;
         [KSPField]
         float throttle;
+        [KSPField]
+        double ratioHeadingVersusRequest;
 
         bool radhazard;
         bool warpToReal;
@@ -943,7 +945,7 @@ namespace FNPlugin
 
                 if (throttle > 0 && !this.vessel.packed)
                 {
-                    TimeWarp.GThreshold = 2;
+                    TimeWarp.GThreshold = 9;
 
                     var thrustPercentage = (double)(decimal)curEngineT.thrustPercentage;
                     var thrustRatio = Math.Max(thrustPercentage * 0.01, 0.01);
@@ -966,8 +968,10 @@ namespace FNPlugin
                     {
                         curEngineT.status = "Insufficient Electricity";
                     }
+
+                    ratioHeadingVersusRequest = 0;
                 }
-                else if (this.vessel.packed && curEngineT.independentThrottlePercentage > 0 && curEngineT.getIgnitionState && curEngineT.independentThrottlePercentage > 0 && curEngineT.enabled && FlightGlobals.ActiveVessel == vessel && throttle > 0 && percentageFuelRemaining > (100 - fuelLimit) && lightSpeedRatio < speedLimit)
+                else if (this.vessel.packed && curEngineT.currentThrottle > 0 && curEngineT.getIgnitionState && curEngineT.enabled && FlightGlobals.ActiveVessel == vessel && throttle > 0 && percentageFuelRemaining > (100 - fuelLimit) && lightSpeedRatio < speedLimit)
                 {
                     warpToReal = true; // Set to true for transition to realtime
 
@@ -1018,7 +1022,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    curEngineT.PersistHeading(vesselChangedSIOCountdown > 0);
+                    ratioHeadingVersusRequest = curEngineT.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
 
                     if (!String.IsNullOrEmpty(effectName))
                         this.part.Effect(effectName, 0, -1);
@@ -1062,7 +1066,7 @@ namespace FNPlugin
 
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
-            var ratioHeadingVersusRequest = curEngineT.PersistHeading();
+            ratioHeadingVersusRequest = curEngineT.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
             if (ratioHeadingVersusRequest != 1)
             {
                 UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);

@@ -1630,7 +1630,7 @@ namespace FNPlugin
                 requestedThrottle = myAttachedEngine.requestedThrottle;
 
                 previousThrottle = currentThrottle;
-                currentThrottle = (double)(decimal)myAttachedEngine.currentThrottle;
+                currentThrottle = myAttachedEngine.currentThrottle;
 
                 if (minThrottle > 0 && requestedThrottle > 0 && AttachedReactor.ReactorSpeedMult > 0)
                 {

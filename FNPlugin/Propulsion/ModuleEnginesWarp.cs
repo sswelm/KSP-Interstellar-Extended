@@ -42,6 +42,8 @@ namespace FNPlugin
         private double massPropellantRatio;
         [KSPField]
         private double ratioSumWithoutMass;
+        [KSPField]
+        private double ratioHeadingVersusRequest;
 
         [KSPField(guiActive = true, guiName = "#autoLOC_6001377", guiUnits = "#autoLOC_7001408", guiFormat = "F6")]
         public double thrust_d;
@@ -258,10 +260,10 @@ namespace FNPlugin
         // Physics update
         public override void OnFixedUpdate()
         {
-            if (FlightGlobals.fetch == null || !isEnabled) return;
-
             if (vesselChangedSIOCountdown > 0)
                 vesselChangedSIOCountdown--;
+
+            if (FlightGlobals.fetch == null || !isEnabled) return;
 
             UpdateFuelFactors();
 
@@ -278,7 +280,7 @@ namespace FNPlugin
                 // allow throtle to be used up to Geeforce treshold
                 TimeWarp.GThreshold = GThreshold;
 
-                requestedFlow = (double)(decimal)this.requestedMassFlow;
+                requestedFlow = this.requestedMassFlow;
 
                 demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
 
@@ -286,29 +288,31 @@ namespace FNPlugin
                 // Update values to use during timewarp
                 if (!_warpToReal)
                 {
-                    _ispPersistent = (double)(decimal)realIsp;
+                    _ispPersistent = realIsp;
 
-                    _throttlePersistent = (double)(decimal)vessel.ctrlState.mainThrottle;
+                    _throttlePersistent = vessel.ctrlState.mainThrottle;
 
                     if (_throttlePersistent == 0 && finalThrust < 0.0000005)
                         _thrustPersistent = 0;
                     else
                         _thrustPersistent = finalThrust;
                 }
+
+                ratioHeadingVersusRequest = 0;
             }
             else
             {
                 // Timewarp mode: perturb orbit using thrust
                 _warpToReal = true; // Set to true for transition to realtime
 
-                requestedFlow = (double)(decimal)this.requestedMassFlow;
+                requestedFlow = this.requestedMassFlow;
 
-                _thrustPersistent = requestedFlow * GameConstants.STANDARD_GRAVITY * (double)(decimal)realIsp;
+                _thrustPersistent = requestedFlow * GameConstants.STANDARD_GRAVITY * realIsp;
 
                 // only persist thrust if active and non zero throttle or significant thrust
-                if (getIgnitionState && _throttlePersistent > 0 || _thrustPersistent > 0.0000005)
+                if (getIgnitionState && (currentThrottle > 0 || _thrustPersistent > 0.0000005))
                 {
-                    var ratioHeadingVersusRequest = this.PersistHeading();
+                    ratioHeadingVersusRequest = this.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
                     if (ratioHeadingVersusRequest != 1)
                     {
                         UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);
@@ -318,7 +322,7 @@ namespace FNPlugin
                     // determine maximum deltaV durring this frame
                     demandMass = requestedFlow * (double)(decimal)TimeWarp.fixedDeltaTime;
                     var remainingMass = this.vessel.totalMass - demandMass;
-                    var deltaV = (double)(decimal)realIsp * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass);
+                    var deltaV = realIsp * GameConstants.STANDARD_GRAVITY * Math.Log(this.vessel.totalMass / remainingMass);
 
                     double persistentThrustDot = Vector3d.Dot(this.part.transform.up, vessel.obt_velocity);
                     if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaV * 2))
@@ -359,7 +363,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    this.PersistHeading(vesselChangedSIOCountdown > 0);
+                    ratioHeadingVersusRequest = this.PersistHeading(vesselChangedSIOCountdown > 0);
 
                     _thrustPersistent = 0;
                     requestedFlow = 0;

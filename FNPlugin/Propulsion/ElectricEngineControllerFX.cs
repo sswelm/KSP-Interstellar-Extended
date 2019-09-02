@@ -210,6 +210,8 @@ namespace FNPlugin
         public double maxPower = 1000;
         [KSPField]
         public double effectiveResourceThrotling;
+        [KSPField]
+        public double ratioHeadingVersusRequest;
 
         // privates
         const double OneThird = 1d / 3d;
@@ -798,7 +800,7 @@ namespace FNPlugin
                 ? simulatedThrustInSpace
                 : Math.Max(simulatedThrustInSpace - (exitArea * vessel.staticPressurekPa), 0);
 
-            var throttle = _attachedEngine.getIgnitionState && _attachedEngine.independentThrottlePercentage > 0 && _attachedEngine.currentThrottle > 0 ? Math.Max(_attachedEngine.currentThrottle, 0.01) : 0;
+            var throttle = _attachedEngine.getIgnitionState && _attachedEngine.currentThrottle > 0 ? Math.Max(_attachedEngine.currentThrottle, 0.01) : 0;
 
             if (throttle > 0)
             {
@@ -834,6 +836,8 @@ namespace FNPlugin
                     _ispPersistent = _attachedEngine.realIsp;
 
                     thrust_d = _attachedEngine.requestedMassFlow * GameConstants.STANDARD_GRAVITY * _ispPersistent;
+
+                    ratioHeadingVersusRequest = 0;
                 }
                 else if (this.vessel.packed && _attachedEngine.enabled && FlightGlobals.ActiveVessel == vessel && _initializationCountdown == 0)
                 {
@@ -841,7 +845,7 @@ namespace FNPlugin
 
                     thrust_d = calculated_thrust;
 
-                    var ratioHeadingVersusRequest = _attachedEngine.PersistHeading(_vesselChangedSIOCountdown > 0);
+                    ratioHeadingVersusRequest = _attachedEngine.PersistHeading(_vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
 
                     if (ratioHeadingVersusRequest == 1)
                         PersistantThrust((double)(decimal)TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), this.part.transform.up, this.vessel.totalMass, thrust_d, _ispPersistent);
