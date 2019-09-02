@@ -798,7 +798,7 @@ namespace FNPlugin
                 ? simulatedThrustInSpace
                 : Math.Max(simulatedThrustInSpace - (exitArea * vessel.staticPressurekPa), 0);
 
-            var throttle = _attachedEngine.currentThrottle > 0 ? Math.Max((double)(decimal)_attachedEngine.currentThrottle, 0.01) : 0;
+            var throttle = _attachedEngine.getIgnitionState && _attachedEngine.independentThrottlePercentage > 0 && _attachedEngine.currentThrottle > 0 ? Math.Max(_attachedEngine.currentThrottle, 0.01) : 0;
 
             if (throttle > 0)
             {
@@ -831,9 +831,9 @@ namespace FNPlugin
                     TimeWarp.GThreshold = GThreshold;
 
                     _isFullyStarted = true;
-                    _ispPersistent = (double)(decimal)_attachedEngine.realIsp;
+                    _ispPersistent = _attachedEngine.realIsp;
 
-                    thrust_d = (double)(decimal)_attachedEngine.requestedMassFlow * GameConstants.STANDARD_GRAVITY * _ispPersistent;
+                    thrust_d = _attachedEngine.requestedMassFlow * GameConstants.STANDARD_GRAVITY * _ispPersistent;
                 }
                 else if (this.vessel.packed && _attachedEngine.enabled && FlightGlobals.ActiveVessel == vessel && _initializationCountdown == 0)
                 {
@@ -841,7 +841,7 @@ namespace FNPlugin
 
                     thrust_d = calculated_thrust;
 
-                    var ratioHeadingVersusRequest = part.PersistHeading(_vesselChangedSIOCountdown > 0);
+                    var ratioHeadingVersusRequest = _attachedEngine.PersistHeading(_vesselChangedSIOCountdown > 0);
 
                     if (ratioHeadingVersusRequest == 1)
                         PersistantThrust((double)(decimal)TimeWarp.fixedDeltaTime, Planetarium.GetUniversalTime(), this.part.transform.up, this.vessel.totalMass, thrust_d, _ispPersistent);
@@ -854,8 +854,8 @@ namespace FNPlugin
 
             if (_attachedEngine is ModuleEnginesFX && particleEffectMult > 0)
             {
-                var engineFuelFlow = (double)(decimal)_attachedEngine.maxFuelFlow * (double)(decimal)_attachedEngine.currentThrottle;
-                var max_fuel_flow_rate = (double)(decimal)_attachedEngine.maxThrust / (double)(decimal)_attachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
+                var engineFuelFlow = _attachedEngine.maxFuelFlow * _attachedEngine.currentThrottle;
+                var max_fuel_flow_rate = _attachedEngine.maxThrust / _attachedEngine.realIsp / GameConstants.STANDARD_GRAVITY;
 
                 effectPower = Math.Min(1, particleEffectMult * (engineFuelFlow / max_fuel_flow_rate));
 

@@ -967,7 +967,7 @@ namespace FNPlugin
                         curEngineT.status = "Insufficient Electricity";
                     }
                 }
-                else if (this.vessel.packed && curEngineT.enabled && FlightGlobals.ActiveVessel == vessel && throttle > 0 && percentageFuelRemaining > (100 - fuelLimit) && lightSpeedRatio < speedLimit)
+                else if (this.vessel.packed && curEngineT.independentThrottlePercentage > 0 && curEngineT.getIgnitionState && curEngineT.independentThrottlePercentage > 0 && curEngineT.enabled && FlightGlobals.ActiveVessel == vessel && throttle > 0 && percentageFuelRemaining > (100 - fuelLimit) && lightSpeedRatio < speedLimit)
                 {
                     warpToReal = true; // Set to true for transition to realtime
 
@@ -1018,7 +1018,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    part.PersistHeading();
+                    curEngineT.PersistHeading(vesselChangedSIOCountdown > 0);
 
                     if (!String.IsNullOrEmpty(effectName))
                         this.part.Effect(effectName, 0, -1);
@@ -1062,7 +1062,7 @@ namespace FNPlugin
 
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
-            var ratioHeadingVersusRequest = part.PersistHeading();
+            var ratioHeadingVersusRequest = curEngineT.PersistHeading();
             if (ratioHeadingVersusRequest != 1)
             {
                 UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);

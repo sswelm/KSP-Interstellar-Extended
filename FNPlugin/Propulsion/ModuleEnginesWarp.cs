@@ -305,10 +305,10 @@ namespace FNPlugin
 
                 _thrustPersistent = requestedFlow * GameConstants.STANDARD_GRAVITY * (double)(decimal)realIsp;
 
-                // only persist thrust if non zero throttle or significant thrust
-                if (_throttlePersistent > 0 || _thrustPersistent > 0.0000005)
+                // only persist thrust if active and non zero throttle or significant thrust
+                if (getIgnitionState && _throttlePersistent > 0 || _thrustPersistent > 0.0000005)
                 {
-                    var ratioHeadingVersusRequest = part.PersistHeading();
+                    var ratioHeadingVersusRequest = this.PersistHeading();
                     if (ratioHeadingVersusRequest != 1)
                     {
                         UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);
@@ -359,7 +359,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    part.PersistHeading();
+                    this.PersistHeading(vesselChangedSIOCountdown > 0);
 
                     _thrustPersistent = 0;
                     requestedFlow = 0;

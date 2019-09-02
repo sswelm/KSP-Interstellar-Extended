@@ -5,9 +5,12 @@ namespace FNPlugin.Extensions
 {
     public static class VesselExtension
     {
-        public static double PersistHeading(this Part part, bool forceRotation = false)
+        public static double PersistHeading(this ModuleEngines engine, bool forceRotation = false)
         {
-            var vessel = part.vessel;
+            if (engine.getIgnitionState == false || engine.independentThrottlePercentage == 0)
+                return 0;
+
+            var vessel = engine.vessel;
 
             if (!vessel.packed)
                 return 0;
@@ -64,11 +67,11 @@ namespace FNPlugin.Extensions
 
             if (requestedDirection == Vector3d.zero) return 1;
 
-            var ratioHeadingVersusRequest = Vector3d.Dot(part.transform.up.normalized, requestedDirection);
+            var ratioHeadingVersusRequest = Vector3d.Dot(engine.transform.up.normalized, requestedDirection);
 
             if (forceRotation || ratioHeadingVersusRequest > 0.995)
             {
-                vessel.transform.Rotate(Quaternion.FromToRotation(part.transform.up.normalized, requestedDirection).eulerAngles, Space.World);
+                vessel.transform.Rotate(Quaternion.FromToRotation(engine.transform.up.normalized, requestedDirection).eulerAngles, Space.World);
                 vessel.SetRotation(vessel.transform.rotation);
                 return 1;
             }
