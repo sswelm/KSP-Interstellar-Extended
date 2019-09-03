@@ -1,8 +1,10 @@
 [x] framework
 [x] liquid resources
 [ ] stock tank defs
-[ ] cargo resources
-[ ] radioactive resources
+[x] cargo resources
+[x] radioactive resources
 [ ] gas resources
-[ ] cryostats
+[x] cryostats
 [ ] methalox ratio
+[x] cryo 3H decay to He
+[ ] gas 3H decay to He
