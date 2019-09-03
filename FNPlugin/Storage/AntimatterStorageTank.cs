@@ -608,7 +608,9 @@ namespace FNPlugin
                 return;
 
             if (chargestatus > 0 && antimatterResource.amount > minimimAnimatterAmount)
-                chargestatus -= TimeWarp.fixedDeltaTime;
+            {
+                chargestatus -= vessel.packed ? 0.05f : TimeWarp.fixedDeltaTime;
+            }
 
             if (!should_charge && antimatterResource.amount <= minimimAnimatterAmount) return;
 
@@ -639,7 +641,7 @@ namespace FNPlugin
                     chargestatus += moreChargeToAdd;
                 }
 
-                // if still not found any power attempt to find any electricc charge to survive
+                // if still not found any power attempt to find any electric charge to survive
                 if (chargeToAdd < TimeWarp.fixedDeltaTime && effectivePowerNeeded > 0)
                 {
                     var moreChargeToAdd = part.RequestResource(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, mult * 2 * effectivePowerNeeded * TimeWarp.fixedDeltaTime) / effectivePowerNeeded;
@@ -786,6 +788,12 @@ namespace FNPlugin
         public override int getPowerPriority()
         {
             return 0;
+        }
+
+        public override string getResourceManagerDisplayName()
+        {
+            // use identical names so it will be grouped together
+            return part.partInfo.title;
         }
     }
 

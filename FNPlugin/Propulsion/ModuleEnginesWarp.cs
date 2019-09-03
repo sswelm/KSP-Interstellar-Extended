@@ -334,7 +334,7 @@ namespace FNPlugin
                         return;
                     }
                     
-                    fuelRatio = CollectFuel(demandMass);
+                    fuelRatio = CollectFuel(demandMass, ResourceFlowMode.ALL_VESSEL);
 
                     // Calculate thrust and deltaV if demand output > 0
                     if (IsPositiveValidNumber(fuelRatio) && IsPositiveValidNumber(demandMass) && IsPositiveValidNumber(this.vessel.totalMass) && IsPositiveValidNumber(_ispPersistent))

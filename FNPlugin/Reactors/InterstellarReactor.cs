@@ -1656,7 +1656,7 @@ namespace FNPlugin.Reactors
             if (IsEnabled && CurrentFuelMode != null)
             {
                 if (CheatOptions.InfinitePropellant || stored_fuel_ratio > 0.99)
-                    statusStr = "Active (" + powerPcnt.ToString("0.000") + "%)";
+                    statusStr = "Active (" + powerPcnt.ToString("0.0000") + "%)";
                 else if (current_fuel_variant != null)
                 {
                     if (stored_fuel_ratio == 0)
@@ -1668,7 +1668,7 @@ namespace FNPlugin.Reactors
             else
             {
                 if (powerPcnt > 0)
-                    statusStr = "Decay Heating (" + powerPcnt.ToString("0.000") + "%)";
+                    statusStr = "Decay Heating (" + powerPcnt.ToString("0.0000") + "%)";
                 else
                     statusStr = "Offline";
             }
@@ -2775,7 +2775,12 @@ namespace FNPlugin.Reactors
                             var lifetimeYears = Math.Floor(fuelLifetimeD / GameConstants.KERBIN_YEAR_IN_DAYS);
                             if (lifetimeYears < 1e9)
                             {
-                                if (lifetimeYears > 0)
+                                if (lifetimeYears > 100)
+                                {
+                                    var lifetimeYearsDayRemainder = lifetimeYears < 1e+6 ? fuelLifetimeD % GameConstants.KERBIN_YEAR_IN_DAYS : 0;
+                                    PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetimeYears) ? "-" : lifetimeYears + " years "), bold_style, text_style);
+                                }
+                                else if (lifetimeYears > 0)
                                 {
                                     var lifetimeYearsDayRemainder = lifetimeYears < 1e+6 ? fuelLifetimeD % GameConstants.KERBIN_YEAR_IN_DAYS : 0;
                                     PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetimeYears) ? "-" : lifetimeYears + " years " + (lifetimeYearsDayRemainder).ToString("0.00")) + " days", bold_style, text_style);

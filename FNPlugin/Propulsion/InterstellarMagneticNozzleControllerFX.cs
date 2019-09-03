@@ -32,7 +32,7 @@ namespace FNPlugin
         [KSPField]
         public bool maintainsPropellantBuffer = true;
         [KSPField]
-        public double minimumPropellantBuffer = 0.001;
+        public double minimumPropellantBuffer = 0.01;
         [KSPField]
         public string propellantBufferResourceName = "LqdHydrogen";
         [KSPField]
