@@ -64,11 +64,6 @@ namespace FNPlugin
 
         [KSPField]
         public double thrustmultiplier = 1;
-        [KSPField]
-        public bool isLoaded = false;
-        [KSPField]
-        public bool resourceSwitching = true;
-
         [KSPField(guiActiveEditor = true)]
         public float maxThrust = 150;
         [KSPField]
@@ -536,7 +531,6 @@ namespace FNPlugin
 
         private void LoadInitialConfiguration()
         {
-            isLoaded = true;
             // find maxIsp closes to target maxIsp
             _currentActiveConfiguration = FuelConfigurations.FirstOrDefault();
             selectedFuel = 0;
@@ -570,7 +564,7 @@ namespace FNPlugin
                     selectedTankName = FuelConfigurations[selectedFuel].ConfigName;
                 }
 
-				UpdateFuel();
+                UpdateFuel();
                 Events["ShowFuels"].active = hideEmpty;
                 Events["HideFuels"].active = !hideEmpty;
 
@@ -712,12 +706,12 @@ namespace FNPlugin
         public string fuels = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Ratios")]
         public string ratios = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Amount")]
-        public string amount = "";
+		//[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Amount")]
+		//public string amount = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "TypeMasks")]
         public string typeMasks = "";
-        [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Amount")]
-        public string maxAmount = "";
+		//[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Amount")]
+		//public string maxAmount = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust Mult")]
         public float thrustMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Mult")]
@@ -867,20 +861,6 @@ namespace FNPlugin
                 I++;
             }
             return akFloat.ToArray();
-        }
-
-        private string FloatArrayToString(float[] akFloat)
-        {
-            string akstring = "";
-            int I = 1;
-            akstring += akFloat[0];
-            while (I < akFloat.Length)
-            {
-                akstring = akstring + ", " + akFloat[I];
-                I++;
-            }
-            maxAmount = akstring;
-            return akstring;
         }
 
         private bool[] StringToBoolArray(string akString)

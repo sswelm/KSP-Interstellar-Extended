@@ -41,7 +41,7 @@ namespace FNPlugin
         [KSPField]
         public double leathalDistance = 2000;
         [KSPField]
-        public double killDivider = 50;
+        public double killDivider = 0;
 
         [KSPField]
         public double fusionWasteHeat = 625;
@@ -348,7 +348,7 @@ namespace FNPlugin
             Debug.Log("[KSPI]: Curve Max ISP:" + curveMaxISP);
         }
 
-        public override void OnStart(PartModule.StartState state)
+        public override void OnStart(StartState state)
         {
             try
             {
@@ -418,10 +418,8 @@ namespace FNPlugin
         private double GetRatio(string akPropName)
         {
             var firstOrDefault = curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName);
-            if (firstOrDefault != null)
-                return curEngineT.propellants.FirstOrDefault(pr => pr.name == akPropName).ratio;
-            else
-                return 0;
+
+            return firstOrDefault != null ? firstOrDefault.ratio : 0;
         }
 
         private void SetRatio(string akPropName, float akRatio)
@@ -627,7 +625,7 @@ namespace FNPlugin
         {
             var typeMaskCount = CurrentActiveConfiguration.TypeMasks.Count();
 
-            for (int i = 0; i < CurrentActiveConfiguration.Fuels.Count(); i++)
+            for (var i = 0; i < CurrentActiveConfiguration.Fuels.Count(); i++)
             {
                 if (i < typeMaskCount && (CurrentActiveConfiguration.TypeMasks[i] & 1) == 1)
                 {
@@ -640,7 +638,7 @@ namespace FNPlugin
         {
             UpdateKerbalismEmitter();
 
-            if (!radhazard || radiationRatio <= 0.00 || rad_safety_features) return;
+            if (!radhazard || radiationRatio <= 0.00 || rad_safety_features || killDivider <= 0) return;
 
             //System.Random rand = new System.Random(new System.DateTime().Millisecond);
             var vesselsToRemove = new List<Vessel>();
@@ -655,6 +653,7 @@ namespace FNPlugin
 
                 var invSqDist = distance / killDivider;
                 var invSqMult = 1.0 / invSqDist / invSqDist;
+
                 foreach (var crewMember in vess.GetVesselCrew())
                 {
                     if (UnityEngine.Random.value < (1.0 - deathProb * invSqMult)) continue;
