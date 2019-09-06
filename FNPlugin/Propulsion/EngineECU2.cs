@@ -706,12 +706,8 @@ namespace FNPlugin
         public string fuels = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Ratios")]
         public string ratios = "";
-		//[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Amount")]
-		//public string amount = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "TypeMasks")]
         public string typeMasks = "";
-		//[KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Max Amount")]
-		//public string maxAmount = "";
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Thrust Mult")]
         public float thrustMult = 1;
         [KSPField(isPersistant = false, guiActive = false, guiActiveEditor = false, guiName = "Power Mult")]
