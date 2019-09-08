@@ -307,10 +307,6 @@ namespace FNPlugin.Reactors
         [KSPField]
         public bool canDisableTritiumBreeding = true;
         [KSPField]
-        public bool disableAtZeroThrottle = false;
-        [KSPField]
-        public bool controlledByEngineThrottle = false;
-        [KSPField]
         public bool showShutDownInFlight = false;
         [KSPField]
         public bool showForcedMinimumThrottle = false;
@@ -403,6 +399,28 @@ namespace FNPlugin.Reactors
         public double plasmaEnergyEfficiency = 1;
         [KSPField]
         public double maxGammaRayPower = 0;
+
+        [KSPField]
+        public double maxChargedParticleUtilisationRatio = 1;
+        [KSPField]
+        public double maxChargedParticleUtilisationRatioMk1 = 1;
+        [KSPField]
+        public double maxChargedParticleUtilisationRatioMk2 = 1;
+        [KSPField]
+        public double maxChargedParticleUtilisationRatioMk3 = 1;
+        [KSPField]
+        public double maxChargedParticleUtilisationRatioMk4 = 1;
+        [KSPField]
+        public double maxChargedParticleUtilisationRatioMk5 = 1;
+
+        [KSPField]
+        public string maxChargedParticleUtilisationTechMk2 = null;
+        [KSPField]
+        public string maxChargedParticleUtilisationTechMk3 = null;
+        [KSPField]
+        public string maxChargedParticleUtilisationTechMk4 = null;
+        [KSPField]
+        public string maxChargedParticleUtilisationTechMk5 = null;
 
         [KSPField]
         public bool hasBuoyancyEffects = true;
@@ -509,7 +527,7 @@ namespace FNPlugin.Reactors
 
         [KSPField(guiActiveEditor = false, guiName = "Initial Cost")]
         public double initialCost;
-        [KSPField(guiActiveEditor = false, guiName = "Calculated Cost")]
+        [KSPField( guiActiveEditor = false, guiName = "Calculated Cost")]
         public double calculatedCost;
         [KSPField(guiActiveEditor = false, guiName = "Max Resource Cost")]
         public double maxResourceCost;
@@ -525,8 +543,8 @@ namespace FNPlugin.Reactors
         public float currentMass = 0;
         [KSPField]
         public double maximumThermalPowerEffective = 0;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Embrittlement Fraction", guiFormat = "F4")]
-        public double embrittlementModifier;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Embrittlement Fraction", guiFormat = "F4")]
+        public double embrittlementModifier = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Buoyancy Fraction", guiFormat = "F4")]
         public double geeForceModifier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Overheat Fraction", guiFormat = "F4")]
@@ -601,11 +619,35 @@ namespace FNPlugin.Reactors
 
         int windowID = 90175467;
         int deactivate_timer;
+        int chargedParticleUtilisationLevel = 1;
 
         bool hasSpecificFuelModeTechs;
         bool? hasBimodelUpgradeTechReq;
         
         bool isFixedUpdatedCalled;
+
+        private void DetermineChargedParticleUtilisationRatio()
+        {
+            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk2))
+                chargedParticleUtilisationLevel++;
+            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk3))
+                chargedParticleUtilisationLevel++;
+            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk4))
+                chargedParticleUtilisationLevel++;
+            if (PluginHelper.UpgradeAvailable(maxChargedParticleUtilisationTechMk5))
+                chargedParticleUtilisationLevel++;
+
+            if (chargedParticleUtilisationLevel == 1)
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk1;
+            else if (chargedParticleUtilisationLevel == 2)
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk2;
+            else if (chargedParticleUtilisationLevel == 3)
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk3;
+            else if (chargedParticleUtilisationLevel == 4)
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk4;
+            else 
+                maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk5;
+        }
 
         public ReactorFuelType CurrentFuelMode
         {
@@ -645,11 +687,18 @@ namespace FNPlugin.Reactors
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            maxResourceCost = part.Resources.Sum(m => m.maxAmount * m.info.unitCost);
+            initialCost = part.partInfo.cost * Math.Pow(storedPowerMultiplier, massCostExponent);
+            calculatedCost = part.partInfo.cost * Math.Pow(storedPowerMultiplier, costScaleExponent);
 
             var dryCost = calculatedCost - initialCost;
 
-            moduleCost = updateModuleCost ? (float)(maxResourceCost + dryCost) : 0;
+            var neutronEmbrittlementCost = calculatedCost * Math.Pow((neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), 0.5);
+
+            maxResourceCost = part.Resources.Sum(m => m.maxAmount * m.info.unitCost);
+
+            moduleCost = updateModuleCost ? (float)(maxResourceCost + dryCost - neutronEmbrittlementCost) : 0;
+
+            Debug.Log("[KSPI]: GetModuleCost returned maxResourceCost " + maxResourceCost + " + dryCost " + dryCost + " - neutronEmbrittlementCost " + neutronEmbrittlementCost + " = " + moduleCost);
 
             return moduleCost;
         }
@@ -903,8 +952,8 @@ namespace FNPlugin.Reactors
                 Debug.Log("[KSPI]: InterstellarReactor.OnRescale called with " + factor.absolute.linear);
                 storedPowerMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, powerScaleExponent);
 
-                initialCost = part.partInfo.cost * Math.Pow((double)(decimal)factor.absolute.linear, massCostExponent);
-                calculatedCost = part.partInfo.cost * Math.Pow((double)(decimal)factor.absolute.linear, costScaleExponent);
+                initialCost = part.partInfo.cost * Math.Pow(storedPowerMultiplier, massCostExponent);
+                calculatedCost = part.partInfo.cost * Math.Pow(storedPowerMultiplier, costScaleExponent);
 
                 // update power
                 DeterminePowerOutput();
@@ -944,11 +993,11 @@ namespace FNPlugin.Reactors
             }
         }
 
-        public double ChargedParticlePropulsionEfficiency { get { return chargedParticlePropulsionEfficiency; } }
+        public double ChargedParticlePropulsionEfficiency { get { return chargedParticlePropulsionEfficiency * maxChargedParticleUtilisationRatio; } }
+
+        public double PlasmaPropulsionEfficiency { get { return plasmaPropulsionEfficiency * maxChargedParticleUtilisationRatio; } }
 
         public double ThermalPropulsionEfficiency { get { return thermalPropulsionEfficiency; } }
-
-        public double PlasmaPropulsionEfficiency { get { return plasmaPropulsionEfficiency; } }
 
         public double ThermalEnergyEfficiency { get { return thermalEnergyEfficiency; } }
 
@@ -1450,6 +1499,8 @@ namespace FNPlugin.Reactors
 
             DeterminePowerOutput();
 
+            DetermineChargedParticleUtilisationRatio();
+
             DetermineFuelEfficency();
 
             DetermineCoreTemperature();
@@ -1763,9 +1814,9 @@ namespace FNPlugin.Reactors
                 plasmaThrottleRatio = connectedEngines.Any(m => m.RequiresPlasmaHeat) ? Math.Min(1, connectedEngines.Where(m => m.RequiresPlasmaHeat).Sum(e => e.CurrentThrottle)) : 0;
                 chargedThrottleRatio = connectedEngines.Any(m => m.RequiresChargedPower) ? Math.Min(1, connectedEngines.Where(m => m.RequiresChargedPower).Max(e => e.CurrentThrottle)) : 0;
 
-                thermal_propulsion_ratio = thermalPropulsionEfficiency * thermalThrottleRatio;
-                plasma_propulsion_ratio = plasmaPropulsionEfficiency * plasmaThrottleRatio;
-                charged_propulsion_ratio = chargedParticlePropulsionEfficiency * chargedThrottleRatio;
+                thermal_propulsion_ratio = ThermalPropulsionEfficiency * thermalThrottleRatio;
+                plasma_propulsion_ratio = PlasmaPropulsionEfficiency * plasmaThrottleRatio;
+                charged_propulsion_ratio = ChargedParticlePropulsionEfficiency * chargedThrottleRatio;
 
                 var thermal_generator_ratio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
                 var plasma_generator_ratio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
@@ -2712,8 +2763,6 @@ namespace FNPlugin.Reactors
                                 PrintToGUILayout("Lithium Remaining", lithiumLifetimeRemainingDays + " days " + lithiumLifetimeRemainingHours.ToString("0.0") + " hours", bold_style, text_style);
                             else if (lithiumLifetimeYears < 1e3)
                                 PrintToGUILayout("Lithium Remaining", lithiumLifetimeYears + " years " + lithiumLifetimeRemainingDays + " days", bold_style, text_style);
-                            else if (lithiumLifetimeYears < 1e6)
-                                PrintToGUILayout("Lithium Remaining", lithiumLifetimeYears + " years " + lithiumLifetimeRemainingDays + " days", bold_style, text_style);
                             else
                                 PrintToGUILayout("Lithium Remaining", lithiumLifetimeYears + " years " , bold_style, text_style);
                         }
@@ -2775,7 +2824,7 @@ namespace FNPlugin.Reactors
                             var lifetimeYears = Math.Floor(fuelLifetimeD / GameConstants.KERBIN_YEAR_IN_DAYS);
                             if (lifetimeYears < 1e9)
                             {
-                                if (lifetimeYears > 100)
+                                if (lifetimeYears >= 10)
                                 {
                                     var lifetimeYearsDayRemainder = lifetimeYears < 1e+6 ? fuelLifetimeD % GameConstants.KERBIN_YEAR_IN_DAYS : 0;
                                     PrintToGUILayout(fuel.FuelName + " Lifetime", (double.IsNaN(lifetimeYears) ? "-" : lifetimeYears + " years "), bold_style, text_style);
