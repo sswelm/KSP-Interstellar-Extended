@@ -1,0 +1,13 @@
+[x] framework
+[x] liquid resources
+[x] stock tank defs
+[ ] better tank diversity (non-cryo)
+[x] cargo resources
+[x] radioactive resources
+[ ] gas resources
+[x] cryostats
+[ ] NTO cryostat
+[ ] accurate cryo power
+[ ] methalox ratio
+[x] cryo 3H decay to He
+[ ] gas 3H decay to He

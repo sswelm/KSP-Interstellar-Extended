@@ -53,13 +53,13 @@ namespace FNPlugin.Microwave
         [KSPField(guiActiveEditor = false, guiActive = false)]
         public string techRequirement2 = "";
 
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double efficiencyPercentage3 = 45;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double electricEfficiencyPercentage3 = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActive = false, guiFormat = "F0", guiUnits = "%")]
         public double thermalEfficiencyPercentage3 = 0;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
+        [KSPField(isPersistant = false, guiActive = false)]
         public string techRequirement3 = "";
 
         public void Initialize()

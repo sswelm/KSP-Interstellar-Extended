@@ -212,9 +212,8 @@ namespace FNPlugin.Beamedpower
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, receiver.Diameter, receiver.FacingEfficiencyExponent, receiver.SpotsizeNormalizationExponent);
 
                         double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, receiver.Vessel, transmitter.Vessel);
-                        double transmitterEfficency = distanceFacingEfficiency * atmosphereEfficency;
 
-                        possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
+                        possibleWavelengths.Add(new MicrowaveRoute(distanceFacingEfficiency * atmosphereEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
                     }
 
                     var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
@@ -261,9 +260,8 @@ namespace FNPlugin.Beamedpower
                         double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, facingFactor, receiver.Diameter, receiver.FacingEfficiencyExponent, receiver.SpotsizeNormalizationExponent);
 
                         double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, receiver.Vessel, relay.Vessel);
-                        double transmitterEfficency = distanceFacingEfficiency * atmosphereEfficency;
 
-                        possibleWavelengths.Add(new MicrowaveRoute(transmitterEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
+                        possibleWavelengths.Add(new MicrowaveRoute(distanceFacingEfficiency * atmosphereEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
                     }
 
                     var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));

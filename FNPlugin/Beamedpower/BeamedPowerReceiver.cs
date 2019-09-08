@@ -1701,6 +1701,7 @@ namespace FNPlugin
                             {
                                 var supply_ratio = (double)powerGeneratedResult.currentSupply / total_thermal_power_provided;
                                 var final_thermal_wasteheat = (double)powerGeneratedResult.currentSupply + supply_ratio * total_conversion_waste_heat_production;
+
                                 supplyFNResourcePerSecondWithMax(final_thermal_wasteheat, total_beamed_power_max, ResourceManager.FNRESOURCE_WASTEHEAT);
                             }
 
@@ -1828,7 +1829,7 @@ namespace FNPlugin
                 powerInputMegajoulesMax = 0;
                 deactivate_timer = 0;
 
-                HashSet<VesselRelayPersistence> usedRelays = new HashSet<VesselRelayPersistence>();
+                var usedRelays = new HashSet<VesselRelayPersistence>();
 
                 foreach (var beamedPowerData in received_power.Values)
                 {
@@ -1889,8 +1890,13 @@ namespace FNPlugin
                         if (selectedBrandWith == null)
                             continue;
 
+                        var maximumRoutePower = (powerBeam.nuclearPower + powerBeam.solarPower) *beamedPowerData.Route.Efficiency * 0.001;
+
                         // subtract any power already recieved by other recievers
-                        var remainingPowerInBeam = Math.Min(beamedPowerData.RemainingPower, ((powerBeam.nuclearPower + powerBeam.solarPower) * beamedPowerData.Route.Efficiency / 1000));
+                        var remainingPowerInBeam = Math.Min(beamedPowerData.RemainingPower, maximumRoutePower);
+
+
+                        //beamedPowerData.Route.WavelengthData.
 
                         // skip if no power remaining
                         if (remainingPowerInBeam <= 0)
@@ -1920,21 +1926,29 @@ namespace FNPlugin
                             : selectedBrandWith.MaxElectricEfficiencyPercentage;
 
                         // convert to fraction
-                        var efficiency_fraction = efficiencyPercentage / 100;
+                        var efficiencyFraction = efficiencyPercentage / 100;
 
                         // limit by amount of beampower the reciever is able to process
-                        var satPower = Math.Min(currentRecievalPower, beamNetworkPower * efficiency_fraction);
-                        var satPowerMax = Math.Min(maximumRecievalPower, beamNetworkPower * efficiency_fraction);
-                        var satWasteheat = Math.Min(currentRecievalPower, beamNetworkPower * (1 - efficiency_fraction));
+                        var satPower = Math.Min(currentRecievalPower, beamNetworkPower * efficiencyFraction);
+                        var satPowerMax = Math.Min(maximumRecievalPower, beamNetworkPower * efficiencyFraction);
+                        var satWasteheat = Math.Min(currentRecievalPower, beamNetworkPower * (1 - efficiencyFraction));
+
+                        // calculate wasteheat beamed energy absorbed by vessel;
+                        //var diameterToSpotSizeRatio = beamedPowerData.Route.Spotsize > 0 ? Math.Min(1, diameter / beamedPowerData.Route.Spotsize) : 1;
+                        //var lostEnergyWasteheatRatio = Math.Max(0,  Math.Min(1, Math.Log10(Math.Sqrt(1 / selectedBrandWith.TargetWavelength)) - Math.PI));
+                        //var missedPowerPowerWasteheat = remainingPowerInBeam * lostEnergyWasteheatRatio * Math.Min(0.25, Math.Pow(1 - diameterToSpotSizeRatio, 2 ));
+
+                        // calculate wasteheat by power conversion
+                        var conversionWasteheat = (thermalMode ? 0.05 : 1) * satPower * (1 - efficiencyFraction);
 
                         // generate conversion wasteheat
-                        total_conversion_waste_heat_production += satPower * (1 - efficiency_fraction);
+                        total_conversion_waste_heat_production += conversionWasteheat; // + missedPowerPowerWasteheat;
 
                         // register amount of raw power recieved
                         beamedPowerData.CurrentRecievedPower = satPower;
                         beamedPowerData.MaximumReceivedPower = satPowerMax;
                         beamedPowerData.ReceiverEfficiency = efficiencyPercentage;
-                        beamedPowerData.AvailablePower = satPower > 0 && efficiency_fraction > 0 ? satPower / efficiency_fraction : 0;
+                        beamedPowerData.AvailablePower = satPower > 0 && efficiencyFraction > 0 ? satPower / efficiencyFraction : 0;
 
                         // convert raw power into effecive power
                         total_beamed_power += satPower;
