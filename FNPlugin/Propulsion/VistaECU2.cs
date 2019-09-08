@@ -2,6 +2,8 @@
 
 namespace FNPlugin
 {
+    class ChemicalEngineTag : PartModule { }
+
 	class ZPinchFusionEngine : VistaECU2 { }
 
     class ChemicalEngine : VistaECU2 { }
