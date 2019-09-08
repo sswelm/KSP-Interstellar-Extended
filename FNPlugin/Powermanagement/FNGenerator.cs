@@ -237,9 +237,9 @@ namespace FNPlugin
 
         [KSPField]
         public double spareResourceCapacity;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double possibleSpareResourceCapacityFilling;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double currentUnfilledResourceDemand;
         [KSPField]
         public double effectiveInputPowerPerSecond;
@@ -945,10 +945,6 @@ namespace FNPlugin
                 moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
             }  
         }
-
-        #region obsolete exposed public getters
-
-        # endregion
 
         public double MaxStableMegaWattPower
         {

@@ -520,8 +520,6 @@ namespace FNPlugin.Reactors
         protected double max_charged_to_supply_per_second;
         [KSPField]
         protected double min_throttle;
-        //[KSPField]
-        //protected double safetyThrotleModifier;
         [KSPField]
         public double massCostExponent = 2.5;
 
@@ -1846,7 +1844,6 @@ namespace FNPlugin.Reactors
 
                 power_request_ratio = Math.Max(maxThrottleRatio, maxStoredGeneratorEnergyRequestedRatio);
 
-                //safetyThrotleModifier = GetSafetyOverheatPreventionRatio();
                 max_charged_to_supply_per_second = maximumChargedPower * stored_fuel_ratio * geeForceModifier * overheatModifier * powerAccessModifier;
                 requested_charged_to_supply_per_second = max_charged_to_supply_per_second * power_request_ratio * maximum_charged_request_ratio;
 

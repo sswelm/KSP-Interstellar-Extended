@@ -27,8 +27,8 @@ namespace FNPlugin
             BeamedPowerSources.getVesselRelayPersistenceForVesselCallback = BeamedPowerTransmitter.getVesselRelayPersistenceForVessel;
 
             GameEvents.onGameStateSaved.Add(OnGameStateSaved);
-            GameEvents.onDockingComplete.Add(OnDockingComplete);
-            GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
+            //GameEvents.onDockingComplete.Add(OnDockingComplete);
+            //GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
             GameEvents.onVesselSOIChanged.Add(OmVesselSOIChanged);
 
             Debug.Log("[KSPI]: GameEventSubscriber Initialised");
@@ -42,8 +42,8 @@ namespace FNPlugin
             //GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
 
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
-            GameEvents.onDockingComplete.Remove(OnDockingComplete);
-            GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
+            //GameEvents.onDockingComplete.Remove(OnDockingComplete);
+            //GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
             GameEvents.onVesselSOIChanged.Remove(OmVesselSOIChanged);
 
             var kerbalismversionstr = string.Format("{0}.{1}.{2}.{3}", Kerbalism.versionMajor, Kerbalism.versionMajorRevision, Kerbalism.versionMinor, Kerbalism.versionMinorRevision);

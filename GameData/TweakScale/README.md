@@ -307,12 +307,14 @@ Detailed installation instructions are now on its own file (see the [In a Hurry]
 
 ### License
 
-[WTFPL](http://www.wtfpl.net), see [here](./LICENSE).
-
-+ You are free to:
-	- Do whatever you want!
-+ Under the following terms:
-	- You follow your heart's desire. :)
+* [WTFPL](http://www.wtfpl.net), see [here](./LICENSE).
+	+ You are free to:
+		- Do whatever you want!
+	+ Under the following terms:
+		- You follow your heart's desire. :)
+* [KSPe.Light](https://github.com/net-lisias-ksp/KSPAPIExtensions/tree/local/TweakScale) is licensed to TweakScale under [SKL 1.0](https://ksp.lisias.net/SKL-1_0.txt)
+	+ KSPe.Light is a lighweight version of KSPe, a component from KSP API Extensions /L.
+	+ This library is not meant to general public consuption. Use [KSP API Extensions](https://github.com/net-lisias-ksp/KSPAPIExtensions/releases) instead.
 
 See [NOTICE](./NOTICE) for further copyright and trademarks notices.
 
