@@ -362,7 +362,7 @@ namespace FNPlugin
 
                 _max_charged_particles_power = currentMaximumChargedPower * exchanger_thrust_divisor * _attached_reactor.ChargedParticlePropulsionEfficiency;
                 _charged_particles_requested = exhaustAllowed && _attached_engine.isOperational && _attached_engine.currentThrottle > 0 ? _max_charged_particles_power : 0;
-                _charged_particles_received = consumeFNResourcePerSecond(_charged_particles_requested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                _charged_particles_received = _charged_particles_requested > 0 ? consumeFNResourcePerSecond(_charged_particles_requested, ResourceManager.FNRESOURCE_CHARGED_PARTICLES) : 0;
 
                 // update Isp
                 currentIsp = !_attached_engine.isOperational || _attached_engine.currentThrottle == 0 ? maximum_isp : Math.Min(maximum_isp, minimum_isp / Math.Pow(_attached_engine.currentThrottle, throtleExponent));
@@ -405,7 +405,7 @@ namespace FNPlugin
                 var neededBufferPower = Math.Min(Math.Max(powerBufferMax - powerBufferStore, 0), minimumEnginePower);
                 _requestedElectricPower = minimumEnginePower + neededBufferPower;
 
-                _recievedElectricPower = CheatOptions.InfiniteElectricity
+                _recievedElectricPower = CheatOptions.InfiniteElectricity || _requestedElectricPower == 0
                     ? _requestedElectricPower
                     : consumeFNResourcePerSecond(_requestedElectricPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 

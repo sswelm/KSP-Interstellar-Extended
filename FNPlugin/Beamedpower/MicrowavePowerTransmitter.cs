@@ -599,9 +599,9 @@ namespace FNPlugin.Beamedpower
                     var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
  
                     var megajoulesRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-                    var wasteheatRatio = 1 - getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+                    var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    var effectiveResourceThrotling = Math.Min(megajoulesRatio > 0.2 ? 1 : megajoulesRatio * 5, wasteheatRatio > 0.2 ? 1 : wasteheatRatio * 5);
+                    var effectiveResourceThrotling = Math.Min(megajoulesRatio > 0.2 ? 1 : megajoulesRatio * 5, wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10);
 
                     requestedPower = Math.Min(Math.Min(power_capacity, availablePower) * powerTransmissionRatio, effectiveResourceThrotling * availablePower);
                 }
