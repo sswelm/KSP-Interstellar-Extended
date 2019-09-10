@@ -49,7 +49,7 @@ namespace FNPlugin
         public bool generatorInit = false;
         [KSPField(isPersistant = true)]
         public bool isupgraded = false;
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         public bool chargedParticleMode = false;
         [KSPField(isPersistant = true)]
         public double storedMassMultiplier;
@@ -70,7 +70,7 @@ namespace FNPlugin
         public bool isHighPower = false;
         [KSPField]
         public bool isMHD = false;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public bool isLimitedByMinThrotle = false;
         [KSPField]
         public double powerOutputMultiplier = 1;
@@ -183,7 +183,7 @@ namespace FNPlugin
         // GUI
         [KSPField]
         public double rawThermalPower;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double rawChargedPower;
         [KSPField]
         public double rawReactorPower;
@@ -191,9 +191,9 @@ namespace FNPlugin
         public double maxThermalPower;
         [KSPField]
         public double effectiveMaximumThermalPower;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double maxChargedPowerForThermalGenerator;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double maxChargedPowerForChargedGenerator;
         [KSPField]
         public double maxAllowedChargedPower;
@@ -276,9 +276,9 @@ namespace FNPlugin
         public double chargedPowerReceived;
         [KSPField]
         public double totalPowerReceived;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double overheatingModifier;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double requestedChargedPower;
         [KSPField]
         public double requestedThermalPower;
@@ -308,11 +308,11 @@ namespace FNPlugin
         public double maxElectricdtps;
         [KSPField]
         public bool shouldUseChargedPower;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double _totalEff;
         [KSPField]
         public double capacityRatio;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Offscreen Power Generation", guiUnits = " kW")]
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "Offscreen Power Generation", guiUnits = " kW")]
         public double initialGeneratorPowerEC;
         [KSPField]
         public double maximumGeneratorPowerMJ;
