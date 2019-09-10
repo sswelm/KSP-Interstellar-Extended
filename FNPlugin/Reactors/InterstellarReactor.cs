@@ -696,7 +696,8 @@ namespace FNPlugin.Reactors
 
             moduleCost = updateModuleCost ? (float)(maxResourceCost + dryCost - neutronEmbrittlementCost) : 0;
 
-            Debug.Log("[KSPI]: GetModuleCost returned maxResourceCost " + maxResourceCost + " + dryCost " + dryCost + " - neutronEmbrittlementCost " + neutronEmbrittlementCost + " = " + moduleCost);
+            if (neutronEmbrittlementCost > 0)
+                Debug.Log("[KSPI]: GetModuleCost returned maxResourceCost " + maxResourceCost + " + dryCost " + dryCost + " - neutronEmbrittlementCost " + neutronEmbrittlementCost + " = " + moduleCost);
 
             return moduleCost;
         }
