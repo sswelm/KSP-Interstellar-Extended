@@ -1472,11 +1472,6 @@ namespace FNPlugin
             }
         }
 
-        private double GetAtmosphericEfficiency(Vessel v)
-        {
-            return Math.Exp(-(FlightGlobals.getStaticPressure(v.GetVesselPos()) / 100) / 5);
-        }
-
         public void FixedUpdate()
         {
             if (HighLogic.LoadedSceneIsEditor) return;

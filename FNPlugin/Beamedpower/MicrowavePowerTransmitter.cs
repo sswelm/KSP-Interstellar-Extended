@@ -654,7 +654,7 @@ namespace FNPlugin.Beamedpower
                 biome_desc = attribute.name;
 
                 double cloud_variance;
-                if (body_name == "Kerbin")
+                if (body_name == "Kerbin" || body_name == "Earth")
                 {
                     if (biome_desc == "Desert" || biome_desc == "Ice Caps" || biome_desc == "BadLands")
                         moistureModifier = 0.4;
