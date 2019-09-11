@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 using TweakScale;
 using UnityEngine;
 
@@ -283,6 +284,9 @@ namespace InterstellarFuelSwitch
         BaseField habitatVolumeField;
         BaseField habitatSurfaceField;
         BaseField habitatStateField;
+        BaseField habitatToggleField;
+
+        MethodInfo onStartMethod;
 
         IHaveFuelTankSetup _fuelTankSetupControl;
 
@@ -1687,6 +1691,14 @@ namespace InterstellarFuelSwitch
                     habitatVolumeField = module.Fields["volume"];
                     habitatSurfaceField = module.Fields["surface"];
                     habitatStateField = module.Fields["state"];
+                    habitatToggleField = module.Fields["toggle"];
+
+                    var habitatType = module.GetType();
+                    onStartMethod = habitatType.GetMethod("OnStart");
+
+                    if (onStartMethod != null)
+                        UnityEngine.Debug.Log("[IFS]: Found onStartMethod");
+
                     break;
                 }
             }
@@ -1720,12 +1732,30 @@ namespace InterstellarFuelSwitch
                     habitatSurfaceField.SetValue(surface, habitatModule);
                 }
 
+                if (habitatToggleField != null)
+                {
+                    UnityEngine.Debug.Log("[IFS]: Set habitat toggle to " + surface);
+                    habitatToggleField.SetValue(volume > 0, habitatModule);
+                }
+
                 if (habitatStateField != null)
                 {
                     var newState = volume > 0 ? State.enabled : State.disabled;
 
+                    var oldValue = habitatStateField.GetValue<int>(habitatModule);
+                    UnityEngine.Debug.Log("[IFS]: old state set to " + oldValue);
+
                     UnityEngine.Debug.Log("[IFS]: Set habitat state to " + newState);
                     habitatStateField.SetValue((int)newState, habitatModule);
+
+                    var newValue = habitatStateField.GetValue<int>(habitatModule);
+                    UnityEngine.Debug.Log("[IFS]: new  state set to " + newValue);
+                }
+
+                if (onStartMethod != null)
+                {
+                    UnityEngine.Debug.Log("[IFS]: Invoke onStartMethod");
+                    onStartMethod.Invoke(habitatModule, new object[] { (int)PartModule.StartState.None });
                 }
             }
             catch (Exception e)
