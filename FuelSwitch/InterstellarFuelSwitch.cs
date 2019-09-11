@@ -1752,6 +1752,30 @@ namespace InterstellarFuelSwitch
                     UnityEngine.Debug.Log("[IFS]: new  state set to " + newValue);
                 }
 
+                var atmosphere = part.Resources["Atmosphere"];
+                if (atmosphere != null)
+                {
+                    UnityEngine.Debug.Log("[IFS]: Set Atmosphere to " + volume * 1e3);
+                    atmosphere.amount = volume * 1e3;
+                    atmosphere.maxAmount = volume * 1e3;
+                }
+
+                var wasteAtmosphere = part.Resources["WasteAtmosphere"];
+                if (wasteAtmosphere != null)
+                {
+                    UnityEngine.Debug.Log("[IFS]: Set WasteAtmosphere to " + volume * 1e3);
+                    wasteAtmosphere.amount = 0;
+                    wasteAtmosphere.maxAmount = volume * 1e3;
+                }
+
+                var moistAtmosphere = part.Resources["MoistAtmosphere"];
+                if (moistAtmosphere != null)
+                {
+                    UnityEngine.Debug.Log("[IFS]: Set MoistAtmosphere to " + volume * 1e3);
+                    moistAtmosphere.amount = 0;
+                    moistAtmosphere.maxAmount = volume * 1e3;
+                }
+
                 if (onStartMethod != null)
                 {
                     UnityEngine.Debug.Log("[IFS]: Invoke onStartMethod");
