@@ -286,6 +286,9 @@ namespace InterstellarFuelSwitch
         BaseField habitatStateField;
         BaseField habitatToggleField;
 
+        BaseField volumeField;
+        BaseField surfaceField;
+
         MethodInfo habitatOnStartMethod;
 
         IHaveFuelTankSetup _fuelTankSetupControl;
@@ -312,6 +315,8 @@ namespace InterstellarFuelSwitch
                 initialMassMultiplier = Math.Pow(factorAbsoluteLinear, tweakscaleMassExponent);
 
                 initialMass = (double)(decimal)part.prefabMass * initialMassMultiplier;
+
+                UpdateHabitat(selectedTank);
             }
             catch (Exception e)
             {
@@ -778,15 +783,7 @@ namespace InterstellarFuelSwitch
                         configuredFlowStates = String.Empty;
                 }
 
-                if (controlCrewCapacity)
-                {
-                    var newCrewCapacity = (int)Math.Round(selectedTank.crewCapacity * storedSurfaceMultiplier);
-                    Debug.Log("[IFS]: SetupTankInPart Set CrewCapacity : " + newCrewCapacity);
-                    part.CrewCapacity = newCrewCapacity;
-                    part.crewTransferAvailable = newCrewCapacity > 0;
-                }
-
-                UpdateKerbalismHabitat(selectedTank.habitatVolume, selectedTank.habitatSurface);
+                UpdateHabitat(selectedTank);
 
                 for (var resourceId = 0; resourceId < selectedTank.Resources.Count; resourceId++)
                 {
@@ -1693,6 +1690,8 @@ namespace InterstellarFuelSwitch
                     habitatStateField = module.Fields["state"];
                     habitatToggleField = module.Fields["toggle"];
                     habitatOnStartMethod = module.GetType().GetMethod("OnStart");
+                    volumeField = habitatModule.Fields["Volume"];
+                    surfaceField = habitatModule.Fields["Surface"];
 
                     if (habitatOnStartMethod != null)
                         UnityEngine.Debug.Log("[IFS]: Found onStartMethod");
@@ -1707,31 +1706,45 @@ namespace InterstellarFuelSwitch
                 UnityEngine.Debug.LogWarning("[IFS]: No Habitat PartModule found on " + part.partInfo.title);
         }
 
-        private void UpdateKerbalismHabitat(double volume, double surface)
+        private void UpdateHabitat(IFSmodularTank currentTank)
         {
+            if (currentTank == null)
+                return;
+
+            if (controlCrewCapacity)
+            {
+                var newCrewCapacity = (int)Math.Round(selectedTank.crewCapacity * storedSurfaceMultiplier);
+                Debug.Log("[IFS]: SetupTankInPart Set CrewCapacity : " + newCrewCapacity);
+                part.CrewCapacity = newCrewCapacity;
+                part.crewTransferAvailable = newCrewCapacity > 0;
+            }
+
+            double volume = currentTank.habitatVolume;
+            double surface = currentTank.habitatSurface;
+
             try
             {
                 if (habitatModule == null)
                 {
-                    UnityEngine.Debug.Log("[IFS]: No habitat found");
+                    //UnityEngine.Debug.Log("[IFS]: No habitat found");
                     return;
                 }
 
                 if (habitatVolumeField != null)
                 {
-                    UnityEngine.Debug.Log("[IFS]: Set habitat Volume to " + volume);
-                    habitatVolumeField.SetValue(volume, habitatModule);
+                    //UnityEngine.Debug.Log("[IFS]: Set habitat Volume to " + volume);
+                    habitatVolumeField.SetValue(volume * storedVolumeMultiplier, habitatModule);
                 }
 
                 if (habitatSurfaceField != null)
                 {
-                    UnityEngine.Debug.Log("[IFS]: Set habitat Surface to " + surface);
-                    habitatSurfaceField.SetValue(surface, habitatModule);
+                    //UnityEngine.Debug.Log("[IFS]: Set habitat Surface to " + surface);
+                    habitatSurfaceField.SetValue(surface * storedSurfaceMultiplier, habitatModule);
                 }
 
                 if (habitatToggleField != null)
                 {
-                    UnityEngine.Debug.Log("[IFS]: Set habitat toggle to " + (volume > 0));
+                    //UnityEngine.Debug.Log("[IFS]: Set habitat toggle to " + (volume > 0));
                     habitatToggleField.SetValue(volume > 0, habitatModule);
                 }
 
@@ -1739,39 +1752,52 @@ namespace InterstellarFuelSwitch
                 {
                     var newState = volume > 0 ? State.enabled : State.disabled;
 
-                    UnityEngine.Debug.Log("[IFS]: Set habitat state to " + newState);
+                    //UnityEngine.Debug.Log("[IFS]: Set habitat state to " + newState);
                     habitatStateField.SetValue((int)newState, habitatModule);
                 }
 
                 var atmosphere = part.Resources["Atmosphere"];
                 if (atmosphere != null)
                 {
-                    UnityEngine.Debug.Log("[IFS]: Set Atmosphere to " + volume * 1e3);
-                    atmosphere.amount = volume * 1e3;
-                    atmosphere.maxAmount = volume * 1e3;
+                    //UnityEngine.Debug.Log("[IFS]: Set Atmosphere to " + volume * 1e3);
+                    atmosphere.amount = volume * 1e3 * storedVolumeMultiplier;
+                    atmosphere.maxAmount = volume * 1e3 * storedVolumeMultiplier;
                 }
 
                 var wasteAtmosphere = part.Resources["WasteAtmosphere"];
                 if (wasteAtmosphere != null)
                 {
-                    UnityEngine.Debug.Log("[IFS]: Set WasteAtmosphere to " + volume * 1e3);
+                    //UnityEngine.Debug.Log("[IFS]: Set WasteAtmosphere to " + volume * 1e3);
                     wasteAtmosphere.amount = 0;
-                    wasteAtmosphere.maxAmount = volume * 1e3;
+                    wasteAtmosphere.maxAmount = volume * 1e3 * storedVolumeMultiplier;
                 }
 
                 var moistAtmosphere = part.Resources["MoistAtmosphere"];
                 if (moistAtmosphere != null)
                 {
-                    UnityEngine.Debug.Log("[IFS]: Set MoistAtmosphere to " + volume * 1e3);
+                    //UnityEngine.Debug.Log("[IFS]: Set MoistAtmosphere to " + volume * 1e3);
                     moistAtmosphere.amount = 0;
-                    moistAtmosphere.maxAmount = volume * 1e3;
+                    moistAtmosphere.maxAmount = volume * 1e3 * storedVolumeMultiplier;
                 }
 
                 if (habitatOnStartMethod != null)
                 {
-                    UnityEngine.Debug.Log("[IFS]: Invoke onStartMethod");
+                    //UnityEngine.Debug.Log("[IFS]: Invoke onStartMethod");
                     habitatOnStartMethod.Invoke(habitatModule, new object[] { (int)PartModule.StartState.None });
                 }
+
+                if (volumeField != null)
+                {
+                    volumeField.guiActive = volume > 0;
+                    volumeField.guiActiveEditor = volume > 0;
+                }
+
+                if (surfaceField != null)
+                {
+                    surfaceField.guiActive = surface > 0;
+                    surfaceField.guiActiveEditor = surface > 0;
+                }
+
             }
             catch (Exception e)
             {
