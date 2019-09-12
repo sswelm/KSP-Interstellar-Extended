@@ -286,7 +286,7 @@ namespace InterstellarFuelSwitch
         BaseField habitatStateField;
         BaseField habitatToggleField;
 
-        MethodInfo onStartMethod;
+        MethodInfo habitatOnStartMethod;
 
         IHaveFuelTankSetup _fuelTankSetupControl;
 
@@ -1692,11 +1692,9 @@ namespace InterstellarFuelSwitch
                     habitatSurfaceField = module.Fields["surface"];
                     habitatStateField = module.Fields["state"];
                     habitatToggleField = module.Fields["toggle"];
+                    habitatOnStartMethod = module.GetType().GetMethod("OnStart");
 
-                    var habitatType = module.GetType();
-                    onStartMethod = habitatType.GetMethod("OnStart");
-
-                    if (onStartMethod != null)
+                    if (habitatOnStartMethod != null)
                         UnityEngine.Debug.Log("[IFS]: Found onStartMethod");
 
                     break;
@@ -1713,7 +1711,6 @@ namespace InterstellarFuelSwitch
         {
             try
             {
-
                 if (habitatModule == null)
                 {
                     UnityEngine.Debug.Log("[IFS]: No habitat found");
@@ -1734,7 +1731,7 @@ namespace InterstellarFuelSwitch
 
                 if (habitatToggleField != null)
                 {
-                    UnityEngine.Debug.Log("[IFS]: Set habitat toggle to " + surface);
+                    UnityEngine.Debug.Log("[IFS]: Set habitat toggle to " + (volume > 0));
                     habitatToggleField.SetValue(volume > 0, habitatModule);
                 }
 
@@ -1742,14 +1739,8 @@ namespace InterstellarFuelSwitch
                 {
                     var newState = volume > 0 ? State.enabled : State.disabled;
 
-                    var oldValue = habitatStateField.GetValue<int>(habitatModule);
-                    UnityEngine.Debug.Log("[IFS]: old state set to " + oldValue);
-
                     UnityEngine.Debug.Log("[IFS]: Set habitat state to " + newState);
                     habitatStateField.SetValue((int)newState, habitatModule);
-
-                    var newValue = habitatStateField.GetValue<int>(habitatModule);
-                    UnityEngine.Debug.Log("[IFS]: new  state set to " + newValue);
                 }
 
                 var atmosphere = part.Resources["Atmosphere"];
@@ -1776,10 +1767,10 @@ namespace InterstellarFuelSwitch
                     moistAtmosphere.maxAmount = volume * 1e3;
                 }
 
-                if (onStartMethod != null)
+                if (habitatOnStartMethod != null)
                 {
                     UnityEngine.Debug.Log("[IFS]: Invoke onStartMethod");
-                    onStartMethod.Invoke(habitatModule, new object[] { (int)PartModule.StartState.None });
+                    habitatOnStartMethod.Invoke(habitatModule, new object[] { (int)PartModule.StartState.None });
                 }
             }
             catch (Exception e)
