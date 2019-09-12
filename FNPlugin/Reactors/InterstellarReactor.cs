@@ -75,6 +75,9 @@ namespace FNPlugin.Reactors
         public float windowPositionY = 20;
         [KSPField(isPersistant = true)]
         public int currentGenerationType;
+
+        [KSPField(isPersistant = true)]
+        public double factorAbsoluteLinear = 1;
         [KSPField(isPersistant = true)]
         public double storedPowerMultiplier = 1;
         [KSPField(isPersistant = true)]
@@ -525,12 +528,14 @@ namespace FNPlugin.Reactors
 
         [KSPField(guiActiveEditor = false, guiName = "Initial Cost")]
         public double initialCost;
-        [KSPField( guiActiveEditor = false, guiName = "Calculated Cost")]
+        [KSPField(guiActiveEditor = false, guiName = "Calculated Cost")]
         public double calculatedCost;
         [KSPField(guiActiveEditor = false, guiName = "Max Resource Cost")]
         public double maxResourceCost;
         [KSPField(guiActiveEditor = false, guiName = "Module Cost")]
         public float moduleCost;
+        [KSPField(guiActiveEditor = false, guiName = "Neutron Embrittlement Cost")]
+        public double neutronEmbrittlementCost;
 
         // Gui
         [KSPField(guiActive = false, guiActiveEditor = false)]
@@ -685,19 +690,16 @@ namespace FNPlugin.Reactors
 
         public float GetModuleCost(float defaultCost, ModifierStagingSituation sit)
         {
-            initialCost = part.partInfo.cost * Math.Pow(storedPowerMultiplier, massCostExponent);
-            calculatedCost = part.partInfo.cost * Math.Pow(storedPowerMultiplier, costScaleExponent);
-
-            var dryCost = calculatedCost - initialCost;
-
-            var neutronEmbrittlementCost = calculatedCost * Math.Pow((neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), 0.5);
+            neutronEmbrittlementCost = calculatedCost * Math.Pow((neutronEmbrittlementDamage / neutronEmbrittlementLifepointsMax), 0.5);
 
             maxResourceCost = part.Resources.Sum(m => m.maxAmount * m.info.unitCost);
 
+            var dryCost = calculatedCost - initialCost;
+
             moduleCost = updateModuleCost ? (float)(maxResourceCost + dryCost - neutronEmbrittlementCost) : 0;
 
-            if (neutronEmbrittlementCost > 0)
-                Debug.Log("[KSPI]: GetModuleCost returned maxResourceCost " + maxResourceCost + " + dryCost " + dryCost + " - neutronEmbrittlementCost " + neutronEmbrittlementCost + " = " + moduleCost);
+            //if (neutronEmbrittlementCost > 0)
+            //    Debug.Log("[KSPI]: GetModuleCost returned maxResourceCost " + maxResourceCost + " + dryCost " + dryCost + " - neutronEmbrittlementCost " + neutronEmbrittlementCost + " = " + moduleCost);
 
             return moduleCost;
         }
@@ -948,11 +950,12 @@ namespace FNPlugin.Reactors
             try
             {
                 // calculate multipliers
-                Debug.Log("[KSPI]: InterstellarReactor.OnRescale called with " + factor.absolute.linear);
-                storedPowerMultiplier = Math.Pow((double)(decimal)factor.absolute.linear, powerScaleExponent);
+                factorAbsoluteLinear = (double)(decimal)factor.absolute.linear;
+                Debug.Log("[KSPI]: InterstellarReactor.OnRescale called with " + factorAbsoluteLinear);
+                storedPowerMultiplier = Math.Pow(factorAbsoluteLinear, powerScaleExponent);
 
-                initialCost = part.partInfo.cost * Math.Pow(storedPowerMultiplier, massCostExponent);
-                calculatedCost = part.partInfo.cost * Math.Pow(storedPowerMultiplier, costScaleExponent);
+                initialCost = part.partInfo.cost * Math.Pow(factorAbsoluteLinear, massCostExponent);
+                calculatedCost = part.partInfo.cost * Math.Pow(factorAbsoluteLinear, costScaleExponent);
 
                 // update power
                 DeterminePowerOutput();
