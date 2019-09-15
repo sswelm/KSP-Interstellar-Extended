@@ -152,7 +152,7 @@ namespace FNPlugin
                 _resourceBuffers.UpdateBuffers();
 
             // extract power otherwise we end up with double power
-            if (flowRate > 0)
+            if (flowRate > 0 && solarRate > 0)
                 part.RequestResource(_solarPanel.resourceName, flowRate * fixedDeltaTime);
             else
                 part.RequestResource(_solarPanel.resourceName, solarRate * fixedDeltaTime);
