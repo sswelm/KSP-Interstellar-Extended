@@ -111,6 +111,8 @@ namespace InterstellarFuelSwitch
         UI_FloatRange convertPecentageEditorFloatRange;
         UI_FloatRange convertPecentageFlightFloatRange;
 
+        int changedFieldCounter;
+
         bool hasNullDefinitions = false;
 
         public float PowerUsagePercentageRatio
@@ -301,6 +303,8 @@ namespace InterstellarFuelSwitch
             if (!convertPercentageField.guiActive)
                 return;
 
+            changedFieldCounter++;
+
             for (var i = 0; i < primaryResources.Count; i++)
             {
                 var resource = primaryResources[i];
@@ -408,7 +412,11 @@ namespace InterstellarFuelSwitch
                     var receivedSourceAmountFixed = part.RequestResource(primaryResource.definition.id, fixedPrimaryRequest);
 
                     primaryChange = -(float)(receivedSourceAmountFixed / fixedDeltaTime);
-                    primaryChangeField.guiActive = primaryChange != 0;
+
+                    if (primaryChange != 0)
+                        changedFieldCounter = 0;
+
+                    primaryChangeField.guiActive = changedFieldCounter < 50;
 
                     double createdAmount = 0;
 
@@ -479,7 +487,11 @@ namespace InterstellarFuelSwitch
                         var primaryRequestResult = part.RequestResource(primary.definition.id, requestedTargetAmount);
 
                         primaryChange = -(float)(primaryRequestResult / fixedDeltaTime);
-                        primaryChangeField.guiActive = primaryChange != 0;
+
+                        if (primaryChange != 0)
+                            changedFieldCounter = 0;
+
+                        primaryChangeField.guiActive = changedFieldCounter < 50;
                         
                         var receivedTargetAmount = primaryRequestResult / conversionRatio;
 
@@ -492,8 +504,8 @@ namespace InterstellarFuelSwitch
             }
             else
             {
-                secondaryChangeField.guiActive = false;
-                primaryChangeField.guiActive = false;
+                secondaryChangeField.guiActive = changedFieldCounter < 50;
+                primaryChangeField.guiActive = changedFieldCounter < 50;
             }
         }
 
