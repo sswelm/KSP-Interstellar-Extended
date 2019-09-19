@@ -62,6 +62,12 @@ namespace FNPlugin.Microwave
         private BeamConfiguration activeConfiguration;
         private BaseField chooseField;
 
+        int nodesCount;
+        int valuesCount;
+        ConfigNode[] beamConfigurationNodes;
+        int beamConfigurationNodesCount;
+        string onLoadMainConfigName;
+
         public BeamConfiguration ActiveConfiguration
         {
             get { return activeConfiguration; }
@@ -279,11 +285,44 @@ namespace FNPlugin.Microwave
             return ModifierChangeWhen.STAGED;
         }
 
+        public override void OnLoad(ConfigNode node)
+        {
+            onLoadMainConfigName = node.name;
+
+            var nodes = node.GetNodes();
+            var values = node.GetValues();
+
+            nodesCount = nodes.Count();
+            valuesCount = nodes.Count();
+
+            beamConfigurationNodes =  node.GetNodes("BeamConfiguration");
+
+            beamConfigurationNodesCount = beamConfigurationNodes.Count();
+        }
+
         public override string GetInfo()
         {
             var info = new StringBuilder();
 
             info.AppendLine("Beam type: " + beamTypeName);
+            //info.AppendLine("Onload config name: " + onLoadMainConfigName);
+            //info.AppendLine("Nodes Count: " + nodesCount);
+            //info.AppendLine("Values Count: " + valuesCount);
+
+            if (beamConfigurationNodesCount > 0)
+            {
+                info.AppendLine("Total Configs: " + beamConfigurationNodesCount);
+                info.AppendLine("");
+            }
+
+            foreach (var beamConfigurationNode in beamConfigurationNodes)
+            {
+                info.AppendLine(beamConfigurationNode.GetValue("beamWaveName"));
+                info.AppendLine("wavelength: " + beamConfigurationNode.GetValue("wavelength"));
+                info.AppendLine("");
+            }
+
+
             return info.ToString();
         }
     }
