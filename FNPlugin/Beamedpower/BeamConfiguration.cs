@@ -1,8 +1,5 @@
 ﻿using System.Text;
-using System;
-using System.Linq;
 using KSP.Localization;
-using KSP.UI.Screens;
 
 namespace FNPlugin.Microwave
 {
