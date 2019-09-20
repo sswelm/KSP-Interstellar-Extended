@@ -230,6 +230,8 @@ namespace FNPlugin
         private ModuleReactionWheel moduleReactionWheel;
         private ResourceBuffers resourceBuffers;
 
+        private Queue<double> averageGeeforce = new Queue<double>();
+
         private Texture2D warpWhiteFlash;
         private Texture2D warpRedFlash;
 
@@ -1276,8 +1278,12 @@ namespace FNPlugin
 
             GenerateAntiGravity();
 
+            averageGeeforce.Enqueue(vessel.geeForce);
+            if (averageGeeforce.Count > 10)
+                averageGeeforce.Dequeue();
+
             // maintenance power depend on vessel mass and experienced geeforce
-            requiredExoticMaintenancePower = exoticMatterRatio * vesselTotalMass * powerRequirementMultiplier * part.vessel.geeForce * geeForceMaintenancePowerMultiplier; // vessel.gravityForPos.magnitude * 2 * 
+            requiredExoticMaintenancePower = exoticMatterRatio * vesselTotalMass * powerRequirementMultiplier * averageGeeforce.Average() * geeForceMaintenancePowerMultiplier; // vessel.gravityForPos.magnitude * 2 * 
 
             var overheatingRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
