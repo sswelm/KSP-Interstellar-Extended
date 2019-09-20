@@ -132,20 +132,16 @@ namespace FNPlugin
                     ConfigNode[] techtree = GameDatabase.Instance.GetConfigNodes("TechTree");
                     Debug.Log("[KSPI]: PluginHelper found: " + techtree.Count() + " TechTrees");
 
-                    for (int i = 0; i < techtree.Length; i++)
+                    foreach (var techtreeConfig in techtree)
                     {
-                        var techtreeConfig = techtree[i];
-
                         var technodes = techtreeConfig.nodes;
 
                         Debug.Log("[KSPI]: PluginHelper found: " + technodes.Count + " Technodes");
-                        for (int j = 0; j < technodes.Count; j++)
+                        for (var j = 0; j < technodes.Count; j++)
                         {
                             var technode = technodes[j];
 
-                            var tech = new RDTech();
-                            tech.techID = technode.GetValue("id");
-                            tech.title = technode.GetValue("title");
+                            var tech = new RDTech {techID = technode.GetValue("id"), title = technode.GetValue("title")};
 
                             if (rdTechByName.ContainsKey(tech.techID))
                                 Debug.LogError("[KSPI]: Duplicate error: skipped technode id: " + tech.techID + " title: " + tech.title);
@@ -509,43 +505,28 @@ namespace FNPlugin
             return techName != String.Empty && PluginHelper.UpgradeAvailable(techName);
         }
 
-        //public static Dictionary<string, string> TechTitleById;
-
         public static string GetTechTitleById(string id)
         {
-            string result = ResearchAndDevelopment.GetTechnologyTitle(id);
+            var result = ResearchAndDevelopment.GetTechnologyTitle(id);
             if (!String.IsNullOrEmpty(result))
                 return result;
 
             PartUpgradeHandler.Upgrade partUpgrade;
-            UnityEngine.Debug.Log("[KSPI]: lookup partUpgradeId " + id);
             if (PartUpgradeByName.TryGetValue(id, out partUpgrade))
             {
-                UnityEngine.Debug.Log("[KSPI]: found partUpgradeId " + id + " now looking for " + partUpgrade.techRequired);
-
                 RDTech upgradeTechnode;
                 if (RDTechByName.TryGetValue(partUpgrade.techRequired, out upgradeTechnode))
-                {
-                    UnityEngine.Debug.Log("[KSPI]: found partUpgrade techRequired title " + upgradeTechnode.title);
                     return upgradeTechnode.title;
-                }
-                else
-                    UnityEngine.Debug.LogWarning("[KSPI]: failed to find partUpgrade techRequired title for " + partUpgrade.techRequired);
             }
-            else
-                UnityEngine.Debug.LogWarning("[KSPI]: failed to find partUpgradeId " + id);
 
             RDTech technode;
             if (RDTechByName.TryGetValue(id, out technode))
-            {
-                UnityEngine.Debug.Log("[KSPI]: found title for tech " + id );
                 return technode.title;
-            }
 
             return id;
         }
 
-        private static bool hasTech(string id)
+        private static bool HasTech(string id)
         {
             if (String.IsNullOrEmpty(id) || id == "none")
                 return false;
@@ -622,18 +603,15 @@ namespace FNPlugin
                 return false;
 
             PartUpgradeHandler.Upgrade partUpgrade;
-            if (PluginHelper.PartUpgradeByName.TryGetValue(id, out partUpgrade))
+            if (PartUpgradeByName.TryGetValue(id, out partUpgrade))
             {
-                UnityEngine.Debug.Log("[KSPI]: found PARTUPGRADE " + id + ", checking techRequired " + partUpgrade.techRequired);
+                //Debug.Log("[KSPI]: found PARTUPGRADE " + id + ", checking techRequired " + partUpgrade.techRequired);
                 id = partUpgrade.techRequired;
             }
 
             if (HighLogic.CurrentGame != null)
             {
-                if (TechnologyIsInUse)
-                    return hasTech(id);
-                else
-                    return true;
+                return !TechnologyIsInUse || HasTech(id);
             }
             return false;
         }

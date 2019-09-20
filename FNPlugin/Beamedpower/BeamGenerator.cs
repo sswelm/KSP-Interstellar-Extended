@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using KSP.Localization;
 using TweakScale;
 using UnityEngine;
 
@@ -54,40 +55,89 @@ namespace FNPlugin.Microwave
         [KSPField(isPersistant = true)]
         public double maximumPower;
 
+
+        [KSPField(isPersistant = false)]
+        public string techLevelMk1 = "start";
+        [KSPField(isPersistant = false)]
+        public string techLevelMk2;
+        [KSPField(isPersistant = false)]
+        public string techLevelMk3;
+        [KSPField(isPersistant = false)]
+        public string techLevelMk4;
+        [KSPField(isPersistant = false)]
+        public string techLevelMk5;
+        [KSPField(isPersistant = false)]
+        public string techLevelMk6;
+
         [KSPField(isPersistant = false)]
         public double powerMassFraction = 0.5;
         [KSPField(isPersistant = false)]
         public bool fixedMass = false;
 
-        private BeamConfiguration activeConfiguration;
-        private BaseField chooseField;
-
-        int nodesCount;
-        int valuesCount;
         ConfigNode[] beamConfigurationNodes;
-        int beamConfigurationNodesCount;
-        string onLoadMainConfigName;
+        BeamConfiguration activeConfiguration;
+        BaseField chooseField;
+
+        int techLevel;
 
         public BeamConfiguration ActiveConfiguration
         {
             get { return activeConfiguration; }
         }
 
-        private IList<BeamConfiguration> beamConfigurations;
+        private void DetermineTechLevel()
+        {
+            techLevel = 0;
+            if (PluginHelper.UpgradeAvailable(techLevelMk2))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(techLevelMk3))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(techLevelMk4))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(techLevelMk5))
+                techLevel++;
+            if (PluginHelper.UpgradeAvailable(techLevelMk6))
+                techLevel++;
+        }
+
+        private int GetTechLevelFromTechId(string techid)
+        {
+            if (techid == techLevelMk6)
+                return 6;
+            else if (techid == techLevelMk5)
+                return 5;
+            else if (techid == techLevelMk4)
+                return 4;
+            else if (techid == techLevelMk3)
+                return 3;
+            else if (techid == techLevelMk2)
+                return 2;
+            else if (techid == techLevelMk1)
+                return 1;
+            else 
+                return 1;
+        }
+
+        private IList<BeamConfiguration> _inlineConfigurations;
+
+        private IList<BeamConfiguration> _beamConfigurations;
 
         public IList<BeamConfiguration> BeamConfigurations 
         {
             get
             {
-                if (beamConfigurations == null)
+                if (_beamConfigurations == null)
                 {
-                    beamConfigurations = part.FindModulesImplementing<BeamConfiguration>()
+                    // ToDo: remove once inline beam configuration is fully implemented
+                    var moduleConfigurations = part.FindModulesImplementing<BeamConfiguration>();
+
+                    _beamConfigurations = moduleConfigurations
                         .Where(m => PluginHelper.HasTechRequirementOrEmpty(m.techRequirement0))
                         .OrderByDescending(m => m.wavelength).ToList();
 
-                    Debug.Log("[KSPI]: Found " + beamConfigurations.Count + " BeamConfigurations");
+                    Debug.Log("[KSPI]: Found " + _beamConfigurations.Count + " BeamConfigurations");
                 }
-                return beamConfigurations;
+                return _beamConfigurations;
             }
         }
 
@@ -142,6 +192,7 @@ namespace FNPlugin.Microwave
                 targetMass = (double)(decimal)part.prefabMass;
 
             InitializeWavelengthSelector();
+            DetermineTechLevel();
         }
 
         private void InitializeWavelengthSelector()
@@ -216,13 +267,13 @@ namespace FNPlugin.Microwave
         private string WavelenthToText(double wavelength)
         {
             if (wavelength > 1.0e-3)
-                return (wavelength * 1.0e+3).ToString() + " mm";
+                return (wavelength * 1.0e+3) + " mm";
             else if (wavelength > 7.5e-7)
-                return (wavelength * 1.0e+6).ToString() + " µm";
+                return (wavelength * 1.0e+6) + " µm";
             else if (wavelength > 1.0e-9)
-                return (wavelength * 1.0e+9).ToString() + " nm";
+                return (wavelength * 1.0e+9) + " nm";
             else
-                return (wavelength * 1.0e+12).ToString() + " pm";
+                return (wavelength * 1.0e+12) + " pm";
         }
 
         private void UpdateEfficiencyPercentage()
@@ -287,43 +338,67 @@ namespace FNPlugin.Microwave
 
         public override void OnLoad(ConfigNode node)
         {
-            onLoadMainConfigName = node.name;
-
-            var nodes = node.GetNodes();
-            var values = node.GetValues();
-
-            nodesCount = nodes.Count();
-            valuesCount = nodes.Count();
-
             beamConfigurationNodes =  node.GetNodes("BeamConfiguration");
 
-            beamConfigurationNodesCount = beamConfigurationNodes.Count();
+            _inlineConfigurations = new  List<BeamConfiguration>();
+
+            foreach (var beamConfigurationNode in beamConfigurationNodes)
+            {
+                var beamConfiguration = new BeamConfiguration
+                {
+                    beamWaveName = beamConfigurationNode.GetValue("beamWaveName"),
+                    wavelength = Double.Parse(beamConfigurationNode.GetValue("wavelength")),
+                    atmosphericAbsorptionPercentage = Double.Parse(beamConfigurationNode.GetValue("atmosphericAbsorptionPercentage")),
+                    waterAbsorptionPercentage = Double.Parse(beamConfigurationNode.GetValue("waterAbsorptionPercentage")),
+                    techRequirement0 = beamConfigurationNode.HasValue("techRequirement0")? beamConfigurationNode.GetValue("techRequirement0"): null,
+                    techRequirement1 = beamConfigurationNode.HasValue("techRequirement1")? beamConfigurationNode.GetValue("techRequirement1"): null,
+                    techRequirement2 = beamConfigurationNode.HasValue("techRequirement2")? beamConfigurationNode.GetValue("techRequirement2"): null,
+                    techRequirement3 = beamConfigurationNode.HasValue("techRequirement3")? beamConfigurationNode.GetValue("techRequirement3"): null,
+                    efficiencyPercentage0 = beamConfigurationNode.HasValue("efficiencyPercentage0")? double.Parse(beamConfigurationNode.GetValue("efficiencyPercentage0")): 0,
+                    efficiencyPercentage1 = beamConfigurationNode.HasValue("efficiencyPercentage1")? double.Parse(beamConfigurationNode.GetValue("efficiencyPercentage1")): 0,
+                    efficiencyPercentage2 = beamConfigurationNode.HasValue("efficiencyPercentage2")? double.Parse(beamConfigurationNode.GetValue("efficiencyPercentage2")): 0,
+                    efficiencyPercentage3 = beamConfigurationNode.HasValue("efficiencyPercentage3")? double.Parse(beamConfigurationNode.GetValue("efficiencyPercentage3")): 0
+                };
+
+                _inlineConfigurations.Add(beamConfiguration);
+            }
         }
 
         public override string GetInfo()
         {
-            var info = new StringBuilder();
+            var sb = new StringBuilder();
 
-            info.AppendLine("Beam type: " + beamTypeName);
-            //info.AppendLine("Onload config name: " + onLoadMainConfigName);
-            //info.AppendLine("Nodes Count: " + nodesCount);
-            //info.AppendLine("Values Count: " + valuesCount);
+            sb.AppendLine("Beam type: " + beamTypeName);
 
-            if (beamConfigurationNodesCount > 0)
+            if (!string.IsNullOrEmpty(techLevelMk2))
             {
-                info.AppendLine("Total Configs: " + beamConfigurationNodesCount);
-                info.AppendLine("");
+                sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_upgradeTechnologies") + ":</color><size=10>");
+                if (!string.IsNullOrEmpty(techLevelMk2)) sb.AppendLine("Mk2: " + Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk2)));
+                if (!string.IsNullOrEmpty(techLevelMk3)) sb.AppendLine("Mk3: " + Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk3)));
+                if (!string.IsNullOrEmpty(techLevelMk4)) sb.AppendLine("Mk4: " + Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk4)));
+                if (!string.IsNullOrEmpty(techLevelMk5)) sb.AppendLine("Mk5: " + Localizer.Format(PluginHelper.GetTechTitleById(techLevelMk5)));
+                sb.Append("</size>");
+                sb.AppendLine("");
             }
 
-            foreach (var beamConfigurationNode in beamConfigurationNodes)
+            if (_inlineConfigurations.Count > 0)
             {
-                info.AppendLine(beamConfigurationNode.GetValue("beamWaveName"));
-                info.AppendLine("wavelength: " + beamConfigurationNode.GetValue("wavelength"));
-                info.AppendLine("");
+                sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_configurations") + ":</color><size=10>");
+
+                foreach (var beamConfiguration in _inlineConfigurations)
+                {
+                    sb.AppendLine(beamConfiguration.beamWaveName);
+                    sb.AppendLine("wavelength: " + beamConfiguration.wavelength);
+                    sb.AppendLine("efficiencies:");
+                    if (beamConfiguration.efficiencyPercentage0 > 0) sb.AppendLine("Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement0) + ": " + beamConfiguration.efficiencyPercentage0);
+                    if (beamConfiguration.efficiencyPercentage1 > 0) sb.AppendLine("Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement1) + ": " + beamConfiguration.efficiencyPercentage1);
+                    if (beamConfiguration.efficiencyPercentage2 > 0) sb.AppendLine("Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement2) + ": " + beamConfiguration.efficiencyPercentage2);
+                    if (beamConfiguration.efficiencyPercentage3 > 0) sb.AppendLine("Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement3) + ": " + beamConfiguration.efficiencyPercentage3);
+                }
+                sb.Append("</size>");
             }
 
-
-            return info.ToString();
+            return sb.ToString();
         }
     }
 }
