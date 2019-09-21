@@ -15,7 +15,6 @@ namespace FNPlugin.Wasteheat
         [KSPField]
         public double baseResourceAmount = 2.0e+5;
 
-
         ResourceBuffers _resourceBuffers;
 
         public override void OnStart(PartModule.StartState state)
@@ -25,7 +24,6 @@ namespace FNPlugin.Wasteheat
             _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
             _resourceBuffers.Init(this.part);
         }
-
 
         public override void OnFixedUpdate() // OnFixedUpdate is only called when (force) activated
         {

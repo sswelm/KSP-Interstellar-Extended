@@ -1268,7 +1268,7 @@ namespace FNPlugin
             {
                 if (attachedPowerSource.ChargedPowerRatio != 1)
                 {
-                    postThermalPowerReceived += consumeRemainingResourcePerSecond(requestedPostThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
+                    postThermalPowerReceived += consumeFNResourcePerSecond(requestedPostThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
                 }
 
                 totalPowerReceived = thermalPowerReceived + chargedPowerReceived + postThermalPowerReceived;
@@ -1276,13 +1276,13 @@ namespace FNPlugin
                 // Collect charged power when needed
                 if (attachedPowerSource.ChargedPowerRatio == 1)
                 {
-                    postChargedPowerReceived += consumeRemainingResourcePerSecond(requestedPostReactorPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    postChargedPowerReceived += consumeFNResourcePerSecond(requestedPostReactorPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 }
                 else if (shouldUseChargedPower && totalPowerReceived < reactorPowerRequested)
                 {
                     var postPowerRequest = Math.Min(Math.Min(requestedPostReactorPower - totalPowerReceived, maxChargedPowerForThermalGenerator), Math.Max(0, maxReactorPower - totalPowerReceived));
 
-                    postChargedPowerReceived += consumeRemainingResourcePerSecond(postPowerRequest, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    postChargedPowerReceived += consumeFNResourcePerSecond(postPowerRequest, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 }
             }
             else // charged power mode

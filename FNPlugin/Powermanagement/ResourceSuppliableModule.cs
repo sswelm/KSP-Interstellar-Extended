@@ -66,27 +66,14 @@ namespace FNPlugin
             return power_taken_fixed;
         }
 
-        public double consumeRemainingResourcePerSecond(double power_requested_per_second, String resourcename, ResourceManager manager = null)
-        {
-            if (manager == null)
-                manager = getManagerForVessel(resourcename);
-            if (manager == null)
-                return 0;
-            if (!fnresource_supplied.ContainsKey(resourcename))
-                fnresource_supplied.Add(resourcename, 0);
-
-            power_requested_per_second = Math.Max(power_requested_per_second, 0);
-
-            double power_taken_per_second = Math.Max(Math.Min(power_requested_per_second, fnresource_supplied[resourcename]), 0);
-            fnresource_supplied[resourcename] -= power_taken_per_second;
-
-            manager.powerDrawPerSecond(this, power_taken_per_second, power_taken_per_second);
-
-            return power_taken_per_second;
-        }
-
         public double consumeFNResourcePerSecond(double power_requested_per_second, String resourcename, ResourceManager manager = null)
         {
+            if (double.IsNaN(power_requested_per_second) || double.IsInfinity(power_requested_per_second))
+            {
+                Debug.Log("[KSPI]: consumeFNResourcePerSecond was called with illegal power_requested_per_second");
+                return 0;
+            }
+
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
             if (manager == null)
@@ -108,7 +95,7 @@ namespace FNPlugin
         {
             if (double.IsNaN(requestedPowerPerSecond) || double.IsInfinity(requestedPowerPerSecond) || String.IsNullOrEmpty(resourcename))
             {
-                Debug.Log("[KSPI]: consumeFNResourcePerSecond was called with illegal value");
+                Debug.Log("[KSPI]: consumeFNResourcePerSecondBuffered was called with illegal value");
                 return 0;
             }
 

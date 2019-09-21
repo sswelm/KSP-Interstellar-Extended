@@ -707,6 +707,8 @@ namespace FNPlugin.Wasteheat
                 resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
                 resourceBuffers.Init(this.part);
             }
+
+            Fields["dynamicPressureStress"].guiActive = isDeployable;
         }
 
         void radiatorIsEnabled_OnValueModified(object arg1)
