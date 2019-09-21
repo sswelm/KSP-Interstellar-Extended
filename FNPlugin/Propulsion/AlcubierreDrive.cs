@@ -70,7 +70,7 @@ namespace FNPlugin
         public bool useRotateStability = true;
         [KSPField] public bool allowWarpTurning = true;
         [KSPField] public float headingChangedTimeout = 25;
-        [KSPField] public double geeForceMaintenancePowerMultiplier = 20;
+        [KSPField] public double gravityMaintenancePowerMultiplier = 4;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
         public bool showWindow = false;
@@ -160,13 +160,18 @@ namespace FNPlugin
         private double antigravityAcceleration;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Vertical Speed", guiFormat = "F3", guiUnits = " m/s")]
         private double verticalSpeed;
-
-        private double stablePowerSupply;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Maintenance Power Req", guiFormat = "F3", guiUnits = " m/s")]
         private double requiredExoticMaintenancePower;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Charge Power Draw", guiFormat = "F3", guiUnits = " m/s")]
+        private double chargePowerDraw;
+        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Charge Power Required", guiFormat = "F3", guiUnits = " m/s")]
+        private double maxChargePowerRequired;
+
         private double recievedExoticMaintenancePower;
         private double exoticMatterMaintenanceRatio;
         private double exoticMatterProduced;
         private double responseMultiplier;
+        private double stablePowerSupply;
 
         [KSPField(guiActive = true)]
         private double orbitMultiplier;
@@ -230,8 +235,6 @@ namespace FNPlugin
         private ModuleReactionWheel moduleReactionWheel;
         private ResourceBuffers resourceBuffers;
 
-        private Queue<double> averageGeeforce = new Queue<double>();
-
         private Texture2D warpWhiteFlash;
         private Texture2D warpRedFlash;
 
@@ -253,7 +256,7 @@ namespace FNPlugin
             insufficientPowerTimeout = maxPowerTimeout;
             IsCharging = true;
             holdAltitude = false;
-            antigravityPercentage = 200;
+            antigravityPercentage = 100;
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_stopChargingDrive", active = false)]
@@ -292,7 +295,7 @@ namespace FNPlugin
             double totalExoticMatterAvailable;
             part.GetConnectedResourceTotals(exoticResourceDefinition.id, out exoticMatterAvailable, out totalExoticMatterAvailable);
 
-            if (!CheatOptions.InfinitePropellant && exoticMatterAvailable < exotic_power_required)
+            if (!CheatOptions.InfinitePropellant && exoticMatterAvailable < exotic_power_required * 0.999 * 0.5)
             {
                 string message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpdriveIsNotFullyChargedForWarp");
                 Debug.Log("[KSPI]: " + message);
@@ -399,6 +402,9 @@ namespace FNPlugin
             warp_sound.Play();
             warp_sound.loop = true;
 
+            // prevent g-force effects for current and next frame
+            part.vessel.IgnoreGForces(2);
+
             warpInitialMainBody = vessel.mainBody;
             departureOrbit = new Orbit(vessel.orbit);
             departureVelocity = vessel.orbit.GetFrameVel();
@@ -440,7 +446,7 @@ namespace FNPlugin
             Vector3d reverse_warp_heading =  new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
 
             // prevent g-force effects for current and next frame
-            part.vessel.IgnoreGForces(9);
+            part.vessel.IgnoreGForces(2);
 
             // puts the ship back into a simulated orbit and reenables physics, is this still needed?
             if (!this.vessel.packed)
@@ -1278,12 +1284,8 @@ namespace FNPlugin
 
             GenerateAntiGravity();
 
-            averageGeeforce.Enqueue(vessel.geeForce);
-            if (averageGeeforce.Count > 10)
-                averageGeeforce.Dequeue();
-
             // maintenance power depend on vessel mass and experienced geeforce
-            requiredExoticMaintenancePower = exoticMatterRatio * vesselTotalMass * powerRequirementMultiplier * averageGeeforce.Average() * geeForceMaintenancePowerMultiplier; // vessel.gravityForPos.magnitude * 2 * 
+            requiredExoticMaintenancePower = exoticMatterRatio * exoticMatterRatio * vesselTotalMass * powerRequirementMultiplier * vessel.gravityForPos.magnitude * gravityMaintenancePowerMultiplier; // vessel.gravityForPos.magnitude * 2 * 
 
             var overheatingRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
@@ -1315,23 +1317,29 @@ namespace FNPlugin
                 //    return;
                 //}
 
-                var maxChargePowerRequired = ((antigravityPercentage * 0.005 * exotic_power_required) - currentExoticMatter) * 1000;
+                maxChargePowerRequired = ((antigravityPercentage * 0.005 * exotic_power_required) - currentExoticMatter) * 1000;
 
                 if (maxChargePowerRequired < 0)
                 {
                     exoticMatterProduced += maxChargePowerRequired;
+                    chargePowerDraw = 0;
                 }
                 else
                 {
-                    var powerDraw = CheatOptions.InfiniteElectricity
+                    stablePowerSupply = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                    chargePowerDraw = CheatOptions.InfiniteElectricity
                         ? maxChargePowerRequired
-                        : Math.Max(minPowerRequirementForLightSpeed, getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES));
+                        : Math.Min(maxChargePowerRequired, Math.Max(minPowerRequirementForLightSpeed, stablePowerSupply));
+
+                    var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+                    var effectiveResourceThrotling = resourceBarRatio > 0.5 ? 1 : resourceBarRatio * 2;
 
                     exoticMatterProduced = CheatOptions.InfiniteElectricity
-                        ? powerDraw
-                        : consumeFNResourcePerSecond(overheatModifier * powerDraw, ResourceManager.FNRESOURCE_MEGAJOULES);
+                        ? chargePowerDraw
+                        : consumeFNResourcePerSecond(overheatModifier * chargePowerDraw * effectiveResourceThrotling, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                    if (exoticMatterProduced < 0.99 * minPowerRequirementForLightSpeed)
+                    if (!CheatOptions.InfinitePropellant && stablePowerSupply < minPowerRequirementForLightSpeed)
                         insufficientPowerTimeout--;
                     else
                         insufficientPowerTimeout = maxPowerTimeout;
@@ -1359,9 +1367,9 @@ namespace FNPlugin
 
             if (!IsEnabled)
             {
-                if (currentExoticMatter < exotic_power_required)
+                if (currentExoticMatter < exotic_power_required * 0.999 * 0.5)
                 {
-                    var electricalCurrentPct = Math.Min(100, 100 * currentExoticMatter / exotic_power_required);
+                    var electricalCurrentPct = Math.Min(100, 100 * currentExoticMatter / (exotic_power_required * 0.5));
                     driveStatus = String.Format("Charging: ") + electricalCurrentPct.ToString("0.00") + String.Format("%");
                 }
                 else
