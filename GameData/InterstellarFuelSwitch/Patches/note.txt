@@ -11,3 +11,21 @@
 [ ] methalox ratio
 [x] cryo 3H decay to He
 [ ] gas 3H decay to He
+[ ] consistent dry mass
+
+stock has 1:8 rocket fuel mass ratio
+I think the tank mass should be between 1/2-1/4 of what it is in stock.
+Or balance the new mass so benchmark rocket would have same dV with kerlox as with stock.
+The benchmark rocket as 4563 vac dV.
+new: 4639
+
+Realism holes:
+  - tank plumbing can be rewired in flight
+    - but, docking port already connects all resources in the vessel
+  - the common bulkhead "moves" when shitching tanks in flight
+
+Specialized, tanks
+  - liquid tanks without insulation and liquifiers
+    - have higher mass ratio
+
+lfo 1:8 0.25t
