@@ -1,40 +1,48 @@
-[2] Mammoth - (huge 295-315, 4xvector) hydro
-[2] Rhino - (huge 205-340) kero, but real J-2 burn hydrolox
+[2] Mammoth - (huge 295-315, 4xvector) hydro(..)
+[2] Rhino - (huge 205-340) kero(335), but real J-2 burn hydrolox
 
-[2] Mainsail - (large 285-310) kero
-[2] Skipper - (large 280-320) kero (+?)
-[2] Poodle - (large 90-350) hydro,meth
-[2] Twin-Boar - (large 280-300) kero
+[3] Mainsail - (large 285-310) kero
+[3] Skipper - (large 280-320) kero (+?)
+[3] Poodle - (large 90-350) hydro(451),meth(362)
+[3] Twin-Boar - (large 280-300) kero
 
-[2] Dart - (aerospike 290-340) meth
+[3] Dart - (aerospike 290-340) meth(300-340)
 
-[f] Vector - (med 295-315) hydro,meth
-[2] Thud - (med 275-305) storable
-[2] Terrier - (med 85-345) hydro,meth
-[2] Reliant - (med 265-310) (meth,)kero
-[2] Swivel - (med 250-320) kero
-[2] Puff - (med 120-250) storable (+mono?)
+[f] Vector - (med 295-315) hydro(250-400),meth(295-335)
+[3] Thud - (med 275-305) storable
+[3] Terrier - (med 85-345) hydro(410),meth(344)
+[3] Reliant - (med 265-310) (meth,)kero
+[3] Swivel - (med 250-320) kero
+[3] Puff - (med 120-250) storable(300) (+mono?)
 
 [1] Twitch - (small 275-290) storable
-[2] Spark - (small 265-320) hydro,meth
-[2] Verner - (tiny, ?) - storable
+[3] Spark - (small 265-320) hydro(395),meth(320)
+[3] Verner - (tiny, 140-260) - storable(270-290)
 
-[2] Ant - (tiny 80-315) - storable (+mono?)
-[2] Spider - (tiny 260-290) - storable (+mono?)
-[2] RCS-1 - (tiny, ?) - mono (+storable?)
-[2] RCS-4 - (tiny, ?) - mono, storable
+[3] Ant - (tiny 80-315) - storable (+mono?)
+[3] Spider - (tiny 260-290) - storable (+mono?)
+[3] RCS-1 - (tiny, 240) - mono, storable(300)
+[3] RCS-4 - (tiny, 240) - mono, storable(300)
 
-[ ] All Jet Engines (x, 3000) patch them to Kerosene
-[ ] All Jet Engines (x, 3000) patch them to Methane
+[2] All Jet Engines (x, 3000) patch them to Kerosene
+[2] All Jet Engines (x, 3000) patch them to Methane
+[2] RAPIER (med, 275-305) - methalox(295-330)
 
 1. written
 2. works
-3. tweaked isp/trust
-4. working effects
+3. tweaked isp
+4. tweaked trust
+5. working effects
 f. part already has ModuleEnginesFX
 j. part uses ModuleEngines, but only one mode
 
+Survery of real engines (very approx):
+Kerolox:  300 336
+Methalox: 307 371
+Hydrolox: 333 450
+HydNitro: 270 310
 
+- The jets seem to use more air than previous. TODO
 
 From Mveed:
 -> Jet: (not sure) 
