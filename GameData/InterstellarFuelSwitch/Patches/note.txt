@@ -6,9 +6,9 @@
 [x] radioactive resources
 [ ] gas resources
 [x] cryostats
-[ ] NTO cryostat
-[ ] accurate cryo power
-[ ] methalox ratio
+[x] NTO cryostat
+[ ] accurate cryo parameters
+[x] methalox ratio
 [x] cryo 3H decay to He
 [ ] gas 3H decay to He
 [ ] consistent dry mass
@@ -29,5 +29,7 @@ Specialized, tanks
   - liquid tanks without insulation and liquifiers
     - have higher mass ratio
 
-Engine stats
-
+Tanks missing config (probably):
+Hex segments
+hex core
+  - do not forget to remove fuel jetisson (is in framework)
