@@ -42,7 +42,12 @@ Methalox: 307 371
 Hydrolox: 333 450
 HydNitro: 270 310
 
-- The jets seem to use more air than previous. TODO
+- The jets seem to use more air than previous. VERIFY
+- poodle effect wrong TODO
+- twinboar is missing a cryostat
+
+Might need to replace the Hydrazine/DNTO mixture with more storeable variant
+(aerozine50/IRFNA), because the DNTO boils at 21 C.
 
 From Mveed:
 -> Jet: (not sure) 
