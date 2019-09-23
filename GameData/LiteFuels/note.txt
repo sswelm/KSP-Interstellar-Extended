@@ -25,8 +25,10 @@
 [3] RCS-4 - (tiny, 240) - mono, storable(300)
 
 [2] All Jet Engines (x, 3000) patch them to Kerosene
-[2] All Jet Engines (x, 3000) patch them to Methane
+[ ] Methane Jet Engine ?
 [2] RAPIER (med, 275-305) - methalox(295-330)
+
+[ ] Integated RCS on Mk2 Capsule. (incl, tank and cryo)
 
 1. written
 2. works
