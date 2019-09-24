@@ -423,8 +423,8 @@ namespace FNPlugin.Microwave
             sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_atmosphericAbsorbtion") + ":</color>");
             foreach (var beamConfiguration in _inlineConfigurations)
             {
-                sb.Append("<size=10><color=#00ff00ff>" + beamConfiguration.beamWaveName + "</color>");
-                sb.Append(beamConfiguration.atmosphericAbsorptionPercentage + "%");
+                sb.Append("<size=10>" + ExtendWithSpace(beamConfiguration.atmosphericAbsorptionPercentage + "%", 4));
+                sb.Append("<color=#00ff00ff> " + beamConfiguration.beamWaveName + "</color>");                
                 sb.AppendLine("</size>");
             }
 
@@ -448,6 +448,21 @@ namespace FNPlugin.Microwave
         private string DisplayBoolean(bool value)
         {
             return value ? "<color=green>Ѵ</color>" : "<color=red>X</color>";
+        }
+
+        private string ExtendWithSpace(string input, int targetlength)
+        {
+            return input + AddSpaces(targetlength - input.Length);
+        }
+
+        private string AddSpaces(int length)
+        {
+            string result = "";
+            for (int i = 0; i < length; i++)
+            {
+                result += " ";
+            }
+            return result;
         }
     }
 }
