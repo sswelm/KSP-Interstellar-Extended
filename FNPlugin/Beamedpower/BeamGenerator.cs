@@ -219,12 +219,21 @@ namespace FNPlugin.Microwave
             var chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
 
             var names = BeamConfigurations.Select(m => m.beamWaveName).ToArray();
-            chooseOptionEditor.options = names;
-            chooseOptionFlight.options = names;
+
+            if (chooseOptionEditor != null)
+                chooseOptionEditor.options = names;
+
+            if (chooseOptionFlight != null)
+                chooseOptionFlight.options = names;
 
             if (wavelength != 0)
             {
-                activeConfiguration = BeamConfigurations.SingleOrDefault(m => m.wavelength == wavelength);
+                // find first wavelength with equal or shorter wavelength
+                activeConfiguration = BeamConfigurations.FirstOrDefault(m => m.wavelength <= wavelength);
+
+                if (activeConfiguration == null)
+                    activeConfiguration = selectedBeamConfiguration < BeamConfigurations.Count ? BeamConfigurations[selectedBeamConfiguration] : BeamConfigurations.FirstOrDefault();
+
                 if (activeConfiguration != null)
                     selectedBeamConfiguration = BeamConfigurations.IndexOf(activeConfiguration);
             }
@@ -332,11 +341,11 @@ namespace FNPlugin.Microwave
             {
                 var configWaveLengthDifference = Math.Abs(currentWavelength - currentConfig.wavelength);
 
-	            if (!(configWaveLengthDifference < lowestWavelengthDifference)) continue;
+                if (!(configWaveLengthDifference < lowestWavelengthDifference)) continue;
 
-	            activeConfiguration = currentConfig;
-	            lowestWavelengthDifference = configWaveLengthDifference;
-	            selectedBeamConfiguration = BeamConfigurations.IndexOf(currentConfig);
+                activeConfiguration = currentConfig;
+                lowestWavelengthDifference = configWaveLengthDifference;
+                selectedBeamConfiguration = BeamConfigurations.IndexOf(currentConfig);
             }
         }
 
@@ -356,12 +365,12 @@ namespace FNPlugin.Microwave
         {
             beamConfigurationNodes =  node.GetNodes("BeamConfiguration");
 
-            if (beamConfigurationNodes.Count() > 0)
+            if (beamConfigurationNodes.Any())
             {
                 Debug.Log("[KSPI]: OnLoad Found " + beamConfigurationNodes.Count() + " BeamConfigurations");
             }
 
-            _inlineConfigurations = new  List<BeamConfiguration>();
+            var inlineConfigurations = new  List<BeamConfiguration>();
 
             foreach (var beamConfigurationNode in beamConfigurationNodes)
             {
@@ -382,15 +391,19 @@ namespace FNPlugin.Microwave
                     efficiencyPercentage3 = beamConfigurationNode.HasValue("efficiencyPercentage3")? double.Parse(beamConfigurationNode.GetValue("efficiencyPercentage3")): 0
                 };
 
-                _inlineConfigurations.Add(beamConfiguration);
+                inlineConfigurations.Add(beamConfiguration);
             }
+
+            _inlineConfigurations = inlineConfigurations.OrderByDescending(m => m.wavelength).ToList();
         }
 
         public override string GetInfo()
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("<size=10>Type: " + beamTypeName);
+            sb.Append("<size=10>");
+            sb.AppendLine("Type: " + beamTypeName);
+            sb.AppendLine("Can Switch In Flight: " + DisplayBoolean(canSwitchWavelengthInFlight));
             sb.AppendLine("</size>");
 
             if (!string.IsNullOrEmpty(techLevelMk2))
@@ -405,12 +418,21 @@ namespace FNPlugin.Microwave
                 sb.AppendLine("");
             }
 
-	        if (_inlineConfigurations.Count <= 0) return sb.ToString();
+            if (_inlineConfigurations.Count <= 0) return sb.ToString();
 
+            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_atmosphericAbsorbtion") + ":</color>");
+            foreach (var beamConfiguration in _inlineConfigurations)
+            {
+                sb.Append("<size=10><color=#00ff00ff>" + beamConfiguration.beamWaveName + "</color>");
+                sb.Append(beamConfiguration.atmosphericAbsorptionPercentage + "%");
+                sb.AppendLine("</size>");
+            }
+
+            sb.AppendLine("");
             sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_beamEfficiencies") + ":</color>");
 
-	        foreach (var beamConfiguration in _inlineConfigurations)
-	        {
+            foreach (var beamConfiguration in _inlineConfigurations)
+            {
                 sb.AppendLine("<size=10><color=#00ff00ff>" + beamConfiguration.beamWaveName + "</color> <color=#00e600ff>(" + WavelenthToText(beamConfiguration.wavelength) + ")</color>");
                 sb.Append("  ");
                 if (beamConfiguration.efficiencyPercentage0 > 0) sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement0) + "Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement0) + ":</color> " + beamConfiguration.efficiencyPercentage0 + "% ");
@@ -418,9 +440,14 @@ namespace FNPlugin.Microwave
                 if (beamConfiguration.efficiencyPercentage2 > 0) sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement2) + "Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement2) + ":</color> " + beamConfiguration.efficiencyPercentage2 + "% ");
                 if (beamConfiguration.efficiencyPercentage3 > 0) sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement3) + "Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement3) + ":</color> " + beamConfiguration.efficiencyPercentage3 + "% ");
                 sb.AppendLine("</size>");
-	        }
+            }
 
-	        return sb.ToString();
+            return sb.ToString();
+        }
+
+        private string DisplayBoolean(bool value)
+        {
+            return value ? "<color=green>Ѵ</color>" : "<color=red>X</color>";
         }
     }
 }
