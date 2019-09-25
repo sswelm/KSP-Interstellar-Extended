@@ -70,6 +70,10 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double neutronbsorbionBonus;
 
+
+        [KSPField(isPersistant = true, guiName = "Use MJ Battery"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool useMegajouleBattery = false;
+
         [KSPField(guiActive = false, guiName = "Fusion Ratio", guiFormat = "F2")]
         public double fusionRatio;
         [KSPField(guiActive = true, guiName = "Power Requirement", guiFormat = "F2", guiUnits = " MW")]
@@ -218,7 +222,8 @@ namespace FNPlugin
         {
             get
             {
-                return PowerRequirementMaximum * powerRequirementMultiplier * throttle;
+                enginePowerRequirement = PowerRequirementMaximum*powerRequirementMultiplier * throttle;
+                return enginePowerRequirement;
             }
         }
 
@@ -553,12 +558,14 @@ namespace FNPlugin
             if (throttle > 0 )
             {
                 // Calculate Fusion Ratio
-                enginePowerRequirement = CurrentPowerRequirement;
-                var requestedPowerPerSecond = enginePowerRequirement;
+                var requestedPowerPerSecond = CurrentPowerRequirement;
 
-                var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                var availablePower = useMegajouleBattery 
+                    ? getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES) 
+                    : getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
                 var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-                var effectivePowerThrotling = resourceBarRatio > ResourceManager.ONE_THIRD ? 1 : resourceBarRatio * 3;
+                var effectivePowerThrotling = useMegajouleBattery ? 1 : resourceBarRatio > 0.1 ? 1 : resourceBarRatio * 10;
 
                 var requestedPower = Math.Min(requestedPowerPerSecond, availablePower * effectivePowerThrotling);
 
@@ -571,7 +578,7 @@ namespace FNPlugin
                 laserWasteheat = recievedPowerPerSecond * (1 - LaserEfficiency);
 
                 // Lasers produce Wasteheat
-                if (!CheatOptions.IgnoreMaxTemperature)
+                if (!CheatOptions.IgnoreMaxTemperature && laserWasteheat > 0)
                     supplyFNResourcePerSecond(laserWasteheat, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // The Aborbed wasteheat from Fusion
@@ -592,7 +599,7 @@ namespace FNPlugin
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.maxThrust = (float)maximumThrust;
 
-                if (!curEngineT.getFlameoutState && fusionRatio < 0.75 && recievedPowerPerSecond > 0)
+                if (!curEngineT.getFlameoutState && fusionRatio < 0.9 && recievedPowerPerSecond > 0)
                     curEngineT.status = "Insufficient Electricity";
             }
             else

@@ -72,15 +72,15 @@ namespace FNPlugin
         public float maxThrustUpgraded4 = 1200;
 
         [KSPField]
-        public double efficiency = 0.19;
+        public double efficiency = 1;
         [KSPField]
-        public double efficiencyUpgraded1 = 0.25;
+        public double efficiencyUpgraded1 = 1;
         [KSPField]
-        public double efficiencyUpgraded2 = 0.44;
+        public double efficiencyUpgraded2 = 1;
         [KSPField]
-        public double efficiencyUpgraded3 = 0.65;
+        public double efficiencyUpgraded3 = 1;
         [KSPField]
-        public double efficiencyUpgraded4 = 0.76;
+        public double efficiencyUpgraded4 = 1;
 
         // Use for SETI Mode
         [KSPField]
