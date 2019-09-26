@@ -131,33 +131,21 @@ namespace FNPlugin.Wasteheat
         private double _maxEnergyTransfer;
         [KSPField(guiActiveEditor = true, guiName = "Max Radiator Temperature", guiFormat = "F0")]
         public float maxRadiatorTemperature = maximumRadiatorTempInSpace;
-        [KSPField(guiName = "Upgrade Techs")]
-        public int nrAvailableUpgradeTechs;
-        [KSPField(guiName = "Has Surface Upgrade")]
-        public bool hasSurfaceAreaUpgradeTechReq;
-        [KSPField]
-        public float atmosphereToleranceModifier = 1;
-        [KSPField]
-        public double atmosphericMultiplier;
-        [KSPField]
-        public double externalTemperature;
-        [KSPField(guiName = "Effective Tempererature")]
-        public float displayTemperature;
-        [KSPField(guiName = "Color Ratio")]
-        public float colorRatio;
-        [KSPField]
-        public double deltaTemp;
-        [KSPField]
-        public double verticalSpeed;
-        [KSPField]
-        public double spaceRadiatorModifier;
-        [KSPField]
-        public double combinedPresure;
-        [KSPField]
-        public double oxidationModifier;
 
-        [KSPField(guiActive = true)] public double temperatureDifference;
-        [KSPField(guiActive = true)] public double submergedModifier;
+        [KSPField] public int nrAvailableUpgradeTechs;
+        [KSPField] public bool hasSurfaceAreaUpgradeTechReq;
+        [KSPField] public float atmosphereToleranceModifier = 1;
+        [KSPField] public double atmosphericMultiplier;
+        [KSPField] public double externalTemperature;
+        [KSPField] public float displayTemperature;
+        [KSPField] public float colorRatio;
+        [KSPField] public double deltaTemp;
+        [KSPField] public double verticalSpeed;
+        [KSPField] public double spaceRadiatorModifier;
+        [KSPField] public double combinedPresure;
+        [KSPField] public double oxidationModifier;
+        [KSPField] public double temperatureDifference;
+        [KSPField] public double submergedModifier;
 
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
