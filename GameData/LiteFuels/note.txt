@@ -1,3 +1,20 @@
+LiteFuels KSP mod
+=================
+
+(working name)
+
+Set of MM patches to change Fuel mixture that the stock KSP engines and RCS
+use. The fuel engine overview is laid out below. Please remember that this mod
+is not finished.
+
+Installation:
+
+Drop the LiteFuels folder into your GameData folder. The repository contains
+more folders, but thoose are not part of LiteFuels mod.
+
+Engine Overview
+---------------
+
 [2] Mammoth - (huge 295-315, 4xvector) hydro(..)
 [2] Rhino - (huge 205-340) kero(335), but real J-2 burn hydrolox
 
@@ -44,6 +61,9 @@ Methalox: 307 371
 Hydrolox: 333 450
 HydNitro: 270 310
 
+Notes
+-----
+
 - The jets seem to use more air than previous. VERIFY
 - poodle effect wrong TODO
 - twinboar is missing a cryostat
@@ -54,7 +74,9 @@ HydNitro: 270 310
 Might need to replace the Hydrazine/DNTO mixture with more storeable variant
 (aerozine50/IRFNA), because the DNTO boils at 21 C.
 
-From Mveed:
+From Mveed
+----------
+
 -> Jet: (not sure) 
 Wheesley: 
 Whiplash: 
