@@ -156,6 +156,9 @@ namespace FNPlugin.Wasteheat
         [KSPField]
         public double oxidationModifier;
 
+        [KSPField(guiActive = true)] public double temperatureDifference;
+        [KSPField(guiActive = true)] public double submergedModifier;
+
         const string kspShaderLocation = "KSP/Emissive/Bumped Specular";
         const int RADIATOR_DELAY = 20;
         const int DEPLOYMENT_DELAY = 6;
@@ -920,9 +923,9 @@ namespace FNPlugin.Wasteheat
                 {
                     atmosphere_modifier = vessel.atmDensity * convectiveBonus + vessel.speed.Sqrt();
 
-                    var heatTransferCooficient = 0.0005; // 500W/m2/K
-                    var temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - vessel.externalTemperature);
-                    var submergedModifier = Math.Max(part.submergedPortion * 10, 1);
+                    const double heatTransferCooficient = 0.0005; // 500W/m2/K
+                    temperatureDifference = Math.Max(0, CurrentRadiatorTemperature - vessel.externalTemperature);
+                    submergedModifier = Math.Max(part.submergedPortion * 10, 1);
 
                     var convPowerDissip = wasteheatManager.RadiatorEfficiency * atmosphere_modifier * temperatureDifference * effectiveRadiatorArea * heatTransferCooficient * submergedModifier;
 
@@ -936,6 +939,8 @@ namespace FNPlugin.Wasteheat
                 }
                 else
                 {
+                    submergedModifier = 0;
+                    temperatureDifference = 0;
                     convectedThermalPower = 0;
 
                     if (radiatorIsEnabled || !isAutomated || !canRadiateHeat || !showControls || radiator_deploy_delay < DEPLOYMENT_DELAY) return;
@@ -1031,7 +1036,7 @@ namespace FNPlugin.Wasteheat
             }
         }
 
-	    private double GetAverateRadiatorTemperature()
+        private double GetAverateRadiatorTemperature()
         {
             return Math.Max(externalTempQueue.Count > 0 ? externalTempQueue.Average() : Math.Max(PhysicsGlobals.SpaceTemperature, vessel.externalTemperature), radTempQueue.Count > 0 ? radTempQueue.Average() : currentRadTemp);
         }
