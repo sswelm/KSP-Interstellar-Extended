@@ -250,6 +250,7 @@ namespace FNPlugin
         public bool maintainResourceBuffers = true;
 
         //GUI
+
         [KSPField(isPersistant = true, guiActive = true, guiName = "Reception"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 0)]
         public float receiptPower = 100;
         [KSPField(guiActive = false, guiName = "Core Temperature")]
@@ -264,18 +265,21 @@ namespace FNPlugin
         public string networkDepthString;
         [KSPField(guiActive = false, guiName = "Connected Slaves")]
         public int slavesAmount;
-        [KSPField(guiActive = false, guiName = "Slaves Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiName = "Slaves Power", guiUnits = " MW", guiFormat = "F3")]
         public double slavesPower;
         [KSPField(guiActive = false, guiName = "Available Thermal Power", guiUnits = " MW", guiFormat = "F2")]
         public double total_thermal_power_available;
         [KSPField(guiActive = false, guiName = "Thermal Power Supply", guiUnits = " MW", guiFormat = "F2")]
         public double total_thermal_power_provided;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F3")]
         public double maximumPower = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F3")]
         public double maximumElectricPower = 0;
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Maximum Thermal Power", guiUnits = " MW", guiFormat = "F3")]
         public double maximumThermalPower = 0;
+
+        [KSPField(guiActive = false, guiName = "Dissipation", guiUnits = " MW", guiFormat = "F3")]
+        public double dissipationInMegaJoules;
         [KSPField(guiActive = false, guiName = "Sun Facing Factor", guiFormat = "F4")]
         public double solarFacingFactor;
         [KSPField(guiActive = false, guiName = "Solar Flux", guiFormat = "F4")]
@@ -975,6 +979,9 @@ namespace FNPlugin
             isInSolarModeField.guiActive = deployableSolarPanel != null;
             isInSolarModeField.guiActiveEditor = deployableSolarPanel != null;
 
+            var dissipationInMegaJoulesField = Fields["dissipationInMegaJoules"];
+            dissipationInMegaJoulesField.guiActive = isMirror;
+
             if (deployableSolarPanel == null)
                 solarPowerMode = false;
 
@@ -1639,6 +1646,14 @@ namespace FNPlugin
 
             CalculateThermalSolarPower();
 
+            if (isMirror)
+            {
+                var thermalMassPerKilogram = part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
+                dissipationInMegaJoules = GetBlackBodyDissipation(solarReceptionSurfaceArea, part.temperature) * 1e-6; ;
+                var temperatureChange = fixedDeltaTime * -(dissipationInMegaJoules / thermalMassPerKilogram);
+                part.temperature = part.temperature + temperatureChange;
+            }
+
             if (initializationCountdown > 0)
             {
                 initializationCountdown--;
@@ -1718,7 +1733,7 @@ namespace FNPlugin
                                 var supply_ratio = (double)powerGeneratedResult.currentSupply / total_thermal_power_provided;
                                 var final_thermal_wasteheat = (double)powerGeneratedResult.currentSupply + supply_ratio * total_conversion_waste_heat_production;
 
-                                supplyFNResourcePerSecondWithMax(final_thermal_wasteheat, total_beamed_power_max, ResourceManager.FNRESOURCE_WASTEHEAT);
+                                supplyFNResourcePerSecondWithMax(final_thermal_wasteheat, total_beamed_power_max + thermalSolarInputMegajoulesMax, ResourceManager.FNRESOURCE_WASTEHEAT);
                             }
 
                             thermal_power_ratio = total_thermal_power_available > 0 ? (double)powerGeneratedResult.currentSupply / total_thermal_power_available : 0;
@@ -2041,6 +2056,11 @@ namespace FNPlugin
             thermalSolarInputMegajoulesMax = solarReceptionSurfaceArea * (solarFlux / 1e+6) * solarReceptionEfficiency;
             solarFacingFactor = Math.Pow(GetSolarFacingFactor(localStar, part.WCoM), solarFacingExponent);
             thermalSolarInputMegajoules = thermalSolarInputMegajoulesMax * solarFacingFactor;
+        }
+
+        private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)
+        {
+            return surfaceArea * PhysicsGlobals.StefanBoltzmanConstant * temperatureDelta * temperatureDelta * temperatureDelta * temperatureDelta;
         }
 
         private void AddAlternatorPower()
