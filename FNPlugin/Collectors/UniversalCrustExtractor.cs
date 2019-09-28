@@ -206,6 +206,8 @@ namespace FNPlugin.Collectors
             if (StartupSetup(state))
             {
                 // force activate this part if not in editor; otherwise the OnFixedUpdate etc. would not work
+
+                Debug.Log("[KSPI]: UniversalCrustExtractor on " + part.name + " was Force Activated");
                 this.part.force_activate();
 
                 // create the id for the GUI window

@@ -2,6 +2,7 @@
 using FNPlugin.Resources;
 using System;
 using System.Linq;
+using UnityEngine;
 
 namespace FNPlugin 
 {
@@ -111,6 +112,7 @@ namespace FNPlugin
 
             if (state == StartState.Editor)  return;
 
+            Debug.Log("[KSPI]: ISRUScoop on " + part.name + " was Force Activated");
             this.part.force_activate();
 
             // verify if body has atmosphere at all

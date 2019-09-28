@@ -107,12 +107,17 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool forceActivateAtStartup = false;
 
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true)]
         protected double total_beamed_power = 0;
-        [KSPField(isPersistant = true)]
+
+        [KSPField(isPersistant = true, guiActive = true)]
         protected double total_beamed_power_max = 0;
-        [KSPField(isPersistant = true)]
+        [KSPField(isPersistant = true, guiActive = true)]
         protected double total_beamed_wasteheat = 0;
+        [KSPField(guiActive = true)]
+        public double thermalSolarInputMegajoules = 0;
+        [KSPField(guiActive = true)]
+        public double thermalSolarInputMegajoulesMax = 0;
 
         //Persistent False
         [KSPField]
@@ -494,8 +499,8 @@ namespace FNPlugin
         {
             get
             {
-                var maxPower = thermalMode && maximumThermalPower > 0 
-                    ? maximumThermalPower 
+                var maxPower = thermalMode && maximumThermalPower > 0
+                    ? Math.Min(maximumThermalPower, powerInputMegajoulesMax)
                     : maximumElectricPower > 0 
                         ? maximumElectricPower 
                         : maximumPower;
@@ -630,8 +635,6 @@ namespace FNPlugin
         protected int connectedrelaysi = 0;
         protected int networkDepth = 0;
         protected long deactivate_timer = 0;
-        protected double thermalSolarInputMegajoules = 0;
-        protected double thermalSolarInputMegajoulesMax = 0;
 
         protected bool has_transmitter = false;
 
@@ -710,8 +713,7 @@ namespace FNPlugin
             receiverIsEnabled = true;
 
             // force activate to trigger any fairings and generators
-
-            Debug.Log("MicrowaveReceiver Force Activate ");
+            Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
             this.part.force_activate();
             forceActivateAtStartup = true;
 
@@ -1007,7 +1009,10 @@ namespace FNPlugin
             initializationCountdown = 10;
 
             if (forceActivateAtStartup)
+            {
+                UnityEngine.Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
                 part.force_activate();
+            }
 
             if (isThermalReceiverSlave)
             {

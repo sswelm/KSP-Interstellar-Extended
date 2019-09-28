@@ -1225,7 +1225,7 @@ namespace FNPlugin.Reactors
         [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_Reactor_activateReactor", active = false)]
         public void ActivateReactor()
         {
-            Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated by user");
+            Debug.Log("[KSPI]: InterstellarReactor on " + part.name + " was Force Activated");
             this.part.force_activate();
             
             Events["ActivateReactor"].guiActive = false;
@@ -1479,7 +1479,7 @@ namespace FNPlugin.Reactors
 
             if (IsEnabled && myAttachedEngine == null)
             {
-                Debug.Log("[KSPI]: Reactor on " + part.name + " was Force Activated by system");
+                Debug.Log("[KSPI]: InterstellarReactor on " + part.name + " was Force Activated");
                 this.part.force_activate();
                 
                 Fields["heatTransportationEfficiency"].guiActiveEditor = true;

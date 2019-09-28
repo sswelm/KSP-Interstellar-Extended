@@ -109,6 +109,7 @@ namespace FNPlugin
                 return;
             }
 
+            UnityEngine.Debug.Log("[KSPI]: ComputerCore on " + part.name + " was Force Activated");
             this.part.force_activate();
 
             _moduleDataTransmitter = part.FindModuleImplementing<ModuleDataTransmitter>();

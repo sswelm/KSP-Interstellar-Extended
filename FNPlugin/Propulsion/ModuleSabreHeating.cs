@@ -44,12 +44,14 @@ namespace FNPlugin
             if (rapier_engine != null && rapier_engine.isOperational && !IsEnabled)
             {
                 IsEnabled = true;
+                UnityEngine.Debug.Log("[KSPI]: ModuleSableHeating on " + part.name + " was Force Activated");
                 part.force_activate();
             }
 
             if (rapier_engine2 != null && rapier_engine2.isOperational && !IsEnabled)
             {
                 IsEnabled = true;
+                UnityEngine.Debug.Log("[KSPI]: ModuleSableHeating on " + part.name + " was Force Activated");
                 part.force_activate();
             }
         }

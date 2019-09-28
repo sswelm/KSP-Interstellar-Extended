@@ -309,6 +309,7 @@ namespace FNPlugin
             reprocessor.Initialize(part);
             antimatterGenerator = new AntimatterGenerator(part, 1, PartResourceLibrary.Instance.GetDefinition(InterstellarResourcesConfiguration.Instance.Antimatter));
 
+            UnityEngine.Debug.Log("[KSPI]: ScienceModule on " + part.name + " was Force Activated");
             part.force_activate();
 
             anim = part.FindModelAnimators(animName1).FirstOrDefault();

@@ -493,6 +493,7 @@ namespace PhotonSail
             if (state == StartState.None || state == StartState.Editor)
                 return;
 
+            UnityEngine.Debug.Log("[KSPI]: ModulePhotonSail on " + part.name + " was Force Activated");
             this.part.force_activate();
 
             CreateBeamArray();

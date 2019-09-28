@@ -1026,6 +1026,7 @@ namespace FNPlugin
                 if (myAttachedEngine.isOperational && !IsEnabled)
                 {
                     IsEnabled = true;
+                    UnityEngine.Debug.Log("[KSPI]: ThermalNozzle on " + part.name + " was Force Activated");
                     part.force_activate();
                 }
 

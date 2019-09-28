@@ -67,7 +67,9 @@ namespace FNPlugin
 
             homeworld = FlightGlobals.fetch.bodies.First(m => m.isHomeWorld == true);
 
+            UnityEngine.Debug.Log("[KSPI]: DTMagnetometer on " + part.name + " was Force Activated");
             this.part.force_activate();
+
             anim = part.FindModelAnimators (animName).FirstOrDefault ();
 
             if (anim == null) return;

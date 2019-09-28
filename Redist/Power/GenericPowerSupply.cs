@@ -28,6 +28,7 @@
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig("ElectricCharge", 1000));
             resourceBuffers.Init(this.part);
 
+            UnityEngine.Debug.Log("[KSPI]: GenericPowerSupply on " + part.name + " was Force Activated");
             this.part.force_activate();
         }
 

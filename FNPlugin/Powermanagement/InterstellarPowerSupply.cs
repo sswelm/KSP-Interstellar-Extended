@@ -1,5 +1,6 @@
 ﻿using System;
 using FNPlugin.Extensions;
+using UnityEngine;
 
 namespace FNPlugin.Power
 {
@@ -41,6 +42,7 @@ namespace FNPlugin.Power
             resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE, 1000));
             resourceBuffers.Init(this.part);
 
+            Debug.Log("[KSPI]: PowerSupply on " + part.name + " was Force Activated");
             this.part.force_activate();
         }
 

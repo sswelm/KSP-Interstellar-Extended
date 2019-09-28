@@ -117,6 +117,7 @@ namespace FNPlugin
             if (IsForceActivated || !isEnabled || !isOperational) return;
 
             IsForceActivated = true;
+            UnityEngine.Debug.Log("[KSPI]: ModuleEngineWarp on " + part.name + " was Force Activated");
             part.force_activate();
         }
 

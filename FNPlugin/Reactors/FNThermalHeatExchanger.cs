@@ -237,6 +237,8 @@ namespace FNPlugin.Reactors
             base.OnStart(state);
 
             if (state == StartState.Editor) { return; }
+
+            UnityEngine.Debug.Log("[KSPI]: FNThermalHeatExchanger on " + part.name + " was Force Activated");
             this.part.force_activate();
 
             setupThermalPower();

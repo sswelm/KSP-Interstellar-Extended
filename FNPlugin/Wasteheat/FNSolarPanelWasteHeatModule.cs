@@ -36,7 +36,6 @@ namespace FNPlugin
         public float efficiencyMult;
         [KSPField]
         public double _efficMult;
-
         [KSPField]
         public double sunAOA;
         [KSPField]
@@ -50,7 +49,7 @@ namespace FNPlugin
         ModuleDeployableSolarPanel _solarPanel;
         ResourceBuffers _resourceBuffers;
         ResourceType _outputType = 0;
-        List<StarLight> _stars;        
+        List<StarLight> _stars;
       
         public double SolarPower
         {
@@ -72,7 +71,11 @@ namespace FNPlugin
             _solarPanel = (ModuleDeployableSolarPanel)this.part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (_solarPanel == null) return;
 
-            part.force_activate();
+            if (this.part.FindModuleImplementing<ModuleJettison>() == null)
+            {
+                UnityEngine.Debug.Log("[KSPI]: FNSolarPanelWasteHeatModule Force Activated  " + part.name);
+                part.force_activate();
+            }
 
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;

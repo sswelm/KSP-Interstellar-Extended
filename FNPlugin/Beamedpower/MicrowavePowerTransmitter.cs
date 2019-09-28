@@ -105,6 +105,8 @@ namespace FNPlugin.Beamedpower
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
         public string beamedpower;
+        [KSPField(isPersistant = false, guiActive = true)]
+        public double availablePower;
 
         [KSPField]
         public bool canBeActive;
@@ -178,6 +180,8 @@ namespace FNPlugin.Beamedpower
         {
             if (relay) return;
 
+
+            Debug.Log("[KSPI]: BeamedPowerTransmitter on " + part.name + " was Force Activated");
             this.part.force_activate();
             forceActivateAtStartup = true;
 
@@ -368,7 +372,10 @@ namespace FNPlugin.Beamedpower
             }
 
             if (forceActivateAtStartup)
+            {
+                Debug.Log("[KSPI]: BeamedPowerTransmitter on " + part.name + " was Force Activated");
                 this.part.force_activate();
+            }
         }
 
         /// <summary>
@@ -590,18 +597,18 @@ namespace FNPlugin.Beamedpower
 
                 double requestedPower;
 
+                availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
                 if (CheatOptions.InfiniteElectricity)
                 {
                     requestedPower = power_capacity;
                 }
                 else
                 {
-                    var availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
- 
                     var megajoulesRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
                     var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                    var effectiveResourceThrotling = Math.Min(megajoulesRatio > 0.2 ? 1 : megajoulesRatio * 5, wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10);
+                    var effectiveResourceThrotling = Math.Min(megajoulesRatio > 0.5 ? 1 : megajoulesRatio * 2, wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10);
 
                     requestedPower = Math.Min(Math.Min(power_capacity, availablePower) * powerTransmissionRatio, effectiveResourceThrotling * availablePower);
                 }

@@ -118,6 +118,7 @@ namespace FNPlugin.Collectors
         {
             if (state == StartState.Editor) return; // collecting won't work in editor
 
+            Debug.Log("[KSPI]: RegolithCollector on " + part.name + " was Force Activated");
             this.part.force_activate();
 
             localStar = GetCurrentStar();

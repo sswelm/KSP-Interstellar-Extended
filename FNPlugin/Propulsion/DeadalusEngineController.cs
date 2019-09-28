@@ -797,6 +797,7 @@ namespace FNPlugin
             if (curEngineT.isOperational && !IsEnabled)
             {
                 IsEnabled = true;
+                UnityEngine.Debug.Log("[KSPI]: DeadalusEngineController on " + part.name + " was Force Activated");
                 part.force_activate();
             }
 

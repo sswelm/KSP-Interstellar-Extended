@@ -837,7 +837,9 @@ namespace FNPlugin
                     }
                 }
 
+                Debug.Log("[KSPI]: AlcubiereDrive on " + part.name + " was Force Activated");
                 this.part.force_activate();
+
                 if (serialisedwarpvector != null)
                     heading_act = ConfigNode.ParseVector3D(serialisedwarpvector);
 
