@@ -1411,7 +1411,7 @@ namespace FNPlugin
             if (isLimitedByMinThrotle)
                 return result;
 
-            if (attachedPowerSource != null && attachedPowerSource.Part != null)
+            if (attachedPowerSource != null && attachedPowerSource.Part != null && result != attachedPowerSource.Part.partInfo.title)
                 result += " (" + attachedPowerSource.Part.partInfo.title + ")";
             return result;
         }

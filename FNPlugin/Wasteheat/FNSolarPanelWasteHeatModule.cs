@@ -50,6 +50,9 @@ namespace FNPlugin
         ResourceBuffers _resourceBuffers;
         ResourceType _outputType = 0;
         List<StarLight> _stars;
+
+        BaseField megaJouleSolarPowerSupplyField;
+        BaseField solarMaxSupplyField;
       
         public double SolarPower
         {
@@ -61,6 +64,9 @@ namespace FNPlugin
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) return;
+
+            megaJouleSolarPowerSupplyField = Fields["megaJouleSolarPowerSupply"];
+            solarMaxSupplyField = Fields["solarMaxSupply"];
 
             // calculate Astronomical unit on homeworld semiMajorAxis when missing
             if (astronomicalUnit == 0)
@@ -128,6 +134,15 @@ namespace FNPlugin
         public override int getPowerPriority()
         {
             return 1;
+        }
+
+        public override void OnUpdate()
+        {
+            if (megaJouleSolarPowerSupplyField != null)
+                megaJouleSolarPowerSupplyField.guiActive = solarMaxSupply > 0;
+
+            if (solarMaxSupplyField != null)
+                solarMaxSupplyField.guiActive = solarMaxSupply > 0;
         }
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)

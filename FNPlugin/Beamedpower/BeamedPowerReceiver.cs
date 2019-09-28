@@ -90,7 +90,7 @@ namespace FNPlugin
         public bool linkedForRelay;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Mode"), UI_Toggle(disabledText = "Electric", enabledText = "Thermal")]
         public bool thermalMode = false;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Function"), UI_Toggle(disabledText = "Beamed Power", enabledText = "Radiator")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "Function"), UI_Toggle(disabledText = "Beamed Power", enabledText = "Radiator")]
         public bool radiatorMode = false;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Mode"), UI_Toggle(disabledText = "Beamed Power", enabledText = "Solar Only")]
         public bool solarPowerMode = true;
@@ -107,16 +107,15 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool forceActivateAtStartup = false;
 
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         protected double total_beamed_power = 0;
-
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         protected double total_beamed_power_max = 0;
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         protected double total_beamed_wasteheat = 0;
-        [KSPField(guiActive = true)]
+        [KSPField(isPersistant = true)]
         public double thermalSolarInputMegajoules = 0;
-        [KSPField(guiActive = true)]
+        [KSPField(isPersistant = true)]
         public double thermalSolarInputMegajoulesMax = 0;
 
         //Persistent False
@@ -153,6 +152,8 @@ namespace FNPlugin
         public double spotsizeNormalizationExponent = 1;
         [KSPField]
         public bool canLinkup = true;
+        [KSPField]
+        public bool isMirror = false;
 
         [KSPField]
         public double solarReceptionEfficiency = 0;
@@ -255,15 +256,15 @@ namespace FNPlugin
         public string coreTempererature;
         [KSPField(guiActive = true, guiName = "Produced Power")]
         public string beamedpower;
-        [KSPField(guiActive = true, guiName = "Satellites Connected")]
+        [KSPField(guiActive = false, guiName = "Satellites Connected")]
         public string connectedsats;
-        [KSPField(guiActive = true, guiName = "Relays Connected")]
+        [KSPField(guiActive = false, guiName = "Relays Connected")]
         public string connectedrelays;
-        [KSPField(guiActive = true, guiName = "Network Depth")]
+        [KSPField(guiActive = false, guiName = "Network Depth")]
         public string networkDepthString;
-        [KSPField(guiActive = true, guiName = "Connected Slaves")]
+        [KSPField(guiActive = false, guiName = "Connected Slaves")]
         public int slavesAmount;
-        [KSPField(guiActive = true, guiName = "Slaves Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiName = "Slaves Power", guiUnits = " MW", guiFormat = "F2")]
         public double slavesPower;
         [KSPField(guiActive = false, guiName = "Available Thermal Power", guiUnits = " MW", guiFormat = "F2")]
         public double total_thermal_power_available;
@@ -312,6 +313,10 @@ namespace FNPlugin
         protected BaseField _solarFluxField;
         protected BaseField _coreTempereratureField;
         protected BaseField _field_kerbalism_output;
+
+        protected BaseField _connectedsatsField;
+        protected BaseField _connectedrelaysField;
+        protected BaseField _networkDepthStringField;
 
         protected BaseEvent _linkReceiverBaseEvent;
         protected BaseEvent _unlinkReceiverBaseEvent;
@@ -973,28 +978,31 @@ namespace FNPlugin
             if (deployableSolarPanel == null)
                 solarPowerMode = false;
 
-            fnRadiator = part.FindModuleImplementing<FNRadiator>();
-            if (fnRadiator != null)
+            if (!isMirror)
             {
-                if (fnRadiator.isDeployable)
+                fnRadiator = part.FindModuleImplementing<FNRadiator>();
+                if (fnRadiator != null)
                 {
-                    _activateReceiverBaseEvent.guiName = "Deploy";
-                    _disableReceiverBaseEvent.guiName = "Retract";
-                }
-                else
-                {
-                    _activateReceiverBaseEvent.guiName = "Enable";
-                    _disableReceiverBaseEvent.guiName = "Disable";
+                    if (fnRadiator.isDeployable)
+                    {
+                        _activateReceiverBaseEvent.guiName = "Deploy";
+                        _disableReceiverBaseEvent.guiName = "Retract";
+                    }
+                    else
+                    {
+                        _activateReceiverBaseEvent.guiName = "Enable";
+                        _disableReceiverBaseEvent.guiName = "Disable";
+                    }
+
+                    fnRadiator.showControls = false;
+                    fnRadiator.canRadiateHeat = radiatorMode;
+                    fnRadiator.radiatorIsEnabled = radiatorMode;
                 }
 
-                fnRadiator.showControls = false;
-                fnRadiator.canRadiateHeat = radiatorMode;
-                fnRadiator.radiatorIsEnabled = radiatorMode;
+                var isInRatiatorMode = Fields["radiatorMode"];
+                isInRatiatorMode.guiActive = fnRadiator != null;
+                isInRatiatorMode.guiActiveEditor = fnRadiator != null;
             }
-
-            var isInRatiatorMode = Fields["radiatorMode"];
-            isInRatiatorMode.guiActive = fnRadiator != null;
-            isInRatiatorMode.guiActiveEditor = fnRadiator != null;
 
             if (state == StartState.Editor) { return; }
 
@@ -1204,6 +1212,10 @@ namespace FNPlugin
                 _solarFluxField = Fields["solarFlux"];
                 _diameterField = Fields["diameter"];
 
+                _connectedsatsField = Fields["connectedsats"];
+                _connectedrelaysField = Fields["connectedrelays"];
+                _networkDepthStringField = Fields["networkDepthString"];
+
                 var bandWidthNameField = Fields["bandWidthName"];
                 bandWidthNameField.guiActiveEditor = !canSwitchBandwidthInEditor;
                 bandWidthNameField.guiActive = !canSwitchBandwidthInFlight && canSwitchBandwidthInEditor;
@@ -1385,12 +1397,16 @@ namespace FNPlugin
             _beamedpowerField.guiActive = isNotRelayingOrTransmitting;
             _linkedForRelayField.guiActive = canLinkup && isNotRelayingOrTransmitting;
 
-            _slavesAmountField.guiActive = thermalMode;
+            _slavesAmountField.guiActive = thermalMode && slavesAmount > 0;
             _ThermalPowerField.guiActive = isThermalReceiverSlave || thermalMode;
 
             _receiptPowerField.guiActive = receiverIsEnabled;
             _minimumWavelengthField.guiActive = receiverIsEnabled;
             _maximumWavelengthField.guiActive = receiverIsEnabled;
+
+            _connectedsatsField.guiActive = connectedsatsi > 0;
+            _connectedrelaysField.guiActive = connectedrelaysi > 0;
+            _networkDepthStringField.guiActive = networkDepth > 0;
 
             _solarFacingFactorField.guiActive = solarReceptionSurfaceArea > 0;
             _solarFluxField.guiActive = solarReceptionSurfaceArea > 0;
