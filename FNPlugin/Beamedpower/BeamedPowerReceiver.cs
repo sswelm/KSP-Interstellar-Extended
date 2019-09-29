@@ -217,6 +217,8 @@ namespace FNPlugin
         [KSPField]
         public double receiverFracionBonus = 0;
         [KSPField]
+        public double thermalPowerBufferMult = 2;
+        [KSPField]
         public double wasteHeatMultiplier = 1;
         [KSPField]
         public double wasteHeatModifier = 1;
@@ -722,10 +724,10 @@ namespace FNPlugin
             receiverIsEnabled = true;
 
             // force activate to trigger any fairings and generators
-            Debug.Log("[KSPI]: BeamedPowerReceiver on " + part.name + " was Force Activated");
+            Debug.Log("[KSPI]: BeamedPowerReceiver was force activated on  " + part.name);
             this.part.force_activate();
-            forceActivateAtStartup = true;
 
+            forceActivateAtStartup = true;
             ShowDeployAnimation(forced);
         }
 
@@ -1043,7 +1045,7 @@ namespace FNPlugin
             {
                 _resourceBuffers = new ResourceBuffers();
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier * wasteHeatModifier, 2.0e+5));
-                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER));
+                _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_MEGAJOULES));
                 _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE));
                 _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
@@ -1417,7 +1419,6 @@ namespace FNPlugin
 
             _solarFacingFactorField.guiActive = solarReceptionSurfaceArea > 0;
             _solarFluxField.guiActive = solarReceptionSurfaceArea > 0;
-            //toteffField.guiActive = (connectedsatsi > 0 || connectedrelaysi > 0);
 
             _selectedBandwidthConfigurationField.guiActive = (CheatOptions.NonStrictAttachmentOrientation || canSwitchBandwidthInFlight) && receiverIsEnabled; ;
 
@@ -1440,10 +1441,8 @@ namespace FNPlugin
             connectedsats = string.Format("{0}/{1}", connectedsatsi, BeamedPowerSources.instance.globalTransmitters.Count);
             connectedrelays = string.Format("{0}/{1}", connectedrelaysi, BeamedPowerSources.instance.globalRelays.Count);
             networkDepthString = networkDepth.ToString();
-            //toteff = efficiencyPercentage.ToString("0.00") + "%";
 
             CalculateInputPower();
-
 
             //if (receiverIsEnabled && anim != null && (!waitForAnimationToComplete || (!anim.isPlaying && waitForAnimationToComplete)))
             //{
@@ -1646,7 +1645,7 @@ namespace FNPlugin
 
             CalculateThermalSolarPower();
 
-            if (isMirror)
+            if (isMirror && receiverIsEnabled)
             {
                 var thermalMassPerKilogram = part.mass * part.thermalMassModifier * PhysicsGlobals.StandardSpecificHeatCapacity * 1e-3;
                 dissipationInMegaJoules = GetBlackBodyDissipation(solarReceptionSurfaceArea, part.temperature) * 1e-6; ;
@@ -1704,9 +1703,6 @@ namespace FNPlugin
                         return;
                     }
 
-                    // add energy from solar panel to power management and subtract generated power
-                    //ProcesSolarCellEnergy();
-
                     // add alternator power
                     AddAlternatorPower();
 
@@ -1730,13 +1726,13 @@ namespace FNPlugin
 
                             if (!CheatOptions.IgnoreMaxTemperature)
                             {
-                                var supply_ratio = (double)powerGeneratedResult.currentSupply / total_thermal_power_provided;
-                                var final_thermal_wasteheat = (double)powerGeneratedResult.currentSupply + supply_ratio * total_conversion_waste_heat_production;
+                                var supply_ratio = powerGeneratedResult.currentSupply / total_thermal_power_provided;
+                                var final_thermal_wasteheat = powerGeneratedResult.currentSupply + supply_ratio * total_conversion_waste_heat_production;
 
                                 supplyFNResourcePerSecondWithMax(final_thermal_wasteheat, total_beamed_power_max + thermalSolarInputMegajoulesMax, ResourceManager.FNRESOURCE_WASTEHEAT);
                             }
 
-                            thermal_power_ratio = total_thermal_power_available > 0 ? (double)powerGeneratedResult.currentSupply / total_thermal_power_available : 0;
+                            thermal_power_ratio = total_thermal_power_available > 0 ? powerGeneratedResult.currentSupply / total_thermal_power_available : 0;
 
                             foreach (var item in received_power)
                             {
@@ -1804,8 +1800,6 @@ namespace FNPlugin
                     thermalSolarInputMegajoulesMax = 0;
 
                     solarFacingFactor = 0;
-                    //connectedsatsi = 0;
-                    //connectedrelaysi = 0;
                     ThermalPower = 0;
 
                     PowerDown();
@@ -1856,8 +1850,8 @@ namespace FNPlugin
                 connectedsatsi = 0;
                 connectedrelaysi = 0;
                 networkDepth = 0;
-                powerInputMegajoules = 0;
-                powerInputMegajoulesMax = 0;
+                //powerInputMegajoules = 0;
+                //powerInputMegajoulesMax = 0;
                 deactivate_timer = 0;
 
                 var usedRelays = new HashSet<VesselRelayPersistence>();
@@ -1925,9 +1919,6 @@ namespace FNPlugin
 
                         // subtract any power already recieved by other recievers
                         var remainingPowerInBeam = Math.Min(beamedPowerData.RemainingPower, maximumRoutePower);
-
-
-                        //beamedPowerData.Route.WavelengthData.
 
                         // skip if no power remaining
                         if (remainingPowerInBeam <= 0)

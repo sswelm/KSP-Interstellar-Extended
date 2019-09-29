@@ -990,9 +990,6 @@ namespace PhotonSail
                 else
                     part.skinTemperature = Math.Max(sailHeatDissipationTemperature, modifiedTemperature);
             }
-
-            //part.AddThermalFlux
-            //part.AddSkinThermalFlux
         }
 
         private static double GetBlackBodyDissipation(double surfaceArea, double temperatureDelta)

@@ -105,8 +105,10 @@ namespace FNPlugin.Beamedpower
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Wall to Beam Power")]
         public string beamedpower;
-        [KSPField(isPersistant = false, guiActive = true)]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Available Power", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]
         public double availablePower;
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Requested Power", guiFormat = "F3", guiUnits = " MW", advancedTweakable = true)]
+        public double requestedPower;
 
         [KSPField]
         public bool canBeActive;
@@ -584,6 +586,8 @@ namespace FNPlugin.Beamedpower
 
             nuclear_power = 0;
             solar_power = 0;
+            availablePower = 0;
+            requestedPower = 0;
 
             CollectBiomeData();
 
@@ -591,11 +595,9 @@ namespace FNPlugin.Beamedpower
 
             if (activeBeamGenerator != null && IsEnabled && !relay)
             {
-                double powerTransmissionRatio = transmitPower / 100d;
+                double powerTransmissionRatio = (double)(decimal)transmitPower / 100d;
                 double transmissionWasteRatio = (100 - activeBeamGenerator.efficiencyPercentage) / 100d;
                 double transmissionEfficiencyRatio = activeBeamGenerator.efficiencyPercentage / 100d;
-
-                double requestedPower;
 
                 availablePower = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 

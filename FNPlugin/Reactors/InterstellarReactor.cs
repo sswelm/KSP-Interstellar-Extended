@@ -584,7 +584,7 @@ namespace FNPlugin.Reactors
         PartResourceDefinition tritium_def;
         PartResourceDefinition helium_def;
         PartResourceDefinition hydrogenDefinition;
-        ResourceBuffers resourceBuffers;
+        ResourceBuffers _resourceBuffers;
         FNEmitterController emitterController;
 
         List<ReactorProduction> reactorProduction = new List<ReactorProduction>();
@@ -1397,12 +1397,12 @@ namespace FNPlugin.Reactors
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_THERMALPOWER, ResourceManager.FNRESOURCE_WASTEHEAT, ResourceManager.FNRESOURCE_CHARGED_PARTICLES, ResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;
 
-            resourceBuffers = new ResourceBuffers();
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
-            resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedPowerBufferMult));
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            resourceBuffers.Init(this.part);
+            _resourceBuffers = new ResourceBuffers();
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_WASTEHEAT, wasteHeatMultiplier, wasteHeatBufferMassMult * wasteHeatBufferMult, true));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_THERMALPOWER, thermalPowerBufferMult));
+            _resourceBuffers.AddConfiguration(new ResourceBuffers.TimeBasedConfig(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, chargedPowerBufferMult));
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            _resourceBuffers.Init(this.part);
 
             windowID = new System.Random(part.GetInstanceID()).Next(int.MaxValue);
             base.OnStart(state);
@@ -1945,10 +1945,10 @@ namespace FNPlugin.Reactors
 
             if (IsEnabled) return;
 
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, 0);
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, 0);
-            resourceBuffers.UpdateBuffers();
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, 0);
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, 0);
+            _resourceBuffers.UpdateBuffers();
         }
 
         private void UpdateGeeforceModfier()
@@ -2106,10 +2106,10 @@ namespace FNPlugin.Reactors
 
         private void UpdateCapacities()
         {
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, MaximumThermalPower);
-            resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, MaximumChargedPower);
-            resourceBuffers.UpdateBuffers();
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_WASTEHEAT, this.part.mass);
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_THERMALPOWER, MaximumThermalPower);
+            _resourceBuffers.UpdateVariable(ResourceManager.FNRESOURCE_CHARGED_PARTICLES, MaximumChargedPower);
+            _resourceBuffers.UpdateBuffers();
         }
 
         protected double GetFuelRatio(ReactorFuel reactorFuel, double fuelEfficency, double megajoules)
