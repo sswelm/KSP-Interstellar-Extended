@@ -1850,8 +1850,6 @@ namespace FNPlugin
                 connectedsatsi = 0;
                 connectedrelaysi = 0;
                 networkDepth = 0;
-                //powerInputMegajoules = 0;
-                //powerInputMegajoulesMax = 0;
                 deactivate_timer = 0;
 
                 var usedRelays = new HashSet<VesselRelayPersistence>();
@@ -2069,7 +2067,7 @@ namespace FNPlugin
 
         public virtual double GetCoreTempAtRadiatorTemp(double radTemp)
         {
-            return 3500;
+            return CoreTemperature;
         }
 
         public double GetThermalPowerAtTemp(double temp)
