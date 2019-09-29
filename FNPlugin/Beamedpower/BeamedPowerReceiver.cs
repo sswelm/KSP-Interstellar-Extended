@@ -978,8 +978,8 @@ namespace FNPlugin
             }
 
             var isInSolarModeField = Fields["solarPowerMode"];
-            isInSolarModeField.guiActive = deployableSolarPanel != null;
-            isInSolarModeField.guiActiveEditor = deployableSolarPanel != null;
+            isInSolarModeField.guiActive = deployableSolarPanel != null || solarReceptionSurfaceArea > 0;
+            isInSolarModeField.guiActiveEditor = deployableSolarPanel != null || solarReceptionSurfaceArea > 0;
 
             var dissipationInMegaJoulesField = Fields["dissipationInMegaJoules"];
             dissipationInMegaJoulesField.guiActive = isMirror;
