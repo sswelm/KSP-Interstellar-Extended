@@ -405,9 +405,9 @@ namespace FNPlugin.Microwave
                 var beamConfiguration = new BeamConfiguration
                 {
                     beamWaveName = beamConfigurationNode.GetValue("beamWaveName"),
-                    wavelength = Double.Parse(beamConfigurationNode.GetValue("wavelength")),
-                    atmosphericAbsorptionPercentage = Double.Parse(beamConfigurationNode.GetValue("atmosphericAbsorptionPercentage")),
-                    waterAbsorptionPercentage = Double.Parse(beamConfigurationNode.GetValue("waterAbsorptionPercentage")),
+                    wavelength =  ReadDouble(beamConfigurationNode, "wavelength", 1),
+                    atmosphericAbsorptionPercentage = ReadDouble(beamConfigurationNode, "atmosphericAbsorptionPercentage", 100),
+                    waterAbsorptionPercentage =  ReadDouble(beamConfigurationNode, "waterAbsorptionPercentage", 100),
 
                     techRequirement0 = beamConfigurationNode.HasValue("techRequirement0")? beamConfigurationNode.GetValue("techRequirement0"): null,
                     techRequirement1 = beamConfigurationNode.HasValue("techRequirement1")? beamConfigurationNode.GetValue("techRequirement1"): null,
@@ -423,6 +423,14 @@ namespace FNPlugin.Microwave
             }
 
             _inlineConfigurations = inlineConfigurations.OrderByDescending(m => m.wavelength).ToList();
+        }
+
+        private double ReadDouble(ConfigNode node, string fieldname, double defaultvalue = 0)
+        {
+            if (node.HasValue(fieldname))
+                return Double.Parse(node.GetValue(fieldname));
+            else
+                return defaultvalue;
         }
 
         public override string GetInfo()
@@ -452,16 +460,18 @@ namespace FNPlugin.Microwave
             foreach (var beamConfiguration in _inlineConfigurations)
             {
                 sb.Append("<size=10>" + ExtendWithSpace(beamConfiguration.atmosphericAbsorptionPercentage + "%", 4));
-                sb.Append("<color=#00ff00ff> " + beamConfiguration.beamWaveName + "</color>");                
+                sb.Append(" / " + ExtendWithSpace(beamConfiguration.waterAbsorptionPercentage + "%", 4));
+                sb.Append("<color=#00ff00ff> " + beamConfiguration.beamWaveName + "</color>");
                 sb.AppendLine("</size>");
             }
 
             sb.AppendLine("");
-            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_beamEfficiencies") + ":</color>");
+            sb.AppendLine("<color=#7fdfffff>" + Localizer.Format("#LOC_KSPIE_BeamGenerator_beamEfficiencies") + ":</color>");            
 
             foreach (var beamConfiguration in _inlineConfigurations)
             {
-                sb.AppendLine("<size=10><color=#00ff00ff>" + beamConfiguration.beamWaveName + "</color> <color=#00e600ff>(" + WavelenthToText(beamConfiguration.wavelength) + ")</color>");
+                sb.Append("<size=10><color=#00ff00ff>" + beamConfiguration.beamWaveName + "</color>");
+                sb.AppendLine("<color=#00e600ff> (" + WavelenthToText(beamConfiguration.wavelength) + ")</color>");  
                 sb.Append("  ");
                 if (beamConfiguration.efficiencyPercentage0 > 0) sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement0) + "Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement0) + ":</color> " + beamConfiguration.efficiencyPercentage0 + "% ");
                 if (beamConfiguration.efficiencyPercentage1 > 0) sb.Append(GetColorCodeFromTechId(beamConfiguration.techRequirement1) + "Mk" + GetTechLevelFromTechId(beamConfiguration.techRequirement1) + ":</color> " + beamConfiguration.efficiencyPercentage1 + "% ");
