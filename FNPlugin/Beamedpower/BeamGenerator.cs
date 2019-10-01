@@ -68,6 +68,8 @@ namespace FNPlugin.Microwave
         public string techLevelMk5;
         [KSPField(isPersistant = false)]
         public string techLevelMk6;
+        [KSPField(isPersistant = false)]
+        public string techLevelMk7;
 
         [KSPField(isPersistant = false)]
         public double powerMassFraction = 0.5;
@@ -93,11 +95,15 @@ namespace FNPlugin.Microwave
                 techLevel++;
             if (PluginHelper.UpgradeAvailable(techLevelMk6))
                 techLevel++;
+            if (PluginHelper.UpgradeAvailable(techLevelMk7))
+                techLevel++;
         }
 
         private int GetTechLevelFromTechId(string techid)
         {
-            if (techid == techLevelMk6)
+            if (techid == techLevelMk7)
+                return 7;
+            else if (techid == techLevelMk6)
                 return 6;
             else if (techid == techLevelMk5)
                 return 5;
@@ -110,12 +116,14 @@ namespace FNPlugin.Microwave
             else if (techid == techLevelMk1)
                 return 1;
             else 
-                return 1;
+                return 7;
         }
 
         private string GetColorCodeFromTechId(string techid)
         {
-            if (techid == techLevelMk6)
+            if (techid == techLevelMk7)
+                return "<color=#ee8800ff>";
+            else if (techid == techLevelMk6)
                 return "<color=#ee9900ff>";
             else if (techid == techLevelMk5)
                 return "<color=#ffaa00ff>";
@@ -139,17 +147,16 @@ namespace FNPlugin.Microwave
         {
             get
             {
-                if (_beamConfigurations == null)
-                {
-                    // ToDo: remove once inline beam configuration is fully implemented
-                    var moduleConfigurations = part.FindModulesImplementing<BeamConfiguration>();
+                if (_beamConfigurations != null) return _beamConfigurations;
 
-                    _beamConfigurations = moduleConfigurations
-                        .Where(m => PluginHelper.HasTechRequirementOrEmpty(m.techRequirement0))
-                        .OrderByDescending(m => m.wavelength).ToList();
+                // ToDo: remove once inline beam configuration is fully implemented
+                var moduleConfigurations = part.FindModulesImplementing<BeamConfiguration>();
 
-                    Debug.Log("[KSPI]: Found " + _beamConfigurations.Count + " BeamConfigurations");
-                }
+                _beamConfigurations = moduleConfigurations
+                    .Where(m => PluginHelper.HasTechRequirementOrEmpty(m.techRequirement0))
+                    .OrderByDescending(m => m.wavelength).ToList();
+
+                Debug.Log("[KSPI]: Found " + _beamConfigurations.Count + " BeamConfigurations");
                 return _beamConfigurations;
             }
         }
@@ -176,7 +183,7 @@ namespace FNPlugin.Microwave
             targetMass = maximumPower * powerMassFraction * 0.001;
         }
 
-        public virtual void OnRescale(TweakScale.ScalingFactor factor)
+        public virtual void OnRescale(ScalingFactor factor)
         {
             try
             {
@@ -225,6 +232,17 @@ namespace FNPlugin.Microwave
 
             if (chooseOptionFlight != null)
                 chooseOptionFlight.options = names;
+
+            if (!string.IsNullOrEmpty(beamWaveName))
+            {
+                activeConfiguration = BeamConfigurations.FirstOrDefault(m => String.Equals(m.beamWaveName, beamWaveName, StringComparison.CurrentCultureIgnoreCase));
+                if (activeConfiguration != null)
+                {
+                    selectedBeamConfiguration = BeamConfigurations.IndexOf(activeConfiguration);
+                    wavelength = activeConfiguration.wavelength;
+                    return;
+                }
+            }
 
             if (wavelength != 0)
             {
@@ -286,7 +304,7 @@ namespace FNPlugin.Microwave
             UpdateEfficiencyPercentage();
         }
 
-        private string WavelenthToText(double wavelength)
+        private static string WavelenthToText(double wavelength)
         {
             if (wavelength > 1.0e-3)
                 return (wavelength * 1.0e+3) + " mm";
@@ -311,21 +329,31 @@ namespace FNPlugin.Microwave
             if (PluginHelper.HasTechRequirementAndNotEmpty(activeConfiguration.techRequirement0))
                 techLevel++;
 
-            if (techLevel == 3)
-                efficiencyPercentage = activeConfiguration.efficiencyPercentage3;
-            else if (techLevel == 2)
-                efficiencyPercentage = activeConfiguration.efficiencyPercentage2;
-            else if (techLevel == 1)
-                efficiencyPercentage = activeConfiguration.efficiencyPercentage1;
-            else if (techLevel == 0)
-                efficiencyPercentage = activeConfiguration.efficiencyPercentage0;
-            else
-                efficiencyPercentage = 0;
+            switch (techLevel)
+            {
+                case 3: efficiencyPercentage = activeConfiguration.efficiencyPercentage3; break;
+                case 2: efficiencyPercentage = activeConfiguration.efficiencyPercentage2; break;
+                case 1: efficiencyPercentage = activeConfiguration.efficiencyPercentage1; break;
+                case 0: efficiencyPercentage = activeConfiguration.efficiencyPercentage0; break;
+                default:
+                    efficiencyPercentage = 0; break;
+            }
         }
 
         private void LoadInitialConfiguration()
         {
             isLoaded = true;
+
+            if (!string.IsNullOrEmpty(beamWaveName))
+            {
+                activeConfiguration = BeamConfigurations.FirstOrDefault(m => String.Equals(m.beamWaveName, beamWaveName, StringComparison.CurrentCultureIgnoreCase));
+                if (activeConfiguration != null)
+                {
+                    selectedBeamConfiguration = BeamConfigurations.IndexOf(activeConfiguration);
+                    wavelength = activeConfiguration.wavelength;
+                    return;
+                }
+            }
 
             var currentWavelength = wavelength != 0 ? wavelength : 1;
             activeConfiguration = BeamConfigurations.FirstOrDefault();
@@ -455,10 +483,10 @@ namespace FNPlugin.Microwave
             return input + AddSpaces(targetlength - input.Length);
         }
 
-        private string AddSpaces(int length)
+        private static string AddSpaces(int length)
         {
-            string result = "";
-            for (int i = 0; i < length; i++)
+            var result = "";
+            for (var i = 0; i < length; i++)
             {
                 result += " ";
             }
