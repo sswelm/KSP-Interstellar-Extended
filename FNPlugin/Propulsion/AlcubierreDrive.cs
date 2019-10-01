@@ -1220,33 +1220,60 @@ namespace FNPlugin
                 exitBurnCircularize = DeltaVToCircularize(currentOrbit);
             }
 
-            var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
-            var endBeamPos = shipPos + part.transform.up * warp_size;
-            var midPos = (shipPos - endBeamPos) / 2.0f;
-
-            warp_effect.transform.rotation = part.transform.rotation;
-            warp_effect.transform.localScale = new Vector3(effectSize1, midPos.magnitude, effectSize1);
-            warp_effect.transform.position = new Vector3(shipPos.x + midPos.x, shipPos.y + midPos.y, shipPos.z + midPos.z);
-            warp_effect.transform.rotation = part.transform.rotation;
-
-            warp_effect2.transform.rotation = part.transform.rotation;
-            warp_effect2.transform.localScale = new Vector3(effectSize2, midPos.magnitude, effectSize2);
-            warp_effect2.transform.position = new Vector3(shipPos.x + midPos.x, shipPos.y + midPos.y, shipPos.z + midPos.z);
-            warp_effect2.transform.rotation = part.transform.rotation;
-
-            warp_effect1_renderer.material.mainTexture = warp_textures[((int)tex_count) % warp_textures.Length];
-            warp_effect2_renderer.material.mainTexture = warp_textures2[((int)tex_count + 8) % warp_textures2.Length];
-
             warpEngineThrottle = _engineThrotle[selected_factor];
 
             tex_count += warpEngineThrottle;
 
-            if (IsSlave)
-                return;
+            if (!IsSlave)
+            {
+                WarpdriveCharging();
 
-            WarpdriveCharging();
+                UpdateWarpSpeed();
+            }
 
-            UpdateWarpSpeed();
+            // update animation
+            if (!IsEnabled)
+            {
+                if (!IsSlave)
+                {
+                    if (currentExoticMatter < exotic_power_required * 0.999 * 0.5)
+                    {
+                        var electricalCurrentPct = Math.Min(100, 100*currentExoticMatter/(exotic_power_required * 0.5));
+                        driveStatus = String.Format("Charging: ") + electricalCurrentPct.ToString("0.00") + String.Format("%");
+                    }
+                    else
+                    {
+                        driveStatus = "Ready.";
+                    }
+                }
+
+                warp_effect2_renderer.enabled = false;
+                warp_effect1_renderer.enabled = false;
+            }
+            else
+            {
+                driveStatus = "Active.";
+
+                var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
+                var endBeamPos = shipPos + part.transform.up * warp_size;
+                var midPos = (shipPos - endBeamPos) / 2.0f;
+
+                warp_effect.transform.rotation = part.transform.rotation;
+                warp_effect.transform.localScale = new Vector3(effectSize1, midPos.magnitude, effectSize1);
+                warp_effect.transform.position = new Vector3(shipPos.x + midPos.x, shipPos.y + midPos.y, shipPos.z + midPos.z);
+                warp_effect.transform.rotation = part.transform.rotation;
+
+                warp_effect2.transform.rotation = part.transform.rotation;
+                warp_effect2.transform.localScale = new Vector3(effectSize2, midPos.magnitude, effectSize2);
+                warp_effect2.transform.position = new Vector3(shipPos.x + midPos.x, shipPos.y + midPos.y, shipPos.z + midPos.z);
+                warp_effect2.transform.rotation = part.transform.rotation;
+
+                warp_effect1_renderer.material.mainTexture = warp_textures[((int)tex_count) % warp_textures.Length];
+                warp_effect2_renderer.material.mainTexture = warp_textures2[((int)tex_count + 8) % warp_textures2.Length];
+
+                warp_effect2_renderer.enabled = true;
+                warp_effect1_renderer.enabled = true;
+            }
         }
 
         private static double DeltaVToCircularize(Orbit orbit)
@@ -1366,29 +1393,6 @@ namespace FNPlugin
             }
 
             part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -exoticMatterProduced * 0.001 * TimeWarp.fixedDeltaTime / powerRequirementMultiplier);
-
-            if (!IsEnabled)
-            {
-                if (currentExoticMatter < exotic_power_required * 0.999 * 0.5)
-                {
-                    var electricalCurrentPct = Math.Min(100, 100 * currentExoticMatter / (exotic_power_required * 0.5));
-                    driveStatus = String.Format("Charging: ") + electricalCurrentPct.ToString("0.00") + String.Format("%");
-                }
-                else
-                {
-                    driveStatus = "Ready.";
-                }
-
-                warp_effect2_renderer.enabled = false;
-                warp_effect1_renderer.enabled = false;
-            }
-            else
-            {
-                driveStatus = "Active.";
-
-                warp_effect2_renderer.enabled = true;
-                warp_effect1_renderer.enabled = true;
-            }
         }
 
         private void GenerateAntiGravity()
