@@ -97,7 +97,7 @@ namespace FNPlugin
         public float warpStrength = 1;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_totalWarpPower", guiFormat = "F1", guiUnits = " t")]
         public float totalWarpPower;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_vesselTotalMass", guiFormat = "F4", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_vesselTotalMass", guiFormat = "F4", guiUnits = " t")]
         public double vesselTotalMass;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpToMassRatio", guiFormat = "F4")]
         public double warpToMassRatio;
@@ -143,7 +143,7 @@ namespace FNPlugin
         public string driveStatus;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Cos Angle To Closest Body", guiFormat = "F3")]
         private double cosineAngleToClosestBody;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Distance to closest body", guiFormat = "F0", guiUnits = " m")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Distance to closest body", guiFormat = "F0", guiUnits = " m")]
         private double distanceToClosestBody;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Name of closest body")]
         string closestCelestrialBodyName;
@@ -155,19 +155,19 @@ namespace FNPlugin
         private double safetyDistance;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Dropout Distance", guiFormat = "F3", guiUnits = " m")]
         private double dropoutDistance;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Available Power for Warp", guiFormat = "F3", guiUnits = "MJ")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Available Power for Warp", guiFormat = "F3", guiUnits = "MJ")]
         private double availablePower;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
         private double gravityAcceleration;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Anti Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Anti Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
         private double antigravityAcceleration;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Vertical Speed", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Vertical Speed", guiFormat = "F3", guiUnits = " m/s")]
         private double verticalSpeed;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Maintenance Power Req", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Maintenance Power Req", guiFormat = "F3", guiUnits = " m/s")]
         private double requiredExoticMaintenancePower;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Charge Power Draw", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Charge Power Draw", guiFormat = "F3", guiUnits = " m/s")]
         private double chargePowerDraw;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Max Charge Power Required", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Charge Power Required", guiFormat = "F3", guiUnits = " m/s")]
         private double maxChargePowerRequired;
 
         private double recievedExoticMaintenancePower;
@@ -238,6 +238,8 @@ namespace FNPlugin
 
         private Texture2D warpWhiteFlash;
         private Texture2D warpRedFlash;
+
+        BaseField antigravityField;
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_startChargingDrive", active = true)]
         public void StartCharging()
@@ -404,7 +406,8 @@ namespace FNPlugin
             warp_sound.loop = true;
 
             // prevent g-force effects for current and next frame
-            part.vessel.IgnoreGForces(2);
+            //part.vessel.IgnoreGForces(2);
+            PluginHelper.IgnoreGForces(part, 2);
 
             warpInitialMainBody = vessel.mainBody;
             departureOrbit = new Orbit(vessel.orbit);
@@ -447,7 +450,8 @@ namespace FNPlugin
             Vector3d reverse_warp_heading =  new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
 
             // prevent g-force effects for current and next frame
-            part.vessel.IgnoreGForces(2);
+            //part.vessel.IgnoreGForces(2);
+            PluginHelper.IgnoreGForces(part, 2);
 
             // puts the ship back into a simulated orbit and reenables physics, is this still needed?
             if (!this.vessel.packed)
@@ -778,6 +782,7 @@ namespace FNPlugin
 
             try
             {
+
                 Events["StartCharging"].active = !IsSlave;
                 Events["StopCharging"].active = !IsSlave;
                 Events["ActivateWarpDrive"].active = !IsSlave;
@@ -787,6 +792,11 @@ namespace FNPlugin
                 Events["ReduceWarpPower"].active = !IsSlave;
 
                 Fields["showWindow"].guiActive = !IsSlave;
+                Fields["matchExitToDestinationSpeed"].guiActive = !IsSlave;
+                Fields["maximizeWarpSpeed"].guiActive = !IsSlave;
+                Fields["holdAltitude"].guiActive = !IsSlave;
+                Fields["spaceSafetyDistance"].guiActive = !IsSlave;
+
                 Fields["warpEngineThrottle"].guiActive = !IsSlave;
                 Fields["maximumAllowedWarpThrotle"].guiActive = !IsSlave;
                 Fields["warpToMassRatio"].guiActive = !IsSlave;
@@ -794,6 +804,8 @@ namespace FNPlugin
                 Fields["currentPowerRequirementForWarp"].guiActive = !IsSlave;
                 Fields["totalWarpPower"].guiActive = !IsSlave;
                 Fields["powerRequirementForMaximumAllowedLightSpeed"].guiActive = !IsSlave;
+
+                Fields["antigravityAcceleration"].guiActive = !IsSlave;
 
                 BaseField holdAltitudeField = Fields["holdAltitude"];
                 if (holdAltitudeField != null)
@@ -803,12 +815,16 @@ namespace FNPlugin
                         holdAltitudeToggle.onFieldChanged += holdAltitudeChanged; 
                 }
 
-                BaseField antigravityField = Fields["antigravityPercentage"];
+                antigravityField = Fields["antigravityPercentage"];
                 if (antigravityField != null)
                 {
+                    antigravityField.guiActive = !IsSlave;
                     antigravityFloatRange = antigravityField.uiControlFlight as UI_FloatRange;
                     if (antigravityFloatRange != null)
-                    antigravityFloatRange.onFieldChanged += antigravityFloatChanged;  
+                    {
+                        antigravityFloatRange.controlEnabled = !IsSlave;
+                        antigravityFloatRange.onFieldChanged += antigravityFloatChanged;
+                    }
                 }
 
                 minimum_selected_factor = _engineThrotle.ToList().IndexOf(_engineThrotle.First(w => Math.Abs(w - 1) < float.Epsilon));
@@ -823,10 +839,12 @@ namespace FNPlugin
 
                 if (state == StartState.Editor) return;
 
+                alcubierreDrives = part.vessel.FindPartModulesImplementing<AlcubierreDrive>();
+
                 if (!IsSlave)
                 {
                     Debug.Log("[KSPI]: AlcubierreDrive Create Slaves");
-                    alcubierreDrives = part.vessel.FindPartModulesImplementing<AlcubierreDrive>();
+                    
                     foreach (var drive in alcubierreDrives)
                     {
                         var driveId = drive.GetInstanceID();
@@ -1060,6 +1078,14 @@ namespace FNPlugin
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
         {
+            //if (antigravityField != null)
+            //    antigravityField.guiActive = !IsSlave;
+
+            if (!IsSlave)
+            {
+                PluginHelper.UpdateIgnoredGForces();
+            }
+
             if (vessel == null) return;
 
             warpEngineThrottle = _engineThrotle[selected_factor];
@@ -1179,7 +1205,8 @@ namespace FNPlugin
                 counterCurrent++;
 
                 // disable any geeforce effects durring warp
-                part.vessel.IgnoreGForces(1);
+                //part.vessel.IgnoreGForces(1);
+                PluginHelper.IgnoreGForces(part, 2);
 
                 var reverseHeadingWarp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
@@ -1369,7 +1396,7 @@ namespace FNPlugin
 
                     chargePowerDraw = CheatOptions.InfiniteElectricity
                         ? maxChargePowerRequired
-                        : Math.Min(maxChargePowerRequired, Math.Max(minPowerRequirementForLightSpeed, stablePowerSupply));
+                        : Math.Min(maxChargePowerRequired / (double)(decimal)TimeWarp.fixedDeltaTime, Math.Max(minPowerRequirementForLightSpeed, stablePowerSupply));
 
                     var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
                     var effectiveResourceThrotling = resourceBarRatio > 0.5 ? 1 : resourceBarRatio * 2;

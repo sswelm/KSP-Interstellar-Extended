@@ -46,6 +46,8 @@ namespace FNPlugin
         public double partCost;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Tech Level")]
         public int techLevel = 0;
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Stored amount")]
+        public double storedAmount;
 
         [KSPField]
         public double maxStorage = 0;
@@ -121,6 +123,8 @@ namespace FNPlugin
         public bool canExplodeFromGeeForce = false;
         [KSPField]
         public double currentGeeForce;
+        [KSPField]
+        public bool GForcesIgnored;
 
         bool isJustAboutToDie = false;
         bool showAntimatterFields;
@@ -504,6 +508,17 @@ namespace FNPlugin
             maxAmountStrField.guiActive = showAntimatterFields;
             maxAmountStrField.guiActiveEditor = showAntimatterFields;
 
+            // restore antimatter amount when stolen
+            if (HighLogic.LoadedSceneIsEditor)
+            {
+                storedAmount = antimatterResource.amount;
+            }
+            else if (vessel.missionTime < 1 && storedAmount > 0 && antimatterResource.amount == 0)
+            {
+                antimatterResource.amount = storedAmount;
+                storedAmount = 0;
+            }
+
             capacityStr = PluginHelper.formatMassStr(antimatterResource.amount * antimatterDensity);
             maxAmountStr = PluginHelper.formatMassStr(antimatterResource.maxAmount * antimatterDensity);
 
@@ -565,9 +580,11 @@ namespace FNPlugin
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
+            GForcesIgnored = PluginHelper.GForcesIgnored;
+
             if (!vessel.packed)
             {
-                var newGeeForce = vessel.geeForce;
+                var newGeeForce = PluginHelper.GForcesIgnored ? 0 : vessel.geeForce;
                 currentGeeForce = geeforceQueue.Any(m => m > 0) ?  geeforceQueue.Where(m => m > 0).Min() : geeforceQueue.Average();
                 geeforceQueue.Enqueue(newGeeForce);
                 if (geeforceQueue.Count > 20)
@@ -575,7 +592,7 @@ namespace FNPlugin
             }
             else
             {
-                var acceleration = Math.Max(0, (Math.Abs(previousSpeed - vessel.obt_speed) / (Math.Max(TimeWarp.fixedDeltaTime, previousFixedTime))));
+                var acceleration = PluginHelper.GForcesIgnored ? 0 : (Math.Max(0, (Math.Abs(previousSpeed - vessel.obt_speed) / (Math.Max(TimeWarp.fixedDeltaTime, previousFixedTime)))));
                 currentGeeForce = geeforceQueue.Any(m => m > 0) ? geeforceQueue.Where(m => m > 0).Min() : geeforceQueue.Average();
                 geeforceQueue.Enqueue(acceleration / GameConstants.STANDARD_GRAVITY);
                 if (geeforceQueue.Count > 20)

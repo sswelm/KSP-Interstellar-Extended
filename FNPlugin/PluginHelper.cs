@@ -823,6 +823,27 @@ namespace FNPlugin
             VABThermalUI.render_window = false;
         }
 
+        static int ignoredGForces;
+        public static void IgnoreGForces(Part part, int frames)
+        {
+            ignoredGForces = frames;
+            part.vessel.IgnoreGForces(frames);
+        }
+
+        public static bool GForcesIgnored
+        {
+            get
+            {
+                return ignoredGForces > 0;
+            }
+        }
+
+        public static void UpdateIgnoredGForces()
+        {
+            if (ignoredGForces > 0)
+                --ignoredGForces;
+        }
+
         public void Update()
         {
             if (ApplicationLauncher.Ready && !buttonAdded)
