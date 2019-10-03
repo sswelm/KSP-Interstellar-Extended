@@ -497,9 +497,6 @@ namespace FNPlugin
         protected List<ThermalEngineFuel> _allThermalEngineFuels;
         protected List<ThermalEngineFuel> _compatibleThermalEngineFuels;
 
-        //protected GUIStyle blackGuiStyle;
-        //protected GUIStyle grayGuiStyle;
-
         protected Rect windowPosition;
 
         private IFNPowerSource _myAttachedReactor;
@@ -613,17 +610,16 @@ namespace FNPlugin
             scaledExitArea = exitArea * Math.Pow(storedAbsoluteFactor, exitAreaScaleExponent);
         }
 
-
         [KSPAction("Next Propellant")]
         public void TogglePropellantAction(KSPActionParam param)
         {
-            NextPropellant();
+            NextPropellantInternal();
         }
 
         [KSPAction("Previous Propellant")]
         public void PreviousPropellant(KSPActionParam param)
         {
-            PreviousPropellant();
+            PreviousPropellantInternal();
         }
 
         [KSPEvent(guiActive = true, guiName = "Retrofit", active = true)]
@@ -1182,7 +1178,6 @@ namespace FNPlugin
                     symThermalNozzle.SetupPropellants(fuel_mode, forward, notifySwitching);
                 }
             }
-
         }
 
         public void SetupPropellants( int newFuelMode,  bool forward = true, bool notifySwitching = false)
