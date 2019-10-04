@@ -657,7 +657,6 @@ namespace FNPlugin
                         
                         currentPowerSupply -= provided_electric_charge_per_second;
                         total_power_distributed += provided_electric_charge_per_second;
-                        //power_distributed[0] += provided_electric_charge_per_second;
                     }
                 }
             }

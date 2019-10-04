@@ -11,13 +11,6 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = false, guiName = "Update Counter")]
         public long updateCounter = 0;
 
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Resource  Id")]
-        //public string resourceManagerId;
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Over Id")]
-        //public string overManagerId;
-        //[KSPField(isPersistant = false, guiActive = true, guiName = "Priority Id")]
-        //public string priorityManagerId;
-
         protected List<Part> similarParts;
         protected String[] resources_to_supply;
 
@@ -35,10 +28,6 @@ namespace FNPlugin
             }
 
             fnresource_supplied[resourcename] = power;
-            //if (fnresource_supplied.ContainsKey(resourcename))
-            //	fnresource_supplied[resourcename] = power;
-            //else
-            //	fnresource_supplied.Add(resourcename, power);
         }
 
         public double consumeFNResource(double power_fixed, String resourcename, double fixedDeltaTime = 0)
@@ -93,7 +82,7 @@ namespace FNPlugin
 
         public double consumeFNResourcePerSecondBuffered(double requestedPowerPerSecond, String resourcename, double limitBarRatio = 0.1, ResourceManager manager = null)
         {
-            if (double.IsNaN(requestedPowerPerSecond) || double.IsInfinity(requestedPowerPerSecond) || String.IsNullOrEmpty(resourcename))
+            if (requestedPowerPerSecond.IsInfinityOrNaN() || String.IsNullOrEmpty(resourcename))
             {
                 Debug.Log("[KSPI]: consumeFNResourcePerSecondBuffered was called with illegal value");
                 return 0;
@@ -127,12 +116,12 @@ namespace FNPlugin
 
             manager.powerDrawPerSecond(this, requestedPowerPerSecond, power_taken_per_second);
 
-            return (double)power_taken_per_second;
+            return power_taken_per_second;
         }
 
         public double supplyFNResourceFixed(double supply, String resourcename)
         {
-            if (double.IsNaN(supply) || double.IsInfinity(supply) || String.IsNullOrEmpty(resourcename))
+            if (supply.IsInfinityOrNaN() || String.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: supplyFNResourceFixed was called with illegal value");
                 return 0;
@@ -142,12 +131,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyFixed(this, Math.Max(supply, 0));
+            return manager.powerSupplyFixed(this, Math.Max(supply, 0));
         }
 
         public double supplyFNResourcePerSecond(double supply, String resourcename)
         {
-            if (double.IsNaN(supply) || double.IsInfinity(supply) || String.IsNullOrEmpty(resourcename))
+            if (supply.IsInfinityOrNaN() || String.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: supplyFNResourcePerSecond  was called with illegal value");
                 return 0;
@@ -157,12 +146,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyPerSecond(this, Math.Max(supply, 0));
+            return manager.powerSupplyPerSecond(this, Math.Max(supply, 0));
         }
 
         public double supplyFNResourceFixedWithMax(double supply, double maxsupply, String resourcename)
         {
-            if (double.IsNaN(supply) || double.IsInfinity(maxsupply) || String.IsNullOrEmpty(resourcename))
+            if (supply.IsInfinityOrNaN() || maxsupply.IsInfinityOrNaN() || String.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: supplyFNResourceFixedWithMax  was called with illegal value");
                 return 0;
@@ -172,12 +161,12 @@ namespace FNPlugin
             if (manager == null)
                 return 0;
 
-            return (double)manager.powerSupplyFixedWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
+            return manager.powerSupplyFixedWithMax(this, Math.Max(supply, 0), Math.Max(maxsupply, 0));
         }
 
         public double supplyFNResourcePerSecondWithMaxAndEfficiency(double supply, double maxsupply, double efficiencyRatio, String resourcename)
         {
-            if (double.IsNaN(supply) || double.IsInfinity(supply) || double.IsNaN(maxsupply) || double.IsInfinity(maxsupply) || String.IsNullOrEmpty(resourcename))
+            if (supply.IsInfinityOrNaN() || maxsupply.IsInfinityOrNaN() || String.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: supplyFNResourcePerSecondWithMax was called with illegal value");
                 return 0;
@@ -192,7 +181,7 @@ namespace FNPlugin
 
         public double supplyFNResourcePerSecondWithMax(double supply, double maxsupply, String resourcename)
         {
-            if (double.IsNaN(supply) || double.IsInfinity(supply) || double.IsNaN(maxsupply) || double.IsInfinity(maxsupply) || String.IsNullOrEmpty(resourcename))
+            if (supply.IsInfinityOrNaN() || maxsupply.IsInfinityOrNaN() || String.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: supplyFNResourcePerSecondWithMax was called with illegal value");
                 return 0;
@@ -207,7 +196,7 @@ namespace FNPlugin
 
         public double supplyManagedFNResourcePerSecond(double supply, String resourcename)
         {
-            if (double.IsNaN(supply) || double.IsInfinity(supply) || String.IsNullOrEmpty(resourcename))
+            if (supply.IsInfinityOrNaN() || String.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: supplyManagedFNResourcePerSecond  was called with illegal values.");
                 return 0;
@@ -222,7 +211,7 @@ namespace FNPlugin
 
         public double getNeededPowerSupplyPerSecondWithMinimumRatio(double supply, double ratio_min, String resourcename, ResourceManager manager = null)
         {
-            if (double.IsNaN(supply) || double.IsInfinity(supply) || double.IsNaN(ratio_min) || double.IsInfinity(ratio_min) || String.IsNullOrEmpty(resourcename))
+            if (supply.IsInfinityOrNaN() || ratio_min.IsInfinityOrNaN() || String.IsNullOrEmpty(resourcename))
             {
                 Debug.LogError("[KSPI]: getNeededPowerSupplyPerSecondWithMinimumRatio was called with illegal values.");
                 return 0;
@@ -250,7 +239,10 @@ namespace FNPlugin
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.managedPowerSupplyPerSecondWithMinimumRatio(this, Math.Max(supply, 0), Math.Max(ratio_min, 0));
         }
@@ -266,7 +258,10 @@ namespace FNPlugin
             if (manager == null)
                 manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             var result = manager.managedRequestedPowerSupplyPerSecondMinimumRatio(this, requested_power, Math.Max(maximum_power, 0), Math.Max(ratio_min, 0));
 
@@ -299,7 +294,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return (double)manager.CurrentResourceDemand;
         }
@@ -314,7 +312,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return (double)manager.StableResourceSupply;
         }
@@ -329,7 +330,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.CurrentHighPriorityResourceDemand;
         }
@@ -344,7 +348,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return Math.Max(manager.StableResourceSupply - manager.CurrentHighPriorityResourceDemand, 0);
         }
@@ -359,7 +366,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return Math.Max(manager.StableResourceSupply - manager.GetPriorityResourceSupply(getPowerPriority()), 0);
         }
@@ -374,7 +384,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.GetPriorityResourceSupply(priority);
         }
@@ -404,7 +417,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return Math.Max(manager.ResourceSupply - manager.CurrentHighPriorityResourceDemand, 0);
         }
@@ -418,7 +434,10 @@ namespace FNPlugin
             
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.ResourceSupply;
         }
@@ -432,7 +451,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.getOverproduction();
         }
@@ -461,7 +483,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.ResourceDemand;
         }
@@ -476,7 +501,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.GetRequiredResourceDemand();
         }
@@ -491,7 +519,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.GetCurrentUnfilledResourceDemand();
         }
@@ -506,7 +537,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.PowerSupply;
         }
@@ -521,7 +555,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.CurrentResourceDemand;
         }
@@ -536,7 +573,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return (double)manager.ResourceBarRatioBegin;
         }
@@ -551,7 +591,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.ResourceBarRatioBegin;
         }
@@ -566,7 +609,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.SqrtResourceBarRatioBegin;
         }
@@ -581,7 +627,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.ResourceBarRatioEnd;
         }
@@ -596,7 +645,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.getSpareResourceCapacity();
         }
@@ -611,7 +663,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.getResourceAvailability();
         }
@@ -626,7 +681,10 @@ namespace FNPlugin
 
             ResourceManager manager = getManagerForVessel(resourcename);
             if (manager == null)
+            {
+                Debug.LogError("[KSPI]: failed to find resource Manager For Current Vessel");
                 return 0;
+            }
 
             return manager.getTotalResourceCapacity();
         }

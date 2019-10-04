@@ -1042,6 +1042,7 @@ namespace FNPlugin
         }
 
         // Update is called in the editor 
+        // ReSharper disable once UnusedMember.Global
         public void Update()
         {
             partMass = part.mass;
