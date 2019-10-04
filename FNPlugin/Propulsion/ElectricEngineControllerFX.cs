@@ -769,7 +769,7 @@ namespace FNPlugin
 
             _heat_production_f = CheatOptions.IgnoreMaxTemperature
                 ? heatToProduce
-                : supplyFNResourceFixedWithMax(heatToProduce, maxHeatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
+                : supplyFNResourcePerSecondWithMax(heatToProduce, maxHeatToProduce, ResourceManager.FNRESOURCE_WASTEHEAT);
 
             // update GUI Values
             _electrical_consumption_f = actualPowerReceived;
