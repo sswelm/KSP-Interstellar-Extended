@@ -74,6 +74,7 @@
     <Compile Include="External\FNEmitterController.cs" />
     <Compile Include="HideHiddenPartsFilter.cs" />
     <Compile Include="External\Kerbalism.cs" />
+    <Compile Include="Powermanagement\FNBatteryGenerator.cs" />
     <Compile Include="Powermanagement\FNGeneratorAdapterVariable.cs" />
     <Compile Include="Powermanagement\IFNChargedParticleSource.cs" />
     <Compile Include="Powermanagement\IFNPowerSource.cs" />

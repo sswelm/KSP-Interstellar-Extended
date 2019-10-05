@@ -60,7 +60,7 @@ namespace FNPlugin
 
         [KSPField]
         public double thrustmultiplier = 1;
-        [KSPField(guiActiveEditor = true)]
+        [KSPField]
         public float maxThrust = 150;
         [KSPField]
         public float maxThrustUpgraded1 = 300;

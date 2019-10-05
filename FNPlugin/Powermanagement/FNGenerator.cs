@@ -1338,10 +1338,6 @@ namespace FNPlugin
             spareResourceCapacity = getSpareResourceCapacity(ResourceManager.FNRESOURCE_MEGAJOULES);
             maxStableMegaWattPower = MaxStableMegaWattPower;
 
-            // stabalizes power at higher time warp
-            //var deltaTimeDivider = TimeWarp.fixedDeltaTime < 1 ? (double)(decimal)TimeWarp.fixedDeltaTime / 0.02 : TimeWarp.fixedDeltaTime * 50; 
-
-            //possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity / deltaTimeDivider, maxStableMegaWattPower);
             possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity, maxStableMegaWattPower);
 
             electrical_power_currently_needed = currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling;
