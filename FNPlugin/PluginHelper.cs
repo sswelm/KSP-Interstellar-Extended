@@ -31,6 +31,9 @@ namespace FNPlugin
             GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
             GameEvents.onVesselSOIChanged.Add(OmVesselSOIChanged);
 
+            GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
+            GameEvents.onVesselGoOffRails.Add(OnVesselGoOnRails);
+
             Debug.Log("[KSPI]: GameEventSubscriber Initialised");
         }
         void OnDestroy()
@@ -40,6 +43,9 @@ namespace FNPlugin
             //GameEvents.onSetSpeedMode.Remove(OnSetSpeedModeChange);
             //GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
             //GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
+
+            GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
+            GameEvents.onVesselGoOffRails.Remove(OnVesselGoOnRails);
 
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
             GameEvents.onDockingComplete.Remove(OnDockingComplete);
@@ -52,6 +58,32 @@ namespace FNPlugin
                 Debug.Log("[KSPI]: Loaded Kerbalism " + kerbalismversionstr);
 
             Debug.Log("[KSPI]: GameEventSubscriber Deinitialised");
+        }
+
+        void OnVesselGoOnRails(Vessel vessel)
+        {
+            //Debug.Log("[KSPI]: GameEventSubscriber - detected OnVesselGoOnRails");
+
+            foreach (var part in vessel.Parts)
+            {
+                var autoStruthEvent = part.Events["ToggleAutoStrut"];
+                if (autoStruthEvent != null)
+                {
+                    autoStruthEvent.guiActive = true;
+                    autoStruthEvent.guiActiveUncommand = true;
+                    autoStruthEvent.guiActiveUnfocused = true;
+                    autoStruthEvent.requireFullControl = false;
+                }
+
+                var rigidAttachmentEvent = part.Events["ToggleRigidAttachment"];
+                if (rigidAttachmentEvent != null)
+                {
+                    rigidAttachmentEvent.guiActive = true;
+                    rigidAttachmentEvent.guiActiveUncommand = true;
+                    rigidAttachmentEvent.guiActiveUnfocused = true;
+                    rigidAttachmentEvent.requireFullControl = false;
+                }
+            }
         }
 
         void OnGameStateSaved(Game game)

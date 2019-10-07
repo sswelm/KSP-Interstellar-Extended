@@ -23,15 +23,15 @@ namespace FNPlugin
 
         [KSPField]
         public string fuelSwitchName = "Fusion Type";
-        [KSPField(guiName = "Power Requirement Mk1")]
+        [KSPField(guiName = "Power Requirement Mk1", guiFormat = "F3", guiUnits = " MW")]
         public double powerRequirement = 0;
-        [KSPField(guiName = "Power Requirement Mk2")]
+        [KSPField(guiName = "Power Requirement Mk2", guiFormat = "F3", guiUnits = " MW")]
         public double powerRequirementUpgraded1 = 0;
-        [KSPField(guiName = "Power Requirement Mk3")]
+        [KSPField(guiName = "Power Requirement Mk3", guiFormat = "F3", guiUnits = " MW")]
         public double powerRequirementUpgraded2 = 0;
-        [KSPField(guiName = "Power Requirement Mk4")]
+        [KSPField(guiName = "Power Requirement Mk4", guiFormat = "F3", guiUnits = " MW")]
         public double powerRequirementUpgraded3 = 0;
-        [KSPField(guiName = "Power Requirement Mk5")]
+        [KSPField(guiName = "Power Requirement Mk5", guiFormat = "F3", guiUnits = " MW")]
         public double powerRequirementUpgraded4 = 0;
 
         [KSPField]
