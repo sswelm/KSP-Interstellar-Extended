@@ -24,10 +24,11 @@ namespace FNPlugin
         public double megaJouleSolarPowerSupply;
         [KSPField(guiActive = true, guiName = "Maximum Solar Power", guiUnits = " MW", guiFormat = "F5")]
         public double solarMaxSupply = 0;
-
         [KSPField(guiActive = false, guiName = "AU", guiFormat = "F0", guiUnits = " m")]
         public double astronomicalUnit;
 
+        [KSPField]
+        public string resourceName;
         [KSPField]
         public double solar_supply = 0;
         [KSPField]
@@ -40,10 +41,17 @@ namespace FNPlugin
         public double sunAOA;
         [KSPField]
         public double calculatedEfficency;
-        [KSPField]
-        public float flowRate;
+        //[KSPField(guiActive = true)]
+        //public float flowRate;
+        //[KSPField(guiActive = true)]
+        //public double _flowRate;
+
         [KSPField]
         public double scale = 1;
+        [KSPField]
+        double maxSupply;
+        [KSPField]
+        double solarRate;
 
         BeamedPowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
@@ -87,9 +95,11 @@ namespace FNPlugin
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
-            if (_solarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
+            resourceName = _solarPanel.resourceName;
+
+            if (resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
                 _outputType = ResourceType.megajoule;
-            else if (_solarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+            else if (resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                 _outputType = ResourceType.electricCharge;
             else
                 _outputType = ResourceType.other;
@@ -151,7 +161,8 @@ namespace FNPlugin
 
             if (_outputType == ResourceType.other) return;
 
-            flowRate = _solarPanel.flowRate;
+            //_flowRate = _solarPanel._flowRate;
+            //flowRate = _solarPanel.flowRate;
             chargeRate = _solarPanel.chargeRate;
             efficiencyMult = _solarPanel.efficiencyMult;
             _efficMult = _solarPanel._efficMult;
@@ -160,8 +171,8 @@ namespace FNPlugin
                 ? _solarPanel._efficMult
                 : (double)(decimal)_solarPanel.temperatureEfficCurve.Evaluate((Single)part.skinTemperature) * (double)(decimal)_solarPanel.timeEfficCurve.Evaluate((Single)((Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05)) * (double)(decimal)_solarPanel.efficiencyMult;
             
-            double maxSupply = 0;
-            double solarRate = 0;
+            maxSupply = 0;
+            solarRate = 0;
 
             sunAOA = 0;
             CalculateSolarFlowRate(calculatedEfficency / scale, ref maxSupply, ref solarRate);
@@ -170,9 +181,11 @@ namespace FNPlugin
                 _resourceBuffers.UpdateBuffers();
 
             // extract power otherwise we end up with double power
-            if (flowRate > 0 && solarRate > 0)
-                part.RequestResource(_solarPanel.resourceName, flowRate * fixedDeltaTime);
-            else
+            //if (_flowRate > 0 )
+            //    part.RequestResource(_solarPanel.resourceName, _flowRate * fixedDeltaTime);
+            //else if (flowRate > 0)
+            //    part.RequestResource(_solarPanel.resourceName, flowRate * fixedDeltaTime);
+            //else
                 part.RequestResource(_solarPanel.resourceName, solarRate * fixedDeltaTime);
 
             // provide power to supply manager
