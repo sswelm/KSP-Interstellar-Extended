@@ -269,10 +269,13 @@ namespace FNPlugin
         public int slavesAmount;
         [KSPField(guiActive = false, guiName = "Slaves Power", guiUnits = " MW", guiFormat = "F3")]
         public double slavesPower;
-        [KSPField(guiActive = false, guiName = "Available Thermal Power", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(guiActive = true, guiName = "Available Thermal Power", guiUnits = " MW", guiFormat = "F2")]
         public double total_thermal_power_available;
-        [KSPField(guiActive = false, guiName = "Thermal Power Supply", guiUnits = " MW", guiFormat = "F2")]
+        [KSPField(guiActive = true, guiName = "Thermal Power Supply", guiUnits = " MW", guiFormat = "F2")]
         public double total_thermal_power_provided;
+        [KSPField(guiActive = true, guiName = "Max Thermal Power Supply", guiUnits = " MW", guiFormat = "F2")]
+        public double total_thermal_power_provided_max;
+
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Maximum Input Power", guiUnits = " MW", guiFormat = "F3")]
         public double maximumPower = 0;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Maximum Electric Power", guiUnits = " MW", guiFormat = "F3")]
@@ -645,6 +648,7 @@ namespace FNPlugin
         protected int connectedsatsi = 0;
         protected int connectedrelaysi = 0;
         protected int networkDepth = 0;
+        protected int activeSatsIncr = 0;
         protected long deactivate_timer = 0;
 
         protected bool has_transmitter = false;
@@ -1716,20 +1720,21 @@ namespace FNPlugin
 
                         total_thermal_power_available = thermalSolarInputMegajoules + total_beamed_power + slavesPower;
                         total_thermal_power_provided = Math.Min(MaximumRecievePower, total_thermal_power_available);
+                        total_thermal_power_provided_max = Math.Min(MaximumRecievePower, total_beamed_power_max + thermalSolarInputMegajoulesMax);
 
                         if (!isThermalReceiverSlave && total_thermal_power_provided > 0)
                         {
                             var thermalThrottleRatio = connectedEngines.Any(m => !m.RequiresChargedPower) ? connectedEngines.Where(m => !m.RequiresChargedPower).Max(e => e.CurrentThrottle) : 0;
                             var minimumRatio = Math.Max(storedGeneratorThermalEnergyRequestRatio, thermalThrottleRatio);
 
-                            var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided, minimumRatio, ResourceManager.FNRESOURCE_THERMALPOWER);
+                            var powerGeneratedResult = managedPowerSupplyPerSecondMinimumRatio(total_thermal_power_provided, total_thermal_power_provided_max, minimumRatio, ResourceManager.FNRESOURCE_THERMALPOWER);
 
                             if (!CheatOptions.IgnoreMaxTemperature)
                             {
-                                var supply_ratio = powerGeneratedResult.currentSupply / total_thermal_power_provided;
-                                var final_thermal_wasteheat = powerGeneratedResult.currentSupply + supply_ratio * total_conversion_waste_heat_production;
+                                var supplyRatio = powerGeneratedResult.currentSupply / total_thermal_power_provided;
+                                var finalThermalWasteheat = powerGeneratedResult.currentSupply + supplyRatio * total_conversion_waste_heat_production;
 
-                                supplyFNResourcePerSecondWithMax(final_thermal_wasteheat, total_beamed_power_max + thermalSolarInputMegajoulesMax, ResourceManager.FNRESOURCE_WASTEHEAT);
+                                supplyFNResourcePerSecondWithMax(finalThermalWasteheat, total_thermal_power_provided_max, ResourceManager.FNRESOURCE_WASTEHEAT);
                             }
 
                             thermal_power_ratio = total_thermal_power_available > 0 ? powerGeneratedResult.currentSupply / total_thermal_power_available : 0;
@@ -1827,29 +1832,23 @@ namespace FNPlugin
             currentGeneratorThermalEnergyRequestRatio = 0;
         }
 
+        // Is called durring OnUpdate to reduce processor load
         private void CalculateInputPower()
         {
             total_conversion_waste_heat_production = 0;
             if (wasteheatRatio >= 0.95 && !isThermalReceiver) return;
 
-            if (solarPowerMode)
+            // reset all output variables at start of loop
+            total_beamed_power = 0;
+            total_beamed_power_max = 0;
+            total_beamed_wasteheat = 0;
+            connectedsatsi = 0;
+            connectedrelaysi = 0;
+            networkDepth = 0;
+            activeSatsIncr = 0;
+
+            if (!solarPowerMode)
             {
-                total_beamed_power = 0;
-                total_beamed_power_max = 0;
-                total_beamed_wasteheat = 0;
-                connectedsatsi = 0;
-                connectedrelaysi = 0;
-                networkDepth = 0;
-            }
-            else if (!solarPowerMode)
-            {
-                // reset all output variables at start of loop
-                total_beamed_power = 0;
-                total_beamed_power_max = 0;
-                total_beamed_wasteheat = 0;
-                connectedsatsi = 0;
-                connectedrelaysi = 0;
-                networkDepth = 0;
                 deactivate_timer = 0;
 
                 var usedRelays = new HashSet<VesselRelayPersistence>();
@@ -1858,8 +1857,6 @@ namespace FNPlugin
                 {
                     beamedPowerData.IsAlive = false;
                 }
-
-                var activeSatsIncr = 0;
 
                 //loop all connected beamed power transmitters
                 foreach (var connectedTransmitterEntry in InterstellarBeamedPowerHelper.GetConnectedTransmitters(this))
@@ -1994,8 +1991,8 @@ namespace FNPlugin
             }
 
             //remove dead entries
-            var dead_entries = received_power.Where(m => !m.Value.IsAlive).ToList();
-            foreach(var entry in dead_entries)
+            var deadEntries = received_power.Where(m => !m.Value.IsAlive).ToList();
+            foreach(var entry in deadEntries)
             {
                 received_power.Remove(entry.Key);
             }
