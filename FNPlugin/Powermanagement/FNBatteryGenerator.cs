@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FNPlugin.Extensions;
 
 namespace FNPlugin.Powermanagement
 {
@@ -11,9 +12,14 @@ namespace FNPlugin.Powermanagement
         [KSPField(guiActiveEditor = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F3")]
         public double maxPower = 1;
         [KSPField]
-        public double conversionRate = 2.77777777777e-1;
+        public string inputResources = "KilowattHour";
         [KSPField]
-        public string resourceName = "KilowattHour";
+        public string outputResources;
+        [KSPField]
+        public string inputConversionRates = "2.77777777777e-1";
+        [KSPField]
+        public string outputConversionRates = "";
+
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 0)]
         public float electricPowerPriority = 4;
@@ -36,7 +42,14 @@ namespace FNPlugin.Powermanagement
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_powerControl"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
         public float powerPercentage = 100;
 
-        PartResource batteryResource;
+        // privates
+        List<string> inputResourceNames;
+        List<string> outputResourceNames;
+
+        List<double> inputResourceRate;
+        List<double> outputResourceRate;
+
+        double fuelRatio;
 
         public override void OnStart(StartState state)
         {
@@ -47,39 +60,45 @@ namespace FNPlugin.Powermanagement
             base.OnStart(state);
 
             part.force_activate();
+
+            inputResourceNames = ParseTools.ParseNames(inputResources);
+            outputResourceNames = ParseTools.ParseNames(outputResources);
+            inputResourceRate = ParseTools.ParseDoubles(inputConversionRates);
+            outputResourceRate = ParseTools.ParseDoubles(outputConversionRates);
         }
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-            batteryResource = part.Resources[resourceName];
-
-            if (batteryResource == null || batteryResource.amount == 0)
-            {
-                currentMaxPower = 0;
-                currentUnfilledResourceDemand = 0;
-                spareResourceCapacity = 0;
-                requestedConsumptionRate = 0;
-                batterySupplyRemaining = 0;
-                return;
-            }
 
             currentMaxPower = Math.Round(powerPercentage * 0.01, 2) * maxPower;
-
             currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
             spareResourceCapacity = getSpareResourceCapacity(ResourceManager.FNRESOURCE_MEGAJOULES);
             electrical_power_currently_needed = Math.Min(currentUnfilledResourceDemand + spareResourceCapacity, currentMaxPower);
 
-            requestedConsumptionRate = electrical_power_currently_needed * conversionRate;
+            batterySupplyRemaining = double.MaxValue;
+            fuelRatio = double.MaxValue;
 
-            var fixedConsumption = requestedConsumptionRate * fixedDeltaTime;
-            var fuelRatio = fixedConsumption > 0 ? batteryResource.amount / fixedConsumption : 0;
+            for (var i = 0; i < inputResourceNames.Count; i++)
+            {
+                var currentResourceName = inputResourceNames[i];
+                var currentConversionRate = inputResourceRate[i];
 
-            batterySupplyRemaining = fuelRatio / fixedDeltaTime / 1000;
+                var currentBatteryResource = part.Resources[currentResourceName];
+                var currentRequestedConsumptionRate = electrical_power_currently_needed * currentConversionRate;
+                var currentFixedConsumption = currentRequestedConsumptionRate * fixedDeltaTime;
+                var currentFuelRatio = currentFixedConsumption > 0 ? currentBatteryResource.amount / currentFixedConsumption : 0;
 
-            batteryResource.amount = Math.Max(0, batteryResource.amount - fixedConsumption);
-            var maxSupply = Math.Min(currentMaxPower, batteryResource.amount);
+                if (currentFuelRatio < fuelRatio)
+                    fuelRatio = currentFuelRatio;
 
-            supplyFNResourcePerSecondWithMaxAndEfficiency(Math.Min(1,fuelRatio) * electrical_power_currently_needed, maxSupply, 1, ResourceManager.FNRESOURCE_MEGAJOULES);
+                var currentBatterySupplyRemaining = currentFuelRatio / fixedDeltaTime / 1000;
+                if (currentBatterySupplyRemaining < batterySupplyRemaining)
+                    batterySupplyRemaining = currentBatterySupplyRemaining;
+
+                currentBatteryResource.amount = Math.Max(0, currentBatteryResource.amount - currentFixedConsumption);
+            }
+
+            supplyFNResourcePerSecondWithMaxAndEfficiency(Math.Min(1, fuelRatio) * electrical_power_currently_needed, currentMaxPower * Math.Min(1, fuelRatio), 1, ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
         public override int getPowerPriority()

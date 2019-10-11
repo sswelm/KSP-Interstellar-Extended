@@ -34,6 +34,9 @@ namespace FNPlugin.Extensions
 
         public static List<string> ParseNames(string names, bool replaceBackslashErrors, bool trimWhiteSpace, string prefix)
         {
+	        if (string.IsNullOrEmpty(names))
+		        return new List<string>();
+
             var source = names.Split(';').ToList();
             for (var i = source.Count - 1; i >= 0; i--)
             {
