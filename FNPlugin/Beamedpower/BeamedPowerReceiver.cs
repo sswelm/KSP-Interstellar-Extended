@@ -832,11 +832,6 @@ namespace FNPlugin
                 fnRadiator.ModuleActiveRadiator.Shutdown();
         }
 
-        public void Activate()
-        {
-            ActivateReceiver();
-        }
-
         [KSPAction("Activate Receiver")]
         public void ActivateReceiverAction(KSPActionParam param)
         {

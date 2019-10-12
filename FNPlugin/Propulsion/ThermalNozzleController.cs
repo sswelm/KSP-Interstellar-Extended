@@ -3,12 +3,12 @@ using FNPlugin.Extensions;
 using FNPlugin.Power;
 using FNPlugin.Propulsion;
 using FNPlugin.Redist;
+using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
 using UnityEngine;
-using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -65,27 +65,25 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "Fuelflow Throtle modifier", guiFormat = "F5")]
         public double fuelflow_throtle_modifier = 1;
 
-        [KSPField(guiActive = true)]
-        public double currentHeatProduction;
-        [KSPField(guiActive = true)]
-        public double recordHeatProduction;
+        //[KSPField(guiActive = true)]
+        //public double currentHeatProduction;
+        //[KSPField(guiActive = true)]
+        //public double recordHeatProduction;
 
-        [KSPField(guiActive = true)]
-        public double currentMaxFuelFlow;
-        [KSPField(guiActive = true)]
-        public double recordMaxFuelFlow;
+        //[KSPField(guiActive = true)]
+        //public double currentMaxFuelFlow;
+        //[KSPField(guiActive = true)]
+        //public double recordMaxFuelFlow;
 
-        [KSPField(guiActive = true)]
-        public double currentMaxThrust;
-        [KSPField(guiActive = true)]
-        public double recordMaxThrust;
-
-        [KSPField(guiActive = true)]
-        public double startupHeatReductionRatio = 0;
+        //[KSPField(guiActive = true)]
+        //public double currentMaxThrust;
+        //[KSPField(guiActive = true)]
+        //public double recordMaxThrust;
 
         [KSPField]
+        public double startupHeatReductionRatio = 0;
+        [KSPField]
         public double missingPrecoolerProportionExponent = 0.5;
-
         [KSPField]
         public double exhaustModifier;        
         [KSPField]
@@ -100,10 +98,8 @@ namespace FNPlugin
         public double engineAccelerationBaseSpeed = 2;
         [KSPField]
         public double engineDecelerationBaseSpeed = 2;
-
         [KSPField]
         public double wasteheatRatioDecelerationMult = 10;
-
         [KSPField]
         public float finalEngineDecelerationSpeed;
         [KSPField]
@@ -1005,17 +1001,17 @@ namespace FNPlugin
         // Note: does not seem to be called while in vab mode
         public override void OnUpdate()
         {
-            currentHeatProduction = myAttachedEngine.heatProduction;
-            if (currentHeatProduction > recordHeatProduction)
-                recordHeatProduction = currentHeatProduction;
+            //currentHeatProduction = myAttachedEngine.heatProduction;
+            //if (currentHeatProduction > recordHeatProduction)
+            //    recordHeatProduction = currentHeatProduction;
 
-            currentMaxFuelFlow = myAttachedEngine.maxFuelFlow;
-            if (currentMaxFuelFlow > recordMaxFuelFlow)
-                recordMaxFuelFlow = currentMaxFuelFlow;
+            //currentMaxFuelFlow = myAttachedEngine.maxFuelFlow;
+            //if (currentMaxFuelFlow > recordMaxFuelFlow)
+            //    recordMaxFuelFlow = currentMaxFuelFlow;
 
-            currentMaxThrust = myAttachedEngine.maxThrust;
-            if (currentMaxThrust > recordMaxThrust)
-                recordMaxThrust = currentMaxThrust;
+            //currentMaxThrust = myAttachedEngine.maxThrust;
+            //if (currentMaxThrust > recordMaxThrust)
+            //    recordMaxThrust = currentMaxThrust;
 
             try
             {
@@ -1636,7 +1632,7 @@ namespace FNPlugin
         {
             if (canActivatePowerSource && AttachedReactor != null)
             {
-                AttachedReactor.Activate();
+                AttachedReactor.EnableIfPossible();
                 canActivatePowerSource = false;
             }
 
@@ -1752,13 +1748,6 @@ namespace FNPlugin
 
                 UpdateAnimation();
 
-                if (myAttachedEngine.getIgnitionState && myAttachedEngine.status == _flameoutText)
-                {
-                    myAttachedEngine.Shutdown();
-                    Debug.Log("[KSPI]: Engine Shutdown: fuel missing");
-                    ScreenMessages.PostScreenMessage("Engine Shutdown: fuel missing", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                }
-
                 isOpenCycleCooler = (!isPlasmaNozzle || UseThermalAndChargdPower) && !CheatOptions.IgnoreMaxTemperature;
 
                 // when in jet mode apply extra cooling from intake air
@@ -1853,6 +1842,14 @@ namespace FNPlugin
                             part.Effect(_runningEffectNameParticleFX, runningEffectRatio, -1);
                     }
                 }
+
+                if (myAttachedEngine.getIgnitionState && myAttachedEngine.status == _flameoutText)
+                {
+                    myAttachedEngine.maxFuelFlow = 1e-10f;
+                    //myAttachedEngine.Shutdown();
+                    //Debug.Log("[KSPI]: Engine Shutdown: fuel missing");
+                    //ScreenMessages.PostScreenMessage("Engine Shutdown: fuel missing", 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                }
             }
             catch (Exception e)
             {
@@ -1933,8 +1930,8 @@ namespace FNPlugin
         {
             try
             {
-                if (!AttachedReactor.IsActive)
-                    AttachedReactor.EnableIfPossible();
+                //if (!AttachedReactor.IsActive)
+                //    AttachedReactor.EnableIfPossible();
 
                 GetMaximumIspAndThrustMultiplier();
 
