@@ -593,7 +593,9 @@ namespace FNPlugin
             get { return this.isThermalReceiver; }
         }
 
-        public double RawMaximumPower { get { return powerInputMegajoulesMax; } }
+        public double RawMaximumPowerForPowerGeneration { get { return powerInputMegajoulesMax; } }
+
+        public double RawMaximumPower { get { return MaximumRecievePower; } }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 

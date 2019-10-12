@@ -1846,9 +1846,6 @@ namespace FNPlugin
                 if (myAttachedEngine.getIgnitionState && myAttachedEngine.status == _flameoutText)
                 {
                     myAttachedEngine.maxFuelFlow = 1e-10f;
-                    //myAttachedEngine.Shutdown();
-                    //Debug.Log("[KSPI]: Engine Shutdown: fuel missing");
-                    //ScreenMessages.PostScreenMessage("Engine Shutdown: fuel missing", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
             catch (Exception e)
@@ -1930,9 +1927,6 @@ namespace FNPlugin
         {
             try
             {
-                //if (!AttachedReactor.IsActive)
-                //    AttachedReactor.EnableIfPossible();
-
                 GetMaximumIspAndThrustMultiplier();
 
                 // consume power when plasma nozzle

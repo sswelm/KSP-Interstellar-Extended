@@ -1013,6 +1013,8 @@ namespace FNPlugin.Reactors
 
         public double PowerBufferBonus { get { return this.bonusBufferFactor; } }
 
+        public double RawMaximumPowerForPowerGeneration { get { return RawPowerOutput; } }
+
         public double RawMaximumPower { get { return RawPowerOutput; } }
 
         public virtual double FuelEfficiency

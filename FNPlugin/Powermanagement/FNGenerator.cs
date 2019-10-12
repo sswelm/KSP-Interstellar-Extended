@@ -844,7 +844,7 @@ namespace FNPlugin
                 else
                     powerUsageEfficiency = 1;
 
-                rawMaximumPower = attachedPowerSource.RawMaximumPower * powerUsageEfficiency;
+                rawMaximumPower = attachedPowerSource.RawMaximumPowerForPowerGeneration * powerUsageEfficiency;
                 maximumTheoreticalPower = PluginHelper.getFormattedPowerString(rawMaximumPower * CapacityRatio * maxEfficiency);
 
                 // verify if mass calculation is active
