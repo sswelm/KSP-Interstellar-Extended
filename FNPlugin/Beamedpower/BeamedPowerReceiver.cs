@@ -181,7 +181,7 @@ namespace FNPlugin
         public bool isThermalReceiverSlave = false;
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Input Power", guiFormat = "F3", guiUnits = " MJ")]
         public double powerInputMegajoules = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiName = "Max Input Power", guiFormat = "F3", guiUnits = " MJ")]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Max Input Power", guiFormat = "F3", guiUnits = " MJ")]
         public double powerInputMegajoulesMax = 0;
 
         [KSPField(guiActiveEditor = false, guiActive = true, guiName = "Thermal Power", guiFormat = "F3", guiUnits = " MJ")]
@@ -514,7 +514,7 @@ namespace FNPlugin
             get
             {
                 var maxPower = thermalMode && maximumThermalPower > 0
-                    ? Math.Min(maximumThermalPower, powerInputMegajoulesMax)
+                    ? maximumThermalPower
                     : maximumElectricPower > 0 
                         ? maximumElectricPower 
                         : maximumPower;
@@ -593,7 +593,7 @@ namespace FNPlugin
             get { return this.isThermalReceiver; }
         }
 
-        public double RawMaximumPower { get { return MaximumRecievePower; } }
+        public double RawMaximumPower { get { return powerInputMegajoulesMax; } }
 
         public bool ShouldApplyBalance(ElectricGeneratorType generatorType) { return false; }
 
@@ -830,6 +830,11 @@ namespace FNPlugin
 
             if (fnRadiator != null && fnRadiator.ModuleActiveRadiator != null)
                 fnRadiator.ModuleActiveRadiator.Shutdown();
+        }
+
+        public void Activate()
+        {
+            ActivateReceiver();
         }
 
         [KSPAction("Activate Receiver")]
@@ -1863,12 +1868,14 @@ namespace FNPlugin
                 {
                     ReceivedPowerData beamedPowerData;
 
-                    if (!received_power.TryGetValue(connectedTransmitterEntry.Key.Vessel, out beamedPowerData))
+                    var transmitter = connectedTransmitterEntry.Key;
+
+                    if (!received_power.TryGetValue(transmitter.Vessel, out beamedPowerData))
                     {
                         beamedPowerData = new ReceivedPowerData
                         {
                             Receiver = this,
-                            Transmitter = connectedTransmitterEntry.Key
+                            Transmitter = transmitter
                         };
                         received_power[beamedPowerData.Transmitter.Vessel] = beamedPowerData;
                     }
@@ -1884,7 +1891,7 @@ namespace FNPlugin
                     beamedPowerData.Relays = keyvaluepair.Value;
 
                     // convert initial beamed power from source into MegaWatt
-                    beamedPowerData.TransmitPower = beamedPowerData.Transmitter.getAvailablePowerInMW();
+                    beamedPowerData.TransmitPower = transmitter.getAvailablePowerInMW();
 
                     beamedPowerData.NetworkCapacity = beamedPowerData.Relays != null && beamedPowerData.Relays.Count > 0
                         ? Math.Min(beamedPowerData.TransmitPower, beamedPowerData.Relays.Min(m => m.PowerCapacity))

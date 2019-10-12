@@ -45,6 +45,9 @@ namespace FNPlugin
         [KSPField(isPersistant = true)]
         public bool exhaustAllowed = true;
 
+        [KSPField(isPersistant = true, guiActive = true)]
+        public bool canActivatePowerSource = false;
+
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Propelant Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.None)]
         public bool render_window = false;
 
@@ -62,6 +65,23 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "Fuelflow Throtle modifier", guiFormat = "F5")]
         public double fuelflow_throtle_modifier = 1;
 
+        [KSPField(guiActive = true)]
+        public double currentHeatProduction;
+        [KSPField(guiActive = true)]
+        public double recordHeatProduction;
+
+        [KSPField(guiActive = true)]
+        public double currentMaxFuelFlow;
+        [KSPField(guiActive = true)]
+        public double recordMaxFuelFlow;
+
+        [KSPField(guiActive = true)]
+        public double currentMaxThrust;
+        [KSPField(guiActive = true)]
+        public double recordMaxThrust;
+
+        [KSPField(guiActive = true)]
+        public double startupHeatReductionRatio = 0;
 
         [KSPField]
         public double missingPrecoolerProportionExponent = 0.5;
@@ -790,6 +810,8 @@ namespace FNPlugin
 
                 if (state == StartState.Editor)
                 {
+                    canActivatePowerSource = true;
+
                     part.OnEditorAttach += OnEditorAttach;
                     part.OnEditorDetach += OnEditorDetach;
 
@@ -983,6 +1005,18 @@ namespace FNPlugin
         // Note: does not seem to be called while in vab mode
         public override void OnUpdate()
         {
+            currentHeatProduction = myAttachedEngine.heatProduction;
+            if (currentHeatProduction > recordHeatProduction)
+                recordHeatProduction = currentHeatProduction;
+
+            currentMaxFuelFlow = myAttachedEngine.maxFuelFlow;
+            if (currentMaxFuelFlow > recordMaxFuelFlow)
+                recordMaxFuelFlow = currentMaxFuelFlow;
+
+            currentMaxThrust = myAttachedEngine.maxThrust;
+            if (currentMaxThrust > recordMaxThrust)
+                recordMaxThrust = currentMaxThrust;
+
             try
             {
                 // setup propellant after startup to allow InterstellarFuelSwitch to configure the propellant
@@ -1598,6 +1632,17 @@ namespace FNPlugin
             }
         }
 
+        public override void OnFixedUpdate()
+        {
+            if (canActivatePowerSource && AttachedReactor != null)
+            {
+                AttachedReactor.Activate();
+                canActivatePowerSource = false;
+            }
+
+            base.OnFixedUpdate();
+        }
+
         public void FixedUpdate() // FixedUpdate is also called while not staged
         {
             if (!HighLogic.LoadedSceneIsFlight || myAttachedEngine == null) return;
@@ -1659,6 +1704,7 @@ namespace FNPlugin
                     {
                         //myAttachedEngine.Events["Shutdown"].Invoke();
                         myAttachedEngine.Shutdown();
+                        Debug.Log("[KSPI]:  Engine Shutdown: No reactor attached!");
                         ScreenMessages.PostScreenMessage("Engine Shutdown: No reactor attached!", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     }
                     myAttachedEngine.CLAMP = 0;
@@ -1709,6 +1755,7 @@ namespace FNPlugin
                 if (myAttachedEngine.getIgnitionState && myAttachedEngine.status == _flameoutText)
                 {
                     myAttachedEngine.Shutdown();
+                    Debug.Log("[KSPI]: Engine Shutdown: fuel missing");
                     ScreenMessages.PostScreenMessage("Engine Shutdown: fuel missing", 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 }
 
@@ -1792,8 +1839,8 @@ namespace FNPlugin
 
                     myAttachedEngine.maxFuelFlow = maxFuelFlowOnEngine;
 
-                    // set heat production to 1 to prevent heat spike at activation
-                    myAttachedEngine.heatProduction = 1;
+                    // set heat production to 0 to prevent heat spike at activation
+                    myAttachedEngine.heatProduction = 0;
 
                     if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX)
                     {
@@ -2093,7 +2140,8 @@ namespace FNPlugin
                     spaceHeatProduction = heatProductionMultiplier * reactorHeatModifier * AttachedReactor.EngineHeatProductionMult * _ispPropellantMultiplier * ispHeatModifier * radiusHeatModifier * powerToMass / _fuelCoolingFactor;
                     engineHeatProduction = Math.Min(spaceHeatProduction * (1 + airflowHeatModifier * PluginHelper.AirflowHeatMult), 999999);
 
-                    myAttachedEngine.heatProduction = (float)engineHeatProduction;
+                    myAttachedEngine.heatProduction = (float)(engineHeatProduction * Math.Max(0, startupHeatReductionRatio));
+                    startupHeatReductionRatio = Math.Min(1, startupHeatReductionRatio + currentThrottle);
                 }
 
                 if (pulseDuration == 0 && myAttachedEngine is ModuleEnginesFX)

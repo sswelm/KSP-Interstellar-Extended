@@ -41,5 +41,7 @@ namespace FNPlugin.Redist
         double MagneticNozzlePowerMult { get; }
 
         void UseProductForPropulsion(double ratio, double propellantMassPerSecond, PartResourceDefinition resource);
+
+        void Activate();
     }
 }

@@ -652,6 +652,11 @@ namespace FNPlugin.Reactors
                 maxChargedParticleUtilisationRatio = maxChargedParticleUtilisationRatioMk5;
         }
 
+        public void Activate()
+        {
+            ActivateReactor();
+        }
+
         public ReactorFuelType CurrentFuelMode
         {
             get 
