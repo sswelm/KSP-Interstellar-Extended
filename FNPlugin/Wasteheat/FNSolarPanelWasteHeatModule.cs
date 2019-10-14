@@ -45,6 +45,14 @@ namespace FNPlugin
         //public float flowRate;
         //[KSPField(guiActive = true)]
         //public double _flowRate;
+        [KSPField]
+        public double kerbalism_nominalRate;
+        [KSPField]
+        public string kerbalism_panelState;
+        [KSPField]
+        public string kerbalism_panelOutput;
+        [KSPField]
+        public double kerbalism_panelPower;
 
         [KSPField]
         public double scale = 1;
@@ -52,6 +60,13 @@ namespace FNPlugin
         double maxSupply;
         [KSPField]
         double solarRate;
+        [KSPField]
+        public double outputResourceRate;
+        [KSPField]
+        public double outputResourceCurrentRequest;
+
+        [KSPField(guiActive = true)]
+        public double outputResourceSupply;
 
         BeamedPowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
@@ -61,6 +76,11 @@ namespace FNPlugin
 
         BaseField megaJouleSolarPowerSupplyField;
         BaseField solarMaxSupplyField;
+        BaseField _field_kerbalism_nominalRate;
+        BaseField _field_kerbalism_panelStatus;
+
+        ModuleResource outputResource;
+        PartModule solarPanelFixer;
       
         public double SolarPower
         {
@@ -75,6 +95,14 @@ namespace FNPlugin
 
             megaJouleSolarPowerSupplyField = Fields["megaJouleSolarPowerSupply"];
             solarMaxSupplyField = Fields["solarMaxSupply"];
+
+            if (part.Modules.Contains("SolarPanelFixer"))
+            {
+                solarPanelFixer = part.Modules["SolarPanelFixer"];
+
+                _field_kerbalism_nominalRate = solarPanelFixer.Fields["nominalRate"];
+                _field_kerbalism_panelStatus = solarPanelFixer.Fields["panelStatus"];
+            }
 
             // calculate Astronomical unit on homeworld semiMajorAxis when missing
             if (astronomicalUnit == 0)
@@ -95,6 +123,7 @@ namespace FNPlugin
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
+            outputResource = _solarPanel.resHandler.outputResources.FirstOrDefault();
             resourceName = _solarPanel.resourceName;
 
             if (resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
@@ -159,6 +188,26 @@ namespace FNPlugin
         {
             if (_solarPanel == null) return;
 
+            if (_field_kerbalism_nominalRate != null)
+            {
+                kerbalism_nominalRate = _field_kerbalism_nominalRate.GetValue<double>(solarPanelFixer);
+                kerbalism_panelState = _field_kerbalism_panelStatus.GetValue<string>(solarPanelFixer);
+
+                var kerbalism_panelStateArray = kerbalism_panelState.Split(' ');
+
+                kerbalism_panelOutput = kerbalism_panelStateArray[0];
+
+                double.TryParse(kerbalism_panelOutput, out kerbalism_panelPower);
+            }
+
+
+            if (outputResource != null)
+            {
+                outputResourceRate = outputResource.rate;
+                outputResourceCurrentRequest = outputResource.currentRequest;
+                outputResourceSupply = outputResourceCurrentRequest / fixedDeltaTime;
+            }
+
             if (_outputType == ResourceType.other) return;
 
             //_flowRate = _solarPanel._flowRate;
@@ -180,12 +229,15 @@ namespace FNPlugin
             if (_resourceBuffers != null)
                 _resourceBuffers.UpdateBuffers();
 
-            // extract power otherwise we end up with double power
-            //if (_flowRate > 0 )
-            //    part.RequestResource(_solarPanel.resourceName, _flowRate * fixedDeltaTime);
+            if (kerbalism_panelPower > 0)
+                part.RequestResource(_solarPanel.resourceName, kerbalism_panelPower * fixedDeltaTime);
+            else if (outputResourceCurrentRequest > 0)
+                part.RequestResource(_solarPanel.resourceName, outputResourceCurrentRequest);
             //else if (flowRate > 0)
             //    part.RequestResource(_solarPanel.resourceName, flowRate * fixedDeltaTime);
-            //else
+            //else if (_flowRate> 0)
+            //    part.RequestResource(_solarPanel.resourceName, _flowRate * fixedDeltaTime);
+            else
                 part.RequestResource(_solarPanel.resourceName, solarRate * fixedDeltaTime);
 
             // provide power to supply manager
