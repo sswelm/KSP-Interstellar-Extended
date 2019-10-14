@@ -200,7 +200,6 @@ namespace FNPlugin
                 double.TryParse(kerbalism_panelOutput, out kerbalism_panelPower);
             }
 
-
             if (outputResource != null)
             {
                 outputResourceRate = outputResource.rate;
