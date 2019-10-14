@@ -65,9 +65,6 @@ namespace FNPlugin
         [KSPField]
         public double outputResourceCurrentRequest;
 
-        [KSPField(guiActive = true)]
-        public double outputResourceSupply;
-
         BeamedPowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
         ResourceBuffers _resourceBuffers;
@@ -204,7 +201,6 @@ namespace FNPlugin
             {
                 outputResourceRate = outputResource.rate;
                 outputResourceCurrentRequest = outputResource.currentRequest;
-                outputResourceSupply = outputResourceCurrentRequest / fixedDeltaTime;
             }
 
             if (_outputType == ResourceType.other) return;
