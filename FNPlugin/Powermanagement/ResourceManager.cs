@@ -1257,7 +1257,7 @@ namespace FNPlugin
                     var count = group.Count();
                     if (count > 1)
                         name = count + " " + name;
-                    if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && sumOfConsumePercentage < 99.5)
+                    if (sumOfPowerDraw > 0  && resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && sumOfConsumePercentage < 99.5)
                         name = name + " " + sumOfConsumePercentage.ToString("0") + "%";
 
                     sumarizedList.Add(new PowerConsumption() { component = name, sum = (double)sumOfPowerDraw, priority = group.First().Key.getPowerPriority() });
