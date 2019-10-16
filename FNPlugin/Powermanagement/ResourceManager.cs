@@ -223,26 +223,30 @@ namespace FNPlugin
                 flow_type = FNRESOURCE_FLOWTYPE_SMALLEST_FIRST;
         }
 
-        public void powerDrawFixed(IResourceSuppliable pm, double power_draw, double power_cosumtion)
+        public void powerDrawFixed(IResourceSuppliable pm, double power_draw, double power_consumption)
         {
             if (power_draw.IsInfinityOrNaN())
                 return;
-            if (power_cosumtion.IsInfinityOrNaN())
+            if (power_consumption.IsInfinityOrNaN())
                 return;
 
             var timeWarpFixedDeltaTime = TimeWarpFixedDeltaTime;
             var power_draw_per_second = power_draw / timeWarpFixedDeltaTime;
-            var power_cosumtion_per_second = power_cosumtion / timeWarpFixedDeltaTime;
+            var power_consumtion_per_second = power_consumption / timeWarpFixedDeltaTime;
+
+            current_requested_amount += power_draw_per_second;
+            maximum_requested_amount += power_draw_per_second;
+            current_consumed_amount += power_consumtion_per_second;
 
             PowerDistribution powerDistribution;
-            if (!power_consumption.TryGetValue(pm, out powerDistribution))
+            if (!this.power_consumption.TryGetValue(pm, out powerDistribution))
             {
                 powerDistribution = new PowerDistribution();
-                power_consumption.Add(pm, powerDistribution);
+                this.power_consumption.Add(pm, powerDistribution);
             }
             powerDistribution.Power_current_requested += power_draw_per_second;
             powerDistribution.Power_maximum_requested += power_draw_per_second;
-            powerDistribution.Power_consumed += power_cosumtion_per_second;
+            powerDistribution.Power_consumed += power_consumtion_per_second;
         }
 
         public void powerDrawPerSecond(IResourceSuppliable pm, double power_requested, double power_consumed)

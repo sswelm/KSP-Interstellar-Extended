@@ -211,11 +211,15 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "Current Available Power")]
         protected double availableCurrentPower;
 
+
+
         [KSPField]
         protected double maximumThrustFromPower = 0.001;
         [KSPField]
         protected double currentThrustFromPower = 0.001;
 
+        [KSPField]
+        protected double megaJoulesBarRatio;
         [KSPField]
         protected double effectPower = 0;
         [KSPField]
@@ -758,10 +762,10 @@ namespace FNPlugin
             modifiedThrotte = ModifiedThrotte;
             modifiedMaxThrottlePower = maxEffectivePower * modifiedThrotte;
 
-            var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-            effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
-
             totalPowerSupplied = getTotalPowerSupplied(ResourceManager.FNRESOURCE_MEGAJOULES);
+            megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+            effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
             availableMaximumPower = getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
             availableCurrentPower = getAvailablePrioritisedCurrentSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
@@ -779,19 +783,20 @@ namespace FNPlugin
             modifiedCurrentPowerForEngine = effectiveCurrentAvailablePowerForEngine * modifiedThrotte;
 
             maximum_power_request = CheatOptions.InfiniteElectricity
-                ? modifiedMaxThrottlePower
+                ? modifiedMaximumPowerForEngine
                 : currentPropellantEfficiency <= 0
                     ? 0
                     : Math.Min(modifiedMaximumPowerForEngine, modifiedMaxThrottlePower);
 
             current_power_request = CheatOptions.InfiniteElectricity
-                ? modifiedMaxThrottlePower
+                ? modifiedCurrentPowerForEngine
                 : currentPropellantEfficiency <= 0
                     ? 0
                     : Math.Min(modifiedCurrentPowerForEngine, modifiedMaxThrottlePower);
 
+            // request electric power
             actualPowerReceived = CheatOptions.InfiniteElectricity
-                ? maximum_power_request
+                ? current_power_request
                 : consumeFNResourcePerSecond(current_power_request, maximum_power_request, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             simulatedPowerReceived = Math.Min(effectiveMaximumAvailablePowerForEngine, maxEffectivePower);
