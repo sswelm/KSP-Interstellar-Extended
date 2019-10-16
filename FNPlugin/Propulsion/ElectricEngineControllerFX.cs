@@ -176,7 +176,7 @@ namespace FNPlugin
         protected double modifiedThrotte;
         [KSPField(guiActive = false)]
         protected double effectivePowerThrustModifier;
-        [KSPField(guiActive = true)]
+        [KSPField(guiActive = false)]
         public double actualPowerReceived;
         [KSPField(guiActive = false)]
         public double simulatedPowerReceived;
@@ -204,11 +204,11 @@ namespace FNPlugin
         protected double maximumAvailablePowerForEngine;
         [KSPField]
         protected double currentAvailablePowerForEngine;
-        [KSPField(guiActive = true, guiName = "Total Power Supplied")]
+        [KSPField(guiActive = false, guiName = "Total Power Supplied")]
         protected double totalPowerSupplied;
-        [KSPField(guiActive = true, guiName = "Maximum Available Power")]
+        [KSPField(guiActive = false, guiName = "Maximum Available Power")]
         protected double availableMaximumPower;
-        [KSPField(guiActive = true, guiName = "Current Available Power")]
+        [KSPField(guiActive = false, guiName = "Current Available Power")]
         protected double availableCurrentPower;
 
 
