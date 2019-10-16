@@ -129,8 +129,10 @@ namespace FNPlugin
         public string propNameStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_powerShare")]
         public string electricalPowerShareStr = "";
-        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_ElectricEngine_powerRequested", guiFormat = "F3", guiUnits = " MW")]
-        public double power_request;
+        [KSPField(guiActive = true, guiName = "Maximum Power Request", guiFormat = "F3", guiUnits = " MW")]
+        public double maximum_power_request;
+        [KSPField(guiActive = true, guiName = "Current Power Request", guiFormat = "F3", guiUnits = " MW")] // #LOC_KSPIE_ElectricEngine_powerRequested
+        public double current_power_request;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_propellantEfficiency")]
         public string efficiencyStr = "";
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_overheatEfficiency")]
@@ -154,10 +156,18 @@ namespace FNPlugin
         public double expectedMass = 0;
         [KSPField(guiActive = false)]
         public double desiredMass = 0;
+
         [KSPField(guiActive = false)]
-        protected double currentPowerForEngine;
+        protected double modifiedMaximumPowerForEngine;
         [KSPField(guiActive = false)]
-        protected double availablePowerForEngine;
+        protected double modifiedCurrentPowerForEngine;
+
+        [KSPField(guiActive = false)]
+        protected double effectiveMaximumAvailablePowerForEngine;
+        [KSPField(guiActive = false)]
+        protected double effectiveCurrentAvailablePowerForEngine;
+
+
         [KSPField(guiActive = false)]
         protected double effectiveRecievedPower;
         [KSPField(guiActive = false)]
@@ -166,7 +176,7 @@ namespace FNPlugin
         protected double modifiedThrotte;
         [KSPField(guiActive = false)]
         protected double effectivePowerThrustModifier;
-        [KSPField(guiActive = false)]
+        [KSPField(guiActive = true)]
         public double actualPowerReceived;
         [KSPField(guiActive = false)]
         public double simulatedPowerReceived;
@@ -191,11 +201,21 @@ namespace FNPlugin
         protected double simulatedThrustInSpace;
 
         [KSPField] 
-        protected double maxAvailbePowerForEngine;
+        protected double maximumAvailablePowerForEngine;
         [KSPField]
-        protected double availablePower;
+        protected double currentAvailablePowerForEngine;
+        [KSPField(guiActive = true, guiName = "Total Power Supplied")]
+        protected double totalPowerSupplied;
+        [KSPField(guiActive = true, guiName = "Maximum Available Power")]
+        protected double availableMaximumPower;
+        [KSPField(guiActive = true, guiName = "Current Available Power")]
+        protected double availableCurrentPower;
+
         [KSPField]
-        protected double maxThrustFromPower = 0.001;
+        protected double maximumThrustFromPower = 0.001;
+        [KSPField]
+        protected double currentThrustFromPower = 0.001;
+
         [KSPField]
         protected double effectPower = 0;
         [KSPField]
@@ -484,7 +504,7 @@ namespace FNPlugin
 
                 SetupPropellants(true);
 
-                _attachedEngine.maxThrust = (float)maxThrustFromPower;
+                _attachedEngine.maxThrust = (float)maximumThrustFromPower;
             }
             catch (Exception e)
             {
@@ -738,34 +758,48 @@ namespace FNPlugin
             modifiedThrotte = ModifiedThrotte;
             modifiedMaxThrottlePower = maxEffectivePower * modifiedThrotte;
 
-            availablePower = getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-
-            maxAvailbePowerForEngine = availablePower *_electrical_share_f;
-
-            maxThrustFromPower = EvaluateMaxThrust(maxAvailbePowerForEngine);
-
             var megaJoulesBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
             effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
-            availablePowerForEngine = maxAvailbePowerForEngine * effectiveResourceThrotling;
-            currentPowerForEngine = availablePowerForEngine * modifiedThrotte;
+            totalPowerSupplied = getTotalPowerSupplied(ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            power_request = CheatOptions.InfiniteElectricity
+            availableMaximumPower = getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            availableCurrentPower = getAvailablePrioritisedCurrentSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+            maximumAvailablePowerForEngine = availableMaximumPower *_electrical_share_f;
+            currentAvailablePowerForEngine = availableCurrentPower * _electrical_share_f;
+
+            maximumThrustFromPower = EvaluateMaxThrust(maximumAvailablePowerForEngine);
+            currentThrustFromPower = EvaluateMaxThrust(currentAvailablePowerForEngine);
+
+            effectiveMaximumAvailablePowerForEngine = maximumAvailablePowerForEngine * effectiveResourceThrotling;
+            effectiveCurrentAvailablePowerForEngine = currentAvailablePowerForEngine * effectiveResourceThrotling;
+
+            modifiedMaximumPowerForEngine = effectiveMaximumAvailablePowerForEngine * modifiedThrotte;
+            modifiedCurrentPowerForEngine = effectiveCurrentAvailablePowerForEngine * modifiedThrotte;
+
+            maximum_power_request = CheatOptions.InfiniteElectricity
                 ? modifiedMaxThrottlePower
                 : currentPropellantEfficiency <= 0
                     ? 0
-                    : Math.Min(currentPowerForEngine, modifiedMaxThrottlePower);
+                    : Math.Min(modifiedMaximumPowerForEngine, modifiedMaxThrottlePower);
+
+            current_power_request = CheatOptions.InfiniteElectricity
+                ? modifiedMaxThrottlePower
+                : currentPropellantEfficiency <= 0
+                    ? 0
+                    : Math.Min(modifiedCurrentPowerForEngine, modifiedMaxThrottlePower);
 
             actualPowerReceived = CheatOptions.InfiniteElectricity
-                ? power_request
-                : consumeFNResourcePerSecond(power_request, ResourceManager.FNRESOURCE_MEGAJOULES);
+                ? maximum_power_request
+                : consumeFNResourcePerSecond(current_power_request, maximum_power_request, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            simulatedPowerReceived = Math.Min(availablePowerForEngine, maxEffectivePower);
+            simulatedPowerReceived = Math.Min(effectiveMaximumAvailablePowerForEngine, maxEffectivePower);
 
             // produce waste heat
             var heatModifier = (1 - currentPropellantEfficiency) * CurrentPropellant.WasteHeatMultiplier;
             var heatToProduce = actualPowerReceived * heatModifier;
-            var maxHeatToProduce = maxAvailbePowerForEngine * heatModifier;
+            var maxHeatToProduce = maximumAvailablePowerForEngine * heatModifier;
 
             _heat_production_f = CheatOptions.IgnoreMaxTemperature
                 ? heatToProduce
