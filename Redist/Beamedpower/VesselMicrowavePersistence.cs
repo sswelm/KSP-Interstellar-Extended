@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using FNPlugin.Redist;
 using FNPlugin.Extensions;
+using UnityEngine;
 
 namespace FNPlugin.Beamedpower
 {

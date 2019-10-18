@@ -880,7 +880,7 @@ namespace FNPlugin
 
                     ratioHeadingVersusRequest = 0;
                 }
-                else if (this.vessel.packed && _attachedEngine.enabled && FlightGlobals.ActiveVessel == vessel && _initializationCountdown == 0)
+                else if (this.vessel.packed && _attachedEngine.isEnabled && FlightGlobals.ActiveVessel == vessel && _initializationCountdown == 0)
                 {
                     _warpToReal = true; // Set to true for transition to realtime
 
