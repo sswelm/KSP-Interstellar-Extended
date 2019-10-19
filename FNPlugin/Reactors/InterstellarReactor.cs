@@ -546,7 +546,7 @@ namespace FNPlugin.Reactors
         public float currentMass = 0;
         [KSPField]
         public double maximumThermalPowerEffective = 0;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Embrittlement Fraction", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Embrittlement Fraction", guiFormat = "F4")]
         public double embrittlementModifier = 0;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Buoyancy Fraction", guiFormat = "F4")]
         public double geeForceModifier = 1;
