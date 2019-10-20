@@ -350,7 +350,7 @@ namespace FNPlugin
 
                 var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-                return 1 - wasteheatRatio * wasteheatRatio;
+                return 1 - wasteheatRatio * wasteheatRatio * wasteheatRatio;
             }
         }
 
