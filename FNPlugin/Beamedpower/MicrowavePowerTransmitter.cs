@@ -15,7 +15,7 @@ namespace FNPlugin.Beamedpower
 
     class BeamedPowerLaserTransmitter : BeamedPowerTransmitter { }
 
-    class BeamedPowerTransmitter : ResourceSuppliableModule, IMicrowavePowerTransmitter, IScalarModule
+    class BeamedPowerTransmitter : ResourceSuppliableModule, IMicrowavePowerTransmitter //, IScalarModule
     {
         //Persistent 
         [KSPField(isPersistant = true)]
@@ -48,6 +48,8 @@ namespace FNPlugin.Beamedpower
         public string wavelengthName;
         [KSPField(isPersistant = true)]
         public double aperture = 1;
+        [KSPField(isPersistant = true)]
+        public double diameter = 0;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName= "Is Mirror")]
         public bool isMirror = false;
         [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = false, guiName = "Can merge beams")]
@@ -149,24 +151,24 @@ namespace FNPlugin.Beamedpower
             return anim != null ? anim.isPlaying : false;
         }
 
-        public void SetScalar(float t)
-        {
-            if (anim != null)
-            {
-                if (t > 0.5)
-                {
-                    anim[animName].speed = 1;
-                    anim[animName].normalizedTime = 0;
-                    anim.Blend(animName, part.mass);
-                }
-                else
-                {
-                    anim[animName].speed = -1;
-                    anim[animName].normalizedTime = 1;
-                    anim.Blend(animName, part.mass);
-                }
-            }
-        }
+        //public void SetScalar(float t)
+        //{
+        //    if (anim != null)
+        //    {
+        //        if (t > 0.5)
+        //        {
+        //            anim[animName].speed = 1;
+        //            anim[animName].normalizedTime = 0;
+        //            anim.Blend(animName, part.mass);
+        //        }
+        //        else
+        //        {
+        //            anim[animName].speed = -1;
+        //            anim[animName].normalizedTime = 1;
+        //            anim.Blend(animName, part.mass);
+        //        }
+        //    }
+        //}
 
         public void SetUIRead(bool state)
         {
@@ -187,12 +189,17 @@ namespace FNPlugin.Beamedpower
             this.part.force_activate();
             forceActivateAtStartup = true;
 
-            if (anim != null)
+            if (genericAnimation != null && genericAnimation.GetScalar < 1)
             {
-                anim[animName].speed = 1;
-                anim[animName].normalizedTime = 0;
-                anim.Blend(animName, part.mass);
+                genericAnimation.Toggle();
             }
+
+            //if (anim != null)
+            //{
+            //    anim[animName].speed = 1;
+            //    anim[animName].normalizedTime = 0;
+            //    anim.Blend(animName, part.mass);
+            //}
             IsEnabled = true;
 
             // update wavelength
@@ -223,13 +230,18 @@ namespace FNPlugin.Beamedpower
             if (relay) return;
 
             ScreenMessages.PostScreenMessage("Transmitter deactivated", 4.0f, ScreenMessageStyle.UPPER_CENTER);
- 
-            if (anim != null)
+
+            if (genericAnimation != null && genericAnimation.GetScalar > 0)
             {
-                anim[animName].speed = -1;
-                anim[animName].normalizedTime = 1;
-                anim.Blend(animName, part.mass);
+                genericAnimation.Toggle();
             }
+ 
+            //if (anim != null)
+            //{
+            //    anim[animName].speed = -1;
+            //    anim[animName].normalizedTime = 1;
+            //    anim.Blend(animName, part.mass);
+            //}
             IsEnabled = false;
         }
 
@@ -238,12 +250,17 @@ namespace FNPlugin.Beamedpower
         {
             if (IsEnabled || relay) return;
 
-            if (anim != null)
+            if (genericAnimation != null && genericAnimation.GetScalar < 1)
             {
-                anim[animName].speed = 1;
-                anim[animName].normalizedTime = 0;
-                anim.Blend(animName, part.mass);
+                genericAnimation.Toggle();
             }
+
+            //if (anim != null)
+            //{
+            //    anim[animName].speed = 1;
+            //    anim[animName].normalizedTime = 0;
+            //    anim.Blend(animName, part.mass);
+            //}
 
             vessel_recievers = this.vessel.FindPartModulesImplementing<BeamedPowerReceiver>().Where(m => m.part != this.part).ToList();
 
@@ -259,12 +276,17 @@ namespace FNPlugin.Beamedpower
 
             ScreenMessages.PostScreenMessage("Relay deactivated", 4, ScreenMessageStyle.UPPER_CENTER);
 
-            if (anim != null)
+            if (genericAnimation != null && genericAnimation.GetScalar > 0)
             {
-                anim[animName].speed = 1;
-                anim[animName].normalizedTime = 0;
-                anim.Blend(animName, part.mass);
+                genericAnimation.Toggle();
             }
+
+            //if (anim != null)
+            //{
+            //    anim[animName].speed = 1;
+            //    anim[animName].normalizedTime = 0;
+            //    anim.Blend(animName, part.mass);
+            //}
 
             relay = false;
         }
@@ -298,6 +320,8 @@ namespace FNPlugin.Beamedpower
             {
                 minimumRelayWavelenght = recieversConfiguredForRelay.Min(m => m.minimumWavelength);
                 maximumRelayWavelenght = recieversConfiguredForRelay.Max(m => m.maximumWavelength);
+
+                diameter = recieversConfiguredForRelay.Max(m => m.diameter);
             }
         }
 
@@ -335,8 +359,9 @@ namespace FNPlugin.Beamedpower
             if (String.IsNullOrEmpty(partId))
                 partId = Guid.NewGuid().ToString();
 
-            // store  aperture
+            // store  aperture and diameter
             aperture = apertureDiameter;
+            diameter = apertureDiameter;
 
             ConnectToBeamGenerator();
 
@@ -355,23 +380,23 @@ namespace FNPlugin.Beamedpower
 
             UpdateRelayWavelength();
 
-            anim = part.FindModelAnimators(animName).FirstOrDefault();
-            if ( anim != null &&  part_receiver == null)
-            {
-                anim[animName].layer = 1;
-                if (IsEnabled)
-                {
-                    anim[animName].normalizedTime = 0;
-                    anim[animName].speed = 1;
-                }
-                else
-                {
-                    anim[animName].normalizedTime = 1;
-                    anim[animName].speed = -1;
-                }
-                //anim.Play();
-                anim.Blend(animName, part.mass);
-            }
+            //anim = part.FindModelAnimators(animName).FirstOrDefault();
+            //if ( anim != null &&  part_receiver == null)
+            //{
+            //    anim[animName].layer = 1;
+            //    if (IsEnabled)
+            //    {
+            //        anim[animName].normalizedTime = 0;
+            //        anim[animName].speed = 1;
+            //    }
+            //    else
+            //    {
+            //        anim[animName].normalizedTime = 1;
+            //        anim[animName].speed = -1;
+            //    }
+            //    //anim.Play();
+            //    anim.Blend(animName, part.mass);
+            //}
 
             if (forceActivateAtStartup)
             {
@@ -774,6 +799,7 @@ namespace FNPlugin.Beamedpower
             }
 
             relayPersistance.Aperture = relays.Average(m => m.aperture) * Approximate.Sqrt(relays.Count);
+            relayPersistance.Diameter = relays.Average(m => m.diameter);
             relayPersistance.PowerCapacity = relays.Sum(m => m.getPowerCapacity());
             relayPersistance.MinimumRelayWavelenght = relays.Min(m => m.minimumRelayWavelenght);
             relayPersistance.MaximumRelayWavelenght = relays.Max(m => m.maximumRelayWavelenght);
@@ -918,6 +944,7 @@ namespace FNPlugin.Beamedpower
             var relayVessel = new VesselRelayPersistence(vessel);
             int totalCount = 0;
 
+            double totalDiameter = 0;
             double totalAperture = 0;
             double totalPowerCapacity = 0;
             double minimumRelayWavelength = 1;
@@ -934,21 +961,23 @@ namespace FNPlugin.Beamedpower
 
                     bool isMergingBeams = false;
                     if (protomodule.moduleValues.HasValue("mergingBeams"))
-                    {
-                        try { bool.TryParse(protomodule.moduleValues.GetValue("mergingBeams"), out isMergingBeams); }
-                        catch (Exception e) { UnityEngine.Debug.LogError("[KSPI]: Exception while reading mergingBeams" + e.Message); }
-                    }
+                        isMergingBeams = bool.Parse(protomodule.moduleValues.GetValue("mergingBeams"));
 
                     // filter on transmitters
                     if (inRelayMode || isMergingBeams)
                     {
                         var wavelength = double.Parse(protomodule.moduleValues.GetValue("wavelength"));
                         var isMirror = bool.Parse(protomodule.moduleValues.GetValue("isMirror"));
-                        var aperture = double.Parse(protomodule.moduleValues.GetValue("aperture"));
+                        var aperture = double.Parse(protomodule.moduleValues.GetValue("aperture"));                        
                         var powerCapacity = double.Parse(protomodule.moduleValues.GetValue("power_capacity"));
+
+                        double diameter = 0;
+                        if (protomodule.moduleValues.HasValue("diameter"))
+                            diameter = double.Parse(protomodule.moduleValues.GetValue("diameter"));
 
                         totalCount++;
                         totalAperture += aperture;
+                        totalDiameter += diameter;
                         totalPowerCapacity += powerCapacity;
 
                         var relayWavelenghtMin = double.Parse(protomodule.moduleValues.GetValue("minimumRelayWavelenght"));
@@ -987,7 +1016,8 @@ namespace FNPlugin.Beamedpower
                 }
             }
 
-            relayVessel.Aperture = totalAperture;
+            relayVessel.Aperture = (totalAperture / totalCount) * Approximate.Sqrt(totalCount);
+            relayVessel.Diameter = totalDiameter / totalCount;
             relayVessel.PowerCapacity = totalPowerCapacity;
             relayVessel.IsActive = totalCount > 0;
             relayVessel.MinimumRelayWavelenght = minimumRelayWavelength;

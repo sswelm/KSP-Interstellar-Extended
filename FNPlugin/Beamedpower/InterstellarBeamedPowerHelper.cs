@@ -328,7 +328,7 @@ namespace FNPlugin.Beamedpower
                                     continue;
 
                                 double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceInMeter, transmitterToCheck.Aperture);
-                                double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
+                                double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Diameter);
 
                                 double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, relayAtmosphericPresure, transmitterWavelenghtData.atmosphericAbsorption, distanceInMeter, transmitterToCheck.Vessel, relayPersistance.Vessel);
                                 double efficiencyTransmitterToRelay = distanceFacingEfficiency * atmosphereEfficency;
@@ -374,8 +374,8 @@ namespace FNPlugin.Beamedpower
                                 if (transmitterWavelenghtData.maxWavelength < relayPersistance.MaximumRelayWavelenght || transmitterWavelenghtData.minWavelength > relayPersistance.MinimumRelayWavelenght)
                                     continue;
 
-                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, relayPersistance.Aperture);
-                                double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
+                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, nextRelay.Aperture);
+                                double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Diameter);
                                 double efficiencyForRoute = efficiencyByThisRelay * relayRoute.Efficiency;
 
                                 possibleWavelengths.Add(new MicrowaveRoute(efficiencyForRoute, relayToNextRelayDistance, relayRouteFacingFactor, spotsize, transmitterWavelenghtData, relayPersistance));
