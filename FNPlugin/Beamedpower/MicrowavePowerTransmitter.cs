@@ -971,9 +971,7 @@ namespace FNPlugin.Beamedpower
                         var aperture = double.Parse(protomodule.moduleValues.GetValue("aperture"));                        
                         var powerCapacity = double.Parse(protomodule.moduleValues.GetValue("power_capacity"));
 
-                        double diameter = 0;
-                        if (protomodule.moduleValues.HasValue("diameter"))
-                            diameter = double.Parse(protomodule.moduleValues.GetValue("diameter"));
+                        var diameter = protomodule.moduleValues.HasValue("diameter") ? double.Parse(protomodule.moduleValues.GetValue("diameter")) : aperture;
 
                         totalCount++;
                         totalAperture += aperture;
