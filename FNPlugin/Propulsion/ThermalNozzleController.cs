@@ -1878,15 +1878,16 @@ namespace FNPlugin
                 float increase;
 
                 if (myAttachedEngine.currentThrottle > 0 && calculatedMaxThrust > 0)
-                    increase = TimeWarp.fixedDeltaTime;
+                    increase = 0.02f;
                 else if (_currentAnimatioRatio > 1 / recoveryAnimationDivider)
-                    increase = TimeWarp.fixedDeltaTime;
+                    increase = 0.02f;
                 else if (_currentAnimatioRatio > 0)
-                    increase = TimeWarp.fixedDeltaTime / -recoveryAnimationDivider;
+                    increase = 0.02f / -recoveryAnimationDivider;
                 else
                     increase = 0;
 
                 _currentAnimatioRatio += increase;
+
 
                 if (pulseDuration > 0 && myAttachedEngine is ModuleEnginesFX)
                 {
