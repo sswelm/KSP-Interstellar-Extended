@@ -8,6 +8,7 @@ namespace FNPlugin
 
     class ChemicalEngine : VistaECU2 { }
 
+    class InertialFusionEngine : VistaECU2 { }
 
     class VistaECU2 : FusionECU2, IUpgradeableModule
     {
