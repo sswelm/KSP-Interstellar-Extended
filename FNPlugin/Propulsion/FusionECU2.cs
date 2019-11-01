@@ -74,13 +74,13 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiName = "Use MJ Battery"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool useMegajouleBattery = false;
 
-        [KSPField(guiActive = false, guiName = "Fusion Ratio", guiFormat = "F2")]
+        [KSPField(guiActive = false, guiName = "Fusion Ratio", guiFormat = "F3")]
         public double fusionRatio;
-        [KSPField(guiActive = true, guiName = "Power Requirement", guiFormat = "F2", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiName = "Power Requirement", guiFormat = "F3", guiUnits = " MW")]
         public double enginePowerRequirement;
-        [KSPField(guiActive = true, guiName = "Laser Wasteheat", guiFormat = "F2", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "Laser Wasteheat", guiFormat = "F3", guiUnits = " MW")]
         public double laserWasteheat;
-        [KSPField(guiActive = true, guiName = "Absorbed Wasteheat", guiFormat = "F2", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "Absorbed Wasteheat", guiFormat = "F3", guiUnits = " MW")]
         public double absorbedWasteheat;
         [KSPField(guiName = "Radiator Temp")]
         public double coldBathTemp;

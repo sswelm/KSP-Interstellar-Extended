@@ -503,6 +503,9 @@ namespace FNPlugin
 
         public override void OnStart(StartState state)
         {
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
+            this.resources_to_supply = resources_to_supply;
+
             try
             {
                 Debug.Log("[KSPI]: Start Current State: " + (int)state + " " + state.ToString());
