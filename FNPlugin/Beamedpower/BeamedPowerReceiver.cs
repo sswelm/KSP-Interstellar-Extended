@@ -682,7 +682,7 @@ namespace FNPlugin
 
         public double MaximumPower { get { return MaximumThermalPower; } }
 
-        public double MaximumThermalPower { get { return ThermalPower; } }
+        public double MaximumThermalPower { get { return HighLogic.LoadedSceneIsEditor ? maximumThermalPower : ThermalPower; } }
 
         public double NormalisedMaximumPower { get { return ThermalPower; } }
 
