@@ -570,15 +570,15 @@ namespace FNPlugin
             if (techstate != null)
             {
                 var available = techstate.state == RDTech.State.Available;
-                if (available)
-                    Debug.Log("[KSPI]: found techid " + id + " available");
-                else
-                    Debug.Log("[KSPI]: found techid " + id + " unavailable");
+                //if (available)
+                //    Debug.Log("[KSPI]: found techid " + id + " available");
+                //else
+                //    Debug.Log("[KSPI]: found techid " + id + " unavailable");
                 return available;
             }
             else
             {
-                Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
+                //Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
                 return false;
             }
         }

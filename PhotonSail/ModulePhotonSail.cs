@@ -81,11 +81,11 @@ namespace PhotonSail
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Absorbed heat", guiUnits = " J/s", guiFormat = "F3")]
         public double absorbedPhotonHeatInWatt;
 
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 1")]
+        [KSPField(guiActiveEditor = false, guiName = "Solar Cell Tech 1")]
         public string solarPhotovoltaicTech1 = "photovoltaicSailUpgradeA";
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 2")]
+        [KSPField(guiActiveEditor = false, guiName = "Solar Cell Tech 2")]
         public string solarPhotovoltaicTech2 = "photovoltaicSailUpgradeB";
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 3")]
+        [KSPField(guiActiveEditor = false, guiName = "Solar Cell Tech 3")]
         public string solarPhotovoltaicTech3 = "photovoltaicSailUpgradeC";
 
         [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 0", guiUnits = "%")]
@@ -219,9 +219,9 @@ namespace PhotonSail
         public double kscCentralSpotsizeMult = 2;           // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
         [KSPField(guiActiveEditor = false, guiName = "KCS Laser Side Spotsize Mult")]
         public double kscSideSpotsizeMult = 22;
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spot Ratio")]
+        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Central Spot Ratio")]
         public double kscCentralSpotEnergyRatio = 0.7;    // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spot Ratio")]
+        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Central Spot Ratio")]
         public double kscSideSpotEnergyRatio = 0.25; 
         [KSPField(guiActiveEditor = true, guiName = "KCS Laser Min Elevation Angle")]
         public double kscLaserMinElevationAngle = 70;
