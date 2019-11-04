@@ -513,5 +513,42 @@ namespace InterstellarFuelSwitch
         {
             return "Primary: " + primaryResourceNames + "\n" + "Secondary: " + secondaryResourceNames ;
         }
+
+        /// <summary>
+        /// Callon on offline vessel to process Resource Converter
+        /// </summary>
+        /// <param name="vessel"></param>
+        public static void UpdateResourceConverterOffline(Vessel vessel)
+        {
+            foreach (var protoPart in vessel.protoVessel.protoPartSnapshots)
+            {
+                var interstellarResourceConverter = protoPart.modules.FirstOrDefault(m => m.moduleName == "InterstellarResourceConverter");
+
+                if (interstellarResourceConverter != null)
+                {
+                    string primaryConversionEnergyResource = interstellarResourceConverter.moduleValues.GetValue("primaryConversionEnergyResource");
+                    string secondaryConversionEnergResource = interstellarResourceConverter.moduleValues.GetValue("secondaryConversionEnergResource");
+
+                    int matchCount = 0;
+
+                    foreach (var protoResource in protoPart.resources)
+                    {
+                        if (protoResource.resourceName == primaryConversionEnergyResource)
+                        {
+                            protoResource.amount = protoResource.maxAmount;
+                            matchCount++;
+                        }
+                        else if (protoResource.resourceName == secondaryConversionEnergResource)
+                        {
+                            protoResource.amount = protoResource.maxAmount;
+                            matchCount++;
+                        }
+
+                        if (matchCount == 2)
+                            break;
+                    }
+                }
+            }
+        }
     }
 }
