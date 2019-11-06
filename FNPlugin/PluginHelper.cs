@@ -30,6 +30,8 @@ namespace FNPlugin
             GameEvents.onDockingComplete.Add(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
             GameEvents.onVesselSOIChanged.Add(OmVesselSOIChanged);
+            GameEvents.onGameStateLoad.Add(OmGameStateLoad);
+            GameEvents.onVesselLoaded.Add(OmVesselLoad);
 
             GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
             GameEvents.onVesselGoOffRails.Add(OnVesselGoOnRails);
@@ -47,6 +49,8 @@ namespace FNPlugin
             GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
             GameEvents.onVesselGoOffRails.Remove(OnVesselGoOnRails);
 
+            GameEvents.onVesselLoaded.Remove(OmVesselLoad);
+            GameEvents.onGameStateLoad.Remove(OmGameStateLoad);
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
             GameEvents.onDockingComplete.Remove(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
@@ -100,6 +104,16 @@ namespace FNPlugin
             SupplyPriorityManager.Reset();
 
             ResetReceivers();
+        }
+
+        void OmVesselLoad(Vessel vessel)
+        {
+            Debug.Log("[KSPI]: GameEventSubscriber - detected OmVesselLoaded");
+        }
+
+        void  OmGameStateLoad (ConfigNode confignode)
+        {
+            Debug.Log("[KSPI]: GameEventSubscriber - detected OmGameStateLoad");
         }
 
         void  OmVesselSOIChanged (GameEvents.HostedFromToAction<Vessel, CelestialBody> gameEvent)

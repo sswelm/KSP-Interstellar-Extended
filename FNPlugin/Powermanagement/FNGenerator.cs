@@ -22,6 +22,50 @@ namespace FNPlugin
         public float maxStorageCapacityMJ = 0;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
+
+        [KSPField(isPersistant = true, guiActive = true)]
+        public double usedMegaJoules;
+
+        public override void OnSave(ConfigNode node)
+        {
+            if (HighLogic.LoadedSceneIsEditor)
+                return;
+
+            Debug.Log("[KSPI]: KspiSuperCapacitator OnSave called");
+
+            var megajoules = part.Resources["Megajoules"];
+
+            if (megajoules == null)
+                return;
+
+            var electricCharge = part.Resources["ElectricCharge"];
+
+            if (electricCharge == null)
+                return;
+
+            electricCharge.maxAmount = electricCharge.maxAmount + (megajoules.maxAmount * 1000);
+            electricCharge.amount = electricCharge.amount + (megajoules.amount * 1000);
+        }
+
+        public override void OnLoad(ConfigNode node)
+        {
+            if (HighLogic.LoadedSceneIsEditor)
+                return;
+
+            Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad called");
+
+            var megajoules = part.Resources["Megajoules"];
+
+            if (megajoules == null)
+                return;
+
+            var electricCharge = part.Resources["ElectricCharge"];
+
+            if (electricCharge == null)
+                return;
+
+            electricCharge.maxAmount = megajoules.maxAmount;
+        }
     }
 
     [KSPModule("Thermal Electric Effect Generator")]
