@@ -1,5 +1,6 @@
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using FNPlugin.Reactors;
 using FNPlugin.Redist;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
@@ -9,7 +10,6 @@ using System.Linq;
 using System.Text;
 using TweakScale;
 using UnityEngine;
-using FNPlugin.Reactors;
 
 namespace FNPlugin
 {
@@ -22,9 +22,6 @@ namespace FNPlugin
         public float maxStorageCapacityMJ = 0;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
-
-        [KSPField(isPersistant = true, guiActive = true)]
-        public double usedMegaJoules;
 
         public override void OnSave(ConfigNode node)
         {
@@ -64,7 +61,23 @@ namespace FNPlugin
             if (electricCharge == null)
                 return;
 
-            electricCharge.maxAmount = megajoules.maxAmount;
+            if (part.protoPartSnapshot == null)
+            {
+                Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad part.protoPartSnapshot == null");
+                return;
+            }
+
+            // detect amount of power used offline and adjust megajoules
+            var protoElectricCharge = part.protoPartSnapshot.resources.FirstOrDefault(m => m.resourceName == "ElectricCharge");
+
+            if (protoElectricCharge == null)
+                return;
+
+            Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad protoElectricCharge amount : " + protoElectricCharge.amount);
+
+            megajoules.amount = (protoElectricCharge.amount / protoElectricCharge.maxAmount) * 0.001;
+
+            Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad updated megajoules amount to " + megajoules.amount);
         }
     }
 
