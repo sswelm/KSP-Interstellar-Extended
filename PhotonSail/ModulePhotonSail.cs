@@ -108,7 +108,7 @@ namespace PhotonSail
         [KSPField]
         public double kscPowerMult = 1e8;
         [KSPField]
-        public double kscApertureMult = 1e-1;
+        public double kscApertureMult = 1;
         [KSPField]
         public double massTechMultiplier = 1;
         [KSPField]
@@ -158,19 +158,19 @@ namespace PhotonSail
         [KSPField]
         public int kscLaserApertureBonus0 = 50;
         [KSPField]
-        public int kscLaserApertureBonus1 = 60;
+        public int kscLaserApertureBonus1 = 50;
         [KSPField]
-        public int kscLaserApertureBonus2 = 70;
+        public int kscLaserApertureBonus2 = 100;
         [KSPField]
-        public int kscLaserApertureBonus3 = 80;
+        public int kscLaserApertureBonus3 = 100;
         [KSPField]
-        public int kscLaserApertureBonus4 = 90;
+        public int kscLaserApertureBonus4 = 100;
         [KSPField]
-        public int kscLaserApertureBonus5 = 100;
+        public int kscLaserApertureBonus5 = 200;
         [KSPField]
-        public int kscLaserApertureBonus6 = 120;
+        public int kscLaserApertureBonus6 = 200;
         [KSPField]
-        public int kscLaserApertureBonus7 = 130;
+        public int kscLaserApertureBonus7 = 200;
 
         [KSPField]
         public int kscLaserPowerBonus0 = 50;
@@ -546,8 +546,13 @@ namespace PhotonSail
 
         private void DetermineKscLaserAperture()
         {
+            UnityEngine.Debug.Log("[KSPI]: ModulePhotonSail start DetermineKscLaserAperture");
+
             if (ResearchAndDevelopment.Instance == null)
+            {
+                UnityEngine.Debug.Log("[KSPI]: ModulePhotonSail ResearchAndDevelopment.Instance == null");
                 return;
+            }
 
             kscLaserAperture = kscLaserApertureBonus0;
             kscLaserAperture += HasUpgrade(kscLaserApertureName1) ? kscLaserApertureBonus1 : 0;
