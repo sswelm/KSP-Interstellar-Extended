@@ -15,24 +15,39 @@ namespace FNPlugin
 {
     enum PowerStates { PowerOnline, PowerOffline };
 
+    [KSPModule("Super Lithium Battery")]
+    class SuperLithiumBattery : KspiSuperCapacitator { }
+
     [KSPModule("Super Capacitator")]
-    class KspiSuperCapacitator : PartModule
+    class KspiSuperCapacitator : ResourceSuppliableModule
     {
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Max Capacity", guiUnits = " MWe")]
         public float maxStorageCapacityMJ = 0;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
+        [KSPField]
+        public string powerResourceName = "Megajoules";
+        [KSPField]
+        public double powerConversionRate = 1000;
+
+        private double megajoulesAfterLoad = 0;
+
+        public override void OnStart(PartModule.StartState state)
+        {
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
+            this.resources_to_supply = resources_to_supply;
+
+            part.force_activate();
+        }
 
         public override void OnSave(ConfigNode node)
         {
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
-            Debug.Log("[KSPI]: KspiSuperCapacitator OnSave called");
+            var powerResource = part.Resources[powerResourceName];
 
-            var megajoules = part.Resources["Megajoules"];
-
-            if (megajoules == null)
+            if (powerResource == null)
                 return;
 
             var electricCharge = part.Resources["ElectricCharge"];
@@ -40,8 +55,26 @@ namespace FNPlugin
             if (electricCharge == null)
                 return;
 
-            electricCharge.maxAmount = electricCharge.maxAmount + (megajoules.maxAmount * 1000);
-            electricCharge.amount = electricCharge.amount + (megajoules.amount * 1000);
+            if (megajoulesAfterLoad > 0)
+            {
+                Debug.Log("[KSPI]: KspiSuperCapacitator OnSave update " + powerResourceName + " amount to " + megajoulesAfterLoad);
+                powerResource.amount = megajoulesAfterLoad;
+                megajoulesAfterLoad = 0;
+            }
+
+            var availableEmptyElectricCharge = Math.Max(0, electricCharge.maxAmount - electricCharge.amount);
+
+            if (availableEmptyElectricCharge > 0 && powerResource.amount > 0)
+            {
+                electricCharge.maxAmount = electricCharge.maxAmount + (powerResource.maxAmount * powerConversionRate);
+                electricCharge.amount = electricCharge.amount + (powerResource.amount * powerConversionRate);
+
+                var megeJouleDecrease = Math.Min(powerResource.amount, availableEmptyElectricCharge / powerConversionRate);
+
+                Debug.Log("[KSPI]: KspiSuperCapacitator OnSave decreased " + powerResourceName + " by " + megeJouleDecrease);
+
+                powerResource.amount = Math.Max(0, powerResource.amount - megeJouleDecrease);
+            }
         }
 
         public override void OnLoad(ConfigNode node)
@@ -49,11 +82,9 @@ namespace FNPlugin
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
-            Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad called");
+            var powerResource = part.Resources[powerResourceName];
 
-            var megajoules = part.Resources["Megajoules"];
-
-            if (megajoules == null)
+            if (powerResource == null)
                 return;
 
             var electricCharge = part.Resources["ElectricCharge"];
@@ -73,11 +104,7 @@ namespace FNPlugin
             if (protoElectricCharge == null)
                 return;
 
-            Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad protoElectricCharge amount : " + protoElectricCharge.amount);
-
-            megajoules.amount = (protoElectricCharge.amount / protoElectricCharge.maxAmount) * 0.001;
-
-            Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad updated megajoules amount to " + megajoules.amount);
+            megajoulesAfterLoad = Math.Max(0, (protoElectricCharge.amount - electricCharge.maxAmount) / (protoElectricCharge.maxAmount - electricCharge.maxAmount)) * powerResource.maxAmount;       
         }
     }
 
