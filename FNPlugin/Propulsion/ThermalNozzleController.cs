@@ -44,8 +44,7 @@ namespace FNPlugin
         public double animationStarted = 0;
         [KSPField(isPersistant = true)]
         public bool exhaustAllowed = true;
-
-        [KSPField(isPersistant = true, guiActive = true)]
+        [KSPField(isPersistant = true)]
         public bool canActivatePowerSource = false;
 
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Propelant Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.None)]
@@ -432,7 +431,7 @@ namespace FNPlugin
         double pre_cooler_area;
         [KSPField]
         double intakes_open_area;
-        [KSPField(guiActive = true, guiName = "Missing Precooler Ratio")]
+        [KSPField]
         public double missingPrecoolerRatio;
         [KSPField]
         float effectiveJetengineAccelerationSpeed;
