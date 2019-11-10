@@ -80,7 +80,8 @@ namespace FNPlugin
                             part.temperature = 1;
                             return;
                         }
-                        part.temperature = temp1;
+                        else
+                            part.temperature = temp1;
                     } 
                     else
                         part.temperature = 1;
