@@ -42,6 +42,8 @@ namespace FNPlugin
 
         public override void OnSave(ConfigNode node)
         {
+            //Debug.Log("[KSPI]: KspiSuperCapacitator OnSave start");
+
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
@@ -64,10 +66,17 @@ namespace FNPlugin
 
             var availableEmptyElectricCharge = Math.Max(0, electricCharge.maxAmount - electricCharge.amount);
 
-            if (availableEmptyElectricCharge > 0 && powerResource.amount > 0)
+            if (powerResource.amount > 0)
             {
-                electricCharge.maxAmount = electricCharge.maxAmount + (powerResource.maxAmount * powerConversionRate);
-                electricCharge.amount = electricCharge.amount + (powerResource.amount * powerConversionRate);
+                Debug.Log("[KSPI]: KspiSuperCapacitator OnSave powerResource.amount = " + powerResource.amount );
+
+                var newElectricChargeMaxAmount = electricCharge.maxAmount + (powerResource.maxAmount * powerConversionRate);
+                var newElectricChargeAmount = electricCharge.amount + (powerResource.amount * powerConversionRate);
+
+                electricCharge.maxAmount = newElectricChargeMaxAmount;
+                electricCharge.amount = newElectricChargeAmount;
+
+                Debug.Log("[KSPI]: KspiSuperCapacitator OnSave newElectricChargeAmount = " + newElectricChargeAmount);
 
                 var megeJouleDecrease = Math.Min(powerResource.amount, availableEmptyElectricCharge / powerConversionRate);
 
@@ -79,6 +88,8 @@ namespace FNPlugin
 
         public override void OnLoad(ConfigNode node)
         {
+            Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad start");
+
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
@@ -102,9 +113,27 @@ namespace FNPlugin
             var protoElectricCharge = part.protoPartSnapshot.resources.FirstOrDefault(m => m.resourceName == "ElectricCharge");
 
             if (protoElectricCharge == null)
+            {
+                Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad protoElectricCharge == null");
                 return;
+            }
 
-            megajoulesAfterLoad = Math.Max(0, (protoElectricCharge.amount - electricCharge.maxAmount) / (protoElectricCharge.maxAmount - electricCharge.maxAmount)) * powerResource.maxAmount;       
+            Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad protoElectricCharge " + protoElectricCharge.amount);
+
+            var protoPowerResource = part.protoPartSnapshot.resources.FirstOrDefault(m => m.resourceName == powerResourceName);
+
+            if (protoPowerResource != null)
+            {
+                Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad protoPowerResource maxAmount " + protoPowerResource.maxAmount);
+                Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad protoPowerResource amount " + protoPowerResource.amount);
+
+                powerResource.maxAmount = protoPowerResource.maxAmount;
+                powerResource.amount = protoPowerResource.amount;
+            }
+
+            megajoulesAfterLoad = Math.Max(0, (protoElectricCharge.amount - electricCharge.maxAmount) / (protoElectricCharge.maxAmount - electricCharge.maxAmount)) * powerResource.maxAmount;
+
+            Debug.Log("[KSPI]: KspiSuperCapacitator OnLoad megajoulesAfterLoad " + megajoulesAfterLoad);
         }
     }
 
