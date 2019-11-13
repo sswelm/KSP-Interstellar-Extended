@@ -20,13 +20,13 @@ namespace FNPlugin.Extensions
 
             if (!canPersistDirection)
             {
-                UnityEngine.Debug.Log("[KSPI]: " + "ortibit is not suitable for persistant heading ");
+                //UnityEngine.Debug.Log("[KSPI]: " + "orbit is not suitable for persistant heading ");
                 return 0;
             }
 
             if ( !sasIsActive)
             {
-                UnityEngine.Debug.Log("[KSPI]: " + "SAS is not active ");
+                //UnityEngine.Debug.Log("[KSPI]: " + "SAS is not active ");
                 return 0;
             }                 
 
