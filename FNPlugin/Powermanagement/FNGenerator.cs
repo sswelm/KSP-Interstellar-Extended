@@ -25,9 +25,9 @@ namespace FNPlugin
         public float maxStorageCapacityMJ = 0;
         [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
         public float partMass = 0;
-        [KSPField]
+        [KSPField(guiActiveEditor = false)]
         public string powerResourceName = "Megajoules";
-        [KSPField]
+        [KSPField(guiActiveEditor = false)]
         public double powerConversionRate = 1000;
 
         private double megajoulesAfterLoad = 0;
