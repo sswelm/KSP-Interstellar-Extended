@@ -15,6 +15,9 @@ namespace FNPlugin
 {
     enum PowerStates { PowerOnline, PowerOffline };
 
+    [KSPModule("Air Lithium Battery")]
+    class AirLithiumBattery : KspiSuperCapacitator { }
+
     [KSPModule("Super Lithium Battery")]
     class SuperLithiumBattery : KspiSuperCapacitator { }
 
