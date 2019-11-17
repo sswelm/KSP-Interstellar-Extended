@@ -768,7 +768,9 @@ namespace FNPlugin
             effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
             availableMaximumPower = getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-            availableCurrentPower = getAvailablePrioritisedCurrentSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            availableCurrentPower = CheatOptions.InfiniteElectricity 
+                ? availableMaximumPower 
+                : getAvailablePrioritisedCurrentSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
             maximumAvailablePowerForEngine = availableMaximumPower *_electrical_share_f;
             currentAvailablePowerForEngine = availableCurrentPower * _electrical_share_f;
