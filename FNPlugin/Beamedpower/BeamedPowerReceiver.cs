@@ -639,7 +639,7 @@ namespace FNPlugin
                 return 0;
         }
 
-        protected Animation animation;
+        //protected Animation animation;
         protected Animation animT;
 
         protected BeamedPowerTransmitter part_transmitter;
@@ -756,20 +756,20 @@ namespace FNPlugin
                 deployableRadiator.Extend();
             }
 
-            if (animation != null)
-            {
-                if (forced || !animatonDeployed)
-                {
-                    waitForAnimationToComplete = true;
-                    animatonDeployed = true;
+            //if (animation != null)
+            //{
+            //    if (forced || !animatonDeployed)
+            //    {
+            //        waitForAnimationToComplete = true;
+            //        animatonDeployed = true;
 
-                    if (Math.Abs(animation[animName].normalizedTime - 1) < float.Epsilon)
-                        animation[animName].normalizedTime = 0;
+            //        if (Math.Abs(animation[animName].normalizedTime - 1) < float.Epsilon)
+            //            animation[animName].normalizedTime = 0;
 
-                    animation[animName].speed = 1;
-                    animation.Blend(animName, 2);
-                }
-            }
+            //        animation[animName].speed = 1;
+            //        animation.Blend(animName, 2);
+            //    }
+            //}
 
             if (genericAnimation != null && genericAnimation.GetScalar < 1)
             {
@@ -810,20 +810,20 @@ namespace FNPlugin
                 deployableRadiator.Retract();
             }
 
-            if (animation != null)
-            {
-                if (forced || animatonDeployed)
-                {
-                    waitForAnimationToComplete = true;
-                    animatonDeployed = false;
+            //if (animation != null)
+            //{
+            //    if (forced || animatonDeployed)
+            //    {
+            //        waitForAnimationToComplete = true;
+            //        animatonDeployed = false;
 
-                    if (animation[animName].normalizedTime == 0)
-                        animation[animName].normalizedTime = 1;
+            //        if (animation[animName].normalizedTime == 0)
+            //            animation[animName].normalizedTime = 1;
 
-                    animation[animName].speed = -1;
-                    animation.Blend(animName, 2);
-                }
-            }
+            //        animation[animName].speed = -1;
+            //        animation.Blend(animName, 2);
+            //    }
+            //}
 
             if (genericAnimation != null && genericAnimation.GetScalar > 0 )
             {
@@ -1096,11 +1096,12 @@ namespace FNPlugin
                 }
             }
 
-            if (!String.IsNullOrEmpty(animGenericName))
-                genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == animGenericName);
+            //if (!String.IsNullOrEmpty(animGenericName))
+            //    genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == animGenericName);
+            genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
 
-            if (deployableAntenna == null && deployableSolarPanel == null && deployableRadiator == null && genericAnimation == null && !String.IsNullOrEmpty(animName))
-                animation = part.FindModelAnimators(animName).FirstOrDefault();
+            //if (deployableAntenna == null && deployableSolarPanel == null && deployableRadiator == null && genericAnimation == null && !String.IsNullOrEmpty(animName))
+            //    animation = part.FindModelAnimators(animName).FirstOrDefault();
         }
 
         private void UpdateBuffers()
@@ -1365,8 +1366,8 @@ namespace FNPlugin
                 }
                 else
                 {
-                    if (animation == null)
-                        return true;
+                    //if (animation == null)
+                    //    return true;
 
                     var pressure = FlightGlobals.getStaticPressure(vessel.GetVesselPos()) / 100;
                     var dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325;
