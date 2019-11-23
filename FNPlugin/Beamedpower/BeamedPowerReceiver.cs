@@ -406,6 +406,7 @@ namespace FNPlugin
 
         public void Reset()
         {
+            Debug.Log("[KSPI]: BeamedPowerReceiver reset called");
             received_power.Clear();
         }
 
@@ -639,7 +640,6 @@ namespace FNPlugin
                 return 0;
         }
 
-        //protected Animation animation;
         protected Animation animT;
 
         protected BeamedPowerTransmitter part_transmitter;
@@ -739,7 +739,7 @@ namespace FNPlugin
 
         private void ShowDeployAnimation(bool forced)
         {
-            Debug.Log("MicrowaveReceiver ShowDeployAnimation is called ");
+            Debug.Log("[KSPI]: MicrowaveReceiver ShowDeployAnimation is called ");
 
             if (deployableAntenna != null)
             {
@@ -755,21 +755,6 @@ namespace FNPlugin
             {
                 deployableRadiator.Extend();
             }
-
-            //if (animation != null)
-            //{
-            //    if (forced || !animatonDeployed)
-            //    {
-            //        waitForAnimationToComplete = true;
-            //        animatonDeployed = true;
-
-            //        if (Math.Abs(animation[animName].normalizedTime - 1) < float.Epsilon)
-            //            animation[animName].normalizedTime = 0;
-
-            //        animation[animName].speed = 1;
-            //        animation.Blend(animName, 2);
-            //    }
-            //}
 
             if (genericAnimation != null && genericAnimation.GetScalar < 1)
             {
@@ -809,21 +794,6 @@ namespace FNPlugin
             {
                 deployableRadiator.Retract();
             }
-
-            //if (animation != null)
-            //{
-            //    if (forced || animatonDeployed)
-            //    {
-            //        waitForAnimationToComplete = true;
-            //        animatonDeployed = false;
-
-            //        if (animation[animName].normalizedTime == 0)
-            //            animation[animName].normalizedTime = 1;
-
-            //        animation[animName].speed = -1;
-            //        animation.Blend(animName, 2);
-            //    }
-            //}
 
             if (genericAnimation != null && genericAnimation.GetScalar > 0 )
             {
@@ -1096,12 +1066,7 @@ namespace FNPlugin
                 }
             }
 
-            //if (!String.IsNullOrEmpty(animGenericName))
-            //    genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().SingleOrDefault(m => m.animationName == animGenericName);
             genericAnimation = part.FindModulesImplementing<ModuleAnimateGeneric>().FirstOrDefault(m => m.animationName == animName);
-
-            //if (deployableAntenna == null && deployableSolarPanel == null && deployableRadiator == null && genericAnimation == null && !String.IsNullOrEmpty(animName))
-            //    animation = part.FindModelAnimators(animName).FirstOrDefault();
         }
 
         private void UpdateBuffers()
@@ -1364,11 +1329,12 @@ namespace FNPlugin
                 {
                     return !deployableSolarPanel.ShouldBreakFromPressure();
                 }
+                else if (genericAnimation == null)
+                {
+                    return true;
+                }
                 else
                 {
-                    //if (animation == null)
-                    //    return true;
-
                     var pressure = FlightGlobals.getStaticPressure(vessel.GetVesselPos()) / 100;
                     var dynamic_pressure = 0.5 * pressure * 1.2041 * vessel.srf_velocity.sqrMagnitude / 101325;
 
@@ -1450,40 +1416,6 @@ namespace FNPlugin
             networkDepthString = networkDepth.ToString();
 
             CalculateInputPower();
-
-            //if (receiverIsEnabled && anim != null && (!waitForAnimationToComplete || (!anim.isPlaying && waitForAnimationToComplete)))
-            //{
-            //    waitForAnimationToComplete = false;
-
-            //    if (connectedsatsi > 0 || connectedrelaysi > 0)
-            //    {
-            //        if (!animatonDeployed)
-            //        {
-            //            //ScreenMessages.PostScreenMessage("Enable Microwave Receiver Tmp", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-            //            animatonDeployed = true;
-
-            //            if (anim[animName].normalizedTime == 1f)
-            //                anim[animName].normalizedTime = 0;
-
-            //            anim[animName].speed = 1;
-            //            anim.Blend(animName, 2);
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (animatonDeployed)
-            //        {
-            //            //ScreenMessages.PostScreenMessage("Disable Microwave Receiver Tmp", 5.0f, ScreenMessageStyle.UPPER_CENTER);
-            //            animatonDeployed = false;
-
-            //            if (anim[animName].normalizedTime == 0)
-            //                anim[animName].normalizedTime = 1;
-
-            //            anim[animName].speed = -1;
-            //            anim.Blend(animName, 2);
-            //        }
-            //    }
-            //}
         }
 
         private double GetSolarFacingFactor(CelestialBody localStar, Vector3 vesselPosition)
@@ -1812,7 +1744,7 @@ namespace FNPlugin
 
                     PowerDown();
 
-                    Reset();
+                    //Reset();
 
                     if (animT == null) return;
 
@@ -1870,6 +1802,7 @@ namespace FNPlugin
 
                     if (!received_power.TryGetValue(transmitter.Vessel, out beamedPowerData))
                     {
+                        Debug.Log("[KSPI]: Added ReceivedPowerData for " + transmitter.Vessel.name);
                         beamedPowerData = new ReceivedPowerData
                         {
                             Receiver = this,
@@ -1999,6 +1932,7 @@ namespace FNPlugin
             var deadEntries = received_power.Where(m => !m.Value.IsAlive).ToList();
             foreach(var entry in deadEntries)
             {
+                Debug.LogWarning("[KSPI]: Removed received power from " + entry.Key.name);
                 received_power.Remove(entry.Key);
             }
         }
@@ -2119,7 +2053,7 @@ namespace FNPlugin
             double enumerated_power = 0;
             foreach (Vessel vess in FlightGlobals.Vessels)
             {
-                List<BeamedPowerReceiver> receivers = vess.FindPartModulesImplementing<BeamedPowerReceiver>();
+                var receivers = vess.FindPartModulesImplementing<BeamedPowerReceiver>();
                 foreach (BeamedPowerReceiver receiver in receivers)
                 {
                     enumerated_power += receiver.getPowerFromSatellite(vmp);
