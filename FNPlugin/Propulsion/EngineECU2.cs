@@ -42,6 +42,8 @@ namespace FNPlugin
         // Gui
         [KSPField(guiActive = true, guiName = "Thrust Power", guiUnits = " GW", guiFormat = "F3")]
         public double thrustPower;
+        [KSPField(guiActive = false, guiName = "Fusion Ratio", guiFormat = "F3")]
+        public double fusionRatio;
         
         // Settings
         [KSPField]
@@ -262,7 +264,7 @@ namespace FNPlugin
             if (_fuelConfigurationWithEffect != null)
                 _fuelConfigurationWithEffect.ForEach(prop => part.Effect(prop.effectname, 0, -1));
             if (_currentActiveConfiguration != null && !string.IsNullOrEmpty(_currentActiveConfiguration.effectname))
-                part.Effect(_currentActiveConfiguration.effectname, curEngineT.currentThrottle, -1);
+                part.Effect(_currentActiveConfiguration.effectname, (float)(curEngineT.currentThrottle * fusionRatio), -1);
         }
 
         private void InitializeHideFuels()
