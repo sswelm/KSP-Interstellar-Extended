@@ -117,7 +117,7 @@ namespace FNPlugin
         public double calculated_thrust;
         [KSPField(guiActive = false)]
         public double simulated_max_thrust;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
         public double engineIsp;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput", guiUnits = " MW")]
         public double scaledMaxPower = 0;
@@ -150,7 +150,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
         public double lightSpeedRatio;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
-        public double timeDilation;
+        public double timeDilation = 1;
 
         [KSPField(guiActive = false)]
         public double expectedMass = 0;
@@ -507,6 +507,8 @@ namespace FNPlugin
                 InitializePropellantMode();
 
                 SetupPropellants(true);
+
+                UpdateIsp(1);
 
                 _attachedEngine.maxThrust = (float)maximumThrustFromPower;
             }
@@ -1082,6 +1084,8 @@ namespace FNPlugin
                 fuel_mode = 0;
 
             SetupPropellants(true);
+
+            UpdateIsp(1);
         }
 
         private void TogglePreviousPropellant()
@@ -1092,6 +1096,8 @@ namespace FNPlugin
                 fuel_mode = _propellants.Count - 1;
 
             SetupPropellants(false);
+
+            UpdateIsp(1);
         }
 
         private double EvaluateMaxThrust(double powerSupply)
