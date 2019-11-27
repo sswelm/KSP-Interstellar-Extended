@@ -1363,8 +1363,7 @@ namespace FNPlugin
 
             exoticMatterMaintenanceRatio = requiredExoticMaintenancePower > 0 ? recievedExoticMaintenancePower / requiredExoticMaintenancePower : 1;
 
-            if (!CheatOptions.IgnoreMaxTemperature)
-                supplyFNResourcePerSecond(recievedExoticMaintenancePower, ResourceManager.FNRESOURCE_WASTEHEAT);
+            ProduceWasteheat(recievedExoticMaintenancePower);
 
             exoticMatterProduced = (1 - exoticMatterMaintenanceRatio) * -maxExoticMatter;
 
@@ -1425,8 +1424,7 @@ namespace FNPlugin
                     }
                 }
 
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourcePerSecond(exoticMatterProduced, ResourceManager.FNRESOURCE_WASTEHEAT);
+                ProduceWasteheat(exoticMatterProduced);
             }
 
             part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -exoticMatterProduced * 0.001 * (double)(decimal)TimeWarp.fixedDeltaTime / powerRequirementMultiplier);
