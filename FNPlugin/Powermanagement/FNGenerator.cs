@@ -1,5 +1,6 @@
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using FNPlugin.Reactors;
 using FNPlugin.Redist;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
@@ -9,20 +10,10 @@ using System.Linq;
 using System.Text;
 using TweakScale;
 using UnityEngine;
-using FNPlugin.Reactors;
 
 namespace FNPlugin
 {
     enum PowerStates { PowerOnline, PowerOffline };
-
-    [KSPModule("Super Capacitator")]
-    class KspiSuperCapacitator : PartModule
-    {
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Max Capacity", guiUnits = " MWe")]
-        public float maxStorageCapacityMJ = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
-        public float partMass = 0;
-    }
 
     [KSPModule("Thermal Electric Effect Generator")]
     class ThermalElectricEffectGenerator : FNGenerator {}

@@ -155,7 +155,9 @@ namespace FNPlugin.Beamedpower
 
         public static bool HasTech(string techid)
         {
-            return ResearchAndDevelopment.Instance.GetTechState(techid) != null;
+            //return ResearchAndDevelopment.Instance.GetTechState(techid) != null;
+
+            return TechnologyHelper.UpgradeAvailable(techid);
         }
     }
 

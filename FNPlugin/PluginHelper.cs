@@ -30,6 +30,8 @@ namespace FNPlugin
             GameEvents.onDockingComplete.Add(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
             GameEvents.onVesselSOIChanged.Add(OmVesselSOIChanged);
+            GameEvents.onGameStateLoad.Add(OmGameStateLoad);
+            GameEvents.onVesselLoaded.Add(OmVesselLoad);
 
             GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
             GameEvents.onVesselGoOffRails.Add(OnVesselGoOnRails);
@@ -47,6 +49,8 @@ namespace FNPlugin
             GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
             GameEvents.onVesselGoOffRails.Remove(OnVesselGoOnRails);
 
+            GameEvents.onVesselLoaded.Remove(OmVesselLoad);
+            GameEvents.onGameStateLoad.Remove(OmGameStateLoad);
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
             GameEvents.onDockingComplete.Remove(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
@@ -100,6 +104,16 @@ namespace FNPlugin
             SupplyPriorityManager.Reset();
 
             ResetReceivers();
+        }
+
+        void OmVesselLoad(Vessel vessel)
+        {
+            Debug.Log("[KSPI]: GameEventSubscriber - detected OmVesselLoaded");
+        }
+
+        void  OmGameStateLoad (ConfigNode confignode)
+        {
+            Debug.Log("[KSPI]: GameEventSubscriber - detected OmGameStateLoad");
         }
 
         void  OmVesselSOIChanged (GameEvents.HostedFromToAction<Vessel, CelestialBody> gameEvent)
@@ -214,11 +228,11 @@ namespace FNPlugin
 
                         if (partUpgradeByName.ContainsKey(partUpgrade.name))
                         {
-                            Debug.LogError("[KSPI]: Duplicate error: failed to add PARTUPGRADE" + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                            //Debug.LogError("[KSPI]: Duplicate error: failed to add PARTUPGRADE" + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
                         }
                         else
                         {
-                            Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                            //Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
                             partUpgradeByName.Add(partUpgrade.name, partUpgrade);
                         }
                     }
@@ -570,15 +584,15 @@ namespace FNPlugin
             if (techstate != null)
             {
                 var available = techstate.state == RDTech.State.Available;
-                if (available)
-                    Debug.Log("[KSPI]: found techid " + id + " available");
-                else
-                    Debug.Log("[KSPI]: found techid " + id + " unavailable");
+                //if (available)
+                //    Debug.Log("[KSPI]: found techid " + id + " available");
+                //else
+                //    Debug.Log("[KSPI]: found techid " + id + " unavailable");
                 return available;
             }
             else
             {
-                Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
+                //Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
                 return false;
             }
         }

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>FNPlugin</RootNamespace>
     <AssemblyName>Interstellar</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProductVersion>12.0.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -31,6 +31,9 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="999_Scale_Redist">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\999_Scale_Redist.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
@@ -38,9 +41,6 @@
     <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="Scale_Redist">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData\TweakScale\plugins\Scale_Redist.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -102,6 +102,7 @@
     <Compile Include="Powermanagement\FNGeneratorAdapterVariable.cs" />
     <Compile Include="Powermanagement\IFNChargedParticleSource.cs" />
     <Compile Include="Powermanagement\IFNPowerSource.cs" />
+    <Compile Include="Powermanagement\KspiSuperCapacitator.cs" />
     <Compile Include="Propulsion\IFNEngineNoozle.cs" />
     <Compile Include="Propulsion\ThermalEngineFuel.cs" />
     <Compile Include="RDColoredUpgradeIcon.cs" />

@@ -933,7 +933,7 @@ namespace FNPlugin.Wasteheat
 
                     if (radiatorIsEnabled || !isAutomated || !canRadiateHeat || !showControls || radiator_deploy_delay < DEPLOYMENT_DELAY) return;
 
-                    Debug.Log("[KSPI]: FixedUpdate Automated Deployment ");
+                    //Debug.Log("[KSPI]: FixedUpdate Automated Deployment ");
                     Deploy();
                 }
 

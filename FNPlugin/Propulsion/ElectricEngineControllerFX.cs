@@ -117,7 +117,7 @@ namespace FNPlugin
         public double calculated_thrust;
         [KSPField(guiActive = false)]
         public double simulated_max_thrust;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_ElectricEngine_warpIsp", guiFormat = "F1", guiUnits = "s")]
         public double engineIsp;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ElectricEngine_maxPowerInput", guiUnits = " MW")]
         public double scaledMaxPower = 0;
@@ -150,7 +150,7 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_lightSpeedRatio", guiFormat = "F9", guiUnits = "c")]
         public double lightSpeedRatio;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_timeDilation", guiFormat = "F10")]
-        public double timeDilation;
+        public double timeDilation = 1;
 
         [KSPField(guiActive = false)]
         public double expectedMass = 0;
@@ -508,6 +508,8 @@ namespace FNPlugin
 
                 SetupPropellants(true);
 
+                UpdateIsp(1);
+
                 _attachedEngine.maxThrust = (float)maximumThrustFromPower;
             }
             catch (Exception e)
@@ -768,7 +770,9 @@ namespace FNPlugin
             effectiveResourceThrotling = megaJoulesBarRatio > 0.1 ? 1 : megaJoulesBarRatio * 10;
 
             availableMaximumPower = getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
-            availableCurrentPower = getAvailablePrioritisedCurrentSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            availableCurrentPower = CheatOptions.InfiniteElectricity 
+                ? availableMaximumPower 
+                : getAvailablePrioritisedCurrentSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
 
             maximumAvailablePowerForEngine = availableMaximumPower *_electrical_share_f;
             currentAvailablePowerForEngine = availableCurrentPower * _electrical_share_f;
@@ -1080,6 +1084,8 @@ namespace FNPlugin
                 fuel_mode = 0;
 
             SetupPropellants(true);
+
+            UpdateIsp(1);
         }
 
         private void TogglePreviousPropellant()
@@ -1090,6 +1096,8 @@ namespace FNPlugin
                 fuel_mode = _propellants.Count - 1;
 
             SetupPropellants(false);
+
+            UpdateIsp(1);
         }
 
         private double EvaluateMaxThrust(double powerSupply)

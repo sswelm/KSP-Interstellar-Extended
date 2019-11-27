@@ -81,12 +81,12 @@ namespace PhotonSail
         [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Absorbed heat", guiUnits = " J/s", guiFormat = "F3")]
         public double absorbedPhotonHeatInWatt;
 
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 1")]
-        public string solarPhotovoltaicTech1 = "advSolarTech";
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 2")]
-        public string solarPhotovoltaicTech2 = "advPVMaterials";
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Tech 3")]
-        public string solarPhotovoltaicTech3 = "microwavePowerTransmission";
+        [KSPField(guiActiveEditor = false, guiName = "Solar Cell Tech 1")]
+        public string solarPhotovoltaicTech1 = "photovoltaicSailUpgradeA";
+        [KSPField(guiActiveEditor = false, guiName = "Solar Cell Tech 2")]
+        public string solarPhotovoltaicTech2 = "photovoltaicSailUpgradeB";
+        [KSPField(guiActiveEditor = false, guiName = "Solar Cell Tech 3")]
+        public string solarPhotovoltaicTech3 = "photovoltaicSailUpgradeC";
 
         [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 0", guiUnits = "%")]
         public double solarPhotovoltaicEfficiency0 = 10;
@@ -108,7 +108,7 @@ namespace PhotonSail
         [KSPField]
         public double kscPowerMult = 1e8;
         [KSPField]
-        public double kscApertureMult = 1e-1;
+        public double kscApertureMult = 1;
         [KSPField]
         public double massTechMultiplier = 1;
         [KSPField]
@@ -137,7 +137,7 @@ namespace PhotonSail
         [KSPField]
         public string kscLaserApertureName6 = "KscApertureUpgradeF";
         [KSPField]
-        public string kscLaserApertureName7 = "";
+        public string kscLaserApertureName7 = "KscApertureUpgradeG";
 
         [KSPField]
         public string kscPowerUpgdradeName1 = "KscPowerUpgradeA";
@@ -158,19 +158,19 @@ namespace PhotonSail
         [KSPField]
         public int kscLaserApertureBonus0 = 50;
         [KSPField]
-        public int kscLaserApertureBonus1 = 0;
+        public int kscLaserApertureBonus1 = 50;
         [KSPField]
-        public int kscLaserApertureBonus2 = 0;
+        public int kscLaserApertureBonus2 = 100;
         [KSPField]
-        public int kscLaserApertureBonus3 = 0;
+        public int kscLaserApertureBonus3 = 100;
         [KSPField]
-        public int kscLaserApertureBonus4 = 0;
+        public int kscLaserApertureBonus4 = 100;
         [KSPField]
-        public int kscLaserApertureBonus5 = 650;
+        public int kscLaserApertureBonus5 = 200;
         [KSPField]
-        public int kscLaserApertureBonus6 = 0;
+        public int kscLaserApertureBonus6 = 200;
         [KSPField]
-        public int kscLaserApertureBonus7 = 0;
+        public int kscLaserApertureBonus7 = 200;
 
         [KSPField]
         public int kscLaserPowerBonus0 = 50;
@@ -211,7 +211,7 @@ namespace PhotonSail
         [KSPField]
         public double massReductionMult5 = 2;
 
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Power", guiUnits = " GW", guiFormat = "F0")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "KCS Laser Power", guiUnits = " GW", guiFormat = "F0")]
         public double kscLaserPowerInGigaWatt;
         [KSPField(guiActiveEditor = false, guiName = "KCS Laser Power", guiUnits = " W", guiFormat = "F0")]
         public double kscLaserPowerInWatt = 5e12;
@@ -219,9 +219,9 @@ namespace PhotonSail
         public double kscCentralSpotsizeMult = 2;           // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
         [KSPField(guiActiveEditor = false, guiName = "KCS Laser Side Spotsize Mult")]
         public double kscSideSpotsizeMult = 22;
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spot Ratio")]
+        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Central Spot Ratio")]
         public double kscCentralSpotEnergyRatio = 0.7;    // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Central Spot Ratio")]
+        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Central Spot Ratio")]
         public double kscSideSpotEnergyRatio = 0.25; 
         [KSPField(guiActiveEditor = true, guiName = "KCS Laser Min Elevation Angle")]
         public double kscLaserMinElevationAngle = 70;
@@ -546,8 +546,13 @@ namespace PhotonSail
 
         private void DetermineKscLaserAperture()
         {
+            UnityEngine.Debug.Log("[KSPI]: ModulePhotonSail start DetermineKscLaserAperture");
+
             if (ResearchAndDevelopment.Instance == null)
+            {
+                UnityEngine.Debug.Log("[KSPI]: ModulePhotonSail ResearchAndDevelopment.Instance == null");
                 return;
+            }
 
             kscLaserAperture = kscLaserApertureBonus0;
             kscLaserAperture += HasUpgrade(kscLaserApertureName1) ? kscLaserApertureBonus1 : 0;
@@ -1381,17 +1386,21 @@ namespace PhotonSail
 
         public static int HasTech(string techid, int increase)
         {
-            return ResearchAndDevelopment.Instance.GetTechState(techid) != null ? increase : 0;
+            return HasTech(techid) ? increase : 0;
         }
 
         public static bool HasTech(string techid)
         {
-            return ResearchAndDevelopment.Instance.GetTechState(techid) != null;
+            return TechnologyHelper.UpgradeAvailable(techid);
         }
 
         public static bool HasUpgrade(string name)
         {
-            return PartUpgradeManager.Handler.IsUnlocked(name);
+            if (HighLogic.CurrentGame == null) return true;
+            if (HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX) return true;
+            if (PartUpgradeManager.Handler.IsUnlocked(name)) return true;
+
+            return TechnologyHelper.UpgradeAvailable(name);
         }
     }
 }

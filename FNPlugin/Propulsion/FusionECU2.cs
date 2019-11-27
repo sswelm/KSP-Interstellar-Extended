@@ -70,17 +70,17 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double neutronbsorbionBonus;
 
-
         [KSPField(isPersistant = true, guiName = "Use MJ Battery"), UI_Toggle(disabledText = "Off", enabledText = "On")]
         public bool useMegajouleBattery = false;
-
-        [KSPField(guiActive = false, guiName = "Fusion Ratio", guiFormat = "F2")]
-        public double fusionRatio;
-        [KSPField(guiActive = true, guiName = "Power Requirement", guiFormat = "F2", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiName = "Available Power", guiFormat = "F3")]
+        public double availablePower;
+        [KSPField(guiActive = false, guiName = "Maximum FuelFlow", guiFormat = "F3")]
+        public double maxFuelFlow;
+        [KSPField(guiActive = true, guiName = "Power Requirement", guiFormat = "F3", guiUnits = " MW")]
         public double enginePowerRequirement;
-        [KSPField(guiActive = true, guiName = "Laser Wasteheat", guiFormat = "F2", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "Laser Wasteheat", guiFormat = "F3", guiUnits = " MW")]
         public double laserWasteheat;
-        [KSPField(guiActive = true, guiName = "Absorbed Wasteheat", guiFormat = "F2", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "Absorbed Wasteheat", guiFormat = "F3", guiUnits = " MW")]
         public double absorbedWasteheat;
         [KSPField(guiName = "Radiator Temp")]
         public double coldBathTemp;
@@ -218,11 +218,11 @@ namespace FNPlugin
             }
         }
 
-        public double CurrentPowerRequirement
+        public double CurrentMaximumPowerRequirement
         {
             get
             {
-                enginePowerRequirement = PowerRequirementMaximum*powerRequirementMultiplier * throttle;
+                enginePowerRequirement = PowerRequirementMaximum*powerRequirementMultiplier;
                 return enginePowerRequirement;
             }
         }
@@ -556,23 +556,25 @@ namespace FNPlugin
 
             ShowIspThrottle = hasIspThrottling;
 
+            
+
+            availablePower = useMegajouleBattery
+                ? getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES)
+                : getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
             if (throttle > 0 )
             {
-                // Calculate Fusion Ratio
-                var requestedPowerPerSecond = CurrentPowerRequirement;
-
-                var availablePower = useMegajouleBattery 
-                    ? getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES) 
-                    : getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+                var requestedPowerPerSecond = throttle * CurrentMaximumPowerRequirement;
 
                 var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
                 var effectivePowerThrotling = useMegajouleBattery ? 1 : resourceBarRatio > 0.1 ? 1 : resourceBarRatio * 10;
 
                 var requestedPower = Math.Min(requestedPowerPerSecond, availablePower * effectivePowerThrotling);
 
-                var recievedPowerPerSecond = CheatOptions.InfiniteElectricity || requestedPower <= 0
-                    ? requestedPowerPerSecond
-                    : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                var recievedPowerPerSecond = requestedPower <= 0 ? 0 
+                    : CheatOptions.InfiniteElectricity
+                        ? requestedPowerPerSecond
+                        : consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
                 fusionRatio = requestedPowerPerSecond > 0 ? recievedPowerPerSecond / requestedPowerPerSecond : 1;
 
@@ -595,7 +597,7 @@ namespace FNPlugin
                 maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
 
                 // Update FuelFlow
-                var maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+                maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
 
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
                 curEngineT.maxThrust = (float)maximumThrust;
@@ -608,7 +610,11 @@ namespace FNPlugin
                 enginePowerRequirement = 0;
                 absorbedWasteheat = 0;
                 laserWasteheat = 0;
-                fusionRatio = 0;
+
+                var requestedPowerPerSecond = CurrentMaximumPowerRequirement;
+
+                fusionRatio = requestedPowerPerSecond > 0 ? availablePower / requestedPowerPerSecond : 1;
+
                 currentIsp = hasIspThrottling ? SelectedIsp : MinIsp;
                 maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
 
@@ -616,7 +622,7 @@ namespace FNPlugin
                 curEngineT.maxThrust = (float)maximumThrust;
                 rateMultplier = hasIspThrottling ? Math.Pow(SelectedIsp / MinIsp, 2) : 1;
 
-                var maxFuelFlow = maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+                maxFuelFlow = fusionRatio * maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
                 curEngineT.maxFuelFlow = (float)maxFuelFlow;
 
                 SetRatios();

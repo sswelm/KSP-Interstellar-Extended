@@ -42,6 +42,8 @@ namespace FNPlugin
         // Gui
         [KSPField(guiActive = true, guiName = "Thrust Power", guiUnits = " GW", guiFormat = "F3")]
         public double thrustPower;
+        [KSPField(guiActive = false, guiName = "Fusion Ratio", guiFormat = "F3")]
+        public double fusionRatio;
         
         // Settings
         [KSPField]
@@ -162,11 +164,50 @@ namespace FNPlugin
             InitializeHideFuels();
         }
 
+        [KSPAction("Next Propellant")]
+        public void TogglePropellantAction(KSPActionParam param)
+        {
+            Debug.Log("[KSPI]: Next Propellant called") ;
+            var chooseField = Fields["selectedFuel"];
+
+            var names = _activeConfigurations.Select(m => m.fuelConfigurationName).ToArray();
+
+            int newValue = selectedFuel + 1;
+            if (newValue >= names.Count())
+                newValue = 0;
+
+            chooseField.SetValue(newValue, this);
+
+            UpdateFlightGUI(chooseField, selectedFuel);
+
+            UpdatePartActionWindow();
+        }
+
+        [KSPAction("Previous Propellant")]
+        public void PreviousPropellant(KSPActionParam param)
+        {
+            Debug.Log("[KSPI]: Previous Propellant called");
+            var chooseField = Fields["selectedFuel"];
+
+            var names = _activeConfigurations.Select(m => m.fuelConfigurationName).ToArray();
+
+            int newValue = selectedFuel - 1;
+            if (newValue < 0)
+                newValue = names.Count() - 1;
+
+            chooseField.SetValue(newValue, this);
+
+            UpdateFlightGUI(chooseField, selectedFuel);
+
+            UpdatePartActionWindow();
+        }
+
         private void InitializeFuelSelector()
         {
             Debug.Log("[KSPI]: InitializeFuelSelector Setup Fuels Configurations for " + part.partInfo.title);
 
             var chooseField = Fields["selectedFuel"];
+
             chooseOptionEditor = chooseField.uiControlEditor as UI_ChooseOption;
             chooseOptionFlight = chooseField.uiControlFlight as UI_ChooseOption;
 
@@ -223,7 +264,7 @@ namespace FNPlugin
             if (_fuelConfigurationWithEffect != null)
                 _fuelConfigurationWithEffect.ForEach(prop => part.Effect(prop.effectname, 0, -1));
             if (_currentActiveConfiguration != null && !string.IsNullOrEmpty(_currentActiveConfiguration.effectname))
-                part.Effect(_currentActiveConfiguration.effectname, curEngineT.currentThrottle, -1);
+                part.Effect(_currentActiveConfiguration.effectname, (float)(curEngineT.currentThrottle * fusionRatio), -1);
         }
 
         private void InitializeHideFuels()
@@ -503,6 +544,9 @@ namespace FNPlugin
 
         public override void OnStart(StartState state)
         {
+            String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES, ResourceManager.FNRESOURCE_WASTEHEAT };
+            this.resources_to_supply = resources_to_supply;
+
             try
             {
                 Debug.Log("[KSPI]: Start Current State: " + (int)state + " " + state.ToString());
@@ -639,6 +683,20 @@ namespace FNPlugin
                 I++;
             }
             return result;
+        }
+
+        private void UpdatePartActionWindow()
+        {
+            var window = FindObjectsOfType<UIPartActionWindow>().FirstOrDefault(w => w.part == part);
+            if (window != null)
+            {
+                foreach (UIPartActionWindow actionwindow in FindObjectsOfType<UIPartActionWindow>())
+                {
+                    if (window.part != part) continue;
+                    actionwindow.ClearList();
+                    actionwindow.displayDirty = true;
+                }
+            }
         }
     }
 

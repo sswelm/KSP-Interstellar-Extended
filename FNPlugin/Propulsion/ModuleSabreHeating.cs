@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using FNPlugin.Constants;
 using FNPlugin.Extensions;
+using System;
+using System.Linq;
 using UnityEngine;
-using FNPlugin.Constants;
 
 namespace FNPlugin 
 {
@@ -68,7 +67,7 @@ namespace FNPlugin
                 missingPrecoolerRatio = intakes_open_area > 0 ? Math.Min(1, Math.Max(0, Math.Pow((intakes_open_area - pre_coolers_active) / intakes_open_area, missingPrecoolerProportionExponent))) : 0;
                 missingPrecoolerRatio = missingPrecoolerRatio.IsInfinityOrNaN() ? 1 : missingPrecoolerRatio;
 
-                if (rapier_engine != null)
+                if (rapier_engine != null && vessel.atmDensity > 0)
                 {
                     if (rapier_engine.isOperational && rapier_engine.currentThrottle > 0 && rapier_engine.useVelCurve)
                     {
@@ -80,13 +79,14 @@ namespace FNPlugin
                             part.temperature = 1;
                             return;
                         }
-                        part.temperature = temp1;
+                        else
+                            part.temperature = temp1;
                     } 
                     else
                         part.temperature = 1;
                 }
 
-                if (rapier_engine2 != null)
+                if (rapier_engine2 != null && vessel.atmDensity > 0)
                 {
                     if (rapier_engine2.isOperational && rapier_engine2.currentThrottle > 0 && rapier_engine2.useVelCurve)
                     {
@@ -98,7 +98,8 @@ namespace FNPlugin
                             part.temperature = 1;
                             return;
                         }
-                        part.temperature = temp2;
+                        else 
+                            part.temperature = temp2;
                     } 
                     else
                         part.temperature = 1;

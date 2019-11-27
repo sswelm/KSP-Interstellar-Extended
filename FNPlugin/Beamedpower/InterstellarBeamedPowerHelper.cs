@@ -208,7 +208,9 @@ namespace FNPlugin.Beamedpower
 
                         double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, receiver.Vessel, transmitter.Vessel);
 
-                        possibleWavelengths.Add(new MicrowaveRoute(distanceFacingEfficiency * atmosphereEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
+                        double routeEfficiency = distanceFacingEfficiency * atmosphereEfficency;
+
+                        possibleWavelengths.Add(new MicrowaveRoute(routeEfficiency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
                     }
 
                     var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
