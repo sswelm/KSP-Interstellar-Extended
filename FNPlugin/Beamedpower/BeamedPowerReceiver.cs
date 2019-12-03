@@ -1519,8 +1519,11 @@ namespace FNPlugin
                 GUILayout.Label("Relay Nr", bold_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.Label("Relay Name", bold_black_style, GUILayout.Width(wideLabelWidth));
                 GUILayout.Label("Relay Location", bold_black_style, GUILayout.Width(labelWidth));
-                GUILayout.Label("Max Capacity", bold_black_style, GUILayout.Width(valueWidthWide));
-                GUILayout.Label("Aperture", bold_black_style, GUILayout.Width(labelWidth));
+                GUILayout.Label("Maximum Capacity", bold_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label("Aperture", bold_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label("Diameter", bold_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label("Minimum wavelength", bold_black_style, GUILayout.Width(ValueWidthNormal));
+                GUILayout.Label("Maximum wavelength", bold_black_style, GUILayout.Width(ValueWidthNormal));
                 GUILayout.EndHorizontal();
 
                 foreach (ReceivedPowerData receivedPowerData in received_power.Values)
@@ -1534,8 +1537,11 @@ namespace FNPlugin
                         GUILayout.Label(r.ToString(), text_black_style, GUILayout.Width(ValueWidthNormal));
                         GUILayout.Label(vesselPersistance.Vessel.name, text_black_style, GUILayout.Width(wideLabelWidth));
                         GUILayout.Label(vesselPersistance.Vessel.mainBody.name + " @ " + DistanceToText(vesselPersistance.Vessel.altitude), text_black_style, GUILayout.Width(labelWidth));
-                        GUILayout.Label(PowerToText(vesselPersistance.PowerCapacity * powerMult), GUILayout.Width(valueWidthWide));
-                        GUILayout.Label(PowerToText(vesselPersistance.Aperture), GUILayout.Width(labelWidth));                        
+                        GUILayout.Label(PowerToText(vesselPersistance.PowerCapacity * powerMult), text_black_style, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(vesselPersistance.Aperture + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(vesselPersistance.Diameter + " m", text_black_style, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(WavelengthToText(vesselPersistance.MinimumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));
+                        GUILayout.Label(WavelengthToText(vesselPersistance.MaximumRelayWavelenght), text_black_style, GUILayout.Width(ValueWidthNormal));  
                         GUILayout.EndHorizontal();
                     }
                 }
