@@ -475,7 +475,7 @@ namespace FNPlugin
             return manager.CurrentResourceSupply;
         }
 
-        public double GetOverproduction(String resourcename)
+        public double GetSurplus(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename)) {
                 Debug.LogError("[KSPI]: GetOverproduction resourcename is null or empty");
@@ -489,7 +489,7 @@ namespace FNPlugin
                 return 0;
             }
 
-            return manager.getOverproduction();
+            return manager.getSurplus();
         }
 
         public double getDemandStableSupply(String resourcename)

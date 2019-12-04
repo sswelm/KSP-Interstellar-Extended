@@ -573,9 +573,9 @@ namespace FNPlugin
         public double[] current_power_distributed = new double[6];
         public double[] stable_power_distributed = new double[6];
 
-        public double getOverproduction()
+        public double getSurplus()
         {
-            return stored_supply - stored_resource_demand;
+            return Math.Max(0, stored_supply - stored_resource_demand);
         }
 
         public double getDemandStableSupply()
@@ -1273,7 +1273,7 @@ namespace FNPlugin
             GUILayout.Label(getPowerFormatString((double)stored_resource_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
-            double new_power_supply = (double)getOverproduction();
+            double new_power_supply = (double)getSurplus();
             double net_utilisation_supply = (double)getDemandStableSupply();
 
             GUIStyle net_poer_style = new_power_supply < -0.001 ? red_label : green_label;

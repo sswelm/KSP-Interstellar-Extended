@@ -70,9 +70,9 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double neutronbsorbionBonus;
 
-        [KSPField(isPersistant = true, guiName = "Use MJ Battery"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool useMegajouleBattery = false;
-        [KSPField(guiActive = true, guiName = "Available Power", guiFormat = "F3")]
+        //[KSPField(isPersistant = true, guiName = "Use MJ Battery"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool useMegajouleBattery = false;
+        [KSPField(guiActive = true, guiName = "Available Power", guiFormat = "F3", guiUnits = " MW")]
         public double availablePower;
         [KSPField(guiActive = false, guiName = "Maximum FuelFlow", guiFormat = "F3")]
         public double maxFuelFlow;
@@ -556,20 +556,16 @@ namespace FNPlugin
 
             ShowIspThrottle = hasIspThrottling;
 
-            
-
-            availablePower = useMegajouleBattery
-                ? getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES)
-                : getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            availablePower = Math.Max(getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES), getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES));
 
             if (throttle > 0 )
             {
                 var requestedPowerPerSecond = throttle * CurrentMaximumPowerRequirement;
 
-                var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-                var effectivePowerThrotling = useMegajouleBattery ? 1 : resourceBarRatio > 0.1 ? 1 : resourceBarRatio * 10;
+                //var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+                //var effectivePowerThrotling = useMegajouleBattery ? 1 : resourceBarRatio > 0.1 ? 1 : resourceBarRatio * 10;
 
-                var requestedPower = Math.Min(requestedPowerPerSecond, availablePower * effectivePowerThrotling);
+                var requestedPower = Math.Min(requestedPowerPerSecond, availablePower);
 
                 var recievedPowerPerSecond = requestedPower <= 0 ? 0 
                     : CheatOptions.InfiniteElectricity

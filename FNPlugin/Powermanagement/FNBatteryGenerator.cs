@@ -25,7 +25,9 @@ namespace FNPlugin.Powermanagement
         public float electricPowerPriority = 4;
 
         // debugging
-        [KSPField(guiActive = false, guiName = "Power Demand" , guiUnits = " MW", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiName = "Power Surplus", guiUnits = " MW", guiFormat = "F3")]
+        public double powerSurplus;
+        [KSPField(guiActive = true, guiName = "Power Demand" , guiUnits = " MW", guiFormat = "F3")]
         public double currentUnfilledResourceDemand;
         [KSPField(guiActive = false, guiName = "Spare MW Capacity",  guiUnits = " MW", guiFormat = "F3")]
         public double spareResourceCapacity;
@@ -69,7 +71,6 @@ namespace FNPlugin.Powermanagement
 
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
-
             currentMaxPower = Math.Round(powerPercentage * 0.01, 2) * maxPower;
             currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
             spareResourceCapacity = getSpareResourceCapacity(ResourceManager.FNRESOURCE_MEGAJOULES);
@@ -78,24 +79,49 @@ namespace FNPlugin.Powermanagement
             batterySupplyRemaining = double.MaxValue;
             fuelRatio = double.MaxValue;
 
-            for (var i = 0; i < inputResourceNames.Count; i++)
+            powerSurplus = GetSurplus(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+            if (powerSurplus > 0)
             {
-                var currentResourceName = inputResourceNames[i];
-                var currentConversionRate = inputResourceRate[i];
+                for (var i = 0; i < inputResourceNames.Count; i++)
+                {
+                    var currentResourceName = inputResourceNames[i];
+                    var currentConversionRate = inputResourceRate[i];
 
-                var currentBatteryResource = part.Resources[currentResourceName];
-                var currentRequestedConsumptionRate = electrical_power_currently_needed * currentConversionRate;
-                var currentFixedConsumption = currentRequestedConsumptionRate * fixedDeltaTime;
-                var currentFuelRatio = currentFixedConsumption > 0 ? currentBatteryResource.amount / currentFixedConsumption : 0;
+                    var currentBatteryResource = part.Resources[currentResourceName];
 
-                if (currentFuelRatio < fuelRatio)
-                    fuelRatio = currentFuelRatio;
+                    var spareRoom = currentBatteryResource.maxAmount - currentBatteryResource.amount;
 
-                var currentBatterySupplyRemaining = currentFuelRatio / fixedDeltaTime / 1000;
-                if (currentBatterySupplyRemaining < batterySupplyRemaining)
-                    batterySupplyRemaining = currentBatterySupplyRemaining;
+                    var maxPowerNeeded = spareRoom * currentConversionRate / fixedDeltaTime;
 
-                currentBatteryResource.amount = Math.Max(0, currentBatteryResource.amount - currentFixedConsumption);
+                    var requestedPower = Math.Min(powerSurplus, maxPowerNeeded);
+
+                    var consumedPower = consumeFNResourcePerSecond(requestedPower, ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                    currentBatteryResource.amount = currentBatteryResource.amount + (consumedPower / currentConversionRate);
+                }
+            }
+            else
+            {
+                for (var i = 0; i < inputResourceNames.Count; i++)
+                {
+                    var currentResourceName = inputResourceNames[i];
+                    var currentConversionRate = inputResourceRate[i];
+
+                    var currentBatteryResource = part.Resources[currentResourceName];
+                    var currentRequestedConsumptionRate = electrical_power_currently_needed * currentConversionRate;
+                    var currentFixedConsumption = currentRequestedConsumptionRate * fixedDeltaTime;
+                    var currentFuelRatio = currentFixedConsumption > 0 ? currentBatteryResource.amount / currentFixedConsumption : 0;
+
+                    if (currentFuelRatio < fuelRatio)
+                        fuelRatio = currentFuelRatio;
+
+                    var currentBatterySupplyRemaining = currentFuelRatio / fixedDeltaTime / 1000;
+                    if (currentBatterySupplyRemaining < batterySupplyRemaining)
+                        batterySupplyRemaining = currentBatterySupplyRemaining;
+
+                    currentBatteryResource.amount = Math.Max(0, currentBatteryResource.amount - currentFixedConsumption);
+                }
             }
 
             supplyFNResourcePerSecondWithMaxAndEfficiency(Math.Min(1, fuelRatio) * electrical_power_currently_needed, currentMaxPower * Math.Min(1, fuelRatio), 1, ResourceManager.FNRESOURCE_MEGAJOULES);
