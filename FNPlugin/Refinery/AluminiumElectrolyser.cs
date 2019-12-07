@@ -42,7 +42,7 @@ namespace FNPlugin.Refinery
             _effectivePowerRequirements = powerModifier * PowerRequirements;
             _current_power = powerFraction * _effectivePowerRequirements;
 
-            _current_rate = CurrentPower / PluginHelper.ElectrolysisEnergyPerTon;
+            _current_rate = CurrentPower / PluginHelper.AluminiumElectrolysisEnergyPerTon;
             _alumina_consumption_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Alumina, _current_rate * fixedDeltaTime / _alumina_density, ResourceFlowMode.ALL_VESSEL) / fixedDeltaTime * _alumina_density;
             _aluminium_production_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.Aluminium, -_alumina_consumption_rate * fixedDeltaTime / _aluminium_density, ResourceFlowMode.ALL_VESSEL) * _aluminium_density / fixedDeltaTime;
             _oxygen_production_rate = _part.RequestResource(InterstellarResourcesConfiguration.Instance.LqdOxygen, -GameConstants.aluminiumElectrolysisMassRatio * _alumina_consumption_rate * fixedDeltaTime / _oxygen_density, ResourceFlowMode.ALL_VESSEL) * _oxygen_density / fixedDeltaTime;
