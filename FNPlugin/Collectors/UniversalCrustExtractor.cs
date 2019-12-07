@@ -202,6 +202,8 @@ namespace FNPlugin.Collectors
                 deployAnimation.Blend(deployAnimationName);
             }
 
+            ToggleEmmitters(false);
+
             // if the setup went well, do the offline collecting dance
             if (StartupSetup(state))
             {
