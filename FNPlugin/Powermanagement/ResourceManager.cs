@@ -81,6 +81,7 @@ namespace FNPlugin
 
         double currentPowerSupply = 0;
         double stablePowerSupply = 0;
+        double electric_charge_supplied = 0;
 
         double stored_stable_supply = 0;
         double stored_resource_demand = 0;
@@ -573,9 +574,14 @@ namespace FNPlugin
         public double[] current_power_distributed = new double[6];
         public double[] stable_power_distributed = new double[6];
 
-        public double getSurplus()
+        public double getStoredSurplus()
         {
             return Math.Max(0, stored_supply - stored_resource_demand);
+        }
+
+        public double getCurrentSurplus()
+        {
+            return Math.Max(0, currentPowerSupply - current_consumed_amount - electric_charge_supplied);
         }
 
         public double getDemandStableSupply()
@@ -632,6 +638,7 @@ namespace FNPlugin
             high_priority_resource_demand = 0;
             charge_resource_demand = 0;
             total_power_distributed = 0;
+            electric_charge_supplied = 0;
 
             for (int i = 0; i < 6; i++)
             {
@@ -711,6 +718,7 @@ namespace FNPlugin
                         currentPowerSupply -= provided_electric_charge_per_second;
                         stablePowerSupply -= provided_electric_charge_per_second;
                         total_power_distributed += provided_electric_charge_per_second;
+                        electric_charge_supplied += provided_electric_charge_per_second;
                     }
                 }
             }
@@ -817,8 +825,9 @@ namespace FNPlugin
 
                         currentPowerSupply -= provided_electric_charge_per_second;
                         stablePowerSupply -= provided_electric_charge_per_second;
-
+                        
                         total_power_distributed += provided_electric_charge_per_second;
+                        electric_charge_supplied += provided_electric_charge_per_second;
                     }
                 }
             }
@@ -1098,7 +1107,7 @@ namespace FNPlugin
             //}
 
             currentPowerSupply = 0;
-            stablePowerSupply = 0;
+            stablePowerSupply = 0;            
 
             power_produced.Clear();
             power_consumption.Clear();
@@ -1273,8 +1282,8 @@ namespace FNPlugin
             GUILayout.Label(getPowerFormatString((double)stored_resource_demand), right_aligned_label, GUILayout.ExpandWidth(false), GUILayout.MinWidth(overviewWidth));
             GUILayout.EndHorizontal();
 
-            double new_power_supply = (double)getSurplus();
-            double net_utilisation_supply = (double)getDemandStableSupply();
+            double new_power_supply = getStoredSurplus();
+            double net_utilisation_supply = getDemandStableSupply();
 
             GUIStyle net_poer_style = new_power_supply < -0.001 ? red_label : green_label;
             GUIStyle utilisation_style = net_utilisation_supply > 1.001 ? red_label : green_label;

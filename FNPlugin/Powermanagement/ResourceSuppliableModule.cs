@@ -410,6 +410,21 @@ namespace FNPlugin
             return Math.Max(manager.CurrentResourceSupply - manager.GetCurrentPriorityResourceSupply(getPowerPriority()), 0);
         }
 
+        public double GetCurrentPriorityResourceSupply(String resourcename)
+        {
+            if (String.IsNullOrEmpty(resourcename))
+            {
+                Debug.LogError("[KSPI]: getAvailablePrioritisedCurrentSupply resourcename is null or empty");
+                return 0;
+            }
+
+            ResourceManager manager = getManagerForVessel(resourcename);
+            if (manager == null)
+                return 0;
+
+            return manager.GetCurrentPriorityResourceSupply(getPowerPriority());
+        }
+
         public double getStablePriorityResourceSupply(String resourcename, int priority)
         {
             if (String.IsNullOrEmpty(resourcename))
@@ -458,7 +473,7 @@ namespace FNPlugin
             return Math.Max(manager.CurrentResourceSupply - manager.CurrentHighPriorityResourceDemand, 0);
         }
 
-        public double getResourceSupply(String resourcename)
+        public double getCurrentResourceSupply(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename)) {
                 Debug.LogError("[KSPI]: getResourceSupply resourcename is null or empty");
@@ -475,7 +490,7 @@ namespace FNPlugin
             return manager.CurrentResourceSupply;
         }
 
-        public double GetSurplus(String resourcename)
+        public double GetCurrentSurplus(String resourcename)
         {
             if (String.IsNullOrEmpty(resourcename)) {
                 Debug.LogError("[KSPI]: GetOverproduction resourcename is null or empty");
@@ -489,7 +504,7 @@ namespace FNPlugin
                 return 0;
             }
 
-            return manager.getSurplus();
+            return manager.getCurrentSurplus();
         }
 
         public double getDemandStableSupply(String resourcename)

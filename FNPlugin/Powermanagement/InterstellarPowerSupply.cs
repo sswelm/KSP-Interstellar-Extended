@@ -83,7 +83,7 @@ namespace FNPlugin.Power
             if (HighLogic.LoadedSceneIsEditor)
                 return;
 
-            totalPowerSupply = getResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            totalPowerSupply = getCurrentResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
         }
 
         public override void OnFixedUpdate()
