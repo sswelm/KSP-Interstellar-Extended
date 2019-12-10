@@ -195,6 +195,21 @@ namespace FNPlugin.Reactors
         public double fuelEfficencyMk7 = 0;
 
         [KSPField]
+        public double hotBathTemperatureMk1 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk2 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk3 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk4 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk5 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk6 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk7 = 0;
+
+        [KSPField]
         public double coreTemperatureMk1 = 0;
         [KSPField]
         public double coreTemperatureMk2 = 0;
@@ -1108,6 +1123,34 @@ namespace FNPlugin.Reactors
         {
             get
             {
+                if (hotBathTemperature == 0)
+                {
+                    switch (CurrentGenerationType)
+                    {
+                        case GenerationType.Mk7:
+                            hotBathTemperature = hotBathTemperatureMk7;
+                            break;
+                        case GenerationType.Mk6:
+                            hotBathTemperature = hotBathTemperatureMk6;
+                            break;
+                        case GenerationType.Mk5:
+                            hotBathTemperature = hotBathTemperatureMk5;
+                            break;
+                        case GenerationType.Mk4:
+                            hotBathTemperature = hotBathTemperatureMk4;
+                            break;
+                        case GenerationType.Mk3:
+                            hotBathTemperature = hotBathTemperatureMk3;
+                            break;
+                        case GenerationType.Mk2:
+                            hotBathTemperature = hotBathTemperatureMk2;
+                            break;
+                        default:
+                            hotBathTemperature = hotBathTemperatureMk1;
+                            break;
+                    }
+                }
+
                 if (hotBathTemperature == 0)
                     return CoreTemperature * hotBathModifier;
                 else
