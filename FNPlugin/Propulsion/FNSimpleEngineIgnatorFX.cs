@@ -29,7 +29,7 @@ namespace FNPlugin.Propulsion
             maxFuelFlow = _engineFX.maxFuelFlow;
 
             if (remainingIgnitions == 0 && _engineFX != null)
-                _engineFX.maxFuelFlow = 0.000001f;
+                _engineFX.maxFuelFlow = 0.0000000001f;
 
             if (state == StartState.Editor)
                 remainingIgnitions = initialIgnitions;
@@ -55,7 +55,8 @@ namespace FNPlugin.Propulsion
                 Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 10.0f, ScreenMessageStyle.UPPER_CENTER);
                 remainingIgnitions = initialIgnitions;
-                _engineFX.maxFuelFlow = maxFuelFlow;
+                if (_engineFX != null)
+                    _engineFX.maxFuelFlow = maxFuelFlow;
             }
             else
             {
@@ -74,6 +75,9 @@ namespace FNPlugin.Propulsion
 
             if (previousThrottle == 0 && _engineFX.requestedThrottle > 0)
                 AttempToIgniteEngine();
+
+            if (remainingIgnitions == 0 && _engineFX.currentThrottle == 0)
+                _engineFX.maxFuelFlow = 0.0000000001f;
 
             previousThrottle = _engineFX.requestedThrottle;
         }
@@ -102,7 +106,7 @@ namespace FNPlugin.Propulsion
                     }
                 }
                 _engineFX.SetRunningGroupsActive(false);
-                _engineFX.maxFuelFlow = 0.000001f;
+                _engineFX.maxFuelFlow = 0.0000000001f;
             }
         }
     }
