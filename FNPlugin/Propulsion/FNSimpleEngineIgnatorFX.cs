@@ -16,9 +16,9 @@ namespace FNPlugin.Propulsion
         public bool reloadRequiresEngineer = true;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Reload requires landed vessel")]
         public bool reloadRequiresLandedVessel = true;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Currently Ignited")]
-        public bool previousEngineIgnited;
 
+        float maxFuelFlow;
+        float previousThrottle;
         ModuleEnginesFX _engineFX;
         BaseEvent _reloadIgnitorEvent;
 
@@ -26,12 +26,16 @@ namespace FNPlugin.Propulsion
         {
             _engineFX = part.FindModuleImplementing<ModuleEnginesFX>();
             _reloadIgnitorEvent = Events["ReloadIgnitor"];
+            maxFuelFlow = _engineFX.maxFuelFlow;
+
+            if (remainingIgnitions == 0 && _engineFX != null)
+                _engineFX.maxFuelFlow = 0.000001f;
 
             if (state == StartState.Editor)
                 remainingIgnitions = initialIgnitions;
         }
 
-        [KSPEvent(name = "ReloadIgnitor", guiName = "Reload Ignitor", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        [KSPEvent(name = "ReloadIgnitor", guiName = "Reload Ignitor", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
         public void ReloadIgnitor()
         {
             var kervalOnEva = FlightGlobals.ActiveVessel.GetVesselCrew().First();
@@ -47,7 +51,11 @@ namespace FNPlugin.Propulsion
 
             if (meetProfessionRequirement && kervalOnEva.experienceLevel >= reloadRequiresExperienceLevel)
             {
+                var message = "Reloaded Ignitor";
+                Debug.Log("[KSPI]: " + message);
+                ScreenMessages.PostScreenMessage(message, 10.0f, ScreenMessageStyle.UPPER_CENTER);
                 remainingIgnitions = initialIgnitions;
+                _engineFX.maxFuelFlow = maxFuelFlow;
             }
             else
             {
@@ -59,21 +67,15 @@ namespace FNPlugin.Propulsion
             }
         }
 
-        public override void OnUpdate()
-        {
-            if (FlightGlobals.ActiveVessel != null)
-                _reloadIgnitorEvent.guiActiveUnfocused = FlightGlobals.ActiveVessel.isEVA;
-        }
-
         public void FixedUpdate()
         {
             if (_engineFX == null)
                 return;
 
-            if (previousEngineIgnited == false && _engineFX.requestedThrottle > 0)
+            if (previousThrottle == 0 && _engineFX.requestedThrottle > 0)
                 AttempToIgniteEngine();
 
-            previousEngineIgnited = _engineFX.EngineIgnited;
+            previousThrottle = _engineFX.requestedThrottle;
         }
 
         private void AttempToIgniteEngine()
@@ -100,6 +102,7 @@ namespace FNPlugin.Propulsion
                     }
                 }
                 _engineFX.SetRunningGroupsActive(false);
+                _engineFX.maxFuelFlow = 0.000001f;
             }
         }
     }
