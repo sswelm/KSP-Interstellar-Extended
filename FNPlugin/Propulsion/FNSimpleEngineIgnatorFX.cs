@@ -29,7 +29,7 @@ namespace FNPlugin.Propulsion
             maxFuelFlow = _engineFX.maxFuelFlow;
 
             if (remainingIgnitions == 0 && _engineFX != null)
-                _engineFX.maxFuelFlow = 0.0000000001f;
+                _engineFX.maxFuelFlow = 1e-10f;
 
             if (state == StartState.Editor)
                 remainingIgnitions = initialIgnitions;
@@ -77,7 +77,7 @@ namespace FNPlugin.Propulsion
                 AttempToIgniteEngine();
 
             if (remainingIgnitions == 0 && _engineFX.currentThrottle == 0)
-                _engineFX.maxFuelFlow = 0.0000000001f;
+                _engineFX.maxFuelFlow = 1e-10f;
 
             previousThrottle = _engineFX.requestedThrottle;
         }
@@ -106,7 +106,7 @@ namespace FNPlugin.Propulsion
                     }
                 }
                 _engineFX.SetRunningGroupsActive(false);
-                _engineFX.maxFuelFlow = 0.0000000001f;
+                _engineFX.maxFuelFlow = 1e-10f;
             }
         }
     }
