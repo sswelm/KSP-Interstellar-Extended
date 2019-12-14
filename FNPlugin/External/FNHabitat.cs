@@ -579,10 +579,10 @@ namespace FNPlugin
                 }
             }
 
-            if (found)
-                UnityEngine.Debug.Log("[KSPI]: Found Habitat PartModule on " + part.partInfo.title);
-            else
-                UnityEngine.Debug.LogWarning("[KSPI]: No Habitat PartModule found on " + part.partInfo.title);
+            //if (found)
+            //    UnityEngine.Debug.Log("[KSPI]: Found Habitat PartModule on " + part.partInfo.title);
+            //else
+            //    UnityEngine.Debug.LogWarning("[KSPI]: No Habitat PartModule found on " + part.partInfo.title);
 
             var foodPartResource = part.Resources["Food"];
             if (foodPartResource != null && food >= 0)

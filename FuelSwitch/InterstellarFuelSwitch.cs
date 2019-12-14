@@ -1690,10 +1690,10 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            if (found)
-                UnityEngine.Debug.Log("[IFS]: Found Habitat PartModule on " + part.partInfo.title);
-            else
-                UnityEngine.Debug.LogWarning("[IFS]: No Habitat PartModule found on " + part.partInfo.title);
+            //if (found)
+            //    UnityEngine.Debug.Log("[IFS]: Found Habitat PartModule on " + part.partInfo.title);
+            //else
+            //    UnityEngine.Debug.LogWarning("[IFS]: No Habitat PartModule found on " + part.partInfo.title);
         }
 
         private void UpdateHabitat(IFSmodularTank currentTank)
