@@ -6,9 +6,9 @@ namespace FNPlugin.Propulsion
 {
     class FNSimpleEngineIgnatorFX : PartModule
     {
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Initial Ignitions")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Ignitions")]
         public int initialIgnitions = -1;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Available Ignitions")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Ignitions")]
         public int remainingIgnitions = -1;
         [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Reload required experience level")]
         public int reloadRequiresExperienceLevel = 1;
@@ -19,6 +19,7 @@ namespace FNPlugin.Propulsion
 
         float maxFuelFlow;
         float previousThrottle;
+
         ModuleEnginesFX _engineFX;
         BaseEvent _reloadIgnitorEvent;
 
@@ -35,16 +36,16 @@ namespace FNPlugin.Propulsion
                 remainingIgnitions = initialIgnitions;
         }
 
-        [KSPEvent(name = "ReloadIgnitor", guiName = "Reload Ignitor", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
+        [KSPEvent(name = "ReloadIgnitor", guiName = "Reload Ignitors", active = true, externalToEVAOnly = true, guiActive = false, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
         public void ReloadIgnitor()
         {
             var kervalOnEva = FlightGlobals.ActiveVessel.GetVesselCrew().First();
 
             if (reloadRequiresLandedVessel && part.vessel.Landed == false)
             {
-                var message = "Failed to reload Ignitor. Vessel must be landed on firm ground";
+                var message = "Failed to reload Ignitors. Vessel must be landed on firm ground";
                 Debug.Log("[KSPI]: " + message);
-                ScreenMessages.PostScreenMessage(message, 10.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(message, 6.0f, ScreenMessageStyle.UPPER_CENTER);
             }
 
             var meetProfessionRequirement = reloadRequiresEngineer == false || kervalOnEva.experienceTrait.Title.Equals("Engineer");
@@ -53,7 +54,7 @@ namespace FNPlugin.Propulsion
             {
                 var message = "Reloaded Ignitor";
                 Debug.Log("[KSPI]: " + message);
-                ScreenMessages.PostScreenMessage(message, 10.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(message, 6.0f, ScreenMessageStyle.UPPER_CENTER);
                 remainingIgnitions = initialIgnitions;
                 if (_engineFX != null)
                     _engineFX.maxFuelFlow = maxFuelFlow;
@@ -64,7 +65,7 @@ namespace FNPlugin.Propulsion
                     ? "Failed to reload Ignitor. Requires at least a level " + reloadRequiresExperienceLevel + " Engineer"
                     : "Failed to reload Ignitor. Requires at least a level " + reloadRequiresExperienceLevel + " Kerbal";
                 Debug.Log("[KSPI]: " + message);
-                ScreenMessages.PostScreenMessage(message, 10.0f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(message, 6.0f, ScreenMessageStyle.UPPER_CENTER);
             }
         }
 
