@@ -78,7 +78,6 @@ namespace FNPlugin
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Bandwidth")]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedBandwidthConfiguration = 0;
-
         [KSPField(isPersistant = true, guiActive = true, guiName = "Enabled")]
         public bool receiverIsEnabled;
         [KSPField(isPersistant = true)]
@@ -96,6 +95,8 @@ namespace FNPlugin
         public bool solarPowerMode = true;
         [KSPField(isPersistant = true, guiActive = true, guiName = "Power Reciever Interface"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown")]
         public bool showWindow;
+
+
 
         [KSPField(isPersistant = true)]
         public float windowPositionX = 200;
@@ -210,8 +211,36 @@ namespace FNPlugin
         public double heatTransportationEfficiency = 0.7;
         [KSPField]
         public double powerHeatExponent = 0.7;
+
+        [KSPField(guiActiveEditor = true, guiName = "Hotbath TechLevel")]
+        public int hothBathtechLevel;
+        [KSPField(guiActiveEditor = true, guiName ="HotBath Temperature", guiUnits = " K")]
+        public double hothBathTemperature = 3200;
+
         [KSPField]
-        public double powerHeatBase = 3200;
+        public double hothBathTemperatureMk1 = 2000;
+        [KSPField]
+        public double hothBathTemperatureMk2 = 2500;
+        [KSPField]
+        public double hothBathTemperatureMk3 = 3000;
+        [KSPField]
+        public double hothBathTemperatureMk4 = 3500;
+        [KSPField]
+        public double hothBathTemperatureMk5 = 4000;
+        [KSPField]
+        public double hothBathTemperatureMk6 = 4500;
+
+        [KSPField]
+        public string upgradeTechReqMk2 = "heatManagementSystems";
+        [KSPField]
+        public string upgradeTechReqMk3 = "advHeatManagement";
+        [KSPField]
+        public string upgradeTechReqMk4 = "specializedRadiators";
+        [KSPField]
+        public string upgradeTechReqMk5 = "exoticRadiators";
+        [KSPField]
+        public string upgradeTechReqMk6 = "extremeRadiators";
+
         [KSPField]
         public int receiverType = 0;
         [KSPField]
@@ -497,6 +526,48 @@ namespace FNPlugin
             // do nothing
         }
 
+        private void DetermineTechLevel()
+        {
+            hothBathtechLevel = 1;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk2))
+                hothBathtechLevel++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk3))
+                hothBathtechLevel++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk4))
+                hothBathtechLevel++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk5))
+                hothBathtechLevel++;
+            if (PluginHelper.UpgradeAvailable(upgradeTechReqMk6))
+                hothBathtechLevel++;
+        }
+
+        private void DetermineCoreTemperature()
+        {
+            switch (hothBathtechLevel)
+            {
+                case 1:
+                    hothBathTemperature = hothBathTemperatureMk1;
+                    break;
+                case 2:
+                    hothBathTemperature = hothBathTemperatureMk2;
+                    break;
+                case 3:
+                    hothBathTemperature = hothBathTemperatureMk3;
+                    break;
+                case 4:
+                    hothBathTemperature = hothBathTemperatureMk4;
+                    break;
+                case 5:
+                    hothBathTemperature = hothBathTemperatureMk5;
+                    break;
+                case 6:
+                    hothBathTemperature = hothBathTemperatureMk6;
+                    break;
+                default:
+                    break;
+            }
+        }
+
         public double WasteheatElectricConversionEfficiency
         {
             get 
@@ -674,9 +745,9 @@ namespace FNPlugin
 
         public bool IsSelfContained { get { return false; } }
 
-        public double CoreTemperature { get { return powerHeatBase; } }
+        public double CoreTemperature { get { return hothBathTemperature; } }
 
-        public double HotBathTemperature { get { return CoreTemperature; } }
+        public double HotBathTemperature { get { return hothBathTemperature; } }
 
         public double StableMaximumReactorPower { get { return RawMaximumPower; } }
 
@@ -881,6 +952,9 @@ namespace FNPlugin
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
+            DetermineTechLevel();
+            DetermineCoreTemperature();
+
             // while in edit mode, listen to on attach/detach event
             if (state == StartState.Editor)
             {
@@ -894,6 +968,9 @@ namespace FNPlugin
 
             instanceId = GetInstanceID();
 
+            Fields["hothBathtechLevel"].guiActiveEditor = isThermalReceiver;
+            Fields["hothBathTemperature"].guiActiveEditor = isThermalReceiver;
+            
             _linkReceiverBaseEvent = Events["LinkReceiver"];
             _unlinkReceiverBaseEvent = Events["UnlinkReceiver"];
             _activateReceiverBaseEvent = Events["ActivateReceiver"];
