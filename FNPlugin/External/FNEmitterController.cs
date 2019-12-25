@@ -99,7 +99,12 @@ namespace FNPlugin.External
         private void InitializeKerbalismEmitter()
         {
             if (Kerbalism.versionMajor == 0)
+            {
+                UnityEngine.Debug.Log("[KSPI]: Skipped Initialize FNEmitterController");
                 return;
+            }
+
+            UnityEngine.Debug.Log("[KSPI]: FNEmitterController Initialize");
 
             shieldingPartResource = part.Resources["Shielding"];
             if (shieldingPartResource != null)

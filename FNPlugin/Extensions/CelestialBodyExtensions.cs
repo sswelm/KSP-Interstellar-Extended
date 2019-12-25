@@ -93,7 +93,7 @@ namespace FNPlugin.Extensions
         public static double GetElectronRadiationLevel(this CelestialBody body, CelestialBody homeworld, double altitude, double lat)
         {
             lat = lat / 180 * Math.PI;
-            double atmosphere = FlightGlobals.getStaticPressure(altitude, body) / 100;
+            double atmosphere = FlightGlobals.getStaticPressure(altitude, body) / 101.325;
             double atmosphere_height = PluginHelper.getMaxAtmosphericAltitude(body);
             double atmosphere_scaling = Math.Exp(-atmosphere);
 

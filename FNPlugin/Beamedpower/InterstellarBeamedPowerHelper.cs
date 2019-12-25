@@ -124,15 +124,10 @@ namespace FNPlugin.Beamedpower
             return Vector3d.Distance(v1.GetVesselPos(), v2.GetVesselPos());
         }
 
-        private static double GetAtmosphericEfficiency(Vessel v)
-        {
-            return Math.Exp(-(FlightGlobals.getStaticPressure(v.GetVesselPos()) / 100) / 5);
-        }
-
         private static double GetAtmosphericEfficiency(double transmitterPresure, double recieverPressure, double waveLengthAbsorbtion, double distanceInMeter, Vessel recieverVessel, Vessel transmitterVessel)
         {
             // if both in space, efficiency is 100%
-            if (transmitterPresure == 0 && recieverPressure == 0)
+            if (transmitterPresure <= 0 && recieverPressure <= 0)
                 return 1;
 
             var atmosphereDepthInMeter = Math.Max(transmitterVessel.mainBody.atmosphereDepth, recieverVessel.mainBody.atmosphereDepth);
@@ -155,7 +150,7 @@ namespace FNPlugin.Beamedpower
                 atmosphericDistance = altitudeModifier * atmosphereDepthInMeter;
             }
 
-            var absortionRatio = Math.Pow(atmosphericDistance, Math.Sqrt(Math.Pow(transmitterPresure, 2) + Math.Pow(recieverPressure, 2))) / atmosphereDepthInMeter * waveLengthAbsorbtion;
+            var absortionRatio = atmosphericDistance * Math.Sqrt((transmitterPresure * transmitterPresure) + (recieverPressure * recieverPressure)) / atmosphereDepthInMeter * waveLengthAbsorbtion;
 
             return Math.Exp(-absortionRatio);
         }
@@ -173,7 +168,7 @@ namespace FNPlugin.Beamedpower
 
             var transmittersToCheck = new List<VesselMicrowavePersistence>();//stores all transmiters to which we want to connect
 
-            var recieverAtmosphericPresure = FlightGlobals.getStaticPressure(receiver.Vessel.GetVesselPos()) * 0.01;
+            var recieverAtmosphericPresure = FlightGlobals.getStaticPressure(receiver.Vessel.GetVesselPos()) / 101.325;
 
             foreach (VesselMicrowavePersistence transmitter in BeamedPowerSources.instance.globalTransmitters.Values)
             {
@@ -200,7 +195,7 @@ namespace FNPlugin.Beamedpower
                     var possibleWavelengths = new List<MicrowaveRoute>();
                     double distanceInMeter = ComputeDistance(receiver.Vessel, transmitter.Vessel);
 
-                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.GetVesselPos()) * 0.01;
+                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitter.Vessel.GetVesselPos()) / 101.325;
 
                     foreach (WaveLengthData wavelenghtData in transmitter.SupportedTransmitWavelengths)
                     {
@@ -213,7 +208,9 @@ namespace FNPlugin.Beamedpower
 
                         double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, recieverAtmosphericPresure, wavelenghtData.atmosphericAbsorption, distanceInMeter, receiver.Vessel, transmitter.Vessel);
 
-                        possibleWavelengths.Add(new MicrowaveRoute(distanceFacingEfficiency * atmosphereEfficency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
+                        double routeEfficiency = distanceFacingEfficiency * atmosphereEfficency;
+
+                        possibleWavelengths.Add(new MicrowaveRoute(routeEfficiency, distanceInMeter, facingFactor, spotsize, wavelenghtData));
                     }
 
                     var mostEfficientWavelength = possibleWavelengths.Count == 0 ? null : possibleWavelengths.FirstOrDefault(m => m.Efficiency == possibleWavelengths.Max(n => n.Efficiency));
@@ -247,7 +244,8 @@ namespace FNPlugin.Beamedpower
                         continue;
 
                     double distanceInMeter = ComputeDistance(receiver.Vessel, relay.Vessel);
-                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.GetVesselPos()) * 0.01;
+
+                    double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(relay.Vessel.GetVesselPos()) / 101.325;
 
                     var possibleWavelengths = new List<MicrowaveRoute>();
 
@@ -311,7 +309,7 @@ namespace FNPlugin.Beamedpower
                         VesselRelayPersistence relayPersistance = relayEntry.Key;
                         MicrowaveRoute relayRoute = relayRouteDictionary[relayPersistance];// current best route for this relay
                         double relayRouteFacingFactor = relayRoute.FacingFactor;// it's always facing factor from the beggining of the route
-                        double relayAtmosphericPresure = FlightGlobals.getStaticPressure(relayPersistance.Vessel.GetVesselPos()) / 100;
+                        double relayAtmosphericPresure = FlightGlobals.getStaticPressure(relayPersistance.Vessel.GetVesselPos()) / 101.325;
 
                         for (int t = 0; t < transmittersToCheck.Count; t++)//check if this relay can connect to transmitters
                         {
@@ -322,7 +320,8 @@ namespace FNPlugin.Beamedpower
 
                             VesselMicrowavePersistence transmitterToCheck = transmittersToCheck[t];
                             double newDistance = relayRoute.Distance + distanceInMeter;// total distance from receiver by this relay to transmitter
-                            double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitterToCheck.Vessel.GetVesselPos()) / 100;
+                            double transmitterAtmosphericPresure = FlightGlobals.getStaticPressure(transmitterToCheck.Vessel.GetVesselPos()) / 101.325;
+
                             var possibleWavelengths = new List<MicrowaveRoute>();
 
                             foreach (var transmitterWavelenghtData in transmitterToCheck.SupportedTransmitWavelengths)
@@ -331,7 +330,7 @@ namespace FNPlugin.Beamedpower
                                     continue;
 
                                 double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceInMeter, transmitterToCheck.Aperture);
-                                double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
+                                double distanceFacingEfficiency = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Diameter);
 
                                 double atmosphereEfficency = GetAtmosphericEfficiency(transmitterAtmosphericPresure, relayAtmosphericPresure, transmitterWavelenghtData.atmosphericAbsorption, distanceInMeter, transmitterToCheck.Vessel, relayPersistance.Vessel);
                                 double efficiencyTransmitterToRelay = distanceFacingEfficiency * atmosphereEfficency;
@@ -377,8 +376,8 @@ namespace FNPlugin.Beamedpower
                                 if (transmitterWavelenghtData.maxWavelength < relayPersistance.MaximumRelayWavelenght || transmitterWavelenghtData.minWavelength > relayPersistance.MinimumRelayWavelenght)
                                     continue;
 
-                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, relayPersistance.Aperture);
-                                double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Aperture);
+                                double spotsize = ComputeSpotSize(transmitterWavelenghtData, distanceToNextRelay, nextRelay.Aperture);
+                                double efficiencyByThisRelay = ComputeDistanceFacingEfficiency(spotsize, 1, relayPersistance.Diameter);
                                 double efficiencyForRoute = efficiencyByThisRelay * relayRoute.Efficiency;
 
                                 possibleWavelengths.Add(new MicrowaveRoute(efficiencyForRoute, relayToNextRelayDistance, relayRouteFacingFactor, spotsize, transmitterWavelenghtData, relayPersistance));

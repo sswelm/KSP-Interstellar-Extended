@@ -187,7 +187,9 @@ namespace FNPlugin
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_SolarwindCollector_activateCollector", active = true)]
         public void ActivateCollector()
         {
+            Debug.Log("[KSPI]: SolarwindCollector on " + part.name + " was Force Activated");
             this.part.force_activate();
+
             bIsEnabled = true;
             OnUpdate();
             if (IsCollectLegal())

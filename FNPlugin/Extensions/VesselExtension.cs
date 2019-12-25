@@ -5,8 +5,13 @@ namespace FNPlugin.Extensions
 {
     public static class VesselExtension
     {
-        public static double PersistHeading(this Vessel vessel, bool forceRotation = false)
+        public static double PersistHeading(this ModuleEngines engine, bool forceRotation = false, bool canDropOutOfTimeWarp = true)
         {
+            if (engine.getIgnitionState == false)
+                return 0;
+
+            var vessel = engine.vessel;
+
             if (!vessel.packed)
                 return 0;
 
@@ -15,13 +20,13 @@ namespace FNPlugin.Extensions
 
             if (!canPersistDirection)
             {
-                UnityEngine.Debug.Log("[KSPI]: " + "ortibit is not suitable for persistant heading ");
+                //UnityEngine.Debug.Log("[KSPI]: " + "orbit is not suitable for persistant heading ");
                 return 0;
             }
 
             if ( !sasIsActive)
             {
-                UnityEngine.Debug.Log("[KSPI]: " + "SAS is not active ");
+                //UnityEngine.Debug.Log("[KSPI]: " + "SAS is not active ");
                 return 0;
             }                 
 
@@ -62,13 +67,17 @@ namespace FNPlugin.Extensions
 
             if (requestedDirection == Vector3d.zero) return 1;
 
-            var ratioHeadingVersusRequest = Vector3d.Dot(vessel.transform.up.normalized, requestedDirection);
+            var ratioHeadingVersusRequest = Vector3d.Dot(engine.transform.up.normalized, requestedDirection);
 
             if (forceRotation || ratioHeadingVersusRequest > 0.995)
             {
-                vessel.transform.Rotate(Quaternion.FromToRotation(vessel.transform.up.normalized, requestedDirection).eulerAngles, Space.World);
+                vessel.transform.Rotate(Quaternion.FromToRotation(engine.transform.up.normalized, requestedDirection).eulerAngles, Space.World);
                 vessel.SetRotation(vessel.transform.rotation);
                 return 1;
+            }
+            else if (engine.currentThrottle == 0 || canDropOutOfTimeWarp == false)
+            {
+                return ratioHeadingVersusRequest;
             }
             else
             {

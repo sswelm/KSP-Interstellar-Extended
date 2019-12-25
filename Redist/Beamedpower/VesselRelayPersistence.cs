@@ -8,6 +8,7 @@ namespace FNPlugin.Beamedpower
     {
         Vessel vessel;
         bool isActive;
+        double diameter;
         double aperture;
         double power_capacity;
         double minimumRelayWavelenght;
@@ -30,6 +31,12 @@ namespace FNPlugin.Beamedpower
         {
             get { return this.isActive; }
             set { this.isActive = value; }
+        }
+
+        public double Diameter
+        {
+            get { return diameter != 0 ? this.diameter : Aperture; }    // fall back to aperture when diameter is not available
+            set { this.diameter = value; }
         }
 
         public double Aperture

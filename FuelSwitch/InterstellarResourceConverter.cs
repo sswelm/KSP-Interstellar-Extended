@@ -111,6 +111,8 @@ namespace InterstellarFuelSwitch
         UI_FloatRange convertPecentageEditorFloatRange;
         UI_FloatRange convertPecentageFlightFloatRange;
 
+        int changedFieldCounter;
+
         bool hasNullDefinitions = false;
 
         public float PowerUsagePercentageRatio
@@ -301,6 +303,8 @@ namespace InterstellarFuelSwitch
             if (!convertPercentageField.guiActive)
                 return;
 
+            changedFieldCounter++;
+
             for (var i = 0; i < primaryResources.Count; i++)
             {
                 var resource = primaryResources[i];
@@ -408,7 +412,11 @@ namespace InterstellarFuelSwitch
                     var receivedSourceAmountFixed = part.RequestResource(primaryResource.definition.id, fixedPrimaryRequest);
 
                     primaryChange = -(float)(receivedSourceAmountFixed / fixedDeltaTime);
-                    primaryChangeField.guiActive = primaryChange != 0;
+
+                    if (primaryChange != 0)
+                        changedFieldCounter = 0;
+
+                    primaryChangeField.guiActive = changedFieldCounter < 50;
 
                     double createdAmount = 0;
 
@@ -479,7 +487,11 @@ namespace InterstellarFuelSwitch
                         var primaryRequestResult = part.RequestResource(primary.definition.id, requestedTargetAmount);
 
                         primaryChange = -(float)(primaryRequestResult / fixedDeltaTime);
-                        primaryChangeField.guiActive = primaryChange != 0;
+
+                        if (primaryChange != 0)
+                            changedFieldCounter = 0;
+
+                        primaryChangeField.guiActive = changedFieldCounter < 50;
                         
                         var receivedTargetAmount = primaryRequestResult / conversionRatio;
 
@@ -492,14 +504,51 @@ namespace InterstellarFuelSwitch
             }
             else
             {
-                secondaryChangeField.guiActive = false;
-                primaryChangeField.guiActive = false;
+                secondaryChangeField.guiActive = changedFieldCounter < 50;
+                primaryChangeField.guiActive = changedFieldCounter < 50;
             }
         }
 
         public override string GetInfo()
         {
             return "Primary: " + primaryResourceNames + "\n" + "Secondary: " + secondaryResourceNames ;
+        }
+
+        /// <summary>
+        /// Callon on offline vessel to process Resource Converter
+        /// </summary>
+        /// <param name="vessel"></param>
+        public static void UpdateResourceConverterOffline(Vessel vessel)
+        {
+            foreach (var protoPart in vessel.protoVessel.protoPartSnapshots)
+            {
+                var interstellarResourceConverter = protoPart.modules.FirstOrDefault(m => m.moduleName == "InterstellarResourceConverter");
+
+                if (interstellarResourceConverter != null)
+                {
+                    string primaryConversionEnergyResource = interstellarResourceConverter.moduleValues.GetValue("primaryConversionEnergyResource");
+                    string secondaryConversionEnergResource = interstellarResourceConverter.moduleValues.GetValue("secondaryConversionEnergResource");
+
+                    int matchCount = 0;
+
+                    foreach (var protoResource in protoPart.resources)
+                    {
+                        if (protoResource.resourceName == primaryConversionEnergyResource)
+                        {
+                            protoResource.amount = protoResource.maxAmount;
+                            matchCount++;
+                        }
+                        else if (protoResource.resourceName == secondaryConversionEnergResource)
+                        {
+                            protoResource.amount = protoResource.maxAmount;
+                            matchCount++;
+                        }
+
+                        if (matchCount == 2)
+                            break;
+                    }
+                }
+            }
         }
     }
 }

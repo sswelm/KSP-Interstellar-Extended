@@ -22,7 +22,6 @@ namespace FNPlugin
         public double thrustMultiplier = 1;
         [KSPField(isPersistant = true)]
         public double ispMultiplier = 1;
-
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
         [KSPField(isPersistant = true)]
@@ -32,7 +31,6 @@ namespace FNPlugin
         public double massThrustExp = 0;
         [KSPField]
         public double massIspExp = 0;
-
         [KSPField]
         public double higherScaleThrustExponent = 3;
         [KSPField]
@@ -41,7 +39,6 @@ namespace FNPlugin
         public double higherScaleIspExponent = 0.25;
         [KSPField]
         public double lowerScaleIspExponent = 1;
-
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_FusionEngine_speedLimit", guiUnits = "c"), UI_FloatRange(stepIncrement = 0.005f, maxValue = 1, minValue = 0.005f)]
         public float speedLimit = 1;
@@ -68,7 +65,6 @@ namespace FNPlugin
         public double fusionFuelRatio2 = 0;
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double fusionFuelRatio3 = 0;
-
         [KSPField]
         public string effectName = String.Empty;
 
@@ -99,17 +95,14 @@ namespace FNPlugin
         public double massFlowRateKgPerSecond;
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_massFlowRateTonPerHour", guiFormat = "F6", guiUnits = " t/h")]
         public double massFlowRateTonPerHour;
-        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_storedThrotle")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_FusionEngine_storedThrotle")]
         public float storedThrotle = 0;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_effectiveMaxThrustInKiloNewton", guiFormat = "F2", guiUnits = " kN")]
         public double effectiveMaxThrustInKiloNewton = 0;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_effectiveIsp", guiFormat = "F2", guiUnits = "s")]
         public double effectiveIsp = 0;
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_worldSpaceVelocity", guiFormat = "F3", guiUnits = " m/s")]
-        public double worldSpaceVelocity;
-
-        [KSPField]
-        public double universalTime;
+        public double worldSpaceVelocity;      
 
         [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
         public string translatedTechMk1;
@@ -242,7 +235,7 @@ namespace FNPlugin
         [KSPField]
         public double thrustIspMk9 = 500000;
 
-        [KSPField(guiActive = true, guiName = "Available Upgrade Techs")]
+        [KSPField]
         public int numberOfAvailableUpgradeTechs;
         [KSPField]
         public float maxAtmosphereDensity = 0;
@@ -288,20 +281,16 @@ namespace FNPlugin
         [KSPField]
         public string upgradeTechReq8 = null;
 
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double demandMass;
-        [KSPField(guiActive = true)]
+        [KSPField]
         public double fuelRatio;
         [KSPField]
         double averageDensity;
         [KSPField]
         float throttle;
-
-        bool radhazard;
-        bool warpToReal;
-        double engineIsp;
-        double percentageFuelRemaining;
-        int vesselChangedSIOCountdown;
+        [KSPField]
+        double ratioHeadingVersusRequest;
 
         [KSPField]
         public double fusionFuelFactor1;
@@ -333,8 +322,14 @@ namespace FNPlugin
         PartResourceDefinition fusionFuelResourceDefinition3;
 
         const string LIGHTBLUE = "#7fdfffff";
-
-        private int totalNumberOfGenerations; 
+        
+        bool radhazard;
+        bool warpToReal;
+        double engineIsp;
+        double universalTime;
+        double percentageFuelRemaining;
+        int vesselChangedSIOCountdown;
+        int totalNumberOfGenerations;        
 
         private int _engineGenerationType;
         public GenerationType EngineGenerationType
@@ -802,6 +797,7 @@ namespace FNPlugin
             if (curEngineT.isOperational && !IsEnabled)
             {
                 IsEnabled = true;
+                UnityEngine.Debug.Log("[KSPI]: DeadalusEngineController on " + part.name + " was Force Activated");
                 part.force_activate();
             }
 
@@ -943,7 +939,7 @@ namespace FNPlugin
 
                 if (throttle > 0 && !this.vessel.packed)
                 {
-                    TimeWarp.GThreshold = 2;
+                    TimeWarp.GThreshold = 9;
 
                     var thrustPercentage = (double)(decimal)curEngineT.thrustPercentage;
                     var thrustRatio = Math.Max(thrustPercentage * 0.01, 0.01);
@@ -966,8 +962,10 @@ namespace FNPlugin
                     {
                         curEngineT.status = "Insufficient Electricity";
                     }
+
+                    ratioHeadingVersusRequest = 0;
                 }
-                else if (this.vessel.packed && curEngineT.enabled && FlightGlobals.ActiveVessel == vessel && throttle > 0 && percentageFuelRemaining > (100 - fuelLimit) && lightSpeedRatio < speedLimit)
+                else if (this.vessel.packed && curEngineT.currentThrottle > 0 && curEngineT.getIgnitionState && curEngineT.enabled && FlightGlobals.ActiveVessel == vessel && throttle > 0 && percentageFuelRemaining > (100 - fuelLimit) && lightSpeedRatio < speedLimit)
                 {
                     warpToReal = true; // Set to true for transition to realtime
 
@@ -1018,7 +1016,7 @@ namespace FNPlugin
                 }
                 else
                 {
-                    vessel.PersistHeading();
+                    ratioHeadingVersusRequest = curEngineT.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
 
                     if (!String.IsNullOrEmpty(effectName))
                         this.part.Effect(effectName, 0, -1);
@@ -1062,7 +1060,7 @@ namespace FNPlugin
 
         private void PersistantThrust(float modifiedFixedDeltaTime, double modifiedUniversalTime, Vector3d thrustVector, double vesselMass)
         {
-            var ratioHeadingVersusRequest = vessel.PersistHeading();
+            ratioHeadingVersusRequest = curEngineT.PersistHeading(vesselChangedSIOCountdown > 0, ratioHeadingVersusRequest == 1);
             if (ratioHeadingVersusRequest != 1)
             {
                 UnityEngine.Debug.Log("[KSPI]: " + "quit persistant heading: " + ratioHeadingVersusRequest);
@@ -1150,7 +1148,7 @@ namespace FNPlugin
 
             var wasteheatRatio = getResourceBarFraction(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-            var wasteheatModifier = CheatOptions.IgnoreMaxTemperature || wasteheatRatio < 0.8 ? 1 : (1  - wasteheatRatio) * 5;
+            var wasteheatModifier = CheatOptions.IgnoreMaxTemperature || wasteheatRatio < 0.9 ? 1 : (1  - wasteheatRatio) * 10;
 
             var requestedPower = requestedThrottle * effectivePowerRequirement * wasteheatModifier;
 

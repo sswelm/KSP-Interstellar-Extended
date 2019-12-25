@@ -345,7 +345,8 @@ namespace FNPlugin
             if (curEngineT.isOperational && !IsEnabled) 
             {
                 IsEnabled = true;
-                part.force_activate ();
+                UnityEngine.Debug.Log("[KSPI]: VistaEngineAdvanced on " + part.name + " was Force Activated");
+                part.force_activate();
             }
 
             int kerbal_hazard_count = 0;

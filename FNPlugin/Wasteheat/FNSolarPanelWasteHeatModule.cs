@@ -24,10 +24,11 @@ namespace FNPlugin
         public double megaJouleSolarPowerSupply;
         [KSPField(guiActive = true, guiName = "Maximum Solar Power", guiUnits = " MW", guiFormat = "F5")]
         public double solarMaxSupply = 0;
-
         [KSPField(guiActive = false, guiName = "AU", guiFormat = "F0", guiUnits = " m")]
         public double astronomicalUnit;
 
+        [KSPField]
+        public string resourceName;
         [KSPField]
         public double solar_supply = 0;
         [KSPField]
@@ -36,21 +37,47 @@ namespace FNPlugin
         public float efficiencyMult;
         [KSPField]
         public double _efficMult;
-
         [KSPField]
         public double sunAOA;
         [KSPField]
         public double calculatedEfficency;
+        //[KSPField(guiActive = true)]
+        //public float flowRate;
+        //[KSPField(guiActive = true)]
+        //public double _flowRate;
         [KSPField]
-        public float flowRate;
+        public double kerbalism_nominalRate;
+        [KSPField]
+        public string kerbalism_panelState;
+        [KSPField]
+        public string kerbalism_panelOutput;
+        [KSPField]
+        public double kerbalism_panelPower;
+
         [KSPField]
         public double scale = 1;
+        [KSPField]
+        double maxSupply;
+        [KSPField]
+        double solarRate;
+        [KSPField]
+        public double outputResourceRate;
+        [KSPField]
+        public double outputResourceCurrentRequest;
 
         BeamedPowerReceiver _microwavePowerReceiver;
         ModuleDeployableSolarPanel _solarPanel;
         ResourceBuffers _resourceBuffers;
         ResourceType _outputType = 0;
-        List<StarLight> _stars;        
+        List<StarLight> _stars;
+
+        BaseField megaJouleSolarPowerSupplyField;
+        BaseField solarMaxSupplyField;
+        BaseField _field_kerbalism_nominalRate;
+        BaseField _field_kerbalism_panelStatus;
+
+        ModuleResource outputResource;
+        PartModule solarPanelFixer;
       
         public double SolarPower
         {
@@ -63,6 +90,17 @@ namespace FNPlugin
         {
             if (state == StartState.Editor) return;
 
+            megaJouleSolarPowerSupplyField = Fields["megaJouleSolarPowerSupply"];
+            solarMaxSupplyField = Fields["solarMaxSupply"];
+
+            if (part.Modules.Contains("SolarPanelFixer"))
+            {
+                solarPanelFixer = part.Modules["SolarPanelFixer"];
+
+                _field_kerbalism_nominalRate = solarPanelFixer.Fields["nominalRate"];
+                _field_kerbalism_panelStatus = solarPanelFixer.Fields["panelStatus"];
+            }
+
             // calculate Astronomical unit on homeworld semiMajorAxis when missing
             if (astronomicalUnit == 0)
                 astronomicalUnit = FlightGlobals.GetHomeBody().orbit.semiMajorAxis;
@@ -72,15 +110,22 @@ namespace FNPlugin
             _solarPanel = (ModuleDeployableSolarPanel)this.part.FindModuleImplementing<ModuleDeployableSolarPanel>();
             if (_solarPanel == null) return;
 
-            part.force_activate();
+            if (this.part.FindModuleImplementing<ModuleJettison>() == null)
+            {
+                UnityEngine.Debug.Log("[KSPI]: FNSolarPanelWasteHeatModule Force Activated  " + part.name);
+                part.force_activate();
+            }
 
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_MEGAJOULES };
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
-            if (_solarPanel.resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
+            outputResource = _solarPanel.resHandler.outputResources.FirstOrDefault();
+            resourceName = _solarPanel.resourceName;
+
+            if (resourceName == ResourceManager.FNRESOURCE_MEGAJOULES)
                 _outputType = ResourceType.megajoule;
-            else if (_solarPanel.resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
+            else if (resourceName == ResourceManager.STOCK_RESOURCE_ELECTRICCHARGE)
                 _outputType = ResourceType.electricCharge;
             else
                 _outputType = ResourceType.other;
@@ -127,13 +172,41 @@ namespace FNPlugin
             return 1;
         }
 
+        public override void OnUpdate()
+        {
+            if (megaJouleSolarPowerSupplyField != null)
+                megaJouleSolarPowerSupplyField.guiActive = solarMaxSupply > 0;
+
+            if (solarMaxSupplyField != null)
+                solarMaxSupplyField.guiActive = solarMaxSupply > 0;
+        }
+
         public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
             if (_solarPanel == null) return;
 
+            if (_field_kerbalism_nominalRate != null)
+            {
+                kerbalism_nominalRate = _field_kerbalism_nominalRate.GetValue<double>(solarPanelFixer);
+                kerbalism_panelState = _field_kerbalism_panelStatus.GetValue<string>(solarPanelFixer);
+
+                var kerbalism_panelStateArray = kerbalism_panelState.Split(' ');
+
+                kerbalism_panelOutput = kerbalism_panelStateArray[0];
+
+                double.TryParse(kerbalism_panelOutput, out kerbalism_panelPower);
+            }
+
+            if (outputResource != null)
+            {
+                outputResourceRate = outputResource.rate;
+                outputResourceCurrentRequest = outputResource.currentRequest;
+            }
+
             if (_outputType == ResourceType.other) return;
 
-            flowRate = _solarPanel.flowRate;
+            //_flowRate = _solarPanel._flowRate;
+            //flowRate = _solarPanel.flowRate;
             chargeRate = _solarPanel.chargeRate;
             efficiencyMult = _solarPanel.efficiencyMult;
             _efficMult = _solarPanel._efficMult;
@@ -142,8 +215,8 @@ namespace FNPlugin
                 ? _solarPanel._efficMult
                 : (double)(decimal)_solarPanel.temperatureEfficCurve.Evaluate((Single)part.skinTemperature) * (double)(decimal)_solarPanel.timeEfficCurve.Evaluate((Single)((Planetarium.GetUniversalTime() - _solarPanel.launchUT) * 1.15740740740741E-05)) * (double)(decimal)_solarPanel.efficiencyMult;
             
-            double maxSupply = 0;
-            double solarRate = 0;
+            maxSupply = 0;
+            solarRate = 0;
 
             sunAOA = 0;
             CalculateSolarFlowRate(calculatedEfficency / scale, ref maxSupply, ref solarRate);
@@ -151,9 +224,14 @@ namespace FNPlugin
             if (_resourceBuffers != null)
                 _resourceBuffers.UpdateBuffers();
 
-            // extract power otherwise we end up with double power
-            if (flowRate > 0)
-                part.RequestResource(_solarPanel.resourceName, flowRate * fixedDeltaTime);
+            if (kerbalism_panelPower > 0)
+                part.RequestResource(_solarPanel.resourceName, kerbalism_panelPower * fixedDeltaTime);
+            else if (outputResourceCurrentRequest > 0)
+                part.RequestResource(_solarPanel.resourceName, outputResourceCurrentRequest);
+            //else if (flowRate > 0)
+            //    part.RequestResource(_solarPanel.resourceName, flowRate * fixedDeltaTime);
+            //else if (_flowRate> 0)
+            //    part.RequestResource(_solarPanel.resourceName, _flowRate * fixedDeltaTime);
             else
                 part.RequestResource(_solarPanel.resourceName, solarRate * fixedDeltaTime);
 

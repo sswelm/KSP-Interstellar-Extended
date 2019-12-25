@@ -74,6 +74,7 @@ namespace FNPlugin
                     solarSailAnim.Blend(animName, 0.1f);
                 }
 
+                UnityEngine.Debug.Log("[KSPI]: ModuleSolarSail on " + part.name + " was Force Activated");
                 this.part.force_activate();
             }
         }

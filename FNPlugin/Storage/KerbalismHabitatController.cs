@@ -95,10 +95,10 @@ namespace FNPlugin.Storage
 				}
 			}
 
-			if (found)
-				UnityEngine.Debug.Log("[KSPI]: Found Habitat PartModule on " + part.partInfo.title );
-			else
-				UnityEngine.Debug.LogWarning("[KSPI]: No Habitat PartModule found on " + part.partInfo.title);
+            //if (found)
+            //    UnityEngine.Debug.Log("[KSPI]: Found Habitat PartModule on " + part.partInfo.title );
+            //else
+            //    UnityEngine.Debug.LogWarning("[KSPI]: No Habitat PartModule found on " + part.partInfo.title);
 		}
 	}
 }

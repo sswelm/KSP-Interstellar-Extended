@@ -30,6 +30,11 @@ namespace FNPlugin
             GameEvents.onDockingComplete.Add(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Add(OnPartDeCoupleComplete);
             GameEvents.onVesselSOIChanged.Add(OmVesselSOIChanged);
+            GameEvents.onGameStateLoad.Add(OmGameStateLoad);
+            GameEvents.onVesselLoaded.Add(OmVesselLoad);
+
+            GameEvents.onVesselGoOnRails.Add(OnVesselGoOnRails);
+            GameEvents.onVesselGoOffRails.Add(OnVesselGoOnRails);
 
             Debug.Log("[KSPI]: GameEventSubscriber Initialised");
         }
@@ -41,6 +46,11 @@ namespace FNPlugin
             //GameEvents.onVesselLoaded.Remove(OnVesselLoaded);
             //GameEvents.OnTechnologyResearched.Remove(OnTechnologyResearched);
 
+            GameEvents.onVesselGoOnRails.Remove(OnVesselGoOnRails);
+            GameEvents.onVesselGoOffRails.Remove(OnVesselGoOnRails);
+
+            GameEvents.onVesselLoaded.Remove(OmVesselLoad);
+            GameEvents.onGameStateLoad.Remove(OmGameStateLoad);
             GameEvents.onGameStateSaved.Remove(OnGameStateSaved);
             GameEvents.onDockingComplete.Remove(OnDockingComplete);
             GameEvents.onPartDeCoupleComplete.Remove(OnPartDeCoupleComplete);
@@ -52,6 +62,32 @@ namespace FNPlugin
                 Debug.Log("[KSPI]: Loaded Kerbalism " + kerbalismversionstr);
 
             Debug.Log("[KSPI]: GameEventSubscriber Deinitialised");
+        }
+
+        void OnVesselGoOnRails(Vessel vessel)
+        {
+            //Debug.Log("[KSPI]: GameEventSubscriber - detected OnVesselGoOnRails");
+
+            foreach (var part in vessel.Parts)
+            {
+                var autoStruthEvent = part.Events["ToggleAutoStrut"];
+                if (autoStruthEvent != null)
+                {
+                    autoStruthEvent.guiActive = true;
+                    autoStruthEvent.guiActiveUncommand = true;
+                    autoStruthEvent.guiActiveUnfocused = true;
+                    autoStruthEvent.requireFullControl = false;
+                }
+
+                var rigidAttachmentEvent = part.Events["ToggleRigidAttachment"];
+                if (rigidAttachmentEvent != null)
+                {
+                    rigidAttachmentEvent.guiActive = true;
+                    rigidAttachmentEvent.guiActiveUncommand = true;
+                    rigidAttachmentEvent.guiActiveUnfocused = true;
+                    rigidAttachmentEvent.requireFullControl = false;
+                }
+            }
         }
 
         void OnGameStateSaved(Game game)
@@ -68,6 +104,16 @@ namespace FNPlugin
             SupplyPriorityManager.Reset();
 
             ResetReceivers();
+        }
+
+        void OmVesselLoad(Vessel vessel)
+        {
+            Debug.Log("[KSPI]: GameEventSubscriber - detected OmVesselLoaded");
+        }
+
+        void  OmGameStateLoad (ConfigNode confignode)
+        {
+            Debug.Log("[KSPI]: GameEventSubscriber - detected OmGameStateLoad");
         }
 
         void  OmVesselSOIChanged (GameEvents.HostedFromToAction<Vessel, CelestialBody> gameEvent)
@@ -132,20 +178,16 @@ namespace FNPlugin
                     ConfigNode[] techtree = GameDatabase.Instance.GetConfigNodes("TechTree");
                     Debug.Log("[KSPI]: PluginHelper found: " + techtree.Count() + " TechTrees");
 
-                    for (int i = 0; i < techtree.Length; i++)
+                    foreach (var techtreeConfig in techtree)
                     {
-                        var techtreeConfig = techtree[i];
-
                         var technodes = techtreeConfig.nodes;
 
                         Debug.Log("[KSPI]: PluginHelper found: " + technodes.Count + " Technodes");
-                        for (int j = 0; j < technodes.Count; j++)
+                        for (var j = 0; j < technodes.Count; j++)
                         {
                             var technode = technodes[j];
 
-                            var tech = new RDTech();
-                            tech.techID = technode.GetValue("id");
-                            tech.title = technode.GetValue("title");
+                            var tech = new RDTech {techID = technode.GetValue("id"), title = technode.GetValue("title")};
 
                             if (rdTechByName.ContainsKey(tech.techID))
                                 Debug.LogError("[KSPI]: Duplicate error: skipped technode id: " + tech.techID + " title: " + tech.title);
@@ -186,11 +228,11 @@ namespace FNPlugin
 
                         if (partUpgradeByName.ContainsKey(partUpgrade.name))
                         {
-                            Debug.LogError("[KSPI]: Duplicate error: failed to add PARTUPGRADE" + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                            //Debug.LogError("[KSPI]: Duplicate error: failed to add PARTUPGRADE" + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
                         }
                         else
                         {
-                            Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
+                            //Debug.Log("[KSPI]: PluginHelper indexed PARTUPGRADE " + partUpgrade.name + " with techRequired " + partUpgrade.techRequired + " from manufacturer " + partUpgrade.manufacturer);
                             partUpgradeByName.Add(partUpgrade.name, partUpgrade);
                         }
                     }
@@ -509,43 +551,28 @@ namespace FNPlugin
             return techName != String.Empty && PluginHelper.UpgradeAvailable(techName);
         }
 
-        //public static Dictionary<string, string> TechTitleById;
-
         public static string GetTechTitleById(string id)
         {
-            string result = ResearchAndDevelopment.GetTechnologyTitle(id);
+            var result = ResearchAndDevelopment.GetTechnologyTitle(id);
             if (!String.IsNullOrEmpty(result))
                 return result;
 
             PartUpgradeHandler.Upgrade partUpgrade;
-            UnityEngine.Debug.Log("[KSPI]: lookup partUpgradeId " + id);
             if (PartUpgradeByName.TryGetValue(id, out partUpgrade))
             {
-                UnityEngine.Debug.Log("[KSPI]: found partUpgradeId " + id + " now looking for " + partUpgrade.techRequired);
-
                 RDTech upgradeTechnode;
                 if (RDTechByName.TryGetValue(partUpgrade.techRequired, out upgradeTechnode))
-                {
-                    UnityEngine.Debug.Log("[KSPI]: found partUpgrade techRequired title " + upgradeTechnode.title);
                     return upgradeTechnode.title;
-                }
-                else
-                    UnityEngine.Debug.LogWarning("[KSPI]: failed to find partUpgrade techRequired title for " + partUpgrade.techRequired);
             }
-            else
-                UnityEngine.Debug.LogWarning("[KSPI]: failed to find partUpgradeId " + id);
 
             RDTech technode;
             if (RDTechByName.TryGetValue(id, out technode))
-            {
-                UnityEngine.Debug.Log("[KSPI]: found title for tech " + id );
                 return technode.title;
-            }
 
             return id;
         }
 
-        private static bool hasTech(string id)
+        private static bool HasTech(string id)
         {
             if (String.IsNullOrEmpty(id) || id == "none")
                 return false;
@@ -557,15 +584,15 @@ namespace FNPlugin
             if (techstate != null)
             {
                 var available = techstate.state == RDTech.State.Available;
-                if (available)
-                    Debug.Log("[KSPI]: found techid " + id + " available");
-                else
-                    Debug.Log("[KSPI]: found techid " + id + " unavailable");
+                //if (available)
+                //    Debug.Log("[KSPI]: found techid " + id + " available");
+                //else
+                //    Debug.Log("[KSPI]: found techid " + id + " unavailable");
                 return available;
             }
             else
             {
-                Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
+                //Debug.LogWarning("[KSPI]: did not find techid " + id + " in techtree");
                 return false;
             }
         }
@@ -622,18 +649,15 @@ namespace FNPlugin
                 return false;
 
             PartUpgradeHandler.Upgrade partUpgrade;
-            if (PluginHelper.PartUpgradeByName.TryGetValue(id, out partUpgrade))
+            if (PartUpgradeByName.TryGetValue(id, out partUpgrade))
             {
-                UnityEngine.Debug.Log("[KSPI]: found PARTUPGRADE " + id + ", checking techRequired " + partUpgrade.techRequired);
+                //Debug.Log("[KSPI]: found PARTUPGRADE " + id + ", checking techRequired " + partUpgrade.techRequired);
                 id = partUpgrade.techRequired;
             }
 
             if (HighLogic.CurrentGame != null)
             {
-                if (TechnologyIsInUse)
-                    return hasTech(id);
-                else
-                    return true;
+                return !TechnologyIsInUse || HasTech(id);
             }
             return false;
         }
@@ -843,6 +867,27 @@ namespace FNPlugin
             FlightUIStarter.hide_button = true;
             FlightUIStarter.show_window = false;
             VABThermalUI.render_window = false;
+        }
+
+        static int ignoredGForces;
+        public static void IgnoreGForces(Part part, int frames)
+        {
+            ignoredGForces = frames;
+            part.vessel.IgnoreGForces(frames);
+        }
+
+        public static bool GForcesIgnored
+        {
+            get
+            {
+                return ignoredGForces > 0;
+            }
+        }
+
+        public static void UpdateIgnoredGForces()
+        {
+            if (ignoredGForces > 0)
+                --ignoredGForces;
         }
 
         public void Update()

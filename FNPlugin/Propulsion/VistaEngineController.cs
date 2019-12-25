@@ -167,6 +167,7 @@ namespace FNPlugin
             if (curEngineT.isOperational && !IsEnabled) 
             {
                 IsEnabled = true;
+                UnityEngine.Debug.Log("[KSPI]: VistaEngineController on " + part.name + " was Force Activated");
                 part.force_activate ();
             }
 

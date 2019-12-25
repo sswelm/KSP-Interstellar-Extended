@@ -147,23 +147,23 @@ namespace FNPlugin.Microwave
 
             if (!string.IsNullOrEmpty(techRequirement0))
             {
-                info.AppendLine("Mk1 technode: \n" + PluginHelper.GetTechTitleById(techRequirement0));
+                info.AppendLine("Mk1 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement0)));
                 info.AppendLine("Mk1 efficiency: " + efficiencyPercentage0 + "%");
             }
             if (!string.IsNullOrEmpty(techRequirement1))
             {
-                info.AppendLine("Mk2 technode: \n" + PluginHelper.GetTechTitleById(techRequirement1));
+                info.AppendLine("Mk2 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement1)));
                 info.AppendLine("Mk2 efficiency: " + efficiencyPercentage1 + "%");
             }
             if (!string.IsNullOrEmpty(techRequirement2))
             {
-                info.AppendLine("Mk3 technode: \n" + PluginHelper.GetTechTitleById(techRequirement2));
+                info.AppendLine("Mk3 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement2)));
                 info.AppendLine("Mk3 efficiency: " + efficiencyPercentage2 + "%");
             }
             if (!string.IsNullOrEmpty(techRequirement3))
             {
-                info.AppendLine("Mk4 technode: \n" + PluginHelper.GetTechTitleById(techRequirement3));
-                info.AppendLine("Mk4 efficiency: " + efficiencyPercentage2 + "%");
+                info.AppendLine("Mk4 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement3)));
+                info.AppendLine("Mk4 efficiency: " + efficiencyPercentage3 + "%");
             }
             info.AppendLine("</size>");
 

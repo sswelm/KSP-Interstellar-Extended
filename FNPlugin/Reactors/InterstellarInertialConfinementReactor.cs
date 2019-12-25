@@ -73,7 +73,6 @@ namespace FNPlugin.Reactors
         public double gravityDivider;
 
         double power_consumed;
-        bool fusion_alert;
         int jumpstartPowerTime;
         double framesPlasmaRatioIsGood;
 
@@ -195,14 +194,6 @@ namespace FNPlugin.Reactors
 
         public override void OnUpdate()
         {
-            if (!CheatOptions.InfiniteElectricity && !isChargingForJumpstart && !isSwappingFuelMode && getCurrentResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES) > getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES) && getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES) < 0.1 && IsEnabled && !fusion_alert)
-            {
-                ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 10.0f, ScreenMessageStyle.UPPER_CENTER);
-                fusion_alert = true;
-            }
-            else
-                fusion_alert = false;
-
             if (isChargingField.guiActive)
             {
                 accumulatedChargeStr = PluginHelper.getFormattedPowerString(accumulatedElectricChargeInMW, "0.0", "0.000")
@@ -221,7 +212,6 @@ namespace FNPlugin.Reactors
             {
                 if (IsEnabled)
                 {
-                    //animationScalar = startupAnimation.GetScalar;
                     if (animationStarted == 0)
                     {
                         startupAnimation.ToggleAction(new KSPActionParam(KSPActionGroup.Custom01, KSPActionType.Activate));

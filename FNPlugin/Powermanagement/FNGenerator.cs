@@ -1,5 +1,6 @@
 using FNPlugin.Extensions;
 using FNPlugin.Power;
+using FNPlugin.Reactors;
 using FNPlugin.Redist;
 using FNPlugin.Wasteheat;
 using KSP.Localization;
@@ -9,20 +10,10 @@ using System.Linq;
 using System.Text;
 using TweakScale;
 using UnityEngine;
-using FNPlugin.Reactors;
 
 namespace FNPlugin
 {
     enum PowerStates { PowerOnline, PowerOffline };
-
-    [KSPModule("Super Capacitator")]
-    class KspiSuperCapacitator : PartModule
-    {
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Max Capacity", guiUnits = " MWe")]
-        public float maxStorageCapacityMJ = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
-        public float partMass = 0;
-    }
 
     [KSPModule("Thermal Electric Effect Generator")]
     class ThermalElectricEffectGenerator : FNGenerator {}
@@ -190,9 +181,11 @@ namespace FNPlugin
         [KSPField]
         public double maxThermalPower;
         [KSPField]
-        public double maximumThermalPower;
+        public double effectiveMaximumThermalPower;
         [KSPField]
-        public double maxChargedPower;
+        public double maxChargedPowerForThermalGenerator;
+        [KSPField]
+        public double maxChargedPowerForChargedGenerator;
         [KSPField]
         public double maxAllowedChargedPower;
         [KSPField]
@@ -263,15 +256,26 @@ namespace FNPlugin
         public double thermalPowerRequested;
         [KSPField]
         public double reactorPowerRequested;
+        [KSPField]
+        public double attachedPowerSourceMaximumThermalPowerUsageRatio;
 
+        [KSPField]
+        public double initialThermalPowerReceived;
         [KSPField]
         public double thermalPowerReceived;
         [KSPField]
         public double chargedPowerReceived;
         [KSPField]
+        public double totalPowerReceived;
+        [KSPField]
+        public double overheatingModifier;
+        [KSPField]
         public double requestedChargedPower;
         [KSPField]
         public double requestedThermalPower;
+
+        [KSPField]
+        public double finalRequest;
 
         [KSPField]
         public double requestedPostChargedPower;
@@ -284,6 +288,8 @@ namespace FNPlugin
         public double postThermalPowerReceived;
         [KSPField]
         public double postChargedPowerReceived;
+        [KSPField]
+        public double thermalPowerRequestRatio;
 
         [KSPField]
         public double effectiveMaxThermalPowerRatio;
@@ -297,7 +303,7 @@ namespace FNPlugin
         public double _totalEff;
         [KSPField]
         public double capacityRatio;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Offscreen Power Generation", guiUnits = " kW")]
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "Offscreen Power Generation", guiUnits = " kW")]
         public double initialGeneratorPowerEC;
         [KSPField]
         public double maximumGeneratorPowerMJ;
@@ -829,7 +835,7 @@ namespace FNPlugin
                 else
                     powerUsageEfficiency = 1;
 
-                rawMaximumPower = attachedPowerSource.RawMaximumPower * powerUsageEfficiency;
+                rawMaximumPower = attachedPowerSource.RawMaximumPowerForPowerGeneration * powerUsageEfficiency;
                 maximumTheoreticalPower = PluginHelper.getFormattedPowerString(rawMaximumPower * CapacityRatio * maxEfficiency);
 
                 // verify if mass calculation is active
@@ -918,7 +924,7 @@ namespace FNPlugin
                 maximumElectricPower = (_totalEff >= 0)
                     ? !chargedParticleMode
                         ? maxThermalPower * _totalEff * PowerRatio * CapacityRatio
-                        : maxChargedPower * _totalEff * PowerRatio * CapacityRatio
+                        : maxChargedPowerForThermalGenerator * _totalEff * PowerRatio * CapacityRatio
                     : 0;
 
                 MaxPowerStr = PluginHelper.getFormattedPowerString(maximumElectricPower, "0.0", "0.000");
@@ -932,10 +938,6 @@ namespace FNPlugin
                 moduleGeneratorEfficienctBaseField.guiActiveEditor = false;
             }  
         }
-
-        #region obsolete exposed public getters
-
-        # endregion
 
         public double MaxStableMegaWattPower
         {
@@ -1003,33 +1005,35 @@ namespace FNPlugin
                 UpdateHeatExchangedThrustDivisor();
 
             attachedPowerSourceRatio = attachedPowerSource.PowerRatio;
+            effectiveMaximumThermalPower = attachedPowerSource.MaximumThermalPower * PowerRatio * CapacityRatio;
 
-            rawThermalPower = isLimitedByMinThrotle
-                    ? attachedPowerSource.MinimumPower
-                    : attachedPowerSource.MaximumThermalPower * PowerRatio * CapacityRatio;
+            rawThermalPower = isLimitedByMinThrotle ? attachedPowerSource.MinimumPower : effectiveMaximumThermalPower;
             rawChargedPower = attachedPowerSource.MaximumChargedPower * PowerRatio * CapacityRatio;
-
-            maxChargedPower = rawChargedPower;
-            maxThermalPower = rawThermalPower;
             rawReactorPower = rawThermalPower + rawChargedPower;
+            
+            if (!(attachedPowerSourceRatio > 0))
+            {
+                maxChargedPowerForThermalGenerator = rawChargedPower;
+                maxThermalPower = rawThermalPower;
+                maxReactorPower = rawReactorPower;
+                return;
+            }
 
-            maxReactorPower = rawReactorPower;
-
-            if (!(attachedPowerSourceRatio > 0)) return;
-
-            var maximumPowerUsageRatio = isMHD
+            attachedPowerSourceMaximumThermalPowerUsageRatio = isMHD
                 ? attachedPowerSource.PlasmaEnergyEfficiency
                 : attachedPowerSource.ThermalEnergyEfficiency;
 
-            potentialThermalPower = ((applies_balance ? maxThermalPower : rawReactorPower) / attachedPowerSourceRatio) * maximumPowerUsageRatio;
-            maxAllowedChargedPower = maxChargedPower * (chargedParticleMode ? attachedPowerSource.ChargedParticleEnergyEfficiency : 1);
+            potentialThermalPower = ((applies_balance ? rawThermalPower : rawReactorPower) / attachedPowerSourceRatio);
+            maxAllowedChargedPower = rawChargedPower * (chargedParticleMode ? attachedPowerSource.ChargedParticleEnergyEfficiency : 1);
 
-            maxThermalPower = Math.Min(maxReactorPower, potentialThermalPower);
-            maxChargedPower = Math.Min(maxChargedPower, (1 / attachedPowerSourceRatio) * maxAllowedChargedPower);
-            maxReactorPower = (chargedParticleMode ? maxChargedPower : maxThermalPower) * maximumPowerUsageRatio;
+            maxThermalPower = attachedPowerSourceMaximumThermalPowerUsageRatio * Math.Min(rawReactorPower, potentialThermalPower);
+            maxChargedPowerForThermalGenerator = attachedPowerSourceMaximumThermalPowerUsageRatio    * Math.Min(rawChargedPower, (1 / attachedPowerSourceRatio) * maxAllowedChargedPower);
+            maxChargedPowerForChargedGenerator = attachedPowerSource.ChargedParticleEnergyEfficiency * Math.Min(rawChargedPower, (1 / attachedPowerSourceRatio) * maxAllowedChargedPower);
+            maxReactorPower = chargedParticleMode ? maxChargedPowerForChargedGenerator : maxThermalPower;
         }
 
         // Update is called in the editor 
+        // ReSharper disable once UnusedMember.Global
         public void Update()
         {
             partMass = part.mass;
@@ -1074,7 +1078,7 @@ namespace FNPlugin
                     powerDownFraction = 1;
 
                     var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-                    var overheatingModifier = wasteheatRatio < 0.9 ? 1 : (1 - wasteheatRatio) * 10;
+                    overheatingModifier = wasteheatRatio < 0.9 ? 1 : (1 - wasteheatRatio) * 10;
 
                     if (!chargedParticleMode) // thermal mode
                     {
@@ -1105,15 +1109,17 @@ namespace FNPlugin
 
                         if (attachedPowerSource.ChargedPowerRatio != 1)
                         {
-                            maximumThermalPower = attachedPowerSource.MaximumThermalPower * powerUsageEfficiency * CapacityRatio;
-                            var thermalPowerRequestRatio = Math.Min(1, maximumThermalPower > 0 ? thermalPowerRequested / maximumThermalPower : 0);
-                            requestedThermalPower = Math.Min(thermalPowerRequested, maximumThermalPower);
-                            thermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
+                            requestedThermalPower = Math.Min(thermalPowerRequested, effectiveMaximumThermalPower);
+                            initialThermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
 
+                            thermalPowerRequestRatio = Math.Min(1, effectiveMaximumThermalPower > 0 ? requestedThermalPower / attachedPowerSource.MaximumThermalPower : 0);
                             attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD, isLimitedByMinThrotle ? part.mass * 0.05 : part.mass);
                         }
                         else
-                            thermalPowerReceived = 0;
+                            initialThermalPowerReceived = 0;
+
+                        thermalPowerReceived = initialThermalPowerReceived;
+                        totalPowerReceived = initialThermalPowerReceived;
 
                         shouldUseChargedPower = attachedPowerSource.ChargedPowerRatio > 0;
 
@@ -1131,23 +1137,22 @@ namespace FNPlugin
                         }
                         else if (shouldUseChargedPower && thermalPowerReceived < reactorPowerRequested)
                         {
-                            requestedChargedPower = Math.Min(Math.Min(reactorPowerRequested - thermalPowerReceived, maxChargedPower), Math.Max(0, maxReactorPower - thermalPowerReceived));
-
-                            if (requestedChargedPower < 0.000025)
-                                chargedPowerReceived = requestedChargedPower;
-                            else
-                                chargedPowerReceived = consumeFNResourcePerSecond(requestedChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                            requestedChargedPower = Math.Min(Math.Min(reactorPowerRequested - thermalPowerReceived, maxChargedPowerForThermalGenerator), Math.Max(0, maxReactorPower - thermalPowerReceived));
+                            chargedPowerReceived = consumeFNResourcePerSecond(requestedChargedPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                         }
                         else
                         {
+                            consumeFNResourcePerSecond(0, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                             chargedPowerReceived = 0;
                             requestedChargedPower = 0;
                         }
 
+                        totalPowerReceived += chargedPowerReceived;
+
                         // any shortage should be consumed again from remaining thermalpower
-                        if (shouldUseChargedPower && attachedPowerSource.ChargedPowerRatio != 1 && thermalPowerReceived < reactorPowerRequested)
+                        if (shouldUseChargedPower && attachedPowerSource.ChargedPowerRatio != 1 && totalPowerReceived < reactorPowerRequested)
                         {
-                            var finalRequest = Math.Max(0, reactorPowerRequested - thermalPowerReceived);
+                            finalRequest = Math.Max(0, reactorPowerRequested - totalPowerReceived);
                             thermalPowerReceived += consumeFNResourcePerSecond(finalRequest, ResourceManager.FNRESOURCE_THERMALPOWER);
                         }
                     }
@@ -1188,7 +1193,7 @@ namespace FNPlugin
                     else
                     {
                         electricdtps = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
-                        maxElectricdtps = overheatingModifier * maxChargedPower * _totalEff;
+                        maxElectricdtps = overheatingModifier * maxChargedPowerForChargedGenerator * _totalEff;
                     }
 
                     if (outputModuleResource != null)
@@ -1255,7 +1260,7 @@ namespace FNPlugin
             {
                 if (attachedPowerSource.ChargedPowerRatio != 1)
                 {
-                    postThermalPowerReceived += consumeRemainingResourcePerSecond(requestedPostThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
+                    postThermalPowerReceived += consumeFNResourcePerSecond(requestedPostThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
                 }
 
                 totalPowerReceived = thermalPowerReceived + chargedPowerReceived + postThermalPowerReceived;
@@ -1263,13 +1268,13 @@ namespace FNPlugin
                 // Collect charged power when needed
                 if (attachedPowerSource.ChargedPowerRatio == 1)
                 {
-                    postChargedPowerReceived += consumeRemainingResourcePerSecond(requestedPostReactorPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    postChargedPowerReceived += consumeFNResourcePerSecond(requestedPostReactorPower, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 }
                 else if (shouldUseChargedPower && totalPowerReceived < reactorPowerRequested)
                 {
-                    var postPowerRequest = Math.Min(Math.Min(requestedPostReactorPower - totalPowerReceived, maxChargedPower), Math.Max(0, maxReactorPower - totalPowerReceived));
+                    var postPowerRequest = Math.Min(Math.Min(requestedPostReactorPower - totalPowerReceived, maxChargedPowerForThermalGenerator), Math.Max(0, maxReactorPower - totalPowerReceived));
 
-                    postChargedPowerReceived += consumeRemainingResourcePerSecond(postPowerRequest, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                    postChargedPowerReceived += consumeFNResourcePerSecond(postPowerRequest, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
                 }
             }
             else // charged power mode
@@ -1324,10 +1329,7 @@ namespace FNPlugin
             spareResourceCapacity = getSpareResourceCapacity(ResourceManager.FNRESOURCE_MEGAJOULES);
             maxStableMegaWattPower = MaxStableMegaWattPower;
 
-            // stabalizes power at higher time warp
-            var deltaTimeDivider = TimeWarp.fixedDeltaTime < 1 ? TimeWarp.fixedDeltaTime / 0.02 : TimeWarp.fixedDeltaTime * 50; 
-
-            possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity / deltaTimeDivider, maxStableMegaWattPower);
+            possibleSpareResourceCapacityFilling = Math.Min(spareResourceCapacity, maxStableMegaWattPower);
 
             electrical_power_currently_needed = currentUnfilledResourceDemand + possibleSpareResourceCapacityFilling;
 
@@ -1397,7 +1399,7 @@ namespace FNPlugin
             if (isLimitedByMinThrotle)
                 return result;
 
-            if (attachedPowerSource != null && attachedPowerSource.Part != null)
+            if (attachedPowerSource != null && attachedPowerSource.Part != null && result != attachedPowerSource.Part.partInfo.title)
                 result += " (" + attachedPowerSource.Part.partInfo.title + ")";
             return result;
         }

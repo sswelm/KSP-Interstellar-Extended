@@ -31,6 +31,14 @@ namespace FNPlugin
 
         // non persistant
         [KSPField]
+        public double warpPowerReqMult = 0.5;
+        [KSPField]
+        public double responseMultiplier = 0.005;
+        [KSPField]
+        public double antigravityMultiplier = 2;
+        [KSPField]
+        public double GThreshold = 2;
+        [KSPField]
         public int InstanceID;
         [KSPField]
         public bool IsSlave;
@@ -68,10 +76,12 @@ namespace FNPlugin
         public double exotic_power_required = 1000;
         [KSPField]
         public bool useRotateStability = true;
-        [KSPField]
+        [KSPField] 
         public bool allowWarpTurning = true;
-        [KSPField]
+        [KSPField] 
         public float headingChangedTimeout = 25;
+        [KSPField] 
+        public double gravityMaintenancePowerMultiplier = 4;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
         public bool showWindow = false;
@@ -95,7 +105,7 @@ namespace FNPlugin
         public float warpStrength = 1;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_totalWarpPower", guiFormat = "F1", guiUnits = " t")]
         public float totalWarpPower;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_vesselTotalMass", guiFormat = "F4", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_vesselTotalMass", guiFormat = "F4", guiUnits = " t")]
         public double vesselTotalMass;
         [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_warpToMassRatio", guiFormat = "F4")]
         public double warpToMassRatio;
@@ -141,7 +151,7 @@ namespace FNPlugin
         public string driveStatus;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Cos Angle To Closest Body", guiFormat = "F3")]
         private double cosineAngleToClosestBody;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Distance to closest body", guiFormat = "F0", guiUnits = " m")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Distance to closest body", guiFormat = "F0", guiUnits = " m")]
         private double distanceToClosestBody;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Name of closest body")]
         string closestCelestrialBodyName;
@@ -153,23 +163,26 @@ namespace FNPlugin
         private double safetyDistance;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Dropout Distance", guiFormat = "F3", guiUnits = " m")]
         private double dropoutDistance;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Available Power for Warp", guiFormat = "F3", guiUnits = "MJ")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Available Power for Warp", guiFormat = "F3", guiUnits = "MJ")]
         private double availablePower;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
         private double gravityAcceleration;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Anti Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Anti Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
         private double antigravityAcceleration;
-        [KSPField(guiActive = true, guiActiveEditor = false, guiName = "Vertical Speed", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Vertical Speed", guiFormat = "F3", guiUnits = " m/s")]
         private double verticalSpeed;
-
-        private double stablePowerSupply;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Maintenance Power Req", guiFormat = "F3", guiUnits = " m/s")]
         private double requiredExoticMaintenancePower;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Charge Power Draw", guiFormat = "F3", guiUnits = " m/s")]
+        private double chargePowerDraw;
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Charge Power Required", guiFormat = "F3", guiUnits = " m/s")]
+        private double maxChargePowerRequired;
+
         private double recievedExoticMaintenancePower;
         private double exoticMatterMaintenanceRatio;
         private double exoticMatterProduced;
-        private double responseMultiplier;
-
-        [KSPField(guiActive = true)]
+        private double responseFactor;
+        private double stablePowerSupply;
         private double orbitMultiplier;
 
         private readonly double[] _engineThrotle = { 0.001, 0.0013, 0.0016, 0.002, 0.0025, 0.0032, 0.004, 0.005, 0.0063, 0.008, 0.01, 0.013, 0.016, 0.02, 0.025, 0.032, 0.04, 0.05, 0.063, 0.08, 0.1, 0.13, 0.16, 0.2, 0.25, 0.32, 0.4, 0.5, 0.63, 0.8, 1, 1.3, 1.6, 2, 2.5, 3.2, 4, 5, 6.3, 8, 10, 13, 16, 20, 25, 32, 40, 50, 63, 80, 100, 130, 160, 200, 250, 320, 400, 500, 630, 800, 1000 };
@@ -234,6 +247,8 @@ namespace FNPlugin
         private Texture2D warpWhiteFlash;
         private Texture2D warpRedFlash;
 
+        BaseField antigravityField;
+
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_startChargingDrive", active = true)]
         public void StartCharging()
         {
@@ -252,7 +267,7 @@ namespace FNPlugin
             insufficientPowerTimeout = maxPowerTimeout;
             IsCharging = true;
             holdAltitude = false;
-            antigravityPercentage = 200;
+            antigravityPercentage = 100;
         }
 
         [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_stopChargingDrive", active = false)]
@@ -291,7 +306,7 @@ namespace FNPlugin
             double totalExoticMatterAvailable;
             part.GetConnectedResourceTotals(exoticResourceDefinition.id, out exoticMatterAvailable, out totalExoticMatterAvailable);
 
-            if (!CheatOptions.InfinitePropellant && exoticMatterAvailable < exotic_power_required)
+            if (!CheatOptions.InfinitePropellant && exoticMatterAvailable < exotic_power_required * 0.999 * 0.5)
             {
                 string message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_warpdriveIsNotFullyChargedForWarp");
                 Debug.Log("[KSPI]: " + message);
@@ -398,6 +413,10 @@ namespace FNPlugin
             warp_sound.Play();
             warp_sound.loop = true;
 
+            // prevent g-force effects for current and next frame
+            //part.vessel.IgnoreGForces(2);
+            PluginHelper.IgnoreGForces(part, 2);
+
             warpInitialMainBody = vessel.mainBody;
             departureOrbit = new Orbit(vessel.orbit);
             departureVelocity = vessel.orbit.GetFrameVel();
@@ -439,7 +458,8 @@ namespace FNPlugin
             Vector3d reverse_warp_heading =  new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
 
             // prevent g-force effects for current and next frame
-            part.vessel.IgnoreGForces(2);
+            //part.vessel.IgnoreGForces(2);
+            PluginHelper.IgnoreGForces(part, 2);
 
             // puts the ship back into a simulated orbit and reenables physics, is this still needed?
             if (!this.vessel.packed)
@@ -756,9 +776,9 @@ namespace FNPlugin
             InstanceID = GetInstanceID();
 
             if (IsSlave)
-                Debug.Log("KSPI - AlcubierreDrive Slave " + InstanceID + " Started");
+                Debug.Log("[KSPI] - AlcubierreDrive Slave " + InstanceID + " Started");
             else
-                Debug.Log("KSPI - AlcubierreDrive Master " + InstanceID + " Started");
+                Debug.Log("[KSPI] - AlcubierreDrive Master " + InstanceID + " Started");
 
             if (!String.IsNullOrEmpty(AnimationName))
                 animationState = PluginHelper.SetUpAnimation(AnimationName, this.part);
@@ -770,6 +790,7 @@ namespace FNPlugin
 
             try
             {
+
                 Events["StartCharging"].active = !IsSlave;
                 Events["StopCharging"].active = !IsSlave;
                 Events["ActivateWarpDrive"].active = !IsSlave;
@@ -779,6 +800,11 @@ namespace FNPlugin
                 Events["ReduceWarpPower"].active = !IsSlave;
 
                 Fields["showWindow"].guiActive = !IsSlave;
+                Fields["matchExitToDestinationSpeed"].guiActive = !IsSlave;
+                Fields["maximizeWarpSpeed"].guiActive = !IsSlave;
+                Fields["holdAltitude"].guiActive = !IsSlave;
+                Fields["spaceSafetyDistance"].guiActive = !IsSlave;
+
                 Fields["warpEngineThrottle"].guiActive = !IsSlave;
                 Fields["maximumAllowedWarpThrotle"].guiActive = !IsSlave;
                 Fields["warpToMassRatio"].guiActive = !IsSlave;
@@ -786,6 +812,8 @@ namespace FNPlugin
                 Fields["currentPowerRequirementForWarp"].guiActive = !IsSlave;
                 Fields["totalWarpPower"].guiActive = !IsSlave;
                 Fields["powerRequirementForMaximumAllowedLightSpeed"].guiActive = !IsSlave;
+
+                Fields["antigravityAcceleration"].guiActive = !IsSlave;
 
                 BaseField holdAltitudeField = Fields["holdAltitude"];
                 if (holdAltitudeField != null)
@@ -795,12 +823,16 @@ namespace FNPlugin
                         holdAltitudeToggle.onFieldChanged += holdAltitudeChanged; 
                 }
 
-                BaseField antigravityField = Fields["antigravityPercentage"];
+                antigravityField = Fields["antigravityPercentage"];
                 if (antigravityField != null)
                 {
+                    antigravityField.guiActive = !IsSlave;
                     antigravityFloatRange = antigravityField.uiControlFlight as UI_FloatRange;
                     if (antigravityFloatRange != null)
-                    antigravityFloatRange.onFieldChanged += antigravityFloatChanged;  
+                    {
+                        antigravityFloatRange.controlEnabled = !IsSlave;
+                        antigravityFloatRange.onFieldChanged += antigravityFloatChanged;
+                    }
                 }
 
                 minimum_selected_factor = _engineThrotle.ToList().IndexOf(_engineThrotle.First(w => Math.Abs(w - 1) < float.Epsilon));
@@ -815,10 +847,12 @@ namespace FNPlugin
 
                 if (state == StartState.Editor) return;
 
+                alcubierreDrives = part.vessel.FindPartModulesImplementing<AlcubierreDrive>();
+
                 if (!IsSlave)
                 {
-                    Debug.Log("KSPI - AlcubierreDrive Create Slaves");
-                    alcubierreDrives = part.vessel.FindPartModulesImplementing<AlcubierreDrive>();
+                    Debug.Log("[KSPI]: AlcubierreDrive Create Slaves");
+                    
                     foreach (var drive in alcubierreDrives)
                     {
                         var driveId = drive.GetInstanceID();
@@ -826,11 +860,13 @@ namespace FNPlugin
                         if (driveId == InstanceID) continue;
 
                         drive.IsSlave = true;
-                        Debug.Log("KSPI - AlcubierreDrive " + driveId + " != " + InstanceID);
+                        Debug.Log("[KSPI]: AlcubierreDrive " + driveId + " != " + InstanceID);
                     }
                 }
 
+                Debug.Log("[KSPI]: AlcubiereDrive on " + part.name + " was Force Activated");
                 this.part.force_activate();
+
                 if (serialisedwarpvector != null)
                     heading_act = ConfigNode.ParseVector3D(serialisedwarpvector);
 
@@ -976,8 +1012,8 @@ namespace FNPlugin
         {
             if (!HighLogic.LoadedSceneIsEditor) return;
 
-            double massOfAlcubiereDrives;
-            var warpdriveList = vessel.GetVesselAndModuleMass<AlcubierreDrive>(out vesselTotalMass, out massOfAlcubiereDrives);
+	        double moduleMass;
+			var warpdriveList = vessel.GetVesselAndModuleMass<AlcubierreDrive>(out vesselTotalMass, out moduleMass);
 
             totalWarpPower = warpdriveList.Sum(w => w.warpStrength * (w.isupgraded ? w.warpPowerMultTech1 : w.warpPowerMultTech0));
 
@@ -990,12 +1026,12 @@ namespace FNPlugin
             Events["StopCharging"].active = !IsSlave && IsCharging;
             Events["ActivateWarpDrive"].active = !IsSlave && !IsEnabled;
             Events["DeactivateWarpDrive"].active = !IsSlave && IsEnabled;
-            //Fields["exitSpeed"].guiActive = IsEnabled;
             Fields["driveStatus"].guiActive = !IsSlave && IsCharging;
+
+            vesselTotalMass = vessel.GetTotalMass();
 
             if (!IsSlave)
             {
-                vesselTotalMass = vessel.GetTotalMass();
                 if (moduleReactionWheel != null)
                 {
                     moduleReactionWheel.Fields["authorityLimiter"].guiActive = false;
@@ -1050,6 +1086,14 @@ namespace FNPlugin
 
         public void FixedUpdate() // FixedUpdate is also called when not activated
         {
+            //if (antigravityField != null)
+            //    antigravityField.guiActive = !IsSlave;
+
+            if (!IsSlave)
+            {
+                PluginHelper.UpdateIgnoredGForces();
+            }
+
             if (vessel == null) return;
 
             warpEngineThrottle = _engineThrotle[selected_factor];
@@ -1081,16 +1125,17 @@ namespace FNPlugin
             if (alcubierreDrives != null)
                 totalWarpPower = alcubierreDrives.Sum(p => p.warpStrength * (p.isupgraded ? warpPowerMultTech1 : warpPowerMultTech0));
 
-            if (!IsEnabled)
-                vesselTotalMass = vessel.totalMass;
+            //if (!IsEnabled)
+            vesselTotalMass = vessel.totalMass;
 
-            if (totalWarpPower != 0 && vesselTotalMass != 0)
+            if (alcubierreDrives != null && totalWarpPower != 0 && vesselTotalMass != 0)
             {
                 warpToMassRatio = totalWarpPower / vesselTotalMass;
                 exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required * vesselTotalMass * powerRequirementMultiplier) / warpToMassRatio;
 
+                // spread exotic matter over all coils
                 var exoticMatterResource = part.Resources["ExoticMatter"];
-                exoticMatterResource.maxAmount = exotic_power_required;
+                exoticMatterResource.maxAmount = exotic_power_required / alcubierreDrives.Count;
             }
 
             minPowerRequirementForLightSpeed = GetPowerRequirementForWarp(1);
@@ -1168,7 +1213,8 @@ namespace FNPlugin
                 counterCurrent++;
 
                 // disable any geeforce effects durring warp
-                part.vessel.IgnoreGForces(1);
+                //part.vessel.IgnoreGForces(1);
+                PluginHelper.IgnoreGForces(part, 2);
 
                 var reverseHeadingWarp = new Vector3d(-heading_act.x, -heading_act.y, -heading_act.z);
                 var currentOrbitalVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(universalTime);
@@ -1211,30 +1257,60 @@ namespace FNPlugin
                 exitBurnCircularize = DeltaVToCircularize(currentOrbit);
             }
 
-            var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
-            var endBeamPos = shipPos + part.transform.up * warp_size;
-            var midPos = (shipPos - endBeamPos) / 2.0f;
-
-            warp_effect.transform.rotation = part.transform.rotation;
-            warp_effect.transform.localScale = new Vector3(effectSize1, midPos.magnitude, effectSize1);
-            warp_effect.transform.position = new Vector3(shipPos.x + midPos.x, shipPos.y + midPos.y, shipPos.z + midPos.z);
-            warp_effect.transform.rotation = part.transform.rotation;
-
-            warp_effect2.transform.rotation = part.transform.rotation;
-            warp_effect2.transform.localScale = new Vector3(effectSize2, midPos.magnitude, effectSize2);
-            warp_effect2.transform.position = new Vector3(shipPos.x + midPos.x, shipPos.y + midPos.y, shipPos.z + midPos.z);
-            warp_effect2.transform.rotation = part.transform.rotation;
-
-            warp_effect1_renderer.material.mainTexture = warp_textures[((int)tex_count) % warp_textures.Length];
-            warp_effect2_renderer.material.mainTexture = warp_textures2[((int)tex_count + 8) % warp_textures2.Length];
-
             warpEngineThrottle = _engineThrotle[selected_factor];
 
             tex_count += warpEngineThrottle;
 
-            WarpdriveCharging();
+            if (!IsSlave)
+            {
+                WarpdriveCharging();
 
-            UpdateWarpSpeed();
+                UpdateWarpSpeed();
+            }
+
+            // update animation
+            if (!IsEnabled)
+            {
+                if (!IsSlave)
+                {
+                    part.GetConnectedResourceTotals(exoticResourceDefinition.id, out currentExoticMatter, out maxExoticMatter);
+
+                    if (currentExoticMatter < exotic_power_required * 0.999 * 0.5)
+                    {
+                        var electricalCurrentPct = Math.Min(100, 100 * currentExoticMatter/(exotic_power_required * 0.5));
+                        driveStatus = String.Format("Charging: ") + electricalCurrentPct.ToString("0.00") + String.Format("%");
+                    }
+                    else
+                        driveStatus = "Ready.";
+                }
+
+                warp_effect2_renderer.enabled = false;
+                warp_effect1_renderer.enabled = false;
+            }
+            else
+            {
+                driveStatus = "Active.";
+
+                var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
+                var endBeamPos = shipPos + part.transform.up * warp_size;
+                var midPos = (shipPos - endBeamPos) / 2.0f;
+
+                warp_effect.transform.rotation = part.transform.rotation;
+                warp_effect.transform.localScale = new Vector3(effectSize1, midPos.magnitude, effectSize1);
+                warp_effect.transform.position = new Vector3(shipPos.x + midPos.x, shipPos.y + midPos.y, shipPos.z + midPos.z);
+                warp_effect.transform.rotation = part.transform.rotation;
+
+                warp_effect2.transform.rotation = part.transform.rotation;
+                warp_effect2.transform.localScale = new Vector3(effectSize2, midPos.magnitude, effectSize2);
+                warp_effect2.transform.position = new Vector3(shipPos.x + midPos.x, shipPos.y + midPos.y, shipPos.z + midPos.z);
+                warp_effect2.transform.rotation = part.transform.rotation;
+
+                warp_effect1_renderer.material.mainTexture = warp_textures[((int)tex_count) % warp_textures.Length];
+                warp_effect2_renderer.material.mainTexture = warp_textures2[((int)tex_count + 8) % warp_textures2.Length];
+
+                warp_effect2_renderer.enabled = true;
+                warp_effect1_renderer.enabled = true;
+            }
         }
 
         private static double DeltaVToCircularize(Orbit orbit)
@@ -1272,22 +1348,30 @@ namespace FNPlugin
         {
             part.GetConnectedResourceTotals(exoticResourceDefinition.id, out currentExoticMatter, out maxExoticMatter);
 
+            vesselTotalMass = vessel.GetTotalMass();
+            if (totalWarpPower != 0 && vesselTotalMass != 0)
+            {
+                warpToMassRatio = totalWarpPower / vesselTotalMass;
+                exotic_power_required = (GameConstants.initial_alcubierre_megajoules_required*vesselTotalMass * powerRequirementMultiplier) / warpToMassRatio;
+                exoticMatterRatio = exotic_power_required > 0 ? Math.Min(1, currentExoticMatter / exotic_power_required) : 0;
+            }
+
             GenerateAntiGravity();
 
-            requiredExoticMaintenancePower = exoticMatterRatio * vesselTotalMass * powerRequirementMultiplier * vessel.gravityForPos.magnitude * 2;
+            // maintenance power depend on vessel mass and experienced geeforce
+            requiredExoticMaintenancePower = exoticMatterRatio * exoticMatterRatio * vesselTotalMass * powerRequirementMultiplier * vessel.gravityForPos.magnitude * gravityMaintenancePowerMultiplier;
 
-            var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
+            var overheatingRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
 
-            var washeatModifier = wasteheatRatio < 0.8 ? 1 : (1 - wasteheatRatio) * 5;
+            var overheatModifier = overheatingRatio < 0.9 ? 1 : (1 - overheatingRatio) * 10;
 
             recievedExoticMaintenancePower = CheatOptions.InfiniteElectricity
                    ? requiredExoticMaintenancePower
-                   : consumeFNResourcePerSecond(washeatModifier * requiredExoticMaintenancePower, ResourceManager.FNRESOURCE_MEGAJOULES);
+                   : consumeFNResourcePerSecond(overheatModifier * requiredExoticMaintenancePower, ResourceManager.FNRESOURCE_MEGAJOULES);
 
             exoticMatterMaintenanceRatio = requiredExoticMaintenancePower > 0 ? recievedExoticMaintenancePower / requiredExoticMaintenancePower : 1;
 
-            if (!CheatOptions.IgnoreMaxTemperature)
-                supplyFNResourcePerSecond(recievedExoticMaintenancePower, ResourceManager.FNRESOURCE_WASTEHEAT);
+            ProduceWasteheat(recievedExoticMaintenancePower);
 
             exoticMatterProduced = (1 - exoticMatterMaintenanceRatio) * -maxExoticMatter;
 
@@ -1306,27 +1390,29 @@ namespace FNPlugin
                 //    return;
                 //}
 
-                var maxChargePowerRequired = (antigravityPercentage * 0.005 * maxExoticMatter - currentExoticMatter) / 0.001;
+                maxChargePowerRequired = ((antigravityPercentage * 0.005 * exotic_power_required) - currentExoticMatter) * 1000;
 
                 if (maxChargePowerRequired < 0)
                 {
                     exoticMatterProduced += maxChargePowerRequired;
+                    chargePowerDraw = 0;
                 }
                 else
                 {
-                    var powerDraw = CheatOptions.InfiniteElectricity
+                    stablePowerSupply = getAvailableStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+
+                    chargePowerDraw = CheatOptions.InfiniteElectricity
                         ? maxChargePowerRequired
-                        : Math.Max(minPowerRequirementForLightSpeed, getStableResourceSupply(ResourceManager.FNRESOURCE_MEGAJOULES));
+                        : Math.Min(maxChargePowerRequired / (double)(decimal)TimeWarp.fixedDeltaTime, Math.Max(minPowerRequirementForLightSpeed, stablePowerSupply));
 
                     var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-
-                    var effectiveResourceThrotling = resourceBarRatio > 1d / 3d ? 1 : resourceBarRatio * 3;
+                    var effectiveResourceThrotling = resourceBarRatio > 0.5 ? 1 : resourceBarRatio * 2;
 
                     exoticMatterProduced = CheatOptions.InfiniteElectricity
-                        ? powerDraw
-                        : consumeFNResourcePerSecond(washeatModifier * effectiveResourceThrotling * powerDraw, ResourceManager.FNRESOURCE_MEGAJOULES);
+                        ? chargePowerDraw
+                        : consumeFNResourcePerSecond(overheatModifier * chargePowerDraw * effectiveResourceThrotling, ResourceManager.FNRESOURCE_MEGAJOULES);
 
-                    if (exoticMatterProduced < 0.99 * minPowerRequirementForLightSpeed)
+                    if (!CheatOptions.InfinitePropellant && stablePowerSupply < minPowerRequirementForLightSpeed)
                         insufficientPowerTimeout--;
                     else
                         insufficientPowerTimeout = maxPowerTimeout;
@@ -1335,7 +1421,7 @@ namespace FNPlugin
                     {
                         insufficientPowerTimeout--;
 
-                        var message = washeatModifier < 0.99 ? "Shutdown Alcubierre Drive due to overheating" :  
+                        var message = overheatModifier < 0.99 ? "Shutdown Alcubierre Drive due to overheating" :  
                             Localizer.Format("#LOC_KSPIE_AlcubierreDrive_notEnoughElectricPowerForWarp");
 
                         Debug.Log("[KSPI]: " + message);
@@ -1346,52 +1432,33 @@ namespace FNPlugin
                     }
                 }
 
-                if (!CheatOptions.IgnoreMaxTemperature)
-                    supplyFNResourcePerSecond(exoticMatterProduced, ResourceManager.FNRESOURCE_WASTEHEAT);
+                ProduceWasteheat(exoticMatterProduced);
             }
 
-            part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -exoticMatterProduced * 0.001 * TimeWarp.fixedDeltaTime / powerRequirementMultiplier);
-
-            if (!IsEnabled)
-            {
-                if (currentExoticMatter < exotic_power_required)
-                {
-                    var electricalCurrentPct = 100 * currentExoticMatter / exotic_power_required;
-                    driveStatus = String.Format("Charging: ") + electricalCurrentPct.ToString("0.00") + String.Format("%");
-                }
-                else
-                {
-                    driveStatus = "Ready.";
-                }
-
-                warp_effect2_renderer.enabled = false;
-                warp_effect1_renderer.enabled = false;
-            }
-            else
-            {
-                driveStatus = "Active.";
-
-                warp_effect2_renderer.enabled = true;
-                warp_effect1_renderer.enabled = true;
-            }
+            part.RequestResource(InterstellarResourcesConfiguration.Instance.ExoticMatter, -exoticMatterProduced * 0.001 * (double)(decimal)TimeWarp.fixedDeltaTime / powerRequirementMultiplier);
         }
 
         private void GenerateAntiGravity()
         {
-            exoticMatterRatio = maxExoticMatter > 0 ? currentExoticMatter / maxExoticMatter : 0;
+            exoticMatterRatio = exotic_power_required > 0 ? Math.Min(1, currentExoticMatter / exotic_power_required) : 0;
 
             gravityAcceleration = vessel.gravityForPos.magnitude;
 
-            var antigravityForceVector = vessel.gravityForPos * -exoticMatterRatio * 2;
+            var antigravityForceVector = vessel.gravityForPos * -exoticMatterRatio * antigravityMultiplier;
 
             antigravityAcceleration = antigravityForceVector.magnitude;
+
+            if (antigravityAcceleration > 0)
+                TimeWarp.GThreshold = GThreshold;
+
+            var fixedDeltaTime = (double)(decimal) TimeWarp.fixedDeltaTime;
 
             if (!double.IsNaN(antigravityForceVector.x) && !double.IsNaN(antigravityForceVector.y) && !double.IsNaN(antigravityForceVector.z))
             {
                 if (vessel.packed)
-                    vessel.orbit.Perturb(antigravityForceVector * TimeWarp.fixedDeltaTime, universalTime);
+                    vessel.orbit.Perturb(antigravityForceVector * fixedDeltaTime, universalTime);
                 else
-                    vessel.ChangeWorldVelocity(antigravityForceVector * TimeWarp.fixedDeltaTime);
+                    vessel.ChangeWorldVelocity(antigravityForceVector * fixedDeltaTime);
             }
 
             verticalSpeed = vessel.verticalSpeed;
@@ -1401,8 +1468,8 @@ namespace FNPlugin
             if (holdAltitude)
             {
                 orbitMultiplier = vessel.orbit.PeA > vessel.mainBody.atmosphereDepth ? 0 : 1 - Math.Min(1, vessel.horizontalSrfSpeed  /  CircularOrbitSpeed(vessel.mainBody, vessel.mainBody.Radius + vessel.altitude));
-                responseMultiplier = 0.005 * stablePowerSupply / maxExoticMatter;
-                antigravityPercentage = (float)Math.Max(0, Math.Min(100 * orbitMultiplier + (gravityAcceleration != 0 ? responseMultiplier * -verticalSpeed / gravityAcceleration / TimeWarp.fixedDeltaTime : 0), 200));
+                responseFactor = responseMultiplier * stablePowerSupply / exotic_power_required;
+                antigravityPercentage = (float)Math.Max(0, Math.Min(100 * orbitMultiplier + (gravityAcceleration != 0 ? responseFactor * -verticalSpeed / gravityAcceleration / fixedDeltaTime : 0), 200));
             }
         }
 
@@ -1423,7 +1490,7 @@ namespace FNPlugin
                 ? 1 / sqrtSpeed 
                 : sqrtSpeed;
 
-            return powerModifier * exotic_power_required * 0.5;
+            return powerModifier * exotic_power_required * warpPowerReqMult;
         }
 
         private void UpdateWarpSpeed()
@@ -1555,8 +1622,6 @@ namespace FNPlugin
             serialisedwarpvector = ConfigNode.WriteVector(heading_act);
 
             active_part_heading = newPartHeading;
-
-            var previousRotation = vessel.transform.rotation;
 
             if (!vessel.packed && useRotateStability)
                 OrbitPhysicsManager.HoldVesselUnpack();
