@@ -45,7 +45,7 @@ Engine Overview
 [ ] Methane Jet Engine ?
 [2] RAPIER (med, 275-305) - methalox(295-330)
 
-[ ] Integated RCS on Mk2 Capsule. (incl, tank and cryo)
+[2] Integated RCS on Mk2 Capsule. (incl, tank and cryo)
 
 1. written
 2. works
@@ -70,6 +70,7 @@ Notes
 - Electric Pump fed engine
 - low ISP when throttled
 - disable tweakscale engines but also enable some
+- missing cryostats for fuel tank patches
 
 Might need to replace the Hydrazine/DNTO mixture with more storeable variant
 (aerozine50/IRFNA), because the DNTO boils at 21 C.
