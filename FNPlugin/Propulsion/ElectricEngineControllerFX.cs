@@ -373,8 +373,8 @@ namespace FNPlugin
 
                 if (type == (int)ElectricEngineType.ARCJET)
                 {
-                    // achieves higher efficiencies at lower isp due to wasteheat preheating
-                    efficiency = (((1 - _attachedEngine.currentThrottle) * 0.87) + _attachedEngine.currentThrottle) * CurrentPropellant.Efficiency;
+                    // achieves higher efficiencies due to wasteheat preheating
+                    efficiency = Math.Sqrt(CurrentPropellant.Efficiency);
                 }
                 else if (type == (int)ElectricEngineType.VASIMR)
                 {
