@@ -386,6 +386,11 @@ namespace FNPlugin
 
                     efficiency = (ionisation_energy_ratio * CurrentPropellant.Efficiency) + ((1 - ionisation_energy_ratio) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency)));
                 }
+                else if (type == (int)ElectricEngineType.VACUUMTHRUSTER)
+                {
+                    // achieves higher efficiencies due to wasteheat preheating
+                    efficiency = CurrentPropellant.Efficiency;
+                }
                 else
                 {
                     var ionisation_energy_ratio = Math.Min(1,  1 / (baseISP / baseIspIonisationDivider));
