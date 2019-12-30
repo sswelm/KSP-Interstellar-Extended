@@ -70,13 +70,15 @@ namespace FNPlugin
         [KSPField]
         public double wasteHeatMultiplier = 1;
         [KSPField]
+        public double baseIspIonisationDivider = 3000;
+        [KSPField]
         public double minimumIonisationRatio = 0.05;
         [KSPField]
         public double ionisationMultiplier = 0.5;
         [KSPField]
-        public double baseEfficency = 0.4;
+        public double baseEfficency = 1;
         [KSPField]
-        public double variableEfficency = 0.4;
+        public double variableEfficency = 0;
         [KSPField]
         public float storedThrotle;
         [KSPField]
@@ -367,14 +369,12 @@ namespace FNPlugin
         {
             get
             {
-                var atmDensity = HighLogic.LoadedSceneIsFlight ? vessel.atmDensity : 0;
-
                 double efficiency;
 
                 if (type == (int)ElectricEngineType.ARCJET)
                 {
                     // achieves higher efficiencies due to wasteheat preheating
-                    efficiency = Math.Sqrt(CurrentPropellant.Efficiency);
+                    efficiency = (ionisationMultiplier * CurrentPropellant.Efficiency) + ((1 - ionisationMultiplier) * baseEfficency);
                 }
                 else if (type == (int)ElectricEngineType.VASIMR)
                 {
@@ -382,14 +382,19 @@ namespace FNPlugin
                         ? minimumIonisationRatio + (_attachedEngine.currentThrottle * ionisationMultiplier) 
                         : minimumIonisationRatio;
 
+                    ionisation_energy_ratio = Math.Min(1, ionisation_energy_ratio);
+
                     efficiency = (ionisation_energy_ratio * CurrentPropellant.Efficiency) + ((1 - ionisation_energy_ratio) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency)));
                 }
                 else
                 {
-                    efficiency = CurrentPropellant.Efficiency;
+                    var ionisation_energy_ratio = Math.Min(1,  1 / (baseISP / baseIspIonisationDivider));
+
+                    // achieve higher efficiencies at higher base isp
+                    efficiency = (ionisation_energy_ratio * CurrentPropellant.Efficiency) + ((1 - ionisation_energy_ratio) * baseEfficency);
                 }
 
-                return Math.Min(1, efficiency);
+                return efficiency;
             }
         }
 
