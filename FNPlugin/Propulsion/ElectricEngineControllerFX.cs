@@ -70,9 +70,13 @@ namespace FNPlugin
         [KSPField]
         public double wasteHeatMultiplier = 1;
         [KSPField]
-        public double baseEfficency = 0.3;
+        public double minimumIonisationRatio = 0.05;
         [KSPField]
-        public double variableEfficency = 0.3;
+        public double ionisationMultiplier = 0.5;
+        [KSPField]
+        public double baseEfficency = 0.4;
+        [KSPField]
+        public double variableEfficency = 0.4;
         [KSPField]
         public float storedThrotle;
         [KSPField]
@@ -368,16 +372,24 @@ namespace FNPlugin
                 double efficiency;
 
                 if (type == (int)ElectricEngineType.ARCJET)
-                    efficiency = 0.87 * CurrentPropellant.Efficiency;
+                {
+                    // achieves higher efficiencies at lower isp due to wasteheat preheating
+                    efficiency = (((1 - _attachedEngine.currentThrottle) * 0.87) + _attachedEngine.currentThrottle) * CurrentPropellant.Efficiency;
+                }
                 else if (type == (int)ElectricEngineType.VASIMR)
-                    efficiency = Math.Max(1 - atmDensity, 0.00001) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency));
+                {
+                    var ionisation_energy_ratio = _attachedEngine.currentThrottle > 0 
+                        ? minimumIonisationRatio + (_attachedEngine.currentThrottle * ionisationMultiplier) 
+                        : minimumIonisationRatio;
+
+                    efficiency = (ionisation_energy_ratio * CurrentPropellant.Efficiency) + ((1 - ionisation_energy_ratio) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency)));
+                }
                 else
+                {
                     efficiency = CurrentPropellant.Efficiency;
+                }
 
-                if (CurrentPropellant.IsInfinite)
-                    efficiency += lightSpeedRatio;
-
-                return efficiency;
+                return Math.Min(1, efficiency);
             }
         }
 
