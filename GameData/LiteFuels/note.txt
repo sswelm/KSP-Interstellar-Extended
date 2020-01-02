@@ -71,6 +71,7 @@ Notes
 - low ISP when throttled
 - disable tweakscale engines but also enable some
 - missing cryostats for fuel tank patches
+- isp of RCS is out of whack
 
 Might need to replace the Hydrazine/DNTO mixture with more storeable variant
 (aerozine50/IRFNA), because the DNTO boils at 21 C.
