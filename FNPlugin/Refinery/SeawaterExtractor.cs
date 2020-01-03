@@ -23,13 +23,13 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.heating; } }
 
-        public String ActivityName { get { return "Ocean Extraction"; } }
+        public string ActivityName { get { return "Ocean Extraction"; } }
 
         public bool HasActivityRequirements() { return IsThereAnyLiquid();  }
 
         public double PowerRequirements { get { return PluginHelper.BaseELCPowerConsumption; } }
 
-        public String Status { get { return String.Copy(_status); } }
+        public string Status { get { return string.Copy(_status); } }
         // end of IRefinery fields
 
         // characteristics of the intake liquid, a generic resource we 'collect' and process into resources. This will be the same on all planets, as the 'collection' doesn't rely on abundanceRequests etc. and the resource is not actually collected and stored anywhere anyway
