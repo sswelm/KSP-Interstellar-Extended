@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
 using UnityEngine;
-using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -595,8 +594,10 @@ namespace FNPlugin
                     return;
                 }
 
-                var listOfPropellants = new List<Propellant>();
-                listOfPropellants.Add(CurrentPropellant.Propellant);
+                var listOfPropellants = new List<Propellant>
+                {
+                    CurrentPropellant.Propellant
+                };
 
                 // if all propellant exist
                 if (!listOfPropellants.Exists(prop => PartResourceLibrary.Instance.GetDefinition(prop.name) == null))
@@ -994,9 +995,7 @@ namespace FNPlugin
 
         private void PersistantThrust(double fixedDeltaTime, double universalTime, Vector3d thrustDirection, double vesselMass, double thrust, double isp)
         {
-            double demandMass;
-
-            var deltaVv = CalculateDeltaVV(thrustDirection, vesselMass, fixedDeltaTime, thrust, isp, out demandMass);
+            var deltaVv = CalculateDeltaVV(thrustDirection, vesselMass, fixedDeltaTime, thrust, isp, out double demandMass);
 
             var persistentThrustDot = Vector3d.Dot(thrustDirection, vessel.obt_velocity);
             if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaVv.magnitude * 2))
