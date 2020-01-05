@@ -939,8 +939,9 @@ namespace FNPlugin
             var vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
             {
-                var calculatedConsumptionInTon = this.vessel.packed ? 0 : currentThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
-                vacuumPlasmaResource.maxAmount = Math.Max(0.0000001, calculatedConsumptionInTon * 200 * (double)(decimal)TimeWarp.fixedDeltaTime);
+                var calculatedConsumptionInTon = this.vessel.packed ? 0 : simulatedThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
+                var vacuumPlasmaResourceAmount = calculatedConsumptionInTon * 2000 * TimeWarp.fixedDeltaTime;
+                vacuumPlasmaResource.maxAmount = vacuumPlasmaResourceAmount;
                 part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
             }
         }
@@ -995,7 +996,9 @@ namespace FNPlugin
 
         private void PersistantThrust(double fixedDeltaTime, double universalTime, Vector3d thrustDirection, double vesselMass, double thrust, double isp)
         {
-            var deltaVv = CalculateDeltaVV(thrustDirection, vesselMass, fixedDeltaTime, thrust, isp, out double demandMass);
+            double demandMass;
+
+            var deltaVv = CalculateDeltaVV(thrustDirection, vesselMass, fixedDeltaTime, thrust, isp, out demandMass);
 
             var persistentThrustDot = Vector3d.Dot(thrustDirection, vessel.obt_velocity);
             if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaVv.magnitude * 2))
