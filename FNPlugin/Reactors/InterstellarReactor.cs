@@ -1982,6 +1982,11 @@ namespace FNPlugin.Reactors
             }
             else
             {
+                current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, NormalisedMaximumPower, fuelUsePerMJMult);
+                current_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
+                fuel_mode_variant = current_fuel_variant.Name;
+                stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
+
                 ongoing_total_power_generated = 0;
                 reactor_power_ratio = 0;
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
@@ -2037,11 +2042,21 @@ namespace FNPlugin.Reactors
 
         private void LookForAlternativeFuelTypes()
         {
+            var originalFuelMode = CurrentFuelMode;
+            var originalFuelRatio = stored_fuel_ratio;
+
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType1);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType2);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType3);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType4);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType5);
+
+            if (stored_fuel_ratio < 0.99)
+            {
+                Debug.Log("[KSPI]: " + "restored fuelmode to " + originalFuelMode.ModeGUIName);
+                CurrentFuelMode = originalFuelMode;
+                stored_fuel_ratio = originalFuelRatio;
+            }
         }
 
         private void SwitchToAlternativeFuelWhenAvailable(string alternativeFuelTypeName)
