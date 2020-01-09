@@ -17,6 +17,8 @@ namespace FNPlugin.Powermanagement
         [KSPField(guiActiveEditor = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F3")]
         public double maxPower = 1;
         [KSPField]
+        public bool forceActivateAtStartup = true;
+        [KSPField]
         public bool canRecharge = true;
         [KSPField]
         public double efficiency = 1;
@@ -48,8 +50,9 @@ namespace FNPlugin.Powermanagement
         List<string> inputResourceNames;
         List<double> inputResourceRate;
 
+        double inefficiency;
         double wasteheatRatio;
-        double overheatingMultiplier;
+        double overheatingModifier;
         double fuelRatio;
         double powerSurplus;
         double currentUnfilledResourceDemand;
@@ -66,7 +69,8 @@ namespace FNPlugin.Powermanagement
             this.resources_to_supply = resources_to_supply;
             base.OnStart(state);
 
-            part.force_activate();
+            if (forceActivateAtStartup)
+                part.force_activate();
 
             inputResourceNames = ParseTools.ParseNames(inputResources);
             inputResourceRate = ParseTools.ParseDoubles(inputConversionRates);
@@ -77,13 +81,14 @@ namespace FNPlugin.Powermanagement
             fuelRatio = double.MaxValue;
 
             wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
-            overheatingMultiplier = wasteheatRatio < efficiency ? 1 : 1 - (wasteheatRatio - efficiency);
+            inefficiency = 1 - efficiency;
+            overheatingModifier = wasteheatRatio < efficiency ? 1 : 1 - ((wasteheatRatio - efficiency) / inefficiency);
 
             currentMaxPower = Math.Round(powerPercentage * 0.01, 2) * maxPower;
             currentUnfilledResourceDemand = Math.Max(0, GetCurrentUnfilledResourceDemand(ResourceManager.FNRESOURCE_MEGAJOULES));
             spareResourceCapacity = getSpareResourceCapacity(ResourceManager.FNRESOURCE_MEGAJOULES);
 
-            electrical_power_currently_needed = overheatingMultiplier * Math.Min(currentUnfilledResourceDemand + spareResourceCapacity, currentMaxPower) / efficiency;
+            electrical_power_currently_needed = overheatingModifier * Math.Min(currentUnfilledResourceDemand + spareResourceCapacity, currentMaxPower) / efficiency;
 
             for (var i = 0; i < inputResourceNames.Count; i++)
             {
@@ -110,7 +115,7 @@ namespace FNPlugin.Powermanagement
 
             var effectiveFuelRatio = Math.Min(1, fuelRatio);
             var rawPowerSupply = effectiveFuelRatio * electrical_power_currently_needed;
-            var inefficiency = 1 - efficiency;
+            
 
             powerSupply = efficiency * rawPowerSupply;
             wasteheat = inefficiency * rawPowerSupply;
@@ -158,7 +163,7 @@ namespace FNPlugin.Powermanagement
 
         public override int getPowerPriority()
         {
-            return 5;
+            return 5;   // lowest priority reserved for Battery recharge
         }
 
         public override int getSupplyPriority()
