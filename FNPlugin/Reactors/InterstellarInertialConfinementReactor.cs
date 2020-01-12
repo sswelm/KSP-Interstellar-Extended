@@ -50,6 +50,8 @@ namespace FNPlugin.Reactors
         public float startupMinimumChargePercentage = 0;
         [KSPField]
         public double geeForceMaintenancePowerMultiplier = 0;
+        [KSPField]
+        public bool showSecondaryPowerUsage = false;
 
         // Persistant
         [KSPField(isPersistant = true)]
@@ -90,6 +92,9 @@ namespace FNPlugin.Reactors
         {
             isChargingField = Fields["isChargingForJumpstart"];
             accumulatedChargeStrField = Fields["accumulatedChargeStr"];
+
+            Fields["maxSecondaryPowerUsage"].guiActive = showSecondaryPowerUsage;
+            Fields["maxSecondaryPowerUsage"].guiActiveEditor = showSecondaryPowerUsage;
 
             isChargingField.guiActiveEditor = false;
 

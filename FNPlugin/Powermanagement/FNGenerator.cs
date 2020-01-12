@@ -246,7 +246,7 @@ namespace FNPlugin
         public double stablePowerForBuffer;
         [KSPField]
         public double maxStableMegaWattPower;
-        [KSPField(guiName = "Applies balancing")]
+        [KSPField]
         public bool applies_balance;
         [KSPField]
         public double thermalPowerCurrentlyNeededForElectricity;
@@ -261,6 +261,9 @@ namespace FNPlugin
 
         [KSPField]
         public double initialThermalPowerReceived;
+        [KSPField]
+        public double initialChargedPowerReceived;
+
         [KSPField]
         public double thermalPowerReceived;
         [KSPField]
@@ -1080,6 +1083,9 @@ namespace FNPlugin
                     var wasteheatRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_WASTEHEAT);
                     overheatingModifier = wasteheatRatio < 0.9 ? 1 : (1 - wasteheatRatio) * 10;
 
+                    var thermalPowerRatio = 1 - attachedPowerSource.ChargedPowerRatio;
+                    var chargedPowerRatio = attachedPowerSource.ChargedPowerRatio;
+
                     if (!chargedParticleMode) // thermal mode
                     {
                         hotColdBathRatio = Math.Max(Math.Min(1 - coldBathTemp / hotBathTemp, 1), 0);
@@ -1096,21 +1102,28 @@ namespace FNPlugin
 
                         effectiveThermalPowerNeededForElectricity = thermalPowerCurrentlyNeededForElectricity / _totalEff;
 
-                        var availableChargedPowerRatio = Math.Max(Math.Min(2 * getResourceBarRatio(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) - 0.25, 1), 0);
+                        //var availableChargedPowerRatio = Math.Max(Math.Min(2 * getResourceBarRatio(ResourceManager.FNRESOURCE_CHARGED_PARTICLES) - 0.25, 1), 0);
 
                         reactorPowerRequested = Math.Max(0, Math.Min(maxReactorPower, effectiveThermalPowerNeededForElectricity));
                         requestedPostReactorPower = Math.Max(0, attachedPowerSource.MinimumPower - reactorPowerRequested);
 
                         thermalPowerRequested = Math.Max(0, Math.Min(maxThermalPower, effectiveThermalPowerNeededForElectricity));
-                        thermalPowerRequested *= applies_balance && attachedPowerSource.ChargedPowerRatio != 1 ? (1 - attachedPowerSource.ChargedPowerRatio) : 1;
-                        requestedPostThermalPower = Math.Max(0, (attachedPowerSource.MinimumPower * (1 - attachedPowerSource.ChargedPowerRatio)) - thermalPowerRequested); 
+                        thermalPowerRequested *= applies_balance && chargedPowerRatio != 1 ? thermalPowerRatio : 1;
+                        requestedPostThermalPower = Math.Max(0, (attachedPowerSource.MinimumPower * thermalPowerRatio) - thermalPowerRequested); 
 
                         requested_power_per_second = thermalPowerRequested;
 
-                        if (attachedPowerSource.ChargedPowerRatio != 1)
+                        if (chargedPowerRatio != 1)
                         {
                             requestedThermalPower = Math.Min(thermalPowerRequested, effectiveMaximumThermalPower);
-                            initialThermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
+
+                            if (isMHD)
+                            {
+                                initialThermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower * thermalPowerRatio, ResourceManager.FNRESOURCE_THERMALPOWER);
+                                initialChargedPowerReceived = consumeFNResourcePerSecond(requestedThermalPower * chargedPowerRatio, ResourceManager.FNRESOURCE_CHARGED_PARTICLES);
+                            }
+                            else
+                                initialThermalPowerReceived = consumeFNResourcePerSecond(requestedThermalPower, ResourceManager.FNRESOURCE_THERMALPOWER);
 
                             thermalPowerRequestRatio = Math.Min(1, effectiveMaximumThermalPower > 0 ? requestedThermalPower / attachedPowerSource.MaximumThermalPower : 0);
                             attachedPowerSource.NotifyActiveThermalEnergyGenerator(_totalEff, thermalPowerRequestRatio, isMHD, isLimitedByMinThrotle ? part.mass * 0.05 : part.mass);
@@ -1118,13 +1131,13 @@ namespace FNPlugin
                         else
                             initialThermalPowerReceived = 0;
 
-                        thermalPowerReceived = initialThermalPowerReceived;
-                        totalPowerReceived = initialThermalPowerReceived;
+                        thermalPowerReceived = initialThermalPowerReceived + initialChargedPowerReceived;
+                        totalPowerReceived = thermalPowerReceived;
 
-                        shouldUseChargedPower = attachedPowerSource.ChargedPowerRatio > 0;
+                        shouldUseChargedPower = chargedPowerRatio > 0;
 
                         // Collect charged power when needed
-                        if (attachedPowerSource.ChargedPowerRatio == 1)
+                        if (chargedPowerRatio == 1)
                         {
                             requestedChargedPower = reactorPowerRequested;
 
@@ -1150,7 +1163,7 @@ namespace FNPlugin
                         totalPowerReceived += chargedPowerReceived;
 
                         // any shortage should be consumed again from remaining thermalpower
-                        if (shouldUseChargedPower && attachedPowerSource.ChargedPowerRatio != 1 && totalPowerReceived < reactorPowerRequested)
+                        if (shouldUseChargedPower && chargedPowerRatio != 1 && totalPowerReceived < reactorPowerRequested)
                         {
                             finalRequest = Math.Max(0, reactorPowerRequested - totalPowerReceived);
                             thermalPowerReceived += consumeFNResourcePerSecond(finalRequest, ResourceManager.FNRESOURCE_THERMALPOWER);
@@ -1167,7 +1180,7 @@ namespace FNPlugin
                         var chargedPowerCurrentlyNeededForElectricity = CalculateElectricalPowerCurrentlyNeeded();
 
                         requestedChargedPower = overheatingModifier * Math.Max(0, Math.Min(maxAllowedChargedPower, chargedPowerCurrentlyNeededForElectricity / _totalEff));
-                        requestedPostChargedPower = overheatingModifier * Math.Max(0, (attachedPowerSource.MinimumPower * attachedPowerSource.ChargedPowerRatio) - requestedChargedPower); 
+                        requestedPostChargedPower = overheatingModifier * Math.Max(0, (attachedPowerSource.MinimumPower * chargedPowerRatio) - requestedChargedPower); 
 
                         requested_power_per_second = requestedChargedPower;
 
@@ -1187,7 +1200,7 @@ namespace FNPlugin
                     if (!chargedParticleMode)
                     {
                         electricdtps = Math.Max(effectiveInputPowerPerSecond * powerOutputMultiplier, 0);
-                        effectiveMaxThermalPowerRatio = applies_balance ? (1 - attachedPowerSource.ChargedPowerRatio) : 1;
+                        effectiveMaxThermalPowerRatio = applies_balance ? thermalPowerRatio : 1;
                         maxElectricdtps = effectiveMaxThermalPowerRatio * attachedPowerSource.StableMaximumReactorPower * attachedPowerSource.PowerRatio * powerUsageEfficiency * _totalEff * CapacityRatio;
                     }
                     else
@@ -1395,13 +1408,25 @@ namespace FNPlugin
 
         public override string getResourceManagerDisplayName()
         {
-            var result = base.getResourceManagerDisplayName();
             if (isLimitedByMinThrotle)
-                return result;
+                return base.getResourceManagerDisplayName();
 
-            if (attachedPowerSource != null && attachedPowerSource.Part != null && result != attachedPowerSource.Part.partInfo.title)
-                result += " (" + attachedPowerSource.Part.partInfo.title + ")";
-            return result;
+            var displayName = part.partInfo.title + " (generator)";
+
+            if (similarParts == null)
+            {
+                similarParts = vessel.parts.Where(m => m.partInfo.title == this.part.partInfo.title).ToList();
+                partNrInList = 1 + similarParts.IndexOf(this.part);
+            }
+
+            if (similarParts.Count > 1)
+                displayName += " " + partNrInList;
+
+            return displayName;
+
+            //if (attachedPowerSource != null && attachedPowerSource.Part != null && result != attachedPowerSource.Part.partInfo.title)
+            //    result += " (" + attachedPowerSource.Part.partInfo.title + ")";
+            //return result;
         }
 
         public override int getPowerPriority()

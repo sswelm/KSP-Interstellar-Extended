@@ -98,29 +98,33 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)]
         public double reactor_power_ratio = 1;
         [KSPField(isPersistant = true)]
-        public double power_request_ratio;
+        public double power_request_ratio = 1;
 
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double thermal_propulsion_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double plasma_propulsion_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double charged_propulsion_ratio;
-
-        [KSPField(isPersistant = true)]
-        public double propulsion_request_ratio_sum;
-
-        [KSPField(isPersistant = true)]
+        [KSPField]
+        public double thermal_generator_ratio;
+        [KSPField]
+        public double plasma_generator_ratio;
+        [KSPField]
+        public double charged_generator_ratio;
+        [KSPField]
+        public double propulsion_request_ratio_sum;    
+        [KSPField]
         public double maximum_thermal_request_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double maximum_charged_request_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double maximum_reactor_request_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double thermalThrottleRatio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double plasmaThrottleRatio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double chargedThrottleRatio;
 
         [KSPField(isPersistant = true)]
@@ -147,10 +151,10 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiName = "Lithium Modifier", guiFormat = "F6")]
         public double lithium_modifier = 1;
         [KSPField]
-        public double maximumPower;
-       
+        public double maximumPower;       
         [KSPField]
         public float minimumPowerPercentage = 10;
+
         [KSPField]
         public string upgradeTechReqMk2 = null;
         [KSPField]
@@ -360,6 +364,8 @@ namespace FNPlugin.Reactors
         public double upgradedReactorTemp = 0;
         [KSPField]
         public string animName = "";
+        [KSPField]
+        public double animExponent = 1;
         [KSPField]
         public string loopingAnimationName = "";
         [KSPField]
@@ -1865,9 +1871,9 @@ namespace FNPlugin.Reactors
                 plasma_propulsion_ratio = PlasmaPropulsionEfficiency * plasmaThrottleRatio;
                 charged_propulsion_ratio = ChargedParticlePropulsionEfficiency * chargedThrottleRatio;
 
-                var thermal_generator_ratio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
-                var plasma_generator_ratio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
-                var charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
+                thermal_generator_ratio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
+                plasma_generator_ratio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
+                charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
 
                 propulsion_request_ratio_sum = Math.Min(1, thermal_propulsion_ratio + plasma_propulsion_ratio + charged_propulsion_ratio);
 
@@ -1921,7 +1927,7 @@ namespace FNPlugin.Reactors
                 UpdateEmbrittlement(Math.Max(thermalThrottleRatio, plasmaThrottleRatio));
 
                 ongoing_consumption_rate = maximumPower > 0 ? ongoing_total_power_generated / maximumPower : 0;
-                PluginHelper.SetAnimationRatio((float)ongoing_consumption_rate, pulseAnimation);
+                PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, animExponent), pulseAnimation);
                 powerPcnt = 100 * ongoing_consumption_rate;
 
                 // produce wasteheat
