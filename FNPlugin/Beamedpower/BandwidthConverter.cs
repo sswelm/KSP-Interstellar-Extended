@@ -6,15 +6,15 @@ using KSP.UI.Screens;
 
 namespace FNPlugin.Microwave
 {
-    [KSPModule("Rectenna Bandwidth Converter")]
+    [KSPModule("#LOC_KSPIE_RectennaBandwidthConverter")]//Rectenna Bandwidth Converter
     class RectennaConverter : BandwidthConverter {}
 
 
-    [KSPModule("Beamed Power Bandwidth Converter")]
+    [KSPModule("#LOC_KSPIE_BeamedPowerBandwidthConverter")]//Beamed Power Bandwidth Converter
     class BandwidthConverter : PartModule
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public string bandwidthName = "missing";
+        public string bandwidthName = Localizer.Format("#LOC_KSPIE_BandwidthCoverter_missing");//"missing"
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiFormat = "F9", guiUnits = " m")]
         public double targetWavelength = 0;
         
@@ -141,29 +141,29 @@ namespace FNPlugin.Microwave
             var info = new StringBuilder();
 
             info.AppendLine("<size=10>");
-            info.AppendLine("Name: " + bandwidthName);
-            info.AppendLine("Bandwidth start: " + minimumWavelength + " m");
-            info.AppendLine("Bandwidth end: " + maximumWavelength + " m");
+            info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_InfoName") + ": " + bandwidthName);//Name
+            info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Bandwidthstart") +": " + minimumWavelength + " m");//Bandwidth start
+            info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Bandwidthend") +": " + maximumWavelength + " m");//Bandwidth end
 
             if (!string.IsNullOrEmpty(techRequirement0))
             {
-                info.AppendLine("Mk1 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement0)));
-                info.AppendLine("Mk1 efficiency: " + efficiencyPercentage0 + "%");
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk1technode") +": \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement0)));//Mk1 technode
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk1efficiency") +": " + efficiencyPercentage0 + "%");//Mk1 efficiency
             }
             if (!string.IsNullOrEmpty(techRequirement1))
             {
-                info.AppendLine("Mk2 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement1)));
-                info.AppendLine("Mk2 efficiency: " + efficiencyPercentage1 + "%");
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk2technode") +": \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement1)));//Mk2 technode
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk2efficiency") +": " + efficiencyPercentage1 + "%");//Mk2 efficiency
             }
             if (!string.IsNullOrEmpty(techRequirement2))
             {
-                info.AppendLine("Mk3 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement2)));
-                info.AppendLine("Mk3 efficiency: " + efficiencyPercentage2 + "%");
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk3technode") +": \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement2)));//Mk3 technode
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk3efficiency") +": " + efficiencyPercentage2 + "%");//Mk3 efficiency
             }
             if (!string.IsNullOrEmpty(techRequirement3))
             {
-                info.AppendLine("Mk4 technode: \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement3)));
-                info.AppendLine("Mk4 efficiency: " + efficiencyPercentage3 + "%");
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk4technode") +": \n" + Localizer.Format(PluginHelper.GetTechTitleById(techRequirement3)));//Mk4 technode
+                info.AppendLine(Localizer.Format("#LOC_KSPIE_BandwidthCoverter_Mk4efficiency") +": " + efficiencyPercentage3 + "%");//Mk4 efficiency
             }
             info.AppendLine("</size>");
 

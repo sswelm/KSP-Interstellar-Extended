@@ -113,7 +113,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string switcherDescription = "#LOC_IFS_FuelSwitch_switcherDescription";  // Tank
         [KSPField]
-        public string resourceNames = "ElectricCharge;LiquidFuel,Oxidizer;MonoPropellant";
+        public string resourceNames = Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName1") + ";" + Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName2") + "," + Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName3") + ";" + Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName4");//"ElectricCharge;LiquidFuel,Oxidizer;MonoPropellant"
         [KSPField]
         public string resourceAmounts = string.Empty;
         [KSPField]
@@ -192,7 +192,7 @@ namespace InterstellarFuelSwitch
         public string massRatioStr = "";
         [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_crewCapacityStr")] // Crew Capacity
         public string crewCapacityStr = "";
-        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchWindow"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.None)] // Mass Ratio
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchWindow"), UI_Toggle(disabledText = "#LOC_IFS_FuelSwitch_WindowHidden", enabledText = "#LOC_IFS_FuelSwitch_WindowShown", affectSymCounterparts = UI_Scene.None)] // Mass Ratio  Hidden  Shown
         public bool render_window = false;
 
         // Debug
@@ -615,7 +615,7 @@ namespace InterstellarFuelSwitch
             }
         }
 
-        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "Switch Tank")]
+        [KSPEvent(guiActive = false, guiActiveEditor = true, guiName = "#LOC_IFS_FuelSwitch_switchTank")]//Switch Tank
         public void switchTankEvent()
         {
             closeAterSwitch = true;

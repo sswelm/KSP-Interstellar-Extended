@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Text;
+using KSP.Localization;
 
 namespace FNPlugin.Beamedpower
 {
 
-    [KSPModule("Photon Reflection")]
+    [KSPModule("#LOC_PhotonSail_PhotonReflectionModuleName")]//Photon Reflection
     class PhotonReflectionDefinition : PartModule
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]
-        public string bandwidthName = "missing";
+        private string bandwidthName = Localizer.Format("#LOC_PhotonSail_missing");//"missing"
         [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = false, guiFormat = "F9", guiUnits = " m")]
         public double targetWavelength = 0;        
         [KSPField(guiActiveEditor = false, guiActive = false, guiFormat = "F9", guiUnits = " m")]
@@ -115,38 +116,40 @@ namespace FNPlugin.Beamedpower
             }
         }
 
+        public string BandwidthName { get => bandwidthName; set => bandwidthName = value; }
+
         public override string GetInfo()
         {
             var info = new StringBuilder();
 
             info.AppendLine("<size=10>");
-            info.AppendLine("Name: " + bandwidthName);
-            info.AppendLine("Bandwidth start: " + minimumWavelength + " m");
-            info.AppendLine("Bandwidth end: " + maximumWavelength + " m");
+            info.AppendLine(Localizer.Format("#LOC_PhotonSail_NameGetInfo") +": " + BandwidthName);//Name
+            info.AppendLine(Localizer.Format("#LOC_PhotonSail_BandwidthstartGetInfo") +": " + minimumWavelength + " m");//Bandwidth start
+            info.AppendLine(Localizer.Format("#LOC_PhotonSail_BandwidthendGetInfo") +": " + maximumWavelength + " m");//Bandwidth end
 
             if (!string.IsNullOrEmpty(techRequirement0) && !string.IsNullOrEmpty(techRequirement1))
             {
-                info.AppendLine("Mk1 technode: " + (String.IsNullOrEmpty(techName0) ? techName0 : techRequirement0));
-                info.AppendLine("Mk1 reflection: " + reflectionPercentage0 + "%");
-                info.AppendLine("Mk1 photovoltaic: " + photovoltaicPercentage0 + "%");
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk1technode") +": " + (String.IsNullOrEmpty(techName0) ? techName0 : techRequirement0));//Mk1 technode
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk1reflection") +": " + reflectionPercentage0 + "%");//Mk1 reflection
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk1photovoltaic")+": " + photovoltaicPercentage0 + "%");//Mk1 photovoltaic
             }
             if (!string.IsNullOrEmpty(techRequirement1))
             {
-                info.AppendLine("Mk2 technode: " + (String.IsNullOrEmpty(techName1) ? techName1 : techRequirement1));
-                info.AppendLine("Mk2 reflection: " + reflectionPercentage1 + "%");
-                info.AppendLine("Mk1 photovoltaic: " + photovoltaicPercentage1 + "%");
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk2technode") +": " + (String.IsNullOrEmpty(techName1) ? techName1 : techRequirement1));//Mk2 technode
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk2reflection") +": " + reflectionPercentage1 + "%");//Mk2 reflection
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk1photovoltaic") +": " + photovoltaicPercentage1 + "%");//Mk1 photovoltaic
             }
             if (!string.IsNullOrEmpty(techRequirement2))
             {
-                info.AppendLine("Mk3 technode: " + (String.IsNullOrEmpty(techName2) ? techName2 : techRequirement2));
-                info.AppendLine("Mk3 reflection: " + reflectionPercentage2 + "%");
-                info.AppendLine("Mk1 photovoltaic: " + photovoltaicPercentage2 + "%");
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk3technode") + ": " + (String.IsNullOrEmpty(techName2) ? techName2 : techRequirement2));//Mk3 technode
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk3reflection") + ": " + reflectionPercentage2 + "%");//Mk3 reflection
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk1photovoltaic") +": " + photovoltaicPercentage2 + "%");//Mk1 photovoltaic
             }
             if (!string.IsNullOrEmpty(techRequirement3))
             {
-                info.AppendLine("Mk4 technode: " + (String.IsNullOrEmpty(techName3) ? techName3 : techRequirement3));
-                info.AppendLine("Mk4 reflection: " + reflectionPercentage3 + "%");
-                info.AppendLine("Mk1 photovoltaic: " + photovoltaicPercentage3 + "%");
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk4technode")+": " + (String.IsNullOrEmpty(techName3) ? techName3 : techRequirement3));//Mk4 technode
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk4reflection") +": " + reflectionPercentage3 + "%");//Mk4 reflection
+                info.AppendLine(Localizer.Format("#LOC_PhotonSail_Mk1photovoltaic") +": " + photovoltaicPercentage3 + "%");//Mk1 photovoltaic
             }
             info.AppendLine("</size>");
 
