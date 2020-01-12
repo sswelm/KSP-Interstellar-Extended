@@ -10,7 +10,7 @@ namespace FNPlugin
 
     abstract class EngineECU2 : ResourceSuppliableModule
     {
-        [KSPField(guiActive = true, guiName = "Max Thrust", guiUnits = " kN", guiFormat = "F4")]
+        [KSPField(guiActive = true, guiActiveEditor = true,  guiName = "Max Thrust", guiUnits = " kN", guiFormat = "F3")]
         public double maximumThrust;
 
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Fuel Config")]
@@ -278,7 +278,8 @@ namespace FNPlugin
 
         public FuelConfiguration CurrentActiveConfiguration
         {
-            get {
+            get 
+            {
                 return _currentActiveConfiguration ?? (_currentActiveConfiguration = ActiveConfigurations[selectedFuel]);
             }
         }
@@ -303,6 +304,8 @@ namespace FNPlugin
 
         private void UpdateEditorGUI(BaseField field, object oldFieldValueObj)
         {
+            UnityEngine.Debug.Log("[KSPI]: UpdateEditorGUI called");
+
             foreach (var counterpart in part.symmetryCounterparts)
             {
                 var symmetryEngine = counterpart.FindModulesImplementing<EngineECU2>().FirstOrDefault();
@@ -311,6 +314,8 @@ namespace FNPlugin
             }
 
             UpdateFromGUI(field, oldFieldValueObj);
+            UpdateFuel();
+
             selectedTank = selectedFuel;
             selectedTankName = FuelConfigurations[selectedFuel].ConfigName;   
         }

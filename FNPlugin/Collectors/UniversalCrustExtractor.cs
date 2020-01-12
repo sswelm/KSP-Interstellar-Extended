@@ -182,6 +182,10 @@ namespace FNPlugin.Collectors
 
         public override void OnStart(PartModule.StartState state)
         {
+            // initialise resources
+            this.resources_to_supply = new[] { ResourceManager.FNRESOURCE_WASTEHEAT };
+            base.OnStart(state);
+
             _moduleScienceExperiment = this.part.FindModuleImplementing<ModuleScienceExperiment>();
 
             deployAnimation = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
@@ -201,6 +205,8 @@ namespace FNPlugin.Collectors
                 deployAnimation[deployAnimationName].normalizedTime = 0;
                 deployAnimation.Blend(deployAnimationName);
             }
+
+            ToggleEmmitters(false);
 
             // if the setup went well, do the offline collecting dance
             if (StartupSetup(state))
@@ -294,14 +300,15 @@ namespace FNPlugin.Collectors
             }
         }
 
-        public override void OnFixedUpdate()
+        //public override void OnFixedUpdate()
+        public override void OnFixedUpdateResourceSuppliable(double fixedDeltaTime)
         {
             if (bIsEnabled)
             {
                 ToggleEmmitters(true);
                 UpdateLoopingAnimation();
 
-                double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);                
+                //double fixedDeltaTime = (double)(decimal)Math.Round(TimeWarp.fixedDeltaTime, 7);                
             
                 MineResources(false, fixedDeltaTime);
                 // Save time data for offline mining
@@ -729,16 +736,10 @@ namespace FNPlugin.Collectors
         private void DrawGui(int window)
         {
             if (_bold_label == null)
-            {
-                _bold_label = new GUIStyle(GUI.skin.label);
-                _bold_label.fontStyle = FontStyle.Bold;
-            }
+                _bold_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold, font = PluginHelper.MainFont };
 
             if (_normal_label == null)
-            {
-                _normal_label = new GUIStyle(GUI.skin.label);
-                _normal_label.fontStyle = FontStyle.Normal;
-            }
+                _normal_label = new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Normal, font = PluginHelper.MainFont };
 
             if (GUI.Button(new Rect(_window_position.width - 20, 2, 18, 18), "x"))
                 _render_window = false;
@@ -753,7 +754,7 @@ namespace FNPlugin.Collectors
             GUILayout.Label("Size: " + drillSize.ToString("#.#") + " m\xB3", _normal_label);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("MW Requirements: " + mwRequirements.ToString("#.#") + " MW", _normal_label);
+            GUILayout.Label("MW Requirements: " + mwRequirements.ToString("0.000") + " MW", _normal_label);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("Drill effectiveness: " + effectiveness.ToString("P1"), _normal_label);
@@ -792,11 +793,13 @@ namespace FNPlugin.Collectors
                     {
                         if (resource.MaxAmount > 0)
                         {
-                            if (resource.SpareRoom > 0)
+                            var spareRoomMass = resource.SpareRoom * resource.Definition.density;
+
+                            if (Math.Round(spareRoomMass, 6) > 0.000001)
                             {
                                 GUILayout.Label(resource.Production.ToString("##.######") + " U/s", _normal_label, GUILayout.Width(valueWidth));
-                                GUILayout.Label((resource.Production * (double)(decimal)resource.Definition.density * 3600).ToString("##.######") + " t/h", _normal_label, GUILayout.Width(valueWidth));
-                                GUILayout.Label((resource.SpareRoom * (double)(decimal)resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                                GUILayout.Label((resource.Production * resource.Definition.density * 3600).ToString("##.######") + " t/h", _normal_label, GUILayout.Width(valueWidth));
+                                GUILayout.Label(spareRoomMass.ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
                             }
                             else
                             {
@@ -805,8 +808,8 @@ namespace FNPlugin.Collectors
                                 GUILayout.Label("full", _normal_label, GUILayout.Width(valueWidth));
                             }
 
-                            GUILayout.Label((resource.Amount * (double)(decimal)resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
-                            GUILayout.Label((resource.MaxAmount * (double)(decimal)resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                            GUILayout.Label((resource.Amount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
+                            GUILayout.Label((resource.MaxAmount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
                         }
                         else
                         {

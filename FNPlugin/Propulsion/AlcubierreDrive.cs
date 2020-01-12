@@ -31,6 +31,14 @@ namespace FNPlugin
 
         // non persistant
         [KSPField]
+        public double warpPowerReqMult = 0.5;
+        [KSPField]
+        public double responseMultiplier = 0.005;
+        [KSPField]
+        public double antigravityMultiplier = 2;
+        [KSPField]
+        public double GThreshold = 2;
+        [KSPField]
         public int InstanceID;
         [KSPField]
         public bool IsSlave;
@@ -173,7 +181,7 @@ namespace FNPlugin
         private double recievedExoticMaintenancePower;
         private double exoticMatterMaintenanceRatio;
         private double exoticMatterProduced;
-        private double responseMultiplier;
+        private double responseFactor;
         private double stablePowerSupply;
         private double orbitMultiplier;
 
@@ -1436,9 +1444,12 @@ namespace FNPlugin
 
             gravityAcceleration = vessel.gravityForPos.magnitude;
 
-            var antigravityForceVector = vessel.gravityForPos * -exoticMatterRatio * 2;
+            var antigravityForceVector = vessel.gravityForPos * -exoticMatterRatio * antigravityMultiplier;
 
             antigravityAcceleration = antigravityForceVector.magnitude;
+
+            if (antigravityAcceleration > 0)
+                TimeWarp.GThreshold = GThreshold;
 
             var fixedDeltaTime = (double)(decimal) TimeWarp.fixedDeltaTime;
 
@@ -1457,8 +1468,8 @@ namespace FNPlugin
             if (holdAltitude)
             {
                 orbitMultiplier = vessel.orbit.PeA > vessel.mainBody.atmosphereDepth ? 0 : 1 - Math.Min(1, vessel.horizontalSrfSpeed  /  CircularOrbitSpeed(vessel.mainBody, vessel.mainBody.Radius + vessel.altitude));
-                responseMultiplier = 0.005 * stablePowerSupply / exotic_power_required;
-                antigravityPercentage = (float)Math.Max(0, Math.Min(100 * orbitMultiplier + (gravityAcceleration != 0 ? responseMultiplier * -verticalSpeed / gravityAcceleration / fixedDeltaTime : 0), 200));
+                responseFactor = responseMultiplier * stablePowerSupply / exotic_power_required;
+                antigravityPercentage = (float)Math.Max(0, Math.Min(100 * orbitMultiplier + (gravityAcceleration != 0 ? responseFactor * -verticalSpeed / gravityAcceleration / fixedDeltaTime : 0), 200));
             }
         }
 
@@ -1479,7 +1490,7 @@ namespace FNPlugin
                 ? 1 / sqrtSpeed 
                 : sqrtSpeed;
 
-            return powerModifier * exotic_power_required * 0.5;
+            return powerModifier * exotic_power_required * warpPowerReqMult;
         }
 
         private void UpdateWarpSpeed()

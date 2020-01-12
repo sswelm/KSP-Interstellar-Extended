@@ -10,7 +10,8 @@ namespace FNPlugin
         ARCJET = 2,
         VASIMR = 4,
         VACUUMTHRUSTER = 8,
-        RCS = 16
+        RCS = 16,
+        ION = 32
     }
 
     public class ElectricEnginePropellant 

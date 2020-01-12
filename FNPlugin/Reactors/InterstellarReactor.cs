@@ -98,29 +98,33 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = true)]
         public double reactor_power_ratio = 1;
         [KSPField(isPersistant = true)]
-        public double power_request_ratio;
+        public double power_request_ratio = 1;
 
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double thermal_propulsion_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double plasma_propulsion_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double charged_propulsion_ratio;
-
-        [KSPField(isPersistant = true)]
-        public double propulsion_request_ratio_sum;
-
-        [KSPField(isPersistant = true)]
+        [KSPField]
+        public double thermal_generator_ratio;
+        [KSPField]
+        public double plasma_generator_ratio;
+        [KSPField]
+        public double charged_generator_ratio;
+        [KSPField]
+        public double propulsion_request_ratio_sum;    
+        [KSPField]
         public double maximum_thermal_request_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double maximum_charged_request_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double maximum_reactor_request_ratio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double thermalThrottleRatio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double plasmaThrottleRatio;
-        [KSPField(isPersistant = true)]
+        [KSPField]
         public double chargedThrottleRatio;
 
         [KSPField(isPersistant = true)]
@@ -147,10 +151,10 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiName = "Lithium Modifier", guiFormat = "F6")]
         public double lithium_modifier = 1;
         [KSPField]
-        public double maximumPower;
-       
+        public double maximumPower;       
         [KSPField]
         public float minimumPowerPercentage = 10;
+
         [KSPField]
         public string upgradeTechReqMk2 = null;
         [KSPField]
@@ -193,6 +197,21 @@ namespace FNPlugin.Reactors
         public double fuelEfficencyMk6 = 0;
         [KSPField]
         public double fuelEfficencyMk7 = 0;
+
+        [KSPField]
+        public double hotBathTemperatureMk1 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk2 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk3 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk4 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk5 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk6 = 0;
+        [KSPField]
+        public double hotBathTemperatureMk7 = 0;
 
         [KSPField]
         public double coreTemperatureMk1 = 0;
@@ -345,6 +364,8 @@ namespace FNPlugin.Reactors
         public double upgradedReactorTemp = 0;
         [KSPField]
         public string animName = "";
+        [KSPField]
+        public double animExponent = 1;
         [KSPField]
         public string loopingAnimationName = "";
         [KSPField]
@@ -1109,6 +1130,34 @@ namespace FNPlugin.Reactors
             get
             {
                 if (hotBathTemperature == 0)
+                {
+                    switch (CurrentGenerationType)
+                    {
+                        case GenerationType.Mk7:
+                            hotBathTemperature = hotBathTemperatureMk7;
+                            break;
+                        case GenerationType.Mk6:
+                            hotBathTemperature = hotBathTemperatureMk6;
+                            break;
+                        case GenerationType.Mk5:
+                            hotBathTemperature = hotBathTemperatureMk5;
+                            break;
+                        case GenerationType.Mk4:
+                            hotBathTemperature = hotBathTemperatureMk4;
+                            break;
+                        case GenerationType.Mk3:
+                            hotBathTemperature = hotBathTemperatureMk3;
+                            break;
+                        case GenerationType.Mk2:
+                            hotBathTemperature = hotBathTemperatureMk2;
+                            break;
+                        default:
+                            hotBathTemperature = hotBathTemperatureMk1;
+                            break;
+                    }
+                }
+
+                if (hotBathTemperature == 0)
                     return CoreTemperature * hotBathModifier;
                 else
                     return hotBathTemperature;
@@ -1822,9 +1871,9 @@ namespace FNPlugin.Reactors
                 plasma_propulsion_ratio = PlasmaPropulsionEfficiency * plasmaThrottleRatio;
                 charged_propulsion_ratio = ChargedParticlePropulsionEfficiency * chargedThrottleRatio;
 
-                var thermal_generator_ratio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
-                var plasma_generator_ratio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
-                var charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
+                thermal_generator_ratio = thermalEnergyEfficiency * storedGeneratorThermalEnergyRequestRatio;
+                plasma_generator_ratio = plasmaEnergyEfficiency * storedGeneratorPlasmaEnergyRequestRatio;
+                charged_generator_ratio = chargedParticleEnergyEfficiency * storedGeneratorChargedEnergyRequestRatio;
 
                 propulsion_request_ratio_sum = Math.Min(1, thermal_propulsion_ratio + plasma_propulsion_ratio + charged_propulsion_ratio);
 
@@ -1878,7 +1927,7 @@ namespace FNPlugin.Reactors
                 UpdateEmbrittlement(Math.Max(thermalThrottleRatio, plasmaThrottleRatio));
 
                 ongoing_consumption_rate = maximumPower > 0 ? ongoing_total_power_generated / maximumPower : 0;
-                PluginHelper.SetAnimationRatio((float)ongoing_consumption_rate, pulseAnimation);
+                PluginHelper.SetAnimationRatio((float)Math.Pow(ongoing_consumption_rate, animExponent), pulseAnimation);
                 powerPcnt = 100 * ongoing_consumption_rate;
 
                 // produce wasteheat
@@ -1939,6 +1988,11 @@ namespace FNPlugin.Reactors
             }
             else
             {
+                current_fuel_variants_sorted = CurrentFuelMode.GetVariantsOrderedByFuelRatio(this.part, FuelEfficiency, NormalisedMaximumPower, fuelUsePerMJMult);
+                current_fuel_variant = current_fuel_variants_sorted.FirstOrDefault();
+                fuel_mode_variant = current_fuel_variant.Name;
+                stored_fuel_ratio = CheatOptions.InfinitePropellant ? 1 : current_fuel_variant != null ? Math.Min(current_fuel_variant.FuelRatio, 1) : 0;
+
                 ongoing_total_power_generated = 0;
                 reactor_power_ratio = 0;
                 PluginHelper.SetAnimationRatio(0, pulseAnimation);
@@ -1994,11 +2048,21 @@ namespace FNPlugin.Reactors
 
         private void LookForAlternativeFuelTypes()
         {
+            var originalFuelMode = CurrentFuelMode;
+            var originalFuelRatio = stored_fuel_ratio;
+
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType1);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType2);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType3);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType4);
             SwitchToAlternativeFuelWhenAvailable(CurrentFuelMode.AlternativeFuelType5);
+
+            if (stored_fuel_ratio < 0.99)
+            {
+                Debug.Log("[KSPI]: " + "restored fuelmode to " + originalFuelMode.ModeGUIName);
+                CurrentFuelMode = originalFuelMode;
+                stored_fuel_ratio = originalFuelRatio;
+            }
         }
 
         private void SwitchToAlternativeFuelWhenAvailable(string alternativeFuelTypeName)
