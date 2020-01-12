@@ -102,6 +102,7 @@ namespace FNPlugin
         double maximum_requested_amount = 0;
         double current_consumed_amount = 0;
 
+        double current_stock_electric_charge_shortage;
         double previous_stock_electric_charge_shortage;
 
         int flow_type = 0;
@@ -678,7 +679,7 @@ namespace FNPlugin
 
                 my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
 
-                double current_stock_electric_charge_shortage = maxAmount - amount;
+                current_stock_electric_charge_shortage = maxAmount - amount;
 
                 double stock_electric_charge_needed =  current_stock_electric_charge_shortage - previous_stock_electric_charge_shortage;
                 if (stock_electric_charge_needed > 0)
@@ -699,9 +700,11 @@ namespace FNPlugin
 
                 my_part.GetConnectedResourceTotals(electricResourceDefinition.id, out amount, out maxAmount);
 
+                current_stock_electric_charge_shortage = maxAmount - amount;
+
                 if (!double.IsNaN(amount))
                 {
-                    var stock_electric_charge_needed = Math.Min(timeWarpFixedDeltaTime, maxAmount - amount);
+                    var stock_electric_charge_needed = Math.Min(timeWarpFixedDeltaTime, current_stock_electric_charge_shortage);
                     if (stock_electric_charge_needed > 0)
                     {
                         var deltaResourceDemand = stock_electric_charge_needed / 1000 / timeWarpFixedDeltaTime;
@@ -1381,7 +1384,7 @@ namespace FNPlugin
                 }
             }
 
-            if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES)
+            if (resource_name == ResourceManager.FNRESOURCE_MEGAJOULES && stored_supply >= stored_current_demand)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("DC Electrical System", left_aligned_label, GUILayout.ExpandWidth(true));
