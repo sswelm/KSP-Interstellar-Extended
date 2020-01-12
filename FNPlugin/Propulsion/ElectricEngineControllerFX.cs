@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
 using UnityEngine;
-using FNPlugin.Extensions;
 
 namespace FNPlugin
 {
@@ -70,9 +69,15 @@ namespace FNPlugin
         [KSPField]
         public double wasteHeatMultiplier = 1;
         [KSPField]
-        public double baseEfficency = 0.3;
+        public double baseIspIonisationDivider = 3000;
         [KSPField]
-        public double variableEfficency = 0.3;
+        public double minimumIonisationRatio = 0.05;
+        [KSPField]
+        public double ionisationMultiplier = 0.5;
+        [KSPField]
+        public double baseEfficency = 1;
+        [KSPField]
+        public double variableEfficency = 0;
         [KSPField]
         public float storedThrotle;
         [KSPField]
@@ -363,19 +368,35 @@ namespace FNPlugin
         {
             get
             {
-                var atmDensity = HighLogic.LoadedSceneIsFlight ? vessel.atmDensity : 0;
-
                 double efficiency;
 
                 if (type == (int)ElectricEngineType.ARCJET)
-                    efficiency = 0.87 * CurrentPropellant.Efficiency;
+                {
+                    // achieves higher efficiencies due to wasteheat preheating
+                    efficiency = (ionisationMultiplier * CurrentPropellant.Efficiency) + ((1 - ionisationMultiplier) * baseEfficency);
+                }
                 else if (type == (int)ElectricEngineType.VASIMR)
-                    efficiency = Math.Max(1 - atmDensity, 0.00001) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency));
-                else
-                    efficiency = CurrentPropellant.Efficiency;
+                {
+                    var ionisation_energy_ratio = _attachedEngine.currentThrottle > 0 
+                        ? minimumIonisationRatio + (_attachedEngine.currentThrottle * ionisationMultiplier) 
+                        : minimumIonisationRatio;
 
-                if (CurrentPropellant.IsInfinite)
-                    efficiency += lightSpeedRatio;
+                    ionisation_energy_ratio = Math.Min(1, ionisation_energy_ratio);
+
+                    efficiency = (ionisation_energy_ratio * CurrentPropellant.Efficiency) + ((1 - ionisation_energy_ratio) * (baseEfficency + ((1 - _attachedEngine.currentThrottle) * variableEfficency)));
+                }
+                else if (type == (int)ElectricEngineType.VACUUMTHRUSTER)
+                {
+                    // achieves higher efficiencies due to wasteheat preheating
+                    efficiency = CurrentPropellant.Efficiency;
+                }
+                else
+                {
+                    var ionisation_energy_ratio = Math.Min(1,  1 / (baseISP / baseIspIonisationDivider));
+
+                    // achieve higher efficiencies at higher base isp
+                    efficiency = (ionisation_energy_ratio * CurrentPropellant.Efficiency) + ((1 - ionisation_energy_ratio) * baseEfficency);
+                }
 
                 return efficiency;
             }
@@ -573,8 +594,10 @@ namespace FNPlugin
                     return;
                 }
 
-                var listOfPropellants = new List<Propellant>();
-                listOfPropellants.Add(CurrentPropellant.Propellant);
+                var listOfPropellants = new List<Propellant>
+                {
+                    CurrentPropellant.Propellant
+                };
 
                 // if all propellant exist
                 if (!listOfPropellants.Exists(prop => PartResourceLibrary.Instance.GetDefinition(prop.name) == null))
@@ -916,8 +939,9 @@ namespace FNPlugin
             var vacuumPlasmaResource = part.Resources[InterstellarResourcesConfiguration.Instance.VacuumPlasma];
             if (isupgraded && vacuumPlasmaResource != null)
             {
-                var calculatedConsumptionInTon = this.vessel.packed ? 0 : currentThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
-                vacuumPlasmaResource.maxAmount = Math.Max(0.0000001, calculatedConsumptionInTon * 200 * (double)(decimal)TimeWarp.fixedDeltaTime);
+                var calculatedConsumptionInTon = this.vessel.packed ? 0 : simulatedThrustInSpace / engineIsp / GameConstants.STANDARD_GRAVITY;
+                var vacuumPlasmaResourceAmount = calculatedConsumptionInTon * 2000 * TimeWarp.fixedDeltaTime;
+                vacuumPlasmaResource.maxAmount = vacuumPlasmaResourceAmount;
                 part.RequestResource(InterstellarResourcesConfiguration.Instance.VacuumPlasma, -vacuumPlasmaResource.maxAmount);
             }
         }

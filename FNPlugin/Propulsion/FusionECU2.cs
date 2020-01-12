@@ -21,6 +21,11 @@ namespace FNPlugin
         [KSPField(isPersistant = false, guiActive = true, guiName = "Temperature")]
         public string temperatureStr = "";
 
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Fuels")]
+        public string fuels;
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Ratios")]
+        public string ratios;
+
         [KSPField]
         public string fuelSwitchName = "Fusion Type";
         [KSPField(guiName = "Power Requirement Mk1", guiFormat = "F3", guiUnits = " MW")]
@@ -65,14 +70,14 @@ namespace FNPlugin
         public double powerMultiplier = 1;
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public bool hasIspThrottling = true;
-        [KSPField(guiActive = false, guiActiveEditor = false)]
+        [KSPField(guiActive = false, guiActiveEditor = true, guiName = "Isp", guiFormat = "F3", guiUnits = " s")]
         public float currentIsp;
         [KSPField(guiActive = false, guiActiveEditor = false)]
         public double neutronbsorbionBonus;
 
-        [KSPField(isPersistant = true, guiName = "Use MJ Battery"), UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool useMegajouleBattery = false;
-        [KSPField(guiActive = true, guiName = "Available Power", guiFormat = "F3")]
+        //[KSPField(isPersistant = true, guiName = "Use MJ Battery"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        //public bool useMegajouleBattery = false;
+        [KSPField(guiActive = true, guiName = "Available Power", guiFormat = "F3", guiUnits = " MW")]
         public double availablePower;
         [KSPField(guiActive = false, guiName = "Maximum FuelFlow", guiFormat = "F3")]
         public double maxFuelFlow;
@@ -277,7 +282,8 @@ namespace FNPlugin
 
         private void FcUpdate()
         {
-            if (!HighLogic.LoadedSceneIsFlight ||  vessel == null || !vessel.loaded || Altitude == lastAltitude) return;
+            if (HighLogic.LoadedSceneIsFlight && vessel == null)
+                return;
 
             FcSetup();
             lastAltitude = Altitude;
@@ -285,12 +291,13 @@ namespace FNPlugin
 
         private void FcSetup()
         {
-            if (!HighLogic.LoadedSceneIsFlight)
-                return;
+            if (HighLogic.LoadedSceneIsFlight)
+                Altitude = vessel.atmDensity;
+            else
+                Altitude = 0;
 
             try
             {
-                Altitude = vessel.atmDensity;
 
                 BaseField ispField = Fields["localIsp"];
 
@@ -344,7 +351,7 @@ namespace FNPlugin
         {
             base.UpdateFuel(isEditor);
 
-            if (isEditor) return;
+            //if (isEditor) return;
 
             Debug.Log("[KSPI]: Fusion Gui Updated");
             BaseFloatCurve = CurrentActiveConfiguration.atmosphereCurve;
@@ -514,16 +521,43 @@ namespace FNPlugin
             return max;
         }
 
-        private void UpdateAtmosphereCurve(float currentIsp )
+        private void UpdateAtmosphereCurveInVab(float currentIsp)
         {
-                var newIsp = new FloatCurve();
-                Altitude = vessel.atmDensity;
-                var origIsp = BaseFloatCurve.Evaluate((float)Altitude);
+            FcUpdate();
+            curEngineT.atmosphereCurve = BaseFloatCurve;
+            MinIsp = currentIsp;
+        }
 
-                FcUpdate();
-                newIsp.Add((float)Altitude, currentIsp);
-                curEngineT.atmosphereCurve = newIsp;
-                MinIsp = origIsp;
+        private void UpdateAtmosphereCurve(float currentIsp)
+        {
+            var newIsp = new FloatCurve();
+            Altitude = vessel.atmDensity;
+            var origIsp = BaseFloatCurve.Evaluate((float)Altitude);
+
+            FcUpdate();
+            newIsp.Add((float)Altitude, currentIsp);
+            curEngineT.atmosphereCurve = newIsp;
+            MinIsp = origIsp;
+        }
+
+        // Is called in the VAB
+        public virtual void Update()
+        {
+            if (HighLogic.LoadedSceneIsEditor)
+            {
+                SetRatios();
+
+                currentIsp = hasIspThrottling ? SelectedIsp : MinIsp;
+                UpdateAtmosphereCurveInVab(currentIsp);
+
+                maximumThrust = hasIspThrottling ? MaximumThrust : FullTrustMaximum;
+
+                // Update FuelFlow
+                maxFuelFlow = maximumThrust / currentIsp / GameConstants.STANDARD_GRAVITY;
+
+                curEngineT.maxFuelFlow = (float)maxFuelFlow;
+                curEngineT.maxThrust = (float)maximumThrust;
+            }
         }
 
         public override void OnFixedUpdate()
@@ -556,20 +590,16 @@ namespace FNPlugin
 
             ShowIspThrottle = hasIspThrottling;
 
-            
-
-            availablePower = useMegajouleBattery
-                ? getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES)
-                : getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES);
+            availablePower = Math.Max(getResourceAvailability(ResourceManager.FNRESOURCE_MEGAJOULES), getAvailablePrioritisedStableSupply(ResourceManager.FNRESOURCE_MEGAJOULES));
 
             if (throttle > 0 )
             {
                 var requestedPowerPerSecond = throttle * CurrentMaximumPowerRequirement;
 
-                var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
-                var effectivePowerThrotling = useMegajouleBattery ? 1 : resourceBarRatio > 0.1 ? 1 : resourceBarRatio * 10;
+                //var resourceBarRatio = getResourceBarRatio(ResourceManager.FNRESOURCE_MEGAJOULES);
+                //var effectivePowerThrotling = useMegajouleBattery ? 1 : resourceBarRatio > 0.1 ? 1 : resourceBarRatio * 10;
 
-                var requestedPower = Math.Min(requestedPowerPerSecond, availablePower * effectivePowerThrotling);
+                var requestedPower = Math.Min(requestedPowerPerSecond, availablePower);
 
                 var recievedPowerPerSecond = requestedPower <= 0 ? 0 
                     : CheatOptions.InfiniteElectricity
@@ -637,8 +667,10 @@ namespace FNPlugin
 
         private void SetRatios()
         {
-            var typeMaskCount = CurrentActiveConfiguration.TypeMasks.Count();
+            fuels = string.Join(" : ", CurrentActiveConfiguration.Fuels);
+            ratios = string.Join(" : ", CurrentActiveConfiguration.Ratios.Select(m => m.ToString()).ToArray());
 
+            var typeMaskCount = CurrentActiveConfiguration.TypeMasks.Count();
             for (var i = 0; i < CurrentActiveConfiguration.Fuels.Count(); i++)
             {
                 if (i < typeMaskCount && (CurrentActiveConfiguration.TypeMasks[i] & 1) == 1)

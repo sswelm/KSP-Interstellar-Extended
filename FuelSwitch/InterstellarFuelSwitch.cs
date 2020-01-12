@@ -800,17 +800,7 @@ namespace InterstellarFuelSwitch
                     newResourceNode.AddValue("name", selectedTankResource.name);
                     newResourceNode.AddValue("maxAmount", maxAmount);
 
-                    PartResource existingResource = null;
-                    if (!HighLogic.LoadedSceneIsEditor || (HighLogic.LoadedSceneIsEditor && !calledByPlayer))
-                    {
-                        foreach (var partResource in currentPart.Resources)
-                        {
-                            if (!partResource.resourceName.Equals(selectedTankResource.name)) continue;
-
-                            existingResource = partResource;
-                            break;
-                        }
-                    }
+                    PartResource existingResource = currentPart.Resources[selectedTankResource.name];
 
                     double resourceNodeAmount;
 
@@ -1700,10 +1690,10 @@ namespace InterstellarFuelSwitch
                 }
             }
 
-            if (found)
-                UnityEngine.Debug.Log("[IFS]: Found Habitat PartModule on " + part.partInfo.title);
-            else
-                UnityEngine.Debug.LogWarning("[IFS]: No Habitat PartModule found on " + part.partInfo.title);
+            //if (found)
+            //    UnityEngine.Debug.Log("[IFS]: Found Habitat PartModule on " + part.partInfo.title);
+            //else
+            //    UnityEngine.Debug.LogWarning("[IFS]: No Habitat PartModule found on " + part.partInfo.title);
         }
 
         private void UpdateHabitat(IFSmodularTank currentTank)

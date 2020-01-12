@@ -1,22 +1,18 @@
 {
-    "NAME":"KSP Interstellar Extended",
-    "URL":"http://ksp-avc.cybutek.net/version.php?id=152",
-    "DOWNLOAD":"https://www.curseforge.com/kerbal/ksp-mods/ksp-interstellar-extended",
-    "VERSION":
-    {
-        "MAJOR":1,
-        "MINOR":25,
-        "PATCH":0,
-        "BUILD":1
-    },
-    "KSP_VERSION_MIN":{
-        "MAJOR":1,
-        "MINOR":4,
-        "PATCH":2
-    },
-    "KSP_VERSION_MAX":{
-        "MAJOR":1,
-        "MINOR":7,
-        "PATCH":3
-    }
+	"NAME":"KSP Interstellar Extended",
+	"URL":"http://ksp-avc.cybutek.net/version.php?id=152",
+	"DOWNLOAD":"https://www.curseforge.com/kerbal/ksp-mods/ksp-interstellar-extended",
+	"VERSION":
+    	{
+		"MAJOR":1,
+		"MINOR":25,
+		"PATCH":4,
+		"BUILD":4
+    	},
+	"KSP_VERSION_MIN":
+	{
+		"MAJOR":1,
+		"MINOR":7,
+		"PATCH":3
+	}
 }
