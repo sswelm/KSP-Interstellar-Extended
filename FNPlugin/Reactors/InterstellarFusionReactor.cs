@@ -49,13 +49,6 @@ namespace FNPlugin.Reactors
         [KSPField(guiActive = false, guiName = "Required Ratio", guiFormat = "F4")]
         public double required_reactor_ratio;
 
-        public GenerationType FuelModeTechLevel
-        {
-            get { return (GenerationType)fuelModeTechLevel; }
-            private set { fuelModeTechLevel = (int)value; }
-        }
-
-
         public double MaximumChargedIspMult { get { return maximumChargedIspMult; } }
 
         public double MinimumChargdIspMult { get { return minimumChargdIspMult; } }
@@ -103,31 +96,6 @@ namespace FNPlugin.Reactors
         public double PowerRequirement { get { return RawPowerOutput / FusionEnergyGainFactor; } }
 
         public double NormalizedPowerRequirment { get { return PowerRequirement * CurrentFuelMode.NormalisedPowerRequirements; } }
-
-
-        public double FusionEnergyGainFactor
-        {
-            get
-            {
-                switch (FuelModeTechLevel)
-                {
-                    case GenerationType.Mk7:
-                        return fusionEnergyGainFactorMk7;
-                    case GenerationType.Mk6:
-                        return fusionEnergyGainFactorMk6;
-                    case GenerationType.Mk5:
-                        return fusionEnergyGainFactorMk5;
-                    case GenerationType.Mk4:
-                        return fusionEnergyGainFactorMk4;
-                    case GenerationType.Mk3:
-                        return fusionEnergyGainFactorMk3;
-                    case GenerationType.Mk2:
-                        return fusionEnergyGainFactorMk2;
-                    default:
-                        return fusionEnergyGainFactorMk1;
-                }
-            }
-        }
 
         private void InitialiseGainFactors()
         {
