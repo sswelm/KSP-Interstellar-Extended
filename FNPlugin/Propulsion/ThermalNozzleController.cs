@@ -166,13 +166,12 @@ namespace FNPlugin
         public string EffectNameNonLFO = String.Empty;
         [KSPField]
         public string EffectNameLithium = String.Empty;
-
-
+        [KSPField]
+        public string EffectNameSpool= String.Empty;
         [KSPField]
         public string runningEffectNameLFO = String.Empty;
         [KSPField]
         public string runningEffectNameNonLFO = String.Empty;
-
         [KSPField]
         public string powerEffectNameLFO = String.Empty;
         [KSPField]
@@ -375,6 +374,10 @@ namespace FNPlugin
         public double effectiveThrustFraction = 1;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Electricaly Powered", guiUnits = "%", guiFormat = "F3")]
         public double received_megajoules_percentage;
+
+
+        [KSPField(isPersistant = true, guiActive = true, guiName = "Jet Spool Ratio", guiFormat = "F2")]
+        public float jetSpoolRatio = 0;
 
         [KSPField]
         public double minimumThrust = 0.000001;
@@ -878,7 +881,7 @@ namespace FNPlugin
             catch (Exception e) { Debug.LogError("[KSPI]: OnStart Exception in SetupPropellant" + e.Message); }
         }
 
-        private void ConfigEffects()
+        private void UpdateConfigEffects()
         {
             if (myAttachedEngine is ModuleEnginesFX)
             {
@@ -1497,7 +1500,7 @@ namespace FNPlugin
                 }
                 else if (overrideVelocityCurve && jetPerformanceProfile == 1)   // Turbojet
                 {
-                    velCurve.Add(0, 0.50f + _jetTechBonusPercentage);
+                    velCurve.Add(0, 0.40f + _jetTechBonusPercentage);
                     velCurve.Add(1, 1.00f);
                     velCurve.Add(2, 0.75f + _jetTechBonusPercentage);
                     velCurve.Add(3, 0.50f + _jetTechBonusPercentage);
@@ -1636,14 +1639,14 @@ namespace FNPlugin
 
             try
             {
-                ConfigEffects();
+                UpdateConfigEffects();
 
                 if (myAttachedEngine.currentThrottle > 0)
                 {
                     if (!exhaustAllowed)
                     {
-                        string message = AttachedReactor.MayExhaustInLowSpaceHomeworld 
-                            ? "Engine halted - Radioactive exhaust not allowed towards or inside homeworld atmosphere" 
+                        string message = AttachedReactor.MayExhaustInLowSpaceHomeworld
+                            ? "Engine halted - Radioactive exhaust not allowed towards or inside homeworld atmosphere"
                             : "Engine halted - Radioactive exhaust not allowed towards or near homeworld atmosphere";
 
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
@@ -1665,14 +1668,14 @@ namespace FNPlugin
                     previousDelayedThrottle = delayedThrottle;
                     delayedThrottle = Math.Min(delayedThrottle + timeWarpFixedDeltaTime * myAttachedEngine.engineAccelerationSpeed, minThrottle);
                 }
-                else if (minThrottle > 0 &&  requestedThrottle == 0 && AttachedReactor.ReactorSpeedMult > 0)
+                else if (minThrottle > 0 && requestedThrottle == 0 && AttachedReactor.ReactorSpeedMult > 0)
                 {
                     delayedThrottle = Math.Max(delayedThrottle - timeWarpFixedDeltaTime * myAttachedEngine.engineAccelerationSpeed, 0);
                     previousDelayedThrottle = adjustedThrottle;
                 }
                 else
                 {
-                    previousDelayedThrottle = previousThrottle; 
+                    previousDelayedThrottle = previousThrottle;
                     delayedThrottle = minThrottle;
                 }
 
@@ -1789,16 +1792,25 @@ namespace FNPlugin
                     newIsp.Add(0, (float)effectiveIsp, 0, 0);
                     myAttachedEngine.atmosphereCurve = newIsp;
 
-                    if (myAttachedEngine.useVelCurve)
-                    {
-                        vcurveAtCurrentVelocity = myAttachedEngine.velCurve.Evaluate((float)vessel.srf_velocity.magnitude);
+                    if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
+                        vcurveAtCurrentVelocity = myAttachedEngine.velCurve.Evaluate((float)(vessel.speed / vessel.speedOfSound));
+                    else
+                        vcurveAtCurrentVelocity = 0;
 
-                        if (vcurveAtCurrentVelocity > 0 && !float.IsNaN(vcurveAtCurrentVelocity) && !float.IsInfinity(vcurveAtCurrentVelocity))
-                            calculatedMaxThrust *= vcurveAtCurrentVelocity;
-                        else
+                    UpdateJetSpoolSpeed();
+
+                    if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
+                    {
+                        if (float.IsNaN(jetSpoolRatio) || float.IsInfinity(jetSpoolRatio))
                         {
                             max_fuel_flow_rate = 0;
                             calculatedMaxThrust = 0;
+                            jetSpoolRatio = 0;
+                        }
+                        else
+                        {
+                            calculatedMaxThrust *= (jetSpoolRatio * vcurveAtCurrentVelocity);
+                            max_fuel_flow_rate *= jetSpoolRatio;
                         }
                     }
 
@@ -1834,6 +1846,9 @@ namespace FNPlugin
                     }
                 }
 
+                if (!String.IsNullOrEmpty(EffectNameSpool))
+                    part.Effect(EffectNameSpool, (float)jetSpoolRatio, -1);
+
                 if (myAttachedEngine.getIgnitionState && myAttachedEngine.status == _flameoutText)
                 {
                     myAttachedEngine.maxFuelFlow = 1e-10f;
@@ -1843,6 +1858,14 @@ namespace FNPlugin
             {
                 Debug.LogError("[KSPI]: Error FixedUpdate " + e.Message + " Source: " + e.Source + " Stack trace: " + e.StackTrace);
             }
+        }
+
+        private void UpdateJetSpoolSpeed()
+        {
+            if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
+                jetSpoolRatio += Math.Min(TimeWarp.fixedDeltaTime * 0.1f, 1 - jetSpoolRatio);
+            else
+                jetSpoolRatio -= Math.Min(TimeWarp.fixedDeltaTime * 0.1f, jetSpoolRatio);
         }
 
         private void UpdateAtmosphericPresureTreshold()
@@ -2044,17 +2067,24 @@ namespace FNPlugin
                 max_fuel_flow_rate = max_thrust_for_fuel_flow / current_isp / GameConstants.STANDARD_GRAVITY;
 
                 if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
-                {
                     vcurveAtCurrentVelocity = myAttachedEngine.velCurve.Evaluate((float)(vessel.speed / vessel.speedOfSound));
+                else
+                    vcurveAtCurrentVelocity = 0;
 
-                    if (vcurveAtCurrentVelocity > 0 && !float.IsNaN(vcurveAtCurrentVelocity) && !float.IsInfinity(vcurveAtCurrentVelocity))
-                    {
-                        calculatedMaxThrust *= vcurveAtCurrentVelocity;
-                    }
-                    else
+                UpdateJetSpoolSpeed();
+
+                if (myAttachedEngine.useVelCurve && myAttachedEngine.velCurve != null)
+                {
+                    if (float.IsNaN(jetSpoolRatio) || float.IsInfinity(jetSpoolRatio))
                     {
                         max_fuel_flow_rate = 1e-10;
                         calculatedMaxThrust = 0;
+                        jetSpoolRatio = 0;
+                    }
+                    else
+                    {
+                        calculatedMaxThrust *= (jetSpoolRatio * vcurveAtCurrentVelocity);
+                        max_fuel_flow_rate *= jetSpoolRatio;
                     }
                 }
 
