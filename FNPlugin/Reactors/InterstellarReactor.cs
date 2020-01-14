@@ -839,6 +839,36 @@ namespace FNPlugin.Reactors
             }
         }
 
+        public GenerationType FuelModeTechLevel
+        {
+            get { return (GenerationType)fuelModeTechLevel; }
+            private set { fuelModeTechLevel = (int)value; }
+        }
+
+        public double FusionEnergyGainFactor
+        {
+            get
+            {
+                switch (FuelModeTechLevel)
+                {
+                    case GenerationType.Mk7:
+                        return fusionEnergyGainFactorMk7;
+                    case GenerationType.Mk6:
+                        return fusionEnergyGainFactorMk6;
+                    case GenerationType.Mk5:
+                        return fusionEnergyGainFactorMk5;
+                    case GenerationType.Mk4:
+                        return fusionEnergyGainFactorMk4;
+                    case GenerationType.Mk3:
+                        return fusionEnergyGainFactorMk3;
+                    case GenerationType.Mk2:
+                        return fusionEnergyGainFactorMk2;
+                    default:
+                        return fusionEnergyGainFactorMk1;
+                }
+            }
+        }
+
         public virtual double MinimumThrottle
         {
             get
@@ -2398,6 +2428,7 @@ namespace FNPlugin.Reactors
                        fm.AllFuelResourcesDefinitionsAvailable && fm.AllProductResourcesDefinitionsAvailable
                     && (fm.SupportedReactorTypes & ReactorType) == ReactorType
                     && maximumFuelTechLevel >= fm.TechLevel
+                    && FusionEnergyGainFactor >= fm.MinimumFusionGainFactor
                     && (fm.Aneutronic || canUseNeutronicFuels)
                     && maxGammaRayPower >= fm.GammaRayEnergy)
                 .GroupBy(mode => mode.ModeGUIName).Select(group => new ReactorFuelType(group)).OrderBy(m => m.TechLevel).ToList();
@@ -2504,6 +2535,7 @@ namespace FNPlugin.Reactors
                     && (fm.SupportedReactorTypes & ReactorType) == ReactorType
                     && PluginHelper.HasTechRequirementOrEmpty(fm.TechRequirement)
                     && ReactorFuelModeTechLevel >= fm.TechLevel
+                    && FusionEnergyGainFactor >= fm.MinimumFusionGainFactor
                     && (fm.Aneutronic || canUseNeutronicFuels)
                     && maxGammaRayPower >= fm.GammaRayEnergy
                     && fm.NeutronsRatio <= maxNeutronsRatio 

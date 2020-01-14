@@ -56,6 +56,7 @@ namespace FNPlugin.Reactors
             Index = first.Index;
             ModeGUIName = first.ModeGUIName;
             TechLevel = first.TechLevel;
+            MinimumFusionGainFactor = first.MinimumFusionGainFactor;
             TechRequirement = first.TechRequirement;
             SupportedReactorTypes = first.SupportedReactorTypes;
             Aneutronic = first.Aneutronic;
@@ -84,6 +85,7 @@ namespace FNPlugin.Reactors
         public float NormalisedReactionRate { get; private set; }
         public float NormalisedPowerRequirements { get; private set; }
         public int TechLevel { get; private set; }
+        public int MinimumFusionGainFactor { get; private set; }
         public float NeutronsRatio { get; private set; }
         public float TritiumBreedModifier { get; private set; }
         public double FuelEfficencyMultiplier { get; private set; }
@@ -129,7 +131,9 @@ namespace FNPlugin.Reactors
         protected bool _requires_lab;
         protected bool _requires_upgrade;
         protected int _techLevel;
+        protected int _minimumQ;
         protected bool _aneutronic;
+
         protected double _gammaRayEnergy;
         protected double _fuelUseInGramPerTeraJoule;
         protected double _gigawattPerGram;
@@ -168,6 +172,7 @@ namespace FNPlugin.Reactors
             _requires_lab = node.HasValue("RequiresLab") ? Boolean.Parse(node.GetValue("RequiresLab")) : false;
             _requires_upgrade = node.HasValue("RequiresUpgrade") ? Boolean.Parse(node.GetValue("RequiresUpgrade")) : false;
             _techLevel = node.HasValue("TechLevel") ? Int32.Parse(node.GetValue("TechLevel")) : 0;
+            _minimumQ = node.HasValue("MinimumQ") ? Int32.Parse(node.GetValue("MinimumQ")) : 0;
             _aneutronic = node.HasValue("Aneutronic") ? Boolean.Parse(node.GetValue("Aneutronic")) : false;
             _gammaRayEnergy = node.HasValue("GammaRayEnergy") ? Double.Parse(node.GetValue("GammaRayEnergy")) : 0;
 
@@ -225,6 +230,8 @@ namespace FNPlugin.Reactors
         public float NormalisedPowerRequirements { get { return _normpowerrequirements; } }
 
         public int TechLevel { get { return _techLevel; } }
+
+        public int MinimumFusionGainFactor { get { return _minimumQ; } }
 
         public float NeutronsRatio { get { return _neutrons_ratio; } }
 

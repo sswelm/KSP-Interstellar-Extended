@@ -901,9 +901,8 @@ namespace FNPlugin
                 if (!String.IsNullOrEmpty(powerEffectNameLFO))
                     part.Effect(powerEffectNameLFO, 0, -1);
 
-                if (_currentpropellant_is_jet && !String.IsNullOrEmpty(EffectNameJet))
-                    _powerEffectNameParticleFX = EffectNameJet;
-                else if (_propellantIsLFO)
+
+                if (_propellantIsLFO)
                 {
                     if (!String.IsNullOrEmpty(powerEffectNameLFO))
                         _powerEffectNameParticleFX = powerEffectNameLFO;
@@ -913,7 +912,10 @@ namespace FNPlugin
                     if (!String.IsNullOrEmpty(runningEffectNameLFO))
                         _runningEffectNameParticleFX = runningEffectNameLFO;
                 }
-
+                else if (_currentpropellant_is_jet && !String.IsNullOrEmpty(EffectNameJet))
+                {
+                    _powerEffectNameParticleFX = EffectNameJet;
+                }
                 else if (_isNeutronAbsorber)
                 {
                     if (!String.IsNullOrEmpty(EffectNameLithium))
