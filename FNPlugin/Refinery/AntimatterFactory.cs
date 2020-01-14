@@ -5,7 +5,7 @@ namespace FNPlugin.Refinery
 {
     class AntimatterFactory : ResourceSuppliableModule
     {
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false), UI_Toggle(disabledText = "#LOC_KSPIE_AntimatterFactory_Off", enabledText = "#LOC_KSPIE_AntimatterFactory_On")]//OffOn
         public bool isActive = false;
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterFactory_powerPecentage"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100, minValue = 1)]
         public float powerPercentage = 100;
@@ -24,7 +24,7 @@ namespace FNPlugin.Refinery
         public double productionRate;
         [KSPField]
         public double efficiencyMultiplier = 10;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Maximum Power capacity", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterFactory_MaximumPowercapacity", guiUnits = " MW")]//Maximum Power capacity
         public double powerCapacity = 1000;
         [KSPField]
         public string resourceName = "Positrons";
@@ -70,16 +70,16 @@ namespace FNPlugin.Refinery
             if (antimatter_rate_per_day > 0.1)
             {
                 if (antimatter_rate_per_day > 1000)
-                    productionRateTxt = (antimatter_rate_per_day / 1e3).ToString("0.0000") + " g/day";
+                    productionRateTxt = (antimatter_rate_per_day / 1e3).ToString("0.0000") + " g/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
                 else
-                    productionRateTxt = (antimatter_rate_per_day).ToString("0.0000") + " mg/day";
+                    productionRateTxt = (antimatter_rate_per_day).ToString("0.0000") + " mg/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
             }
             else
             {
                 if (antimatter_rate_per_day > 0.1e-3)
-                    productionRateTxt = (antimatter_rate_per_day * 1e3).ToString("0.0000") + " ug/day";
+                    productionRateTxt = (antimatter_rate_per_day * 1e3).ToString("0.0000") + " ug/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
                 else
-                    productionRateTxt = (antimatter_rate_per_day * 1e6).ToString("0.0000") + " ng/day";
+                    productionRateTxt = (antimatter_rate_per_day * 1e6).ToString("0.0000") + " ng/" + Localizer.Format("#LOC_KSPIE_AntimatterFactory_perday");//day
             }
         }
 

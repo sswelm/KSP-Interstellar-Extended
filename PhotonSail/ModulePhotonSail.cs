@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TweakScale;
 using UnityEngine;
+using KSP.Localization;
 
 namespace PhotonSail
 {
@@ -53,48 +54,48 @@ namespace PhotonSail
         public double reflectedPhotonRatio = 0.975;
         [KSPField]
         public double backsideEmissivity = 1;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Surface Area", guiUnits = " m\xB2", guiFormat = "F0")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_surfaceArea", guiUnits = " m\xB2", guiFormat = "F0")]//Sail Surface Area
         public double surfaceArea = 144400;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Diameter", guiUnits = " m", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_diameter", guiUnits = " m", guiFormat = "F3")]//Sail Diameter
         public double diameter;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Mass", guiUnits = " t")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_partMass", guiUnits = " t")]//Sail Mass
         public float partMass;
 
-        [KSPField(guiActiveEditor = true, guiName = "Sail Front Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_frontPhotovoltaicArea", guiUnits = " m\xB2", guiFormat = "F5")]//Sail Front Solar Cell Area
         public double frontPhotovoltaicArea = 1;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Back Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_backPhotovoltaicArea", guiUnits = " m\xB2", guiFormat = "F5")]//Sail Back Solar Cell Area
         public double backPhotovoltaicArea = 1;
-        [KSPField(guiActiveEditor = true, guiName = "Doors Solar Cell Area", guiUnits = " m\xB2", guiFormat = "F5")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_doorsPhotovoltaicArea", guiUnits = " m\xB2", guiFormat = "F5")]//Doors Solar Cell Area
         public double doorsPhotovoltaicArea = 1;
 
-        [KSPField(guiActiveEditor = true, guiName = "Sail Min wavelength", guiUnits = " m")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_minimumWavelength", guiUnits = " m")]//Sail Min wavelength
         public double minimumWavelength = 0.000000620;
-        [KSPField(guiActiveEditor = true, guiName = "Sail Max wavelength", guiUnits = " m")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_maximumWavelength", guiUnits = " m")]//Sail Max wavelength
         public double maximumWavelength = 0.01;
 
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Max heat dissipation", guiUnits = " MJ/s", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_PhotonSail_maxSailHeatDissipationInMegajoules", guiUnits = " MJ/s", guiFormat = "F3")]//Sail Max heat dissipation
         public double maxSailHeatDissipationInMegajoules;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Cur heat dissipation", guiUnits = " MJ/s", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_PhotonSail_currentSailHeatingInMegajoules", guiUnits = " MJ/s", guiFormat = "F3")]//Sail Cur heat dissipation
         public double currentSailHeatingInMegajoules;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Dissipation temperature", guiUnits = " K", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_PhotonSail_sailHeatDissipationTemperature", guiUnits = " K", guiFormat = "F3")]//Sail Dissipation temperature
         public double sailHeatDissipationTemperature;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Sail Absorbed heat", guiUnits = " J/s", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_PhotonSail_absorbedPhotonHeatInWatt", guiUnits = " J/s", guiFormat = "F3")]//Sail Absorbed heat
         public double absorbedPhotonHeatInWatt;
 
-        [KSPField(guiActiveEditor = false, guiName = "Solar Cell Tech 1")]
+        [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_SolarCellTech1")]//Solar Cell Tech 1
         public string solarPhotovoltaicTech1 = "photovoltaicSailUpgradeA";
-        [KSPField(guiActiveEditor = false, guiName = "Solar Cell Tech 2")]
+        [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_SolarCellTech2")]//Solar Cell Tech 2
         public string solarPhotovoltaicTech2 = "photovoltaicSailUpgradeB";
-        [KSPField(guiActiveEditor = false, guiName = "Solar Cell Tech 3")]
+        [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_SolarCellTech3")]//Solar Cell Tech 3
         public string solarPhotovoltaicTech3 = "photovoltaicSailUpgradeC";
 
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 0", guiUnits = "%")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_SolarPhotovoltaicEfficiency0", guiUnits = "%")]//Solar Cell Efficiency Mk 0
         public double solarPhotovoltaicEfficiency0 = 10;
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 1", guiUnits = "%")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_SolarPhotovoltaicEfficiency1", guiUnits = "%")]//Solar Cell Efficiency Mk 1
         public double solarPhotovoltaicEfficiency1 = 15;
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 2", guiUnits = "%")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_SolarPhotovoltaicEfficiency2", guiUnits = "%")]//Solar Cell Efficiency Mk 2
         public double solarPhotovoltaicEfficiency2 = 20;
-        [KSPField(guiActiveEditor = true, guiName = "Solar Cell Efficiency Mk 3", guiUnits = "%")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_SolarPhotovoltaicEfficiency3", guiUnits = "%")]//Solar Cell Efficiency Mk 3
         public double solarPhotovoltaicEfficiency3 = 25;
 
 
@@ -211,19 +212,19 @@ namespace PhotonSail
         [KSPField]
         public double massReductionMult5 = 2;
 
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "KCS Laser Power", guiUnits = " GW", guiFormat = "F0")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_PhotonSail_KCSLaserPower", guiUnits = " GW", guiFormat = "F0")]//KCS Laser Power
         public double kscLaserPowerInGigaWatt;
-        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Power", guiUnits = " W", guiFormat = "F0")]
+        [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_KCSLaserPower", guiUnits = " W", guiFormat = "F0")]//KCS Laser Power
         public double kscLaserPowerInWatt = 5e12;
-        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Central Spotsize Mult")]
+        [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_KSCCentralSpotsizeMult")]//KCS Laser Central Spotsize Mult
         public double kscCentralSpotsizeMult = 2;           // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
-        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Side Spotsize Mult")]
+        [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_KSCSideSpotsizeMult")]//KCS Laser Side Spotsize Mult
         public double kscSideSpotsizeMult = 22;
-        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Central Spot Ratio")]
+        [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_KSCCentralSpotEnergyRatio")]//KCS Laser Central Spot Ratio
         public double kscCentralSpotEnergyRatio = 0.7;    // http://breakthroughinitiatives.org/i/docs/170919_bidders_briefing_zoom_room_final.pdf
-        [KSPField(guiActiveEditor = false, guiName = "KCS Laser Central Spot Ratio")]
+        [KSPField(guiActiveEditor = false, guiName = "#LOC_PhotonSail_KSCSideSpotEnergyRatio")]//KCS Laser Side Spot Ratio
         public double kscSideSpotEnergyRatio = 0.25; 
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Min Elevation Angle")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_KSCLaserMinElevationAngle")]//KCS Laser Min Elevation Angle
         public double kscLaserMinElevationAngle = 70;
 
         [KSPField]
@@ -234,95 +235,95 @@ namespace PhotonSail
         public double kscLaserLongitude = -74.594841003417997;
         [KSPField]
         public double kscLaserAltitude = 20;
-        [KSPField(guiActiveEditor = true, guiName = "KCS Phased Array Aperture", guiUnits = " m")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_KSCLaserAperture", guiUnits = " m")]//KCS Phased Array Aperture
         public double kscLaserAperture = 2000;        // 1 KM is used for starshot
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Wavelength", guiUnits = " m")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_KSCLaserWavelength", guiUnits = " m")]//KCS Laser Wavelength
         public double kscLaserWavelength = 1.06e-6; // 1.06 milimeter is used by project starshot
-        [KSPField(guiActiveEditor = true, guiName = "KCS Laser Reflection", guiFormat = "F5", guiUnits = "%")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_PhotonSail_KSCPhotonReflectionPercentage", guiFormat = "F5", guiUnits = "%")]//KCS Laser Reflection
         public double kscPhotonReflectionPercentage;
 
         //0.0000342; // @ 11 micrometer with unprotected coating   https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=744
 
-        [KSPField(guiActive = true, guiName = "Skin Temperature", guiFormat = "F3", guiUnits = " K°")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_SkinTemperature", guiFormat = "F3", guiUnits = " K°")]//Skin Temperature
         public double skinTemperature;
         [KSPField(guiActive = true, guiName = "#autoLOC_6001421", guiFormat = "F4", guiUnits = " EC/s")]
         public double photovoltalicFlowRate;
-        [KSPField(guiActive = false, guiName = "photovoltalic Potential", guiFormat = "F4", guiUnits = " EC/s")]
+        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_PhotovoltalicPotential", guiFormat = "F4", guiUnits = " EC/s")]//photovoltalic Potential
         public double photovoltalicPotential;
 
-        [KSPField(guiActive = false, guiName = "External Temperature", guiFormat = "F4", guiUnits = " K°")]
+        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_ExternalTemperature", guiFormat = "F4", guiUnits = " K°")]//External Temperature
         public double externalTemperature;
-        [KSPField(guiActive = true, guiName = "Current Skin Dissipation", guiFormat = "F4", guiUnits = " MJ")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_DissipationInMegaJoules", guiFormat = "F4", guiUnits = " MJ")]//Current Skin Dissipation
         public double dissipationInMegaJoules;
-        [KSPField(guiActive = true, guiName = "Solar Flux", guiFormat = "F3", guiUnits = " W/m\xB2")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_totalSolarFluxInWatt", guiFormat = "F3", guiUnits = " W/m\xB2")]//Solar Flux
         public double totalSolarFluxInWatt;
-        [KSPField(guiActive = true, guiName = "Solar Force Max", guiFormat = "F5", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_totalForceInNewtonFromSolarEnergy", guiFormat = "F5", guiUnits = " N")]//Solar Force Max
         public double totalForceInNewtonFromSolarEnergy = 0;
-        [KSPField(guiActive = true, guiName = "Solar Energy Received", guiFormat = "F5", guiUnits = " MJ/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_TotalSolarEnergyReceivedInMJ", guiFormat = "F5", guiUnits = " MJ/s")]//Solar Energy Received
         public double totalSolarEnergyReceivedInMJ;
-        [KSPField(guiActive = true, guiName = "Solar Force Sail", guiFormat = "F5", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_solar_force_d", guiFormat = "F5", guiUnits = " N")]//Solar Force Sail
         public double solar_force_d = 0;
-        [KSPField(guiActive = true, guiName = "Solar Acceleration")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_SolarAcc")]//Solar Acceleration
         public string solarAcc;
-        [KSPField(guiActive = true, guiName = "Solar Pitch Angle", guiFormat = "F3", guiUnits = "°")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_SolarSailAngle", guiFormat = "F3", guiUnits = "°")]//Solar Pitch Angle
         public double solarSailAngle = 0;
-        [KSPField(guiActive = true, guiName = "Solar Energy Absorbed", guiFormat = "F3", guiUnits = " MJ/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_SolarfluxWasteheatInMegaJoules", guiFormat = "F3", guiUnits = " MJ/s")]//Solar Energy Absorbed
         public double solarfluxWasteheatInMegaJoules;
 
-        [KSPField(guiActive = false, guiName = "Network power", guiFormat = "F4", guiUnits = " MW")]
+        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_maxNetworkPower", guiFormat = "F4", guiUnits = " MW")]//Network power
         public double maxNetworkPower;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "KCS Power Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0, requireFullControl = false)]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_PhotonSail_KSCBeamedPowerThrottle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0, requireFullControl = false)]//KCS Power Throttle
         public float kcsBeamedPowerThrottle = 0;
-        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "Beamed Power Throttle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0, requireFullControl = false)]
+        [KSPField(isPersistant = true, guiActiveEditor = false, guiActive = true, guiName = "#LOC_PhotonSail_BeamedPowerThrottle", guiUnits = "%"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = 0, requireFullControl = false)]//Beamed Power Throttle
         public float beamedPowerThrottle = 0;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Beamed Push Direction"), UI_Toggle(disabledText = "Backward", enabledText = "Forward", requireFullControl = false)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_PhotonSail_BeamedPowerForwardDirection"), UI_Toggle(disabledText = "#LOC_PhotonSail_Backward", enabledText = "#LOC_PhotonSail_Forward", requireFullControl = false)]//Beamed Push Direction-Backward-Forward
         public bool beamedPowerForwardDirection = true;
 
-        [KSPField(guiActive = false, guiName = "Energy Available from KSC", guiFormat = "F2", guiUnits = " W")]
+        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_AvailableBeamedKscEnergy", guiFormat = "F2", guiUnits = " W")]//Energy Available from KSC
         public double availableBeamedKscEnergy;
-        [KSPField(guiActive = false, guiName = "Energy Received from KSC", guiFormat = "F2", guiUnits = " W")]
+        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_ReceivedBeamedPowerFromKSC", guiFormat = "F2", guiUnits = " W")]//Energy Received from KSC
         public double receivedBeamedPowerFromKsc;
-        [KSPField(guiActive = true, guiName = "KSC Laser Elevation Angle", guiFormat = "F2", guiUnits = "°")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_KSCLaserElevationAngle", guiFormat = "F2", guiUnits = "°")]//KSC Laser Elevation Angle
         public double kscLaserElevationAngle;
 
-        [KSPField(guiActive = false, guiName = "Beamed Energy", guiFormat = "F4", guiUnits = " MJ/s")]
+        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_TotalReceivedBeamedPower", guiFormat = "F4", guiUnits = " MJ/s")]//Beamed Energy
         public double totalReceivedBeamedPower;
-        [KSPField(guiActive = true, guiName = "Beamed Energy", guiFormat = "F4", guiUnits = " GJ/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_TotalReceivedBeamedPower", guiFormat = "F4", guiUnits = " GJ/s")]//Beamed Energy
         public double totalReceivedBeamedPowerInGigaWatt;
-        [KSPField(guiActive = true, guiName = "Beamed Connections")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_ConnectedTransmittersCount")]//Beamed Connections
         public int connectedTransmittersCount;
-        [KSPField(guiActive = true, guiName = "Beamed Potential Force", guiFormat = "F4", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_TotalForceInNewtonFromBeamedPower", guiFormat = "F4", guiUnits = " N")]//Beamed Potential Force
         public double totalForceInNewtonFromBeamedPower = 0;
-        [KSPField(guiActive = true, guiName = "Beamed Pitch Angle", guiFormat = "F3", guiUnits = "°")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_WeightedBeamPowerPitch", guiFormat = "F3", guiUnits = "°")]//Beamed Pitch Angle
         public double weightedBeamPowerPitch;
-        [KSPField(guiActive = true, guiName = "Beamed Spotsize", guiFormat = "F3", guiUnits = " m")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_WeightedBeamedPowerSpotsize", guiFormat = "F3", guiUnits = " m")]//Beamed Spotsize
         public double weightedBeamedPowerSpotsize;
-        [KSPField(guiActive = true, guiName = "Beamed Sail Force", guiFormat = "F3", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_BeamedSailForce", guiFormat = "F3", guiUnits = " N")]//Beamed Sail Force
         public double beamedSailForce = 0;
-        [KSPField(guiActive = true, guiName = "Beamed Acceleration")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_BeamedAcc")]//Beamed Acceleration
         public string beamedAcc;
-        [KSPField(guiActive = true, guiName = "Beamed Energy Absorbed", guiFormat = "F3", guiUnits = " MJ/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_BeamPowerWasteheatInMegaJoules", guiFormat = "F3", guiUnits = " MJ/s")]//Beamed Energy Absorbed
         public double beamPowerWasteheatInMegaJoules;
 
-        [KSPField(guiActive = false, guiName = "Atmospheric Density", guiUnits = " kg/m\xB2")]
+        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_AtmosphericGasKgPerSquareMeter", guiUnits = " kg/m\xB2")]//Atmospheric Density
         public double atmosphericGasKgPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "Maximum Drag", guiUnits = " N/m\xB2")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_MaximumDragPerSquareMeter", guiUnits = " N/m\xB2")]//Maximum Drag
         public float maximumDragPerSquareMeter;
-        [KSPField(guiActive = true, guiName = "Drag Coefficient", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_WeightedDragCoefficient", guiFormat = "F3")]//Drag Coefficient
         public double weightedDragCoefficient;
-        [KSPField(guiActive = true, guiName = "Drag Heat Absorbed", guiFormat = "F3", guiUnits = " MJ/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_DragHeatInMegajoule", guiFormat = "F3", guiUnits = " MJ/s")]//Drag Heat Absorbed
         public double dragHeatInMegajoule;
-        [KSPField(guiActive = true, guiName = "Diffuse Drag", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_DiffuseSailDragInNewton", guiUnits = " N")]//Diffuse Drag
         public float diffuseSailDragInNewton;
-        [KSPField(guiActive = true, guiName = "Specular Drag", guiUnits = " N")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_SpecularSailInNewton", guiUnits = " N")]//Specular Drag
         public float specularSailDragInNewton;
-        [KSPField(guiActive = true, guiName = "Abs Periapsis Change", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_PeriapsisChange", guiFormat = "F3", guiUnits = " m/s")]//Abs Periapsis Change
         public double periapsisChange;
-        [KSPField(guiActive = true, guiName = "Abs Apapsis Change", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_ApapsisChange", guiFormat = "F3", guiUnits = " m/s")]//Abs Apapsis Change
         public double apapsisChange;
-        [KSPField(guiActive = true, guiName = "Orbit Diameter Change", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = true, guiName = "#LOC_PhotonSail_OrbitSizeChange", guiFormat = "F3", guiUnits = " m/s")]//Orbit Diameter Change
         public double orbitSizeChange;
-        [KSPField(guiActive = false, guiName = "Can See KCS")]
+        [KSPField(guiActive = false, guiName = "#LOC_PhotonSail_HasLineOfSightToKSC")]//Can See KCS
         public bool hasLineOfSightToKtc;
 
         //[KSPField(isPersistant = true, guiActive = true, guiName = "Global Acceleration", guiUnits = "m/s"), UI_FloatRange(stepIncrement = 1, maxValue = 100, minValue = -100)]
@@ -399,7 +400,7 @@ namespace PhotonSail
         public Part Part { get { return part; } }
 
         // GUI to deploy sail
-        [KSPEvent(guiActiveEditor = true,  guiActive = true, guiName = "Deploy Sail", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]
+        [KSPEvent(guiActiveEditor = true,  guiActive = true, guiName = "#LOC_PhotonSail_DeploySail", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Sail
         public void DeploySail()
         {
             runAnimation(animName, solarSailAnim1, 0.5f, 0);
@@ -409,7 +410,7 @@ namespace PhotonSail
         }
 
         // GUI to retract sail
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "Retract Sail", active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]
+        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_PhotonSail_RetractSail", active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]//Retract Sail
         public void RetractSail()
         {
             runAnimation(animName, solarSailAnim1, -0.5f, 1);
@@ -437,7 +438,7 @@ namespace PhotonSail
             powerSupply = part.FindModuleImplementing<IPowerSupply>();
 
             if (powerSupply != null)
-                powerSupply.DisplayName = "started";
+                powerSupply.DisplayName = Localizer.Format("#LOC_PhotonSail_powerSupply");//"started"
 
             diameter = Math.Sqrt(surfaceArea);
 

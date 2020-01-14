@@ -23,9 +23,9 @@ namespace FNPlugin
         public string animName = "";
 
         // GUI
-        [KSPField(guiActive = true, guiName = "Force")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ModuleSolarSail_ForceAcquired")]//Force
         protected string forceAcquired = "";
-        [KSPField(guiActive = true, guiName = "Acceleration")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_ModuleSolarSail_SolarAcceleration")]//Acceleration
         protected string solarAcc = "";
 
         protected Transform surfaceTransform = null;
@@ -37,7 +37,7 @@ namespace FNPlugin
         protected double solar_acc_d = 0;
         protected long count = 0;
 
-        [KSPEvent(guiActive = true, guiName = "Deploy Sail", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ModuleSolarSail_DeploySail", active = true)]//Deploy Sail
         public void DeploySail() {
             if (animName != null && solarSailAnim != null) {
                 solarSailAnim[animName].speed = 1;
@@ -47,7 +47,7 @@ namespace FNPlugin
             IsEnabled = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Retract Sail", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ModuleSolarSail_RetractSail", active = false)]//Retract Sail
         public void RetractSail() {
             if (animName != null && solarSailAnim != null) {
                 solarSailAnim[animName].speed = -1;

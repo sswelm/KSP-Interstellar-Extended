@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -15,7 +16,7 @@ namespace FNPlugin.Refinery
         [KSPField(guiActive = false)]
         public float normalizedTime = -1;
 
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Surface Area", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_SurfaceArea", guiFormat = "F3")]//Surface Area
         public double surfaceArea = 1;
         [KSPField]
         public double buildInAirIntake;
@@ -184,7 +185,7 @@ namespace FNPlugin.Refinery
         string _sodium_resource_name;
 
 
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "Deploy Scoop", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]
+        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_DeployScoop", active = true, guiActiveUncommand = true, guiActiveUnfocused = true)]//Deploy Scoop
         public void DeployScoop()
         {
             runAnimation(animName, scoopAnimation, 0.5f, 0);
@@ -192,7 +193,7 @@ namespace FNPlugin.Refinery
         }
 
         // GUI to retract sail
-        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "Retract Scoop", active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]
+        [KSPEvent(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_AtmosphericExtractor_RetractScoop", active = false, guiActiveUncommand = true, guiActiveUnfocused = true)]//Retract Scoop
         public void RetractScoop()
         {
             runAnimation(animName, scoopAnimation, -0.5f, 1);
@@ -507,7 +508,7 @@ namespace FNPlugin.Refinery
                 if (offlineCollecting) // if we're collecting offline, we don't need to actually consume the resource, just provide the lines below with a number
                 {
                     _atmosphere_consumption_rate = Math.Min(_current_rate, buildInAirIntake + GetTotalAirScoopedPerSecond());
-                    ScreenMessages.PostScreenMessage("The atmospheric extractor processed " + _atmosphere_resource_name + " for " + fixedDeltaTime.ToString("F0") + " seconds", 60.0f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Postmsg1", _atmosphere_resource_name, fixedDeltaTime.ToString("F0")), 60.0f, ScreenMessageStyle.UPPER_CENTER);//"The atmospheric extractor processed " +  + " for " +  + " seconds"
                 }
                 else
                 {
@@ -657,49 +658,49 @@ namespace FNPlugin.Refinery
                 _value_label_number = new GUIStyle(GUI.skin.label) { font = PluginHelper.MainFont, alignment = TextAnchor.MiddleRight };
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(_effectiveMaxPower), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Intake Atmo. Consumption", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(((_atmosphere_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_AtmoConsumption"), _bold_label, GUILayout.Width(labelWidth));//"Intake Atmo. Consumption"
+            GUILayout.Label(((_atmosphere_consumption_rate * GameConstants.SECONDS_IN_HOUR).ToString("0.0000")) + " mT/hour", _value_label, GUILayout.Width(valueWidth));//
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Intake Atmo. Available", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_AtmoAvailable"), _bold_label, GUILayout.Width(labelWidth));//"Intake Atmo. Available"
             GUILayout.Label(_availableAtmosphereMass.ToString("0.0000") + " mT / " + _maxCapacityAtmosphereMass.ToString("0.0000") + " mT", _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Name", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Abundance", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Production per second", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Production per hour", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Spare Room", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Stored", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Max Capacity", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Name"), _bold_label, GUILayout.Width(valueWidth));//"Name"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Abundance"), _bold_label, GUILayout.Width(valueWidth));//"Abundance"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionpersecond"), _bold_label, GUILayout.Width(valueWidth));//"Production per second"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Productionperhour"), _bold_label, GUILayout.Width(valueWidth));//"Production per hour"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_SpareRoom"), _bold_label, GUILayout.Width(valueWidth));//"Spare Room"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Stored"), _bold_label, GUILayout.Width(valueWidth));//"Stored"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_MaxCapacity"), _bold_label, GUILayout.Width(valueWidth));//"Max Capacity"
             GUILayout.EndHorizontal();
 
-            DisplayResourceExtraction("Hydrogen", _hydrogenPercentage, _hydrogen_production_rate, _spareRoomHydrogenMass, _maxCapacityHydrogenMass);
-            DisplayResourceExtraction("Deuterium", _deuteriumPercentage, _deuterium_production_rate, _spareRoomDeuteriumMass, _maxCapacityDeuteriumMass);
-            DisplayResourceExtraction("Helium-3", _helium3Percentage, _helium3_production_rate, _spareRoomHelium3Mass, _maxCapacityHelium3Mass);
-            DisplayResourceExtraction("Helium", _helium4Percentage, _helium4_production_rate, _spareRoomHelium4Mass, _maxCapacityHelium4Mass);
-            DisplayResourceExtraction("Nitrogen", _nitrogenPercentage, _nitrogen_production_rate, _spareRoomNitrogenMass, _maxCapacityNitrogenMass);
-            DisplayResourceExtraction("Nitrogen-15", _nitrogen15Percentage, _nitrogen15_production_rate, _spareRoomNitrogen15Mass, _maxCapacityNitrogen15Mass);
-            DisplayResourceExtraction("Oxygen", _oxygenPercentage, _oxygen_production_rate, _spareRoomOxygenMass, _maxCapacityOxygenMass);
-            DisplayResourceExtraction("Argon", _argonPercentage, _argon_production_rate, _spareRoomArgonMass, _maxCapacityArgonMass);
-            DisplayResourceExtraction("Chlorine", _chlorinePercentage, _chlorine_production_rate, _spareRoomChlorineMass, _maxCapacityChlorineMass);
-            DisplayResourceExtraction("Neon", _neonPercentage, _neon_production_rate, _spareRoomNeonMass, _maxCapacityNeonMass);
-            DisplayResourceExtraction("Krypton", _kryptonPercentage, _krypton_production_rate, _spareRoomKryptonMass, _maxCapacityKryptonMass);
-            DisplayResourceExtraction("Ammonia", _ammoniaPercentage, _ammonia_production_rate, _spareRoomAmmoniaMass, _maxCapacityAmmoniaMass);
-            DisplayResourceExtraction("Water", _waterPercentage, _water_production_rate, _spareRoomWaterMass, _maxCapacityWaterMass);
-            DisplayResourceExtraction("Heavy Water", _heavywaterPercentage, _heavywater_production_rate, _spareRoomHeavyWaterMass, _maxCapacityHeavyWaterMass);
-            DisplayResourceExtraction("Carbon Monoxide", _monoxidePercentage, _monoxide_production_rate, _spareRoomMonoxideMass, _maxCapacityMonoxideMass);
-            DisplayResourceExtraction("Carbon Dioxide", _dioxidePercentage, _dioxide_production_rate, _spareRoomDioxideMass, _maxCapacityDioxideMass);
-            DisplayResourceExtraction("Methane", _methanePercentage, _methane_production_rate, _spareRoomMethaneMass, _maxCapacityMethaneMass);
-            DisplayResourceExtraction("Xenon", _xenonPercentage, _xenon_production_rate, _spareRoomXenonMass, _maxCapacityXenonMass);
-            DisplayResourceExtraction("Sodium", _sodiumPercentage, _sodium_production_rate, _spareRoomSodiumMass, _maxCapacitySodiumMass);
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Hydrogen"), _hydrogenPercentage, _hydrogen_production_rate, _spareRoomHydrogenMass, _maxCapacityHydrogenMass);//"Hydrogen"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Deuterium"), _deuteriumPercentage, _deuterium_production_rate, _spareRoomDeuteriumMass, _maxCapacityDeuteriumMass);//"Deuterium"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Helium3"), _helium3Percentage, _helium3_production_rate, _spareRoomHelium3Mass, _maxCapacityHelium3Mass);//"Helium-3"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Helium"), _helium4Percentage, _helium4_production_rate, _spareRoomHelium4Mass, _maxCapacityHelium4Mass);//"Helium"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Nitrogen"), _nitrogenPercentage, _nitrogen_production_rate, _spareRoomNitrogenMass, _maxCapacityNitrogenMass);//"Nitrogen"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Nitrogen15"), _nitrogen15Percentage, _nitrogen15_production_rate, _spareRoomNitrogen15Mass, _maxCapacityNitrogen15Mass);//"Nitrogen-15"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Oxygen"), _oxygenPercentage, _oxygen_production_rate, _spareRoomOxygenMass, _maxCapacityOxygenMass);//"Oxygen"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Argon"), _argonPercentage, _argon_production_rate, _spareRoomArgonMass, _maxCapacityArgonMass);//"Argon"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Chlorine"), _chlorinePercentage, _chlorine_production_rate, _spareRoomChlorineMass, _maxCapacityChlorineMass);//"Chlorine"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Neon"), _neonPercentage, _neon_production_rate, _spareRoomNeonMass, _maxCapacityNeonMass);//"Neon"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Krypton"), _kryptonPercentage, _krypton_production_rate, _spareRoomKryptonMass, _maxCapacityKryptonMass);//"Krypton"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Ammonia"), _ammoniaPercentage, _ammonia_production_rate, _spareRoomAmmoniaMass, _maxCapacityAmmoniaMass);//"Ammonia"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Water"), _waterPercentage, _water_production_rate, _spareRoomWaterMass, _maxCapacityWaterMass);//"Water"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_HeavyWater"), _heavywaterPercentage, _heavywater_production_rate, _spareRoomHeavyWaterMass, _maxCapacityHeavyWaterMass);//"Heavy Water"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_CarbonMonoxide"), _monoxidePercentage, _monoxide_production_rate, _spareRoomMonoxideMass, _maxCapacityMonoxideMass);//"Carbon Monoxide"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_CarbonDioxide"), _dioxidePercentage, _dioxide_production_rate, _spareRoomDioxideMass, _maxCapacityDioxideMass);//"Carbon Dioxide"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Methane"), _methanePercentage, _methane_production_rate, _spareRoomMethaneMass, _maxCapacityMethaneMass);//"Methane"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Xenon"), _xenonPercentage, _xenon_production_rate, _spareRoomXenonMass, _maxCapacityXenonMass);//"Xenon"
+            DisplayResourceExtraction(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Sodium"), _sodiumPercentage, _sodium_production_rate, _spareRoomSodiumMass, _maxCapacitySodiumMass);//"Sodium"
         }
 
         private void DisplayResourceExtraction(string resourceName,  double percentage, double productionRate, double spareRoom, double maximumCapacity)
@@ -734,20 +735,20 @@ namespace FNPlugin.Refinery
         private void UpdateStatusMessage()
         {
             if (normalizedTime == 0)
-                _status = "Scoop is not deployed";
+                _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg1");//"Scoop is not deployed"
             else if (intakeModifier == 0)
-                _status = "Scoop is not heading into orbital direction";
+                _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg2");//"Scoop is not heading into orbital direction"
             else if (_atmosphere_consumption_rate > 0)
-                _status = "Extracting atmosphere";
+                _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg3");//"Extracting atmosphere"
             else if (CurrentPower <= 0.01 * PowerRequirements)
-                _status = "Insufficient Power";
+                _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg4");//"Insufficient Power"
             else
-                _status = "Insufficient Storage, try allowing overflow";
+                _status = Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_Statumsg5");//"Insufficient Storage, try allowing overflow"
         }
 
         public void PrintMissingResources() 
         {
-            ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration._INTAKEATMOSPHERE, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AtmosphericExtractor_PostMsg") + " " + InterstellarResourcesConfiguration._INTAKEATMOSPHERE, 3.0f, ScreenMessageStyle.UPPER_CENTER);//Missing
         }
 
         public void Update()

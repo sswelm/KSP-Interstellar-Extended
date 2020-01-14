@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using FNPlugin.Constants;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -279,7 +280,7 @@ namespace FNPlugin
             // verify altitude is not too low
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
             {
-                ScreenMessages.PostScreenMessage("Solar Wind Collection Error, vessel in atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarwindCollector_PostMsg1"), 10, ScreenMessageStyle.LOWER_CENTER);//"Solar Wind Collection Error, vessel in atmosphere"
                 return;
             }
 
@@ -411,7 +412,7 @@ namespace FNPlugin
 
             if (!bIsEnabled)
             {
-                strCollectingStatus = "Disabled";
+                strCollectingStatus = Localizer.Format("#LOC_KSPIE_SolarwindCollector_Disabled");//"Disabled"
                 fEffectiveOrbitalDragInKiloNewton = 0;
                 fSolarWindVesselForceInNewton = 0;
                     
@@ -454,7 +455,7 @@ namespace FNPlugin
         {
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)) / 2) // won't collect in atmosphere
             {
-                ScreenMessages.PostScreenMessage("Solar wind collection not possible in low atmosphere", 10, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarwindCollector_PostMsg2"), 10, ScreenMessageStyle.LOWER_CENTER);//"Solar wind collection not possible in low atmosphere"
                 fSolarWindConcentrationPerSquareMeter = 0;
                 return false;
             }
@@ -727,7 +728,7 @@ namespace FNPlugin
                 supplyManagedFNResourcePerSecond(dWasteheatProductionMw * dLastPowerRatio, ResourceManager.FNRESOURCE_WASTEHEAT);
 
                 // show in GUI
-                strCollectingStatus = "Collecting solar wind";
+                strCollectingStatus = Localizer.Format("#LOC_KSPIE_SolarwindCollector_Collecting");//"Collecting solar wind"
             }
             else
             {
@@ -777,7 +778,7 @@ namespace FNPlugin
             {
                 var strNumberFormat = dSolarDustResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage("We collected " + dSolarDustResourceChange.ToString(strNumberFormat) + " units of " + solarWindResourceDefinition.name, 10, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarwindCollector_PostMsg3", dSolarDustResourceChange.ToString(strNumberFormat),solarWindResourceDefinition.name), 10, ScreenMessageStyle.LOWER_CENTER);//"We collected <<1>> units of <<2>>
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel
@@ -791,7 +792,7 @@ namespace FNPlugin
             {
                 var strNumberFormat = dHydrogenResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage("We collected " + dHydrogenResourceChange.ToString(strNumberFormat) + " units of " + hydrogenResourceDefinition.name, 10, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarwindCollector_PostMsg3", dHydrogenResourceChange.ToString(strNumberFormat),hydrogenResourceDefinition.name), 10, ScreenMessageStyle.LOWER_CENTER);//"We collected <<1>> units of <<2>> 
             }
 
             var dHeliumCollectedPerSecond = heliumMolarMassPerSquareMeterPerSecond * effectiveMagneticSurfaceAreaForCollection;
@@ -802,7 +803,7 @@ namespace FNPlugin
             {
                 var strNumberFormat = dHeliumResourceChange > 100 ? "0" : "0.000";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage("We collected " + dHeliumResourceFlow.ToString(strNumberFormat) + " units of " + helium4GasResourceDefinition.name, 10, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_SolarwindCollector_PostMsg3", dHeliumResourceFlow.ToString(strNumberFormat),helium4GasResourceDefinition.name), 10, ScreenMessageStyle.LOWER_CENTER);//"We collected <<1>> units of <<2>>
             }
 
             var atmosphericGasKgPerSquareMeter = AtmosphericFloatCurves.GetAtmosphericGasDensityKgPerCubicMeter(vessel.mainBody, vessel.altitude);

@@ -11,11 +11,11 @@ namespace FNPlugin.Reactors
     class InterstellarFissionPB : InterstellarReactor
     {
         // Persistant False
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Heat Throttling")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_FissionPB_HeatThrottling")]//Heat Throttling
         public bool heatThrottling = false;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiUnits = "%", guiName = "Overheating", guiFormat = "F3")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiUnits = "%", guiName = "#LOC_KSPIE_FissionPB_Overheating", guiFormat = "F3")]//Overheating
         public double overheatPercentage;
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "Wasteheat Ratio")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false, guiName = "#LOC_KSPIE_FissionPB_WasteheatRatio")]//Wasteheat Ratio
         public double resourceBarRatio;
         [KSPField(isPersistant = false)]
         public double thermalRatioEfficiencyModifier = 0.81;
@@ -30,13 +30,13 @@ namespace FNPlugin.Reactors
         [KSPField(isPersistant = false)]
         public double coreTemperatureWasteheatMultiplier = 1.25;
 
-        [KSPEvent(guiName = "Manual Restart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
+        [KSPEvent(guiName = "#LOC_KSPIE_FissionPB_ManualRestart", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]//Manual Restart
         public void ManualRestart()
         {
             IsEnabled = true;
         }
 
-        [KSPEvent(guiName = "Manual Shutdown", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]
+        [KSPEvent(guiName = "#LOC_KSPIE_FissionPB_ManualShutdown", externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 3.5f)]//Manual Shutdown
         public void ManualShutdown()
         {
             IsEnabled = false;

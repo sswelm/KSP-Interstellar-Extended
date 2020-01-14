@@ -11,7 +11,7 @@ namespace FNPlugin
     class FNModuleCryostat : ResourceSuppliableModule
     {
         // Persistant
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Cooling"), UI_Toggle(disabledText = "On", enabledText = "Off")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_IFS_Cryostat_Cooling"), UI_Toggle(disabledText = "#LOC_IFS_Cryostat_On", enabledText = "#LOC_IFS_Cryostat_Off")]//Cooling--On--Off
         public bool isDisabled = false;
         [KSPField(isPersistant = true)]
         public double storedTemp = 0;

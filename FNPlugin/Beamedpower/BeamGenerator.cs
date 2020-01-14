@@ -8,16 +8,16 @@ using UnityEngine;
 
 namespace FNPlugin.Microwave
 {
-    [KSPModule("Integrated Beam Generator")]
+    [KSPModule("Integrated Beam Generator")]//#LOC_KSPIE_BeamGenerator_ModuleName1
     class IntegratedBeamGenerator : BeamGenerator { }
 
-    [KSPModule("Beam Generator")]
+    [KSPModule("Beam Generator")]//#LOC_KSPIE_BeamGenerator_ModuleName2
     class BeamGeneratorModule : BeamGenerator { }
 
-    [KSPModule("Beam Generator")]
+    [KSPModule("Beam Generator")]//#LOC_KSPIE_BeamGenerator_ModuleName2
     class BeamGenerator : PartModule, IPartMassModifier, IRescalable<BeamGenerator>
     {
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Wavelength")]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_Wavelength")]//Wavelength
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.None, scene = UI_Scene.All, suppressEditorShipModified = true)]
         public int selectedBeamConfiguration;
 
@@ -28,29 +28,29 @@ namespace FNPlugin.Microwave
         [KSPField(isPersistant = false)]
         public bool isLoaded = false;
 
-        [KSPField(guiActiveEditor = true, guiName = "Generator Type")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_GeneratorType")]//Generator Type
         public string beamTypeName = "";
         [KSPField(guiActiveEditor = true, guiActive = false)]
         public int beamType = 1;
-        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "Wavelength Name")]
+        [KSPField(guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WavelengthName")]//Wavelength Name
         public string beamWaveName = "";
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Wavelength in meter", guiFormat = "F9", guiUnits = " m")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_Wavelengthinmeter", guiFormat = "F9", guiUnits = " m")]//Wavelength in meter
         public double wavelength;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "WaveLength in SI")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WaveLengthinSI")]//WaveLength in SI
         public string wavelengthText;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Atmospheric Absorption", guiFormat = "F3", guiUnits = "%")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_AtmosphericAbsorption", guiFormat = "F3", guiUnits = "%")]//Atmospheric Absorption
         public double atmosphericAbsorptionPercentage = 10;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Water Absorption", guiFormat = "F3", guiUnits = "%")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_WaterAbsorption", guiFormat = "F3", guiUnits = "%")]//Water Absorption
         public double waterAbsorptionPercentage = 10;
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "Power to Beam Efficiency", guiFormat = "F0", guiUnits = "%")]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiActive = true, guiName = "#LOC_KSPIE_BeamGenerator_EfficiencyPercentage", guiFormat = "F0", guiUnits = "%")]//Power to Beam Efficiency
         public double efficiencyPercentage = 90;
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Stored Mass")]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamGenerator_StoredMass")]//Stored Mass
         public double storedMassMultiplier;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Initial Mass", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamGenerator_InitialMass", guiUnits = " t")]//Initial Mass
         public double initialMass;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Target Mass", guiUnits = " t")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_BeamGenerator_TargetMass", guiUnits = " t")]//Target Mass
         public double targetMass = 1;
-        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "Part Mass", guiUnits = " t")]
+        [KSPField(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamGenerator_PartMass", guiUnits = " t")]//Part Mass
         public float partMass;
         [KSPField(isPersistant = true)]
         public double maximumPower;
@@ -438,8 +438,8 @@ namespace FNPlugin.Microwave
             var sb = new StringBuilder();
 
             sb.Append("<size=10>");
-            sb.AppendLine("Type: " + beamTypeName);
-            sb.AppendLine("Can Switch In Flight: " + DisplayBoolean(canSwitchWavelengthInFlight));
+            sb.AppendLine(Localizer.Format("#LOC_KSPIE_BeamGenerator_Type") + ": " + beamTypeName);//Type
+            sb.AppendLine(Localizer.Format("#LOC_KSPIE_BeamGenerator_CanSwitch") + ": " + DisplayBoolean(canSwitchWavelengthInFlight));//Can Switch In Flight
             sb.AppendLine("</size>");
 
             if (!string.IsNullOrEmpty(techLevelMk2))

@@ -40,7 +40,7 @@ namespace InterstellarFuelSwitch
     public class InterstellarTextureSwitch : PartModule
     {
         [KSPField]
-        public string displayName = "Texture switcher";
+        public string displayName = Localizer.Format("#LOC_IFS_TextureSwitch_displayname");//"Texture switcher"
         [KSPField]
         public string moduleID = "0";
         [KSPField(isPersistant = true)]
@@ -89,7 +89,7 @@ namespace InterstellarFuelSwitch
         public static Dictionary<String, List<String>> mapListDictionary = new Dictionary<String, List<string>>();
         public static Dictionary<String, List<String>> objectListDictionary = new Dictionary<String, List<string>>();
 
-        [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "Debug: Log Objects")]
+        [KSPEvent(guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_TextureSwitch_DebugLog")]//Debug: Log Objects
         public void listAllObjects()
         {
             List<Transform> childList = ListChildren(part.transform);
@@ -129,7 +129,7 @@ namespace InterstellarFuelSwitch
             useTextureAll();
         }
 
-        [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 5f, guiActive = false, guiActiveEditor = false, guiName = "Repaint")]
+        [KSPEvent(guiActiveUnfocused = true, unfocusedRange = 5f, guiActive = false, guiActiveEditor = false, guiName = "#LOC_IFS_TextureSwitch_Repaint")]//Repaint
         public void nextTextureEVAEvent()
         {
             nextTextureEvent();
@@ -184,9 +184,9 @@ namespace InterstellarFuelSwitch
             if (texList.Count == 0)
             {
                 if (!texListDictionary.TryGetValue(uniqueModuleID, out texList))
-                    info.AppendLine("None. Error reading Dictionary");
+                    info.AppendLine(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoError"));//"None. Error reading Dictionary"
                 else if (texList.Count == 0)
-                    info.AppendLine("None");
+                    info.AppendLine(Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoNone"));//"None"
             }
             for (int i = 0; i < texList.Count; i++)
             {
@@ -194,7 +194,7 @@ namespace InterstellarFuelSwitch
                 if (splitString.Length > 0)
                     info.AppendLine(splitString[splitString.Length - 1]);
             }
-            info.AppendLine("\nUse the Next Texture button on the right click menu.");
+            info.AppendLine("\n"+Localizer.Format("#LOC_IFS_TextureSwitch_GetInfoNext"));//Use the Next Texture button on the right click menu."
             return info.ToString();
         }
 

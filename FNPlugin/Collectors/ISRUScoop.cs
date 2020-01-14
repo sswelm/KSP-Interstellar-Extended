@@ -3,6 +3,7 @@ using FNPlugin.Resources;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin 
 {
@@ -19,48 +20,48 @@ namespace FNPlugin
         public double last_power_percentage ;
 
         // part proterties
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Scooped Air", guiFormat = "F6")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ISRUScoop_ScoopedAir", guiFormat = "F6")]//Scooped Air
         public double scoopair = 0;
         [KSPField(isPersistant = false, guiActiveEditor = false)]
         public double powerReqMult = 1;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_ISRUScoop_Mass", guiUnits = " t")]//Mass
         public float partMass = 0;
 
         // GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Density")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_AtmosphericDensity")]//Density
         public string atmosphericDensity;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Collected")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_resoucesflow")]//Collected
         public string resflow;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Resource")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_Resource")]//Resource
         public string currentresourceStr;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Percentage", guiUnits = "%")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_Percentage", guiUnits = "%")]//Percentage
         public double rescourcePercentage;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Storage")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_Storage")]//Storage
         public string resourceStoragename;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Power")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_RecievedPower")]//Power
         public string recievedPower;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Trace Atmosphere")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_TraceAtmosphere")]//Trace Atmosphere
         public string densityFractionOfUpperAthmosphere;
 
         
         // internals
         protected double resflowf = 0;
 
-        [KSPEvent(guiActive = true, guiName = "Activate Scoop", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_ActivateScoop", active = true)]//Activate Scoop
         public void ActivateScoop() 
         {
             scoopIsEnabled = true;
             OnUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Disable Scoop", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_DisableScoop", active = true)]//Disable Scoop
         public void DisableScoop() 
         {
             scoopIsEnabled = false;
             OnUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Toggle Resource", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ISRUScoop_ToggleResource", active = true)]//Toggle Resource
         public void ToggleResource() 
         {
             currentresource++;
@@ -108,7 +109,7 @@ namespace FNPlugin
 
         public override void OnStart(PartModule.StartState state) 
         {
-            Actions["ToggleToggleResourceAction"].guiName = Events["ToggleResource"].guiName = String.Format("Toggle Resource");
+            Actions["ToggleToggleResourceAction"].guiName = Events["ToggleResource"].guiName = Localizer.Format("#LOC_KSPIE_ISRUScoop_ToggleResource");//String.Format("Toggle Resource")
 
             if (state == StartState.Editor)  return;
 
@@ -130,21 +131,21 @@ namespace FNPlugin
             // verify altitude is not too high
             if (vessel.altitude > (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) * PluginHelper.MaxAtmosphericAltitudeMult))
             {
-                ScreenMessages.PostScreenMessage("Vessel is too high for resource accumulation", 10, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ISRUScoop_Altitudetoohigh"), 10, ScreenMessageStyle.LOWER_CENTER);//"Vessel is too high for resource accumulation"
                 return;
             }
 
             // verify altitude is not too low
             if (vessel.altitude < (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody)))
             {
-                ScreenMessages.PostScreenMessage("Vessel is too low for resource accumulation", 10, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ISRUScoop_Altitudetoolow"), 10, ScreenMessageStyle.LOWER_CENTER);//"Vessel is too low for resource accumulation"
                 return;
             }
 
             // verify eccentricity
             if (vessel.orbit.eccentricity > 0.1)
             {
-                string message = "Eccentricity of " + vessel.orbit.eccentricity.ToString("0.0000") + " is too High for resource accumulations";
+                string message = Localizer.Format("#LOC_KSPIE_ISRUScoop_Eccentricitytoohigh", vessel.orbit.eccentricity.ToString("0.0000"));//"Eccentricity of <<1>> is too High for resource accumulations"
                 ScreenMessages.PostScreenMessage(message, 10.0f, ScreenMessageStyle.LOWER_CENTER);
                 return;
             }
@@ -155,7 +156,7 @@ namespace FNPlugin
                 p.FindModulesImplementing<ThermalEngineController>().Any(e => e.AttachedReactor.CoreTemperature > 40000));
             if (highIspEngine == null)
             {
-                ScreenMessages.PostScreenMessage("No engine available, with high enough Isp and propelant switch ability to compensate for atmospheric drag", 10, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ISRUScoop_NohighenoughISP"), 10, ScreenMessageStyle.LOWER_CENTER);//"No engine available, with high enough Isp and propelant switch ability to compensate for atmospheric drag"
                 return;
             }
 
@@ -205,8 +206,8 @@ namespace FNPlugin
             if (ors_atmospheric_resource_name == null)
             {
                 resflowf = 0;
-                recievedPower = "error";
-                densityFractionOfUpperAthmosphere = "error";
+                recievedPower = Localizer.Format("#LOC_KSPIE_ISRUScoop_error");//"error"
+                densityFractionOfUpperAthmosphere = Localizer.Format("#LOC_KSPIE_ISRUScoop_error");//"error"
                 return;
             }
 
@@ -246,8 +247,8 @@ namespace FNPlugin
             if (rescourceFraction <= 0 || vessel.altitude > (PluginHelper.getMaxAtmosphericAltitude(vessel.mainBody) * PluginHelper.MaxAtmosphericAltitudeMult))
             {
                 resflowf = 0;
-                recievedPower = "off";
-                densityFractionOfUpperAthmosphere = "too high";
+                recievedPower = Localizer.Format("#LOC_KSPIE_ISRUScoop_off");//"off"
+                densityFractionOfUpperAthmosphere = Localizer.Format("#LOC_KSPIE_ISRUScoop_toohigh");//"too high"
                 rescourcePercentage = 0;
                 return;
             }
@@ -293,7 +294,7 @@ namespace FNPlugin
             if (offlineCollecting)
             {
                 string numberformat = resourceChange > 100 ? "0" : "0.00";
-                ScreenMessages.PostScreenMessage("Atmospheric Scoop collected " + resourceChange.ToString(numberformat) + " " + resourceStoragename, 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_ISRUScoop_CollectedMsg") +" " + resourceChange.ToString(numberformat) + " " + resourceStoragename, 10.0f, ScreenMessageStyle.LOWER_CENTER);//Atmospheric Scoop collected
             }
 
             resflowf = part.RequestResource(resourceStoragename, -resourceChange);

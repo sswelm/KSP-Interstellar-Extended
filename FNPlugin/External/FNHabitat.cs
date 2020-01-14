@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
@@ -63,14 +64,14 @@ namespace FNPlugin
         public int deployedCrewCapacity = 0;
 
         [KSPField]
-        public string deployAnimationName = "Deploy";
+        public string deployAnimationName = Localizer.Format("#LOC_KSPIE_FNHabitat_Deploy");//"Deploy"
         [KSPField]
-        public string secondaryAnimationName = "Rotate";
+        public string secondaryAnimationName = Localizer.Format("#LOC_KSPIE_FNHabitat_Rotate");//"Rotate"
 
         [KSPField(isPersistant = true)]
         public bool isDeployed = false;
 
-        [KSPField(isPersistant = true, guiName = "Deployed", guiFormat = "P2")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_FNHabitat_Deployed", guiFormat = "P2")]//Deployed
         public double partialDeployCostPaid = 0d;
 
         [KSPField(isPersistant = true)]
@@ -178,7 +179,7 @@ namespace FNPlugin
             }
         }
 
-        [KSPEvent(guiName = "Deploy", guiActive = true, externalToEVAOnly = true, guiActiveEditor = true, active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        [KSPEvent(guiName = "#LOC_KSPIE_FNHabitat_Deploy", guiActive = true, externalToEVAOnly = true, guiActiveEditor = true, active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]//Deploy
         public void DeployModule()
         {
             if (!isDeployed)
@@ -266,15 +267,15 @@ namespace FNPlugin
                     ConsumeResources(resourcesAvailable);
                     partialDeployCostPaid += resourcesAvailable;
                     Fields["partialDeployCostPaid"].guiActive = true;
-                    DisplayMessage("Partially assembling module using: ", resourcesAvailable);
+                    DisplayMessage(Localizer.Format("#LOC_KSPIE_FNHabitat_Msg1") +": ", resourcesAvailable);//Partially assembling module using
                     resourcesNeeded -= resourcesAvailable;
                 }
-                DisplayMessage("Missing resources to assemble module: ", resourcesNeeded);
+                DisplayMessage(Localizer.Format("#LOC_KSPIE_FNHabitat_Msg2") +": ", resourcesNeeded);//Missing resources to assemble module
                 return false;
             }
             else
             {
-                DisplayMessage("Assembling module using: ", resourcesNeeded);
+                DisplayMessage(Localizer.Format("#LOC_KSPIE_FNHabitat_Msg3") +": ", resourcesNeeded);//Assembling module using
                 ConsumeResources(resourcesNeeded);
                 partialDeployCostPaid = 0d;
                 Fields["partialDeployCostPaid"].guiActive = false;
@@ -374,7 +375,7 @@ namespace FNPlugin
         //    }
         //}
 
-        [KSPEvent(guiName = "Reverse", guiActive = true, externalToEVAOnly = true, guiActiveEditor = false, active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
+        [KSPEvent(guiName = "#LOC_KSPIE_FNHabitat_Reverse", guiActive = true, externalToEVAOnly = true, guiActiveEditor = false, active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]//Reverse
         public void ReverseSecondary()
         {
             if (isDeployed && secondaryAnimationName != "")
@@ -386,7 +387,7 @@ namespace FNPlugin
             }
         }
 
-        [KSPEvent(guiName = "Retract", guiActive = true, externalToEVAOnly = true, guiActiveEditor = false,
+        [KSPEvent(guiName = "#LOC_KSPIE_FNHabitat_Retract", guiActive = true, externalToEVAOnly = true, guiActiveEditor = false,//Retract
             active = true, guiActiveUnfocused = true, unfocusedRange = 3.0f)]
         public void RetractModule()
         {
@@ -416,8 +417,8 @@ namespace FNPlugin
             {
                 if (part.protoModuleCrew.Count > 0)
                 {
-                    var msg = string.Format("Unable to deflate {0} as it still contains crew members.",
-                        part.partInfo.title);
+                    var msg = Localizer.Format("#LOC_KSPIE_FNHabitat_Msg4", part.partInfo.title);//string.Format("Unable to deflate {0} as it still contains crew members.",);
+
                     ScreenMessages.PostScreenMessage(msg, 5f, ScreenMessageStyle.UPPER_CENTER);
                     canRetract = false;
                 }
@@ -834,7 +835,7 @@ namespace FNPlugin
             if (String.IsNullOrEmpty(ResourceCosts))
                 return "";
 
-            var output = new StringBuilder("Resource Cost:\n\n");
+            var output = new StringBuilder(Localizer.Format("#LOC_KSPIE_FNHabitat_ResourceCost") +":\n\n");//Resource Cost
             var resources = ResourceCosts.Split(',');
             for (int i = 0; i < resources.Length; i += 2)
             {

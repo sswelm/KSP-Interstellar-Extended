@@ -5,13 +5,14 @@ using FNPlugin.Redist;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin
 {
     class InterstellarMagneticNozzleControllerFX : ResourceSuppliableModule, IFNEngineNoozle
     {
         //Persistent
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "Simulated Throttle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_SimulatedThrottle"), UI_FloatRange(stepIncrement = 0.5f, maxValue = 100f, minValue = 0.5f)]//Simulated Throttle
         public float simulatedThrottle = 0.5f;
         [KSPField(isPersistant = true)]
         double powerBufferStore;
@@ -40,37 +41,37 @@ namespace FNPlugin
         [KSPField]
         public string powerEffectName = String.Empty;
 
-        [KSPField(guiName = "CP max fraction usage", guiFormat = "F3")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_ChargedParticleMaximumPercentageUsage", guiFormat = "F3")]//CP max fraction usage
         private double _chargedParticleMaximumPercentageUsage;
-        [KSPField(guiName = "Max CP Power", guiUnits = " MW", guiFormat = "F3")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaxChargedParticlesPower", guiUnits = " MW", guiFormat = "F3")]//Max CP Power
         private double _max_charged_particles_power;
-        [KSPField(guiName = "Requested Particles", guiUnits = " MW")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedParticles", guiUnits = " MW")]//Requested Particles
         private double _charged_particles_requested;
-        [KSPField(guiName = "Recieved Particles", guiUnits = " MW")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedParticles", guiUnits = " MW")]//Recieved Particles
         private double _charged_particles_received;
-        [KSPField(guiName = "Requested Electricity", guiUnits = " MW")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RequestedElectricity", guiUnits = " MW")]//Requested Electricity
         private double _requestedElectricPower;
-        [KSPField(guiName = "Recieved Electricity", guiUnits = " MW")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_RecievedElectricity", guiUnits = " MW")]//Recieved Electricity
         private double _recievedElectricPower;
-        [KSPField(guiName = "Thrust", guiUnits = " kN")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Thrust", guiUnits = " kN")]//Thrust
         private double _engineMaxThrust;
-        [KSPField(guiName = "Consumption", guiUnits = " kg/s")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Consumption", guiUnits = " kg/s")]//Consumption
         private double calculatedConsumptionPerSecond;
-        [KSPField(guiName = "Throtle Exponent")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_ThrotleExponent")]//Throtle Exponent
         protected double throtleExponent = 1;
-        [KSPField(guiName = "Maximum ChargedPower", guiUnits = " MW", guiFormat = "F1")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_MaximumChargedPower", guiUnits = " MW", guiFormat = "F1")]//Maximum ChargedPower
         protected double maximumChargedPower;
-        [KSPField(guiName = "Power Thrust Modifier", guiUnits = " MW", guiFormat = "F1")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_PowerThrustModifier", guiUnits = " MW", guiFormat = "F1")]//Power Thrust Modifier
         protected double powerThrustModifier;
-        [KSPField(guiActiveEditor = true, guiName = "Minimum isp", guiUnits = " s", guiFormat = "F1")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Minimumisp", guiUnits = " s", guiFormat = "F1")]//Minimum isp
         protected double minimum_isp;
-        [KSPField(guiActiveEditor = true, guiName = "Maximum isp", guiUnits = " s", guiFormat = "F1")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_Maximumisp", guiUnits = " s", guiFormat = "F1")]//Maximum isp
         protected double maximum_isp;
-        [KSPField(guiName = "Power Ratio")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_PowerRatio")]//Power Ratio
         protected double megajoulesRatio;
-        [KSPField(guiName = "Engine Isp")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_EngineIsp")]//Engine Isp
         protected double engineIsp;
-        [KSPField(guiName = "Engine Fuel Flow")]
+        [KSPField(guiName = "#LOC_KSPIE_MagneticNozzleControllerFX_EngineFuelFlow")]//Engine Fuel Flow
 
         protected float engineFuelFlow;
         [KSPField(guiActive = false)]
@@ -336,8 +337,8 @@ namespace FNPlugin
             if (_attached_engine.currentThrottle > 0 && !exhaustAllowed)
             {
                 string message = AttachedReactor.MayExhaustInLowSpaceHomeworld
-                    ? "Engine halted - Radioactive exhaust not allowed towards or inside homeworld atmosphere"
-                    : "Engine halted - Radioactive exhaust not allowed towards or near homeworld atmosphere";
+                    ? Localizer.Format("#LOC_KSPIE_MagneticNozzleControllerFX_PostMsg1")//"Engine halted - Radioactive exhaust not allowed towards or inside homeworld atmosphere"
+                    : Localizer.Format("#LOC_KSPIE_MagneticNozzleControllerFX_PostMsg2");//"Engine halted - Radioactive exhaust not allowed towards or near homeworld atmosphere"
 
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 vessel.ctrlState.mainThrottle = 0;
@@ -464,11 +465,11 @@ namespace FNPlugin
                 if (_attached_engine.getFlameoutState) return;
 
                 if (_attached_engine.currentThrottle < 0.01)
-                    _attached_engine.status = "offline";
+                    _attached_engine.status = Localizer.Format("#LOC_KSPIE_MagneticNozzleControllerFX_statu1");//"offline"
                 else if (megajoulesRatio < 0.75 && _requestedElectricPower > 0)
-                    _attached_engine.status = "Insufficient Electricity";
+                    _attached_engine.status = Localizer.Format("#LOC_KSPIE_MagneticNozzleControllerFX_statu2");//"Insufficient Electricity"
                 else if (effectiveThrustRatio < 0.01 && vessel.atmDensity > 0)
-                    _attached_engine.status = "Too dense atmospherere";
+                    _attached_engine.status = Localizer.Format("#LOC_KSPIE_MagneticNozzleControllerFX_statu3");//"Too dense atmospherere"
             } 
             else 
             {

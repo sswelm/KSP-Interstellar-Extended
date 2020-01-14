@@ -1,4 +1,5 @@
 ﻿using System;
+using KSP.Localization;
 
 namespace InterstellarFuelSwitch 
 {
@@ -72,7 +73,7 @@ namespace InterstellarFuelSwitch
 
         public override string GetInfo()
         {
-            return "Radioactive Decay";
+            return Localizer.Format("#LOC_IFS_RadioactiveDecay_Getinfo");//"Radioactive Decay"
         }
 
     }

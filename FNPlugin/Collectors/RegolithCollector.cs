@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Collectors
 {
@@ -19,34 +20,34 @@ namespace FNPlugin.Collectors
         public double dLastRegolithConcentration;
 
         // Part properties
-        [KSPField(guiActiveEditor = true, guiName = "Drill size", guiUnits = " m\xB3")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_Drillsize", guiUnits = " m\xB3")]//Drill size
         public double drillSize = 0; // Volume of the collector's drill. Raise in part config (for larger drills) to make collecting faster.
-        [KSPField(guiActiveEditor = true, guiName = "Drill effectiveness", guiFormat = "P1")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_Effectiveness", guiFormat = "P1")]//Drill effectiveness
         public double effectiveness = 1; // Effectiveness of the drill. Lower in part config (to a 0.5, for example) to slow down resource collecting.
-        [KSPField(guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_MWRequirements", guiUnits = " MW")]//MW Requirements
         public double mwRequirements = 1; // MW requirements of the drill. Affects heat produced.
-        [KSPField(guiActiveEditor = true, guiName = "Waste Heat Modifier", guiFormat = "P1")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_RegolithCollector_WasteHeatModifier", guiFormat = "P1")]//Waste Heat Modifier
         public double wasteHeatModifier = 1; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
 
         // GUI
-        [KSPField(guiActive = true, guiName = "Regolith Concentration", guiFormat = "P1")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_RegolithConcentration", guiFormat = "P1")]//Regolith Concentration
         protected string strRegolithConc = "";
-        [KSPField(guiActive = true, guiName = "Distance from the sun")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Distancefromthesun")]//Distance from the sun
         protected string strStarDist = "";
-        [KSPField(guiActive = true, guiName = "Drill status")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Drillstatus")]//Drill status
         protected string strCollectingStatus = "";
-        [KSPField(guiActive = true, guiName = "Power Usage")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ReceivedPower")]//Power Usage
         protected string strReceivedPower = "";
-        [KSPField(guiActive = true, guiName = "Altitude", guiUnits = " m")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_Altitude", guiUnits = " m")]//Altitude
         protected string strAltitude = "";
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Resource Production", guiUnits = " Unit/s")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ResourceProduction", guiUnits = " Unit/s")]//Resource Production
         public double resourceProduction;
 
         // internals
         protected double dResourceFlow = 0;
 
-        [KSPEvent(guiActive = true, guiName = "Activate Drill", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_ActivateDrill", active = true)]//Activate Drill
         public void ActivateCollector()
         {
             if (IsCollectLegal() == true) // will only be activated if the collecting of resource is legal
@@ -54,7 +55,7 @@ namespace FNPlugin.Collectors
                 bTouchDown = TryRaycastToHitTerrain(); // check if there's ground within reach and if the drill is deployed
                 if (bTouchDown == false) // if not, no collecting
                 {
-                    ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Make sure drill is deployed and can reach the terrain.", 3, ScreenMessageStyle.LOWER_CENTER);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithCollector_PostMsg1"), 3, ScreenMessageStyle.LOWER_CENTER);//"Regolith drill not in contact with ground. Make sure drill is deployed and can reach the terrain."
                     DisableCollector();
                     return;
                 }
@@ -63,7 +64,7 @@ namespace FNPlugin.Collectors
             }
         }
 
-        [KSPEvent(guiActive = true, guiName = "Disable Drill", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_RegolithCollector_DisableDrill", active = true)]//Disable Drill
         public void DisableCollector()
         {
             bIsEnabled = false;
@@ -173,7 +174,7 @@ namespace FNPlugin.Collectors
                  */
                 strRegolithConc = IsCollectLegal() ? dConcentrationRegolith.ToString("P0") : "0"; // F1 string format means fixed point number with one decimal place (i.e. number 1234.567 would be formatted as 1234.5). I might change this eventually to P1 or P0 (num multiplied by hundred and percentage sign with 1 or 0 dec. places).
                 // Also update the current altitude in GUI
-                strAltitude = (vessel.altitude < 15000) ? (vessel.altitude).ToString("F0") : "Too damn high";
+                strAltitude = (vessel.altitude < 15000) ? (vessel.altitude).ToString("F0") : Localizer.Format("#LOC_KSPIE_RegolithCollector_Altitudetoohigh");//"Too damn high"
             }          
         }
 
@@ -183,7 +184,7 @@ namespace FNPlugin.Collectors
             {
                 if (!bIsEnabled)
                 {
-                    strCollectingStatus = "Disabled";
+                    strCollectingStatus = Localizer.Format("#LOC_KSPIE_RegolithCollector_Disabled");//"Disabled"
                     strStarDist = UpdateDistanceInGUI(); // passes the distance to the GUI
                     return;
                 }
@@ -216,7 +217,7 @@ namespace FNPlugin.Collectors
                     bTouchDown = TryRaycastToHitTerrain();
                     if (bTouchDown == false) // if not, disable collecting
                     {
-                        ScreenMessages.PostScreenMessage("Regolith drill not in contact with ground. Disabling drill.", 3, ScreenMessageStyle.LOWER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithCollector_PostMsg2"), 3, ScreenMessageStyle.LOWER_CENTER);//"Regolith drill not in contact with ground. Disabling drill."
                         DisableCollector();
                         return;
                     }
@@ -394,7 +395,7 @@ namespace FNPlugin.Collectors
                 dLastPowerPercentage = offlineCollecting ? dLastPowerPercentage : (float)(dPowerReceivedMW / dPowerRequirementsMW / TimeWarp.fixedDeltaTime);
 
                 // show in GUI
-                strCollectingStatus = "Collecting regolith";
+                strCollectingStatus = Localizer.Format("#LOC_KSPIE_RegolithCollector_Collectingregolith");//"Collecting regolith"
             }
 
             else
@@ -421,7 +422,7 @@ namespace FNPlugin.Collectors
             {
                 string strNumberFormat = dResourceChange > 100 ? "0" : "0.00";
                 // let the player know that offline collecting worked
-                ScreenMessages.PostScreenMessage("The Regolith Drill collected " + dResourceChange.ToString(strNumberFormat) + " units of " + strRegolithResourceName, 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_RegolithCollector_PostMsg3", dResourceChange.ToString(strNumberFormat),strRegolithResourceName), 10.0f, ScreenMessageStyle.LOWER_CENTER);//"The Regolith Drill collected <<1>> units of <<2>> 
             }
 
             // this is the second important bit - do the actual change of the resource amount in the vessel

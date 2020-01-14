@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Collectors
 {
@@ -17,9 +18,9 @@ namespace FNPlugin.Collectors
         List<CrustalResource> localResources; // list of resources
 
         // state of the extractor
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Drill Enabled")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillEnabled")]//Drill Enabled
         public bool bIsEnabled = false;
-        [KSPField(isPersistant = true, guiActive = false, guiName = "Deployed")]
+        [KSPField(isPersistant = true, guiActive = false, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillDeployed")]//Deployed
         public bool isDeployed;
 
         // previous data
@@ -34,15 +35,15 @@ namespace FNPlugin.Collectors
         public float windowPositionY = 20;
 
         // drill properties, need to be adressed in the cfg file of the part
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill size", guiUnits = " m\xB3")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_Drillsize", guiUnits = " m\xB3")]//Drill size
         public double drillSize = 5; // Volume of the collector's drill. Raise in part config (for larger drills) to make collecting faster.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill effectiveness", guiFormat = "P1")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillEffectiveness", guiFormat = "P1")]//Drill effectiveness
         public double effectiveness = 1; // Effectiveness of the drill. Lower in part config (to a 0.5, for example) to slow down resource collecting.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "MW Requirements", guiUnits = " MW")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_MWRequirements", guiUnits = " MW")]//MW Requirements
         public double mwRequirements = 1; // MW requirements of the drill. Affects heat produced.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Waste Heat Modifier", guiFormat = "P1")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_WasteHeatModifier", guiFormat = "P1")]//Waste Heat Modifier
         public double wasteHeatModifier = 0.25; // How much of the power requirements ends up as heat. Change in part cfg, treat as a percentage (1 = 100%). Higher modifier means more energy ends up as waste heat.
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Drill reach", guiUnits = " m\xB3")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DrillReach", guiUnits = " m\xB3")]//Drill reach
         public float drillReach = 5; // How far can the drill actually reach? Used in calculating raycasts to hit ground down below the part. The 5 is just about the reach of the generic drill. Change in part cfg for different models.
         [KSPField(isPersistant = false, guiActive = false)]
         public string loopingAnimationName = "";
@@ -50,7 +51,7 @@ namespace FNPlugin.Collectors
         public string deployAnimationName = "";
         [KSPField(isPersistant = false, guiActive = false)]
         public float animationState;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Reason Not Collecting")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ReasonNotCollecting")]//Reason Not Collecting
         public string reasonNotCollecting;
 
         // GUI elements declaration
@@ -89,7 +90,7 @@ namespace FNPlugin.Collectors
 
 
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true,  guiName = "Deploy Drill", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true,  guiName = "#LOC_KSPIE_UniversalCrustExtractor_DeployDrill", active = true)]//Deploy Drill
         public void DeployDrill()
         {
             isDeployed = true;
@@ -101,7 +102,7 @@ namespace FNPlugin.Collectors
             }
         }
 
-        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "Retract Drill", active = true)]
+        [KSPEvent(guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_RetractDrill", active = true)]//Retract Drill
         public void RetractDrill()
         {
             bIsEnabled = false;
@@ -124,7 +125,7 @@ namespace FNPlugin.Collectors
 
 
         // *** KSP Events ***
-        [KSPEvent(guiActive = true, guiName = "Activate Drill", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ActivateDrill", active = true)]//Activate Drill
         public void ActivateCollector()
         {
             isDeployed = true;
@@ -132,14 +133,14 @@ namespace FNPlugin.Collectors
             OnFixedUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Disable Drill", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_DisableDrill", active = true)]//Disable Drill
         public void DisableCollector()
         {
             bIsEnabled = false;
             OnFixedUpdate();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Toggle Mining Interface", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_UniversalCrustExtractor_ToggleMiningInterface", active = false)]//Toggle Mining Interface
         public void ToggleWindow()
         {
             _render_window = !_render_window;
@@ -327,7 +328,7 @@ namespace FNPlugin.Collectors
         private void OnGUI()
         {
             if (this.vessel == FlightGlobals.ActiveVessel && _render_window)
-                _window_position = GUILayout.Window(_window_ID, _window_position, DrawGui, "Universal Mining Interface");
+                _window_position = GUILayout.Window(_window_ID, _window_position, DrawGui, Localizer.Format(""));//"Universal Mining Interface"
 
             //scrollPosition[1] = GUI.VerticalScrollbar(_window_position, scrollPosition[1], 1, 0, 150, "Scroll");
         }
@@ -382,17 +383,17 @@ namespace FNPlugin.Collectors
         {
             if (vessel.checkLanded() == false || vessel.checkSplashed())
             {
-                return "Vessel is not landed properly.";
+                return Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_msg1");//"Vessel is not landed properly."
             }
 
             if (!IsDrillExtended())
             {
-                return "needs to be extended before it can be used.";
+                return Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_msg2");//"needs to be extended before it can be used."
             }
 
             if (!CanReachTerrain())
             {
-                return " trouble reaching the terrain.";
+                return " "+Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_msg3");//trouble reaching the terrain.
             }
 
             // cleared all the prerequisites
@@ -641,7 +642,7 @@ namespace FNPlugin.Collectors
             {
                 if (!HasEnoughPower(deltaTime)) // if there was not enough power, no mining
                 {
-                    ScreenMessages.PostScreenMessage("Not enough power to run the universal drill.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_PostMsg1"), 3.0f, ScreenMessageStyle.LOWER_CENTER);//"Not enough power to run the universal drill."
                     DisableCollector();
                     return;
                 }
@@ -658,7 +659,7 @@ namespace FNPlugin.Collectors
 
                 if (!GetResourceData()) // if the resource data was not okay, no mining
                 {
-                    ScreenMessages.PostScreenMessage("The universal drill is not sure where you are trying to mine. Please contact the mod author, tell him the details of this situation and provide the output log.", 3.0f, ScreenMessageStyle.LOWER_CENTER);
+                    ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_PostMsg2"), 3.0f, ScreenMessageStyle.LOWER_CENTER);//"The universal drill is not sure where you are trying to mine. Please contact the mod author, tell him the details of this situation and provide the output log."
                     DisableCollector();
                     return;
                 }
@@ -728,7 +729,7 @@ namespace FNPlugin.Collectors
 
                 }
                 // inform the player about the offline processing
-                ScreenMessages.PostScreenMessage("Universal drill mined offline for " + deltaTime.ToString("0") + " seconds, drilling out "+ totalAmount.ToString("0.000") + " units of " + numberOfResources + " resources.", 10.0f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_PostMsg3", deltaTime.ToString("0"),totalAmount.ToString("0.000"),numberOfResources), 10.0f, ScreenMessageStyle.LOWER_CENTER);//"Universal drill mined offline for <<1>> seconds, drilling out <<2>> units of <<3>> resources."
             }
         }
 
@@ -747,31 +748,31 @@ namespace FNPlugin.Collectors
             GUILayout.BeginVertical();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Drill parameters:", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Drillparameters"), _bold_label, GUILayout.Width(labelWidth));//"Drill parameters:"
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Size: " + drillSize.ToString("#.#") + " m\xB3", _normal_label);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Size") +": " + drillSize.ToString("#.#") + " m\xB3", _normal_label);//Size
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("MW Requirements: " + mwRequirements.ToString("0.000") + " MW", _normal_label);
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_MWRequirements") +": " + mwRequirements.ToString("0.000") + " MW", _normal_label);//MW Requirements
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Drill effectiveness: " + effectiveness.ToString("P1"), _normal_label);
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Resources abundances:", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_DrillEffectiveness") +": " + effectiveness.ToString("P1"), _normal_label);//Drill effectiveness
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Name", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Abundance", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Production per second", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Production per hour", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Spare Room", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Stored", _bold_label, GUILayout.Width(valueWidth));
-            GUILayout.Label("Max Capacity", _bold_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Resourcesabundances") +":", _bold_label, GUILayout.Width(labelWidth));//Resources abundances
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Name"), _bold_label, GUILayout.Width(valueWidth));//"Name"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Abundance"), _bold_label, GUILayout.Width(valueWidth));//"Abundance"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Productionpersecond"), _bold_label, GUILayout.Width(valueWidth));//"Production per second"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Productionperhour"), _bold_label, GUILayout.Width(valueWidth));//"Production per hour"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_SpareRoom"), _bold_label, GUILayout.Width(valueWidth));//"Spare Room"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_Stored"), _bold_label, GUILayout.Width(valueWidth));//"Stored"
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_MaxCapacity"), _bold_label, GUILayout.Width(valueWidth));//"Max Capacity"
             GUILayout.EndHorizontal();
 
             GetResourceData();
@@ -805,7 +806,7 @@ namespace FNPlugin.Collectors
                             {
                                 GUILayout.Label("", _normal_label, GUILayout.Width(valueWidth));
                                 GUILayout.Label("", _normal_label, GUILayout.Width(valueWidth));
-                                GUILayout.Label("full", _normal_label, GUILayout.Width(valueWidth));
+                                GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_full"), _normal_label, GUILayout.Width(valueWidth));//"full"
                             }
 
                             GUILayout.Label((resource.Amount * resource.Definition.density).ToString("##.######") + " t", _normal_label, GUILayout.Width(valueWidth));
@@ -815,7 +816,7 @@ namespace FNPlugin.Collectors
                         {
                             GUILayout.Label("", _normal_label, GUILayout.Width(valueWidth));
                             GUILayout.Label("", _normal_label, GUILayout.Width(valueWidth));
-                            GUILayout.Label("missing", _normal_label, GUILayout.Width(valueWidth));
+                            GUILayout.Label(Localizer.Format("#LOC_KSPIE_UniversalCrustExtractor_missing"), _normal_label, GUILayout.Width(valueWidth));//"missing"
                         }
                     }
                     

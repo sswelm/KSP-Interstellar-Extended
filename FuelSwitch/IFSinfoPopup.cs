@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using System;
+using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
     public class IFSinfoPopup : PartModule
     {
         [KSPField(isPersistant = true)]
-        public string textHeading = "Part Info";
+        public string textHeading = Localizer.Format("#LOC_IFS_InfoPopup_textHeading");//"Part Info"
         [KSPField(isPersistant = true)]
         public string textBody1 = "";
         [KSPField(isPersistant = true)]
@@ -71,7 +72,7 @@ namespace InterstellarFuelSwitch
         Vector2 buttonSize = new Vector2(25f, 20f);
         Rect windowRect = new Rect(300f, 300f, 320f, 320f);
 
-        [KSPEvent(name = "showInfo", active = true, guiActive = true, guiActiveEditor = true, guiName = "Show Info", guiActiveUncommand = true, guiActiveUnfocused = true)]
+        [KSPEvent(name = "showInfo", active = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_IFS_InfoPopup_ShowInfo", guiActiveUncommand = true, guiActiveUnfocused = true)]//Show Info
         public void showInfoEvent()
         {
             if (showInfo)
@@ -217,7 +218,7 @@ namespace InterstellarFuelSwitch
                 if (showAtFlightStart)
                     showOnEachFlightStart = true;
             }
-            GUI.Label(new Rect(menuItemRect.x + buttonSize.x + 10f, menuItemRect.y, menuItemSize.x - buttonSize.x - 10f, buttonSize.y), "Show on start");
+            GUI.Label(new Rect(menuItemRect.x + buttonSize.x + 10f, menuItemRect.y, menuItemSize.x - buttonSize.x - 10f, buttonSize.y), Localizer.Format("#LOC_IFS_InfoPopup_Showonstart"));//"Show on start"
 
             // hotkey toggle
             string useHotkeyString;
@@ -230,17 +231,17 @@ namespace InterstellarFuelSwitch
             {
                 useHotkey = !useHotkey;
             }
-            GUI.Label(new Rect(menuItemRect.x + buttonSize.x + 10f + (menuItemSize.x / 2), menuItemRect.y, menuItemSize.x - buttonSize.x - 10f, buttonSize.y), "Use hotkey (" + toggleKey + ")");
+            GUI.Label(new Rect(menuItemRect.x + buttonSize.x + 10f + (menuItemSize.x / 2), menuItemRect.y, menuItemSize.x - buttonSize.x - 10f, buttonSize.y), Localizer.Format("",toggleKey));//"Use hotkey (" +  + ")"
 
             menuItemRect.y += menuItemSize.y;
-            if (GUI.Button(new Rect(menuItemRect.x, menuItemRect.y, buttonSize.x * 2, buttonSize.y), "Edit"))
+            if (GUI.Button(new Rect(menuItemRect.x, menuItemRect.y, buttonSize.x * 2, buttonSize.y), Localizer.Format("#LOC_IFS_InfoPopup_EditButton")))//"Edit"
             {
                 editMode = !editMode;
                 shownByUser = true;
             }
             //menuItemRect.y += menuItemSize.y;
             if (!shownByUser)
-                GUI.Label(new Rect(menuItemRect.x + (buttonSize.x * 2) + 20f, menuItemRect.y, menuItemRect.width, menuItemRect.height), "Hiding this window in " + (int)countDown);
+                GUI.Label(new Rect(menuItemRect.x + (buttonSize.x * 2) + 20f, menuItemRect.y, menuItemRect.width, menuItemRect.height), Localizer.Format("#LOC_IFS_InfoPopup_HidingWindow", (int)countDown));//"Hiding this window in <<1>>
             GUI.DragWindow();
         }
 

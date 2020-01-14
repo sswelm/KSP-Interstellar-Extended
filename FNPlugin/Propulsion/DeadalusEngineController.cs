@@ -104,21 +104,21 @@ namespace FNPlugin
         [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FusionEngine_worldSpaceVelocity", guiFormat = "F3", guiUnits = " m/s")]
         public double worldSpaceVelocity;      
 
-        [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
         public string translatedTechMk1;
-        [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
         public string translatedTechMk2;
-        [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
         public string translatedTechMk3;
-        [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
         public string translatedTechMk4;
-        [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
         public string translatedTechMk5;
-        [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
         public string translatedTechMk6;
-        [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
         public string translatedTechMk7;
-        [KSPField(guiActiveEditor = true, guiName = "<size=10>Upgrade Tech</size>")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_UpgradeTech")]//<size=10>Upgrade Tech</size>
         public string translatedTechMk8;
 
         [KSPField]
@@ -140,42 +140,42 @@ namespace FNPlugin
         [KSPField]
         public float maxThrustMk9 = 3500;
 
-        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk1")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiThrustMk1")]//Thust/Isp Mk1
         public string guiThrustMk1;
-        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk2")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiThrustMk2")]//Thust/Isp Mk2
         public string guiThrustMk2;
-        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk3")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiThrustMk3")]//Thust/Isp Mk3
         public string guiThrustMk3;
-        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk4")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiThrustMk4")]//Thust/Isp Mk4
         public string guiThrustMk4;
-        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk5")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiThrustMk5")]//Thust/Isp Mk5
         public string guiThrustMk5;
-        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk6")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiThrustMk6")]//Thust/Isp Mk6
         public string guiThrustMk6;
-        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk7")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiThrustMk7")]//Thust/Isp Mk7
         public string guiThrustMk7;
-        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk8")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiThrustMk8")]//Thust/Isp Mk8
         public string guiThrustMk8;
-        [KSPField(guiActiveEditor = true, guiName = "Thust/Isp Mk9")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiThrustMk9")]//Thust/Isp Mk9
         public string guiThrustMk9;
 
-        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk1")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiPowerMk1")]//Power/Waste Mk1
         public string guiPowerMk1;
-        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk2")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiPowerMk2")]//Power/Waste Mk2
         public string guiPowerMk2;
-        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk3")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiPowerMk3")]//Power/Waste Mk3
         public string guiPowerMk3;
-        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk4")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiPowerMk4")]//Power/Waste Mk4
         public string guiPowerMk4;
-        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk5")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiPowerMk5")]//Power/Waste Mk5
         public string guiPowerMk5;
-        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk6")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiPowerMk6")]//Power/Waste Mk6
         public string guiPowerMk6;
-        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk7")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiPowerMk7")]//Power/Waste Mk7
         public string guiPowerMk7;
-        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk8")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiPowerMk8")]//Power/Waste Mk8
         public string guiPowerMk8;
-        [KSPField(guiActiveEditor = true, guiName = "Power/Waste Mk9")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_DeadalusEngineController_guiPowerMk9")]//Power/Waste Mk9
         public string guiPowerMk9;
 
         [KSPField]
@@ -260,9 +260,9 @@ namespace FNPlugin
         [KSPField]
         public float upgradeCost = 100;
         [KSPField]
-        public string originalName = "Prototype Deadalus IC Fusion Engine";
+        public string originalName = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_originalName");//"Prototype Deadalus IC Fusion Engine"
         [KSPField]
-        public string upgradedName = "Deadalus IC Fusion Engine";
+        public string upgradedName = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_upgradedName");//"Deadalus IC Fusion Engine"
 
         [KSPField]
         public string upgradeTechReq1 = null;
@@ -338,13 +338,13 @@ namespace FNPlugin
             private set { _engineGenerationType = (int) value; }
         }
 
-        [KSPEvent(guiActive = true, guiName = "Disable Radiation Safety", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_DeadalusEngineController_DeactivateRadSafety", active = true)]//Disable Radiation Safety
         public void DeactivateRadSafety() 
         {
             rad_safety_features = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Radiation Safety", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_DeadalusEngineController_ActivateRadSafety", active = false)]//Activate Radiation Safety
         public void ActivateRadSafety() 
         {
             rad_safety_features = true;
@@ -813,9 +813,9 @@ namespace FNPlugin
             {
                 radhazard = true;
                 if (kerbalHazardCount > 1)
-                    radhazardstr = kerbalHazardCount + " Kerbals.";
+                    radhazardstr = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_radhazardstr2", kerbalHazardCount);// + " Kerbals."
                 else
-                    radhazardstr = kerbalHazardCount + " Kerbal.";
+                    radhazardstr = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_radhazardstr1", kerbalHazardCount);// + " Kerbal."
 
                 radhazardstrField.guiActive = true;
             }
@@ -823,7 +823,7 @@ namespace FNPlugin
             {
                 radhazardstrField.guiActive = false;
                 radhazard = false;
-                radhazardstr = "None.";
+                radhazardstr = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_radhazardstr3");//"None."
             }
 
             Fields["powerUsage"].guiActive = EffectivePowerRequirement > 0;
@@ -921,10 +921,10 @@ namespace FNPlugin
                 if (throttle > 0)
                 {
                     if (vessel.atmDensity > maxAtmosphereDensity)
-                        ShutDown("Inertial Fusion cannot operate in atmosphere!");
+                        ShutDown(Localizer.Format("#LOC_KSPIE_DeadalusEngineController_Shutdownreason1"));//"Inertial Fusion cannot operate in atmosphere!"
 
                     if (radhazard && rad_safety_features)
-                        ShutDown("Engines throttled down as they presently pose a radiation hazard");
+                        ShutDown(Localizer.Format("#LOC_KSPIE_DeadalusEngineController_Shutdownreason2"));//"Engines throttled down as they presently pose a radiation hazard"
                 }
 
                 KillKerbalsWithRadiation(throttle);
@@ -960,7 +960,7 @@ namespace FNPlugin
 
                     if (!curEngineT.getFlameoutState && fusionRatio < 0.01)
                     {
-                        curEngineT.status = "Insufficient Electricity";
+                        curEngineT.status = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_curEngineTstatus1");//"Insufficient Electricity"
                     }
 
                     ratioHeadingVersusRequest = 0;
@@ -977,7 +977,7 @@ namespace FNPlugin
 
                     if (fusionRatio <= 0.01)
                     {
-                        var message = "Thrust warp stopped - insuficient power";
+                        var message = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_PostMsg1");//"Thrust warp stopped - insuficient power"
                         UnityEngine.Debug.Log("[KSPI]: " + message);
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime
@@ -1004,7 +1004,7 @@ namespace FNPlugin
 
                     if (fuelRatio < 0.999)
                     {
-                        var message = (fuelRatio <= 0) ? "Thrust warp stopped - propellant depleted" : "Thrust warp stopped - running out of propellant";
+                        var message = (fuelRatio <= 0) ? Localizer.Format("#LOC_KSPIE_DeadalusEngineController_PostMsg2") : Localizer.Format("#LOC_KSPIE_DeadalusEngineController_PostMsg3");//"Thrust warp stopped - propellant depleted" : "Thrust warp stopped - running out of propellant"
                         UnityEngine.Debug.Log("[KSPI]: " + message);
                         ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                         // Return to realtime
@@ -1074,7 +1074,7 @@ namespace FNPlugin
             double persistentThrustDot = Vector3d.Dot(this.part.transform.up, vessel.obt_velocity);
             if (persistentThrustDot < 0 && (vessel.obt_velocity.magnitude <= deltaVv.magnitude * 2))
             {
-                var message = "Thrust warp stopped - orbital speed too low";
+                var message = Localizer.Format("#LOC_KSPIE_DeadalusEngineController_PostMsg4");//"Thrust warp stopped - orbital speed too low"
                 ScreenMessages.PostScreenMessage(message, 5, ScreenMessageStyle.UPPER_CENTER);
                 UnityEngine.Debug.Log("[KSPI]: " + message);
                 TimeWarp.SetRate(0, true);
@@ -1191,12 +1191,12 @@ namespace FNPlugin
 
                     if (!vess.isEVA)
                     {
-                        ScreenMessages.PostScreenMessage(crewMember.name + " was killed by Radiation!", 5f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_DeadalusEngineController_PostMsg5", crewMember.name), 5f, ScreenMessageStyle.UPPER_CENTER);// + " was killed by Radiation!"
                         crewToRemove.Add(crewMember);
                     }
                     else
                     {
-                        ScreenMessages.PostScreenMessage(crewMember.name + " was killed by Radiation!", 5f, ScreenMessageStyle.UPPER_CENTER);
+                        ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_DeadalusEngineController_PostMsg5", crewMember.name), 5f, ScreenMessageStyle.UPPER_CENTER);// + " was killed by Radiation!"
                         vesselsToRemove.Add(vess);
                     }
                 }

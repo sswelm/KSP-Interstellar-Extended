@@ -4,6 +4,7 @@ using System.Linq;
 using FNPlugin.Propulsion;
 using FNPlugin.Constants;
 using FNPlugin.Redist;
+using KSP.Localization;
 
 namespace FNPlugin.Reactors
 {
@@ -22,7 +23,7 @@ namespace FNPlugin.Reactors
         public double maximumPowerRecieved = 6;
 
         //GUI
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Thermal Power")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_ThermalHeatExchanger_ThermalPower")]//Thermal Power
         public string thermalpower;
 
         // internal
@@ -187,13 +188,13 @@ namespace FNPlugin.Reactors
         public bool IsNuclear { get { return false; } }
 
 
-        [KSPEvent(guiActive = true, guiName = "Activate Heat Exchanger", active = false)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ThermalHeatExchanger_ActivateHeatExchanger", active = false)]//Activate Heat Exchanger
         public void ActivateHeatExchanger()
         {
             IsEnabled = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Heat Exchanger", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_ThermalHeatExchanger_DeactivateHeatExchanger", active = true)]//Deactivate Heat Exchanger
         public void DeactivateHeatExchanger()
         {
             IsEnabled = false;
@@ -227,9 +228,9 @@ namespace FNPlugin.Reactors
 
         public override void OnStart(PartModule.StartState state)
         {
-            Actions["ActivateHeatExchangerAction"].guiName = Events["ActivateHeatExchanger"].guiName = String.Format("Activate Heat Exchanger");
-            Actions["DeactivateHeatExchangerAction"].guiName = Events["DeactivateHeatExchanger"].guiName = String.Format("Deactivate Heat Exchanger");
-            Actions["ToggleHeatExchangerAction"].guiName = String.Format("Toggle Heat Exchanger");
+            Actions["ActivateHeatExchangerAction"].guiName = Events["ActivateHeatExchanger"].guiName = Localizer.Format("#LOC_KSPIE_ThermalHeatExchanger_ActivateHeatExchanger");//String.Format("Activate Heat Exchanger")
+            Actions["DeactivateHeatExchangerAction"].guiName = Events["DeactivateHeatExchanger"].guiName = Localizer.Format("#LOC_KSPIE_ThermalHeatExchanger_DeactivateHeatExchanger");//String.Format("Deactivate Heat Exchanger")
+            Actions["ToggleHeatExchangerAction"].guiName = Localizer.Format("#LOC_KSPIE_ThermalHeatExchanger_ToggleHeatExchanger");//String.Format("Toggle Heat Exchanger")
 
             String[] resources_to_supply = { ResourceManager.FNRESOURCE_THERMALPOWER };
             this.resources_to_supply = resources_to_supply;

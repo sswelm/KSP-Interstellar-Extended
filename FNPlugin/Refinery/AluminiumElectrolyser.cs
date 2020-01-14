@@ -3,6 +3,7 @@ using FNPlugin.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {
@@ -18,7 +19,7 @@ namespace FNPlugin.Refinery
 
         public RefineryType RefineryType { get { return RefineryType.electrolysis; } }
 
-        public String ActivityName { get { return "Aliminium Electrolysis: Al<size=7>2</size>O<size=7>3</size> => O<size=7>2</size> + Al<size=7>2</size>"; } }
+        public String ActivityName { get { return "Aliminium Electrolysis: Al<size=7>2</size>O<size=7>3</size> => O<size=7>2</size> + Al<size=7>2</size>"; } }//Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_ActivityName") +
 
         public bool HasActivityRequirements() { return _part.GetConnectedResources(InterstellarResourcesConfiguration.Instance.Alumina).Any(rs => rs.amount > 0);  }
 
@@ -54,41 +55,41 @@ namespace FNPlugin.Refinery
             base.UpdateGUI();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Power", _bold_label, GUILayout.Width(labelWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_Power"), _bold_label, GUILayout.Width(labelWidth));//"Power"
             GUILayout.Label(PluginHelper.getFormattedPowerString(CurrentPower) + "/" + PluginHelper.getFormattedPowerString(PowerRequirements), _value_label, GUILayout.Width(valueWidth));
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Alumina Consumption Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_alumina_consumption_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_AluminaConsumptionRate"), _bold_label, GUILayout.Width(labelWidth));//"Alumina Consumption Rate"
+            GUILayout.Label(_alumina_consumption_rate * GameConstants.SECONDS_IN_HOUR + " mT/"+Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_hour"), _value_label, GUILayout.Width(valueWidth));//hour
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Aluminium Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_aluminium_production_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_AluminiumProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Aluminium Production Rate"
+            GUILayout.Label(_aluminium_production_rate * GameConstants.SECONDS_IN_HOUR + " mT/"+Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_hour"), _value_label, GUILayout.Width(valueWidth));//hour
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Oxygen Production Rate", _bold_label, GUILayout.Width(labelWidth));
-            GUILayout.Label(_oxygen_production_rate * GameConstants.SECONDS_IN_HOUR + " mT/hour", _value_label, GUILayout.Width(valueWidth));
+            GUILayout.Label(Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_OxygenProductionRate"), _bold_label, GUILayout.Width(labelWidth));//"Oxygen Production Rate"
+            GUILayout.Label(_oxygen_production_rate * GameConstants.SECONDS_IN_HOUR + " mT/"+Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_hour"), _value_label, GUILayout.Width(valueWidth));//hour
             GUILayout.EndHorizontal();
         }
 
         private void updateStatusMessage()
         {
             if (_aluminium_production_rate > 0 && _oxygen_production_rate > 0)
-                _status = "Electrolysing";
+                _status = Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_statumsg1");//"Electrolysing"
             else if (_alumina_consumption_rate > 0)
-                _status = "Electrolysing: Insufficient Oxygen Storage";
+                _status = Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_statumsg2");//"Electrolysing: Insufficient Oxygen Storage"
             else if (_oxygen_production_rate > 0)
-                _status = "Electrolysing: Insufficient Aluminium Storage";
+                _status = Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_statumsg3");//"Electrolysing: Insufficient Aluminium Storage"
             else if (CurrentPower <= 0.01 * PowerRequirements)
-                _status = "Insufficient Power";
+                _status = Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_statumsg4");//"Insufficient Power"
             else
-                _status = "Insufficient Storage";
+                _status = Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_statumsg5");//"Insufficient Storage"
         }
 
 
         public void PrintMissingResources()
         {
-            ScreenMessages.PostScreenMessage("Missing " + InterstellarResourcesConfiguration.Instance.Alumina, 3.0f, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_AluminiumElectrolyser_Postmsg") + " " + InterstellarResourcesConfiguration.Instance.Alumina, 3.0f, ScreenMessageStyle.UPPER_CENTER);//"Missing "
         }
 
     }
