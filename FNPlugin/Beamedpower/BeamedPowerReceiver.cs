@@ -214,9 +214,9 @@ namespace FNPlugin
         [KSPField]
         public double powerHeatExponent = 0.7;
 
-        [KSPField(guiActiveEditor = true, guiName = "Hotbath TechLevel")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotbathTechLevel")]//Hotbath TechLevel
         public int hothBathtechLevel;
-        [KSPField(guiActiveEditor = true, guiName ="HotBath Temperature", guiUnits = " K")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_BeamPowerReceiver_HotBathTemperature", guiUnits = " K")]//HotBath Temperature
         public double hothBathTemperature = 3200;
 
         [KSPField]

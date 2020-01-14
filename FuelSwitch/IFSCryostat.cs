@@ -3,7 +3,7 @@ using KSP.Localization;
 
 namespace InterstellarFuelSwitch
 {
-    [KSPModule("#LOC_IFS_Cryostat_ModuleName")]//Cryostat
+    [KSPModule("Cryostat")]//#LOC_IFS_Cryostat_ModuleName
     class IFSCryostat : PartModule
     {
         public const string STOCK_RESOURCE_ELECTRICCHARGE = "ElectricCharge";

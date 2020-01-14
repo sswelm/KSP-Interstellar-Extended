@@ -14,7 +14,7 @@ namespace FNPlugin.Powermanagement
     class FNBatteryGenerator : ResourceSuppliableModule
     {
         // configuration
-        [KSPField(guiActiveEditor = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Power
         public double maxPower = 1;
         [KSPField]
         public bool forceActivateAtStartup = true;
@@ -30,15 +30,15 @@ namespace FNPlugin.Powermanagement
         public string outputConversionRates = "";
         [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_Reactor_electricPriority"), UI_FloatRange(stepIncrement = 1, maxValue = 5, minValue = 0)]
         public float electricSupplyPriority = 5;
-        [KSPField(guiActive = true, guiName = "Spare MW Capacity",  guiUnits = " MW", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_SpareMWCapacity",  guiUnits = " MW", guiFormat = "F3")]//Spare MW Capacity
         public double spareResourceCapacity;
-        [KSPField(guiActive = true, guiName = "Remaining supply lifetime", guiUnits = " s", guiFormat = "F0")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_Remainingsupplylifetime", guiUnits = " s", guiFormat = "F0")]//Remaining supply lifetime
         public double batterySupplyRemaining;
-        [KSPField(guiActiveEditor = true, guiName = "Maximum Power", guiUnits = " MW", guiFormat = "F3")]
+        [KSPField(guiActiveEditor = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_MaximumPower", guiUnits = " MW", guiFormat = "F3")]//Maximum Power
         public double currentMaxPower = 1;
-        [KSPField(guiActive = true, guiName = "Power Supply", guiUnits = " MW", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_PowerSupply", guiUnits = " MW", guiFormat = "F3")]//Power Supply
         public double powerSupply;
-        [KSPField(guiActive = true, guiName = "Wasteheat", guiUnits = " MJ", guiFormat = "F3")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_FNBatteryGenerator_Wasteheat", guiUnits = " MJ", guiFormat = "F3")]//Wasteheat
         public double wasteheat;
 
         [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_Generator_electricPowerNeeded", guiUnits = " MW", guiFormat = "F4")]

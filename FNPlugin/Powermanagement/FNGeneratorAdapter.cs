@@ -7,7 +7,7 @@ namespace FNPlugin
     [KSPModule("Generator Adapter")]
     class FNGeneratorAdapter : ResourceSuppliableModule
     {
-        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "Generator current power", guiUnits = " MW", guiFormat = "F6")]
+        [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = true, guiName = "#LOC_KSPIE_FNGeneratorAdapter_CurrentPower", guiUnits = " MW", guiFormat = "F6")]//Generator current power
         public double megaJouleGeneratorPowerSupply;
         [KSPField]
         public int index = 0;

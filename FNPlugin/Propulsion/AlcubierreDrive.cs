@@ -83,17 +83,17 @@ namespace FNPlugin
         [KSPField] 
         public double gravityMaintenancePowerMultiplier = 4;
 
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Warp Window"), UI_Toggle(disabledText = "Hidden", enabledText = "Shown", affectSymCounterparts = UI_Scene.All)]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_WarpWindow"), UI_Toggle(disabledText = "#LOC_KSPIE_AlcubierreDrive_WarpWindow_Hidden", enabledText = "#LOC_KSPIE_AlcubierreDrive_WarpWindow_Shown", affectSymCounterparts = UI_Scene.All)]//Warp Window--Hidden--Shown
         public bool showWindow = false;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Auto Rendevous/Circularize"), UI_Toggle(disabledText = "False", enabledText = "True", affectSymCounterparts = UI_Scene.All)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_AutoRendevousCircularize"), UI_Toggle(disabledText = "#LOC_KSPIE_AlcubierreDrive_False", enabledText = "#LOC_KSPIE_AlcubierreDrive_True", affectSymCounterparts = UI_Scene.All)]//Auto Rendevous/Circularize-False-True
         public bool matchExitToDestinationSpeed = true;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Auto Maximize Warp Speed"), UI_Toggle(disabledText = "Disabled", enabledText = "Enabled", affectSymCounterparts = UI_Scene.All)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_AutoMaximizeWarpSpeed"), UI_Toggle(disabledText = "#LOC_KSPIE_AlcubierreDrive_Disabled", enabledText = "#LOC_KSPIE_AlcubierreDrive_Enabled", affectSymCounterparts = UI_Scene.All)]//Auto Maximize Warp Speed -Disabled-Enabled
         public bool maximizeWarpSpeed = false;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Auto Hold Altitude"), UI_Toggle(disabledText = "Disabled", enabledText = "Enabled", affectSymCounterparts = UI_Scene.All)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_AutoHoldAltitude"), UI_Toggle(disabledText = "#LOC_KSPIE_AlcubierreDrive_Disabled", enabledText = "#LOC_KSPIE_AlcubierreDrive_Enabled", affectSymCounterparts = UI_Scene.All)]//Auto Hold Altitude--Disabled--Enabled
         public bool holdAltitude = false;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Safety Distance", guiUnits = " Km"), UI_FloatRange(minValue = 0, maxValue = 200, stepIncrement = 1)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_SafetyDistance", guiUnits = " Km"), UI_FloatRange(minValue = 0, maxValue = 200, stepIncrement = 1)]//Safety Distance
         public float spaceSafetyDistance = 30;
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Exotic Matter Percentage"), UI_FloatRange(minValue = 0, maxValue = 200, stepIncrement = 5)]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AlcubierreDrive_AntigravityPercentage"), UI_FloatRange(minValue = 0, maxValue = 200, stepIncrement = 5)]//Exotic Matter Percentage
         public float antigravityPercentage = 0;
 
         //GUI
@@ -133,7 +133,7 @@ namespace FNPlugin
         public double currentPowerRequirementForWarp;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_powerReqForMaxAllowedSpeed", guiUnits = " MW", guiFormat = "F4")]
         public double powerRequirementForMaximumAllowedLightSpeed;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Power Requirement For Slowed SubLightSpeed", guiUnits = " MW", guiFormat = "F4")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_PowerRequirementForSlowedSubLightSpeed", guiUnits = " MW", guiFormat = "F4")]//Power Requirement For Slowed SubLightSpeed
         public double powerRequirementForSlowedSubLightSpeed;
         [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_currentWarpExitSpeed", guiUnits = " m/s", guiFormat = "F3")]
         public double exitSpeed;
@@ -149,33 +149,33 @@ namespace FNPlugin
         public double exitBurnCircularize;
         [KSPField(guiActive = true, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_status")]
         public string driveStatus;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Cos Angle To Closest Body", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_CosineAngleToClosestBody", guiFormat = "F3")]//Cos Angle To Closest Body
         private double cosineAngleToClosestBody;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Distance to closest body", guiFormat = "F0", guiUnits = " m")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_Distancetoclosestbody", guiFormat = "F0", guiUnits = " m")]//Distance to closest body
         private double distanceToClosestBody;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Name of closest body")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_Nameofclosestbody")]//Name of closest body
         string closestCelestrialBodyName;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max distance per frame", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_AllowedWarpDistancePerFrame", guiFormat = "F3")]//Max distance per frame
         private double allowedWarpDistancePerFrame;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Maximum Warp Speed", guiFormat = "F3")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_MaximumWarpSpeed", guiFormat = "F3")]//Maximum Warp Speed
         private double maximumWarpSpeed;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Safety distance", guiFormat = "F3", guiUnits = " m")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_Safetydistance", guiFormat = "F3", guiUnits = " m")]//Safety distance
         private double safetyDistance;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Dropout Distance", guiFormat = "F3", guiUnits = " m")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_DropoutDistance", guiFormat = "F3", guiUnits = " m")]//Dropout Distance
         private double dropoutDistance;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Available Power for Warp", guiFormat = "F3", guiUnits = "MJ")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_AvailablePower", guiFormat = "F3", guiUnits = "MJ")]//Available Power for Warp
         private double availablePower;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_GravityAcceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]//Gravity Acceleration
         private double gravityAcceleration;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Anti Gravity Acceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_AntiGravityAcceleration", guiFormat = "F3", guiUnits = " m/s\xB2")]//Anti Gravity Acceleration
         private double antigravityAcceleration;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Vertical Speed", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_VerticalSpeed", guiFormat = "F3", guiUnits = " m/s")]//Vertical Speed
         private double verticalSpeed;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Maintenance Power Req", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_MaintenancePowerReq", guiFormat = "F3", guiUnits = " m/s")]//Maintenance Power Req
         private double requiredExoticMaintenancePower;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Charge Power Draw", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_ChargePowerDraw", guiFormat = "F3", guiUnits = " m/s")]//Charge Power Draw
         private double chargePowerDraw;
-        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "Max Charge Power Required", guiFormat = "F3", guiUnits = " m/s")]
+        [KSPField(guiActive = false, guiActiveEditor = false, guiName = "#LOC_KSPIE_AlcubierreDrive_MaxChargePowerRequired", guiFormat = "F3", guiUnits = " m/s")]//Max Charge Power Required
         private double maxChargePowerRequired;
 
         private double recievedExoticMaintenancePower;
@@ -364,7 +364,7 @@ namespace FNPlugin
 
             if (vessel.altitude < ((vessel.mainBody.atmosphere ? vessel.mainBody.atmosphereDepth : 20000) + allowedWarpDistancePerFrame + safetyDistance))
             {
-                var message = "Warp initiation aborted, cannot warp into " + vessel.mainBody.name;
+                var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_msg1", vessel.mainBody.name);//"Warp initiation aborted, cannot warp into " + 
                 Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                 initiateWarpTimeout = 0;
@@ -395,7 +395,7 @@ namespace FNPlugin
                 }
                 if (initiateWarpTimeout == 0)
                 {
-                    var message = "Not enough power to initiate warp!" + powerReturned + " " + currentPowerRequirementForWarp;
+                    var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_msg2") + powerReturned + " " + currentPowerRequirementForWarp;//"Not enough power to initiate warp!"
                     Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                     IsCharging = true;
@@ -626,7 +626,7 @@ namespace FNPlugin
                 old_selected_factor = selected_factor;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Reduce Warp Power", active = true)]
+        [KSPEvent(guiActive = true, guiName = "#LOC_KSPIE_AlcubierreDrive_ReduceWarpPower", active = true)]//Reduce Warp Power
         public void ReduceWarpPower()
         {
             Debug.Log("[KSPI]: Reduce Warp Power button pressed");
@@ -1278,10 +1278,10 @@ namespace FNPlugin
                     if (currentExoticMatter < exotic_power_required * 0.999 * 0.5)
                     {
                         var electricalCurrentPct = Math.Min(100, 100 * currentExoticMatter/(exotic_power_required * 0.5));
-                        driveStatus = String.Format("Charging: ") + electricalCurrentPct.ToString("0.00") + String.Format("%");
+                        driveStatus = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_Charging") + electricalCurrentPct.ToString("0.00") + String.Format("%");//String.Format("Charging: ")
                     }
                     else
-                        driveStatus = "Ready.";
+                        driveStatus = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_Ready");//"Ready."
                 }
 
                 warp_effect2_renderer.enabled = false;
@@ -1289,7 +1289,7 @@ namespace FNPlugin
             }
             else
             {
-                driveStatus = "Active.";
+                driveStatus = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_Active");//"Active."
 
                 var shipPos = new Vector3(part.transform.position.x, part.transform.position.y, part.transform.position.z);
                 var endBeamPos = shipPos + part.transform.up * warp_size;
@@ -1421,7 +1421,7 @@ namespace FNPlugin
                     {
                         insufficientPowerTimeout--;
 
-                        var message = overheatModifier < 0.99 ? "Shutdown Alcubierre Drive due to overheating" :  
+                        var message = overheatModifier < 0.99 ? Localizer.Format("#LOC_KSPIE_AlcubierreDrive_msg3") :  //"Shutdown Alcubierre Drive due to overheating"
                             Localizer.Format("#LOC_KSPIE_AlcubierreDrive_notEnoughElectricPowerForWarp");
 
                         Debug.Log("[KSPI]: " + message);
@@ -1533,10 +1533,10 @@ namespace FNPlugin
                         ? closestCelestrialBody.atmosphere
                             ? "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToAtmosphere"
                             : "#LOC_KSPIE_AlcubierreDrive_droppedOutOfWarpTooCloseToSurface"
-                        : "Dropped out of warp near target";
+                        : "#LOC_KSPIE_AlcubierreDrive_msg4";//"Dropped out of warp near target"
 
                     Debug.Log("[KSPI]: " + Localizer.Format(message));
-                    ScreenMessages.PostScreenMessage(message, 5);
+                    ScreenMessages.PostScreenMessage(Localizer.Format(message), 5);
                     DeactivateWarpDrive();
                     vesselWasInOuterspace = false;
                     return;
@@ -1579,7 +1579,7 @@ namespace FNPlugin
             {
                 if (availablePower < minPowerRequirementForLightSpeed)
                 {
-                    var message = "Maximum power supply of " + availablePower.ToString("0") + " MW is insufficient power, you need at at least " + minPowerRequirementForLightSpeed.ToString("0") + " MW of Power to maintain Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass.";
+                    var message = Localizer.Format("#LOC_KSPIE_AlcubierreDrive_msg5", availablePower.ToString("0"),minPowerRequirementForLightSpeed.ToString("0"));//"Maximum power supply of " +  + " MW is insufficient power, you need at at least " +  + " MW of Power to maintain Lightspeed with current vessel. Please increase power supply, lower vessel mass or increase Warp Drive mass."
                     Debug.Log("[KSPI]: " + message);
                     ScreenMessages.PostScreenMessage(message, 5);
                     DeactivateWarpDrive();
@@ -1751,11 +1751,11 @@ namespace FNPlugin
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentWarpExitMeanAnomaly"), exitMeanAnomaly.ToString("0.000") + "\xB0", bold_black_style, text_black_style);
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_currentWarpExitBurnToCircularize"), exitBurnCircularize.ToString("0.000") + " m/s", bold_black_style, text_black_style);
 
-                PrintToGUILayout("Maximum Warp For Altitude", (maximumWarpForAltitude).ToString("0.000"), bold_black_style, text_black_style);
-                PrintToGUILayout("Distance to closest body", (distanceToClosestBody * 0.001).ToString("0.000") + " km" , bold_black_style, text_black_style);
-                PrintToGUILayout("Closest body", closestCelestrialBodyName, bold_black_style, text_black_style);
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_MaximumWarpForAltitude"), (maximumWarpForAltitude).ToString("0.000"), bold_black_style, text_black_style);//"Maximum Warp For Altitude"
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_Distancetoclosestbody"), (distanceToClosestBody * 0.001).ToString("0.000") + " km" , bold_black_style, text_black_style);//"Distance to closest body"
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_Closestbody"), closestCelestrialBodyName, bold_black_style, text_black_style);//"Closest body"
 
-                PrintToGUILayout("Cosine To Closest Body", cosineAngleToClosestBody.ToString("0.000"), bold_black_style, text_black_style);
+                PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_CosineToClosestBody"), cosineAngleToClosestBody.ToString("0.000"), bold_black_style, text_black_style);//"Cosine To Closest Body"
 
                 PrintToGUILayout(Localizer.Format("#LOC_KSPIE_AlcubierreDrive_status"), driveStatus, bold_black_style, text_black_style);                
 

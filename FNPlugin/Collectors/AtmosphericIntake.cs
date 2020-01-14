@@ -2,45 +2,46 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin  
 {
     class AtmosphericIntake : PartModule
     {
         // persistents
-        [KSPField(isPersistant = true, guiName = "Air / sec", guiActiveEditor = false, guiActive = true, guiFormat = "F5")]
+        [KSPField(isPersistant = true, guiName = "#LOC_KSPIE_AtmosphericIntake_Airrate", guiActiveEditor = false, guiActive = true, guiFormat = "F5")]//Air / sec
         public double finalAir;
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Atmospheric Intake"), UI_Toggle(disabledText = "Closed", enabledText = "Open", affectSymCounterparts = UI_Scene.None)] // Mass Ratio
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake"), UI_Toggle(disabledText = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake_Closed", enabledText = "#LOC_KSPIE_AtmosphericIntake_AtmosphericIntake_Open", affectSymCounterparts = UI_Scene.None)] //Atmospheric Intake   Closed  Open                                                          //Mass Ratio
         public bool intakeOpen = true;
 
         [KSPField (guiActive = false, guiActiveEditor = true)]
         public double intakeSpeed = 10;
-        [KSPField(guiName = "Atmosphere Flow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereFlow", guiActive = false, guiUnits = "U", guiFormat = "F3"  )]//Atmosphere Flow
         public double airFlow;
-        [KSPField(guiName = "Atmosphere Speed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AtmosphereSpeed", guiActive = false, guiUnits = "M/s", guiFormat = "F3")]//Atmosphere Speed
         public double airSpeed;
-        [KSPField(guiName = "Air This Update", guiActive = false, guiFormat ="F6")]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AirThisUpdate", guiActive = false, guiFormat ="F6")]//Air This Update
         public double airThisUpdate;
-        [KSPField(guiName = "Intake Angle",  guiActive = true, guiFormat = "F3")]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_IntakeAngle",  guiActive = true, guiFormat = "F3")]//Intake Angle
         public float intakeAngle = 0;
-        [KSPField(guiName = "Area", guiActiveEditor = true, guiActive = false, guiFormat = "F4")]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_Area", guiActiveEditor = true, guiActive = false, guiFormat = "F4")]//Area
         public double area = 0.01;
         [KSPField( guiActive = false, guiActiveEditor = true)]
         public string intakeTransformName = "";
-        [KSPField(guiName = "unitScalar", guiActive = false, guiActiveEditor = true)]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_unitScalar", guiActive = false, guiActiveEditor = true)]//unitScalar
         public double unitScalar = 0.2;
-        [KSPField(guiName = "storesResource", guiActive = false, guiActiveEditor = false)]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_storesResource", guiActive = false, guiActiveEditor = false)]//storesResource
         public bool storesResource = false;
-        [KSPField(guiName = "Intake Exposure", guiActive = false, guiActiveEditor = false, guiFormat = "F1")]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_IntakeExposure", guiActive = false, guiActiveEditor = false, guiFormat = "F1")]//Intake Exposure
         public double intakeExposure = 0;
-        [KSPField(guiName = "Trace atmo. density", guiActive = false, guiActiveEditor = false, guiFormat = "F3")]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_UpperAtmoDensity", guiActive = false, guiActiveEditor = false, guiFormat = "F3")]//Trace atmo. density
         public double upperAtmoDensity;
-        [KSPField(guiName = "Air Density", guiActive = false,   guiFormat = "F3")]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_AirDensity", guiActive = false,   guiFormat = "F3")]//Air Density
         public double airDensity;
-        [KSPField(guiName = "Tech Bonus", guiActive = false, guiFormat = "F3")]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_TechBonus", guiActive = false, guiFormat = "F3")]//Tech Bonus
         public double jetTechBonusPercentage;
-        [KSPField(guiName = "Upper Atmo Fraction", guiActive = false, guiFormat = "F3")]
+        [KSPField(guiName = "#LOC_KSPIE_AtmosphericIntake_UpperAtmoFraction", guiActive = false, guiFormat = "F3")]//Upper Atmo Fraction
         public double upperAtmoFraction;
 
         double startupCount;

@@ -113,7 +113,7 @@ namespace InterstellarFuelSwitch
         [KSPField]
         public string switcherDescription = "#LOC_IFS_FuelSwitch_switcherDescription";  // Tank
         [KSPField]
-        public string resourceNames = Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName1") + ";" + Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName2") + "," + Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName3") + ";" + Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName4");//"ElectricCharge;LiquidFuel,Oxidizer;MonoPropellant"
+        public string resourceNames = "ElectricCharge;LiquidFuel,Oxidizer;MonoPropellant";//Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName1") + ";" + Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName2") + "," + Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName3") + ";" + Localizer.Format("#LOC_IFS_FuelSwitch_ResouceName4")
         [KSPField]
         public string resourceAmounts = string.Empty;
         [KSPField]

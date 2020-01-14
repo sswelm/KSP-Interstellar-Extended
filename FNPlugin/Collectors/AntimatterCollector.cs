@@ -7,21 +7,21 @@ namespace FNPlugin
 {
     class AntimatterCollector : ResourceSuppliableModule    
     {
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "Collecting"), UI_Toggle(disabledText = "Off", enabledText = "On")]
+        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterCollector_Collecting"), UI_Toggle(disabledText = "#LOC_KSPIE_AntimatterCollector_Collecting_Off", enabledText = "#LOC_KSPIE_AntimatterCollector_Collecting_On")]//Collecting--Off--On
         public bool active = true;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Antimatter Flux")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_AntimatterCollector_ParticleFlux")]//Antimatter Flux
         public string ParticleFlux;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Rate", guiFormat = "F4", guiUnits = " mg/hour")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_AntimatterCollector_CollectionRate", guiFormat = "F4", guiUnits = " mg/hour")]//Rate
         public double collectionRate;
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Collection Multiplier")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_AntimatterCollector_CollectionMultiplier")]//Collection Multiplier
         public double collectionMultiplier = 1;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "Field Strength Multiplier", guiFormat = "F2")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "#LOC_KSPIE_AntimatterCollector_CelestrialBodyFieldStrengthMod", guiFormat = "F2")]//Field Strength Multiplier
         public double celestrialBodyFieldStrengthMod = 1;
         [KSPField(isPersistant = true)]
         public double last_active_time;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Can collect")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterCollector_CanCollect")]//Can collect
         public bool canCollect = true;
-        [KSPField(isPersistant = true, guiActive = true, guiName = "Power Usage", guiUnits = " KW/s")]
+        [KSPField(isPersistant = true, guiActive = true, guiName = "#LOC_KSPIE_AntimatterCollector_PowerReqKW", guiUnits = " KW/s")]//Power Usage
         public double powerReqKW;
         [KSPField(isPersistant = true, guiActive = false)]
         public double flux;

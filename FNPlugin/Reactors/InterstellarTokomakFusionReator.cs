@@ -1,4 +1,5 @@
 ﻿using System;
+using KSP.Localization;
 
 namespace FNPlugin.Reactors
 {
@@ -54,7 +55,7 @@ namespace FNPlugin.Reactors
 
             if (fusionAlertFrames > 2)
             {
-                ScreenMessages.PostScreenMessage("Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended.", 0.1f, ScreenMessageStyle.UPPER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_TokomakFusionReator_PostMsg1"), 0.1f, ScreenMessageStyle.UPPER_CENTER);//"Warning: Fusion Reactor plasma heating cannot be guaranteed, reducing power requirements is recommended."
                 fusion_alert = true;
             }
 
@@ -102,7 +103,7 @@ namespace FNPlugin.Reactors
             }
             else
             {
-                var message = "Not enough power to start fusion reactor, it requires at " + fusionPowerRequirement.ToString("F2") + " MW";
+                var message = Localizer.Format("#LOC_KSPIE_TokomakFusionReator_PostMsg2", fusionPowerRequirement.ToString("F2"));//"Not enough power to start fusion reactor, it requires at " +  + " MW"
                 UnityEngine.Debug.Log("[KSPI]: " + message);
                 ScreenMessages.PostScreenMessage(message, 5f, ScreenMessageStyle.LOWER_CENTER);
                 return;
@@ -115,11 +116,11 @@ namespace FNPlugin.Reactors
             if (allowJumpStart)
             {
                 storedPlasmaEnergyRatio = 1;
-                ScreenMessages.PostScreenMessage("Starting fusion reaction", 5f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_TokomakFusionReator_PostMsg3"), 5f, ScreenMessageStyle.LOWER_CENTER);//"Starting fusion reaction"
                 jumpstartPowerTime = 10;
             }
             else
-                ScreenMessages.PostScreenMessage("Not enough power to start fusion reaction", 5f, ScreenMessageStyle.LOWER_CENTER);
+                ScreenMessages.PostScreenMessage(Localizer.Format("#LOC_KSPIE_TokomakFusionReator_PostMsg4"), 5f, ScreenMessageStyle.LOWER_CENTER);//"Not enough power to start fusion reaction"
         }
 
         public override void OnFixedUpdate()

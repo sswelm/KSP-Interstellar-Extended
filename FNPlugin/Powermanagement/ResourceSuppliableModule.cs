@@ -8,7 +8,7 @@ namespace FNPlugin
 {
     abstract class ResourceSuppliableModule : PartModule, IResourceSuppliable, IResourceSupplier
     {
-        [KSPField(isPersistant = false, guiActive = false, guiName = "Update Counter")]
+        [KSPField(isPersistant = false, guiActive = false, guiName = "#LOC_KSPIE_ResourceManager_UpdateCounter")]//Update Counter
         public long updateCounter;
 
         protected List<Part> similarParts;

@@ -6,11 +6,11 @@ using KSP.UI.Screens;
 
 namespace FNPlugin.Microwave
 {
-    [KSPModule("#LOC_KSPIE_RectennaBandwidthConverter")]//Rectenna Bandwidth Converter
+    [KSPModule("Rectenna Bandwidth Converter")]//#LOC_KSPIE_RectennaBandwidthConverter
     class RectennaConverter : BandwidthConverter {}
 
 
-    [KSPModule("#LOC_KSPIE_BeamedPowerBandwidthConverter")]//Beamed Power Bandwidth Converter
+    [KSPModule("Beamed Power Bandwidth Converter")]//#LOC_KSPIE_BeamedPowerBandwidthConverter
     class BandwidthConverter : PartModule
     {
         [KSPField(isPersistant = false, guiActiveEditor = false, guiActive = false)]

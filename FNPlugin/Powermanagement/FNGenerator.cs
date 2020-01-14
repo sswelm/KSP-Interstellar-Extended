@@ -197,9 +197,9 @@ namespace FNPlugin
         [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_currentElectricPower", guiUnits = " MW_e", guiFormat = "F3")]
         public string OutputPower;
 
-        [KSPField(guiActive = false, guiName = "Maximum Electric Power")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_Generator_MaximumElectricPower")]//Maximum Electric Power
         public string MaxPowerStr;
-        [KSPField(guiActive = true, guiName = "Electric Efficiency")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_Generator_ElectricEfficiency")]//Electric Efficiency
         public string OverallEfficiency;
         [KSPField]
         public string upgradeCostStr = "";
@@ -306,7 +306,7 @@ namespace FNPlugin
         public double _totalEff;
         [KSPField]
         public double capacityRatio;
-        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "Offscreen Power Generation", guiUnits = " kW")]
+        [KSPField(guiActiveEditor = true, guiActive = false, guiName = "#LOC_KSPIE_Generator_InitialGeneratorPowerEC", guiUnits = " kW")]//Offscreen Power Generation
         public double initialGeneratorPowerEC;
         [KSPField]
         public double maximumGeneratorPowerMJ;
@@ -933,7 +933,7 @@ namespace FNPlugin
                 MaxPowerStr = PluginHelper.getFormattedPowerString(maximumElectricPower, "0.0", "0.000");
             }
             else
-                OutputPower = "Generator Offline";
+                OutputPower = Localizer.Format("#LOC_KSPIE_Generator_Offline");//"Generator Offline"
 
             if (moduleGeneratorEfficienctBaseField != null)
             {
@@ -1235,7 +1235,7 @@ namespace FNPlugin
                         if (attachedPowerSource == null)
                         {
                             IsEnabled = false;
-                            var message = "Generator Shutdown: No Attached Power Source";
+                            var message = Localizer.Format("#LOC_KSPIE_Generator_Msg1");//"Generator Shutdown: No Attached Power Source"
                             Debug.Log("[KSPI]: " + message);
                             ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                             PowerDown();
@@ -1243,7 +1243,7 @@ namespace FNPlugin
                         else if ( !FNRadiator.hasRadiatorsForVessel(vessel))
                         {
                             IsEnabled = false;
-                            var message = "Generator Shutdown: No radiators available!";
+                            var message = Localizer.Format("#LOC_KSPIE_Generator_Msg2");//"Generator Shutdown: No radiators available!"
                             Debug.Log("[KSPI]: " + message);
                             ScreenMessages.PostScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
                             PowerDown();
@@ -1411,7 +1411,7 @@ namespace FNPlugin
             if (isLimitedByMinThrotle)
                 return base.getResourceManagerDisplayName();
 
-            var displayName = part.partInfo.title + " (generator)";
+            var displayName = part.partInfo.title + " "+Localizer.Format("#LOC_KSPIE_Generator_partdisplay");//(generator)
 
             if (similarParts == null)
             {

@@ -4,6 +4,7 @@ using FNPlugin.Resources;
 using System;
 using System.Linq;
 using UnityEngine;
+using KSP.Localization;
 
 namespace FNPlugin.Refinery
 {

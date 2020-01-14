@@ -22,9 +22,9 @@ namespace FNPlugin.Powermanagement
     [KSPModule("Super Capacitator")]
     class KspiSuperCapacitator : ResourceSuppliableModule
     {
-        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "Max Capacity", guiUnits = " MWe")]
+        [KSPField(isPersistant = false, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_MaxCapacity", guiUnits = " MWe")]//Max Capacity
         public float maxStorageCapacityMJ = 0;
-        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "Mass", guiUnits = " t")]
+        [KSPField(isPersistant = false, guiActive = true, guiActiveEditor = true, guiName = "#LOC_KSPIE_KspiSuperCapacitator_Mass", guiUnits = " t")]//Mass
         public float partMass = 0;
         [KSPField(guiActiveEditor = false)]
         public string powerResourceName = "Megajoules";

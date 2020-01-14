@@ -7,11 +7,11 @@ namespace FNPlugin.Power
     [KSPModule("Power Supply")]
     class InterstellarPowerSupply : ResourceSuppliableModule, IPowerSupply
     {
-        [KSPField(guiActive = true, guiName = "Total Power Supply", guiFormat = "F3", guiUnits = " MW")]
+        [KSPField(guiActive = true, guiName = "#LOC_KSPIE_InterstellarPowerSupply_TotalPowerSupply", guiFormat = "F3", guiUnits = " MW")]//Total Power Supply
         public double totalPowerSupply;
-        [KSPField(guiActive = false, guiName = "Proces")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_InterstellarPowerSupply_Proces")]//Proces
         public string displayName = "";
-        [KSPField(guiActive = false, guiName = "Power Priority")]
+        [KSPField(guiActive = false, guiName = "#LOC_KSPIE_InterstellarPowerSupply_PowerPriority")]//Power Priority
         public int powerPriority = 4;
 
         protected ResourceBuffers resourceBuffers;
