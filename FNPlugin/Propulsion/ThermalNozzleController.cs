@@ -2365,12 +2365,7 @@ namespace FNPlugin
 
         private float CurrentPowerThrustMultiplier
         {
-            get
-            {
-                return _currentpropellant_is_jet
-                    ? powerTrustMultiplierJet
-                    : powerTrustMultiplier;
-            }
+            get { return _currentpropellant_is_jet ? powerTrustMultiplierJet : powerTrustMultiplier; }
         }
 
         private double GetPowerThrustModifier()
